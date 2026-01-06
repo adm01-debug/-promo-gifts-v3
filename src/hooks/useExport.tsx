@@ -191,6 +191,6 @@ export function useExport<T extends Record<string, any>>() {
     exportCSV,
     exportExcel,
     exportPDF,
-    isExporting: exportCSV.isLoading || exportExcel.isLoading || exportPDF.isLoading,
+    isExporting: exportCSV.isPending || exportExcel.isPending || exportPDF.isPending,
   };
 }
