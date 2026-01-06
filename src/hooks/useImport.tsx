@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ImportConfig<T> {
   tableName: string;
@@ -200,6 +201,6 @@ export function useImport<T extends Record<string, any>>(config: ImportConfig<T>
 
   return {
     importData,
-    isImporting: importData.isLoading,
+    isImporting: importData.isPending,
   };
 }

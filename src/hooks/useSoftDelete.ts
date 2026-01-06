@@ -163,6 +163,6 @@ export function useSoftDelete<T extends { id: string; deleted_at?: string | null
     bulkSoftDelete,
     bulkRestore,
     deletedItems,
-    isLoadingDeleted: deletedItems.isLoading,
+    isLoadingDeleted: deletedItems.isPending,
   };
 }

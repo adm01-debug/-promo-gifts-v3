@@ -4,7 +4,7 @@
 // ============================================
 
 import { useState } from 'react';
-import { Trash2, Archive, FileDown, Copy, CheckSquare, Square } from 'lucide-react';
+import { Trash2, Archive, FileDown, Copy, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -17,7 +17,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { useBulkActions } from '@/hooks/useBulkActions';
 import { useSoftDelete } from '@/hooks/useSoftDelete';
 import { useDuplicate } from '@/hooks/useDuplicate';
 
@@ -46,8 +45,7 @@ export function BulkActionsToolbar<T extends { id: string }>({
 }: BulkActionsToolbarProps<T>) {
   const [action, setAction] = useState<'delete' | 'archive' | null>(null);
 
-  const { bulkDelete } = useBulkActions({ tableName, queryKey, entityName });
-  const { bulkSoftDelete } = useSoftDelete({ tableName, queryKey, entityName });
+  const { bulkSoftDelete, permanentDelete } = useSoftDelete({ tableName, queryKey, entityName });
   const { bulkDuplicate } = useDuplicate({ tableName, queryKey, entityName });
 
   if (selectedIds.length === 0) return null;
@@ -55,12 +53,12 @@ export function BulkActionsToolbar<T extends { id: string }>({
   const selectedItems = items.filter((item) => selectedIds.includes(item.id));
 
   const handleBulkDelete = () => {
-    bulkDelete.mutate(selectedIds, {
-      onSuccess: () => {
-        onClearSelection();
-        setAction(null);
-      },
+    // Deletar permanentemente todos selecionados
+    selectedIds.forEach((id) => {
+      permanentDelete.mutate(id);
     });
+    onClearSelection();
+    setAction(null);
   };
 
   const handleBulkArchive = () => {
@@ -86,6 +84,8 @@ export function BulkActionsToolbar<T extends { id: string }>({
     }
   };
 
+  const isLoading = bulkSoftDelete.isPending || bulkDuplicate.isPending || permanentDelete.isPending;
+
   return (
     <>
       <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-lg flex items-center justify-between">
@@ -101,7 +101,6 @@ export function BulkActionsToolbar<T extends { id: string }>({
               onClick={onSelectAll}
               className="text-primary-foreground hover:bg-primary-foreground/20"
             >
-              <CheckSquare className="h-4 w-4 mr-2" />
               Selecionar todos ({totalCount})
             </Button>
           )}
@@ -113,7 +112,7 @@ export function BulkActionsToolbar<T extends { id: string }>({
             variant="ghost"
             size="sm"
             onClick={() => setAction('archive')}
-            disabled={bulkSoftDelete.isLoading}
+            disabled={isLoading}
             className="text-primary-foreground hover:bg-primary-foreground/20"
           >
             <Archive className="h-4 w-4 mr-2" />
@@ -125,7 +124,7 @@ export function BulkActionsToolbar<T extends { id: string }>({
             variant="ghost"
             size="sm"
             onClick={handleBulkDuplicate}
-            disabled={bulkDuplicate.isLoading}
+            disabled={isLoading}
             className="text-primary-foreground hover:bg-primary-foreground/20"
           >
             <Copy className="h-4 w-4 mr-2" />
@@ -150,7 +149,7 @@ export function BulkActionsToolbar<T extends { id: string }>({
             variant="ghost"
             size="sm"
             onClick={() => setAction('delete')}
-            disabled={bulkDelete.isLoading}
+            disabled={isLoading}
             className="text-primary-foreground hover:bg-destructive/20"
           >
             <Trash2 className="h-4 w-4 mr-2" />
