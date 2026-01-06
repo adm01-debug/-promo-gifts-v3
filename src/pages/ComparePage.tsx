@@ -23,11 +23,14 @@ import {
   Check,
   Minus,
   Image as ImageIcon,
-  List
+  List,
+  Crown,
+  AlertTriangle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
+import { useComparisonHighlight, highlightClasses } from "@/components/compare/ComparisonHighlights";
 
 export default function ComparePage() {
   const navigate = useNavigate();
@@ -264,31 +267,16 @@ export default function ComparePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* Preço */}
-                    <TableRow>
-                      <TableCell className="font-medium bg-muted/50 sticky left-0">
-                        Preço Unitário
-                      </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
-                          <span className="text-lg font-bold text-primary">
-                            {formatCurrency(product.price)}
-                          </span>
-                        </TableCell>
-                      ))}
-                    </TableRow>
+                    {/* Preço - with highlight */}
+                    <HighlightedPriceRow 
+                      products={products} 
+                      formatCurrency={formatCurrency} 
+                    />
 
-                    {/* Quantidade Mínima */}
-                    <TableRow>
-                      <TableCell className="font-medium bg-muted/50 sticky left-0">
-                        Quantidade Mínima
-                      </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
-                          {product.minQuantity} un.
-                        </TableCell>
-                      ))}
-                    </TableRow>
+                    {/* Quantidade Mínima - with highlight */}
+                    <HighlightedMinQtyRow 
+                      products={products} 
+                    />
 
                     {/* SKU */}
                     <TableRow>
@@ -489,5 +477,79 @@ export default function ComparePage() {
         </Tabs>
       </div>
     </MainLayout>
+  );
+}
+
+// Highlighted Price Row Component
+function HighlightedPriceRow({ 
+  products, 
+  formatCurrency 
+}: { 
+  products: any[]; 
+  formatCurrency: (v: number) => string;
+}) {
+  const prices = products.map(p => p.price);
+  const highlights = useComparisonHighlight(prices, "lower-is-better");
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium bg-muted/50 sticky left-0">
+        Preço Unitário
+      </TableCell>
+      {products.map((product, idx) => (
+        <TableCell 
+          key={product.id} 
+          className={cn("text-center", highlightClasses[highlights[idx]])}
+        >
+          <div className="flex items-center justify-center gap-1">
+            {highlights[idx] === "best" && (
+              <Crown className="h-4 w-4 text-success" />
+            )}
+            <span className={cn(
+              "text-lg font-bold",
+              highlights[idx] === "best" ? "text-success" : 
+              highlights[idx] === "worst" ? "text-destructive" : "text-primary"
+            )}>
+              {formatCurrency(product.price)}
+            </span>
+            {highlights[idx] === "worst" && (
+              <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+            )}
+          </div>
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+}
+
+// Highlighted Min Quantity Row Component
+function HighlightedMinQtyRow({ products }: { products: any[] }) {
+  const quantities = products.map(p => p.minQuantity);
+  const highlights = useComparisonHighlight(quantities, "lower-is-better");
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium bg-muted/50 sticky left-0">
+        Quantidade Mínima
+      </TableCell>
+      {products.map((product, idx) => (
+        <TableCell 
+          key={product.id} 
+          className={cn("text-center", highlightClasses[highlights[idx]])}
+        >
+          <div className="flex items-center justify-center gap-1">
+            {highlights[idx] === "best" && (
+              <Crown className="h-3.5 w-3.5 text-success" />
+            )}
+            <span className={cn(
+              highlights[idx] === "best" ? "font-semibold text-success" :
+              highlights[idx] === "worst" ? "text-destructive" : ""
+            )}>
+              {product.minQuantity} un.
+            </span>
+          </div>
+        </TableCell>
+      ))}
+    </TableRow>
   );
 }
