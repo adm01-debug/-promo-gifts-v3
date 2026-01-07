@@ -200,13 +200,18 @@ export function MockupHistoryGrid({
         </div>
       )}
 
-      {/* Grid */}
+      {/* Grid with staggered animation */}
       {paginatedMockups.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {paginatedMockups.map((mockup) => (
+        <div 
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+          role="list"
+          aria-label="Histórico de mockups"
+        >
+          {paginatedMockups.map((mockup, index) => (
             <MockupHistoryCard
               key={mockup.id}
               mockup={mockup}
+              index={index}
               onLoad={() => onLoad(mockup)}
               onDownload={() => onDownload(mockup.mockup_url)}
               onDelete={() => onDelete(mockup.id)}
@@ -270,60 +275,127 @@ export function MockupHistoryGrid({
   );
 }
 
-// Individual mockup card
+// Individual mockup card with stagger animation and keyboard navigation
 function MockupHistoryCard({
   mockup,
+  index = 0,
   onLoad,
   onDownload,
   onDelete,
 }: {
   mockup: GeneratedMockup;
+  index?: number;
   onLoad: () => void;
   onDownload: () => void;
   onDelete: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const showActions = isHovered || isFocused;
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        onLoad();
+        break;
+      case 'd':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          onDownload();
+        }
+        break;
+      case 'Delete':
+      case 'Backspace':
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          onDelete();
+        }
+        break;
+    }
+  };
 
   return (
     <div
+      role="listitem"
+      tabIndex={0}
+      aria-label={`Mockup de ${mockup.product_name} com ${mockup.technique_name}`}
       className={cn(
         "group relative rounded-xl border border-border bg-card overflow-hidden",
-        "transition-all duration-200",
-        "hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5"
+        "transition-all duration-300 ease-out",
+        "hover:shadow-lg hover:border-primary/30 hover:-translate-y-1",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+        "animate-fade-in opacity-0 [animation-fill-mode:forwards]"
       )}
+      style={{ animationDelay: `${index * 50}ms` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      onKeyDown={handleKeyDown}
     >
       {/* Image */}
       <div className="aspect-square bg-muted/30 relative overflow-hidden">
         <img
           src={mockup.mockup_url}
-          alt={mockup.product_name}
+          alt={`Mockup: ${mockup.product_name}`}
           className={cn(
             "w-full h-full object-contain transition-transform duration-300",
-            isHovered && "scale-105"
+            showActions && "scale-105"
           )}
           loading="lazy"
         />
         
-        {/* Hover overlay with actions */}
-        <div className={cn(
-          "absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent",
-          "flex items-end justify-center gap-2 p-3",
-          "transition-opacity duration-200",
-          isHovered ? "opacity-100" : "opacity-0"
-        )}>
-          <Button size="sm" variant="secondary" onClick={onLoad} className="h-8">
+        {/* Hover/Focus overlay with actions */}
+        <div 
+          className={cn(
+            "absolute inset-0 bg-gradient-to-t from-background/95 via-background/40 to-transparent",
+            "flex items-end justify-center gap-2 p-3",
+            "transition-all duration-200",
+            showActions ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+          aria-hidden={!showActions}
+        >
+          <Button 
+            size="sm" 
+            variant="secondary" 
+            onClick={(e) => { e.stopPropagation(); onLoad(); }} 
+            className="h-8 shadow-md"
+            tabIndex={showActions ? 0 : -1}
+          >
             <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
             Carregar
           </Button>
-          <Button size="icon" variant="secondary" onClick={onDownload} className="h-8 w-8">
+          <Button 
+            size="icon" 
+            variant="secondary" 
+            onClick={(e) => { e.stopPropagation(); onDownload(); }} 
+            className="h-8 w-8 shadow-md"
+            tabIndex={showActions ? 0 : -1}
+            aria-label="Baixar mockup"
+          >
             <Download className="h-3.5 w-3.5" />
           </Button>
-          <Button size="icon" variant="destructive" onClick={onDelete} className="h-8 w-8">
+          <Button 
+            size="icon" 
+            variant="destructive" 
+            onClick={(e) => { e.stopPropagation(); onDelete(); }} 
+            className="h-8 w-8 shadow-md"
+            tabIndex={showActions ? 0 : -1}
+            aria-label="Excluir mockup"
+          >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
+
+        {/* Keyboard hint on focus */}
+        {isFocused && (
+          <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-background/90 rounded text-[9px] text-muted-foreground backdrop-blur-sm">
+            Enter para carregar
+          </div>
+        )}
       </div>
       
       {/* Info */}
@@ -332,8 +404,8 @@ function MockupHistoryCard({
           {mockup.product_name}
         </p>
         
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-medium">
             {mockup.technique_name}
           </Badge>
           {mockup.bitrix_clients?.name && (
@@ -344,11 +416,13 @@ function MockupHistoryCard({
         </div>
         
         <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Clock className="h-3 w-3" />
-          {formatDistanceToNow(new Date(mockup.created_at), {
-            addSuffix: true,
-            locale: ptBR,
-          })}
+          <Clock className="h-3 w-3 flex-shrink-0" />
+          <time dateTime={mockup.created_at}>
+            {formatDistanceToNow(new Date(mockup.created_at), {
+              addSuffix: true,
+              locale: ptBR,
+            })}
+          </time>
         </div>
       </div>
     </div>
