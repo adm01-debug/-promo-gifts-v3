@@ -600,10 +600,10 @@ export default function MockupGenerator() {
               ) : lastSaved ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
+                    <span className="inline-flex"><Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
                       <Cloud className="h-3 w-3 text-green-500" />
                       Salvo automaticamente
-                    </Badge>
+                    </Badge></span>
                   </TooltipTrigger>
                   <TooltipContent>
                     Último salvamento: {format(lastSaved, "HH:mm:ss", { locale: ptBR })}
@@ -612,10 +612,12 @@ export default function MockupGenerator() {
               ) : draftError ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
-                      <CloudOff className="h-3 w-3" />
-                      Erro ao salvar
-                    </Badge>
+                    <span className="inline-flex">
+                      <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
+                        <CloudOff className="h-3 w-3" />
+                        Erro ao salvar
+                      </Badge>
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent>{draftError}</TooltipContent>
                 </Tooltip>
@@ -1089,7 +1091,7 @@ export default function MockupGenerator() {
                             <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <p className="font-medium text-sm truncate cursor-default">{mockup.product_name}</p>
+                                  <span className="font-medium text-sm truncate cursor-default block">{mockup.product_name}</span>
                                 </TooltipTrigger>
                                 <TooltipContent side="top">
                                   <p>{mockup.product_name}</p>
