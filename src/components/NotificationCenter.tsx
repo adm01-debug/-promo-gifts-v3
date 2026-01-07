@@ -1,4 +1,5 @@
 import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Popover,
   PopoverContent,
@@ -13,6 +14,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 export function NotificationCenter() {
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
@@ -75,7 +77,12 @@ export function NotificationCenter() {
                   onClick={() => {
                     markAsRead(notif.id);
                     if (notif.action_url) {
-                      window.location.href = notif.action_url;
+                      // Use navigate for internal routes, window.location for external URLs
+                      if (notif.action_url.startsWith('/')) {
+                        navigate(notif.action_url);
+                      } else {
+                        window.location.href = notif.action_url;
+                      }
                     }
                   }}
                 >
