@@ -109,9 +109,10 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-2xl bg-card border border-border/50 cursor-pointer",
+        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card border border-border/50 cursor-pointer",
         "transition-all duration-500 ease-out",
-        "hover:border-primary/30 hover:shadow-xl hover:-translate-y-2",
+        "hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 sm:hover:-translate-y-2",
+        "active:scale-[0.98] touch-manipulation",
         product.featured && "ring-2 ring-primary/20 shadow-lg",
         hasHighlightedColor && "ring-2 ring-success/40 shadow-glow-success"
       )}
@@ -153,26 +154,29 @@ export function ProductCard({
         )}
 
         {/* Badges - Top Left */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-col gap-1 sm:gap-1.5 z-10">
           {product.featured && (
-            <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground text-xs shadow-lg animate-glow-pulse">
-              <Sparkles className="h-3 w-3 mr-1" />
-              Destaque
+            <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-lg animate-glow-pulse">
+              <Sparkles className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+              <span className="hidden sm:inline">Destaque</span>
+              <span className="sm:hidden">★</span>
             </Badge>
           )}
           {product.newArrival && (
-            <Badge className="bg-gradient-to-r from-info to-info/80 text-info-foreground text-xs shadow-md">
-              Novidade
+            <Badge className="bg-gradient-to-r from-info to-info/80 text-info-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-md">
+              <span className="hidden sm:inline">Novidade</span>
+              <span className="sm:hidden">Novo</span>
             </Badge>
           )}
           {product.onSale && (
-            <Badge className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground text-xs shadow-md animate-pulse">
-              Promoção
+            <Badge className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-md animate-pulse">
+              <span className="hidden sm:inline">Promoção</span>
+              <span className="sm:hidden">%</span>
             </Badge>
           )}
           {product.isKit && (
-            <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground text-xs shadow-md">
-              <Layers className="h-3 w-3 mr-1" />
+            <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-md">
+              <Layers className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
               KIT
             </Badge>
           )}
@@ -332,44 +336,45 @@ export function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
         {/* Category & Supplier */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs text-muted-foreground font-medium truncate">
+        <div className="flex items-center justify-between gap-1 sm:gap-2">
+          <span className="text-[10px] sm:text-xs text-muted-foreground font-medium truncate">
             {product.category.icon} {product.category.name}
           </span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium shrink-0">
+          <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium shrink-0">
             {product.supplier.name}
           </span>
         </div>
 
         {/* Name */}
-        <h3 className="font-display font-semibold text-foreground line-clamp-2 min-h-[2.75rem] leading-snug group-hover:text-primary transition-colors duration-300">
+        <h3 className="font-display font-semibold text-foreground line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem] text-sm sm:text-base leading-snug group-hover:text-primary transition-colors duration-300">
           {product.name}
         </h3>
 
         {/* Price & Stock */}
-        <div className="flex items-end justify-between pt-1">
+        <div className="flex items-end justify-between pt-0.5 sm:pt-1">
           <div>
-            <p className="text-xs text-muted-foreground mb-0.5">A partir de</p>
-            <span className="text-xl font-display font-bold text-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">A partir de</p>
+            <span className="text-base sm:text-xl font-display font-bold text-foreground">
               {formatPrice(product.price)}
             </span>
           </div>
 
-          <div className="flex flex-col items-end gap-1">
-            <span className={cn("stock-indicator", getStockStatusColor(product.stockStatus))}>
-              <Package className="h-3 w-3" />
-              {getStockStatusLabel(product.stockStatus)}
+          <div className="flex flex-col items-end gap-0.5 sm:gap-1">
+            <span className={cn("stock-indicator text-[10px] sm:text-xs", getStockStatusColor(product.stockStatus))}>
+              <Package className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              <span className="hidden sm:inline">{getStockStatusLabel(product.stockStatus)}</span>
+              <span className="sm:hidden">{product.stockStatus === 'in-stock' ? '✓' : product.stockStatus === 'low-stock' ? '!' : '✗'}</span>
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[10px] sm:text-xs text-muted-foreground">
               {product.stock.toLocaleString('pt-BR')} un.
             </span>
           </div>
         </div>
 
-        {/* Materials */}
-        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/50">
+        {/* Materials - Hidden on mobile */}
+        <div className="hidden sm:flex flex-wrap gap-1.5 pt-2 border-t border-border/50">
           {product.materials.slice(0, 2).map((material) => (
             <span
               key={material}

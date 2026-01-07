@@ -151,18 +151,18 @@ export default function ClientList() {
 
   return (
     <MainLayout>
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-foreground">
               Clientes
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-muted-foreground text-sm sm:text-base mt-1">
               {isLoading ? "Carregando..." : `${filteredClients.length} cliente(s) encontrado(s)`}
             </p>
           </div>
-          <Button variant="outline" className="gap-2" onClick={loadClients} disabled={isLoading}>
+          <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={loadClients} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             Atualizar
           </Button>
@@ -181,11 +181,11 @@ export default function ClientList() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="list" className="mt-6 space-y-6">
+          <TabsContent value="list" className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
             {/* Search & Filters */}
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="search-bar flex-1 max-w-md">
-                <Search className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="search-bar flex-1">
+                <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Input
                   type="search"
                   placeholder="Buscar clientes..."
@@ -197,8 +197,8 @@ export default function ClientList() {
 
               <div className="flex gap-2 flex-wrap">
                 <Select value={ramoFilter} onValueChange={setRamoFilter}>
-                  <SelectTrigger className="w-[150px]">
-                    <Filter className="h-4 w-4 mr-2" />
+                  <SelectTrigger className="w-full sm:w-[150px]">
+                    <Filter className="h-4 w-4 mr-2 shrink-0" />
                     <SelectValue placeholder="Ramo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -212,7 +212,7 @@ export default function ClientList() {
                 </Select>
 
                 <Select value={nichoFilter} onValueChange={setNichoFilter}>
-                  <SelectTrigger className="w-[150px]">
+                  <SelectTrigger className="w-full sm:w-[150px]">
                     <SelectValue placeholder="Nicho" />
                   </SelectTrigger>
                   <SelectContent>
@@ -236,29 +236,29 @@ export default function ClientList() {
 
             {/* Client list */}
             {isLoading ? (
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:gap-4">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="card p-4 flex items-center gap-4">
-                    <Skeleton className="w-14 h-14 rounded-xl" />
+                  <div key={i} className="card p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
+                    <Skeleton className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl shrink-0" />
                     <div className="flex-1 space-y-2">
-                      <Skeleton className="h-5 w-48" />
-                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 sm:h-5 w-32 sm:w-48" />
+                      <Skeleton className="h-3 sm:h-4 w-24 sm:w-32" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="grid gap-4">
+              <div className="grid gap-3 sm:gap-4">
                 {paginatedClients.map((client, index) => (
                   <div
                     key={client.id}
-                    className="card-interactive p-4 flex items-center gap-4 cursor-pointer animate-fade-in"
+                    className="card-interactive p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer animate-fade-in"
                     style={{ animationDelay: `${index * 50}ms` }}
                     onClick={() => navigate(`/clientes/${client.id}`)}
                   >
                     {/* Logo */}
                     <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-display font-bold text-xl shrink-0"
+                      className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white font-display font-bold text-base sm:text-xl shrink-0"
                       style={{ backgroundColor: client.primary_color_hex || "hsl(var(--primary))" }}
                     >
                       {client.name.charAt(0).toUpperCase()}
@@ -266,35 +266,41 @@ export default function ClientList() {
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-display font-semibold text-foreground truncate">
+                      <h3 className="font-display font-semibold text-sm sm:text-base text-foreground truncate">
                         {client.name}
                       </h3>
-                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <div className="flex items-center gap-1.5 sm:gap-2 mt-1 flex-wrap">
                         {client.ramo && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 sm:px-2">
                             {client.ramo}
                           </Badge>
                         )}
                         {client.nicho && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 sm:px-2 hidden sm:inline-flex">
                             {client.nicho}
                           </Badge>
                         )}
                       </div>
                     </div>
 
-                    {/* Stats */}
-                    <div className="hidden md:flex items-center gap-6">
+                    {/* Stats - Show price on mobile, full stats on desktop */}
+                    <div className="flex items-center gap-2 sm:hidden">
+                      <span className="text-xs font-semibold text-success">
+                        {formatCurrency(client.total_spent)}
+                      </span>
+                    </div>
+                    
+                    <div className="hidden sm:flex items-center gap-4 lg:gap-6">
                       <div className="text-right">
                         <div className="flex items-center gap-1 text-success">
                           <DollarSign className="h-4 w-4" />
-                          <span className="font-semibold">{formatCurrency(client.total_spent)}</span>
+                          <span className="font-semibold text-sm lg:text-base">{formatCurrency(client.total_spent)}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">Total gasto</p>
+                        <p className="text-[10px] lg:text-xs text-muted-foreground">Total gasto</p>
                       </div>
 
                       {client.last_purchase_date && (
-                        <div className="text-right">
+                        <div className="text-right hidden lg:block">
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Calendar className="h-4 w-4" />
                             <span className="text-sm">
@@ -310,14 +316,14 @@ export default function ClientList() {
                       {/* Color swatch */}
                       {client.primary_color_hex && (
                         <div
-                          className="w-6 h-6 rounded-full border border-border"
+                          className="w-5 h-5 lg:w-6 lg:h-6 rounded-full border border-border hidden md:block"
                           style={{ backgroundColor: client.primary_color_hex }}
                           title={client.primary_color_name || "Cor principal"}
                         />
                       )}
                     </div>
 
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
                   </div>
                 ))}
               </div>

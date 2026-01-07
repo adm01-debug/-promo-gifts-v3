@@ -1187,6 +1187,107 @@
   }
 
   /* ============================================
+     RESPONSIVE UTILITIES
+     ============================================ */
+
+  /* Responsive container */
+  .container-responsive {
+    @apply w-full px-4 sm:px-6 lg:px-8 mx-auto;
+    max-width: min(100%, 1400px);
+  }
+
+  /* Responsive grid for forms */
+  .form-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  /* Responsive table container */
+  .table-responsive {
+    @apply w-full overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0;
+  }
+
+  /* Mobile-first stack to row */
+  .stack-to-row {
+    @apply flex flex-col gap-4 sm:flex-row sm:items-center;
+  }
+
+  /* Hide on mobile, show on desktop */
+  .desktop-only {
+    @apply hidden lg:flex;
+  }
+
+  /* Show on mobile, hide on desktop */
+  .mobile-only {
+    @apply flex lg:hidden;
+  }
+
+  /* Responsive text sizes */
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-base sm:text-lg lg:text-xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+
+  .text-responsive-2xl {
+    @apply text-xl sm:text-2xl lg:text-3xl;
+  }
+
+  .text-responsive-3xl {
+    @apply text-2xl sm:text-3xl lg:text-4xl;
+  }
+
+  /* Responsive modal */
+  .modal-responsive {
+    @apply w-[95vw] max-w-lg sm:w-full max-h-[90vh] overflow-y-auto;
+  }
+
+  .modal-responsive-lg {
+    @apply w-[95vw] max-w-2xl sm:w-full max-h-[90vh] overflow-y-auto;
+  }
+
+  .modal-responsive-xl {
+    @apply w-[95vw] max-w-4xl sm:w-full max-h-[90vh] overflow-y-auto;
+  }
+
+  /* Responsive card grid */
+  .card-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .card-grid-compact {
+    @apply grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5;
+  }
+
+  /* Responsive spacing */
+  .section-padding {
+    @apply py-6 sm:py-8 lg:py-12;
+  }
+
+  .page-padding {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  /* Responsive button group */
+  .btn-group-responsive {
+    @apply flex flex-col gap-2 w-full sm:flex-row sm:w-auto;
+  }
+
+  .btn-group-responsive > button,
+  .btn-group-responsive > a {
+    @apply w-full sm:w-auto;
+  }
+
+  /* ============================================
      LOADING STATES
      ============================================ */
 

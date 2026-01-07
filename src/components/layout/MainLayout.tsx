@@ -43,7 +43,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           
           <main 
             id="main-content" 
-            className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6" 
+            className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 sm:pb-20 lg:pb-6" 
             role="main"
             aria-label="Conteúdo principal"
           >
@@ -53,7 +53,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           </main>
           
           {/* Restart Tour Button - fixed position */}
-          <div className="fixed bottom-20 lg:bottom-4 left-4 z-40">
+          <div className="fixed bottom-24 sm:bottom-20 lg:bottom-4 left-3 sm:left-4 z-40">
             <RestartTourButton />
           </div>
           

@@ -55,28 +55,28 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
 
   return (
-    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
-      <div className="flex items-center justify-between h-14 px-4 lg:px-6">
+    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-sm safe-area-top">
+      <div className="flex items-center justify-between h-12 sm:h-14 px-2 sm:px-4 lg:px-6">
         {/* Left section - Logo & Menu */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden hover:bg-orange/10 hover:text-orange"
+            className="lg:hidden hover:bg-orange/10 hover:text-orange h-9 w-9 sm:h-10 sm:w-10"
             onClick={onMenuToggle}
           >
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-orange flex items-center justify-center shadow-md">
-              <Sparkles className="h-4 w-4 text-orange-foreground" />
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-orange flex items-center justify-center shadow-md">
+              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-foreground" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="font-display text-base font-bold text-foreground leading-tight">
+              <h1 className="font-display text-sm sm:text-base font-bold text-foreground leading-tight">
                 Promo
               </h1>
-              <p className="text-[10px] text-orange font-medium uppercase tracking-wider -mt-0.5">
+              <p className="text-[9px] sm:text-[10px] text-orange font-medium uppercase tracking-wider -mt-0.5">
                 Brindes
               </p>
             </div>
@@ -89,9 +89,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-1.5">
-          {/* Gamification indicators */}
-          <div data-tour="gamification">
+        <div className="flex items-center gap-0.5 sm:gap-1.5">
+          {/* Gamification indicators - hidden on very small screens */}
+          <div data-tour="gamification" className="hidden xs:block">
             <GamificationIndicators />
           </div>
 
@@ -99,9 +99,8 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           <Button 
             variant="ghost" 
             size="icon" 
-            className="md:hidden h-9 w-9 hover:bg-orange/10 hover:text-orange"
+            className="md:hidden h-8 w-8 sm:h-9 sm:w-9 hover:bg-orange/10 hover:text-orange"
             onClick={() => {
-              // Trigger Ctrl+K programmatically for mobile
               const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
               document.dispatchEvent(event);
             }}
@@ -114,10 +113,10 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="relative h-9 w-9 hover:bg-orange/10 hover:text-orange"
+            className="relative h-8 w-8 sm:h-9 sm:w-9 hover:bg-orange/10 hover:text-orange"
           >
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-3.5 w-3.5 sm:h-4 sm:w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Alternar tema</span>
           </Button>
 
