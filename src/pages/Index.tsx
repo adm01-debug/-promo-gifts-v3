@@ -1,6 +1,20 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, TrendingUp, Users, Layers, Filter, ArrowUpDown, LayoutGrid, List, User, X, Palette, Sparkles, Loader2 } from "lucide-react";
+import {
+  Package,
+  TrendingUp,
+  Users,
+  Layers,
+  Filter,
+  ArrowUpDown,
+  LayoutGrid,
+  List,
+  User,
+  X,
+  Palette,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 import { ExpertChatButton } from "@/components/expert/ExpertChatButton";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -23,8 +37,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 
-type ViewMode = 'grid' | 'list';
-type SortOption = 'name' | 'price-asc' | 'price-desc' | 'stock' | 'newest' | 'color-match';
+type ViewMode = "grid" | "list";
+type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
 
 export default function Index() {
   const navigate = useNavigate();
@@ -33,8 +47,8 @@ export default function Index() {
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch();
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortBy, setSortBy] = useState<SortOption>('name');
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [sortBy, setSortBy] = useState<SortOption>("name");
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [clientModalOpen, setClientModalOpen] = useState(false);
@@ -66,7 +80,7 @@ export default function Index() {
     if (isLoadingMore) return;
     setIsLoadingMore(true);
     setTimeout(() => {
-      setDisplayCount(prev => prev + ITEMS_PER_PAGE);
+      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
       setIsLoadingMore(false);
     }, 300);
   }, [isLoadingMore]);
@@ -82,7 +96,7 @@ export default function Index() {
           loadMore();
         }
       },
-      { threshold: 0.1, rootMargin: '100px' }
+      { threshold: 0.1, rootMargin: "100px" },
     );
 
     observer.observe(currentRef);
@@ -118,8 +132,8 @@ export default function Index() {
   // Calculate color match score for a product
   const getColorMatchScore = (product: Product): number => {
     if (!selectedClient) return 0;
-    const clientColors = [selectedClient.primaryColor.group, ...selectedClient.secondaryColors.map(c => c.group)];
-    const matchCount = product.colors.filter(c => clientColors.includes(c.group)).length;
+    const clientColors = [selectedClient.primaryColor.group, ...selectedClient.secondaryColors.map((c) => c.group)];
+    const matchCount = product.colors.filter((c) => clientColors.includes(c.group)).length;
     return matchCount;
   };
 
@@ -130,42 +144,35 @@ export default function Index() {
     // Text search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      result = result.filter((p) =>
-        p.name.toLowerCase().includes(query) ||
-        p.category.name.toLowerCase().includes(query) ||
-        p.materials.some((m) => m.toLowerCase().includes(query)) ||
-        p.tags.datasComemorativas.some((d) => d.toLowerCase().includes(query)) ||
-        p.tags.publicoAlvo.some((pa) => pa.toLowerCase().includes(query))
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(query) ||
+          p.category.name.toLowerCase().includes(query) ||
+          p.materials.some((m) => m.toLowerCase().includes(query)) ||
+          p.tags.datasComemorativas.some((d) => d.toLowerCase().includes(query)) ||
+          p.tags.publicoAlvo.some((pa) => pa.toLowerCase().includes(query)),
       );
     }
 
     // Aplicar filtros
     if (filters.colors.length) {
-      result = result.filter((p) =>
-        p.colors.some((c) => filters.colors.includes(c.name))
-      );
+      result = result.filter((p) => p.colors.some((c) => filters.colors.includes(c.name)));
     }
 
     if (filters.categories.length) {
-      result = result.filter((p) =>
-        filters.categories.includes(p.category.id)
-      );
+      result = result.filter((p) => filters.categories.includes(p.category.id));
     }
 
     if (filters.suppliers.length) {
-      result = result.filter((p) =>
-        filters.suppliers.includes(p.supplier.id)
-      );
+      result = result.filter((p) => filters.suppliers.includes(p.supplier.id));
     }
 
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
-      result = result.filter(
-        (p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]
-      );
+      result = result.filter((p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]);
     }
 
     if (filters.inStock) {
-      result = result.filter((p) => p.stockStatus !== 'out-of-stock');
+      result = result.filter((p) => p.stockStatus !== "out-of-stock");
     }
 
     if (filters.isKit) {
@@ -177,29 +184,27 @@ export default function Index() {
     }
 
     if (filters.materiais.length) {
-      result = result.filter((p) =>
-        p.materials.some((m) => filters.materiais.includes(m))
-      );
+      result = result.filter((p) => p.materials.some((m) => filters.materiais.includes(m)));
     }
 
     // Ordenar
     switch (sortBy) {
-      case 'name':
+      case "name":
         result.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'price-asc':
+      case "price-asc":
         result.sort((a, b) => a.price - b.price);
         break;
-      case 'price-desc':
+      case "price-desc":
         result.sort((a, b) => b.price - a.price);
         break;
-      case 'stock':
+      case "stock":
         result.sort((a, b) => b.stock - a.stock);
         break;
-      case 'newest':
+      case "newest":
         result.sort((a, b) => (b.newArrival ? 1 : 0) - (a.newArrival ? 1 : 0));
         break;
-      case 'color-match':
+      case "color-match":
         result.sort((a, b) => getColorMatchScore(b) - getColorMatchScore(a));
         break;
     }
@@ -221,85 +226,85 @@ export default function Index() {
   const quickFilters: QuickFilter[] = useMemo(
     () => [
       {
-        id: 'all',
-        label: 'Todos',
+        id: "all",
+        label: "Todos",
         icon: <Layers className="h-4 w-4" />,
         filter: {},
       },
       {
-        id: 'featured',
-        label: 'Destaques',
+        id: "featured",
+        label: "Destaques",
         icon: <Sparkles className="h-4 w-4" />,
         filter: { featured: true },
       },
       {
-        id: 'new',
-        label: 'Novidades',
+        id: "new",
+        label: "Novidades",
         icon: <TrendingUp className="h-4 w-4" />,
         filter: { newArrival: true },
       },
       {
-        id: 'kits',
-        label: 'Kits',
+        id: "kits",
+        label: "Kits",
         icon: <Package className="h-4 w-4" />,
         filter: { isKit: true },
       },
     ],
-    []
+    [],
   );
 
   // Stats
   const stats = useMemo(
     () => [
       {
-        label: 'Total de Produtos',
+        label: "Total de Produtos",
         value: filteredProducts.length,
         icon: <Package className="h-4 w-4" />,
       },
       {
-        label: 'Categorias',
+        label: "Categorias",
         value: CATEGORIES.length,
         icon: <Layers className="h-4 w-4" />,
       },
       {
-        label: 'Fornecedores',
+        label: "Fornecedores",
         value: SUPPLIERS.length,
         icon: <Users className="h-4 w-4" />,
       },
       {
-        label: 'Favoritos',
+        label: "Favoritos",
         value: favoriteCount,
         icon: <TrendingUp className="h-4 w-4" />,
       },
     ],
-    [filteredProducts, favoriteCount]
+    [filteredProducts, favoriteCount],
   );
 
   // Handlers
   const handleQuickFilter = (filter: QuickFilter) => {
     setActiveQuickFilterId(filter.id);
-    
-    if (filter.id === 'all') {
+
+    if (filter.id === "all") {
       setFilters(defaultFilters);
-      setSortBy('name');
+      setSortBy("name");
       return;
     }
-    
+
     const newFilters = { ...defaultFilters };
-    if ('featured' in filter.filter) newFilters.featured = true;
-    if ('isKit' in filter.filter) newFilters.isKit = true;
-    
+    if ("featured" in filter.filter) newFilters.featured = true;
+    if ("isKit" in filter.filter) newFilters.isKit = true;
+
     setFilters(newFilters);
-    
-    if ('newArrival' in filter.filter) {
-      setSortBy('newest');
+
+    if ("newArrival" in filter.filter) {
+      setSortBy("newest");
     }
   };
 
   const resetFilters = () => {
     setFilters(defaultFilters);
     setActiveQuickFilterId(undefined);
-    setSortBy('name');
+    setSortBy("name");
   };
 
   const handleViewProduct = (productId: string) => {
@@ -347,14 +352,12 @@ export default function Index() {
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">
-                Catálogo de Produtos
-              </h1>
+              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">Catálogo de Produtos</h1>
               <p className="text-muted-foreground text-sm sm:text-base mt-1">
                 Explore nossa coleção completa de brindes corporativos
               </p>
             </div>
-            
+
             {/* Search with Suggestions */}
             <SearchWithSuggestions
               placeholder="Buscar produtos, categorias..."
@@ -364,7 +367,7 @@ export default function Index() {
                 if (query) addToHistory(query);
                 setTimeout(() => setIsSearching(false), 300);
               }}
-              suggestions={suggestions.map(s => s.label)}
+              suggestions={suggestions.map((s) => s.label)}
               recentSearches={history}
               isLoading={isSearching}
               enableVoice
@@ -377,9 +380,7 @@ export default function Index() {
             {stats.map((stat, index) => (
               <Card key={index} className="card-interactive">
                 <CardContent className="p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary">
-                    {stat.icon}
-                  </div>
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary">{stat.icon}</div>
                   <div className="min-w-0">
                     <p className="text-lg sm:text-2xl font-bold truncate">{stat.value}</p>
                     <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
@@ -417,11 +418,7 @@ export default function Index() {
                     </div>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedClient(null)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => setSelectedClient(null)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -438,13 +435,9 @@ export default function Index() {
               onFilterClick={handleQuickFilter}
             />
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setClientModalOpen(true)}
-            className="lg:w-auto"
-          >
+          <Button variant="outline" onClick={() => setClientModalOpen(true)} className="lg:w-auto">
             <User className="h-4 w-4 mr-2" />
-            {selectedClient ? 'Trocar Cliente' : 'Filtrar por Cliente'}
+            {selectedClient ? "Trocar Cliente" : "Filtrar por Cliente"}
           </Button>
         </div>
 
@@ -489,9 +482,7 @@ export default function Index() {
                     <SelectItem value="price-desc">Maior Preço</SelectItem>
                     <SelectItem value="stock">Maior Estoque</SelectItem>
                     <SelectItem value="newest">Novidades</SelectItem>
-                    {selectedClient && (
-                      <SelectItem value="color-match">Cores Compatíveis</SelectItem>
-                    )}
+                    {selectedClient && <SelectItem value="color-match">Cores Compatíveis</SelectItem>}
                   </SelectContent>
                 </Select>
               </div>
@@ -501,22 +492,16 @@ export default function Index() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn(
-                    "h-8 w-8",
-                    viewMode === 'grid' && "bg-card shadow-sm"
-                  )}
-                  onClick={() => setViewMode('grid')}
+                  className={cn("h-8 w-8", viewMode === "grid" && "bg-card shadow-sm")}
+                  onClick={() => setViewMode("grid")}
                 >
                   <LayoutGrid className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn(
-                    "h-8 w-8",
-                    viewMode === 'list' && "bg-card shadow-sm"
-                  )}
-                  onClick={() => setViewMode('list')}
+                  className={cn("h-8 w-8", viewMode === "list" && "bg-card shadow-sm")}
+                  onClick={() => setViewMode("list")}
                 >
                   <List className="h-4 w-4" />
                 </Button>
@@ -586,12 +571,12 @@ export default function Index() {
 
             {/* Product grid or list */}
             {isLoading ? (
-              viewMode === 'grid' ? (
+              viewMode === "grid" ? (
                 <ProductGridSkeleton count={8} />
               ) : (
                 <ProductListSkeleton count={6} />
               )
-            ) : viewMode === 'grid' ? (
+            ) : viewMode === "grid" ? (
               <ProductGrid
                 products={paginatedProducts}
                 onProductClick={(productId) => navigate(`/produto/${productId}`)}
@@ -657,10 +642,7 @@ export default function Index() {
       />
 
       {/* Expert Chat Button */}
-      <ExpertChatButton 
-        clientId={selectedClient?.id} 
-        clientName={selectedClient?.name} 
-      />
+      <ExpertChatButton clientId={selectedClient?.id} clientName={selectedClient?.name} />
     </MainLayout>
   );
 }
