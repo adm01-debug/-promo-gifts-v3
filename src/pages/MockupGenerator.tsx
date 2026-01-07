@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
+import { AIMockupAssistant } from "@/components/ai";
 import { MultiAreaManager, PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 import { useGamification } from "@/hooks/useGamification";
 import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";
@@ -1120,6 +1121,12 @@ export default function MockupGenerator() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* AI Mockup Assistant */}
+      <AIMockupAssistant
+        productName={products.find(p => p.id === selectedProduct)?.name}
+        techniqueName={techniques.find(t => t.id === selectedTechnique)?.name}
+      />
     </MainLayout>
   );
 }
