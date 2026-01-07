@@ -1774,8 +1774,13 @@ export type Database = {
           color_hex: string | null
           color_name: string | null
           created_at: string
+          display_order: number | null
           id: string
           notes: string | null
+          personalization_colors: number | null
+          personalization_notes: string | null
+          personalization_price: number | null
+          personalization_type: string | null
           product_id: string | null
           product_image_url: string | null
           product_name: string
@@ -1791,8 +1796,13 @@ export type Database = {
           color_hex?: string | null
           color_name?: string | null
           created_at?: string
+          display_order?: number | null
           id?: string
           notes?: string | null
+          personalization_colors?: number | null
+          personalization_notes?: string | null
+          personalization_price?: number | null
+          personalization_type?: string | null
           product_id?: string | null
           product_image_url?: string | null
           product_name: string
@@ -1808,8 +1818,13 @@ export type Database = {
           color_hex?: string | null
           color_name?: string | null
           created_at?: string
+          display_order?: number | null
           id?: string
           notes?: string | null
+          personalization_colors?: number | null
+          personalization_notes?: string | null
+          personalization_price?: number | null
+          personalization_type?: string | null
           product_id?: string | null
           product_image_url?: string | null
           product_name?: string
@@ -1892,18 +1907,25 @@ export type Database = {
         Row: {
           bitrix_deal_id: string | null
           bitrix_quote_id: string | null
+          client_company: string | null
+          client_email: string | null
           client_id: string | null
+          client_name: string | null
+          client_phone: string | null
           client_response: string | null
           client_response_at: string | null
           client_response_notes: string | null
           created_at: string
+          delivery_time: string | null
           discount_amount: number | null
           discount_percent: number | null
           id: string
           internal_notes: string | null
           notes: string | null
+          payment_terms: string | null
           quote_number: string
           seller_id: string | null
+          sent_at: string | null
           status: Database["public"]["Enums"]["quote_status"]
           subtotal: number | null
           synced_at: string | null
@@ -1915,18 +1937,25 @@ export type Database = {
         Insert: {
           bitrix_deal_id?: string | null
           bitrix_quote_id?: string | null
+          client_company?: string | null
+          client_email?: string | null
           client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           client_response?: string | null
           client_response_at?: string | null
           client_response_notes?: string | null
           created_at?: string
+          delivery_time?: string | null
           discount_amount?: number | null
           discount_percent?: number | null
           id?: string
           internal_notes?: string | null
           notes?: string | null
+          payment_terms?: string | null
           quote_number: string
           seller_id?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           subtotal?: number | null
           synced_at?: string | null
@@ -1938,18 +1967,25 @@ export type Database = {
         Update: {
           bitrix_deal_id?: string | null
           bitrix_quote_id?: string | null
+          client_company?: string | null
+          client_email?: string | null
           client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
           client_response?: string | null
           client_response_at?: string | null
           client_response_notes?: string | null
           created_at?: string
+          delivery_time?: string | null
           discount_amount?: number | null
           discount_percent?: number | null
           id?: string
           internal_notes?: string | null
           notes?: string | null
+          payment_terms?: string | null
           quote_number?: string
           seller_id?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["quote_status"]
           subtotal?: number | null
           synced_at?: string | null
