@@ -110,6 +110,25 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
+      - name: Validate package.json syntax
+        run: |
+          echo "Checking package.json..."
+          node -e "JSON.parse(require('fs').readFileSync('package.json'))"
+          echo "✅ package.json is valid JSON"
+      
+      - name: Check required scripts exist
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const required = ['dev', 'build', 'preview'];
+            const missing = required.filter(s => !pkg.scripts[s]);
+            if (missing.length) {
+              console.error('Missing scripts:', missing.join(', '));
+              process.exit(1);
+            }
+            console.log('✅ All required scripts present');
+          "
+      
       - name: Install dependencies
         run: npm ci
       
