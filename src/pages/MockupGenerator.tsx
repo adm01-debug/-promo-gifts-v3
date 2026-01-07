@@ -37,6 +37,8 @@ import { MockupSkeleton, MockupHistorySkeleton } from "@/components/mockup/Mocku
 import { TechniqueTooltip } from "@/components/mockup/TechniqueTooltip";
 import { GenerateButton, GenerateFAB } from "@/components/mockup/GenerateButton";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
+import { useKeyboardShortcuts, KeyboardShortcutsHint } from "@/components/mockup/KeyboardShortcuts";
+import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import confetti from "canvas-confetti";
 
 interface Product {
@@ -549,8 +551,25 @@ export default function MockupGenerator() {
     hasGenerated: !!generatedMockup,
   });
 
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onGenerate: generateMockup,
+    onReset: resetForm,
+    onDownload: () => downloadMockup(),
+    canGenerate: !!(selectedProduct && selectedTechnique && personalizationAreas.some(a => a.logoPreview)),
+    canDownload: !!generatedMockup,
+    isLoading,
+  });
+
   return (
     <MainLayout>
+      {/* Generating Overlay */}
+      <GeneratingOverlay
+        isVisible={isLoading}
+        productName={selectedProduct?.name}
+        techniqueName={selectedTechnique?.name}
+      />
+
       <div className="space-y-6">
         {/* Enhanced Gradient Header */}
         <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border border-primary/20">
