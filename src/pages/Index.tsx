@@ -73,17 +73,28 @@ export default function Index() {
     setDisplayCount(ITEMS_PER_PAGE);
   }, [filters, sortBy, searchQuery, selectedClient]);
 
-  // Infinite scroll with Intersection Observer
+  // Infinite scroll with Intersection Observer - using refs to avoid dependency cycles
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(isLoading);
+  const isLoadingMoreRef = useRef(isLoadingMore);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  useEffect(() => {
+    isLoadingMoreRef.current = isLoadingMore;
+  }, [isLoadingMore]);
 
   const loadMore = useCallback(() => {
-    if (isLoadingMore) return;
+    if (isLoadingMoreRef.current) return;
     setIsLoadingMore(true);
     setTimeout(() => {
       setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
       setIsLoadingMore(false);
     }, 300);
-  }, [isLoadingMore]);
+  }, []); // No dependencies - uses refs instead
 
   useEffect(() => {
     const currentRef = loadMoreRef.current;
@@ -92,7 +103,8 @@ export default function Index() {
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && !isLoading && !isLoadingMore) {
+        // Use refs instead of state to avoid triggering effect re-runs
+        if (entry.isIntersecting && !isLoadingRef.current && !isLoadingMoreRef.current) {
           loadMore();
         }
       },
@@ -103,7 +115,7 @@ export default function Index() {
     return () => {
       if (currentRef) observer.unobserve(currentRef);
     };
-  }, [isLoading, isLoadingMore, loadMore]);
+  }, [loadMore]); // loadMore is now stable
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
