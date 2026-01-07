@@ -6,8 +6,9 @@ import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import { RestartTourButton } from "@/components/onboarding/RestartTourButton";
 import { ExpertChatButton } from "@/components/expert/ExpertChatButton";
 import { SkipToContent } from "@/components/common/SkipToContent";
-import { Spotlight } from "@/components/common/Spotlight";
-import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
+import { EnhancedSpotlight } from "@/components/common/EnhancedSpotlight";
+import { SmartMobileNav } from "@/components/mobile/SmartMobileNav";
+import { QuickQuoteFAB } from "@/components/quote/QuickQuoteFAB";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -22,8 +23,8 @@ export function MainLayout({ children }: MainLayoutProps) {
       {/* Accessibility: Skip links */}
       <SkipToContent />
       
-      {/* Global Spotlight Search (Cmd+K) */}
-      <Spotlight />
+      {/* Global Enhanced Spotlight Search (Cmd+K) */}
+      <EnhancedSpotlight />
       
       {/* Onboarding Tour Overlay */}
       <OnboardingTour />
@@ -59,11 +60,14 @@ export function MainLayout({ children }: MainLayoutProps) {
           
           {/* Expert Chat Button - fixed position, adjusted for mobile nav */}
           <ExpertChatButton />
+          
+          {/* Quick Quote FAB - Desktop only */}
+          <QuickQuoteFAB />
         </div>
       </div>
       
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav />
+      {/* Smart Mobile Bottom Navigation with FAB */}
+      <SmartMobileNav />
     </div>
   );
 }

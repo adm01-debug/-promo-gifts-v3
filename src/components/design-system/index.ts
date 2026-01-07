@@ -49,8 +49,13 @@ export { ConfirmDialog, useConfirm } from "@/components/common/ConfirmDialog";
 export { SkipToContent } from "@/components/common/SkipToContent";
 
 // Navigation
-export { Spotlight } from "@/components/common/Spotlight";
+export { Spotlight, SpotlightTrigger } from "@/components/common/Spotlight";
+export { EnhancedSpotlight, EnhancedSpotlightTrigger } from "@/components/common/EnhancedSpotlight";
 export { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
+export { SmartMobileNav } from "@/components/mobile/SmartMobileNav";
+
+// Quick Actions
+export { QuickQuoteFAB } from "@/components/quote/QuickQuoteFAB";
 
 // Tables & Lists
 export { VirtualizedList, VirtualizedGrid } from "@/components/ui/VirtualizedList";
