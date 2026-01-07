@@ -36,7 +36,7 @@ export function Spotlight() {
       title: "Produtos",
       description: "Navegar pelo catálogo",
       icon: <Package className="h-4 w-4" />,
-      action: () => navigate("/products"),
+      action: () => navigate("/"),
       category: "Navegação",
     },
     {
@@ -44,7 +44,7 @@ export function Spotlight() {
       title: "Orçamentos",
       description: "Gerenciar orçamentos",
       icon: <FileText className="h-4 w-4" />,
-      action: () => navigate("/quotes"),
+      action: () => navigate("/orcamentos"),
       category: "Navegação",
     },
     {
@@ -52,7 +52,7 @@ export function Spotlight() {
       title: "Clientes",
       description: "Ver clientes Bitrix",
       icon: <Users className="h-4 w-4" />,
-      action: () => navigate("/clients"),
+      action: () => navigate("/clientes"),
       category: "Navegação",
     },
     {
@@ -60,7 +60,7 @@ export function Spotlight() {
       title: "Pedidos",
       description: "Gerenciar pedidos",
       icon: <ShoppingBag className="h-4 w-4" />,
-      action: () => navigate("/orders"),
+      action: () => navigate("/pedidos"),
       category: "Navegação",
     },
     {
@@ -68,7 +68,7 @@ export function Spotlight() {
       title: "Analytics",
       description: "Dashboard de métricas",
       icon: <BarChart3 className="h-4 w-4" />,
-      action: () => navigate("/analytics"),
+      action: () => navigate("/bi"),
       category: "Navegação",
     },
     {
@@ -81,18 +81,18 @@ export function Spotlight() {
     },
     {
       id: "gamification",
-      title: "Gamificação",
+      title: "Loja de Recompensas",
       description: "XP, conquistas e recompensas",
       icon: <Sparkles className="h-4 w-4" />,
-      action: () => navigate("/gamification"),
+      action: () => navigate("/loja-recompensas"),
       category: "Ferramentas",
     },
     {
       id: "settings",
-      title: "Configurações",
-      description: "Ajustes do sistema",
+      title: "Perfil",
+      description: "Meu perfil e configurações",
       icon: <Settings className="h-4 w-4" />,
-      action: () => navigate("/settings"),
+      action: () => navigate("/perfil"),
       category: "Sistema",
     },
   ];
