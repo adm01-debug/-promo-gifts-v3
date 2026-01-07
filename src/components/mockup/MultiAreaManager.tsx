@@ -306,23 +306,34 @@ export function MultiAreaManager({
 
         <CollapsibleContent>
           <CardContent className="space-y-3 pt-0">
-            {/* Areas list */}
+            {/* Areas list with improved styling */}
             <div className="space-y-2">
               {areas.map((area, index) => (
                 <div
                   key={area.id}
                   className={cn(
-                    "flex items-center gap-2 p-2 rounded-lg border transition-colors cursor-pointer",
+                    "flex items-center gap-2 p-2.5 rounded-lg border transition-all duration-200 cursor-pointer group",
                     activeAreaId === area.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/50"
+                      ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
+                      : "border-border hover:border-primary/50 hover:bg-muted/50"
                   )}
                   onClick={() => onActiveAreaChange(area.id)}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={activeAreaId === area.id}
+                  onKeyDown={(e) => e.key === "Enter" && onActiveAreaChange(area.id)}
                 >
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                  {/* Step number with animation */}
+                  <div className={cn(
+                    "flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-all duration-200",
+                    activeAreaId === area.id
+                      ? "bg-primary text-primary-foreground scale-110"
+                      : "bg-primary/10 text-primary"
+                  )}>
                     {index + 1}
                   </div>
                   
+                  {/* Area name input */}
                   <div className="flex-1 min-w-0">
                     <Input
                       value={area.name}
@@ -331,14 +342,18 @@ export function MultiAreaManager({
                         updateAreaName(area.id, e.target.value);
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-7 text-sm border-0 bg-transparent p-0 focus-visible:ring-0"
+                      className={cn(
+                        "h-7 text-sm border-0 bg-transparent p-0 focus-visible:ring-0",
+                        activeAreaId === area.id && "font-medium"
+                      )}
                       placeholder="Nome da área"
+                      aria-label={`Nome da área ${index + 1}`}
                     />
                   </div>
 
-                  {/* Logo indicator */}
+                  {/* Logo indicator with hover effect */}
                   {area.logoPreview ? (
-                    <div className="h-6 w-6 rounded border bg-background overflow-hidden flex-shrink-0">
+                    <div className="relative h-7 w-7 rounded border bg-background overflow-hidden flex-shrink-0 group-hover:ring-2 ring-primary/30 transition-all">
                       <img
                         src={area.logoPreview}
                         alt="Logo"
@@ -357,31 +372,44 @@ export function MultiAreaManager({
                         onClick={(e) => e.stopPropagation()}
                         className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                         id={`logo-upload-${area.id}`}
+                        aria-label={`Upload logo para ${area.name}`}
                       />
-                      <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-accent">
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-[10px] cursor-pointer transition-colors",
+                          "hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                        )}
+                      >
                         + Logo
                       </Badge>
                     </div>
                   )}
 
                   {/* Position indicator */}
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                  <div className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground">
                     <MapPin className="h-3 w-3" />
-                    {area.positionX}%, {area.positionY}%
+                    <span>{area.positionX}%</span>
+                    <span>×</span>
+                    <span>{area.positionY}%</span>
                   </div>
 
-                  {/* Remove button */}
+                  {/* Remove button with improved visibility */}
                   {areas.length > 1 && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                      className={cn(
+                        "h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity",
+                        "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         removeArea(area.id);
                       }}
+                      aria-label={`Remover área ${area.name}`}
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   )}
                 </div>

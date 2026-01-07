@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw, Save, Cloud, CloudOff, AlertCircle, CheckCircle2, Paintbrush, Sparkles } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw, Save, Cloud, CloudOff, AlertCircle, CheckCircle2, Paintbrush, Sparkles, Search, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +34,9 @@ import { MockupWizard, useMockupWizardStep } from "@/components/mockup/MockupWiz
 import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
 import { MockupResultCard } from "@/components/mockup/MockupResultCard";
 import { MockupSkeleton, MockupHistorySkeleton } from "@/components/mockup/MockupSkeleton";
+import { TechniqueTooltip } from "@/components/mockup/TechniqueTooltip";
+import { GenerateButton, GenerateFAB } from "@/components/mockup/GenerateButton";
+import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import confetti from "canvas-confetti";
 
 interface Product {
@@ -438,7 +441,13 @@ export default function MockupGenerator() {
           spread: 70,
           origin: { y: 0.6 }
         });
-        toast.success(`Mockup gerado com ${areasWithLogos.length} área(s) de personalização!`);
+        // Show rich success toast with preview
+        showMockupSuccessToast({
+          mockupUrl: response.data.mockupUrl,
+          productName: selectedProduct.name,
+          techniqueName: selectedTechnique.name,
+          onDownload: () => downloadMockup(response.data.mockupUrl),
+        });
       } else {
         throw new Error("Nenhuma imagem retornada");
       }
@@ -714,11 +723,16 @@ export default function MockupGenerator() {
                     />
                   </div>
 
-                  {/* Technique Selection */}
+                  {/* Technique Selection with Tooltip */}
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">2</span>
                       Técnica de Personalização
+                      {selectedTechnique && (
+                        <TechniqueTooltip technique={selectedTechnique}>
+                          <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary transition-colors cursor-help" />
+                        </TechniqueTooltip>
+                      )}
                     </Label>
                     <Select
                       value={selectedTechnique?.id || ""}
@@ -734,36 +748,40 @@ export default function MockupGenerator() {
                       </SelectTrigger>
                       <SelectContent>
                         {techniques.map((technique) => (
-                          <SelectItem key={technique.id} value={technique.id}>
-                            {technique.name}
-                          </SelectItem>
+                          <TechniqueTooltip key={technique.id} technique={technique}>
+                            <SelectItem value={technique.id} className="cursor-pointer">
+                              <div className="flex items-center gap-2">
+                                <Paintbrush className="h-3.5 w-3.5 text-primary" />
+                                {technique.name}
+                              </div>
+                            </SelectItem>
+                          </TechniqueTooltip>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons with Gradient CTA */}
                   <div className="flex gap-2 pt-4">
-                    <Button
+                    <GenerateButton
                       onClick={generateMockup}
+                      isLoading={isLoading}
+                      isReady={!!(selectedProduct && selectedTechnique && personalizationAreas.some(a => a.logoPreview))}
+                      stepsRemaining={
+                        [!selectedProduct, !selectedTechnique, personalizationAreas.every(a => !a.logoPreview)]
+                          .filter(Boolean).length
+                      }
                       disabled={!selectedProduct || !selectedTechnique || personalizationAreas.every(a => !a.logoPreview) || isLoading}
                       className="flex-1"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Gerando...
-                        </>
-                      ) : (
-                        <>
-                          <Wand2 className="mr-2 h-4 w-4" />
-                          Gerar Mockup
-                        </>
-                      )}
-                    </Button>
-                    <Button variant="outline" onClick={resetForm} title="Limpar formulário">
-                      <RefreshCw className="h-4 w-4" />
-                    </Button>
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" onClick={resetForm} aria-label="Limpar formulário">
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Limpar formulário</TooltipContent>
+                    </Tooltip>
                   </div>
                     </>
                   )}
@@ -1031,13 +1049,12 @@ export default function MockupGenerator() {
                         <span>Página {currentPage} de {totalPages}</span>
                       </div>
 
-                      {/* Grid with animations */}
+                      {/* Grid with staggered animations */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {paginatedMockups.map((mockup, index) => (
                           <div
                             key={mockup.id}
-                            className="group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 animate-fade-in bg-card"
-                            style={{ animationDelay: `${index * 50}ms` }}
+                            className="stagger-item group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 bg-card"
                           >
                             {/* Image with hover zoom */}
                             <div className="aspect-square bg-muted/30 overflow-hidden">
@@ -1231,22 +1248,13 @@ export default function MockupGenerator() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Mobile FAB - Fixed Generate Button */}
-      <div className="sm:hidden fixed bottom-6 right-6 z-50">
-        <Button
-          size="lg"
-          onClick={generateMockup}
-          disabled={!selectedProduct || !selectedTechnique || personalizationAreas.every(a => !a.logoPreview) || isLoading}
-          className="h-14 w-14 rounded-full shadow-lg shadow-primary/25 p-0"
-          aria-label="Gerar mockup"
-        >
-          {isLoading ? (
-            <Loader2 className="h-6 w-6 animate-spin" />
-          ) : (
-            <Wand2 className="h-6 w-6" />
-          )}
-        </Button>
-      </div>
+      {/* Mobile FAB - Enhanced Generate Button */}
+      <GenerateFAB
+        onClick={generateMockup}
+        isLoading={isLoading}
+        isReady={!!(selectedProduct && selectedTechnique && personalizationAreas.some(a => a.logoPreview))}
+        disabled={!selectedProduct || !selectedTechnique || personalizationAreas.every(a => !a.logoPreview) || isLoading}
+      />
 
       {/* AI Mockup Assistant */}
       <AIMockupAssistant
