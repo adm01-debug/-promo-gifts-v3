@@ -76,8 +76,18 @@ export function NotificationCenter() {
                   )}
                   onClick={() => {
                     markAsRead(notif.id);
-                    if (notif.action_url) {
-                      // Use navigate for internal routes, window.location for external URLs
+                    if (!notif.action_url) return;
+
+                    // Avoid full page reload for internal URLs (even when stored as absolute URLs)
+                    try {
+                      const url = new URL(notif.action_url, window.location.origin);
+                      if (url.origin === window.location.origin) {
+                        navigate(`${url.pathname}${url.search}${url.hash}`);
+                      } else {
+                        window.location.href = notif.action_url;
+                      }
+                    } catch {
+                      // Fallback: treat leading-slash as internal
                       if (notif.action_url.startsWith('/')) {
                         navigate(notif.action_url);
                       } else {
