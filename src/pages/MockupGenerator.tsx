@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw, Save, Cloud, CloudOff, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw, Save, Cloud, CloudOff, AlertCircle, CheckCircle2, Paintbrush } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +30,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { MockupWizard, useMockupWizardStep } from "@/components/mockup/MockupWizard";
+import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
+import { MockupResultCard } from "@/components/mockup/MockupResultCard";
+import { MockupSkeleton, MockupHistorySkeleton } from "@/components/mockup/MockupSkeleton";
 
 interface Product {
   id: string;
@@ -520,6 +524,15 @@ export default function MockupGenerator() {
     toast.success("Configurações carregadas! Ajuste se necessário e gere um novo mockup.");
   };
 
+  // Calculate wizard step
+  const wizardStep = useMockupWizardStep({
+    hasProduct: !!selectedProduct,
+    hasTechnique: !!selectedTechnique,
+    hasLogo: personalizationAreas.some(a => !!a.logoPreview),
+    hasPositioned: true, // Consider positioned once they have a logo
+    hasGenerated: !!generatedMockup,
+  });
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -563,6 +576,16 @@ export default function MockupGenerator() {
             ) : null}
           </div>
         </div>
+
+        {/* Wizard Progress */}
+        <MockupWizard
+          currentStep={wizardStep}
+          hasProduct={!!selectedProduct}
+          hasTechnique={!!selectedTechnique}
+          hasLogo={personalizationAreas.some(a => !!a.logoPreview)}
+          hasPositioned={true}
+          hasGenerated={!!generatedMockup}
+        />
 
         {/* Draft restored notice */}
         {showDraftRestoredNotice && (
@@ -656,34 +679,29 @@ export default function MockupGenerator() {
                     </Select>
                   </div>
 
-                  {/* Product Selection */}
+                  {/* Product Selection - Enhanced Combobox */}
                   <div className="space-y-2">
-                    <Label>Produto</Label>
-                    <Select
-                      value={selectedProduct?.id || ""}
-                      onValueChange={(value) => {
-                        const product = products.find((p) => p.id === value);
-                        setSelectedProduct(product || null);
+                    <Label className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">1</span>
+                      Produto
+                    </Label>
+                    <ProductSearchCombobox
+                      products={products}
+                      selectedProduct={selectedProduct}
+                      onSelect={(product) => {
+                        setSelectedProduct(product);
                         setGeneratedMockup(null);
                       }}
                       disabled={isLoadingData}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um produto..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name} ({product.sku})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
                   </div>
 
                   {/* Technique Selection */}
                   <div className="space-y-2">
-                    <Label>Técnica de Personalização</Label>
+                    <Label className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">2</span>
+                      Técnica de Personalização
+                    </Label>
                     <Select
                       value={selectedTechnique?.id || ""}
                       onValueChange={(value) => {

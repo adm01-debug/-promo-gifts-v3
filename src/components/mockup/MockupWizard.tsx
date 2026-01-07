@@ -1,0 +1,212 @@
+import { cn } from "@/lib/utils";
+import { CheckCircle2, Package, Paintbrush, Upload, Move, Sparkles } from "lucide-react";
+
+interface MockupWizardStep {
+  id: number;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  isCompleted: boolean;
+  isActive: boolean;
+}
+
+interface MockupWizardProps {
+  currentStep: number;
+  hasProduct: boolean;
+  hasTechnique: boolean;
+  hasLogo: boolean;
+  hasPositioned: boolean;
+  hasGenerated: boolean;
+  className?: string;
+}
+
+export function MockupWizard({
+  currentStep,
+  hasProduct,
+  hasTechnique,
+  hasLogo,
+  hasPositioned,
+  hasGenerated,
+  className,
+}: MockupWizardProps) {
+  const steps: MockupWizardStep[] = [
+    {
+      id: 1,
+      label: "Produto",
+      description: "Escolha o produto",
+      icon: <Package className="h-4 w-4" />,
+      isCompleted: hasProduct,
+      isActive: currentStep === 1,
+    },
+    {
+      id: 2,
+      label: "Técnica",
+      description: "Método de personalização",
+      icon: <Paintbrush className="h-4 w-4" />,
+      isCompleted: hasTechnique,
+      isActive: currentStep === 2,
+    },
+    {
+      id: 3,
+      label: "Logo",
+      description: "Faça upload da arte",
+      icon: <Upload className="h-4 w-4" />,
+      isCompleted: hasLogo,
+      isActive: currentStep === 3,
+    },
+    {
+      id: 4,
+      label: "Posição",
+      description: "Ajuste o posicionamento",
+      icon: <Move className="h-4 w-4" />,
+      isCompleted: hasPositioned && hasLogo,
+      isActive: currentStep === 4,
+    },
+    {
+      id: 5,
+      label: "Gerar",
+      description: "Crie o mockup com IA",
+      icon: <Sparkles className="h-4 w-4" />,
+      isCompleted: hasGenerated,
+      isActive: currentStep === 5,
+    },
+  ];
+
+  // Calculate progress
+  const completedSteps = steps.filter((s) => s.isCompleted).length;
+  const progressPercent = (completedSteps / steps.length) * 100;
+
+  return (
+    <div className={cn("w-full", className)}>
+      {/* Desktop Stepper */}
+      <div className="hidden md:block">
+        <div className="relative flex items-start justify-between">
+          {/* Progress line background */}
+          <div className="absolute top-5 left-[5%] right-[5%] h-0.5 bg-muted" />
+          
+          {/* Progress line filled */}
+          <div
+            className="absolute top-5 left-[5%] h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent * 0.9}%` }}
+          />
+
+          {steps.map((step, index) => (
+            <div
+              key={step.id}
+              className={cn(
+                "relative z-10 flex flex-col items-center",
+                "flex-1 first:flex-initial last:flex-initial"
+              )}
+            >
+              {/* Step Circle */}
+              <div
+                className={cn(
+                  "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300",
+                  "font-semibold text-sm",
+                  step.isCompleted && "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25",
+                  step.isActive && !step.isCompleted && "bg-background border-primary text-primary ring-4 ring-primary/20 animate-pulse",
+                  !step.isActive && !step.isCompleted && "bg-muted border-muted-foreground/30 text-muted-foreground"
+                )}
+              >
+                {step.isCompleted ? (
+                  <CheckCircle2 className="h-5 w-5" />
+                ) : (
+                  step.icon
+                )}
+              </div>
+
+              {/* Label */}
+              <div className="mt-2 text-center max-w-[100px]">
+                <p
+                  className={cn(
+                    "text-xs font-medium transition-colors",
+                    step.isActive && "text-primary",
+                    step.isCompleted && "text-foreground",
+                    !step.isActive && !step.isCompleted && "text-muted-foreground"
+                  )}
+                >
+                  {step.label}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
+                  {step.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile Stepper - Progress Bar Style */}
+      <div className="md:hidden space-y-3">
+        {/* Progress Bar */}
+        <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+          <div
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Current Step Info */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full",
+                "bg-primary/10 text-primary"
+              )}
+            >
+              {steps[currentStep - 1]?.icon}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {steps[currentStep - 1]?.label}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {steps[currentStep - 1]?.description}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">
+              Passo {currentStep} de {steps.length}
+            </p>
+            <p className="text-xs font-medium text-primary">
+              {completedSteps} completos
+            </p>
+          </div>
+        </div>
+
+        {/* Step Pills */}
+        <div className="flex items-center justify-center gap-1.5">
+          {steps.map((step) => (
+            <div
+              key={step.id}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                step.isActive ? "w-6 bg-primary" : "w-1.5",
+                step.isCompleted && "bg-primary",
+                !step.isCompleted && !step.isActive && "bg-muted"
+              )}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Hook to calculate current step from state
+export function useMockupWizardStep(state: {
+  hasProduct: boolean;
+  hasTechnique: boolean;
+  hasLogo: boolean;
+  hasPositioned: boolean;
+  hasGenerated: boolean;
+}): number {
+  if (state.hasGenerated) return 5;
+  if (state.hasLogo && state.hasPositioned) return 4;
+  if (state.hasLogo) return 4;
+  if (state.hasTechnique) return 3;
+  if (state.hasProduct) return 2;
+  return 1;
+}
