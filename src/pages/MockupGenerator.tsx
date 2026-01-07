@@ -1,20 +1,24 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw, Save, Cloud, CloudOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
 import { MultiAreaManager, PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 import { useGamification } from "@/hooks/useGamification";
+import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +95,8 @@ const createDefaultArea = (): PersonalizationArea => ({
 export default function MockupGenerator() {
   const { user } = useAuth();
   const { addXp } = useGamification();
+  const { saveDraft, loadDraft, clearDraft, isSaving: isDraftSaving, isLoading: isDraftLoading, lastSaved, error: draftError } = useMockupDraft();
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [techniques, setTechniques] = useState<Technique[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -110,6 +116,13 @@ export default function MockupGenerator() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mockupToDelete, setMockupToDelete] = useState<string | null>(null);
   
+  // Error state for generation
+  const [generationError, setGenerationError] = useState<string | null>(null);
+  
+  // Draft restoration state
+  const [hasDraftRestored, setHasDraftRestored] = useState(false);
+  const [showDraftRestoredNotice, setShowDraftRestoredNotice] = useState(false);
+  
   // History filters
   const [filterClient, setFilterClient] = useState<string>("all");
   const [filterProduct, setFilterProduct] = useState<string>("");
@@ -118,6 +131,9 @@ export default function MockupGenerator() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 12;
+  
+  // Ref para evitar loops infinitos no auto-save
+  const isRestoringDraft = useRef(false);
 
   // Get active area
   const activeArea = personalizationAreas.find(a => a.id === activeAreaId) || personalizationAreas[0];
@@ -163,10 +179,77 @@ export default function MockupGenerator() {
     reader.readAsDataURL(file);
   }, []);
 
+  // Carregar dados e rascunho ao inicializar
   useEffect(() => {
     fetchData();
     fetchHistory();
   }, []);
+
+  // Restaurar rascunho após carregar dados (products, techniques, clients)
+  useEffect(() => {
+    const restoreDraft = async () => {
+      if (isLoadingData || hasDraftRestored || isRestoringDraft.current) return;
+      isRestoringDraft.current = true;
+      
+      try {
+        const draft = await loadDraft();
+        if (draft && (draft.productId || draft.techniqueId || draft.personalizationAreas.some(a => a.logoPreview))) {
+          // Restaurar produto
+          if (draft.productId) {
+            const product = products.find(p => p.id === draft.productId);
+            if (product) setSelectedProduct(product);
+          }
+          
+          // Restaurar técnica
+          if (draft.techniqueId) {
+            const technique = techniques.find(t => t.id === draft.techniqueId);
+            if (technique) setSelectedTechnique(technique);
+          }
+          
+          // Restaurar cliente
+          if (draft.clientId) {
+            const client = clients.find(c => c.id === draft.clientId);
+            if (client) setSelectedClient(client);
+          }
+          
+          // Restaurar áreas de personalização
+          if (draft.personalizationAreas.length > 0) {
+            setPersonalizationAreas(draft.personalizationAreas);
+            setActiveAreaId(draft.personalizationAreas[0].id);
+          }
+          
+          setShowDraftRestoredNotice(true);
+          // Auto-hide notice after 5 seconds
+          setTimeout(() => setShowDraftRestoredNotice(false), 5000);
+        }
+      } catch (err) {
+        console.error("Erro ao restaurar rascunho:", err);
+      } finally {
+        setHasDraftRestored(true);
+        isRestoringDraft.current = false;
+      }
+    };
+    
+    restoreDraft();
+  }, [isLoadingData, products, techniques, clients, loadDraft, hasDraftRestored]);
+
+  // Auto-save quando dados mudarem
+  useEffect(() => {
+    if (!hasDraftRestored || isRestoringDraft.current) return;
+    
+    const draftData: MockupDraftData = {
+      productId: selectedProduct?.id || null,
+      productName: selectedProduct?.name || null,
+      techniqueId: selectedTechnique?.id || null,
+      techniqueName: selectedTechnique?.name || null,
+      clientId: selectedClient?.id || null,
+      clientName: selectedClient?.name || null,
+      personalizationAreas,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    saveDraft(draftData);
+  }, [selectedProduct, selectedTechnique, selectedClient, personalizationAreas, saveDraft, hasDraftRestored]);
 
   const fetchData = async () => {
     try {
@@ -306,6 +389,7 @@ export default function MockupGenerator() {
 
     setIsLoading(true);
     setGeneratedMockup(null);
+    setGenerationError(null);
 
     try {
       const techniquePrompt = getTechniquePrompt(selectedTechnique);
@@ -346,9 +430,11 @@ export default function MockupGenerator() {
       } else {
         throw new Error("Nenhuma imagem retornada");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating mockup:", error);
-      toast.error("Erro ao gerar mockup. Tente novamente.");
+      const errorMessage = error.message || "Erro ao gerar mockup. Tente novamente.";
+      setGenerationError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -395,6 +481,8 @@ export default function MockupGenerator() {
     setPersonalizationAreas([createDefaultArea()]);
     setActiveAreaId(null);
     setGeneratedMockup(null);
+    setGenerationError(null);
+    clearDraft();
   };
 
   const loadFromHistory = (mockup: GeneratedMockup) => {
@@ -434,12 +522,71 @@ export default function MockupGenerator() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Gerador de Mockups</h1>
-          <p className="text-muted-foreground mt-1">
-            Crie visualizações de produtos personalizados com IA
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Gerador de Mockups</h1>
+            <p className="text-muted-foreground mt-1">
+              Crie visualizações de produtos personalizados com IA
+            </p>
+          </div>
+          
+          {/* Auto-save indicator */}
+          <div className="flex items-center gap-2">
+            {isDraftSaving ? (
+              <Badge variant="secondary" className="flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Salvando...
+              </Badge>
+            ) : lastSaved ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
+                    <Cloud className="h-3 w-3 text-green-500" />
+                    Salvo automaticamente
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Último salvamento: {format(lastSaved, "HH:mm:ss", { locale: ptBR })}
+                </TooltipContent>
+              </Tooltip>
+            ) : draftError ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
+                    <CloudOff className="h-3 w-3" />
+                    Erro ao salvar
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>{draftError}</TooltipContent>
+              </Tooltip>
+            ) : null}
+          </div>
         </div>
+
+        {/* Draft restored notice */}
+        {showDraftRestoredNotice && (
+          <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle className="text-green-800 dark:text-green-400">Rascunho restaurado</AlertTitle>
+            <AlertDescription className="text-green-700 dark:text-green-300">
+              Seu progresso anterior foi restaurado automaticamente.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Generation error notice */}
+        {generationError && !isLoading && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erro na geração</AlertTitle>
+            <AlertDescription className="flex items-center justify-between">
+              <span>{generationError}</span>
+              <Button variant="outline" size="sm" onClick={() => setGenerationError(null)}>
+                Dispensar
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Tabs defaultValue="generator" className="space-y-4">
           <TabsList>
@@ -467,6 +614,18 @@ export default function MockupGenerator() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                  {/* Loading state for data */}
+                  {isLoadingData && (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">Carregando dados...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!isLoadingData && (
+                    <>
                   {/* Client Selection (Optional) */}
                   <div className="space-y-2">
                     <Label>Cliente (opcional)</Label>
@@ -565,10 +724,12 @@ export default function MockupGenerator() {
                         </>
                       )}
                     </Button>
-                    <Button variant="outline" onClick={resetForm}>
+                    <Button variant="outline" onClick={resetForm} title="Limpar formulário">
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                   </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 

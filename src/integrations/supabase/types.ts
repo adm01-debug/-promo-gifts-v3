@@ -501,6 +501,76 @@ export type Database = {
         }
         Relationships: []
       }
+      mockup_drafts: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          created_at: string
+          draft_key: string
+          id: string
+          logo_data: string | null
+          personalization_areas: Json
+          product_id: string | null
+          product_name: string | null
+          technique_id: string | null
+          technique_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          draft_key?: string
+          id?: string
+          logo_data?: string | null
+          personalization_areas?: Json
+          product_id?: string | null
+          product_name?: string | null
+          technique_id?: string | null
+          technique_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          draft_key?: string
+          id?: string
+          logo_data?: string | null
+          personalization_areas?: Json
+          product_id?: string | null
+          product_name?: string | null
+          technique_id?: string | null
+          technique_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mockup_drafts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "bitrix_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mockup_drafts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mockup_drafts_technique_id_fkey"
+            columns: ["technique_id"]
+            isOneToOne: false
+            referencedRelation: "personalization_techniques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
