@@ -110,7 +110,7 @@ export function EnhancedLogoUpload({
             logoPreview ? "min-h-[200px]" : "min-h-[220px]"
           )}
         >
-          {/* Hidden input */}
+          {/* Hidden input with aria-label */}
           <input
             ref={inputRef}
             type="file"
@@ -118,6 +118,7 @@ export function EnhancedLogoUpload({
             onChange={handleFileSelect}
             className="hidden"
             disabled={disabled}
+            aria-label={`Upload de ${areaName}`}
           />
 
           {logoPreview ? (
@@ -144,6 +145,7 @@ export function EnhancedLogoUpload({
                   variant="secondary"
                   onClick={handleClick}
                   disabled={disabled}
+                  aria-label={`Trocar ${areaName}`}
                 >
                   <Upload className="h-4 w-4 mr-1.5" />
                   Trocar
@@ -153,6 +155,7 @@ export function EnhancedLogoUpload({
                   variant="destructive"
                   onClick={handleRemove}
                   disabled={disabled}
+                  aria-label={`Remover ${areaName}`}
                 >
                   <X className="h-4 w-4 mr-1.5" />
                   Remover
@@ -162,6 +165,9 @@ export function EnhancedLogoUpload({
           ) : (
             /* Upload State */
             <div
+              role="button"
+              tabIndex={disabled ? -1 : 0}
+              aria-label={`Área de upload para ${areaName}. Arraste um arquivo ou pressione Enter para selecionar.`}
               className={cn(
                 "h-full min-h-[220px] flex flex-col items-center justify-center cursor-pointer transition-all duration-200 p-6",
                 "border-2 border-dashed rounded-lg m-3",
@@ -172,6 +178,7 @@ export function EnhancedLogoUpload({
                 isLoading && "pointer-events-none"
               )}
               onClick={handleClick}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}

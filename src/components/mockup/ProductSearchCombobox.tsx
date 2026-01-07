@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, ChevronsUpDown, Package, Search, X } from "lucide-react";
+import { Check, ChevronsUpDown, Package, Search, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface Product {
   id: string;
@@ -43,18 +44,30 @@ export function ProductSearchCombobox({
 }: ProductSearchComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
+  const [isSearching, setIsSearching] = React.useState(false);
+  
+  // Debounce search input for better performance
+  const debouncedSearch = useDebounce(search, 300);
 
-  // Filter products based on search
+  // Filter products based on debounced search
   const filteredProducts = React.useMemo(() => {
-    if (!search.trim()) return products.slice(0, 50); // Show first 50 when no search
+    setIsSearching(false);
+    if (!debouncedSearch.trim()) return products.slice(0, 50); // Show first 50 when no search
     
-    const searchLower = search.toLowerCase();
+    const searchLower = debouncedSearch.toLowerCase();
     return products.filter(
       (product) =>
         product.name.toLowerCase().includes(searchLower) ||
         product.sku.toLowerCase().includes(searchLower)
     ).slice(0, 50);
-  }, [products, search]);
+  }, [products, debouncedSearch]);
+
+  // Show searching indicator when typing
+  React.useEffect(() => {
+    if (search !== debouncedSearch) {
+      setIsSearching(true);
+    }
+  }, [search, debouncedSearch]);
 
   const getProductImage = (product: Product): string | null => {
     if (!product.images) return null;
@@ -143,17 +156,24 @@ export function ProductSearchCombobox({
             onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>
+            {isSearching ? (
               <div className="py-6 text-center">
-                <Package className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-50" />
-                <p className="text-sm text-muted-foreground">
-                  Nenhum produto encontrado
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Tente buscar por nome ou SKU
-                </p>
+                <Loader2 className="h-6 w-6 mx-auto mb-2 text-primary animate-spin" />
+                <p className="text-sm text-muted-foreground">Buscando...</p>
               </div>
-            </CommandEmpty>
+            ) : (
+              <>
+                <CommandEmpty>
+                  <div className="py-6 text-center">
+                    <Package className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-50" />
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum produto encontrado
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Tente buscar por nome ou SKU
+                    </p>
+                  </div>
+                </CommandEmpty>
 
             <CommandGroup
               heading={
@@ -210,6 +230,8 @@ export function ProductSearchCombobox({
                 </CommandItem>
               ))}
             </CommandGroup>
+              </>
+            )}
           </CommandList>
         </Command>
       </PopoverContent>

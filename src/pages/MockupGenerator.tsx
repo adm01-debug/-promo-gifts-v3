@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw, Save, Cloud, CloudOff, AlertCircle, CheckCircle2, Paintbrush } from "lucide-react";
+import { Loader2, Upload, Image as ImageIcon, Download, RefreshCw, Wand2, History, Trash2, Clock, ChevronLeft, ChevronRight, RotateCcw, Save, Cloud, CloudOff, AlertCircle, CheckCircle2, Paintbrush, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -34,6 +34,7 @@ import { MockupWizard, useMockupWizardStep } from "@/components/mockup/MockupWiz
 import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
 import { MockupResultCard } from "@/components/mockup/MockupResultCard";
 import { MockupSkeleton, MockupHistorySkeleton } from "@/components/mockup/MockupSkeleton";
+import confetti from "canvas-confetti";
 
 interface Product {
   id: string;
@@ -431,6 +432,12 @@ export default function MockupGenerator() {
         await saveMockupToHistory(response.data.mockupUrl, primaryArea);
         // Add XP for generating mockup
         addXp(25);
+        // 🎉 Confetti celebration!
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
         toast.success(`Mockup gerado com ${areasWithLogos.length} área(s) de personalização!`);
       } else {
         throw new Error("Nenhuma imagem retornada");
@@ -536,47 +543,58 @@ export default function MockupGenerator() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Gerador de Mockups</h1>
-            <p className="text-muted-foreground mt-1">
-              Crie visualizações de produtos personalizados com IA
-            </p>
-          </div>
+        {/* Enhanced Gradient Header */}
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border border-primary/20">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 ring-2 ring-primary/20">
+                <Sparkles className="h-7 w-7 text-primary animate-pulse" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                  Gerador de Mockups
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Crie visualizações de produtos personalizados com IA
+                </p>
+              </div>
+            </div>
           
-          {/* Auto-save indicator */}
-          <div className="flex items-center gap-2">
-            {isDraftSaving ? (
-              <Badge variant="secondary" className="flex items-center gap-1.5">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Salvando...
-              </Badge>
-            ) : lastSaved ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
-                    <Cloud className="h-3 w-3 text-green-500" />
-                    Salvo automaticamente
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  Último salvamento: {format(lastSaved, "HH:mm:ss", { locale: ptBR })}
-                </TooltipContent>
-              </Tooltip>
-            ) : draftError ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
-                    <CloudOff className="h-3 w-3" />
-                    Erro ao salvar
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>{draftError}</TooltipContent>
-              </Tooltip>
-            ) : null}
+            {/* Auto-save indicator */}
+            <div className="flex items-center gap-2">
+              {isDraftSaving ? (
+                <Badge variant="secondary" className="flex items-center gap-1.5">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Salvando...
+                </Badge>
+              ) : lastSaved ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
+                      <Cloud className="h-3 w-3 text-green-500" />
+                      Salvo automaticamente
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Último salvamento: {format(lastSaved, "HH:mm:ss", { locale: ptBR })}
+                  </TooltipContent>
+                </Tooltip>
+              ) : draftError ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
+                      <CloudOff className="h-3 w-3" />
+                      Erro ao salvar
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>{draftError}</TooltipContent>
+                </Tooltip>
+              ) : null}
+            </div>
           </div>
         </div>
-
         {/* Wizard Progress */}
         <MockupWizard
           currentStep={wizardStep}
@@ -752,8 +770,8 @@ export default function MockupGenerator() {
                 </CardContent>
               </Card>
 
-              {/* Multi-Area Manager + Position Editor */}
-              <div className="space-y-4">
+              {/* Multi-Area Manager + Position Editor - Sticky on desktop */}
+              <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
                 {/* Multi-Area Manager */}
                 <MultiAreaManager
                   areas={personalizationAreas}
@@ -782,11 +800,18 @@ export default function MockupGenerator() {
                     }}
                   />
                 ) : (
-                  <Card>
+                  <Card className="border-dashed border-2">
                     <CardContent className="flex items-center justify-center py-16">
-                      <div className="text-center text-muted-foreground">
-                        <ImageIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">Selecione um produto para posicionar o logo</p>
+                      <div className="text-center text-muted-foreground max-w-xs animate-fade-in">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                          <ImageIcon className="h-8 w-8 opacity-50" />
+                        </div>
+                        <p className="font-medium text-foreground mb-1">Nenhum produto selecionado</p>
+                        <p className="text-sm">Selecione um produto acima para começar a posicionar o logo</p>
+                        <div className="mt-4 flex items-center justify-center gap-2">
+                          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold">1</span>
+                          <span className="text-xs">Primeiro, escolha o produto</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -917,9 +942,7 @@ export default function MockupGenerator() {
                 )}
 
                 {isLoadingHistory ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
+                  <MockupHistorySkeleton count={8} />
                 ) : (() => {
                   // Apply filters
                   const filteredMockups = mockupHistory.filter((mockup) => {
@@ -949,20 +972,51 @@ export default function MockupGenerator() {
 
                   if (mockupHistory.length === 0) {
                     return (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <History className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>Nenhum mockup gerado ainda</p>
-                        <p className="text-sm">Gere seu primeiro mockup na aba "Gerar Mockup"</p>
+                      <div className="text-center py-16 animate-fade-in">
+                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                          <Wand2 className="h-10 w-10 text-primary/60" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum mockup gerado ainda</h3>
+                        <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                          Comece criando seu primeiro mockup! Selecione um produto, escolha a técnica de personalização e faça upload do logo.
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            const generatorTab = document.querySelector('[value="generator"]') as HTMLButtonElement;
+                            generatorTab?.click();
+                          }}
+                        >
+                          <Wand2 className="h-4 w-4 mr-2" />
+                          Criar primeiro mockup
+                        </Button>
                       </div>
                     );
                   }
 
                   if (filteredMockups.length === 0) {
                     return (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <History className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>Nenhum mockup encontrado</p>
-                        <p className="text-sm">Tente ajustar os filtros</p>
+                      <div className="text-center py-16 animate-fade-in">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                          <Search className="h-8 w-8 text-muted-foreground/50" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum resultado encontrado</h3>
+                        <p className="text-muted-foreground max-w-md mx-auto mb-4">
+                          Não encontramos mockups com os filtros selecionados. Tente ajustar os critérios de busca.
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setFilterClient("all");
+                            setFilterProduct("");
+                            setFilterTechnique("all");
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Limpar todos os filtros
+                        </Button>
                       </div>
                     );
                   }
@@ -977,28 +1031,48 @@ export default function MockupGenerator() {
                         <span>Página {currentPage} de {totalPages}</span>
                       </div>
 
-                      {/* Grid */}
+                      {/* Grid with animations */}
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {paginatedMockups.map((mockup) => (
+                        {paginatedMockups.map((mockup, index) => (
                           <div
                             key={mockup.id}
-                            className="group relative border rounded-lg overflow-hidden hover:ring-2 hover:ring-primary/30 transition-all"
+                            className="group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 animate-fade-in bg-card"
+                            style={{ animationDelay: `${index * 50}ms` }}
                           >
-                            <div className="aspect-square bg-muted/30">
+                            {/* Image with hover zoom */}
+                            <div className="aspect-square bg-muted/30 overflow-hidden">
                               <img
                                 src={mockup.mockup_url}
-                                alt={mockup.product_name}
-                                className="w-full h-full object-contain"
+                                alt={`Mockup de ${mockup.product_name}`}
+                                className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
                               />
                             </div>
-                            <div className="p-3 space-y-1">
-                              <p className="font-medium text-sm truncate">{mockup.product_name}</p>
-                              <p className="text-xs text-muted-foreground">{mockup.technique_name}</p>
+                            
+                            {/* Info section with improved styling */}
+                            <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <p className="font-medium text-sm truncate cursor-default">{mockup.product_name}</p>
+                                </TooltipTrigger>
+                                <TooltipContent side="top">
+                                  <p>{mockup.product_name}</p>
+                                  {mockup.product_sku && <p className="text-xs text-muted-foreground">SKU: {mockup.product_sku}</p>}
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                                  {mockup.technique_name}
+                                </Badge>
+                              </div>
+                              
                               {mockup.bitrix_clients?.name && (
-                                <p className="text-xs text-primary truncate">
-                                  {mockup.bitrix_clients.name}
+                                <p className="text-xs text-primary truncate font-medium">
+                                  👤 {mockup.bitrix_clients.name}
                                 </p>
                               )}
+                              
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3" />
                                 {formatDistanceToNow(new Date(mockup.created_at), {
@@ -1008,38 +1082,55 @@ export default function MockupGenerator() {
                               </div>
                             </div>
                             
-                            {/* Overlay actions */}
-                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                size="icon"
-                                variant="secondary"
-                                className="h-8 w-8"
-                                title="Regenerar com estas configurações"
-                                onClick={() => loadFromHistory(mockup)}
-                              >
-                                <RotateCcw className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="secondary"
-                                className="h-8 w-8"
-                                title="Baixar mockup"
-                                onClick={() => downloadMockup(mockup.mockup_url)}
-                              >
-                                <Download className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="destructive"
-                                className="h-8 w-8"
-                                title="Excluir mockup"
-                                onClick={() => {
-                                  setMockupToDelete(mockup.id);
-                                  setDeleteDialogOpen(true);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                            {/* Overlay actions with improved styling */}
+                            <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="secondary"
+                                    className="h-8 w-8 shadow-md"
+                                    onClick={() => loadFromHistory(mockup)}
+                                    aria-label="Regenerar com estas configurações"
+                                  >
+                                    <RotateCcw className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Regenerar mockup</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="secondary"
+                                    className="h-8 w-8 shadow-md"
+                                    onClick={() => downloadMockup(mockup.mockup_url)}
+                                    aria-label="Baixar mockup"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Baixar mockup</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="icon"
+                                    variant="destructive"
+                                    className="h-8 w-8 shadow-md"
+                                    onClick={() => {
+                                      setMockupToDelete(mockup.id);
+                                      setDeleteDialogOpen(true);
+                                    }}
+                                    aria-label="Excluir mockup"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Excluir mockup</TooltipContent>
+                              </Tooltip>
                             </div>
                           </div>
                         ))}
@@ -1139,6 +1230,23 @@ export default function MockupGenerator() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Mobile FAB - Fixed Generate Button */}
+      <div className="sm:hidden fixed bottom-6 right-6 z-50">
+        <Button
+          size="lg"
+          onClick={generateMockup}
+          disabled={!selectedProduct || !selectedTechnique || personalizationAreas.every(a => !a.logoPreview) || isLoading}
+          className="h-14 w-14 rounded-full shadow-lg shadow-primary/25 p-0"
+          aria-label="Gerar mockup"
+        >
+          {isLoading ? (
+            <Loader2 className="h-6 w-6 animate-spin" />
+          ) : (
+            <Wand2 className="h-6 w-6" />
+          )}
+        </Button>
+      </div>
 
       {/* AI Mockup Assistant */}
       <AIMockupAssistant
