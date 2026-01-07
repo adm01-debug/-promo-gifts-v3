@@ -73,50 +73,6 @@ export default function Index() {
     setDisplayCount(ITEMS_PER_PAGE);
   }, [filters, sortBy, searchQuery, selectedClient]);
 
-  // Infinite scroll with Intersection Observer - using refs to avoid dependency cycles
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const isLoadingRef = useRef(isLoading);
-  const isLoadingMoreRef = useRef(isLoadingMore);
-
-  // Keep refs in sync with state
-  useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
-
-  useEffect(() => {
-    isLoadingMoreRef.current = isLoadingMore;
-  }, [isLoadingMore]);
-
-  const loadMore = useCallback(() => {
-    if (isLoadingMoreRef.current) return;
-    setIsLoadingMore(true);
-    setTimeout(() => {
-      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
-      setIsLoadingMore(false);
-    }, 300);
-  }, []); // No dependencies - uses refs instead
-
-  useEffect(() => {
-    const currentRef = loadMoreRef.current;
-    if (!currentRef) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        // Use refs instead of state to avoid triggering effect re-runs
-        if (entry.isIntersecting && !isLoadingRef.current && !isLoadingMoreRef.current) {
-          loadMore();
-        }
-      },
-      { threshold: 0.1, rootMargin: "100px" },
-    );
-
-    observer.observe(currentRef);
-    return () => {
-      if (currentRef) observer.unobserve(currentRef);
-    };
-  }, [loadMore]); // loadMore is now stable
-
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.colors.length) count += filters.colors.length;
@@ -233,6 +189,49 @@ export default function Index() {
   const hasMoreProducts = useMemo(() => {
     return paginatedProducts.length < filteredProducts.length;
   }, [paginatedProducts, filteredProducts]);
+
+  // Infinite scroll with Intersection Observer - using refs to avoid dependency cycles
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef(false); // Single ref to track loading state
+  const hasMoreRef = useRef(hasMoreProducts); // Ref for hasMoreProducts
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    loadingRef.current = isLoading || isLoadingMore;
+  }, [isLoading, isLoadingMore]);
+
+  useEffect(() => {
+    hasMoreRef.current = hasMoreProducts;
+  }, [hasMoreProducts]);
+
+  const loadMore = useCallback(() => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+      setIsLoadingMore(false);
+    }, 300);
+  }, []); // Empty array: function never changes
+
+  useEffect(() => {
+    const currentRef = loadMoreRef.current;
+    if (!currentRef) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        // Use refs to check state without triggering re-renders
+        if (entry.isIntersecting && !loadingRef.current && hasMoreRef.current) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" }, // Larger rootMargin for smoother loading
+    );
+
+    observer.observe(currentRef);
+    return () => {
+      if (currentRef) observer.unobserve(currentRef);
+    };
+  }, [loadMore]); // Only loadMore as dependency - it's stable
 
   // Quick filters
   const quickFilters: QuickFilter[] = useMemo(
