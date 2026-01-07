@@ -94,12 +94,27 @@ export function OnboardingTour() {
     }
   }, [currentStepData]);
 
-  // Navigate to correct route for step
+  // Navigate to correct route for step - com proteção contra loops
   useEffect(() => {
-    if (showTour && currentStepData?.route && location.pathname !== currentStepData.route) {
-      navigate(currentStepData.route);
+    // Proteção: só navega se o tour estiver ativo E não estiver em loop
+    if (!showTour || !currentStepData?.route) return;
+    
+    // Normalizar rotas para comparação (remove trailing slash)
+    const currentPath = location.pathname.replace(/\/$/, '') || '/';
+    const targetPath = currentStepData.route.replace(/\/$/, '') || '/';
+    
+    // Verificar se já está na rota correta ou em rota equivalente
+    // /mockup e /mockup-generator são consideradas equivalentes
+    const isEquivalentRoute = 
+      currentPath === targetPath ||
+      (targetPath === '/mockup' && currentPath === '/mockup-generator') ||
+      (targetPath === '/mockup-generator' && currentPath === '/mockup');
+    
+    if (!isEquivalentRoute) {
+      // Usar replace para não criar histórico infinito
+      navigate(currentStepData.route, { replace: true });
     }
-  }, [showTour, currentStepData, location.pathname, navigate]);
+  }, [showTour, currentStepData?.route, location.pathname, navigate]);
 
   // Update positions when step changes or on resize
   useEffect(() => {
