@@ -191,9 +191,11 @@ export default function Index() {
   }, [paginatedProducts, filteredProducts]);
 
   // Infinite scroll with Intersection Observer - using refs to avoid dependency cycles
+  // Infinite scroll with Intersection Observer - using refs to avoid dependency cycles
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false); // Single ref to track loading state
   const hasMoreRef = useRef(hasMoreProducts); // Ref for hasMoreProducts
+  const lastLoadTimeRef = useRef(0); // Debounce ref to prevent rapid firing
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -205,11 +207,27 @@ export default function Index() {
   }, [hasMoreProducts]);
 
   const loadMore = useCallback(() => {
+    // Debounce: prevent loading more than once per 500ms
+    const now = Date.now();
+    if (now - lastLoadTimeRef.current < 500) {
+      return;
+    }
+    
+    // Additional check using refs
+    if (loadingRef.current || !hasMoreRef.current) {
+      return;
+    }
+    
+    lastLoadTimeRef.current = now;
     setIsLoadingMore(true);
-    setTimeout(() => {
-      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
-      setIsLoadingMore(false);
-    }, 300);
+    
+    // Use requestAnimationFrame for smoother UI updates
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        setIsLoadingMore(false);
+      }, 300);
+    });
   }, []); // Empty array: function never changes
 
   useEffect(() => {
@@ -224,7 +242,10 @@ export default function Index() {
           loadMore();
         }
       },
-      { threshold: 0.1, rootMargin: "200px" }, // Larger rootMargin for smoother loading
+      { 
+        threshold: 0.1, 
+        rootMargin: "200px" 
+      },
     );
 
     observer.observe(currentRef);
@@ -660,3 +681,4 @@ export default function Index() {
     </MainLayout>
   );
 }
+
