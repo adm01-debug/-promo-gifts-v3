@@ -49,11 +49,12 @@ export function MobileBottomNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border lg:hidden safe-area-bottom"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border lg:hidden"
       role="navigation"
       aria-label="Navegação principal mobile"
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)' }}
     >
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-14 sm:h-16 px-1 sm:px-2">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -63,9 +64,10 @@ export function MobileBottomNav() {
               key={item.href}
               to={item.href}
               className={cn(
-                "flex flex-col items-center justify-center min-w-[64px] min-h-[48px] px-3 py-2 rounded-lg transition-all",
+                "flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all",
                 "touch-manipulation tap-highlight-transparent",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                "active:scale-95",
                 active 
                   ? "text-primary bg-primary/10" 
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -73,8 +75,8 @@ export function MobileBottomNav() {
               aria-label={item.ariaLabel || item.label}
               aria-current={active ? "page" : undefined}
             >
-              <Icon className={cn("h-5 w-5 mb-1", active && "text-primary")} aria-hidden="true" />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <Icon className={cn("h-5 w-5 sm:mb-1", active && "text-primary")} aria-hidden="true" />
+              <span className="text-[9px] sm:text-[10px] font-medium leading-tight truncate max-w-[56px]">{item.label}</span>
             </NavLink>
           );
         })}
@@ -84,25 +86,26 @@ export function MobileBottomNav() {
           <SheetTrigger asChild>
             <button
               className={cn(
-                "flex flex-col items-center justify-center min-w-[64px] min-h-[48px] px-3 py-2 rounded-lg transition-all",
+                "flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all",
                 "touch-manipulation tap-highlight-transparent",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                "active:scale-95",
                 "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
               aria-label="Mais opções"
               aria-expanded={moreOpen}
               aria-haspopup="dialog"
             >
-              <MoreHorizontal className="h-5 w-5 mb-1" aria-hidden="true" />
-              <span className="text-[10px] font-medium">Mais</span>
+              <MoreHorizontal className="h-5 w-5 sm:mb-1" aria-hidden="true" />
+              <span className="text-[9px] sm:text-[10px] font-medium leading-tight">Mais</span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto max-h-[70vh] rounded-t-2xl">
+          <SheetContent side="bottom" className="h-auto max-h-[70vh] rounded-t-2xl" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 1rem)' }}>
             <SheetTitle>
               <VisuallyHidden>Menu de navegação adicional</VisuallyHidden>
             </SheetTitle>
             <div className="py-4">
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 sm:gap-4">
                 {moreNavItems.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.href);

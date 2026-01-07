@@ -342,15 +342,15 @@ export default function Index() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header with Search */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
             <div>
-              <h1 className="font-display text-2xl lg:text-3xl font-bold">
+              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">
                 Catálogo de Produtos
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-muted-foreground text-sm sm:text-base mt-1">
                 Explore nossa coleção completa de brindes corporativos
               </p>
             </div>
@@ -368,21 +368,21 @@ export default function Index() {
               recentSearches={history}
               isLoading={isSearching}
               enableVoice
-              className="lg:w-80"
+              className="w-full lg:w-80"
             />
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             {stats.map((stat, index) => (
               <Card key={index} className="card-interactive">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <CardContent className="p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary">
                     {stat.icon}
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-2xl font-bold truncate">{stat.value}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
                   </div>
                 </CardContent>
               </Card>
