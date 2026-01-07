@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -9,10 +10,12 @@ interface ChecklistItem {
   title: string;
   description: string;
   completed: boolean;
-  action?: () => void;
+  actionPath?: string;
 }
 
 export function OnboardingChecklist() {
+  const navigate = useNavigate();
+  
   const [items, setItems] = useState<ChecklistItem[]>([
     {
       id: 'profile',
@@ -25,21 +28,21 @@ export function OnboardingChecklist() {
       title: 'Crie seu primeiro orçamento',
       description: 'Teste o builder de orçamentos',
       completed: false,
-      action: () => window.location.href = '/quotes/new'
+      actionPath: '/quotes/new'
     },
     {
       id: 'explore-catalog',
       title: 'Explore o catálogo',
       description: '50.000+ produtos disponíveis',
       completed: false,
-      action: () => window.location.href = '/products'
+      actionPath: '/products'
     },
     {
       id: 'enable-notifications',
       title: 'Ative notificações',
       description: 'Receba alertas de aprovações',
       completed: false,
-      action: () => window.location.href = '/profile'
+      actionPath: '/profile'
     }
   ]);
 
@@ -106,9 +109,9 @@ export function OnboardingChecklist() {
                 </p>
               </div>
 
-              {!item.completed && item.action && (
+              {!item.completed && item.actionPath && (
                 <Button
-                  onClick={item.action}
+                  onClick={() => navigate(item.actionPath!)}
                   size="sm"
                   variant="outline"
                 >
