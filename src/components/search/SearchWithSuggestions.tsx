@@ -29,18 +29,27 @@ export function SearchWithSuggestions({
   const [isListening, setIsListening] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const onSearchRef = useRef(onSearch);
+  const lastSearchedRef = useRef("");
   const debouncedQuery = useDebounce(query, 300);
+
+  // Keep onSearch ref updated to avoid stale closures
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
 
   // Combine suggestions and recent searches
   const allSuggestions = query.length > 0 
     ? suggestions 
     : recentSearches.slice(0, 5);
 
+  // Only call onSearch when debouncedQuery actually changes to a new value
   useEffect(() => {
-    if (debouncedQuery) {
-      onSearch(debouncedQuery);
+    if (debouncedQuery !== lastSearchedRef.current) {
+      lastSearchedRef.current = debouncedQuery;
+      onSearchRef.current(debouncedQuery);
     }
-  }, [debouncedQuery, onSearch]);
+  }, [debouncedQuery]); // Remove onSearch from dependencies - use ref instead
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {

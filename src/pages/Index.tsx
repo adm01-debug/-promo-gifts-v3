@@ -356,6 +356,14 @@ export default function Index() {
     toggleFavorite(productId);
   };
 
+  // Stable search handler to prevent re-render loops
+  const handleSearch = useCallback((query: string) => {
+    setIsSearching(true);
+    setSearchQuery(query);
+    if (query) addToHistory(query);
+    setTimeout(() => setIsSearching(false), 300);
+  }, [addToHistory]);
+
   return (
     <MainLayout>
       <div className="space-y-4 sm:space-y-6">
@@ -372,12 +380,7 @@ export default function Index() {
             {/* Search with Suggestions */}
             <SearchWithSuggestions
               placeholder="Buscar produtos, categorias..."
-              onSearch={(query) => {
-                setIsSearching(true);
-                setSearchQuery(query);
-                if (query) addToHistory(query);
-                setTimeout(() => setIsSearching(false), 300);
-              }}
+              onSearch={handleSearch}
               suggestions={suggestions.map((s) => s.label)}
               recentSearches={history}
               isLoading={isSearching}
