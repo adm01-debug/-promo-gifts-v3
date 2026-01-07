@@ -1590,9 +1590,15 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          department: string | null
+          email: string | null
           full_name: string | null
           id: string
+          is_active: boolean | null
+          last_login_at: string | null
           phone: string | null
+          preferences: Json | null
+          role: string | null
           role_id: string | null
           updated_at: string
           user_id: string
@@ -1600,9 +1606,15 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
           phone?: string | null
+          preferences?: Json | null
+          role?: string | null
           role_id?: string | null
           updated_at?: string
           user_id: string
@@ -1610,9 +1622,15 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          department?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
+          last_login_at?: string | null
           phone?: string | null
+          preferences?: Json | null
+          role?: string | null
           role_id?: string | null
           updated_at?: string
           user_id?: string
