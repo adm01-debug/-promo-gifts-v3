@@ -36,3 +36,9 @@ export { SkipToContent } from "@/components/common/SkipToContent";
 // Navigation
 export { Spotlight } from "@/components/common/Spotlight";
 export { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
+
+// Tables & Lists
+export { VirtualizedList, VirtualizedGrid } from "@/components/ui/VirtualizedList";
+
+// Notifications
+export { AnnouncementBanner, SimpleAnnouncement } from "@/components/ui/AnnouncementBanner";
