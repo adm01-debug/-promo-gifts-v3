@@ -1,0 +1,7 @@
+{
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "build:dev": "vite build --mode development",
+  "preview": "vite preview"
+},
