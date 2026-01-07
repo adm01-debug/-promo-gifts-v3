@@ -71,7 +71,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     description: "Crie visualizações profissionais com logo do cliente! Posicione a arte, ajuste tamanho e gere mockups para apresentações.",
     targetSelector: "[data-tour='sidebar']",
     position: "right",
-    route: "/mockup",
+    route: "/mockup-generator",
   },
   {
     id: "bi-dashboard",
