@@ -19,7 +19,7 @@ import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
 import { GamificationIndicators } from "./GamificationIndicators";
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
-import { NotificationsPopover } from "@/components/notifications/NotificationsPopover";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FollowUpRemindersPopover } from "@/components/reminders/FollowUpRemindersPopover";
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
 
@@ -123,7 +123,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           {/* Follow-up Reminders & Notifications */}
           <div className="flex items-center gap-1" data-tour="notifications">
             <FollowUpRemindersPopover />
-            <NotificationsPopover />
+            <NotificationCenter />
           </div>
 
           {/* Stock Alerts */}

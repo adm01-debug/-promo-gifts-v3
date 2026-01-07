@@ -1,5 +1,6 @@
 /* App-level styles */
 @import './styles/design-polish.css';
+@import './styles/performance-polish.css';
 
 /* Reset problematic defaults */
 #root {
