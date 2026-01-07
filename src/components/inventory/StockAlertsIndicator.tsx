@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, TrendingDown, Package, X, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 interface StockAlert {
   id: string;
@@ -27,6 +28,34 @@ interface StockAlertsIndicatorProps {
   lowStockThreshold?: number;
   criticalStockThreshold?: number;
 }
+
+// Componente interno com ref para o PopoverTrigger
+const StockAlertTrigger = forwardRef<HTMLButtonElement, { totalCount: number; criticalCount: number }>(
+  ({ totalCount, criticalCount, ...props }, ref) => (
+    <Button
+      ref={ref}
+      variant="ghost"
+      size="icon"
+      className="relative"
+      {...props}
+    >
+      <Bell className="h-5 w-5" />
+      {totalCount > 0 && (
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className={cn(
+            "absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white",
+            criticalCount > 0 ? "bg-destructive" : "bg-orange"
+          )}
+        >
+          {totalCount > 99 ? "99+" : totalCount}
+        </motion.span>
+      )}
+    </Button>
+  )
+);
+StockAlertTrigger.displayName = "StockAlertTrigger";
 
 export function StockAlertsIndicator({
   lowStockThreshold = 50,
@@ -140,24 +169,7 @@ export function StockAlertsIndicator({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative"
-        >
-          <Bell className="h-5 w-5" />
-          {totalCount > 0 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className={`absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                criticalCount > 0 ? "bg-destructive" : "bg-orange"
-              }`}
-            >
-              {totalCount > 99 ? "99+" : totalCount}
-            </motion.span>
-          )}
-        </Button>
+        <StockAlertTrigger totalCount={totalCount} criticalCount={criticalCount} />
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
         <Card className="border-0 shadow-none">
