@@ -123,8 +123,6 @@ export function VirtualizedGrid<T>({
                 transform: `translateY(${vRow.start}px)`,
               }}
               className="grid"
-              // @ts-ignore - dynamic grid columns
-              style-grid-template-columns={`repeat(${columns}, minmax(0, 1fr))`}
             >
               <div 
                 className="grid gap-4"

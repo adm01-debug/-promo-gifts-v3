@@ -81,7 +81,6 @@ export function StockAlertsIndicator({
           filter: `stock=lt.${lowStockThreshold}`,
         },
         (payload) => {
-          console.log("Stock change detected:", payload);
           fetchStockAlerts();
         }
       )

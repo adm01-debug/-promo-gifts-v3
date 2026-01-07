@@ -28,11 +28,9 @@ export function useSessionManager() {
           variant: 'destructive',
         });
         signOut();
-      } else if (data.session) {
-        console.log('Session refreshed successfully');
       }
     } catch (error) {
-      console.error('Session refresh error:', error);
+      // Silently handle session refresh errors
     }
   }, [signOut, toast]);
 

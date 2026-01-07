@@ -122,10 +122,7 @@ export function exportToExcel(config: ExcelExportConfig): void {
 
     // 6. Fazer download
     XLSX.writeFile(workbook, fullFilename);
-
-    console.log(`✅ Arquivo exportado: ${fullFilename}`);
   } catch (error) {
-    console.error('❌ Erro ao exportar Excel:', error);
     throw new Error('Falha ao exportar arquivo Excel');
   }
 }
@@ -176,9 +173,7 @@ export function exportMultipleSheets(
     const fullFilename = `${filename}${timestamp}.xlsx`;
 
     XLSX.writeFile(workbook, fullFilename);
-    console.log(`✅ Arquivo com ${sheets.length} planilhas exportado: ${fullFilename}`);
   } catch (error) {
-    console.error('❌ Erro ao exportar múltiplas planilhas:', error);
     throw new Error('Falha ao exportar arquivo Excel');
   }
 }

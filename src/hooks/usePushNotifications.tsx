@@ -41,21 +41,17 @@ export function usePushNotifications() {
       }));
       
       if (permission === 'granted') {
-        console.log('Push notification permission granted');
         return true;
       } else {
-        console.log('Push notification permission denied');
         return false;
       }
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
       return false;
     }
   }, [state.isSupported]);
 
   const showNotification = useCallback((title: string, options?: NotificationOptions) => {
     if (!state.isEnabled) {
-      console.warn('Notifications not enabled');
       return null;
     }
 
@@ -98,7 +94,7 @@ export function usePushNotifications() {
   useEffect(() => {
     if (!user || !state.isEnabled) return;
 
-    console.log('Subscribing to security notifications for user:', user.id);
+    
 
     const channel = supabase
       .channel('security-notifications')
@@ -174,7 +170,6 @@ export function usePushNotifications() {
       .subscribe();
 
     return () => {
-      console.log('Unsubscribing from security notifications');
       supabase.removeChannel(channel);
     };
   }, [user, state.isEnabled, showSecurityAlert]);
