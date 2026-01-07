@@ -12,6 +12,4 @@ export function setupLocale() {
     locale: ptBR,
     weekStartsOn: 0, // Domingo = 0, Segunda = 1
   });
-  
-  console.log('✅ Locale configurado: pt-BR');
 }

@@ -1,6 +1,8 @@
 /* App-level styles */
 @import './styles/design-polish.css';
 @import './styles/performance-polish.css';
+@import './styles/animations.css';
+@import './styles/responsive.css';
 
 /* Reset problematic defaults */
 #root {

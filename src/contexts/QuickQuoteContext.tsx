@@ -61,9 +61,7 @@ export function QuickQuoteProvider({ children }: { children: ReactNode }) {
   );
 
   const createQuote = useCallback(() => {
-    // Here you would navigate to quote creation or call an API
-    console.log("Creating quote with items:", items);
-    // After creating, optionally clear
+    // TODO: Navigate to quote creation or call an API
     // clearAll();
   }, [items]);
 
