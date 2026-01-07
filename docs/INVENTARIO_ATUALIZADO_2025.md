@@ -137,18 +137,6 @@
 ### `docs/` (50+ arquivos)
 
 #### Subpasta `crud-improvements/`
-
-| Arquivo | Descrição |
-|---------|-----------|
-| `CHECKLIST_EXECUTIVO.md` | Checklist executivo |
-| `DASHBOARD_TRACKING.md` | Tracking do dashboard |
-| `EXEMPLO_INTEGRACAO_FINANCE_HUB.md` | Exemplo integração Finance Hub |
-| `IMPLEMENTACAO_TOTAL_16_SISTEMAS.md` | Implementação dos 16 sistemas |
-| `PECULIARIDADES_16_SISTEMAS.md` | Peculiaridades dos sistemas |
-| `README.md` | README do CRUD |
-| `README_EXECUCAO_FINAL.md` | Execução final |
-| `TROUBLESHOOTING.md` | Solução de problemas |
-
 #### Documentação Principal
 
 | Arquivo | Descrição |
@@ -1271,39 +1259,16 @@ src/
 
 ---
 
-## 📦 PACKAGES (Monorepo)
-
-### `packages/shared-crud/`
-
-```
-migrations/
-├── 001_saved_filters.sql
-└── 002_entity_versions.sql
-
-src/
-├── hooks.ts
-├── index.ts
-└── utils.ts
-
-package.json
-README.md
-tsconfig.json
-```
-
----
-
 ## 🔧 SCRIPTS
 
-### `scripts/` (8 scripts)
+### `scripts/` (6 scripts)
 
 | Script | Descrição |
 |--------|-----------|
-| INTEGRAR_TODOS_16_SISTEMAS.sh | Integração dos 16 sistemas |
 | build.sh | Build da aplicação |
 | db-backup.sh | Backup do banco |
 | db-seed.sh | Seed do banco |
 | deploy.sh | Deploy |
-| integrar_sistema.sh | Integração de sistema |
 | test.sh | Execução de testes |
 | verify-build.sh | Verificação de build |
 
