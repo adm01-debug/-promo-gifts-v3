@@ -1,23 +1,10 @@
 import { useState } from "react";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -44,14 +31,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  FileText, 
-  Plus, 
-  MoreVertical, 
-  Eye, 
-  Trash2, 
+import {
+  FileText,
+  Plus,
+  MoreVertical,
+  Eye,
+  Trash2,
   Send,
   Search,
   Filter,
@@ -65,15 +50,13 @@ import {
 } from "lucide-react";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ptBR } from "date-fns/locale";
-import { useBulkSelection } from "@/hooks/useBulkSelection";
-import { Checkbox } from "@/components/ui/checkbox";
 
-const statusConfig: Record<Quote["status"], { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const statusConfig: Record<
+  Quote["status"],
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" }
+> = {
   draft: { label: "Rascunho", variant: "secondary" },
   pending: { label: "Pendente", variant: "outline" },
   sent: { label: "Enviado", variant: "default" },
@@ -84,14 +67,15 @@ const statusConfig: Record<Quote["status"], { label: string; variant: "default" 
 
 export default function QuotesListPage() {
   const navigate = useNavigate();
-  const { quotes, isLoading, deleteQuote, updateQuoteStatus, syncQuoteToBitrix, duplicateQuote } = useQuotes();
-  
+  const { quotes, isLoading, deleteQuote, updateQuoteStatus, syncQuoteToBitrix, duplicateQuote } =
+    useQuotes();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const filteredQuotes = quotes.filter((quote) => {
-    const matchesSearch = 
+    const matchesSearch =
       quote.quote_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       quote.client_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
@@ -132,35 +116,20 @@ export default function QuotesListPage() {
 
   return (
     <MainLayout>
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
+            <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+              <FileText className="h-7 w-7" />
               Orçamentos
             </h1>
             <p className="text-muted-foreground mt-1">
-              Gerencie seus orçamentos e propostas comerciais
+              {filteredQuotes.length} orçamento(s) encontrado(s)
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm" disabled>
-              <List className="h-4 w-4 mr-2" />
-              Lista
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("/orcamentos/kanban")}>
-              <LayoutGrid className="h-4 w-4 mr-2" />
-              Kanban
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/orcamentos/dashboard")}>
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Dashboard
-            </Button>
-            <Button variant="outline" onClick={() => navigate("/templates-orcamento")}>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => navigate("/orcamentos/templates")}>
               <BookTemplate className="h-4 w-4 mr-2" />
               Templates
             </Button>
@@ -172,8 +141,8 @@ export default function QuotesListPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[200px] max-w-md">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por número ou cliente..."
@@ -183,14 +152,14 @@ export default function QuotesListPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-[180px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              {Object.entries(statusConfig).map(([value, config]) => (
-                <SelectItem key={value} value={value}>
+              <SelectItem value="all">Todos os Status</SelectItem>
+              {Object.entries(statusConfig).map(([key, config]) => (
+                <SelectItem key={key} value={key}>
                   {config.label}
                 </SelectItem>
               ))}
@@ -199,116 +168,111 @@ export default function QuotesListPage() {
         </div>
 
         {/* Quotes List */}
-        {filteredQuotes.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-medium text-lg mb-2">Nenhum orçamento encontrado</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchTerm || statusFilter !== "all"
-                  ? "Tente alterar os filtros de busca"
-                  : "Crie seu primeiro orçamento para começar"}
-              </p>
-              {!searchTerm && statusFilter === "all" && (
-                <Button onClick={() => navigate("/orcamentos/novo")}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Orçamento
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {filteredQuotes.map((quote) => {
-              const status = statusConfig[quote.status];
-              return (
-                <Card key={quote.id} className="group hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className="font-mono font-medium">{quote.quote_number}</span>
-                          <Badge variant={status.variant}>{status.label}</Badge>
-                          {quote.synced_to_bitrix && (
-                            <Badge variant="outline" className="text-xs">
-                              <RefreshCw className="h-3 w-3 mr-1" />
-                              Bitrix
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="mt-1 text-sm text-muted-foreground">
-                          {quote.client_name || "Sem cliente"} • Criado em{" "}
-                          {quote.created_at && format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                        </div>
+        <div className="grid gap-4">
+          {filteredQuotes.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium">Nenhum orçamento encontrado</h3>
+                <p className="text-muted-foreground text-sm mt-1">
+                  {searchTerm || statusFilter !== "all"
+                    ? "Tente ajustar seus filtros"
+                    : "Crie seu primeiro orçamento"}
+                </p>
+                {!searchTerm && statusFilter === "all" && (
+                  <Button className="mt-4" onClick={() => navigate("/orcamentos/novo")}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Orçamento
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            filteredQuotes.map((quote) => (
+              <Card
+                key={quote.id}
+                className="card-interactive cursor-pointer"
+                onClick={() => navigate(`/orcamentos/${quote.id}`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-semibold text-foreground">
+                          #{quote.quote_number}
+                        </h3>
+                        <Badge variant={statusConfig[quote.status].variant}>
+                          {statusConfig[quote.status].label}
+                        </Badge>
                       </div>
-
-                      <div className="text-right">
-                        <p className="font-bold text-lg">{formatCurrency(quote.total)}</p>
-                        {quote.valid_until && (
-                          <p className="text-xs text-muted-foreground">
-                            Válido até {format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR })}
-                          </p>
-                        )}
-                      </div>
-
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="opacity-0 group-hover:opacity-100"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Visualizar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          {quote.status === "draft" && (
-                            <DropdownMenuItem onClick={() => updateQuoteStatus(quote.id!, "sent")}>
-                              <Send className="h-4 w-4 mr-2" />
-                              Enviar
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplicar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => syncQuoteToBitrix(quote.id!)}>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Sincronizar Bitrix
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => setDeleteConfirmId(quote.id!)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <p className="text-sm text-muted-foreground mt-1 truncate">
+                        {quote.client_name || "Cliente não definido"}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+
+                    <div className="hidden md:flex items-center gap-6">
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground">
+                          {formatCurrency(quote.total || 0)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Total</p>
+                      </div>
+                      {quote.valid_until && (
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">Validade</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                          <Eye className="h-4 w-4 mr-2" />
+                          Visualizar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => duplicateQuote(quote.id)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Duplicar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onClick={() => setDeleteConfirmId(quote.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir orçamento?</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O orçamento será permanentemente excluído.
+              Tem certeza que deseja excluir este orçamento? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

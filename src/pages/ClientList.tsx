@@ -1,18 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
+import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { Button } from "@/components/ui/button";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { Badge } from "@/components/ui/badge";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { Input } from "@/components/ui/input";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
-import { 
+import {
   Pagination,
   PaginationContent,
   PaginationItem,
@@ -20,17 +14,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Search, 
-  Building2, 
-  DollarSign, 
+import {
+  Search,
+  Building2,
+  DollarSign,
   Calendar,
   ChevronRight,
   RefreshCw,
@@ -40,17 +34,10 @@ import {
   Users,
 } from "lucide-react";
 import { format } from "date-fns";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { ptBR } from "date-fns/locale";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
-import { useState, useEffect, useMemo } from "react";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { supabase } from "@/integrations/supabase/client";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { toast } from "sonner";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 import { ClientRFMSegmentation } from "@/components/clients/ClientRFMSegmentation";
-import { ExportExcelButton } from "@/components/export/ExportExcelButton";
 
 interface BitrixClient {
   id: string;
@@ -105,12 +92,12 @@ export default function ClientList() {
   const { uniqueRamos, uniqueNichos } = useMemo(() => {
     const ramos = new Set<string>();
     const nichos = new Set<string>();
-    
-    clients.forEach(client => {
+
+    clients.forEach((client) => {
       if (client.ramo) ramos.add(client.ramo);
       if (client.nicho) nichos.add(client.nicho);
     });
-    
+
     return {
       uniqueRamos: Array.from(ramos).sort(),
       uniqueNichos: Array.from(nichos).sort(),
@@ -119,12 +106,13 @@ export default function ClientList() {
 
   // Filtrar clientes
   const filteredClients = useMemo(() => {
-    return clients.filter(client => {
-      const matchesSearch = searchQuery === "" || 
+    return clients.filter((client) => {
+      const matchesSearch =
+        searchQuery === "" ||
         client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (client.ramo?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (client.nicho?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (client.email?.toLowerCase().includes(searchQuery.toLowerCase()));
+        client.ramo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.nicho?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        client.email?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesRamo = ramoFilter === "all" || client.ramo === ramoFilter;
       const matchesNicho = nichoFilter === "all" || client.nicho === nichoFilter;
@@ -147,9 +135,9 @@ export default function ClientList() {
 
   const formatCurrency = (value: number | null) => {
     if (value === null) return "R$ 0,00";
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value);
   };
 
@@ -175,7 +163,7 @@ export default function ClientList() {
             </p>
           </div>
           <Button variant="outline" className="gap-2" onClick={loadClients} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             Atualizar
           </Button>
         </div>
@@ -194,207 +182,212 @@ export default function ClientList() {
           </TabsList>
 
           <TabsContent value="list" className="mt-6 space-y-6">
-
-        {/* Search & Filters */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="search-bar flex-1 max-w-md">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Buscar clientes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-            />
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <Select value={ramoFilter} onValueChange={setRamoFilter}>
-              <SelectTrigger className="w-[150px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Ramo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os ramos</SelectItem>
-                {uniqueRamos.map(ramo => (
-                  <SelectItem key={ramo} value={ramo}>{ramo}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={nichoFilter} onValueChange={setNichoFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Nicho" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os nichos</SelectItem>
-                {uniqueNichos.map(nicho => (
-                  <SelectItem key={nicho} value={nicho}>{nicho}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
-                <X className="h-4 w-4" />
-                Limpar
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Client list */}
-        {isLoading ? (
-          <div className="grid gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="card p-4 flex items-center gap-4">
-                <Skeleton className="w-14 h-14 rounded-xl" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-5 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
+            {/* Search & Filters */}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="search-bar flex-1 max-w-md">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Buscar clientes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {paginatedClients.map((client, index) => (
-              <div
-                key={client.id}
-                className="card-interactive p-4 flex items-center gap-4 cursor-pointer animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-                onClick={() => navigate(`/cliente/${client.bitrix_id}`)}
-              >
-                {/* Logo */}
-                <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-display font-bold text-xl shrink-0"
-                  style={{ backgroundColor: client.primary_color_hex || 'hsl(var(--primary))' }}
-                >
-                  {client.name.charAt(0).toUpperCase()}
-                </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-semibold text-foreground truncate">
-                    {client.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    {client.ramo && (
-                      <Badge variant="outline" className="text-xs">
-                        {client.ramo}
-                      </Badge>
-                    )}
-                    {client.nicho && (
-                      <Badge variant="secondary" className="text-xs">
-                        {client.nicho}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
+              <div className="flex gap-2 flex-wrap">
+                <Select value={ramoFilter} onValueChange={setRamoFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Ramo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os ramos</SelectItem>
+                    {uniqueRamos.map((ramo) => (
+                      <SelectItem key={ramo} value={ramo}>
+                        {ramo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                {/* Stats */}
-                <div className="hidden md:flex items-center gap-6">
-                  <div className="text-right">
-                    <div className="flex items-center gap-1 text-success">
-                      <DollarSign className="h-4 w-4" />
-                      <span className="font-semibold">
-                        {formatCurrency(client.total_spent)}
-                      </span>
+                <Select value={nichoFilter} onValueChange={setNichoFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Nicho" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os nichos</SelectItem>
+                    {uniqueNichos.map((nicho) => (
+                      <SelectItem key={nicho} value={nicho}>
+                        {nicho}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+                    <X className="h-4 w-4" />
+                    Limpar
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Client list */}
+            {isLoading ? (
+              <div className="grid gap-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="card p-4 flex items-center gap-4">
+                    <Skeleton className="w-14 h-14 rounded-xl" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
                     </div>
-                    <p className="text-xs text-muted-foreground">Total gasto</p>
                   </div>
-
-                  {client.last_purchase_date && (
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span className="text-sm">
-                          {format(new Date(client.last_purchase_date), "dd/MM/yyyy", { locale: ptBR })}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Última compra</p>
-                    </div>
-                  )}
-
-                  {/* Color swatch */}
-                  {client.primary_color_hex && (
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {paginatedClients.map((client, index) => (
+                  <div
+                    key={client.id}
+                    className="card-interactive p-4 flex items-center gap-4 cursor-pointer animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    onClick={() => navigate(`/clientes/${client.id}`)}
+                  >
+                    {/* Logo */}
                     <div
-                      className="w-6 h-6 rounded-full border border-border"
-                      style={{ backgroundColor: client.primary_color_hex }}
-                      title={client.primary_color_name || "Cor principal"}
-                    />
-                  )}
-                </div>
-
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!isLoading && filteredClients.length === 0 && (
-          <div className="text-center py-12">
-            <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground">Nenhum cliente encontrado</h3>
-            <p className="text-muted-foreground mt-1">
-              {clients.length === 0 
-                ? "Sincronize os dados do Bitrix24 para ver os clientes"
-                : "Tente ajustar sua busca ou filtros"}
-            </p>
-            {clients.length === 0 && (
-              <Button className="mt-4" onClick={() => navigate("/bitrix-sync")}>
-                Ir para Sincronização
-              </Button>
-            )}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
-              </PaginationItem>
-              
-              {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                let pageNum: number;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                return (
-                  <PaginationItem key={pageNum}>
-                    <PaginationLink
-                      onClick={() => setCurrentPage(pageNum)}
-                      isActive={currentPage === pageNum}
-                      className="cursor-pointer"
+                      className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-display font-bold text-xl shrink-0"
+                      style={{ backgroundColor: client.primary_color_hex || "hsl(var(--primary))" }}
                     >
-                      {pageNum}
-                    </PaginationLink>
+                      {client.name.charAt(0).toUpperCase()}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-display font-semibold text-foreground truncate">
+                        {client.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {client.ramo && (
+                          <Badge variant="outline" className="text-xs">
+                            {client.ramo}
+                          </Badge>
+                        )}
+                        {client.nicho && (
+                          <Badge variant="secondary" className="text-xs">
+                            {client.nicho}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="hidden md:flex items-center gap-6">
+                      <div className="text-right">
+                        <div className="flex items-center gap-1 text-success">
+                          <DollarSign className="h-4 w-4" />
+                          <span className="font-semibold">{formatCurrency(client.total_spent)}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Total gasto</p>
+                      </div>
+
+                      {client.last_purchase_date && (
+                        <div className="text-right">
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            <span className="text-sm">
+                              {format(new Date(client.last_purchase_date), "dd/MM/yyyy", {
+                                locale: ptBR,
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Última compra</p>
+                        </div>
+                      )}
+
+                      {/* Color swatch */}
+                      {client.primary_color_hex && (
+                        <div
+                          className="w-6 h-6 rounded-full border border-border"
+                          style={{ backgroundColor: client.primary_color_hex }}
+                          title={client.primary_color_name || "Cor principal"}
+                        />
+                      )}
+                    </div>
+
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!isLoading && filteredClients.length === 0 && (
+              <div className="text-center py-12">
+                <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground">Nenhum cliente encontrado</h3>
+                <p className="text-muted-foreground mt-1">
+                  {clients.length === 0
+                    ? "Sincronize os dados do Bitrix24 para ver os clientes"
+                    : "Tente ajustar sua busca ou filtros"}
+                </p>
+                {clients.length === 0 && (
+                  <Button className="mt-4" onClick={() => navigate("/bitrix-sync")}>
+                    Ir para Sincronização
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
                   </PaginationItem>
-                );
-              })}
-              
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
+
+                  {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                    let pageNum: number;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <PaginationItem key={pageNum}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(pageNum)}
+                          isActive={currentPage === pageNum}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      className={
+                        currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
           </TabsContent>
 
           <TabsContent value="rfm" className="mt-6">
