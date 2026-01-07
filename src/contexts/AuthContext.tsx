@@ -2,23 +2,39 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-type AppRole = "admin" | "vendedor";
+// Tipos de role conforme especificação
+type AppRole = "admin" | "manager" | "seller" | "viewer";
 
-interface Profile {
+// Interface do Profile atualizada conforme especificação
+export interface Profile {
   id: string;
   user_id: string;
+  email: string | null;
   full_name: string | null;
+  role: string | null;           // TEXT direto - "admin" | "seller" | "manager" | "viewer"
   avatar_url: string | null;
   phone: string | null;
+  department: string | null;
+  is_active: boolean | null;
+  last_login_at: string | null;
+  preferences: Record<string, any> | null;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
-  role: AppRole | null;
   isLoading: boolean;
+  // Helpers de permissão
   isAdmin: boolean;
+  isManager: boolean;
+  isSeller: boolean;
+  isViewer: boolean;
+  canManage: boolean;           // admin ou manager
+  isAuthenticated: boolean;
+  // Métodos
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -31,36 +47,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [role, setRole] = useState<AppRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchUserData = async (userId: string) => {
+  const fetchProfile = async (userId: string) => {
     try {
-      // Fetch profile
-      const { data: profileData } = await supabase
+      // Buscar profile - profiles.id = auth.users.id (são o mesmo UUID)
+      const { data: profileData, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
         .single();
       
-      if (profileData) {
-        setProfile(profileData as Profile);
+      if (error) {
+        if (import.meta.env.DEV) {
+          console.error("Error fetching profile:", error);
+        }
+        return;
       }
 
-      // Fetch role
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .single();
-      
-      if (roleData) {
-        setRole(roleData.role as AppRole);
+      if (profileData) {
+        setProfile(profileData as Profile);
+        
+        // Atualizar last_login_at
+        await supabase
+          .from("profiles")
+          .update({ last_login_at: new Date().toISOString() })
+          .eq("user_id", userId);
       }
     } catch (error) {
-      // ✅ CORREÇÃO: Log apenas em desenvolvimento
       if (import.meta.env.DEV) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching profile:", error);
       }
     }
   };
@@ -75,11 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Defer Supabase calls with setTimeout to avoid deadlocks
         if (session?.user) {
           setTimeout(() => {
-            fetchUserData(session.user.id);
+            fetchProfile(session.user.id);
           }, 0);
         } else {
           setProfile(null);
-          setRole(null);
         }
         
         setIsLoading(false);
@@ -92,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchUserData(session.user.id);
+        fetchProfile(session.user.id);
       }
       
       setIsLoading(false);
@@ -132,22 +147,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
-    setRole(null);
   };
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchUserData(user.id);
+      await fetchProfile(user.id);
     }
   };
+
+  // Helpers de permissão baseados em profile.role (TEXT direto)
+  const role = profile?.role || null;
+  const isAdmin = role === "admin";
+  const isManager = role === "manager";
+  const isSeller = role === "seller" || role === "vendedor"; // Suporte para ambos
+  const isViewer = role === "viewer";
+  const canManage = ["admin", "manager"].includes(role || "");
 
   const value: AuthContextType = {
     user,
     session,
     profile,
-    role,
     isLoading,
-    isAdmin: role === "admin",
+    isAdmin,
+    isManager,
+    isSeller,
+    isViewer,
+    canManage,
+    isAuthenticated: !!user,
     signUp,
     signIn,
     signOut,
