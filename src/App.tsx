@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,15 +6,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
 import { GamificationProvider } from "@/contexts/GamificationContext";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
-import { supabase } from "@/integrations/supabase/client";
 import LoadingScreen from "@/components/LoadingScreen";
-// import { Analytics } from "@vercel/analytics/react"; // TODO: Descomentar quando instalar @vercel/analytics
 import "./App.css";
 
 // Auth Pages
@@ -109,11 +108,12 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <ProductsProvider>
-            <CollectionsProvider>
-              <GamificationProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <AuthProvider>
+            <ProductsProvider>
+              <CollectionsProvider>
+                <GamificationProvider>
                 <ComparisonProvider>
                   <FavoritesProvider>
                   <Toaster />
@@ -205,13 +205,14 @@ const App = () => {
                     </Suspense>
                   </BrowserRouter>
                   {/* <Analytics /> */}
-                  </FavoritesProvider>
-                </ComparisonProvider>
-              </GamificationProvider>
-            </CollectionsProvider>
-          </ProductsProvider>
-        </AuthProvider>
-      </TooltipProvider>
+                    </FavoritesProvider>
+                  </ComparisonProvider>
+                </GamificationProvider>
+              </CollectionsProvider>
+            </ProductsProvider>
+          </AuthProvider>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };
