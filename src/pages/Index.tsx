@@ -191,17 +191,66 @@ export default function Index() {
     return paginatedProducts.length < filteredProducts.length;
   }, [paginatedProducts, filteredProducts]);
 
-  // PAGINAÇÃO MANUAL - IntersectionObserver removido para evitar loops de renderização
-  // O usuário clica no botão para carregar mais produtos
+  // INFINITE SCROLL com IntersectionObserver SEGURO
+  // Usa refs para evitar loops de re-renderização
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const isUpdatingRef = useRef(false);
+
+  // Função loadMore estável com proteção contra múltiplos disparos
   const loadMore = useCallback(() => {
-    if (isLoading || isLoadingMore || !hasMoreProducts) return;
+    // Proteção tripla contra loops
+    if (isUpdatingRef.current) return;
+    if (isLoading || isLoadingMore) return;
+    if (!hasMoreProducts) return;
     
+    isUpdatingRef.current = true;
     setIsLoadingMore(true);
+    
     setTimeout(() => {
       setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
       setIsLoadingMore(false);
+      // Libera para próximo load após um delay extra
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 100);
     }, 300);
-  }, [isLoading, isLoadingMore, hasMoreProducts])
+  }, [isLoading, isLoadingMore, hasMoreProducts]);
+
+  // Observer com proteções - reconecta apenas quando necessário
+  useEffect(() => {
+    // Não inicializa se ainda está carregando dados iniciais
+    if (isLoading) return;
+
+    // Desconecta observer anterior se existir
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Cria novo observer
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        // Só dispara se está visível E não está em processo de atualização
+        if (entry.isIntersecting && hasMoreProducts && !isLoadingMore && !isUpdatingRef.current) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" }
+    );
+
+    // Observa o elemento trigger
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    // Cleanup
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [isLoading, hasMoreProducts, isLoadingMore, loadMore])
 
   // Quick filters
   const quickFilters: QuickFilter[] = useMemo(
@@ -590,30 +639,22 @@ export default function Index() {
               />
             )}
 
-            {/* Paginação manual - botão para carregar mais */}
+            {/* Infinite scroll trigger - elemento observado */}
             {!isLoading && hasMoreProducts && (
-              <div className="flex flex-col items-center gap-3 pt-8 pb-4">
+              <div 
+                ref={loadMoreRef}
+                className="flex flex-col items-center gap-3 pt-8 pb-4"
+                style={{ minHeight: '60px' }}
+              >
                 <p className="text-sm text-muted-foreground">
                   Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={loadMore}
-                  disabled={isLoadingMore}
-                  className="gap-2"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Carregando...
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4" />
-                      Carregar mais produtos
-                    </>
-                  )}
-                </Button>
+                {isLoadingMore && (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm">Carregando mais produtos...</span>
+                  </div>
+                )}
               </div>
             )}
 
