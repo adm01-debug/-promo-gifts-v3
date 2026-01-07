@@ -75,6 +75,16 @@ export function MockupWizard({
   // Calculate progress
   const completedSteps = steps.filter((s) => s.isCompleted).length;
   const progressPercent = (completedSteps / steps.length) * 100;
+  const remainingSteps = steps.length - completedSteps;
+
+  // Dynamic microcopy based on progress
+  const getMicrocopy = () => {
+    if (completedSteps === 0) return "Vamos começar! Escolha um produto.";
+    if (remainingSteps === 1) return "🎯 Falta só 1 passo!";
+    if (remainingSteps === 2) return "💪 Quase lá! Mais 2 passos.";
+    if (completedSteps === steps.length) return "🎉 Tudo pronto! Clique em Gerar.";
+    return `${completedSteps} de ${steps.length} etapas concluídas`;
+  };
 
   return (
     <div className={cn("w-full", className)}>
@@ -167,11 +177,11 @@ export function MockupWizard({
             </div>
           </div>
           <div className="text-right">
+            <p className="text-xs font-medium text-primary animate-pulse">
+              {getMicrocopy()}
+            </p>
             <p className="text-xs text-muted-foreground">
               Passo {currentStep} de {steps.length}
-            </p>
-            <p className="text-xs font-medium text-primary">
-              {completedSteps} completos
             </p>
           </div>
         </div>
