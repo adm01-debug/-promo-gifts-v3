@@ -61,7 +61,6 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
 // Bitrix Integration
 const BitrixSync = lazy(() => import("./pages/BitrixSyncPage"));
-const BitrixSyncV2 = lazy(() => import("./pages/BitrixSyncPageV2"));
 
 // Analytics Pages
 const BIDashboard = lazy(() => import("./pages/BIDashboard"));
@@ -183,7 +182,6 @@ const App = () => {
 
                                 {/* Bitrix */}
                                 <Route path="/bitrix-sync" element={<BitrixSync />} />
-                                <Route path="/bitrix-sync-v2" element={<BitrixSyncV2 />} />
 
                                 {/* Analytics */}
                                 <Route path="/bi" element={<BIDashboard />} />
