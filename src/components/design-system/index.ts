@@ -65,3 +65,9 @@ export { AnnouncementBanner, SimpleAnnouncement } from "@/components/ui/Announce
 
 // Onboarding
 export { QuickStartWizard } from "@/components/onboarding/QuickStartWizard";
+
+// Mockup Generator Components
+export { MockupStepper, useMockupStep } from "@/components/mockup/MockupStepper";
+export { MockupConfigPanel } from "@/components/mockup/MockupConfigPanel";
+export { MockupPreviewCard } from "@/components/mockup/MockupPreviewCard";
+export { MockupHistoryGrid } from "@/components/mockup/MockupHistoryGrid";
