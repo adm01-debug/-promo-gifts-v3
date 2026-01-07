@@ -4,6 +4,7 @@
 // Status & Feedback
 export { StatusBadge, mapToStatus } from "@/components/ui/StatusBadge";
 export { UnifiedEmptyState, EmptyStatePresets } from "@/components/ui/UnifiedEmptyState";
+export { SmartEmptyState } from "@/components/ui/SmartEmptyState";
 export { EmptyState, EmptyStateInline } from "@/components/ui/EmptyState";
 export { 
   LoadingState, 
@@ -12,6 +13,16 @@ export {
   LoadingTable, 
   LoadingButton 
 } from "@/components/ui/LoadingState";
+export {
+  Skeleton,
+  ProductCardSkeleton,
+  QuoteRowSkeleton,
+  ClientCardSkeleton,
+  StatCardSkeleton,
+  TableSkeleton,
+  DashboardSkeleton,
+  MockupGeneratorSkeleton,
+} from "@/components/ui/SkeletonLoader";
 
 // Data Display
 export { DataCard, DataCardGrid } from "@/components/ui/DataCard";
@@ -23,6 +34,10 @@ export { Button, buttonVariants } from "@/components/ui/button";
 
 // Form Components
 export { FormSection, FormDivider, FormActions } from "@/components/ui/FormSection";
+export { CollapsibleSection, ExpandableFilters } from "@/components/ui/CollapsibleSection";
+
+// Progress & Steps
+export { StepIndicator } from "@/components/ui/StepIndicator";
 
 // Layout
 export { PageHeader, PageHeaderCompact } from "@/components/layout/PageHeader";
@@ -42,3 +57,6 @@ export { VirtualizedList, VirtualizedGrid } from "@/components/ui/VirtualizedLis
 
 // Notifications
 export { AnnouncementBanner, SimpleAnnouncement } from "@/components/ui/AnnouncementBanner";
+
+// Onboarding
+export { QuickStartWizard } from "@/components/onboarding/QuickStartWizard";

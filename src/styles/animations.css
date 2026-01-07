@@ -1,8 +1,12 @@
-/* Micro-interações e animações */
+/* Micro-interações e animações - Sprint 1 Quick Wins */
 
-/* Ripple effect em botões */
+/* ===== RIPPLE EFFECT MELHORADO ===== */
 @keyframes ripple {
-  to {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
     transform: scale(4);
     opacity: 0;
   }
@@ -11,37 +15,70 @@
 .button-ripple {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 }
 
-.button-ripple::after {
+.button-ripple::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.5);
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
   opacity: 0;
-  border-radius: 100%;
-  transform: scale(1) translate(-50%, -50%);
-  transform-origin: 50% 50%;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.button-ripple:active::after {
-  animation: ripple 0.6s ease-out;
+.button-ripple:active::before {
+  width: 200%;
+  height: 200%;
+  animation: ripple 0.6s ease-out forwards;
 }
 
-/* Cards com hover elevado */
+/* Variante para botões escuros */
+.button-ripple-dark::before {
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 0%, transparent 70%);
+}
+
+/* ===== ACTIVE SCALE FEEDBACK ===== */
+.active-scale {
+  transition: transform 0.1s ease-out;
+}
+
+.active-scale:active {
+  transform: scale(0.95);
+}
+
+/* ===== HOVER STATES ===== */
 .card-hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 12px 24px -4px rgba(0, 0, 0, 0.08),
+    0 4px 8px -2px rgba(0, 0, 0, 0.04);
 }
 
-/* Input com animação de foco */
+.card-hover:active {
+  transform: translateY(-2px);
+}
+
+/* Hover com glow */
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+}
+
+/* ===== INPUT FOCUS ANIMATIONS ===== */
 .input-focus {
   position: relative;
 }
@@ -62,7 +99,7 @@
   left: 0;
 }
 
-/* Checkbox animado */
+/* ===== CHECKBOX & TOGGLE ANIMATIONS ===== */
 .checkbox-animated input:checked + label::before {
   animation: checkmark 0.3s ease;
 }
@@ -79,13 +116,13 @@
   }
 }
 
-/* Pulse para notificações */
+/* ===== PULSE & GLOW ANIMATIONS ===== */
 @keyframes pulse-glow {
   0%, 100% {
-    box-shadow: 0 0 5px rgba(var(--primary-rgb), 0.5);
+    box-shadow: 0 0 5px hsl(var(--primary) / 0.3);
   }
   50% {
-    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.8);
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.6);
   }
 }
 
@@ -93,7 +130,28 @@
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Slide in from bottom */
+/* Pulse ring para indicadores */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.pulse-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  border: 2px solid hsl(var(--primary));
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+/* ===== SLIDE ANIMATIONS ===== */
 @keyframes slide-in-bottom {
   from {
     transform: translateY(100%);
@@ -109,7 +167,22 @@
   animation: slide-in-bottom 0.3s ease-out;
 }
 
-/* Fade in */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* ===== FADE ANIMATIONS ===== */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -119,7 +192,22 @@
   animation: fade-in 0.3s ease-out;
 }
 
-/* Skeleton loading shimmer */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.4s ease-out;
+}
+
+/* ===== SKELETON LOADING ===== */
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
@@ -138,4 +226,112 @@
   );
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
+}
+
+/* ===== BOUNCE ANIMATION ===== */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* ===== SCALE IN ANIMATION ===== */
+@keyframes scale-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* ===== SUCCESS ANIMATION ===== */
+@keyframes success-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-success-pop {
+  animation: success-pop 0.4s ease-out;
+}
+
+/* ===== SHAKE ANIMATION (for errors) ===== */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* ===== SPIN ANIMATION ===== */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+/* ===== STAGGER CHILDREN ===== */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* ===== SPRING PHYSICS ===== */
+.spring-bounce {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.spring-bounce:hover {
+  transform: scale(1.05);
+}
+
+.spring-bounce:active {
+  transform: scale(0.95);
 }
