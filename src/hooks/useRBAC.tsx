@@ -1,5 +1,3 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export type RoleName = 'admin' | 'manager' | 'seller' | 'viewer';
@@ -49,68 +47,37 @@ const rolePermissions: Record<RoleName, Permission[]> = {
   ],
 };
 
+/**
+ * Hook de RBAC simplificado que usa profile.role (TEXT direto)
+ * Não precisa mais buscar de user_roles ou roles tables
+ */
 export function useRBAC() {
-  const { user } = useAuth();
-  const [role, setRole] = useState<Role | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchUserRole() {
-      if (!user) {
-        setRole(null);
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Get user profile with role
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role_id')
-          .eq('user_id', user.id)
-          .single();
-
-        if (profileError || !profile?.role_id) {
-          // Default to seller if no role assigned
-          setRole({ id: '', name: 'seller', description: 'Vendedor' });
-          setIsLoading(false);
-          return;
-        }
-
-        // Get role details
-        const { data: roleData, error: roleError } = await supabase
-          .from('roles')
-          .select('*')
-          .eq('id', profile.role_id)
-          .single();
-
-        if (roleError || !roleData) {
-          setRole({ id: '', name: 'seller', description: 'Vendedor' });
-        } else {
-          setRole({
-            id: roleData.id,
-            name: roleData.name as RoleName,
-            description: roleData.description,
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching user role:', error);
-        setRole({ id: '', name: 'seller', description: 'Vendedor' });
-      } finally {
-        setIsLoading(false);
-      }
+  const { profile, isLoading: authLoading } = useAuth();
+  
+  // Mapear role do profile para RoleName
+  const getRoleName = (): RoleName => {
+    const roleStr = profile?.role || 'seller';
+    // Suporte para "vendedor" (antigo) e "seller" (novo)
+    if (roleStr === 'vendedor') return 'seller';
+    if (['admin', 'manager', 'seller', 'viewer'].includes(roleStr)) {
+      return roleStr as RoleName;
     }
+    return 'seller'; // Default
+  };
 
-    fetchUserRole();
-  }, [user]);
+  const roleName = getRoleName();
+  
+  const role: Role = {
+    id: profile?.id || '',
+    name: roleName,
+    description: getDescriptionForRole(roleName),
+  };
 
   /**
    * Check if user has permission to perform an action on a resource
    */
   const hasPermission = (action: string, resource: string): boolean => {
-    if (!role) return false;
-
-    const permissions = rolePermissions[role.name] || [];
+    const permissions = rolePermissions[roleName] || [];
     
     return permissions.some(p => 
       (p.action === '*' || p.action === action) &&
@@ -122,37 +89,45 @@ export function useRBAC() {
    * Check if user has any of the specified roles
    */
   const hasRole = (...roles: RoleName[]): boolean => {
-    if (!role) return false;
-    return roles.includes(role.name);
+    return roles.includes(roleName);
   };
 
   /**
    * Check if user is admin
    */
-  const isAdmin = role?.name === 'admin';
+  const isAdmin = roleName === 'admin';
 
   /**
    * Check if user is manager or above
    */
-  const isManagerOrAbove = role?.name === 'admin' || role?.name === 'manager';
+  const isManagerOrAbove = roleName === 'admin' || roleName === 'manager';
 
   /**
    * Get all permissions for current role
    */
   const getPermissions = (): Permission[] => {
-    if (!role) return [];
-    return rolePermissions[role.name] || [];
+    return rolePermissions[roleName] || [];
   };
 
   return {
     role,
-    isLoading,
+    isLoading: authLoading,
     hasPermission,
     hasRole,
     isAdmin,
     isManagerOrAbove,
     getPermissions,
   };
+}
+
+function getDescriptionForRole(role: RoleName): string {
+  const descriptions: Record<RoleName, string> = {
+    admin: 'Administrador',
+    manager: 'Gerente',
+    seller: 'Vendedor',
+    viewer: 'Visualizador',
+  };
+  return descriptions[role] || 'Vendedor';
 }
 
 export default useRBAC;
