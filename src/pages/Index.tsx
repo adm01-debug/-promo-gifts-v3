@@ -14,6 +14,7 @@ import {
   Palette,
   Sparkles,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { ExpertChatButton } from "@/components/expert/ExpertChatButton";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -190,69 +191,17 @@ export default function Index() {
     return paginatedProducts.length < filteredProducts.length;
   }, [paginatedProducts, filteredProducts]);
 
-  // Infinite scroll with Intersection Observer - using refs to avoid dependency cycles
-  // Infinite scroll with Intersection Observer - using refs to avoid dependency cycles
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-  const loadingRef = useRef(false); // Single ref to track loading state
-  const hasMoreRef = useRef(hasMoreProducts); // Ref for hasMoreProducts
-  const lastLoadTimeRef = useRef(0); // Debounce ref to prevent rapid firing
-
-  // Keep refs in sync with state
-  useEffect(() => {
-    loadingRef.current = isLoading || isLoadingMore;
-  }, [isLoading, isLoadingMore]);
-
-  useEffect(() => {
-    hasMoreRef.current = hasMoreProducts;
-  }, [hasMoreProducts]);
-
+  // PAGINAÇÃO MANUAL - IntersectionObserver removido para evitar loops de renderização
+  // O usuário clica no botão para carregar mais produtos
   const loadMore = useCallback(() => {
-    // Debounce: prevent loading more than once per 500ms
-    const now = Date.now();
-    if (now - lastLoadTimeRef.current < 500) {
-      return;
-    }
+    if (isLoading || isLoadingMore || !hasMoreProducts) return;
     
-    // Additional check using refs
-    if (loadingRef.current || !hasMoreRef.current) {
-      return;
-    }
-    
-    lastLoadTimeRef.current = now;
     setIsLoadingMore(true);
-    
-    // Use requestAnimationFrame for smoother UI updates
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
-        setIsLoadingMore(false);
-      }, 300);
-    });
-  }, []); // Empty array: function never changes
-
-  useEffect(() => {
-    const currentRef = loadMoreRef.current;
-    if (!currentRef) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        // Use refs to check state without triggering re-renders
-        if (entry.isIntersecting && !loadingRef.current && hasMoreRef.current) {
-          loadMore();
-        }
-      },
-      { 
-        threshold: 0.1, 
-        rootMargin: "200px" 
-      },
-    );
-
-    observer.observe(currentRef);
-    return () => {
-      if (currentRef) observer.unobserve(currentRef);
-    };
-  }, [loadMore]); // Only loadMore as dependency - it's stable
+    setTimeout(() => {
+      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+      setIsLoadingMore(false);
+    }, 300);
+  }, [isLoading, isLoadingMore, hasMoreProducts])
 
   // Quick filters
   const quickFilters: QuickFilter[] = useMemo(
@@ -641,18 +590,30 @@ export default function Index() {
               />
             )}
 
-            {/* Infinite scroll trigger */}
+            {/* Paginação manual - botão para carregar mais */}
             {!isLoading && hasMoreProducts && (
-              <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4">
+              <div className="flex flex-col items-center gap-3 pt-8 pb-4">
                 <p className="text-sm text-muted-foreground">
                   Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
                 </p>
-                {isLoadingMore && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm">Carregando mais produtos...</span>
-                  </div>
-                )}
+                <Button
+                  variant="outline"
+                  onClick={loadMore}
+                  disabled={isLoadingMore}
+                  className="gap-2"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Carregando...
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      Carregar mais produtos
+                    </>
+                  )}
+                </Button>
               </div>
             )}
 
@@ -681,4 +642,5 @@ export default function Index() {
     </MainLayout>
   );
 }
+
 
