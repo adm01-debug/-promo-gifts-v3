@@ -442,7 +442,8 @@ export default function Index() {
               }}
               className="w-full lg:w-96"
             />
-          </div>
+              </div>
+            </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
