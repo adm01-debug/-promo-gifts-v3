@@ -419,7 +419,6 @@ export default function Index() {
             {/* Header with Search */}
             <div className="flex flex-col gap-3 sm:gap-4">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
             <div>
               <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">Catálogo de Produtos</h1>
               <p className="text-muted-foreground text-sm sm:text-base mt-1">
