@@ -61,9 +61,10 @@ export function QuickQuoteProvider({ children }: { children: ReactNode }) {
   );
 
   const createQuote = useCallback(() => {
-    // TODO: Navigate to quote creation or call an API
-    // clearAll();
-  }, [items]);
+    // Esta função é chamada pelo FAB de Quick Quote
+    // A navegação real é feita pelo componente que usa esse contexto
+    // O componente QuickQuoteFAB já redireciona para /orcamentos/novo
+  }, []);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalValue = items.reduce(

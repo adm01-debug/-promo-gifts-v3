@@ -1,5 +1,5 @@
 // Hooks utilitários reutilizáveis
-export { useDebounce, useDebouncedCallback } from './useDebounce';
+export { useDebounce } from './useDebounce';
 export { useLocalStorage } from './useLocalStorage';
 export { useMediaQuery, useBreakpoint } from './useMediaQuery';
 export { useClickOutside, useClickOutsideMultiple } from './useClickOutside';
