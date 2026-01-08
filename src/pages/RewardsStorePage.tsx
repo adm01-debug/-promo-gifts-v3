@@ -288,7 +288,7 @@ export default function RewardsStorePage() {
           <TabsContent value="badges" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {badges.map((badge) => {
-                const hasbadge = userProgress.badges.includes(badge.id);
+                const hasBadge = userProgress.badges.includes(badge.id);
                 return (
                   <Card key={badge.id} className={hasBadge ? "card-interactive border-primary" : "opacity-50"}>
                     <CardContent className="p-6 space-y-3">
