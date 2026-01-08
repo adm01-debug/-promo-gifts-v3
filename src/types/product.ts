@@ -39,7 +39,9 @@ export interface ProductColor {
   name: string;
   hex?: string;
   code?: string;
-  image?: string;
+  image?: string;           // Imagem principal da cor (retrocompatibilidade)
+  images?: string[];        // Múltiplas fotos por cor
+  videos?: string[];        // Vídeos por cor
   stock?: number;
 }
 

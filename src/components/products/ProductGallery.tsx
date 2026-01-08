@@ -4,18 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+interface ColorMedia {
+  name: string;
+  hex: string;
+  image?: string;           // Imagem principal (retrocompatibilidade)
+  images?: string[];        // Múltiplas fotos por cor
+  videos?: string[];        // Vídeos por cor
+}
+
 interface ProductGalleryProps {
-  images: string[];
-  video?: string;
+  images: string[];         // Imagens gerais (primeira = todas as cores)
+  video?: string;           // Vídeo geral
+  videos?: string[];        // Múltiplos vídeos gerais
   productName: string;
-  colors?: Array<{ name: string; hex: string; image?: string }>;
+  colors?: ColorMedia[];
   onColorSelect?: (colorIndex: number) => void;
   selectedColorIndex?: number;
 }
 
 export function ProductGallery({ 
   images, 
-  video, 
+  video,
+  videos = [],
   productName, 
   colors,
   onColorSelect,
@@ -31,8 +41,31 @@ export function ProductGallery({
   const panStartRef = useRef({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  const allMedia = video ? [...images, video] : images;
-  const isVideo = (index: number) => video && index === allMedia.length - 1;
+  // Determinar mídias a exibir baseado na cor selecionada
+  const selectedColor = colors?.[selectedColorIndex];
+  
+  // Se há uma cor selecionada com mídias específicas, usar essas
+  // Caso contrário, usar mídias gerais do produto
+  const displayImages = selectedColor?.images?.length 
+    ? selectedColor.images 
+    : selectedColor?.image 
+      ? [selectedColor.image] 
+      : images;
+  
+  const displayVideos = selectedColor?.videos?.length 
+    ? selectedColor.videos 
+    : video 
+      ? [video, ...videos] 
+      : videos;
+
+  const allMedia = [...displayImages, ...displayVideos];
+  const isVideo = (index: number) => index >= displayImages.length;
+
+  // Reset to first media when color changes
+  useEffect(() => {
+    setSelectedIndex(0);
+    resetZoom();
+  }, [selectedColorIndex]);
 
   // Reset loading state when image changes
   useEffect(() => {
@@ -113,12 +146,9 @@ export function ProductGallery({
   }, [goToPrevious, goToNext]);
 
   const handleColorClick = (index: number) => {
-    if (colors && colors[index]?.image) {
-      const imageIndex = images.findIndex(img => img === colors[index].image);
-      if (imageIndex !== -1) {
-        setSelectedIndex(imageIndex);
-      }
-    }
+    // Ao clicar na cor, selecionamos ela e resetamos para a primeira mídia
+    setSelectedIndex(0);
+    resetZoom();
     onColorSelect?.(index);
   };
 

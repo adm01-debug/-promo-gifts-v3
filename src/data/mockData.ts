@@ -37,13 +37,17 @@ export interface ProductVariation {
   sku: string;
   color: ProductColor;
   stock: number;
-  image: string;
+  image: string;            // Imagem principal (retrocompatibilidade)
+  images?: string[];        // Múltiplas fotos da variação
+  videos?: string[];        // Vídeos da variação
 }
 
 export interface ProductColor {
   name: string;
   hex: string;
   group: string;
+  images?: string[];        // Múltiplas fotos por cor
+  videos?: string[];        // Vídeos por cor
 }
 
 export interface KitItem {
@@ -294,9 +298,12 @@ export const PRODUCTS: Product[] = [
       { productId: 'kit-item-7', productName: 'Maleta Madeira', quantity: 1, sku: 'MAL-MAD' },
     ],
     images: [
-      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400',
-      'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400',
+      // [0] = foto principal com TODAS as cores juntas
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800',
+      // demais = imagens gerais do produto
+      'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=800',
     ],
+    video: 'https://www.w3schools.com/html/mov_bbb.mp4', // Vídeo geral do produto
     tags: {
       publicoAlvo: ['HOMEM', 'EXECUTIVO'],
       datasComemorativas: ['DIA DOS PAIS', 'NATAL'],
@@ -306,9 +313,44 @@ export const PRODUCTS: Product[] = [
     },
     featured: true,
     variations: [
-      { id: 'var-003-1', color: COLORS[4], sku: 'KIT-CHUR-10P-PRT', stock: 120, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' },
-      { id: 'var-003-2', color: COLORS[10], sku: 'KIT-CHUR-10P-INX', stock: 3, image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400' },
-      { id: 'var-003-3', color: { name: 'Madeira', hex: '#8B4513' }, sku: 'KIT-CHUR-10P-MAD', stock: 0, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' },
+      { 
+        id: 'var-003-1', 
+        color: COLORS[4], 
+        sku: 'KIT-CHUR-10P-PRT', 
+        stock: 120, 
+        image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600',
+        images: [
+          'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600',
+          'https://images.unsplash.com/photo-1558030006-450675393462?w=600',
+          'https://images.unsplash.com/photo-1544025162-d76978e8e3f2?w=600',
+        ],
+        videos: ['https://www.w3schools.com/html/mov_bbb.mp4']
+      },
+      { 
+        id: 'var-003-2', 
+        color: COLORS[10], 
+        sku: 'KIT-CHUR-10P-INX', 
+        stock: 3, 
+        image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600',
+        images: [
+          'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600',
+          'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=600',
+        ],
+        videos: []
+      },
+      { 
+        id: 'var-003-3', 
+        color: { name: 'Madeira', hex: '#8B4513', group: 'Marrom' }, 
+        sku: 'KIT-CHUR-10P-MAD', 
+        stock: 0, 
+        image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600',
+        images: [
+          'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600',
+          'https://images.unsplash.com/photo-1559847844-5315695dadae?w=600',
+          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600',
+        ],
+        videos: ['https://www.w3schools.com/html/movie.mp4']
+      },
     ],
   },
   {
