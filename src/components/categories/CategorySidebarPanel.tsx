@@ -64,7 +64,7 @@ function TreeNode({
           }
         }}
       >
-        {/* Indicador de expansão integrado (seta) */}
+        {/* Indicador de expansão integrado (seta) - apenas para itens com filhos */}
         {hasChildren ? (
           <motion.div
             animate={{ rotate: isExpanded ? 90 : 0 }}
@@ -74,35 +74,24 @@ function TreeNode({
             <ChevronRight className="w-4 h-4" />
           </motion.div>
         ) : (
-          <span className="w-4" />
+          /* Bullet colorido para subcategorias (itens folha) */
+          <div className="w-4 h-4 flex items-center justify-center">
+            <motion.div 
+              className={cn(
+                "w-2 h-2 rounded-full transition-all duration-200",
+                isSelected 
+                  ? "bg-primary scale-110" 
+                  : "bg-primary/50 hover:bg-primary/70"
+              )}
+              animate={{ scale: isSelected ? 1.2 : 1 }}
+              transition={{ duration: 0.2 }}
+            />
+          </div>
         )}
 
-        {/* Emoji da categoria (apenas para raiz) */}
+        {/* Emoji da categoria (apenas para raiz com emoji) */}
         {node.icon && (
           <span className="text-base">{node.icon}</span>
-        )}
-
-        {/* Ícone de pasta (para itens sem emoji) */}
-        {!node.icon && (
-          <motion.div
-            animate={{ scale: isSelected ? 1.05 : 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            {hasChildren ? (
-              isExpanded ? (
-                <FolderOpen className="w-4 h-4 text-amber-500" />
-              ) : (
-                <Folder className="w-4 h-4 text-amber-500/70" />
-              )
-            ) : (
-              <div className="w-4 h-4 flex items-center justify-center">
-                <div className={cn(
-                  "w-1.5 h-1.5 rounded-full transition-colors",
-                  isSelected ? "bg-primary" : "bg-muted-foreground/40"
-                )} />
-              </div>
-            )}
-          </motion.div>
         )}
 
         {/* Nome da categoria em Title Case */}
