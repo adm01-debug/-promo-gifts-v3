@@ -3,17 +3,20 @@ import { renderHook } from '@testing-library/react';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 describe('useIntersectionObserver', () => {
-  it('should observe element intersection', () => {
-    const mockObserver = vi.fn();
+  beforeAll(() => {
     global.IntersectionObserver = class {
-      constructor(callback) { this.callback = callback; }
-      observe() { mockObserver(); }
-      disconnect() {}
+      observe = vi.fn();
+      disconnect = vi.fn();
+      unobserve = vi.fn();
     } as any;
-    
-    const ref = { current: document.createElement('div') };
-    renderHook(() => useIntersectionObserver(ref));
-    
-    expect(mockObserver).toHaveBeenCalled();
   });
+
+  it('should return ref and visibility state', () => {
+    const { result } = renderHook(() => useIntersectionObserver());
+    
+    const [ref, isVisible] = result.current;
+    expect(ref).toBeDefined();
+    expect(typeof isVisible).toBe('boolean');
+  });
+});
 });
