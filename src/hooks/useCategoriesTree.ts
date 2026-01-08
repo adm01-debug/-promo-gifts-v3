@@ -1,12 +1,21 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Função para formatar nome em Title Case (Primeira Maiúscula)
+// Palavras que devem permanecer em minúsculo (preposições, artigos, conjunções)
+const LOWERCASE_WORDS = ['e', 'de', 'da', 'do', 'das', 'dos', 'em', 'na', 'no', 'nas', 'nos', 'para', 'por', 'com'];
+
+// Função para formatar nome em Title Case (Primeira Maiúscula, exceto preposições)
 const toTitleCase = (str: string): string => {
   return str
     .toLowerCase()
     .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word, index) => {
+      // Primeira palavra sempre com maiúscula, ou se não for uma preposição
+      if (index === 0 || !LOWERCASE_WORDS.includes(word)) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return word;
+    })
     .join(' ');
 };
 
