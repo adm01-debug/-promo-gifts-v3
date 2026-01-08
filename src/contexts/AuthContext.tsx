@@ -27,7 +27,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  // Helpers de permissão
+  // Role e helpers de permissão
+  role: string | null;
   isAdmin: boolean;
   isManager: boolean;
   isSeller: boolean;
@@ -168,6 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     profile,
     isLoading,
+    role,
     isAdmin,
     isManager,
     isSeller,
