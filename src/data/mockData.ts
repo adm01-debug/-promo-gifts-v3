@@ -10,6 +10,7 @@ export interface Product {
   minQuantity: number;
   category: Category;
   subcategory?: string;
+  groups?: Category[];  // Grupos/categorias adicionais que o produto pertence
   colors: ProductColor[];
   materials: string[];
   supplier: Supplier;
@@ -217,8 +218,12 @@ export const PRODUCTS: Product[] = [
     description: 'Squeeze de plástico resistente com tampa rosqueável e bico dosador. Capacidade 700ml. Ideal para academias, esportes e uso diário.',
     price: 12.90,
     minQuantity: 100,
-    category: CATEGORIES.find(c => c.id === 202)!,
+    category: CATEGORIES.find(c => c.id === 202)!, // ESPORTES | AVENTURA | LAZER
     subcategory: 'Squeezes',
+    groups: [
+      CATEGORIES.find(c => c.id === 222)!, // SAÚDE | BELEZA | BEM ESTAR
+      CATEGORIES.find(c => c.id === 196)!, // ECOLOGIA
+    ],
     colors: [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[4]],
     materials: ['PLÁSTICO'],
     supplier: SUPPLIERS[0],
@@ -252,8 +257,12 @@ export const PRODUCTS: Product[] = [
     description: 'Caneca de metal com acabamento brilhante. Capacidade 350ml. Perfeita para café, chá e bebidas quentes.',
     price: 28.50,
     minQuantity: 50,
-    category: CATEGORIES.find(c => c.id === 124)!,
+    category: CATEGORIES.find(c => c.id === 124)!, // BAR | COZINHA
     subcategory: 'Canecas',
+    groups: [
+      CATEGORIES.find(c => c.id === 214)!, // PAPELARIA | ESCRITÓRIO
+      CATEGORIES.find(c => c.id === 226)!, // UTENSÍLIOS | DECORAÇÃO
+    ],
     colors: [COLORS[3], COLORS[4], COLORS[8], COLORS[9]],
     materials: ['METAL', 'AÇO INOX'],
     supplier: SUPPLIERS[1],
@@ -280,8 +289,13 @@ export const PRODUCTS: Product[] = [
     description: 'Kit completo para churrasco com 10 peças em aço inox. Inclui faca, garfo, chaira, pegador, espetos e avental em estojo de madeira.',
     price: 189.90,
     minQuantity: 20,
-    category: CATEGORIES.find(c => c.id === 124)!,
+    category: CATEGORIES.find(c => c.id === 124)!, // BAR | COZINHA
     subcategory: 'Kit Churrasco',
+    groups: [
+      CATEGORIES.find(c => c.id === 210)!, // KIT GOURMET
+      CATEGORIES.find(c => c.id === 192)!, // AGRO
+      CATEGORIES.find(c => c.id === 126)!, // FERRAMENTAS | UTILIDADES
+    ],
     colors: [COLORS[4], COLORS[10]],
     materials: ['AÇO INOX', 'MADEIRA', 'COURO'],
     supplier: SUPPLIERS[0],
