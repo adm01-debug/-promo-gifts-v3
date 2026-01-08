@@ -9,6 +9,7 @@ import { SkipToContent } from "@/components/common/SkipToContent";
 import { EnhancedSpotlight } from "@/components/common/EnhancedSpotlight";
 import { SmartMobileNav } from "@/components/mobile/SmartMobileNav";
 import { QuickQuoteFAB } from "@/components/quote/QuickQuoteFAB";
+import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -65,6 +66,9 @@ export function MainLayout({ children }: MainLayoutProps) {
           <QuickQuoteFAB />
         </div>
       </div>
+      
+      {/* Floating Compare Bar */}
+      <FloatingCompareBar />
       
       {/* Smart Mobile Bottom Navigation with FAB */}
       <SmartMobileNav />

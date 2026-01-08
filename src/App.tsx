@@ -13,6 +13,7 @@ import { CollectionsProvider } from "@/contexts/CollectionsContext";
 import { GamificationProvider } from "@/contexts/GamificationContext";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
+import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import "./App.css";
 
@@ -116,10 +117,11 @@ const App = () => {
             <ProductsProvider>
               <CollectionsProvider>
                 <GamificationProvider>
-                  <ComparisonProvider>
-                    <FavoritesProvider>
-                      <Toaster />
-                      <Sonner />
+                    <ComparisonProvider>
+                      <FavoritesProvider>
+                        <RecentlyViewedProvider>
+                          <Toaster />
+                          <Sonner />
                       <BrowserRouter>
                         <Suspense fallback={<LoadingScreen />}>
                           <Routes>
@@ -208,8 +210,9 @@ const App = () => {
                           </Routes>
                         </Suspense>
                       </BrowserRouter>
-                    </FavoritesProvider>
-                  </ComparisonProvider>
+                        </RecentlyViewedProvider>
+                      </FavoritesProvider>
+                    </ComparisonProvider>
                 </GamificationProvider>
               </CollectionsProvider>
             </ProductsProvider>

@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/data/mockData";
 import { toast } from "sonner";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { ProductQuickView } from "./ProductQuickView";
+import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 
 export interface ProductCardProps {
   product: Product;
@@ -37,17 +39,26 @@ export function ProductCard({
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onToggleFavorite) {
+      const wasAlreadyFavorited = isFavorited;
       onToggleFavorite(product.id);
-      toast.success(
-        isFavorited 
-          ? `"${product.name}" removido dos favoritos` 
-          : `"${product.name}" adicionado aos favoritos`
-      );
+      
+      if (wasAlreadyFavorited) {
+        // Show undo toast when removing from favorites
+        showUndoToast({
+          title: `"${product.name}" removido dos favoritos`,
+          onUndo: () => {
+            onToggleFavorite(product.id);
+          },
+        });
+      } else {
+        toast.success(`"${product.name}" adicionado aos favoritos`);
+      }
     } else {
       onFavorite?.(product);
     }
@@ -56,15 +67,21 @@ export function ProductCard({
   const handleCompare = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onToggleCompare) {
+      const wasInCompare = isInCompare;
       const result = onToggleCompare(product.id);
+      
       if (result.isFull) {
-        toast.error("Limite de 4 produtos para comparação atingido");
-      } else {
-        toast.success(
-          result.added
-            ? `"${product.name}" adicionado à comparação`
-            : `"${product.name}" removido da comparação`
-        );
+        showErrorToast({ title: "Limite de 4 produtos para comparação atingido" });
+      } else if (!result.added && wasInCompare) {
+        // Show undo toast when removing from comparison
+        showUndoToast({
+          title: `"${product.name}" removido da comparação`,
+          onUndo: () => {
+            onToggleCompare(product.id);
+          },
+        });
+      } else if (result.added) {
+        toast.success(`"${product.name}" adicionado à comparação`);
       }
     }
   };
@@ -321,17 +338,20 @@ export function ProductCard({
             isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
           )}
         >
-          <Button
-            size="lg"
-            className="rounded-full shadow-2xl bg-primary/95 backdrop-blur-md hover:bg-primary hover:scale-105 transition-all duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              onView?.(product);
-            }}
-          >
-            <Eye className="h-5 w-5 mr-2" />
-            Ver detalhes
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="lg"
+              variant="secondary"
+              className="rounded-full shadow-2xl bg-card/95 backdrop-blur-md hover:bg-card hover:scale-105 transition-all duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                setQuickViewOpen(true);
+              }}
+            >
+              <Eye className="h-5 w-5 mr-2" />
+              Quick View
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -397,6 +417,18 @@ export function ProductCard({
         onOpenChange={setCollectionModalOpen}
         productId={product.id}
         productName={product.name}
+      />
+
+      {/* Quick View Modal */}
+      <ProductQuickView
+        product={product}
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+        isFavorited={isFavorited}
+        onToggleFavorite={onToggleFavorite}
+        isInCompare={isInCompare}
+        onToggleCompare={onToggleCompare}
+        onShare={onShare}
       />
     </article>
   );
