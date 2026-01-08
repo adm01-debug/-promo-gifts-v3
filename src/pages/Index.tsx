@@ -261,7 +261,7 @@ export default function Index() {
         observerRef.current.disconnect();
       }
     };
-  }, [isLoading, hasMoreProducts, isLoadingMore, loadMore])
+  }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
 
   // Quick filters
   const quickFilters: QuickFilter[] = useMemo(
