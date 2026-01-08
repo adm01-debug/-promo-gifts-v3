@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Função para formatar nome em Title Case (Primeira Maiúscula)
+const toTitleCase = (str: string): string => {
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 // Interface para a view categories_tree_visual
 export interface CategoryTreeItem {
   id: string;
@@ -79,7 +88,12 @@ export function useCategoriesTree() {
       if (invokeError) throw new Error(invokeError.message);
       if (!data.success) throw new Error(data.error || 'Erro ao buscar categorias');
 
-      setCategories(data.data.records || []);
+      // Aplicar Title Case nos nomes das categorias
+      const formattedCategories = (data.data.records || []).map((cat: CategoryTreeItem) => ({
+        ...cat,
+        name: toTitleCase(cat.name),
+      }));
+      setCategories(formattedCategories);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido';
       setError(message);
