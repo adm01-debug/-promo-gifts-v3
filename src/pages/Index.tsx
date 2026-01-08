@@ -15,6 +15,8 @@ import {
   Sparkles,
   Loader2,
   ChevronDown,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { ExpertChatButton } from "@/components/expert/ExpertChatButton";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -25,6 +27,7 @@ import { ProductListSkeleton } from "@/components/products/ProductListItemSkelet
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { QuickFiltersBar, QuickFilter } from "@/components/filters/QuickFiltersBar";
 import { ClientFilterModal } from "@/components/clients/ClientFilterModal";
+import { CategorySidebarPanel } from "@/components/categories";
 import { SmartSearchInput } from "@/components/search";
 import { useSearch } from "@/hooks/useSearch";
 import { Button } from "@/components/ui/button";
@@ -37,6 +40,7 @@ import { PRODUCTS, CATEGORIES, SUPPLIERS, type Product, type Client } from "@/da
 import { useToast } from "@/hooks/use-toast";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
@@ -58,6 +62,9 @@ export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(12);
+  const [selectedExternalCategory, setSelectedExternalCategory] = useState<{ id: string; name: string } | null>(null);
+  const [categorySidebarOpen, setCategorySidebarOpen] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 1280px)");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const ITEMS_PER_PAGE = 12;
@@ -383,11 +390,35 @@ export default function Index() {
     setTimeout(() => setIsSearching(false), 300);
   }, [addToHistory]);
 
+  // Handle external category selection
+  const handleExternalCategorySelect = useCallback((categoryId: string | null, categoryName?: string) => {
+    if (categoryId && categoryName) {
+      setSelectedExternalCategory({ id: categoryId, name: categoryName });
+    } else {
+      setSelectedExternalCategory(null);
+    }
+  }, []);
+
   return (
     <MainLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header with Search */}
-        <div className="flex flex-col gap-3 sm:gap-4">
+      <div className="flex">
+        {/* Category Sidebar - Desktop only */}
+        {isDesktop && (
+          <CategorySidebarPanel
+            selectedCategoryId={selectedExternalCategory?.id}
+            onSelectCategory={handleExternalCategorySelect}
+            isCollapsed={!categorySidebarOpen}
+            onToggleCollapse={() => setCategorySidebarOpen(!categorySidebarOpen)}
+            className="sticky top-0 h-[calc(100vh-4rem)] hidden xl:flex"
+          />
+        )}
+
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+            {/* Header with Search */}
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
             <div>
               <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">Catálogo de Produtos</h1>
@@ -465,9 +496,51 @@ export default function Index() {
           </Card>
         )}
 
+        {/* External Category Filter Badge */}
+        {selectedExternalCategory && (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Layers className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm">
+                    Categoria: <strong>{selectedExternalCategory.name}</strong>
+                  </span>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedExternalCategory(null)}
+                  className="h-7 px-2"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Quick Filters and Client Selector */}
         <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
+          <div className="flex-1 flex items-center gap-2">
+            {/* Mobile category toggle */}
+            {!isDesktop && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Layers className="h-4 w-4 mr-2" />
+                    Categorias
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0">
+                  <CategorySidebarPanel
+                    selectedCategoryId={selectedExternalCategory?.id}
+                    onSelectCategory={handleExternalCategorySelect}
+                    className="h-full border-none"
+                  />
+                </SheetContent>
+              </Sheet>
+            )}
             <QuickFiltersBar
               filters={quickFilters}
               activeFilterId={activeQuickFilterId}
@@ -672,6 +745,8 @@ export default function Index() {
                 </p>
               </div>
             )}
+          </div>
+        </div>
           </div>
         </div>
       </div>
