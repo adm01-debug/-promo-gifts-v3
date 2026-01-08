@@ -17,7 +17,10 @@ const renderWithProviders = (ui: React.ReactElement) => {
 
 describe('QuoteTemplateSelector', () => {
   it('renders without crashing', () => {
-    const { container } = renderWithProviders(<QuoteTemplateSelector />);
+    const mockOnSelectTemplate = () => {};
+    const { container } = renderWithProviders(
+      <QuoteTemplateSelector onSelectTemplate={mockOnSelectTemplate} />
+    );
     expect(container).toBeTruthy();
   });
 });

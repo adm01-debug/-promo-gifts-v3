@@ -17,7 +17,12 @@ const renderWithProviders = (ui: React.ReactElement) => {
 
 describe('SaveAsTemplateButton', () => {
   it('renders without crashing', () => {
-    const { container } = renderWithProviders(<SaveAsTemplateButton quoteId="test-id" />);
+    const mockItems = [
+      { productId: '1', productName: 'Test', quantity: 1, unitPrice: 100 }
+    ];
+    const { container } = renderWithProviders(
+      <SaveAsTemplateButton items={mockItems} />
+    );
     expect(container).toBeTruthy();
   });
 });
