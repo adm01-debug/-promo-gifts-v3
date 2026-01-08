@@ -1,43 +1,24 @@
 import { useEffect, useState } from "react";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { useParams, useNavigate } from "react-router-dom";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { format } from "date-fns";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { ptBR } from "date-fns/locale";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { ArrowLeft, Copy, Download, FileText, History, Link2, Loader2, Printer, Share2, ShoppingCart } from "lucide-react";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { Button } from "@/components/ui/button";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { Badge } from "@/components/ui/badge";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { Separator } from "@/components/ui/separator";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { Skeleton } from "@/components/ui/skeleton";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { useOrders } from "@/hooks/useOrders";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { generateProposalPDF, downloadPDF } from "@/utils/proposalPdfGenerator";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { useAuth } from "@/contexts/AuthContext";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { QuoteHistoryPanel } from "@/components/quotes/QuoteHistoryPanel";
 import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { useQuoteApproval } from "@/hooks/useQuoteApproval";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { toast } from "sonner";
-import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Rascunho", variant: "secondary" },
