@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Mapeamento completo das tabelas do banco externo
-type ResourceGroup = 'products' | 'companies';
+type ResourceGroup = 'products' | 'companies' | 'views';
 type Operation = 'select' | 'insert' | 'update' | 'delete';
 
 // Tabelas relacionadas a PRODUTOS (CRUD completo)
@@ -60,6 +60,40 @@ const PRODUCT_TABLES = [
   'generated_mockups',
 ] as const;
 
+// Views e Materialized Views (somente leitura)
+const PRODUCT_VIEWS = [
+  // Views de produtos
+  'v_products_with_techniques',
+  'v_products_with_stock',
+  'v_products_with_tags',
+  'v_products_min_price',
+  'v_products_without_images',
+  'v_products_without_videos',
+  'v_products_missing_primary_image',
+  'v_product_print_areas_complete',
+  'v_product_images_cdn',
+  'v_product_videos_cdn',
+  'v_product_attributes_formatted',
+  // Views de kits
+  'v_kit_with_components',
+  'v_kit_component_print_areas',
+  // Views de preços e técnicas
+  'v_customization_price_summary',
+  'v_variant_pricing_complete',
+  'v_technique_stats',
+  'v_techniques_stricker_mapping',
+  // Views de mídia e sync
+  'v_media_stats',
+  'v_n8n_sync_summary',
+  'v_n8n_sync_errors',
+  'v_n8n_sync_success_recent',
+  // Materialized views
+  'mv_product_compositions',
+  'mv_material_group_stats',
+  // View especial de categorias
+  'categories_tree_visual',
+] as const;
+
 // Tabelas relacionadas a EMPRESAS/CLIENTES (somente leitura)
 const COMPANY_TABLES = [
   'bitrix_clients',
@@ -109,17 +143,22 @@ const SYSTEM_TABLES = [
 ] as const;
 
 type ProductTable = typeof PRODUCT_TABLES[number];
+type ProductView = typeof PRODUCT_VIEWS[number];
 type CompanyTable = typeof COMPANY_TABLES[number];
 
 // Permissões por grupo
 const PERMISSIONS: Record<ResourceGroup, Operation[]> = {
   products: ['select', 'insert', 'update', 'delete'],
   companies: ['select'], // Somente leitura
+  views: ['select'], // Views são somente leitura
 };
 
 function getResourceGroup(tableName: string): ResourceGroup | null {
   if (PRODUCT_TABLES.includes(tableName as ProductTable)) {
     return 'products';
+  }
+  if (PRODUCT_VIEWS.includes(tableName as ProductView)) {
+    return 'views';
   }
   if (COMPANY_TABLES.includes(tableName as CompanyTable)) {
     return 'companies';
