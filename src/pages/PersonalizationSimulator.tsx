@@ -639,36 +639,67 @@ Opção ${idx + 1}: ${opt.techniqueName}
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {techniques?.map(technique => (
-                          <div 
-                            key={technique.id}
-                            className={cn(
-                              "p-3 rounded-lg border transition-all cursor-pointer",
-                              selectedTechniques.includes(technique.id)
-                                ? "border-primary bg-primary/5"
-                                : "border-border hover:border-primary/50"
-                            )}
-                            onClick={() => handleTechniqueToggle(technique.id)}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <Checkbox
-                                  checked={selectedTechniques.includes(technique.id)}
-                                  onCheckedChange={() => handleTechniqueToggle(technique.id)}
-                                />
-                                <div>
-                                  <p className="font-medium text-sm">{technique.name}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {formatCurrency(technique.unit_cost)}/un • Setup: {formatCurrency(technique.setup_cost)}
-                                  </p>
+                        {techniques?.map(technique => {
+                          const slaColor = technique.estimated_days <= 3 
+                            ? "bg-emerald-500" 
+                            : technique.estimated_days <= 7 
+                              ? "bg-amber-500" 
+                              : "bg-destructive";
+                          const slaLabel = technique.estimated_days <= 3 
+                            ? "Express" 
+                            : technique.estimated_days <= 7 
+                              ? "Normal" 
+                              : "Estendido";
+                          
+                          return (
+                            <div 
+                              key={technique.id}
+                              className={cn(
+                                "p-3 rounded-lg border transition-all cursor-pointer",
+                                selectedTechniques.includes(technique.id)
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border hover:border-primary/50"
+                              )}
+                              onClick={() => handleTechniqueToggle(technique.id)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Checkbox
+                                    checked={selectedTechniques.includes(technique.id)}
+                                    onCheckedChange={() => handleTechniqueToggle(technique.id)}
+                                  />
+                                  <div>
+                                    <p className="font-medium text-sm">{technique.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {formatCurrency(technique.unit_cost)}/un • Setup: {formatCurrency(technique.setup_cost)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Badge 
+                                          variant="secondary" 
+                                          className={cn("gap-1 text-white text-[10px]", slaColor)}
+                                        >
+                                          <Clock className="h-3 w-3" />
+                                          {technique.estimated_days}d
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>SLA: {slaLabel} ({technique.estimated_days} dias úteis)</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <Badge variant="outline" className="text-xs">
+                                    {technique.code}
+                                  </Badge>
                                 </div>
                               </div>
-                              <Badge variant="outline" className="text-xs">
-                                {technique.code}
-                              </Badge>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>
