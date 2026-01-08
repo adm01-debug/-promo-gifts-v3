@@ -52,6 +52,10 @@ export interface ProductVariation {
   price?: number;
   stock?: number;
   attributes?: Record<string, string>;
+  color?: ProductColor;       // Cor da variação
+  image?: string;             // Imagem principal da variação
+  images?: string[];          // Múltiplas fotos da variação
+  videos?: string[];          // Vídeos da variação
 }
 
 export interface KitItem {
