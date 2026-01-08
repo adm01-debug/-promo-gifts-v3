@@ -32,6 +32,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
 import { PRODUCTS, type Product, type ProductVariation, type KitItem } from "@/data/mockData";
+import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
+import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
+import { GlassCard } from "@/components/common/GlassElements";
+import { EmptyState } from "@/components/common/EmptyState";
+import { SocialProofBadge, LowStockAlert, TrustBadges } from "@/components/common/SocialProof";
+import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
+import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -43,13 +50,14 @@ export default function ProductDetail() {
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
+  const { addToRecentlyViewed } = useRecentlyViewedContext();
 
   // Encontrar produto
   const product = useMemo(() => {
     return PRODUCTS.find((p) => p.id === id);
   }, [id]);
 
-  // Track product view
+  // Track product view and add to recently viewed
   useEffect(() => {
     if (product) {
       trackProductView({
@@ -58,26 +66,22 @@ export default function ProductDetail() {
         productName: product.name,
         viewType: "detail",
       });
+      addToRecentlyViewed(product.id);
     }
   }, [product?.id]);
 
   if (!product) {
     return (
       <MainLayout>
-        <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted to-secondary flex items-center justify-center mb-6">
-            <Package className="h-10 w-10 text-muted-foreground" />
-          </div>
-          <h2 className="font-display text-2xl font-bold text-foreground mb-3">
-            Produto não encontrado
-          </h2>
-          <p className="text-muted-foreground mb-6 max-w-sm">
-            O produto que você está procurando não existe ou foi removido do catálogo.
-          </p>
-          <Button size="lg" onClick={() => navigate("/")} className="rounded-full px-8">
-            Voltar para Vitrine
-          </Button>
-        </div>
+        <EmptyState
+          variant="products"
+          title="Produto não encontrado"
+          description="O produto que você está procurando não existe ou foi removido do catálogo."
+          action={{
+            label: "Voltar para Vitrine",
+            onClick: () => navigate("/")
+          }}
+        />
       </MainLayout>
     );
   }
@@ -120,33 +124,15 @@ export default function ProductDetail() {
   return (
     <MainLayout>
       <div className="space-y-8 animate-fade-in">
-        {/* Breadcrumb / Back button */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="shrink-0 h-10 w-10 rounded-full hover:bg-secondary transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span
-              className="hover:text-foreground cursor-pointer transition-colors"
-              onClick={() => navigate("/")}
-            >
-              Vitrine
-            </span>
-            <span className="text-border">/</span>
-            <span
-              className="hover:text-foreground cursor-pointer transition-colors"
-              onClick={() => navigate(`/?category=${product.category.id}`)}
-            >
-              {product.category.icon} {product.category.name}
-            </span>
-            <span className="text-border">/</span>
-            <span className="text-foreground font-medium truncate">{product.name}</span>
-          </div>
+        {/* Dynamic Breadcrumbs */}
+        <DynamicBreadcrumbs />
+
+        {/* Social Proof & Stock Alerts */}
+        <div className="flex flex-wrap items-center gap-3">
+          {product.featured && <SocialProofBadge type="trending" count={156} />}
+          {product.stockStatus === "low-stock" && (
+            <LowStockAlert quantity={product.stock} />
+          )}
         </div>
 
         {/* Main content */}
@@ -438,7 +424,13 @@ export default function ProductDetail() {
           open={supplierCompareOpen}
           onOpenChange={setSupplierCompareOpen}
         />
+
+        {/* Trust Badges */}
+        <TrustBadges className="pt-8" />
       </div>
+
+      {/* Floating Compare Bar */}
+      <FloatingCompareBar />
     </MainLayout>
   );
 }

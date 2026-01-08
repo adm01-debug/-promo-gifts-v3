@@ -4,7 +4,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Pagination,
@@ -38,6 +37,11 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClientRFMSegmentation } from "@/components/clients/ClientRFMSegmentation";
+import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
+import { EmptyState } from "@/components/common/EmptyState";
+import { ClientSkeleton } from "@/components/common/ContextualSkeleton";
+import { FadeInView, HoverCard, AnimatedCounter } from "@/components/common/MicroInteractions";
+import { GlassCard } from "@/components/common/GlassElements";
 
 interface BitrixClient {
   id: string;
@@ -152,16 +156,21 @@ export default function ClientList() {
   return (
     <MainLayout>
       <div className="space-y-4 sm:space-y-6 animate-fade-in">
+        {/* Dynamic Breadcrumbs */}
+        <DynamicBreadcrumbs />
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-foreground">
-              Clientes
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-base mt-1">
-              {isLoading ? "Carregando..." : `${filteredClients.length} cliente(s) encontrado(s)`}
-            </p>
-          </div>
+          <FadeInView>
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-foreground">
+                Clientes
+              </h1>
+              <p className="text-muted-foreground text-sm sm:text-base mt-1">
+                {isLoading ? "Carregando..." : <><AnimatedCounter value={filteredClients.length} /> cliente(s) encontrado(s)</>}
+              </p>
+            </div>
+          </FadeInView>
           <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={loadClients} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
             Atualizar
@@ -238,24 +247,18 @@ export default function ClientList() {
             {isLoading ? (
               <div className="grid gap-3 sm:gap-4">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="card p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
-                    <Skeleton className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 sm:h-5 w-32 sm:w-48" />
-                      <Skeleton className="h-3 sm:h-4 w-24 sm:w-32" />
-                    </div>
-                  </div>
+                  <ClientSkeleton key={i} />
                 ))}
               </div>
             ) : (
               <div className="grid gap-3 sm:gap-4">
                 {paginatedClients.map((client, index) => (
-                  <div
-                    key={client.id}
-                    className="card-interactive p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer animate-fade-in"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                    onClick={() => navigate(`/clientes/${client.id}`)}
-                  >
+                  <FadeInView key={client.id} delay={index * 0.05}>
+                    <HoverCard liftAmount={4}>
+                      <div
+                        className="card-interactive p-3 sm:p-4 flex items-center gap-3 sm:gap-4 cursor-pointer"
+                        onClick={() => navigate(`/clientes/${client.id}`)}
+                      >
                     {/* Logo */}
                     <div
                       className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white font-display font-bold text-base sm:text-xl shrink-0"
@@ -323,28 +326,30 @@ export default function ClientList() {
                       )}
                     </div>
 
-                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
-                  </div>
+                        <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground shrink-0" />
+                      </div>
+                    </HoverCard>
+                  </FadeInView>
                 ))}
               </div>
             )}
 
             {/* Empty state */}
             {!isLoading && filteredClients.length === 0 && (
-              <div className="text-center py-12">
-                <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground">Nenhum cliente encontrado</h3>
-                <p className="text-muted-foreground mt-1">
-                  {clients.length === 0
+              <EmptyState
+                variant="clients"
+                title="Nenhum cliente encontrado"
+                description={
+                  clients.length === 0
                     ? "Sincronize os dados do Bitrix24 para ver os clientes"
-                    : "Tente ajustar sua busca ou filtros"}
-                </p>
-                {clients.length === 0 && (
-                  <Button className="mt-4" onClick={() => navigate("/bitrix-sync")}>
-                    Ir para Sincronização
-                  </Button>
-                )}
-              </div>
+                    : "Tente ajustar sua busca ou filtros"
+                }
+                action={
+                  clients.length === 0
+                    ? { label: "Ir para Sincronização", onClick: () => navigate("/bitrix-sync") }
+                    : undefined
+                }
+              />
             )}
 
             {/* Pagination */}
