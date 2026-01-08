@@ -26,11 +26,13 @@ export function ProductCardSkeleton({
           <Skeleton className="h-5 w-16 rounded-full" />
         </div>
 
-        {/* Action buttons placeholder - top right */}
+        {/* Action buttons placeholder - top right - 44px touch targets */}
         {variant === "detailed" && (
           <div className="absolute top-3 right-3 flex flex-col gap-2">
-            <Skeleton className="h-9 w-9 rounded-full" />
-            <Skeleton className="h-9 w-9 rounded-full" />
+            <Skeleton className="h-11 w-11 rounded-full" />
+            <Skeleton className="h-11 w-11 rounded-full" />
+            <Skeleton className="h-11 w-11 rounded-full" />
+            <Skeleton className="h-11 w-11 rounded-full" />
           </div>
         )}
 

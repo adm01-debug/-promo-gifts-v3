@@ -203,12 +203,14 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Quick actions - Right Side */}
+        {/* Quick actions - Right Side - Always visible on mobile, hover on desktop */}
         <div
           className={cn(
             "absolute top-3 right-3 flex flex-col gap-2 z-10",
             "transition-all duration-300 ease-out",
-            isHovered ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"
+            // Mobile: sempre visível; Desktop: hover
+            "opacity-100 translate-x-0 md:opacity-0 md:translate-x-4",
+            "md:group-hover:opacity-100 md:group-hover:translate-x-0"
           )}
         >
           <Tooltip>
@@ -217,16 +219,18 @@ export function ProductCard({
                 variant="secondary"
                 size="icon"
                 className={cn(
-                  "h-9 w-9 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
+                  "h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
                   "hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200",
+                  "min-h-[44px] min-w-[44px]",
                   isFavorited && "bg-destructive/10 border-destructive/30"
                 )}
                 onClick={handleFavorite}
+                aria-label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
               >
                 <Heart
                   className={cn(
-                    "h-4 w-4 transition-all duration-300",
-                    isFavorited && "fill-destructive text-destructive scale-110"
+                    "h-5 w-5 transition-all duration-300",
+                    isFavorited && "fill-destructive text-destructive scale-125 animate-heart-beat"
                   )}
                 />
               </Button>
@@ -240,16 +244,18 @@ export function ProductCard({
                 variant="secondary"
                 size="icon"
                 className={cn(
-                  "h-9 w-9 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
+                  "h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
                   "hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200",
+                  "min-h-[44px] min-w-[44px]",
                   isInCompare && "bg-primary/10 border-primary/30"
                 )}
                 onClick={handleCompare}
                 disabled={!isInCompare && !canAddToCompare}
+                aria-label={isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
               >
                 <GitCompare
                   className={cn(
-                    "h-4 w-4 transition-all duration-300",
+                    "h-5 w-5 transition-all duration-300",
                     isInCompare && "text-primary scale-110"
                   )}
                 />
@@ -265,13 +271,14 @@ export function ProductCard({
               <Button
                 variant="secondary"
                 size="icon"
-                className="h-9 w-9 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200"
+                className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[44px] min-w-[44px]"
                 onClick={(e) => {
                   e.stopPropagation();
                   setCollectionModalOpen(true);
                 }}
+                aria-label="Adicionar à coleção"
               >
-                <FolderPlus className="h-4 w-4" />
+                <FolderPlus className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">Adicionar à coleção</TooltipContent>
@@ -282,13 +289,14 @@ export function ProductCard({
               <Button
                 variant="secondary"
                 size="icon"
-                className="h-9 w-9 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200"
+                className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[44px] min-w-[44px]"
                 onClick={(e) => {
                   e.stopPropagation();
                   onShare?.(product);
                 }}
+                aria-label="Compartilhar produto"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">Compartilhar</TooltipContent>

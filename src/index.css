@@ -39,7 +39,7 @@
     
     /* ===== MUTED ===== */
     --muted: 40 20% 90%;
-    --muted-foreground: 225 22% 38%;
+    --muted-foreground: 225 22% 45%;
     
     /* ===== ACCENT ===== */
     --accent: 40 30% 88%;
@@ -217,7 +217,7 @@
     
     /* ===== MUTED ===== */
     --muted: 220 12% 18%;
-    --muted-foreground: 215 20% 55%;
+    --muted-foreground: 215 20% 62%;
     
     /* ===== ACCENT ===== */
     --accent: 220 15% 15%;
@@ -348,22 +348,22 @@
     @apply text-xl md:text-2xl;
   }
 
-  /* Focus States - Acessibilidade */
+  /* Focus States - Acessibilidade Melhorada (WCAG 2.2 AA) */
   :focus-visible {
     @apply outline-none;
     box-shadow: 
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--ring)),
-      0 0 16px hsl(var(--primary) / 0.2);
+      0 0 0 3px hsl(var(--background)),
+      0 0 0 5px hsl(var(--ring)),
+      0 0 20px hsl(var(--primary) / 0.25);
   }
 
   button:focus-visible,
   [role="button"]:focus-visible {
     @apply outline-none;
     box-shadow: 
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--primary)),
-      0 0 20px hsl(var(--primary) / 0.3);
+      0 0 0 3px hsl(var(--background)),
+      0 0 0 5px hsl(var(--primary)),
+      0 0 24px hsl(var(--primary) / 0.35);
   }
 
   input:focus-visible,
@@ -371,8 +371,16 @@
   select:focus-visible {
     @apply outline-none border-primary;
     box-shadow: 
-      0 0 0 3px hsl(var(--primary) / 0.1),
-      0 0 12px hsl(var(--primary) / 0.15);
+      0 0 0 4px hsl(var(--primary) / 0.15),
+      0 0 16px hsl(var(--primary) / 0.2);
+  }
+  
+  a:focus-visible {
+    @apply outline-none;
+    box-shadow: 
+      0 0 0 3px hsl(var(--background)),
+      0 0 0 5px hsl(var(--ring));
+    border-radius: 4px;
   }
 }
 
@@ -542,6 +550,19 @@
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
+}
+
+/* Heart beat animation for favorites */
+@keyframes heart-beat {
+  0% { transform: scale(1); }
+  15% { transform: scale(1.25); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.15); }
+  60% { transform: scale(1); }
+}
+
+.animate-heart-beat {
+  animation: heart-beat 0.6s ease-out;
 }
 
 @keyframes count-up {
