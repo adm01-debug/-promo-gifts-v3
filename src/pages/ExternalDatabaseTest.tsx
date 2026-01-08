@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useExternalCompanies, useExternalProducts } from "@/hooks/useExternalDatabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,47 @@ import { MainLayout } from "@/components/layout/MainLayout";
 export default function ExternalDatabaseTest() {
   const [activeTab, setActiveTab] = useState("companies");
   
+  // Usar os hooks corretamente (sem parâmetros)
+  const companiesHook = useExternalCompanies();
+  const productsHook = useExternalProducts();
+  
   const { 
     data: companies, 
     isLoading: loadingCompanies, 
     error: companiesError,
-    refetch: refetchCompanies 
-  } = useExternalCompanies("bitrix_clients", { limit: 10 });
+    fetchAll: fetchCompanies 
+  } = companiesHook;
   
   const { 
     data: products, 
     isLoading: loadingProducts, 
     error: productsError,
-    refetch: refetchProducts 
-  } = useExternalProducts("products", { limit: 10 });
+    fetchAll: fetchProducts 
+  } = productsHook;
 
-  const ConnectionStatus = ({ isLoading, error, data }: { isLoading: boolean; error: Error | null; data: unknown[] | null }) => {
+  // Carregar dados ao montar o componente
+  useEffect(() => {
+    fetchCompanies({ limit: 10 });
+    fetchProducts({ limit: 10 });
+  }, [fetchCompanies, fetchProducts]);
+
+  const handleRefetchCompanies = async () => {
+    await fetchCompanies({ limit: 10 });
+  };
+
+  const handleRefetchProducts = async () => {
+    await fetchProducts({ limit: 10 });
+  };
+
+  const ConnectionStatus = ({ 
+    isLoading, 
+    error, 
+    data 
+  }: { 
+    isLoading: boolean; 
+    error: string | null; 
+    data: unknown[] | null 
+  }) => {
     if (isLoading) {
       return (
         <Badge variant="outline" className="gap-1">
@@ -42,7 +68,7 @@ export default function ExternalDatabaseTest() {
         </Badge>
       );
     }
-    if (data) {
+    if (data && data.length > 0) {
       return (
         <Badge variant="default" className="gap-1 bg-green-600">
           <CheckCircle2 className="h-3 w-3" />
@@ -50,7 +76,11 @@ export default function ExternalDatabaseTest() {
         </Badge>
       );
     }
-    return null;
+    return (
+      <Badge variant="secondary" className="gap-1">
+        Aguardando...
+      </Badge>
+    );
   };
 
   return (
@@ -81,7 +111,7 @@ export default function ExternalDatabaseTest() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => refetchCompanies()}
+                onClick={handleRefetchCompanies}
                 disabled={loadingCompanies}
                 className="mb-3"
               >
@@ -90,7 +120,7 @@ export default function ExternalDatabaseTest() {
               </Button>
               {companiesError && (
                 <div className="text-destructive text-sm p-3 bg-destructive/10 rounded-md">
-                  {companiesError.message}
+                  {companiesError}
                 </div>
               )}
             </CardContent>
@@ -110,7 +140,7 @@ export default function ExternalDatabaseTest() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => refetchProducts()}
+                onClick={handleRefetchProducts}
                 disabled={loadingProducts}
                 className="mb-3"
               >
@@ -119,7 +149,7 @@ export default function ExternalDatabaseTest() {
               </Button>
               {productsError && (
                 <div className="text-destructive text-sm p-3 bg-destructive/10 rounded-md">
-                  {productsError.message}
+                  {productsError}
                 </div>
               )}
             </CardContent>
