@@ -10,6 +10,7 @@ export interface CategoryTreeItem {
   parent_id: string | null;
   tree_structure?: string; // Visual tree representation
   sort_path?: string;
+  icon?: string; // Emoji icon for root categories
 }
 
 // Interface para categoria com filhos (árvore)
@@ -28,10 +29,37 @@ export interface CategoryOption {
   indent: string;
 }
 
+// Interface para category icons
+interface CategoryIcon {
+  category_name: string;
+  icon: string;
+}
+
 export function useCategoriesTree() {
   const [categories, setCategories] = useState<CategoryTreeItem[]>([]);
+  const [categoryIcons, setCategoryIcons] = useState<Map<string, string>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch category icons from Supabase
+  const fetchCategoryIcons = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('category_icons')
+        .select('category_name, icon')
+        .eq('is_active', true);
+
+      if (error) throw error;
+      
+      const iconMap = new Map<string, string>();
+      (data as CategoryIcon[] || []).forEach(item => {
+        iconMap.set(item.category_name.toUpperCase(), item.icon);
+      });
+      setCategoryIcons(iconMap);
+    } catch (err) {
+      console.error('Erro ao buscar ícones de categorias:', err);
+    }
+  }, []);
 
   const fetchCategories = useCallback(async () => {
     setIsLoading(true);
@@ -63,7 +91,8 @@ export function useCategoriesTree() {
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+    fetchCategoryIcons();
+  }, [fetchCategories, fetchCategoryIcons]);
 
   // Construir árvore hierárquica
   const tree = useMemo((): CategoryNode[] => {
@@ -72,10 +101,16 @@ export function useCategoriesTree() {
     const nodeMap = new Map<string, CategoryNode>();
     const roots: CategoryNode[] = [];
 
-    // Criar nós
+    // Criar nós com ícones para categorias raiz
     categories.forEach(cat => {
+      const isRoot = cat.level === 1 || !cat.parent_id;
+      const normalizedName = cat.name.toUpperCase();
+      const icon = isRoot ? categoryIcons.get(normalizedName) : undefined;
+      
       nodeMap.set(cat.id, {
         ...cat,
+        name: isRoot ? normalizedName : cat.name, // Maiúsculas para categorias raiz
+        icon,
         children: [],
         isExpanded: false,
       });
@@ -92,7 +127,7 @@ export function useCategoriesTree() {
     });
 
     return roots;
-  }, [categories]);
+  }, [categories, categoryIcons]);
 
   // Categorias por nível
   const categoriesByLevel = useMemo(() => {
