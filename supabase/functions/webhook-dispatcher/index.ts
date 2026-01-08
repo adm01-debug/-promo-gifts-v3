@@ -109,7 +109,8 @@ serve(async (req) => {
             }
           }
         } catch (err) {
-          lastError = err.message;
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          lastError = errorMessage;
           
           // Log erro
           await supabase.from('webhook_logs').insert({
@@ -117,7 +118,7 @@ serve(async (req) => {
             event_type,
             payload,
             status_code: null,
-            response_body: err.message,
+            response_body: errorMessage,
             success: false,
             attempt_number: attemptNumber,
           });
@@ -162,8 +163,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Webhook dispatcher error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

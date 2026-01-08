@@ -191,6 +191,356 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          bairro: string | null
+          bitrix_id: string | null
+          bitrix_synced_at: string | null
+          cep: string | null
+          cidade: string | null
+          cnpj: string | null
+          complemento: string | null
+          condicao_pagamento: string | null
+          cor_primaria_hex: string | null
+          cor_primaria_nome: string | null
+          cor_secundaria_hex: string | null
+          cor_secundaria_nome: string | null
+          created_at: string
+          created_by: string | null
+          estado: string | null
+          faturamento_estimado: number | null
+          id: string
+          inscricao_estadual: string | null
+          inscricao_municipal: string | null
+          is_active: boolean
+          limite_credito: number | null
+          logo_url: string | null
+          logradouro: string | null
+          nicho: string | null
+          nome_fantasia: string | null
+          notas: string | null
+          numero: string | null
+          numero_funcionarios: number | null
+          origem: string | null
+          pais: string | null
+          porte: string | null
+          prazo_pagamento_dias: number | null
+          ramo: string | null
+          razao_social: string
+          responsavel_id: string | null
+          status: string
+          total_gasto: number | null
+          total_pedidos: number | null
+          ultima_compra_em: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          bairro?: string | null
+          bitrix_id?: string | null
+          bitrix_synced_at?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          complemento?: string | null
+          condicao_pagamento?: string | null
+          cor_primaria_hex?: string | null
+          cor_primaria_nome?: string | null
+          cor_secundaria_hex?: string | null
+          cor_secundaria_nome?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado?: string | null
+          faturamento_estimado?: number | null
+          id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          is_active?: boolean
+          limite_credito?: number | null
+          logo_url?: string | null
+          logradouro?: string | null
+          nicho?: string | null
+          nome_fantasia?: string | null
+          notas?: string | null
+          numero?: string | null
+          numero_funcionarios?: number | null
+          origem?: string | null
+          pais?: string | null
+          porte?: string | null
+          prazo_pagamento_dias?: number | null
+          ramo?: string | null
+          razao_social: string
+          responsavel_id?: string | null
+          status?: string
+          total_gasto?: number | null
+          total_pedidos?: number | null
+          ultima_compra_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          bairro?: string | null
+          bitrix_id?: string | null
+          bitrix_synced_at?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cnpj?: string | null
+          complemento?: string | null
+          condicao_pagamento?: string | null
+          cor_primaria_hex?: string | null
+          cor_primaria_nome?: string | null
+          cor_secundaria_hex?: string | null
+          cor_secundaria_nome?: string | null
+          created_at?: string
+          created_by?: string | null
+          estado?: string | null
+          faturamento_estimado?: number | null
+          id?: string
+          inscricao_estadual?: string | null
+          inscricao_municipal?: string | null
+          is_active?: boolean
+          limite_credito?: number | null
+          logo_url?: string | null
+          logradouro?: string | null
+          nicho?: string | null
+          nome_fantasia?: string | null
+          notas?: string | null
+          numero?: string | null
+          numero_funcionarios?: number | null
+          origem?: string | null
+          pais?: string | null
+          porte?: string | null
+          prazo_pagamento_dias?: number | null
+          ramo?: string | null
+          razao_social?: string
+          responsavel_id?: string | null
+          status?: string
+          total_gasto?: number | null
+          total_pedidos?: number | null
+          ultima_compra_em?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      company_addresses: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          company_id: string
+          complemento: string | null
+          contato_local: string | null
+          created_at: string
+          estado: string | null
+          id: string
+          is_principal: boolean | null
+          logradouro: string | null
+          nome: string
+          numero: string | null
+          observacoes: string | null
+          pais: string | null
+          telefone_local: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          company_id: string
+          complemento?: string | null
+          contato_local?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: string
+          is_principal?: boolean | null
+          logradouro?: string | null
+          nome: string
+          numero?: string | null
+          observacoes?: string | null
+          pais?: string | null
+          telefone_local?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          company_id?: string
+          complemento?: string | null
+          contato_local?: string | null
+          created_at?: string
+          estado?: string | null
+          id?: string
+          is_principal?: boolean | null
+          logradouro?: string | null
+          nome?: string
+          numero?: string | null
+          observacoes?: string | null
+          pais?: string | null
+          telefone_local?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_addresses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_contacts: {
+        Row: {
+          apelido: string | null
+          canal_preferido: string | null
+          cargo: string | null
+          company_id: string
+          created_at: string
+          data_aniversario: string | null
+          departamento: string | null
+          id: string
+          instagram_url: string | null
+          is_active: boolean
+          is_principal: boolean | null
+          linkedin_url: string | null
+          melhor_horario: string | null
+          nome: string
+          notas: string | null
+          poder_decisao: string | null
+          preferencias: Json | null
+          sobrenome: string | null
+          updated_at: string
+        }
+        Insert: {
+          apelido?: string | null
+          canal_preferido?: string | null
+          cargo?: string | null
+          company_id: string
+          created_at?: string
+          data_aniversario?: string | null
+          departamento?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean
+          is_principal?: boolean | null
+          linkedin_url?: string | null
+          melhor_horario?: string | null
+          nome: string
+          notas?: string | null
+          poder_decisao?: string | null
+          preferencias?: Json | null
+          sobrenome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          apelido?: string | null
+          canal_preferido?: string | null
+          cargo?: string | null
+          company_id?: string
+          created_at?: string
+          data_aniversario?: string | null
+          departamento?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_active?: boolean
+          is_principal?: boolean | null
+          linkedin_url?: string | null
+          melhor_horario?: string | null
+          nome?: string
+          notas?: string | null
+          poder_decisao?: string | null
+          preferencias?: Json | null
+          sobrenome?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_emails: {
+        Row: {
+          contact_id: string
+          created_at: string
+          email: string
+          id: string
+          is_principal: boolean | null
+          tipo: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          email: string
+          id?: string
+          is_principal?: boolean | null
+          tipo?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          is_principal?: boolean | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "company_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_phones: {
+        Row: {
+          contact_id: string
+          created_at: string
+          id: string
+          is_principal: boolean | null
+          is_whatsapp: boolean | null
+          numero: string
+          tipo: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          id?: string
+          is_principal?: boolean | null
+          is_whatsapp?: boolean | null
+          numero: string
+          tipo?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          id?: string
+          is_principal?: boolean | null
+          is_whatsapp?: boolean | null
+          numero?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_phones_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "company_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_login_notifications: {
         Row: {
           created_at: string
