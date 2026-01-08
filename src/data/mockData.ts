@@ -305,6 +305,11 @@ export const PRODUCTS: Product[] = [
       nicho: ['Agro'],
     },
     featured: true,
+    variations: [
+      { id: 'var-003-1', color: COLORS[4], sku: 'KIT-CHUR-10P-PRT', stock: 120, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' },
+      { id: 'var-003-2', color: COLORS[10], sku: 'KIT-CHUR-10P-INX', stock: 3, image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=400' },
+      { id: 'var-003-3', color: { name: 'Madeira', hex: '#8B4513' }, sku: 'KIT-CHUR-10P-MAD', stock: 0, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400' },
+    ],
   },
   {
     id: 'prod-004',
