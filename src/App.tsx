@@ -56,6 +56,7 @@ const PersonalizationSimulator = lazy(() => import("./pages/PersonalizationSimul
 const MockupGenerator = lazy(() => import("./pages/MockupGenerator"));
 const MagicUp = lazy(() => import("./pages/MagicUp"));
 const PriceSimulatorPage = lazy(() => import("./pages/PriceSimulatorPage"));
+const StockDashboardPage = lazy(() => import("./pages/StockDashboardPage"));
 
 // User Pages
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -175,6 +176,7 @@ const App = () => {
                                 {/* Tools Routes */}
                                 <Route path="/simulador" element={<PersonalizationSimulator />} />
                                 <Route path="/simulador-precos" element={<PriceSimulatorPage />} />
+                                <Route path="/estoque" element={<StockDashboardPage />} />
                                 <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
                                 <Route path="/mockup-generator" element={<MockupGenerator />} />
                                 <Route path="/magic-up" element={<MagicUp />} />
