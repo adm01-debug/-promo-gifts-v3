@@ -1,63 +1,26 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { renderHook } from '@testing-library/react';
 import { useVoiceCommands } from '@/hooks/useVoiceCommands';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: { retry: false, staleTime: 0 },
-      mutations: { retry: false }
-    }
-  });
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
 
 describe('useVoiceCommands', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('should initialize successfully', () => {
-    const wrapper = createWrapper();
-    const { result } = renderHook(() => useVoiceCommands(), { wrapper });
+  it('should return parseCommand function', () => {
+    const { result } = renderHook(() => useVoiceCommands());
     
     expect(result.current).toBeDefined();
+    expect(typeof result.current.parseCommand).toBe('function');
   });
 
-  it('should handle data fetching', async () => {
-    const wrapper = createWrapper();
-    const { result } = renderHook(() => useVoiceCommands(), { wrapper });
+  it('should parse search commands', () => {
+    const { result } = renderHook(() => useVoiceCommands());
     
-    await waitFor(() => {
-      expect(result.current.isLoading === false || result.current.data !== undefined).toBe(true);
-    });
+    const command = result.current.parseCommand('buscar caneta');
+    expect(command.type).toBe('search');
   });
 
-  it('should handle error state', async () => {
-    const wrapper = createWrapper();
+  it('should parse clear commands', () => {
+    const { result } = renderHook(() => useVoiceCommands());
     
-    // Mock error scenario
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    
-    const { result } = renderHook(() => useVoiceCommands({ forceError: true }), { wrapper });
-    
-    await waitFor(() => {
-      if (result.current.isError) {
-        expect(result.current.isError).toBe(true);
-      }
-    }, { timeout: 3000 });
-  });
-
-  it('should expose expected interface', () => {
-    const wrapper = createWrapper();
-    const { result } = renderHook(() => useVoiceCommands(), { wrapper });
-    
-    expect(result.current).toHaveProperty('data');
+    const command = result.current.parseCommand('limpar filtros');
+    expect(command.type).toBe('clear');
   });
 });

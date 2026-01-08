@@ -1,12 +1,21 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useKeyPress } from '@/hooks/useKeyPress';
+import { useKeyPress, useKeyState } from '@/hooks/useKeyPress';
 
 describe('useKeyPress', () => {
-  it('should detect key press', () => {
-    const { result } = renderHook(() => useKeyPress('Enter'));
+  it('should call handler on key press', () => {
+    const handler = vi.fn();
+    renderHook(() => useKeyPress('Enter', handler));
     
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-    expect(result.current).toBe(true);
+    expect(handler).toHaveBeenCalled();
   });
+});
+
+describe('useKeyState', () => {
+  it('should track key state', () => {
+    const { result } = renderHook(() => useKeyState('Shift'));
+    expect(result.current).toBe(false);
+  });
+});
 });
