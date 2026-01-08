@@ -41,13 +41,13 @@ export function ProductCategoryBadges({
             <Badge
               variant="secondary"
               className={cn(
-                "px-2 py-1 text-sm font-medium cursor-default",
+                "px-2.5 py-1 text-sm font-medium cursor-default",
                 "bg-secondary/80 hover:bg-secondary border border-border/50",
                 "transition-all duration-200 hover:scale-105"
               )}
             >
-              {cat.icon && <span className="mr-1">{cat.icon}</span>}
-              {showLabels && <span className="text-xs">{cat.name}</span>}
+              {cat.icon && <span className="mr-1.5">{cat.icon}</span>}
+              <span className="text-xs">{cat.name}</span>
             </Badge>
           </TooltipTrigger>
           <TooltipContent side="top" className="font-medium">
