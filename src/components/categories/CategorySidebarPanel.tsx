@@ -94,8 +94,11 @@ function TreeNode({
           )}
         </motion.div>
 
-        {/* Nome da categoria */}
-        <span className="truncate text-sm flex-1">{node.name}</span>
+        {/* Nome da categoria com emoji */}
+        <span className="truncate text-sm flex-1">
+          {node.icon && <span className="mr-1">{node.icon}</span>}
+          {node.name}
+        </span>
 
         {/* Badge com contagem de filhos */}
         {hasChildren && (
