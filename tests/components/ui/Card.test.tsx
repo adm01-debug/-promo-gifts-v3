@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { Card } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 
 describe('Card', () => {
   it('renders children', () => {
-    render(<Card>Content</Card>);
+    render(<Card><CardContent>Content</CardContent></Card>);
     expect(screen.getByText('Content')).toBeInTheDocument();
   });
   
   it('applies className', () => {
-    render(<Card className="custom">Content</Card>);
-    expect(screen.getByText('Content').parentElement).toHaveClass('custom');
+    const { container } = render(<Card className="custom"><CardContent>Content</CardContent></Card>);
+    expect(container.firstChild).toHaveClass('custom');
   });
 });
