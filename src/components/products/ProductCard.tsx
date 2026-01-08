@@ -23,6 +23,8 @@ export interface ProductCardProps {
   isInCompare?: boolean;
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
+  /** Esconder badges de categoria (útil em layouts compactos de grid) */
+  hideCategoryBadges?: boolean;
 }
 
 export function ProductCard({ 
@@ -37,6 +39,7 @@ export function ProductCard({
   isInCompare = false,
   onToggleCompare,
   canAddToCompare = true,
+  hideCategoryBadges = false,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
@@ -358,12 +361,14 @@ export function ProductCard({
 
       {/* Content */}
       <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
-        {/* Category Badges - Ícones das categorias */}
-        <ProductCategoryBadges 
-          category={product.category} 
-          groups={product.groups}
-          className="flex-wrap"
-        />
+        {/* Category Badges - Ícones das categorias (escondido em layouts compactos) */}
+        {!hideCategoryBadges && (
+          <ProductCategoryBadges 
+            category={product.category} 
+            groups={product.groups}
+            className="flex-wrap"
+          />
+        )}
         
         {/* Supplier */}
         <div className="flex items-center justify-end">

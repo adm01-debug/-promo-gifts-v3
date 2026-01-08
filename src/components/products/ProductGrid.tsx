@@ -14,17 +14,21 @@ export interface ProductGridProps {
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
   highlightColors?: string[];
+  /** Esconder badges de categoria nos cards (útil em layouts compactos) */
+  hideCategoryBadges?: boolean;
 }
 
 function ProductCardWrapper({ 
   product, 
   index, 
   isVisible,
+  hideCategoryBadges,
   ...props 
 }: { 
   product: Product; 
   index: number; 
   isVisible: boolean;
+  hideCategoryBadges?: boolean;
 } & Omit<React.ComponentProps<typeof ProductCard>, 'product'>) {
   const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -50,7 +54,7 @@ function ProductCardWrapper({
         transitionDelay: hasAnimated ? '0ms' : `${index * 80}ms`,
       }}
     >
-      <ProductCard product={product} {...props} />
+      <ProductCard product={product} hideCategoryBadges={hideCategoryBadges} {...props} />
     </div>
   );
 }
@@ -67,6 +71,7 @@ export function ProductGrid({
   onToggleCompare,
   canAddToCompare = true,
   highlightColors,
+  hideCategoryBadges = true,
 }: ProductGridProps) {
   const [isGridVisible, setIsGridVisible] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -115,6 +120,7 @@ export function ProductGrid({
           onToggleCompare={onToggleCompare}
           canAddToCompare={canAddToCompare}
           highlightColors={highlightColors}
+          hideCategoryBadges={hideCategoryBadges}
         />
       ))}
     </div>
