@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, LayoutDashboard, TrendingUp, Users, ShoppingCart, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import MainLayout from '@/components/layout/MainLayout';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 interface DashboardWidget {
   id: string;
