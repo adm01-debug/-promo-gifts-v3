@@ -96,10 +96,11 @@ serve(async (req) => {
         }
       } catch (err) {
         console.error(`Failed to send digest to ${user.user_id}:`, err);
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         results.push({ 
           user_id: user.user_id, 
           status: 'error',
-          error: err.message 
+          error: errorMessage 
         });
       }
     }
@@ -115,8 +116,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Digest error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
