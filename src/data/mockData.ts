@@ -131,7 +131,7 @@ export const CATEGORIES: Category[] = [
   { id: 194, name: 'CHAVEIROS', icon: '🔑' },
   { id: 196, name: 'ECOLOGIA', icon: '🌿' },
   { id: 198, name: 'EMBALAGENS', icon: '📦' },
-  { id: 202, name: 'ESPORTES | AVENTURA | LAZER', icon: '⚽' },
+  { id: 202, name: 'ESPORTES | AVENTURA | LAZER | VIAGEM', icon: '⚽' },
   { id: 126, name: 'FERRAMENTAS | UTILIDADES', icon: '🔧' },
   { id: 204, name: 'FESTAS | EVENTOS', icon: '🎉' },
   { id: 206, name: 'JOGOS E BRINQUEDOS', icon: '🎮' },
