@@ -56,6 +56,20 @@ export const PRODUCT_TABLES = [
   'generated_mockups',
 ] as const;
 
+// Views e Materialized Views (somente leitura)
+export const PRODUCT_VIEWS = [
+  'v_products_with_techniques',
+  'v_products_with_stock',
+  'v_products_with_tags',
+  'v_products_min_price',
+  'v_customization_price_summary',
+  'v_variant_pricing_complete',
+  'v_technique_stats',
+  'mv_product_compositions',
+  'mv_material_group_stats',
+  'categories_tree_visual',
+] as const;
+
 // Tabelas de EMPRESAS/CLIENTES (somente leitura)
 export const COMPANY_TABLES = [
   'bitrix_clients',
@@ -67,8 +81,9 @@ export const COMPANY_TABLES = [
 ] as const;
 
 export type ProductTable = typeof PRODUCT_TABLES[number];
+export type ProductView = typeof PRODUCT_VIEWS[number];
 export type CompanyTable = typeof COMPANY_TABLES[number];
-export type ExternalTable = ProductTable | CompanyTable;
+export type ExternalTable = ProductTable | ProductView | CompanyTable;
 
 type Operation = 'select' | 'insert' | 'update' | 'delete';
 
