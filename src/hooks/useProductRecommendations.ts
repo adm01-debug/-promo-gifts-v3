@@ -7,10 +7,27 @@ interface ProductRecommendation {
   name: string;
   sku: string;
   price: number;
-  images: any;
+  images: string[] | string | null;
   category_name: string | null;
   score: number;
   reason: string;
+}
+
+interface ProductCount {
+  sku: string | null;
+  name: string;
+  image: string | null;
+  price: number;
+  count: number;
+}
+
+interface ProductStat {
+  sku: string | null;
+  name: string;
+  image: string | null;
+  totalQuantity: number;
+  totalValue: number;
+  orderCount: number;
 }
 
 interface ProductInsight {
@@ -198,14 +215,14 @@ export function useProductRecommendations(productId?: string, productSku?: strin
         }
         acc[key].count++;
         return acc;
-      }, {} as Record<string, any>);
+      }, {} as Record<string, ProductCount>);
 
       const sorted = Object.values(productCounts)
-        .sort((a: any, b: any) => b.count - a.count)
+        .sort((a, b) => b.count - a.count)
         .slice(0, 6);
 
       // Buscar dados completos dos produtos
-      const skus = sorted.map((p: any) => p.sku).filter(Boolean);
+      const skus = sorted.map((p) => p.sku).filter(Boolean) as string[];
       
       if (skus.length === 0) return [];
 
@@ -423,10 +440,10 @@ export function useClientTopProducts(clientId?: string) {
         acc[key].totalValue += (item.quantity * item.unit_price);
         acc[key].orderCount++;
         return acc;
-      }, {} as Record<string, any>);
+      }, {} as Record<string, ProductStat>);
 
       return Object.values(productStats)
-        .sort((a: any, b: any) => b.totalValue - a.totalValue)
+        .sort((a, b) => b.totalValue - a.totalValue)
         .slice(0, 10);
     },
     enabled: !!clientId,
