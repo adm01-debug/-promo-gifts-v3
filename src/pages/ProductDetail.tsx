@@ -238,18 +238,75 @@ export default function ProductDetail() {
                     <span className="text-lg text-muted-foreground ml-1">/un</span>
                   </div>
                   <div className="text-right">
-                    <span className={cn(
-                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border",
-                      stockInfo.class
-                    )}>
-                      <Package className="h-4 w-4" />
-                      {stockInfo.label}
-                    </span>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {(selectedVariation?.stock || product.stock).toLocaleString("pt-BR")} unidades
-                    </p>
+                    {selectedVariation ? (
+                      <>
+                        <span className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border",
+                          selectedVariation.stock === 0 
+                            ? "bg-destructive/10 text-destructive border-destructive/20"
+                            : selectedVariation.stock < 100
+                            ? "bg-warning/10 text-warning border-warning/20"
+                            : "bg-success/10 text-success border-success/20"
+                        )}>
+                          <Package className="h-4 w-4" />
+                          {selectedVariation.stock === 0 ? "Sem estoque" : selectedVariation.stock < 100 ? "Estoque baixo" : "Em estoque"}
+                        </span>
+                        <div className="flex items-center justify-end gap-2 mt-2">
+                          <div
+                            className="w-3 h-3 rounded-full border border-border"
+                            style={{ backgroundColor: selectedVariation.color.hex }}
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            {selectedVariation.color.name}: <span className="font-medium text-foreground">{selectedVariation.stock.toLocaleString("pt-BR")} un.</span>
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <span className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border",
+                          stockInfo.class
+                        )}>
+                          <Package className="h-4 w-4" />
+                          {stockInfo.label}
+                        </span>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {product.stock.toLocaleString("pt-BR")} un. total
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
+
+                {/* Estoque granular por cor */}
+                {product.variations && product.variations.length > 0 && !selectedVariation && (
+                  <div className="pt-2 border-t border-border/50">
+                    <p className="text-xs text-muted-foreground mb-2">Estoque por cor:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {product.variations.slice(0, 6).map((variation) => (
+                        <button
+                          key={variation.id}
+                          onClick={() => setSelectedVariation(variation)}
+                          className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-xs"
+                        >
+                          <div
+                            className="w-2.5 h-2.5 rounded-full border border-border"
+                            style={{ backgroundColor: variation.color.hex }}
+                          />
+                          <span className={cn(
+                            "font-medium",
+                            variation.stock === 0 ? "text-destructive" : variation.stock < 100 ? "text-warning" : "text-foreground"
+                          )}>
+                            {variation.stock.toLocaleString("pt-BR")}
+                          </span>
+                        </button>
+                      ))}
+                      {product.variations.length > 6 && (
+                        <span className="text-xs text-muted-foreground px-2 py-1">+{product.variations.length - 6} cores</span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <Separator className="bg-border/50" />
 
