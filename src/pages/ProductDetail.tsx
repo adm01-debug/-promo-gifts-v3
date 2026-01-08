@@ -245,29 +245,35 @@ export default function ProductDetail() {
                   <div className="flex flex-wrap items-center justify-end gap-2">
                     {product.variations && product.variations.length > 0 ? (
                       <>
-                        {product.variations.slice(0, 5).map((variation) => (
-                          <button
-                            key={variation.id}
-                            onClick={() => setSelectedVariation(variation)}
-                            className={cn(
-                              "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all border",
-                              selectedVariation?.id === variation.id
-                                ? "bg-primary/20 border-primary ring-2 ring-primary/30"
-                                : "bg-secondary/50 border-border hover:bg-secondary hover:border-primary/50",
-                              variation.stock === 0 && "opacity-50"
-                            )}
-                          >
-                            <div
-                              className="w-3 h-3 rounded-full border border-white/20 shadow-sm"
-                              style={{ backgroundColor: variation.color.hex }}
-                            />
-                            <span className={cn(
-                              variation.stock === 0 ? "text-destructive" : variation.stock < 100 ? "text-warning" : "text-foreground"
-                            )}>
-                              {variation.stock.toLocaleString("pt-BR")}
-                            </span>
-                          </button>
-                        ))}
+                        {product.variations.slice(0, 5).map((variation) => {
+                          const isSelected = selectedVariation?.id === variation.id;
+                          return (
+                            <button
+                              key={variation.id}
+                              onClick={() => setSelectedVariation(variation)}
+                              className={cn(
+                                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all",
+                                !isSelected && "bg-secondary/50 border border-border hover:bg-secondary",
+                                variation.stock === 0 && "opacity-50"
+                              )}
+                              style={isSelected ? {
+                                backgroundColor: `${variation.color.hex}20`,
+                                border: `1px solid ${variation.color.hex}`,
+                                boxShadow: `0 0 0 2px ${variation.color.hex}30`
+                              } : undefined}
+                            >
+                              <div
+                                className="w-3 h-3 rounded-full border border-white/20 shadow-sm"
+                                style={{ backgroundColor: variation.color.hex }}
+                              />
+                              <span className={cn(
+                                variation.stock === 0 ? "text-destructive" : variation.stock < 100 ? "text-warning" : "text-foreground"
+                              )}>
+                                {variation.stock.toLocaleString("pt-BR")}
+                              </span>
+                            </button>
+                          );
+                        })}
                         {product.variations.length > 5 && (
                           <span className="text-xs text-muted-foreground">+{product.variations.length - 5}</span>
                         )}
