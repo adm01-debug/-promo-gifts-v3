@@ -57,14 +57,8 @@ serve(async (req) => {
       .single()
 
     if (tokenError || !tokenData) {
-      // Registrar tentativa falhada
-      await supabase
-        .from('quote_approval_tokens')
-        .update({ 
-          attempts: supabase.rpc('increment', { row_id: tokenData?.id })
-        })
-        .eq('token', token)
-
+      console.error('Token validation error:', tokenError);
+      
       return new Response(
         JSON.stringify({ error: 'Token inválido' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -137,12 +131,17 @@ serve(async (req) => {
       .eq('id', tokenData.quote_id)
 
     // 8. REGISTRAR NO HISTÓRICO
+    // Nota: O registro do histórico requer user_id e usa 'metadata' ao invés de 'details'
     await supabase
       .from('quote_history')
       .insert({
         quote_id: tokenData.quote_id,
+        user_id: tokenData.created_by, // Usar o criador do token como referência
         action: approved ? 'approved_by_client' : 'rejected_by_client',
-        details: {
+        description: approved 
+          ? 'Orçamento aprovado pelo cliente via link de aprovação' 
+          : `Orçamento rejeitado pelo cliente: ${rejectionReason || 'Sem motivo informado'}`,
+        metadata: {
           via: 'approval_link',
           ip_address: ipAddress,
           rejection_reason: rejectionReason
