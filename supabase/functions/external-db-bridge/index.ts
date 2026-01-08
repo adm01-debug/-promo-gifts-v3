@@ -6,14 +6,126 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Recursos e permissões
-type Resource = 'companies' | 'products';
+// Mapeamento completo das tabelas do banco externo
+type ResourceGroup = 'products' | 'companies';
 type Operation = 'select' | 'insert' | 'update' | 'delete';
 
-const PERMISSIONS: Record<Resource, Operation[]> = {
+// Tabelas relacionadas a PRODUTOS (CRUD completo)
+const PRODUCT_TABLES = [
+  'products',
+  'product_images',
+  'product_videos',
+  'product_variants',
+  'product_materials',
+  'product_tags',
+  'product_categories',
+  'product_category_assignments',
+  'product_print_areas',
+  'product_kit_components',
+  'product_suppliers',
+  'product_attributes',
+  'product_relationships',
+  'product_reviews',
+  'product_views',
+  'product_comparisons',
+  'product_personalization_options',
+  'product_price_history',
+  'product_technique_pricing_tiers',
+  'categories',
+  'category_attributes',
+  'category_relationships',
+  'suppliers',
+  'supplier_colors',
+  'tags',
+  'personalization_techniques',
+  'customization_price_tables',
+  'color_groups',
+  'color_nuances',
+  'color_equivalences',
+  'color_variations',
+  'collections',
+  'collection_products',
+  'price_lists',
+  'price_change_history',
+  'variant_stocks',
+  'variant_cost_tiers',
+  'variant_sale_prices',
+  'variation_types',
+  'variation_values',
+  'material_equivalences',
+  'stock_movements',
+  'mockup_drafts',
+  'mockup_generation_jobs',
+  'mockup_approval_links',
+  'generated_mockups',
+] as const;
+
+// Tabelas relacionadas a EMPRESAS/CLIENTES (somente leitura)
+const COMPANY_TABLES = [
+  'bitrix_clients',
+  'client_contacts',
+  'client_notes',
+  'organizations',
+  'user_organizations',
+  'business_sectors',
+] as const;
+
+// Tabelas de sistema que NÃO devem ser acessadas
+const SYSTEM_TABLES = [
+  'user_roles',
+  'user_onboarding',
+  'profiles',
+  'user_filter_presets',
+  'user_favorites',
+  'user_rewards',
+  'notification_preferences',
+  'notification_templates',
+  'notifications',
+  'push_subscriptions',
+  'analytics_events',
+  'audit_log',
+  'search_queries',
+  'sync_jobs',
+  'feature_flags',
+  'system_settings',
+  'payments',
+  'orders',
+  'order_items',
+  'quotes',
+  'quote_items',
+  'quote_versions',
+  'quote_templates',
+  'quote_comments',
+  'achievements',
+  'seller_achievements',
+  'seller_gamification',
+  'store_rewards',
+  'expert_conversations',
+  'expert_messages',
+  'saved_filters',
+  'geo_allowed_countries',
+  'media_sync_log',
+  'category_sync_log',
+] as const;
+
+type ProductTable = typeof PRODUCT_TABLES[number];
+type CompanyTable = typeof COMPANY_TABLES[number];
+
+// Permissões por grupo
+const PERMISSIONS: Record<ResourceGroup, Operation[]> = {
+  products: ['select', 'insert', 'update', 'delete'],
   companies: ['select'], // Somente leitura
-  products: ['select', 'insert', 'update', 'delete'], // CRUD completo
 };
+
+function getResourceGroup(tableName: string): ResourceGroup | null {
+  if (PRODUCT_TABLES.includes(tableName as ProductTable)) {
+    return 'products';
+  }
+  if (COMPANY_TABLES.includes(tableName as CompanyTable)) {
+    return 'companies';
+  }
+  return null;
+}
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -69,30 +181,49 @@ serve(async (req) => {
 
     // Parse body
     const body = await req.json();
-    const { resource, operation, data, filters, id } = body as {
-      resource: Resource;
+    const { table, operation, data, filters, id, select, orderBy, limit: queryLimit } = body as {
+      table: string;
       operation: Operation;
       data?: Record<string, unknown>;
       filters?: Record<string, unknown>;
       id?: string;
+      select?: string;
+      orderBy?: { column: string; ascending?: boolean };
+      limit?: number;
     };
 
-    console.log(`Operation: ${operation} on ${resource}`);
+    console.log(`Operation: ${operation} on table: ${table}`);
 
-    // Validar recurso
-    if (!resource || !PERMISSIONS[resource]) {
+    // Identificar grupo do recurso
+    const resourceGroup = getResourceGroup(table);
+    
+    if (!resourceGroup) {
+      // Verificar se é tabela de sistema bloqueada
+      if (SYSTEM_TABLES.includes(table as any)) {
+        return new Response(
+          JSON.stringify({ error: `Tabela '${table}' não está disponível para acesso externo` }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
-        JSON.stringify({ error: `Recurso inválido: ${resource}` }),
+        JSON.stringify({ 
+          error: `Tabela '${table}' não mapeada`,
+          availableTables: {
+            products: PRODUCT_TABLES,
+            companies: COMPANY_TABLES,
+          }
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Validar operação
-    if (!operation || !PERMISSIONS[resource].includes(operation)) {
+    if (!operation || !PERMISSIONS[resourceGroup].includes(operation)) {
       return new Response(
         JSON.stringify({ 
-          error: `Operação '${operation}' não permitida para '${resource}'`,
-          allowed: PERMISSIONS[resource]
+          error: `Operação '${operation}' não permitida para tabelas de '${resourceGroup}'`,
+          allowed: PERMISSIONS[resourceGroup]
         }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -100,7 +231,6 @@ serve(async (req) => {
 
     // Verificar permissões baseadas em role para operações de escrita
     if (['insert', 'update', 'delete'].includes(operation)) {
-      // Apenas admin e gerente podem fazer operações de escrita em produtos
       if (!['admin', 'gerente', 'vendedor'].includes(userRole)) {
         return new Response(
           JSON.stringify({ error: 'Permissão insuficiente para esta operação' }),
@@ -108,10 +238,10 @@ serve(async (req) => {
         );
       }
 
-      // Vendedor só pode inserir, não pode deletar
+      // Vendedor só pode inserir e editar, não pode deletar
       if (userRole === 'vendedor' && operation === 'delete') {
         return new Response(
-          JSON.stringify({ error: 'Vendedores não podem excluir produtos' }),
+          JSON.stringify({ error: 'Vendedores não podem excluir registros' }),
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -130,26 +260,25 @@ serve(async (req) => {
     }
 
     const externalSupabase = createClient(externalUrl, externalKey);
-
-    // Mapear nomes de tabelas (ajuste conforme sua estrutura)
-    const tableMap: Record<Resource, string> = {
-      companies: 'companies', // ou 'empresas' se for em português
-      products: 'products',   // ou 'produtos' se for em português
-    };
-
-    const tableName = tableMap[resource];
     let result;
 
     switch (operation) {
       case 'select': {
-        let query = externalSupabase.from(tableName).select('*');
+        let query = externalSupabase.from(table).select(select || '*', { count: 'exact' });
         
         // Aplicar filtros
         if (filters) {
           Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
-              if (typeof value === 'string' && key.includes('name')) {
-                query = query.ilike(key, `%${value}%`);
+              if (typeof value === 'string') {
+                // Busca parcial para campos de texto
+                if (['name', 'description', 'title', 'razao_social', 'nome_fantasia'].includes(key)) {
+                  query = query.ilike(key, `%${value}%`);
+                } else {
+                  query = query.eq(key, value);
+                }
+              } else if (Array.isArray(value)) {
+                query = query.in(key, value);
               } else {
                 query = query.eq(key, value);
               }
@@ -157,10 +286,22 @@ serve(async (req) => {
           });
         }
 
-        // Ordenar e limitar
-        query = query.order('created_at', { ascending: false }).limit(1000);
+        // Filtrar por ID específico
+        if (id) {
+          query = query.eq('id', id);
+        }
+
+        // Ordenar
+        if (orderBy) {
+          query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false });
+        } else {
+          query = query.order('created_at', { ascending: false });
+        }
+
+        // Limitar resultados
+        query = query.limit(queryLimit || 500);
         
-        const { data: selectData, error: selectError } = await query;
+        const { data: selectData, error: selectError, count } = await query;
         
         if (selectError) {
           console.error('Select error:', selectError);
@@ -170,8 +311,8 @@ serve(async (req) => {
           );
         }
         
-        result = selectData;
-        console.log(`Selected ${selectData?.length || 0} records from ${tableName}`);
+        result = { records: selectData, count };
+        console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table}`);
         break;
       }
 
@@ -192,7 +333,7 @@ serve(async (req) => {
         };
 
         const { data: insertResult, error: insertError } = await externalSupabase
-          .from(tableName)
+          .from(table)
           .insert(insertData)
           .select()
           .single();
@@ -206,7 +347,7 @@ serve(async (req) => {
         }
 
         result = insertResult;
-        console.log(`Inserted record in ${tableName}:`, insertResult?.id);
+        console.log(`Inserted record in ${table}:`, insertResult?.id);
         break;
       }
 
@@ -233,7 +374,7 @@ serve(async (req) => {
         };
 
         const { data: updateResult, error: updateError } = await externalSupabase
-          .from(tableName)
+          .from(table)
           .update(updateData)
           .eq('id', id)
           .select()
@@ -248,7 +389,7 @@ serve(async (req) => {
         }
 
         result = updateResult;
-        console.log(`Updated record in ${tableName}:`, id);
+        console.log(`Updated record in ${table}:`, id);
         break;
       }
 
@@ -261,7 +402,7 @@ serve(async (req) => {
         }
 
         const { error: deleteError } = await externalSupabase
-          .from(tableName)
+          .from(table)
           .delete()
           .eq('id', id);
 
@@ -274,7 +415,7 @@ serve(async (req) => {
         }
 
         result = { success: true, deleted_id: id };
-        console.log(`Deleted record from ${tableName}:`, id);
+        console.log(`Deleted record from ${table}:`, id);
         break;
       }
 

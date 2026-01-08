@@ -1,5 +1,8 @@
 project_id = "lgjogrvydtwxxsjarrxm"
 
+[functions.external-db-inspect]
+verify_jwt = false
+
 [functions.external-db-bridge]
 verify_jwt = false
 
