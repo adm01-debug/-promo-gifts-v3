@@ -2,37 +2,41 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useBulkSelection } from '@/hooks/useBulkSelection';
 
+const mockItems = [
+  { id: 'item-1' },
+  { id: 'item-2' },
+  { id: 'item-3' }
+];
+
 describe('useBulkSelection', () => {
-  it('should select items', () => {
-    const { result } = renderHook(() => useBulkSelection());
+  it('should toggle item selection', () => {
+    const { result } = renderHook(() => useBulkSelection(mockItems));
 
     act(() => {
-      result.current.select('item-1');
-      result.current.select('item-2');
+      result.current.toggleItem('item-1');
     });
 
-    expect(result.current.selected).toEqual(['item-1', 'item-2']);
+    expect(result.current.isSelected('item-1')).toBe(true);
   });
 
-  it('should select all items', () => {
-    const items = ['item-1', 'item-2', 'item-3'];
-    const { result } = renderHook(() => useBulkSelection());
+  it('should toggle all items', () => {
+    const { result } = renderHook(() => useBulkSelection(mockItems));
 
     act(() => {
-      result.current.selectAll(items);
+      result.current.toggleAll();
     });
 
-    expect(result.current.selected).toEqual(items);
+    expect(result.current.isAllSelected).toBe(true);
   });
 
   it('should clear selection', () => {
-    const { result } = renderHook(() => useBulkSelection());
+    const { result } = renderHook(() => useBulkSelection(mockItems));
 
     act(() => {
-      result.current.select('item-1');
+      result.current.toggleItem('item-1');
       result.current.clearSelection();
     });
 
-    expect(result.current.selected).toEqual([]);
+    expect(result.current.selectedIds).toEqual([]);
   });
 });

@@ -1,12 +1,12 @@
-import { renderHook, waitFor } from '@testing-library/react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { useAIRecommendations } from '@/hooks/useAIRecommendations';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { retry: false, staleTime: 0 },
+      queries: { retry: false },
       mutations: { retry: false }
     }
   });
@@ -19,45 +19,13 @@ const createWrapper = () => {
 };
 
 describe('useAIRecommendations', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('should initialize successfully', () => {
+  it('should initialize with correct state', () => {
     const wrapper = createWrapper();
     const { result } = renderHook(() => useAIRecommendations(), { wrapper });
     
-    expect(result.current).toBeDefined();
-  });
-
-  it('should handle data fetching', async () => {
-    const wrapper = createWrapper();
-    const { result } = renderHook(() => useAIRecommendations(), { wrapper });
-    
-    await waitFor(() => {
-      expect(result.current.isLoading === false || result.current.data !== undefined).toBe(true);
-    });
-  });
-
-  it('should handle error state', async () => {
-    const wrapper = createWrapper();
-    
-    // Mock error scenario
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    
-    const { result } = renderHook(() => useAIRecommendations({ forceError: true }), { wrapper });
-    
-    await waitFor(() => {
-      if (result.current.isError) {
-        expect(result.current.isError).toBe(true);
-      }
-    }, { timeout: 3000 });
-  });
-
-  it('should expose expected interface', () => {
-    const wrapper = createWrapper();
-    const { result } = renderHook(() => useAIRecommendations(), { wrapper });
-    
-    expect(result.current).toHaveProperty('data');
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.result).toBeNull();
+    expect(result.current.error).toBeNull();
+    expect(typeof result.current.getRecommendations).toBe('function');
   });
 });
