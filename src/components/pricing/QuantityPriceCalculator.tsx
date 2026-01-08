@@ -1,10 +1,21 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Calculator, 
   TrendingDown, 
@@ -15,7 +26,14 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
-  Package
+  Package,
+  Paintbrush,
+  Search,
+  X,
+  AlertCircle,
+  Plus,
+  Trash2,
+  ChevronRight,
 } from 'lucide-react';
 import { 
   useCustomizationPricing, 
@@ -28,6 +46,50 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+
+// ============================================
+// TYPES
+// ============================================
+
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  images: any;
+  category_name: string | null;
+}
+
+interface ProductTechnique {
+  id: string;
+  techniqueId: string;
+  techniqueName: string;
+  techniqueCode: string;
+  componentName: string;
+  locationName: string;
+  locationCode: string;
+  composedCode: string;
+  maxWidth: number | null;
+  maxHeight: number | null;
+  maxArea: number | null;
+  maxColors: number | null;
+  isDefault: boolean;
+}
+
+interface SelectedTechniqueConfig {
+  technique: ProductTechnique;
+  colors: number;
+  sizeOption: string;
+  sizeModifier: number;
+}
 
 interface QuantityPriceCalculatorProps {
   productBasePrice?: number;
@@ -35,6 +97,10 @@ interface QuantityPriceCalculatorProps {
   onSelectTechnique?: (techniqueCode: string, calculation: PriceCalculation) => void;
   className?: string;
 }
+
+// ============================================
+// FORMATTERS
+// ============================================
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
@@ -47,178 +113,573 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat('pt-BR').format(value);
 }
 
-// Componente de faixa de preço individual
-function PriceTierBadge({ tier, isActive }: { tier: PriceTier; isActive: boolean }) {
+// ============================================
+// PRODUCT SEARCH
+// ============================================
+
+function ProductSearch({ 
+  onSelect, 
+  selectedProduct 
+}: { 
+  onSelect: (product: Product | null) => void;
+  selectedProduct: Product | null;
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  const { data: products, isLoading } = useQuery({
+    queryKey: ['products-search-qty', searchQuery],
+    queryFn: async () => {
+      if (!searchQuery || searchQuery.length < 2) return [];
+      
+      const { data, error } = await supabase
+        .from('products')
+        .select('id, name, sku, price, images, category_name')
+        .or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`)
+        .eq('is_active', true)
+        .limit(20);
+      
+      if (error) throw error;
+      return data as Product[];
+    },
+    enabled: searchQuery.length >= 2,
+  });
+
+  if (selectedProduct && !isSearching) {
+    return (
+      <div className="p-4 rounded-lg border bg-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
+              {selectedProduct.images?.[0] ? (
+                <img 
+                  src={selectedProduct.images[0]} 
+                  alt={selectedProduct.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Package className="w-6 h-6 text-muted-foreground" />
+              )}
+            </div>
+            <div>
+              <p className="font-medium">{selectedProduct.name}</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>SKU: {selectedProduct.sku}</span>
+                <span>•</span>
+                <span className="text-primary font-medium">{formatCurrency(selectedProduct.price)}</span>
+              </div>
+            </div>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => {
+              onSelect(null);
+              setIsSearching(true);
+            }}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div 
-      className={cn(
-        "flex items-center justify-between px-3 py-1.5 rounded-md text-sm transition-colors",
-        isActive 
-          ? "bg-primary text-primary-foreground" 
-          : "bg-muted/50 text-muted-foreground"
+    <div className="space-y-3">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar produto por nome ou SKU..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9"
+          autoFocus
+        />
+      </div>
+
+      {isLoading && (
+        <div className="space-y-2">
+          {[1, 2, 3].map(i => <Skeleton key={i} className="h-16" />)}
+        </div>
       )}
-    >
-      <span className="font-medium">
-        {formatNumber(tier.minQuantity)}
-        {tier.maxQuantity ? ` - ${formatNumber(tier.maxQuantity)}` : '+'}
-      </span>
-      <span className="font-bold">{formatCurrency(tier.unitPrice)}</span>
+
+      {products && products.length > 0 && (
+        <ScrollArea className="h-64">
+          <div className="space-y-1">
+            {products.map(product => (
+              <button
+                key={product.id}
+                onClick={() => {
+                  onSelect(product);
+                  setIsSearching(false);
+                  setSearchQuery('');
+                }}
+                className="w-full p-3 rounded-lg border bg-card hover:bg-accent transition-colors text-left flex items-center gap-3"
+              >
+                <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                  {product.images?.[0] ? (
+                    <img 
+                      src={product.images[0]} 
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Package className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{product.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {product.sku} • {formatCurrency(product.price)}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
+      )}
+
+      {searchQuery.length >= 2 && products?.length === 0 && !isLoading && (
+        <div className="text-center py-8 text-muted-foreground">
+          <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p>Nenhum produto encontrado</p>
+        </div>
+      )}
     </div>
   );
 }
 
-// Componente de card de técnica
-function TechniqueCard({
-  calculation,
-  tiers,
-  isSelected,
-  onSelect,
-  productBasePrice,
-  quantity,
+// ============================================
+// TECHNIQUE MULTI-SELECTOR
+// ============================================
+
+function TechniqueMultiSelector({
+  productId,
+  selectedTechniques,
+  onToggleTechnique,
 }: {
-  calculation: PriceCalculation;
-  tiers: PriceTier[];
-  isSelected: boolean;
-  onSelect: () => void;
-  productBasePrice: number;
-  quantity: number;
+  productId: string;
+  selectedTechniques: SelectedTechniqueConfig[];
+  onToggleTechnique: (technique: ProductTechnique, add: boolean) => void;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  
-  const productTotal = productBasePrice * quantity;
-  const grandTotalWithProduct = productTotal + calculation.grandTotal;
-  const unitTotalWithProduct = grandTotalWithProduct / quantity;
+  const { data: techniques, isLoading, error } = useQuery({
+    queryKey: ['product-techniques-multi', productId],
+    queryFn: async () => {
+      const { data: components, error: compError } = await supabase
+        .from('product_components')
+        .select(`
+          id,
+          component_name,
+          component_code,
+          product_component_locations (
+            id,
+            location_name,
+            location_code,
+            max_width_cm,
+            max_height_cm,
+            max_area_cm2,
+            product_component_location_techniques (
+              id,
+              technique_id,
+              composed_code,
+              is_default,
+              max_colors,
+              personalization_techniques (
+                id,
+                name,
+                code,
+                description
+              )
+            )
+          )
+        `)
+        .eq('product_id', productId)
+        .eq('is_active', true)
+        .eq('is_personalizable', true);
+
+      if (compError) throw compError;
+      if (!components?.length) return [];
+
+      const techList: ProductTechnique[] = [];
+      
+      for (const comp of components) {
+        for (const loc of comp.product_component_locations || []) {
+          for (const tech of loc.product_component_location_techniques || []) {
+            const technique = tech.personalization_techniques as any;
+            if (technique) {
+              techList.push({
+                id: tech.id,
+                techniqueId: tech.technique_id,
+                techniqueName: technique.name,
+                techniqueCode: technique.code,
+                componentName: comp.component_name,
+                locationName: loc.location_name,
+                locationCode: loc.location_code,
+                composedCode: tech.composed_code,
+                maxWidth: loc.max_width_cm,
+                maxHeight: loc.max_height_cm,
+                maxArea: loc.max_area_cm2,
+                maxColors: tech.max_colors,
+                isDefault: tech.is_default || false,
+              });
+            }
+          }
+        }
+      }
+
+      return techList;
+    },
+    enabled: !!productId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map(i => <Skeleton key={i} className="h-16" />)}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+        <AlertCircle className="w-5 h-5 mb-2" />
+        <p>Erro ao carregar técnicas</p>
+      </div>
+    );
+  }
+
+  if (!techniques?.length) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Paintbrush className="w-8 h-8 mx-auto mb-2 opacity-50" />
+        <p>Este produto não possui técnicas de personalização cadastradas</p>
+      </div>
+    );
+  }
+
+  const grouped = techniques.reduce((acc, tech) => {
+    if (!acc[tech.componentName]) acc[tech.componentName] = [];
+    acc[tech.componentName].push(tech);
+    return acc;
+  }, {} as Record<string, ProductTechnique[]>);
+
+  const isSelected = (techId: string) => selectedTechniques.some(st => st.technique.id === techId);
 
   return (
-    <Card 
-      className={cn(
-        "transition-all cursor-pointer hover:shadow-md",
-        isSelected && "ring-2 ring-primary"
-      )}
-      onClick={onSelect}
-    >
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Selecione uma ou mais técnicas de gravação para comparar
+      </p>
+      {Object.entries(grouped).map(([componentName, techs]) => (
+        <div key={componentName} className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <Package className="w-4 h-4" />
+            {componentName}
+          </h4>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {techs.map(tech => {
+              const selected = isSelected(tech.id);
+              return (
+                <button
+                  key={tech.id}
+                  onClick={() => onToggleTechnique(tech, !selected)}
+                  className={cn(
+                    "p-3 rounded-lg border text-left transition-all",
+                    selected
+                      ? "bg-primary/10 border-primary ring-1 ring-primary"
+                      : "bg-card hover:bg-accent border-border"
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Checkbox checked={selected} className="pointer-events-none" />
+                      <span className="font-medium">{tech.techniqueName}</span>
+                    </div>
+                    {tech.isDefault && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Padrão
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground space-y-1 ml-6">
+                    <p>Local: {tech.locationName}</p>
+                    <div className="flex items-center gap-3">
+                      {tech.maxWidth && tech.maxHeight && (
+                        <span className="flex items-center gap-1">
+                          <Ruler className="w-3 h-3" />
+                          {tech.maxWidth}x{tech.maxHeight}cm
+                        </span>
+                      )}
+                      {tech.maxColors && (
+                        <span className="flex items-center gap-1">
+                          <Palette className="w-3 h-3" />
+                          {tech.maxColors} cor{tech.maxColors > 1 ? 'es' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================
+// TECHNIQUE CONFIG CARD
+// ============================================
+
+const availableSizes = [
+  { label: 'Pequeno (até 5cm²)', value: 'small', modifier: 0.8 },
+  { label: 'Padrão (até 20cm²)', value: 'standard', modifier: 1 },
+  { label: 'Grande (até 50cm²)', value: 'large', modifier: 1.3 },
+  { label: 'Extra Grande (50cm²+)', value: 'xlarge', modifier: 1.6 },
+];
+
+function TechniqueConfigCard({
+  config,
+  onUpdate,
+  onRemove,
+}: {
+  config: SelectedTechniqueConfig;
+  onUpdate: (updated: SelectedTechniqueConfig) => void;
+  onRemove: () => void;
+}) {
+  const { technique, colors, sizeOption } = config;
+  const maxColors = technique.maxColors || 4;
+
+  return (
+    <Card className="border-primary/20">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg flex items-center gap-2">
-              {calculation.technique}
-              {isSelected && (
-                <Badge variant="default" className="ml-2">
-                  <Check className="w-3 h-3 mr-1" />
-                  Selecionado
-                </Badge>
-              )}
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Paintbrush className="w-4 h-4 text-primary" />
+              {technique.techniqueName}
             </CardTitle>
-            <CardDescription className="mt-1">
-              Código: {calculation.techniqueCode}
+            <CardDescription className="text-xs">
+              {technique.componentName} • {technique.locationName}
             </CardDescription>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-primary">
-              {formatCurrency(calculation.unitPrice)}
-            </p>
-            <p className="text-xs text-muted-foreground">por unidade</p>
-          </div>
+          <Button variant="ghost" size="icon" onClick={onRemove}>
+            <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+          </Button>
         </div>
       </CardHeader>
-
       <CardContent className="space-y-4">
-        {/* Informações principais */}
-        <div className="grid grid-cols-3 gap-3 text-sm">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Palette className="w-4 h-4" />
-            <span>{calculation.maxColors} cor{calculation.maxColors > 1 ? 'es' : ''}</span>
+        {/* Colors */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium flex items-center gap-1">
+            <Palette className="w-3 h-3" />
+            Cores
+          </label>
+          <div className="flex flex-wrap gap-1">
+            {Array.from({ length: maxColors }, (_, i) => i + 1).map(num => (
+              <Button
+                key={num}
+                variant={colors === num ? "default" : "outline"}
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={() => onUpdate({ ...config, colors: num })}
+              >
+                {num}
+              </Button>
+            ))}
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Ruler className="w-4 h-4" />
-            <span>{calculation.maxArea.width}x{calculation.maxArea.height}cm</span>
-          </div>
-          {calculation.slaDays && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="w-4 h-4" />
-              <span>{calculation.slaDays} dias</span>
-            </div>
-          )}
         </div>
 
-        {/* Economia */}
-        {calculation.savings && calculation.savings.percentageOff > 0 && (
-          <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/30 rounded-lg">
-            <TrendingDown className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700 dark:text-green-400">
-              Economia de {calculation.savings.percentageOff}% 
-              ({formatCurrency(calculation.savings.comparedToMin)} no total)
-            </span>
-          </div>
-        )}
-
-        {/* Resumo de preços */}
-        <div className="space-y-2 pt-2 border-t">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Gravação ({formatNumber(quantity)} un)</span>
-            <span>{formatCurrency(calculation.totalPrice)}</span>
-          </div>
-          {calculation.setupPrice > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Setup</span>
-              <span>{formatCurrency(calculation.setupPrice)}</span>
-            </div>
-          )}
-          {productBasePrice > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                <Package className="w-3 h-3 inline mr-1" />
-                Produtos ({formatNumber(quantity)} un)
-              </span>
-              <span>{formatCurrency(productTotal)}</span>
-            </div>
-          )}
-          <div className="flex justify-between font-bold text-lg pt-2 border-t">
-            <span>Total</span>
-            <span className="text-primary">
-              {formatCurrency(productBasePrice > 0 ? grandTotalWithProduct : calculation.grandTotal)}
-            </span>
-          </div>
-          {productBasePrice > 0 && (
-            <div className="text-xs text-center text-muted-foreground">
-              = {formatCurrency(unitTotalWithProduct)} por unidade (produto + gravação)
-            </div>
-          )}
-        </div>
-
-        {/* Faixas de preço expansíveis */}
-        <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="w-full">
-              {isExpanded ? (
-                <>
-                  <ChevronUp className="w-4 h-4 mr-2" />
-                  Ocultar faixas de preço
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="w-4 h-4 mr-2" />
-                  Ver todas as faixas de preço
-                </>
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pt-2">
-            <div className="grid gap-1.5">
-              {tiers.map((tier) => (
-                <PriceTierBadge
-                  key={tier.tierIndex}
-                  tier={tier}
-                  isActive={quantity >= tier.minQuantity && (!tier.maxQuantity || quantity <= tier.maxQuantity)}
-                />
+        {/* Size */}
+        <div className="space-y-2">
+          <label className="text-xs font-medium flex items-center gap-1">
+            <Ruler className="w-3 h-3" />
+            Tamanho
+          </label>
+          <Select 
+            value={sizeOption} 
+            onValueChange={(val) => {
+              const modifier = availableSizes.find(s => s.value === val)?.modifier || 1;
+              onUpdate({ ...config, sizeOption: val, sizeModifier: modifier });
+            }}
+          >
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableSizes.map(size => (
+                <SelectItem key={size.value} value={size.value} className="text-xs">
+                  {size.label}
+                </SelectItem>
               ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+            </SelectContent>
+          </Select>
+        </div>
       </CardContent>
     </Card>
   );
 }
+
+// ============================================
+// QUANTITY COMPARISON TABLE
+// ============================================
+
+function QuantityComparisonTable({
+  product,
+  selectedConfigs,
+  quantities,
+}: {
+  product: Product;
+  selectedConfigs: SelectedTechniqueConfig[];
+  quantities: number[];
+}) {
+  const { priceTables, calculatePrice } = useCustomizationPricing();
+
+  const calculateForConfig = useCallback((config: SelectedTechniqueConfig, quantity: number) => {
+    const { technique, colors, sizeModifier } = config;
+    
+    // Find matching price table
+    const matchingTable = priceTables.find(t => 
+      t.table_code.toLowerCase().includes(technique.techniqueCode.toLowerCase()) ||
+      technique.techniqueCode.toLowerCase().includes(t.table_code.toLowerCase()) ||
+      t.customization_type_name.toLowerCase().includes(technique.techniqueName.toLowerCase()) ||
+      technique.techniqueName.toLowerCase().includes(t.customization_type_name.toLowerCase())
+    );
+
+    if (!matchingTable) return null;
+
+    const calc = calculatePrice(matchingTable.table_code, quantity);
+    if (!calc) return null;
+
+    // Apply modifiers
+    let modifiedUnitPrice = calc.unitPrice;
+    
+    if (colors > 1 && matchingTable.price_by_color) {
+      modifiedUnitPrice *= (1 + (colors - 1) * 0.1);
+    }
+    
+    modifiedUnitPrice *= sizeModifier;
+
+    const customizationTotal = modifiedUnitPrice * quantity + calc.setupPrice;
+    const productTotal = product.price * quantity;
+    const grandTotal = productTotal + customizationTotal;
+    const unitTotal = grandTotal / quantity;
+
+    return {
+      unitPrice: modifiedUnitPrice,
+      customizationTotal,
+      productTotal,
+      grandTotal,
+      unitTotal,
+      slaDays: calc.slaDays,
+    };
+  }, [priceTables, calculatePrice, product.price]);
+
+  if (selectedConfigs.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Calculator className="w-8 h-8 mx-auto mb-2 opacity-50" />
+        <p>Selecione técnicas para ver a comparação de preços</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[150px]">Técnica</TableHead>
+              {quantities.map(qty => (
+                <TableHead key={qty} className="text-center min-w-[100px]">
+                  {formatNumber(qty)} un
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {selectedConfigs.map((config) => (
+              <TableRow key={config.technique.id}>
+                <TableCell>
+                  <div>
+                    <p className="font-medium text-sm">{config.technique.techniqueName}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {config.colors} cor{config.colors > 1 ? 'es' : ''} • {
+                        availableSizes.find(s => s.value === config.sizeOption)?.label.split(' ')[0]
+                      }
+                    </p>
+                  </div>
+                </TableCell>
+                {quantities.map(qty => {
+                  const result = calculateForConfig(config, qty);
+                  if (!result) {
+                    return (
+                      <TableCell key={qty} className="text-center text-xs text-muted-foreground">
+                        N/D
+                      </TableCell>
+                    );
+                  }
+                  return (
+                    <TableCell key={qty} className="text-center">
+                      <div className="space-y-1">
+                        <p className="font-bold text-primary text-sm">
+                          {formatCurrency(result.unitTotal)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Total: {formatCurrency(result.grandTotal)}
+                        </p>
+                      </div>
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            ))}
+            {/* Product only row */}
+            <TableRow className="bg-muted/30">
+              <TableCell>
+                <div>
+                  <p className="font-medium text-sm">Apenas Produto</p>
+                  <p className="text-xs text-muted-foreground">Sem gravação</p>
+                </div>
+              </TableCell>
+              {quantities.map(qty => (
+                <TableCell key={qty} className="text-center">
+                  <div className="space-y-1">
+                    <p className="font-bold text-sm">
+                      {formatCurrency(product.price)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Total: {formatCurrency(product.price * qty)}
+                    </p>
+                  </div>
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Legend */}
+      <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
+        <p className="font-medium mb-1">Valores incluem:</p>
+        <ul className="list-disc list-inside space-y-0.5">
+          <li>Preço do produto ({formatCurrency(product.price)}/un)</li>
+          <li>Custo de gravação por unidade</li>
+          <li>Custo de setup (quando aplicável)</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export function QuantityPriceCalculator({
   productBasePrice = 0,
@@ -226,29 +687,58 @@ export function QuantityPriceCalculator({
   onSelectTechnique,
   className,
 }: QuantityPriceCalculatorProps) {
-  const { priceTables, isLoading, error, calculateAllPrices, getTiers } = useCustomizationPricing();
-  const [quantity, setQuantity] = useState(100);
-  const [selectedTechniqueCode, setSelectedTechniqueCode] = useState<string | null>(null);
+  const { priceTables, isLoading: pricingLoading } = useCustomizationPricing();
+  
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedConfigs, setSelectedConfigs] = useState<SelectedTechniqueConfig[]>([]);
+  const [customQuantities, setCustomQuantities] = useState<number[]>([250, 500, 1000, 2500, 5000]);
+  const [newQuantity, setNewQuantity] = useState('');
 
-  // Quantidades predefinidas para seleção rápida
-  const quickQuantities = [50, 100, 250, 500, 1000, 2500, 5000];
+  const handleProductSelect = useCallback((product: Product | null) => {
+    setSelectedProduct(product);
+    setSelectedConfigs([]);
+  }, []);
 
-  // Calcular preços para todas as técnicas
-  const calculations = useMemo(() => {
-    return calculateAllPrices(quantity);
-  }, [calculateAllPrices, quantity]);
-
-  // Selecionar técnica
-  const handleSelectTechnique = (techniqueCode: string) => {
-    setSelectedTechniqueCode(techniqueCode);
-    const calc = calculations.find(c => c.techniqueCode === techniqueCode);
-    if (calc && onSelectTechnique) {
-      onSelectTechnique(techniqueCode, calc);
+  const handleToggleTechnique = useCallback((technique: ProductTechnique, add: boolean) => {
+    if (add) {
+      setSelectedConfigs(prev => [...prev, {
+        technique,
+        colors: 1,
+        sizeOption: 'standard',
+        sizeModifier: 1,
+      }]);
+    } else {
+      setSelectedConfigs(prev => prev.filter(c => c.technique.id !== technique.id));
     }
-  };
+  }, []);
 
-  // Loading state
-  if (isLoading) {
+  const handleUpdateConfig = useCallback((index: number, updated: SelectedTechniqueConfig) => {
+    setSelectedConfigs(prev => {
+      const newConfigs = [...prev];
+      newConfigs[index] = updated;
+      return newConfigs;
+    });
+  }, []);
+
+  const handleRemoveConfig = useCallback((index: number) => {
+    setSelectedConfigs(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleAddQuantity = useCallback(() => {
+    const qty = parseInt(newQuantity);
+    if (qty > 0 && !customQuantities.includes(qty)) {
+      setCustomQuantities(prev => [...prev, qty].sort((a, b) => a - b));
+      setNewQuantity('');
+    }
+  }, [newQuantity, customQuantities]);
+
+  const handleRemoveQuantity = useCallback((qty: number) => {
+    if (customQuantities.length > 1) {
+      setCustomQuantities(prev => prev.filter(q => q !== qty));
+    }
+  }, [customQuantities.length]);
+
+  if (pricingLoading) {
     return (
       <Card className={className}>
         <CardHeader>
@@ -256,130 +746,149 @@ export function QuantityPriceCalculator({
           <Skeleton className="h-4 w-64 mt-2" />
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <div className="grid gap-4 md:grid-cols-2">
-            <Skeleton className="h-64" />
-            <Skeleton className="h-64" />
-          </div>
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-64 w-full" />
         </CardContent>
       </Card>
     );
   }
 
-  // Error state
-  if (error) {
-    return (
-      <Card className={cn("border-destructive", className)}>
-        <CardHeader>
-          <CardTitle className="text-destructive">Erro ao carregar preços</CardTitle>
-          <CardDescription>{error}</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  // Empty state
-  if (priceTables.length === 0) {
-    return (
-      <Card className={className}>
-        <CardHeader>
-          <CardTitle>Calculadora de Preços</CardTitle>
-          <CardDescription>Nenhuma tabela de preços disponível</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
   return (
-    <Card className={className}>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Calculator className="w-5 h-5 text-primary" />
-          <CardTitle>Calculadora de Preços por Tiragem</CardTitle>
-        </div>
-        <CardDescription>
-          {productName 
-            ? `Simule preços de gravação para: ${productName}`
-            : 'Selecione a quantidade e veja os preços por técnica de gravação'
-          }
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* Seletor de quantidade */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Quantidade</label>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                max={50000}
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-28 text-right"
-              />
-              <span className="text-sm text-muted-foreground">unidades</span>
-            </div>
+    <div className={cn("space-y-6", className)}>
+      {/* Step 1: Product Selection */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
+            <CardTitle className="text-lg">1. Selecione o Produto</CardTitle>
           </div>
-
-          {/* Slider */}
-          <Slider
-            value={[quantity]}
-            onValueChange={([val]) => setQuantity(val)}
-            min={1}
-            max={10000}
-            step={1}
-            className="w-full"
+          <CardDescription>
+            Escolha o produto base para simular preços de gravação em diferentes tiragens
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProductSearch 
+            onSelect={handleProductSelect}
+            selectedProduct={selectedProduct}
           />
+        </CardContent>
+      </Card>
 
-          {/* Botões de quantidade rápida */}
-          <div className="flex flex-wrap gap-2">
-            {quickQuantities.map((qty) => (
-              <Button
-                key={qty}
-                variant={quantity === qty ? "default" : "outline"}
-                size="sm"
-                onClick={() => setQuantity(qty)}
-              >
-                {formatNumber(qty)}
-              </Button>
-            ))}
-          </div>
-        </div>
+      {/* Step 2: Technique Selection */}
+      {selectedProduct && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Paintbrush className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">2. Selecione as Técnicas de Gravação</CardTitle>
+            </div>
+            <CardDescription>
+              Escolha uma ou mais técnicas para comparar preços
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TechniqueMultiSelector
+              productId={selectedProduct.id}
+              selectedTechniques={selectedConfigs}
+              onToggleTechnique={handleToggleTechnique}
+            />
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Header com info do produto */}
-        {productBasePrice > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm">
-              Preço do produto: <strong>{formatCurrency(productBasePrice)}</strong> por unidade
-            </span>
-          </div>
-        )}
+      {/* Step 3: Configure Techniques */}
+      {selectedConfigs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Palette className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">3. Configure as Opções de Cada Técnica</CardTitle>
+            </div>
+            <CardDescription>
+              Defina cores e tamanho para cada técnica selecionada
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {selectedConfigs.map((config, index) => (
+                <TechniqueConfigCard
+                  key={config.technique.id}
+                  config={config}
+                  onUpdate={(updated) => handleUpdateConfig(index, updated)}
+                  onRemove={() => handleRemoveConfig(index)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Lista de técnicas */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            {calculations.length} técnica{calculations.length !== 1 ? 's' : ''} disponíve{calculations.length !== 1 ? 'is' : 'l'}
-          </h3>
-          
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {calculations.map((calc) => (
-              <TechniqueCard
-                key={calc.techniqueCode}
-                calculation={calc}
-                tiers={getTiers(calc.techniqueCode)}
-                isSelected={selectedTechniqueCode === calc.techniqueCode}
-                onSelect={() => handleSelectTechnique(calc.techniqueCode)}
-                productBasePrice={productBasePrice}
-                quantity={quantity}
-              />
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Step 4: Quantities and Comparison */}
+      {selectedProduct && selectedConfigs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Calculator className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg">4. Compare Preços por Tiragem</CardTitle>
+            </div>
+            <CardDescription>
+              Veja como o preço por unidade muda conforme a quantidade
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Quantity pills */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Tiragens para comparar:</label>
+              <div className="flex flex-wrap gap-2">
+                {customQuantities.map(qty => (
+                  <Badge 
+                    key={qty} 
+                    variant="secondary"
+                    className="pl-3 pr-1 py-1 flex items-center gap-1"
+                  >
+                    {formatNumber(qty)}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 hover:bg-destructive/20"
+                      onClick={() => handleRemoveQuantity(qty)}
+                      disabled={customQuantities.length <= 1}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </Badge>
+                ))}
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    placeholder="Nova qtd"
+                    value={newQuantity}
+                    onChange={(e) => setNewQuantity(e.target.value)}
+                    className="w-24 h-7 text-xs"
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddQuantity()}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7"
+                    onClick={handleAddQuantity}
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Comparison Table */}
+            <QuantityComparisonTable
+              product={selectedProduct}
+              selectedConfigs={selectedConfigs}
+              quantities={customQuantities}
+            />
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
