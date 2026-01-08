@@ -177,7 +177,7 @@ export function ProductGallery({
           src={allMedia[selectedIndex]}
           controls
           className="w-full h-full object-contain animate-fade-in"
-          poster={images[0]}
+          poster={displayImages[0]}
         />
       ) : (
         <img
@@ -286,6 +286,30 @@ export function ProductGallery({
         <div className="space-y-3 animate-fade-in">
           <span className="text-sm font-medium text-muted-foreground">Cores disponíveis</span>
           <div className="flex gap-3 flex-wrap">
+            {/* Botão para ver todas as cores (imagens gerais) */}
+            <button
+              onClick={() => onColorSelect?.(-1)}
+              className={cn(
+                "group/color relative w-14 h-14 rounded-xl overflow-hidden transition-all duration-300",
+                "ring-offset-background shadow-md hover:shadow-xl hover:-translate-y-1",
+                "bg-gradient-to-br from-secondary to-muted flex items-center justify-center",
+                selectedColorIndex === -1 || selectedColorIndex === undefined
+                  ? "ring-2 ring-primary ring-offset-2 scale-105"
+                  : "hover:ring-2 hover:ring-muted-foreground/50 hover:ring-offset-2"
+              )}
+              title="Ver todas as cores"
+            >
+              <div className="flex flex-wrap gap-0.5 p-1">
+                {colors.slice(0, 4).map((color, i) => (
+                  <div 
+                    key={i}
+                    className="w-5 h-5 rounded-sm"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                ))}
+              </div>
+            </button>
+            
             {colors.map((color, index) => (
               <button
                 key={color.name}
@@ -299,9 +323,9 @@ export function ProductGallery({
                 )}
                 title={color.name}
               >
-                {color.image ? (
+                {color.image || color.images?.[0] ? (
                   <img 
-                    src={color.image} 
+                    src={color.images?.[0] || color.image} 
                     alt={color.name} 
                     className="w-full h-full object-cover transition-transform duration-300 group-hover/color:scale-110"
                   />

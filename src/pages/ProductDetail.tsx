@@ -150,7 +150,9 @@ export default function ProductDetail() {
                 videos: variation.videos,
               }))}
               onColorSelect={(index) => {
-                if (product.variations?.[index]) {
+                if (index === -1) {
+                  setSelectedVariation(null); // Voltar para visualização geral
+                } else if (product.variations?.[index]) {
                   setSelectedVariation(product.variations[index]);
                 }
               }}
