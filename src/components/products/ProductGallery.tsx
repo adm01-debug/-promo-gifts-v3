@@ -61,11 +61,17 @@ export function ProductGallery({
   const allMedia = [...displayImages, ...displayVideos];
   const isVideo = (index: number) => index >= displayImages.length;
 
+  // Função de reset do zoom - declarada antes dos useEffects
+  const resetZoom = useCallback(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }, []);
+
   // Reset to first media when color changes
   useEffect(() => {
     setSelectedIndex(0);
     resetZoom();
-  }, [selectedColorIndex]);
+  }, [selectedColorIndex, resetZoom]);
 
   // Reset loading state when image changes
   useEffect(() => {
@@ -77,19 +83,14 @@ export function ProductGallery({
     setSelectedIndex((prev) => (prev === 0 ? allMedia.length - 1 : prev - 1));
     resetZoom();
     setTimeout(() => setIsAnimating(false), 400);
-  }, [allMedia.length]);
+  }, [allMedia.length, resetZoom]);
 
   const goToNext = useCallback(() => {
     setIsAnimating(true);
     setSelectedIndex((prev) => (prev === allMedia.length - 1 ? 0 : prev + 1));
     resetZoom();
     setTimeout(() => setIsAnimating(false), 400);
-  }, [allMedia.length]);
-
-  const resetZoom = () => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-  };
+  }, [allMedia.length, resetZoom]);
 
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(prev + 0.5, 4));
