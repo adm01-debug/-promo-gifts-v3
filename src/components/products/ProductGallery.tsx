@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Play, Maximize2, X, Move, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Play, Maximize2, X, Move, RotateCcw, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 interface ColorMedia {
   name: string;
   hex: string;
+  sku?: string;
+  stock?: number;
   image?: string;           // Imagem principal (retrocompatibilidade)
   images?: string[];        // Múltiplas fotos por cor
   videos?: string[];        // Vídeos por cor
@@ -282,70 +284,119 @@ export function ProductGallery({
         </div>
       </div>
 
-      {/* Color navigation */}
+      {/* Color Variations - Cards verticais abaixo da foto principal */}
       {colors && colors.length > 0 && (
         <div className="space-y-3 animate-fade-in">
-          <span className="text-sm font-medium text-muted-foreground">Cores disponíveis</span>
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-muted-foreground">Variações ({colors.length})</span>
             {/* Botão para ver todas as cores (imagens gerais) */}
             <button
               onClick={() => onColorSelect?.(-1)}
               className={cn(
-                "group/color relative w-14 h-14 rounded-xl overflow-hidden transition-all duration-300",
-                "ring-offset-background shadow-md hover:shadow-xl hover:-translate-y-1",
-                "bg-gradient-to-br from-secondary to-muted flex items-center justify-center",
+                "text-xs px-3 py-1.5 rounded-full transition-all duration-200",
                 selectedColorIndex === -1 || selectedColorIndex === undefined
-                  ? "ring-2 ring-primary ring-offset-2 scale-105"
-                  : "hover:ring-2 hover:ring-muted-foreground/50 hover:ring-offset-2"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               )}
-              title="Ver todas as cores"
             >
-              <div className="flex flex-wrap gap-0.5 p-1">
-                {colors.slice(0, 4).map((color, i) => (
-                  <div 
-                    key={i}
-                    className="w-5 h-5 rounded-sm"
-                    style={{ backgroundColor: color.hex }}
-                  />
-                ))}
-              </div>
+              Ver Todas
             </button>
-            
-            {colors.map((color, index) => (
-              <button
-                key={color.name}
-                onClick={() => handleColorClick(index)}
-                className={cn(
-                  "group/color relative w-14 h-14 rounded-xl overflow-hidden transition-all duration-300",
-                  "ring-offset-background shadow-md hover:shadow-xl hover:-translate-y-1",
-                  selectedColorIndex === index
-                    ? "ring-2 ring-primary ring-offset-2 scale-105"
-                    : "hover:ring-2 hover:ring-muted-foreground/50 hover:ring-offset-2"
-                )}
-                title={color.name}
-              >
-                {color.image || color.images?.[0] ? (
-                  <img 
-                    src={color.images?.[0] || color.image} 
-                    alt={color.name} 
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover/color:scale-110"
-                  />
-                ) : (
-                  <div 
-                    className="w-full h-full" 
-                    style={{ backgroundColor: color.hex }}
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-foreground/20 to-transparent opacity-0 group-hover/color:opacity-100 transition-opacity duration-300" />
-              </button>
-            ))}
+          </div>
+          
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+            {colors.map((color, index) => {
+              const hasVideos = color.videos && color.videos.length > 0;
+              const isSelected = selectedColorIndex === index;
+              const stockStatus = color.stock !== undefined 
+                ? color.stock === 0 
+                  ? { color: "text-destructive", label: "Sem estoque" }
+                  : color.stock < 100 
+                    ? { color: "text-warning", label: "Estoque baixo" }
+                    : { color: "text-success", label: "Em estoque" }
+                : null;
+              
+              return (
+                <button
+                  key={color.name}
+                  onClick={() => handleColorClick(index)}
+                  className={cn(
+                    "group/color relative shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-300",
+                    "bg-card border shadow-md hover:shadow-lg hover:-translate-y-1",
+                    isSelected
+                      ? "border-primary ring-2 ring-primary/30"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  {/* Imagem da variação */}
+                  <div className="relative aspect-square overflow-hidden">
+                    {color.image || color.images?.[0] ? (
+                      <img 
+                        src={color.images?.[0] || color.image} 
+                        alt={color.name} 
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover/color:scale-110"
+                      />
+                    ) : (
+                      <div 
+                        className="w-full h-full" 
+                        style={{ backgroundColor: color.hex }}
+                      />
+                    )}
+                    
+                    {/* Ícone de vídeo overlay */}
+                    {hasVideos && (
+                      <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                        <Play className="h-3 w-3 text-foreground ml-0.5" />
+                      </div>
+                    )}
+                    
+                    {/* Indicador de seleção */}
+                    {isSelected && (
+                      <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-lg">
+                        <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Info da variação */}
+                  <div className="p-2 space-y-1">
+                    {/* Cor e nome */}
+                    <div className="flex items-center gap-1.5">
+                      <div
+                        className="w-3 h-3 rounded-full border border-white/20 shadow-sm shrink-0"
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <span className="text-xs font-medium text-foreground truncate">
+                        {color.name}
+                      </span>
+                    </div>
+                    
+                    {/* SKU */}
+                    {color.sku && (
+                      <p className="text-[10px] text-muted-foreground font-mono truncate">
+                        {color.sku}
+                      </p>
+                    )}
+                    
+                    {/* Estoque */}
+                    {stockStatus && color.stock !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <Package className="h-2.5 w-2.5 text-muted-foreground" />
+                        <span className={cn("text-[10px] font-medium", stockStatus.color)}>
+                          {color.stock.toLocaleString("pt-BR")} un.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Thumbnails */}
+      {/* Thumbnails das mídias da cor selecionada */}
       {allMedia.length > 1 && (
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin animate-fade-in" style={{ animationDelay: '100ms' }}>
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin animate-fade-in" style={{ animationDelay: '100ms' }}>
           {allMedia.map((media, index) => (
             <button
               key={index}
@@ -356,8 +407,8 @@ export function ProductGallery({
                 setTimeout(() => setIsAnimating(false), 400);
               }}
               className={cn(
-                "relative shrink-0 w-20 h-20 rounded-xl overflow-hidden transition-all duration-300",
-                "shadow-md hover:shadow-lg hover:-translate-y-1",
+                "relative shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all duration-300",
+                "shadow-sm hover:shadow-md",
                 selectedIndex === index
                   ? "ring-2 ring-primary ring-offset-2 scale-105"
                   : "opacity-60 hover:opacity-100"
@@ -365,8 +416,8 @@ export function ProductGallery({
             >
               {isVideo(index) ? (
                 <div className="w-full h-full bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-                  <div className="w-10 h-10 rounded-full bg-card/80 flex items-center justify-center">
-                    <Play className="h-5 w-5 text-foreground ml-0.5" />
+                  <div className="w-8 h-8 rounded-full bg-card/80 flex items-center justify-center">
+                    <Play className="h-4 w-4 text-foreground ml-0.5" />
                   </div>
                 </div>
               ) : (
@@ -375,9 +426,6 @@ export function ProductGallery({
                   alt={`${productName} - Thumbnail ${index + 1}`}
                   className="w-full h-full object-cover"
                 />
-              )}
-              {selectedIndex === index && (
-                <div className="absolute inset-0 border-2 border-primary rounded-xl pointer-events-none" />
               )}
             </button>
           ))}
