@@ -4,16 +4,6 @@ import { registerServiceWorker } from "@/lib/sw-register";
 import EnhancedErrorBoundary from "@/components/errors/EnhancedErrorBoundary";
 import App from "./App.tsx";
 import "./index.css";
-import { setupLocale } from "./lib/locale-config";
-
-// Configurar locale pt-BR antes de renderizar
-try {
-  setupLocale();
-} catch (error) {
-  if (import.meta.env.DEV) {
-    console.error('❌ Erro ao configurar locale:', error);
-  }
-}
 
 const root = document.getElementById("root");
 
