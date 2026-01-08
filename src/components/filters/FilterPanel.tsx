@@ -180,10 +180,10 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                   />
                   <Label
                     htmlFor={`cat-${category.id}`}
-                    className="text-sm cursor-pointer flex items-center gap-1.5"
+                    className="text-sm cursor-pointer flex items-center gap-1.5 leading-tight"
                   >
-                    <span>{icon}</span>
-                    <span>{category.name}</span>
+                    <span className="flex-shrink-0">{icon}</span>
+                    <span className="break-words">{category.name}</span>
                   </Label>
                 </div>
               );
