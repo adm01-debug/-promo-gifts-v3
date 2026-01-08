@@ -1,5 +1,8 @@
 project_id = "lgjogrvydtwxxsjarrxm"
 
+[functions.external-db-bridge]
+verify_jwt = false
+
 [functions.bitrix-sync]
 verify_jwt = false
 
