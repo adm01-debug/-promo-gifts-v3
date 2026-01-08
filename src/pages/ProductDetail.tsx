@@ -116,10 +116,9 @@ export default function ProductDetail() {
     });
   };
 
-  // Imagens a exibir (variação selecionada ou todas do produto)
-  const displayImages = selectedVariation
-    ? [selectedVariation.image, ...product.images.filter((img) => img !== selectedVariation.image)]
-    : product.images;
+  // Quando nenhuma variação selecionada, mostrar imagens gerais do produto
+  // Quando variação selecionada, a galeria cuida de mostrar as mídias da cor
+  const displayImages = product.images;
 
   return (
     <MainLayout>
@@ -146,14 +145,16 @@ export default function ProductDetail() {
               colors={product.variations?.map((variation) => ({
                 name: variation.color.name,
                 hex: variation.color.hex,
-                image: variation.image
+                image: variation.image,
+                images: variation.images,
+                videos: variation.videos,
               }))}
               onColorSelect={(index) => {
                 if (product.variations?.[index]) {
                   setSelectedVariation(product.variations[index]);
                 }
               }}
-              selectedColorIndex={product.variations?.findIndex(v => v === selectedVariation) ?? 0}
+              selectedColorIndex={product.variations?.findIndex(v => v.id === selectedVariation?.id) ?? -1}
             />
           </div>
 
