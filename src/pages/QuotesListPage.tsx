@@ -53,9 +53,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { EmptyState } from "@/components/common/EmptyState";
-import { QuoteSkeleton } from "@/components/common/ContextualSkeleton";
+import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, HoverCard, AnimatedCounter } from "@/components/common/MicroInteractions";
-import { DeleteConfirmDialog } from "@/components/common/ConfirmDialogs";
 import { StatusTimeline } from "@/components/common/StatusTimeline";
 
 const statusConfig: Record<
@@ -115,7 +114,7 @@ export default function QuotesListPage() {
           </div>
           <div className="grid gap-4">
             {[1, 2, 3].map((i) => (
-              <QuoteSkeleton key={i} />
+              <QuoteCardSkeleton key={i} />
             ))}
           </div>
         </div>

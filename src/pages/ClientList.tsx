@@ -39,7 +39,7 @@ import { toast } from "sonner";
 import { ClientRFMSegmentation } from "@/components/clients/ClientRFMSegmentation";
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { EmptyState } from "@/components/common/EmptyState";
-import { ClientSkeleton } from "@/components/common/ContextualSkeleton";
+import { ClientCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, HoverCard, AnimatedCounter } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
 
@@ -247,7 +247,7 @@ export default function ClientList() {
             {isLoading ? (
               <div className="grid gap-3 sm:gap-4">
                 {[...Array(5)].map((_, i) => (
-                  <ClientSkeleton key={i} />
+                  <ClientCardSkeleton key={i} />
                 ))}
               </div>
             ) : (
