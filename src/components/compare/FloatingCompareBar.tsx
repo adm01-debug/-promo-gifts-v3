@@ -9,10 +9,10 @@ import { cn } from "@/lib/utils";
 
 export function FloatingCompareBar() {
   const navigate = useNavigate();
-  const { compareItems, removeFromCompare, clearCompare, compareCount } = useComparisonContext();
+  const { compareIds, removeFromCompare, clearCompare, compareCount } = useComparisonContext();
 
-  // Get product details for comparison items
-  const compareProducts = compareItems
+  // Get product details for comparison items - use compareIds instead of compareItems
+  const compareProducts = (compareIds || [])
     .map((id) => PRODUCTS.find((p) => p.id === id))
     .filter(Boolean);
 
