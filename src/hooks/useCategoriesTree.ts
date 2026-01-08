@@ -109,7 +109,7 @@ export function useCategoriesTree() {
       
       nodeMap.set(cat.id, {
         ...cat,
-        name: isRoot ? normalizedName : cat.name, // Maiúsculas para categorias raiz
+        // Manter nome original (Title Case será aplicado no componente)
         icon,
         children: [],
         isExpanded: false,

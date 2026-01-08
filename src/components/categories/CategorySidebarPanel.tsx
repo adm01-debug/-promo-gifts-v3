@@ -38,6 +38,11 @@ function TreeNode({
   const isExpanded = expandedIds.has(node.id);
   const isSelected = selectedId === node.id;
 
+  // Função para converter para Title Case
+  const toTitleCase = (str: string) => {
+    return str.toLowerCase().replace(/(?:^|\s|[|])\S/g, (char) => char.toUpperCase());
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
@@ -46,65 +51,70 @@ function TreeNode({
     >
       <div
         className={cn(
-          "flex items-center gap-1.5 py-2 px-3 rounded-lg cursor-pointer transition-all duration-200",
-          "hover:bg-accent/60 hover:translate-x-1",
+          "flex items-center gap-2 py-2.5 px-3 rounded-lg cursor-pointer transition-all duration-200",
+          "hover:bg-accent/60",
           isSelected && "bg-primary/15 text-primary font-semibold border-l-2 border-primary"
         )}
-        style={{ paddingLeft: `${level * 12 + 12}px` }}
-        onClick={() => onSelect(node)}
+        style={{ paddingLeft: `${level * 16 + 12}px` }}
+        onClick={() => {
+          onSelect(node);
+          // Se tem filhos, também expande/colapsa ao clicar
+          if (hasChildren) {
+            onToggle(node.id);
+          }
+        }}
       >
-        {/* Botão de expandir/colapsar */}
+        {/* Indicador de expansão integrado (seta) */}
         {hasChildren ? (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle(node.id);
-            }}
-            className="p-0.5 hover:bg-muted rounded transition-transform duration-200"
+          <motion.div
+            animate={{ rotate: isExpanded ? 90 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="text-muted-foreground"
           >
-            <motion.div
-              animate={{ rotate: isExpanded ? 90 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </motion.div>
-          </button>
+            <ChevronRight className="w-4 h-4" />
+          </motion.div>
         ) : (
-          <span className="w-5" />
+          <span className="w-4" />
         )}
 
-        {/* Ícone de pasta */}
-        <motion.div
-          animate={{ scale: isSelected ? 1.1 : 1 }}
-          transition={{ duration: 0.2 }}
-        >
-          {hasChildren ? (
-            isExpanded ? (
-              <FolderOpen className="w-4 h-4 text-amber-500" />
-            ) : (
-              <Folder className="w-4 h-4 text-amber-500/70" />
-            )
-          ) : (
-            <div className="w-4 h-4 flex items-center justify-center">
-              <div className={cn(
-                "w-2 h-2 rounded-full transition-colors",
-                isSelected ? "bg-primary" : "bg-muted-foreground/40"
-              )} />
-            </div>
-          )}
-        </motion.div>
+        {/* Emoji da categoria (apenas para raiz) */}
+        {node.icon && (
+          <span className="text-base">{node.icon}</span>
+        )}
 
-        {/* Nome da categoria com emoji */}
+        {/* Ícone de pasta (para itens sem emoji) */}
+        {!node.icon && (
+          <motion.div
+            animate={{ scale: isSelected ? 1.05 : 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            {hasChildren ? (
+              isExpanded ? (
+                <FolderOpen className="w-4 h-4 text-amber-500" />
+              ) : (
+                <Folder className="w-4 h-4 text-amber-500/70" />
+              )
+            ) : (
+              <div className="w-4 h-4 flex items-center justify-center">
+                <div className={cn(
+                  "w-1.5 h-1.5 rounded-full transition-colors",
+                  isSelected ? "bg-primary" : "bg-muted-foreground/40"
+                )} />
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* Nome da categoria em Title Case */}
         <span className="truncate text-sm flex-1">
-          {node.icon && <span className="mr-1">{node.icon}</span>}
-          {node.name}
+          {toTitleCase(node.name)}
         </span>
 
         {/* Badge com contagem de filhos */}
         {hasChildren && (
           <Badge 
-            variant={isSelected ? "default" : "secondary"} 
-            className="ml-auto text-[10px] px-1.5 py-0 h-5"
+            variant={isSelected ? "default" : "outline"} 
+            className="ml-auto text-[10px] px-1.5 py-0 h-5 opacity-60"
           >
             {node.children.length}
           </Badge>
