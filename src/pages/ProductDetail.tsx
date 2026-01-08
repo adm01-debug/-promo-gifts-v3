@@ -22,6 +22,7 @@ import { ShareActions } from "@/components/products/ShareActions";
 import { RelatedProducts, RecommendedProducts } from "@/components/products/RelatedProducts";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
+import { ProductIntelligence } from "@/components/products/ProductIntelligence";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -405,6 +406,15 @@ export default function ProductDetail() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Product Intelligence */}
+        <div className="pt-8 border-t border-border">
+          <ProductIntelligence 
+            productId={product.id}
+            productSku={product.sku}
+            productName={product.name}
+          />
         </div>
 
         {/* Related & Recommended Products */}
