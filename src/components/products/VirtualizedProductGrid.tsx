@@ -164,6 +164,7 @@ export function VirtualizedProductGrid({
                       isInCompare={isInCompare?.(product.id)}
                       onToggleCompare={onToggleCompare}
                       canAddToCompare={canAddToCompare}
+                      hideCategoryBadges
                     />
                   </motion.div>
                 ))}
