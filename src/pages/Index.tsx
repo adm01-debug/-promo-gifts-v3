@@ -14,11 +14,8 @@ import {
   Palette,
   Sparkles,
   Loader2,
-  ChevronDown,
-  PanelLeftClose,
-  PanelLeft,
 } from "lucide-react";
-import { ExpertChatButton } from "@/components/expert/ExpertChatButton";
+
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { ProductList } from "@/components/products/ProductList";
@@ -746,9 +743,9 @@ export default function Index() {
             )}
           </div>
         </div>
+        </div>
+        </div>
       </div>
-    </div>
-  </div>
 
       {/* Client Filter Modal */}
       <ClientFilterModal
@@ -757,9 +754,6 @@ export default function Index() {
         onSelectClient={setSelectedClient}
         selectedClientId={selectedClient?.id}
       />
-
-      {/* Expert Chat Button */}
-      <ExpertChatButton clientId={selectedClient?.id} clientName={selectedClient?.name} />
     </MainLayout>
   );
 }
