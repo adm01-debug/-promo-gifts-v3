@@ -25,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { VisuallyHidden } from "@/components/a11y/VisuallyHidden";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/mockData";
+import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { toast } from "sonner";
 
 interface ProductQuickViewProps {
@@ -210,11 +211,13 @@ export function ProductQuickView({
           <div className="p-6 flex flex-col">
             {/* Header */}
             <div className="space-y-3">
+              {/* Category Badges - Ícones das categorias */}
+              <ProductCategoryBadges 
+                category={product.category} 
+                groups={product.groups}
+              />
+              
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground">
-                  {product.category.icon} {product.category.name}
-                </span>
-                <span className="text-muted-foreground">•</span>
                 <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-medium">
                   {product.supplier.name}
                 </span>

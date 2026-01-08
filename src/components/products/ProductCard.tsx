@@ -8,6 +8,7 @@ import type { Product } from "@/data/mockData";
 import { toast } from "sonner";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { ProductQuickView } from "./ProductQuickView";
+import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 
 export interface ProductCardProps {
@@ -357,11 +358,15 @@ export function ProductCard({
 
       {/* Content */}
       <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
-        {/* Category & Supplier */}
-        <div className="flex items-center justify-between gap-1 sm:gap-2">
-          <span className="text-[10px] sm:text-xs text-muted-foreground font-medium truncate">
-            {product.category.icon} {product.category.name}
-          </span>
+        {/* Category Badges - Ícones das categorias */}
+        <ProductCategoryBadges 
+          category={product.category} 
+          groups={product.groups}
+          className="flex-wrap"
+        />
+        
+        {/* Supplier */}
+        <div className="flex items-center justify-end">
           <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium shrink-0">
             {product.supplier.name}
           </span>

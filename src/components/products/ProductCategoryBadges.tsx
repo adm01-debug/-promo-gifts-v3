@@ -1,6 +1,7 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import type { Category } from "@/data/mockData";
 
 interface ProductCategoryBadgesProps {
@@ -20,6 +21,8 @@ export function ProductCategoryBadges({
   className,
   showLabels = false 
 }: ProductCategoryBadgesProps) {
+  const { data: categoryIcons = [] } = useCategoryIcons();
+  
   // Combinar categoria principal com grupos adicionais (sem duplicatas)
   const allCategories = [category];
   
@@ -32,6 +35,15 @@ export function ProductCategoryBadges({
   }
 
   if (allCategories.length === 0) return null;
+  
+  // Função para obter ícone da categoria do Supabase ou usar o local
+  const getIcon = (cat: Category) => {
+    // Primeiro tenta buscar do Supabase
+    const supabaseIcon = getCategoryIcon(cat.name, categoryIcons);
+    if (supabaseIcon !== '📦') return supabaseIcon;
+    // Fallback para ícone local
+    return cat.icon || '📦';
+  };
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
@@ -46,7 +58,7 @@ export function ProductCategoryBadges({
                 "transition-all duration-200 hover:scale-105"
               )}
             >
-              {cat.icon && <span className="mr-1.5">{cat.icon}</span>}
+              <span className="mr-1.5">{getIcon(cat)}</span>
               <span className="text-xs">{cat.name}</span>
             </Badge>
           </TooltipTrigger>

@@ -191,6 +191,36 @@ export type Database = {
         }
         Relationships: []
       }
+      category_icons: {
+        Row: {
+          category_name: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           bairro: string | null
