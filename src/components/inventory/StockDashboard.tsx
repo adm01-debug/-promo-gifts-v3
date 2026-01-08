@@ -15,12 +15,12 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -30,27 +30,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { 
-  useStockDashboard, 
-  StockItem, 
-  StockStatus, 
-  StockAlert,
-} from "@/hooks/useStockDashboard";
+import { useVariantStock } from "@/hooks/useVariantStock";
+import { VariantStockTable } from "./VariantStockTable";
+import { StockStatus, StockAlert } from "@/types/stock";
 
 // ============================================
 // COMPONENTES AUXILIARES
@@ -81,6 +65,11 @@ const STATUS_CONFIG: Record<StockStatus, { label: string; color: string; icon: R
     label: 'Excesso', 
     color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
     icon: <TrendingUp className="h-4 w-4" />
+  },
+  incoming: { 
+    label: 'Chegando', 
+    color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    icon: <Truck className="h-4 w-4" />
   },
 };
 
@@ -171,86 +160,7 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
   );
 }
 
-function StockTableRow({ item }: { item: StockItem }) {
-  const stockPercentage = item.minStock > 0 
-    ? Math.min((item.currentStock / item.minStock) * 100, 100) 
-    : 100;
-  
-  const progressColor = 
-    item.status === 'out_of_stock' ? 'bg-red-500' :
-    item.status === 'critical' ? 'bg-red-500' :
-    item.status === 'low_stock' ? 'bg-amber-500' :
-    'bg-green-500';
-
-  return (
-    <TableRow className="group">
-      <TableCell>
-        <div className="flex flex-col">
-          <span className="font-medium truncate max-w-[200px]">{item.productName}</span>
-          <span className="text-xs text-muted-foreground">{item.sku}</span>
-        </div>
-      </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
-          <span className={cn(
-            "font-semibold",
-            item.currentStock <= 0 ? "text-red-600" :
-            item.currentStock <= item.minStock * 0.25 ? "text-red-600" :
-            item.currentStock <= item.minStock ? "text-amber-600" :
-            "text-foreground"
-          )}>
-            {item.currentStock}
-          </span>
-          <span className="text-xs text-muted-foreground">/ {item.minStock} mín</span>
-        </div>
-        <Progress 
-          value={stockPercentage} 
-          className="h-1.5 mt-1 w-24" 
-        />
-      </TableCell>
-      <TableCell>
-        {item.availableStock}
-      </TableCell>
-      <TableCell>
-        <StockStatusBadge status={item.status} />
-      </TableCell>
-      <TableCell>
-        {item.daysUntilStockout !== undefined ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className={cn(
-                  "flex items-center gap-1 text-sm",
-                  item.daysUntilStockout <= 7 ? "text-red-600" :
-                  item.daysUntilStockout <= 14 ? "text-amber-600" :
-                  "text-muted-foreground"
-                )}>
-                  <Clock className="h-3 w-3" />
-                  {item.daysUntilStockout}d
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Previsão de esgotamento em {item.daysUntilStockout} dias</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
-      </TableCell>
-      <TableCell>
-        {item.leadTimeDays ? (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Truck className="h-3 w-3" />
-            {item.leadTimeDays}d
-          </div>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
-      </TableCell>
-    </TableRow>
-  );
-}
+// StockTableRow removido - agora usamos VariantStockTable
 
 // ============================================
 // COMPONENTE PRINCIPAL
@@ -259,16 +169,17 @@ function StockTableRow({ item }: { item: StockItem }) {
 export function StockDashboard() {
   const {
     isLoading,
-    stockItems,
+    productStocks,
     summary,
     alerts,
     criticalAlerts,
     filters,
+    allColors,
     fetchStockData,
     updateFilter,
     resetFilters,
     dismissAlert,
-  } = useStockDashboard();
+  } = useVariantStock();
 
   if (isLoading) {
     return (
@@ -410,46 +321,22 @@ export function StockDashboard() {
         </CardContent>
       </Card>
 
-      {/* Tabela de Estoque */}
+      {/* Tabela de Estoque por Variação */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Lista de Produtos ({stockItems.length})
+              <Palette className="h-5 w-5" />
+              Estoque por Cor/Variação ({productStocks.length} produtos)
             </span>
           </CardTitle>
           <CardDescription>
-            Acompanhe o estoque de todos os produtos em tempo real
+            Visualização detalhada do estoque segmentado por cores e variações
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[500px]">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[250px]">Produto</TableHead>
-                  <TableHead>Estoque</TableHead>
-                  <TableHead>Disponível</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Dias Restantes</TableHead>
-                  <TableHead>Lead Time</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stockItems.length > 0 ? (
-                  stockItems.map(item => (
-                    <StockTableRow key={item.id} item={item} />
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Nenhum produto encontrado com os filtros selecionados
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+          <ScrollArea className="h-[600px]">
+            <VariantStockTable products={productStocks} />
           </ScrollArea>
         </CardContent>
       </Card>
