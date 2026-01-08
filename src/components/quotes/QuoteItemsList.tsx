@@ -79,7 +79,7 @@ export function QuoteItemsList({ items, techniques, onItemUpdate, onItemRemove }
   return (
     <div className="space-y-3">
       {items.map((item, index) => (
-        <Card key={index} className="overflow-hidden">
+        <Card key={item.id || item.product_id || `item-${index}`} className="overflow-hidden">
           <div className="flex items-start gap-4 p-4">
             {/* Drag Handle */}
             <div className="pt-2 text-muted-foreground/50 cursor-grab">

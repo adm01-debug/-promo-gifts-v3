@@ -312,7 +312,7 @@ export default function QuoteViewPage() {
                       const itemTotal = item.quantity * item.unit_price + personalizationCost;
 
                       return (
-                        <tr key={index} className="border-b">
+                        <tr key={item.id || `item-${index}`} className="border-b">
                           <td className="p-3">
                             <div className="flex items-center gap-3">
                               {item.product_image_url && (
