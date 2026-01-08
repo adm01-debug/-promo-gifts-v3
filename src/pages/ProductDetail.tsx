@@ -36,7 +36,7 @@ import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
-import { SocialProofBadge, LowStockAlert, TrustBadges } from "@/components/common/SocialProof";
+import { PopularityBadge, LowStockAlert, TrustBadgesRow } from "@/components/common/SocialProof";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
 
@@ -129,7 +129,7 @@ export default function ProductDetail() {
 
         {/* Social Proof & Stock Alerts */}
         <div className="flex flex-wrap items-center gap-3">
-          {product.featured && <SocialProofBadge type="trending" count={156} />}
+          {product.featured && <PopularityBadge variant="trending" />}
           {product.stockStatus === "low-stock" && (
             <LowStockAlert quantity={product.stock} />
           )}
@@ -426,7 +426,7 @@ export default function ProductDetail() {
         />
 
         {/* Trust Badges */}
-        <TrustBadges className="pt-8" />
+        <TrustBadgesRow className="pt-8" />
       </div>
 
       {/* Floating Compare Bar */}
