@@ -49,7 +49,6 @@ export { ConfirmDialog, useConfirm } from "@/components/common/ConfirmDialog";
 export { SkipToContent } from "@/components/common/SkipToContent";
 
 // Navigation
-export { Spotlight, SpotlightTrigger } from "@/components/common/Spotlight";
 export { EnhancedSpotlight, EnhancedSpotlightTrigger } from "@/components/common/EnhancedSpotlight";
 export { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
 export { SmartMobileNav } from "@/components/mobile/SmartMobileNav";
