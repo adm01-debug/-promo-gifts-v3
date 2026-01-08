@@ -17,6 +17,7 @@ import {
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { KitComposition } from "@/components/products/KitComposition";
+import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { ShareActions } from "@/components/products/ShareActions";
 import { RelatedProducts, RecommendedProducts } from "@/components/products/RelatedProducts";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
@@ -165,7 +166,13 @@ export default function ProductDetail() {
           <div className="space-y-6" style={{ animationDelay: '200ms' }}>
             {/* Header */}
             <div className="space-y-4">
-              {/* Badges */}
+              {/* Category/Group Badges - Ícones das categorias */}
+              <ProductCategoryBadges 
+                category={product.category} 
+                groups={product.groups}
+              />
+
+              {/* Status Badges */}
               <div className="flex flex-wrap gap-2">
                 {product.featured && (
                   <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-3 py-1 shadow-lg">
