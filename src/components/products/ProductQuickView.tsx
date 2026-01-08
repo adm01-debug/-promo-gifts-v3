@@ -51,6 +51,7 @@ export function ProductQuickView({
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
 
   if (!product) return null;
 
@@ -255,24 +256,34 @@ export function ProductQuickView({
                   Cores disponíveis ({product.colors.length})
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.slice(0, 8).map((color, idx) => (
-                    <Tooltip key={idx}>
-                      <TooltipTrigger asChild>
-                        <div
-                          className={cn(
-                            "w-8 h-8 rounded-full border-2 shadow-sm cursor-pointer",
-                            "transition-all duration-200 hover:scale-110 hover:shadow-md",
-                            "border-border/50"
-                          )}
-                          style={{
-                            backgroundColor: color.hex,
-                            borderColor: color.hex === "#FFFFFF" ? "hsl(var(--border))" : undefined,
-                          }}
-                        />
-                      </TooltipTrigger>
-                      <TooltipContent>{color.name}</TooltipContent>
-                    </Tooltip>
-                  ))}
+                  {product.colors.slice(0, 8).map((color, idx) => {
+                    const isSelected = selectedColorIndex === idx;
+                    return (
+                      <Tooltip key={idx}>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => setSelectedColorIndex(isSelected ? null : idx)}
+                            className={cn(
+                              "w-8 h-8 rounded-full shadow-sm cursor-pointer",
+                              "transition-all duration-200 hover:scale-110 hover:shadow-md"
+                            )}
+                            style={{
+                              backgroundColor: color.hex,
+                              border: isSelected 
+                                ? `3px solid ${color.hex}` 
+                                : color.hex === "#FFFFFF" 
+                                  ? "2px solid hsl(var(--border))" 
+                                  : "2px solid transparent",
+                              boxShadow: isSelected ? `0 0 0 2px ${color.hex}40` : undefined,
+                              outline: isSelected ? `2px solid white` : undefined,
+                              outlineOffset: isSelected ? '-4px' : undefined,
+                            }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>{color.name}</TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
                   {product.colors.length > 8 && (
                     <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
                       +{product.colors.length - 8}
