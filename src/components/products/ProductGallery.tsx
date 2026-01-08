@@ -321,11 +321,12 @@ export function ProductGallery({
                   onClick={() => handleColorClick(index)}
                   className={cn(
                     "group/color relative shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-300",
-                    "bg-card border shadow-md hover:shadow-lg hover:-translate-y-1",
-                    isSelected
-                      ? "border-primary ring-2 ring-primary/30"
-                      : "border-border hover:border-primary/50"
+                    "bg-card shadow-md hover:shadow-lg hover:-translate-y-1"
                   )}
+                  style={{
+                    border: isSelected ? `2px solid ${color.hex}` : '1px solid hsl(var(--border))',
+                    boxShadow: isSelected ? `0 0 0 3px ${color.hex}30` : undefined
+                  }}
                 >
                   {/* Imagem da variação */}
                   <div className="relative aspect-square overflow-hidden">
@@ -342,17 +343,23 @@ export function ProductGallery({
                       />
                     )}
                     
-                    {/* Ícone de vídeo overlay */}
+                    {/* Ícone de vídeo overlay - cor do produto */}
                     {hasVideos && (
-                      <div className="absolute bottom-1 right-1 w-6 h-6 rounded-full bg-card/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                        <Play className="h-3 w-3 text-foreground ml-0.5" />
+                      <div 
+                        className="absolute bottom-1 right-1 w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
+                        style={{ backgroundColor: `${color.hex}cc` }}
+                      >
+                        <Play className="h-3 w-3 text-white ml-0.5" />
                       </div>
                     )}
                     
-                    {/* Indicador de seleção */}
+                    {/* Indicador de seleção - cor do produto */}
                     {isSelected && (
-                      <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-lg">
-                        <div className="w-2 h-2 rounded-full bg-primary-foreground" />
+                      <div 
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-lg"
+                        style={{ backgroundColor: color.hex }}
+                      >
+                        <div className="w-2 h-2 rounded-full bg-white" />
                       </div>
                     )}
                   </div>
@@ -394,43 +401,7 @@ export function ProductGallery({
         </div>
       )}
 
-      {/* Thumbnails das mídias da cor selecionada */}
-      {allMedia.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin animate-fade-in" style={{ animationDelay: '100ms' }}>
-          {allMedia.map((media, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                setIsAnimating(true);
-                setSelectedIndex(index);
-                resetZoom();
-                setTimeout(() => setIsAnimating(false), 400);
-              }}
-              className={cn(
-                "relative shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all duration-300",
-                "shadow-sm hover:shadow-md",
-                selectedIndex === index
-                  ? "ring-2 ring-primary ring-offset-2 scale-105"
-                  : "opacity-60 hover:opacity-100"
-              )}
-            >
-              {isVideo(index) ? (
-                <div className="w-full h-full bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-                  <div className="w-8 h-8 rounded-full bg-card/80 flex items-center justify-center">
-                    <Play className="h-4 w-4 text-foreground ml-0.5" />
-                  </div>
-                </div>
-              ) : (
-                <img
-                  src={media}
-                  alt={`${productName} - Thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Thumbnails removidas - navegação via cards de variação ou setas */}
 
       {/* Fullscreen Dialog */}
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
