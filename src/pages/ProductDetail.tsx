@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
-import { ProductVariations } from "@/components/products/ProductVariations";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ShareActions } from "@/components/products/ShareActions";
 import { RelatedProducts, RecommendedProducts } from "@/components/products/RelatedProducts";
@@ -145,6 +144,8 @@ export default function ProductDetail() {
               colors={product.variations?.map((variation) => ({
                 name: variation.color.name,
                 hex: variation.color.hex,
+                sku: variation.sku,
+                stock: variation.stock,
                 image: variation.image,
                 images: variation.images,
                 videos: variation.videos,
@@ -336,13 +337,7 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Variations */}
-            <ProductVariations
-              variations={product.variations || []}
-              colors={product.colors}
-              selectedVariation={selectedVariation}
-              onSelectVariation={setSelectedVariation}
-            />
+            {/* Variações removidas daqui - agora estão na galeria */}
 
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
