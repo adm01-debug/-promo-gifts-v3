@@ -72,6 +72,7 @@ const StoreRewardsPage = lazy(() => import("./pages/RewardsStorePage"));
 // System Pages
 const SystemStatusPage = lazy(() => import("./pages/SystemStatusPage"));
 const RateLimitDashboard = lazy(() => import("./pages/RateLimitDashboardPage"));
+const ExternalDatabaseTest = lazy(() => import("./pages/ExternalDatabaseTest"));
 
 // Security Pages
 const SecurityPage = lazy(() => import("./pages/Security"));
@@ -192,6 +193,7 @@ const App = () => {
 
                                 {/* System */}
                                 <Route path="/status" element={<SystemStatusPage />} />
+                                <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
 
                                 {/* Fallback */}
                                 <Route path="*" element={<NotFound />} />
