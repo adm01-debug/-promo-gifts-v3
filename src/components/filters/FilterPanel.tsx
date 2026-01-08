@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, ChevronDown, ChevronUp, Palette, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, Palette, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import {
   COLORS,
   CATEGORIES,
@@ -58,6 +59,7 @@ export const defaultFilters: FilterState = {
 
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount }: FilterPanelProps) {
   const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco']);
+  const { data: categoryIcons = [] } = useCategoryIcons();
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
@@ -165,22 +167,27 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         {/* Categorias */}
         <FilterSection id="categorias" title="Categorias">
           <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
-            {CATEGORIES.map((category) => (
-              <div key={category.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`cat-${category.id}`}
-                  checked={filters.categories.includes(category.id)}
-                  onCheckedChange={() => toggleArrayFilter('categories', category.id)}
-                />
-                <Label
-                  htmlFor={`cat-${category.id}`}
-                  className="text-sm cursor-pointer flex items-center gap-1"
-                >
-                  <span>{category.icon}</span>
-                  <span>{category.name}</span>
-                </Label>
-              </div>
-            ))}
+            {CATEGORIES.map((category) => {
+              const icon = getCategoryIcon(category.name, categoryIcons) !== '📦' 
+                ? getCategoryIcon(category.name, categoryIcons) 
+                : category.icon || '📦';
+              return (
+                <div key={category.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`cat-${category.id}`}
+                    checked={filters.categories.includes(category.id)}
+                    onCheckedChange={() => toggleArrayFilter('categories', category.id)}
+                  />
+                  <Label
+                    htmlFor={`cat-${category.id}`}
+                    className="text-sm cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>{icon}</span>
+                    <span>{category.name}</span>
+                  </Label>
+                </div>
+              );
+            })}
           </div>
         </FilterSection>
 
