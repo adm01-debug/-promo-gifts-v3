@@ -30,7 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   FileText,
   Plus,
@@ -52,6 +51,12 @@ import { useQuotes, Quote } from "@/hooks/useQuotes";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
+import { EmptyState } from "@/components/common/EmptyState";
+import { QuoteSkeleton } from "@/components/common/ContextualSkeleton";
+import { FadeInView, HoverCard, AnimatedCounter } from "@/components/common/MicroInteractions";
+import { DeleteConfirmDialog } from "@/components/common/ConfirmDialogs";
+import { StatusTimeline } from "@/components/common/StatusTimeline";
 
 const statusConfig: Record<
   Quote["status"],
@@ -100,13 +105,17 @@ export default function QuotesListPage() {
     return (
       <MainLayout>
         <div className="space-y-6">
+          <DynamicBreadcrumbs />
           <div className="flex items-center justify-between">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-32" />
+            <div className="space-y-2">
+              <div className="h-10 w-48 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="h-10 w-32 bg-muted animate-pulse rounded" />
           </div>
           <div className="grid gap-4">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-24" />
+              <QuoteSkeleton key={i} />
             ))}
           </div>
         </div>
@@ -117,17 +126,22 @@ export default function QuotesListPage() {
   return (
     <MainLayout>
       <div className="space-y-6">
+        {/* Dynamic Breadcrumbs */}
+        <DynamicBreadcrumbs />
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
-              <FileText className="h-7 w-7" />
-              Orçamentos
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {filteredQuotes.length} orçamento(s) encontrado(s)
-            </p>
-          </div>
+          <FadeInView>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+                <FileText className="h-7 w-7" />
+                Orçamentos
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                <AnimatedCounter value={filteredQuotes.length} /> orçamento(s) encontrado(s)
+              </p>
+            </div>
+          </FadeInView>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/orcamentos/templates")}>
               <BookTemplate className="h-4 w-4 mr-2" />
@@ -170,31 +184,32 @@ export default function QuotesListPage() {
         {/* Quotes List */}
         <div className="grid gap-4">
           {filteredQuotes.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">Nenhum orçamento encontrado</h3>
-                <p className="text-muted-foreground text-sm mt-1">
-                  {searchTerm || statusFilter !== "all"
-                    ? "Tente ajustar seus filtros"
-                    : "Crie seu primeiro orçamento"}
-                </p>
-                {!searchTerm && statusFilter === "all" && (
-                  <Button className="mt-4" onClick={() => navigate("/orcamentos/novo")}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Criar Orçamento
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <EmptyState
+              variant="quotes"
+              title="Nenhum orçamento encontrado"
+              description={
+                searchTerm || statusFilter !== "all"
+                  ? "Tente ajustar seus filtros"
+                  : "Crie seu primeiro orçamento"
+              }
+              action={
+                !searchTerm && statusFilter === "all"
+                  ? {
+                      label: "Criar Orçamento",
+                      onClick: () => navigate("/orcamentos/novo"),
+                    }
+                  : undefined
+              }
+            />
           ) : (
-            filteredQuotes.map((quote) => (
-              <Card
-                key={quote.id}
-                className="card-interactive cursor-pointer"
-                onClick={() => navigate(`/orcamentos/${quote.id}`)}
-              >
-                <CardContent className="p-4">
+            filteredQuotes.map((quote, index) => (
+              <FadeInView key={quote.id} delay={index * 0.05}>
+                <HoverCard liftAmount={4}>
+                  <Card
+                    className="card-interactive cursor-pointer"
+                    onClick={() => navigate(`/orcamentos/${quote.id}`)}
+                  >
+                    <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3">
@@ -259,8 +274,10 @@ export default function QuotesListPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </FadeInView>
             ))
           )}
         </div>

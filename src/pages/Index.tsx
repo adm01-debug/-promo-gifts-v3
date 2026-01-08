@@ -38,6 +38,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
+import { EmptyState } from "@/components/common/EmptyState";
+import { HoverCard, FadeInView, AnimatedCounter, StaggerList } from "@/components/common/MicroInteractions";
+import { GlassCard, GlassPanel } from "@/components/common/GlassElements";
+import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
+import { RecentlyViewedBar } from "@/components/products/RecentlyViewedBar";
+import { InfoTooltip } from "@/components/common/ContextualTooltips";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
@@ -442,18 +449,27 @@ export default function Index() {
               </div>
             </div>
 
-          {/* Stats */}
+          {/* Recently Viewed Bar */}
+          <RecentlyViewedBar maxVisible={6} className="mb-4" />
+
+          {/* Stats with Micro-interactions */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             {stats.map((stat, index) => (
-              <Card key={index} className="card-interactive">
-                <CardContent className="p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary">{stat.icon}</div>
-                  <div className="min-w-0">
-                    <p className="text-lg sm:text-2xl font-bold truncate">{stat.value}</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <FadeInView key={index} delay={index * 0.1}>
+                <HoverCard liftAmount={6}>
+                  <Card className="card-interactive overflow-hidden">
+                    <CardContent className="p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary">{stat.icon}</div>
+                      <div className="min-w-0">
+                        <p className="text-lg sm:text-2xl font-bold truncate">
+                          <AnimatedCounter value={stat.value} />
+                        </p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </FadeInView>
             ))}
           </div>
 
@@ -754,6 +770,9 @@ export default function Index() {
         onSelectClient={setSelectedClient}
         selectedClientId={selectedClient?.id}
       />
+
+      {/* Floating Compare Bar */}
+      <FloatingCompareBar />
     </MainLayout>
   );
 }
