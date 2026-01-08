@@ -257,25 +257,25 @@ export default function Auth() {
 
             {/* Feature highlights */}
             <div className="grid grid-cols-2 gap-4 pt-6">
-              {[
-                { label: "15.000+", desc: "Produtos", icon: Package },
-                { label: "50+", desc: "Fornecedores", icon: Factory },
-                { label: "Filtros", desc: "Avançados", icon: SlidersHorizontal },
-                { label: "IA", desc: "Recomendações", icon: Brain },
-              ].map((item, i) => {
-                const IconComponent = item.icon;
-                return (
-                  <div 
-                    key={i} 
-                    className="shimmer-hover p-4 rounded-xl bg-white dark:bg-card border border-orange/30 shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_30px_hsl(var(--orange)/0.25),0_0_20px_hsl(var(--orange)/0.15)] hover:border-orange/60 hover:scale-[1.02] transition-all duration-300 group opacity-0"
-                    style={{ 
-                      animation: `scale-fade-in 0.5s ease-out ${300 + i * 150}ms forwards`
-                    }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-2xl font-bold text-orange">{item.label}</p>
-                        <p className="text-sm text-foreground/70">{item.desc}</p>
+                {[
+                  { label: "15.000+", desc: "Produtos", icon: Package },
+                  { label: "50+", desc: "Fornecedores", icon: Factory },
+                  { label: "Filtros", desc: "Avançados", icon: SlidersHorizontal },
+                  { label: "IA", desc: "Recomendações", icon: Brain },
+                ].map((item, i) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <div 
+                      key={i} 
+                      className="shimmer-hover p-4 rounded-xl bg-card/95 backdrop-blur-sm border border-orange/40 shadow-lg hover:shadow-[0_8px_30px_hsl(var(--orange)/0.25),0_0_20px_hsl(var(--orange)/0.15)] hover:border-orange/60 hover:scale-[1.02] transition-all duration-300 group opacity-0"
+                      style={{ 
+                        animation: `scale-fade-in 0.5s ease-out ${300 + i * 150}ms forwards`
+                      }}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="text-2xl font-bold text-orange">{item.label}</p>
+                          <p className="text-sm text-foreground">{item.desc}</p>
                       </div>
                       <div className="w-10 h-10 rounded-lg bg-orange/10 flex items-center justify-center group-hover:bg-orange/20 transition-colors">
                         <IconComponent className="h-5 w-5 text-orange" />
@@ -343,7 +343,7 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-border bg-card shadow-xl ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card className={`border-border/60 bg-card shadow-2xl ring-1 ring-border/20 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="pt-6 pb-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
