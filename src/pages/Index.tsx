@@ -25,7 +25,7 @@ import { ProductListSkeleton } from "@/components/products/ProductListItemSkelet
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { QuickFiltersBar, QuickFilter } from "@/components/filters/QuickFiltersBar";
 import { ClientFilterModal } from "@/components/clients/ClientFilterModal";
-import { SearchWithSuggestions } from "@/components/search";
+import { SmartSearchInput } from "@/components/search";
 import { useSearch } from "@/hooks/useSearch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -396,15 +396,21 @@ export default function Index() {
               </p>
             </div>
 
-            {/* Search with Suggestions */}
-            <SearchWithSuggestions
-              placeholder="Buscar produtos, categorias..."
-              onSearch={handleSearch}
-              suggestions={suggestions.map((s) => s.label)}
-              recentSearches={history}
-              isLoading={isSearching}
-              enableVoice
-              className="w-full lg:w-80"
+            {/* Smart Search with Autocomplete & History */}
+            <SmartSearchInput
+              placeholder="Buscar produtos, categorias, fornecedores..."
+              onSelect={(result) => {
+                if (result.type === "product") {
+                  navigate(`/produto/${result.id}`);
+                } else if (result.type === "category") {
+                  setFilters(prev => ({ ...prev, categories: [parseInt(result.id)] }));
+                } else if (result.type === "supplier") {
+                  setFilters(prev => ({ ...prev, suppliers: [result.id] }));
+                } else {
+                  handleSearch(result.label);
+                }
+              }}
+              className="w-full lg:w-96"
             />
           </div>
 
