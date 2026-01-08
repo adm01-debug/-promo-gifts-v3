@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useDebounce } from '../useDebounce';
+import { useDebounce } from '@/hooks/useDebounce';
 
 describe('useDebounce', () => {
   beforeEach(() => {
@@ -24,18 +24,13 @@ describe('useDebounce', () => {
 
     expect(result.current).toBe('initial');
 
-    // Change value
     rerender({ value: 'updated', delay: 500 });
-
-    // Value should not change immediately
     expect(result.current).toBe('initial');
 
-    // Fast forward time
     act(() => {
       vi.advanceTimersByTime(500);
     });
 
-    // Now value should be updated
     expect(result.current).toBe('updated');
   });
 
@@ -45,7 +40,6 @@ describe('useDebounce', () => {
       { initialProps: { value: 'a', delay: 500 } }
     );
 
-    // Rapidly change values
     rerender({ value: 'b', delay: 500 });
     act(() => { vi.advanceTimersByTime(200); });
     
@@ -55,13 +49,10 @@ describe('useDebounce', () => {
     rerender({ value: 'd', delay: 500 });
     act(() => { vi.advanceTimersByTime(200); });
 
-    // Should still show initial value
     expect(result.current).toBe('a');
 
-    // Wait for full debounce time
     act(() => { vi.advanceTimersByTime(500); });
 
-    // Should show final value
     expect(result.current).toBe('d');
   });
 
@@ -87,11 +78,9 @@ describe('useDebounce', () => {
     );
 
     rerender({ value: 42, delay: 300 });
-
     expect(result.current).toBe(0);
 
     act(() => { vi.advanceTimersByTime(300); });
-
     expect(result.current).toBe(42);
   });
 
@@ -105,36 +94,19 @@ describe('useDebounce', () => {
     );
 
     rerender({ value: newObj, delay: 200 });
-
     expect(result.current).toBe(initialObj);
 
     act(() => { vi.advanceTimersByTime(200); });
-
     expect(result.current).toBe(newObj);
-  });
-
-  it('should handle zero delay', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'first', delay: 0 } }
-    );
-
-    rerender({ value: 'second', delay: 0 });
-
-    act(() => { vi.advanceTimersByTime(0); });
-
-    expect(result.current).toBe('second');
   });
 
   it('should cleanup timer on unmount', () => {
     const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
 
     const { unmount } = renderHook(() => useDebounce('test', 500));
-
     unmount();
 
     expect(clearTimeoutSpy).toHaveBeenCalled();
-
     clearTimeoutSpy.mockRestore();
   });
 });

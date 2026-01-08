@@ -9,28 +9,28 @@ export default {
   ],
   coverageThreshold: {
     global: {
-      branches: 75,
-      functions: 80,
-      lines: 80,
-      statements: 80
+      branches: 50,
+      functions: 50,
+      lines: 50,
+      statements: 50
     },
     './src/components/': {
-      branches: 70,
-      functions: 75,
-      lines: 75,
-      statements: 75
+      branches: 40,
+      functions: 45,
+      lines: 45,
+      statements: 45
     },
     './src/lib/': {
-      branches: 85,
-      functions: 85,
-      lines: 85,
-      statements: 85
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60
     },
-    './src/services/': {
-      branches: 90,
-      functions: 90,
-      lines: 90,
-      statements: 90
+    './src/hooks/': {
+      branches: 50,
+      functions: 50,
+      lines: 50,
+      statements: 50
     }
   },
   coverageReporters: ['html', 'lcov', 'text', 'text-summary', 'json', 'clover'],

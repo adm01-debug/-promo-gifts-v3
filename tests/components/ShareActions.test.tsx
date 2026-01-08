@@ -1,23 +1,24 @@
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { ShareActions } from '@/components/common/ShareActions';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ShareActions } from '@/components/products/ShareActions';
 
-const renderWithProviders = (ui: React.ReactElement) => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } }
-  });
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {ui}
-    </QueryClientProvider>
-  );
+const mockProduct = {
+  id: '1',
+  name: 'Test Product',
+  sku: 'TEST-001',
+  price: 100,
+  images: [{ url: '/test.jpg', alt: 'Test' }],
+  category: 'Test',
+  description: 'Test description',
+  stock: 10,
+  colors: [{ name: 'Preto', hex: '#000000' }],
+  materials: [],
+  minQuantity: 1,
 };
 
 describe('ShareActions', () => {
   it('renders without crashing', () => {
-    const { container } = renderWithProviders(<ShareActions />);
+    const { container } = render(<ShareActions product={mockProduct} />);
     expect(container).toBeTruthy();
   });
 });
