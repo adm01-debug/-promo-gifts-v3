@@ -22,6 +22,10 @@ export function MaterialCheckbox({
   disabled = false,
   className,
 }: MaterialCheckboxProps) {
+  // Suportar tanto MaterialComplete quanto formato legado
+  const typeSlug = material.type_slug || (material as any).slug || '';
+  const typeName = material.type_name || (material as any).name || '';
+  
   return (
     <label
       className={cn(
@@ -33,7 +37,7 @@ export function MaterialCheckbox({
     >
       <Checkbox
         checked={isSelected}
-        onCheckedChange={() => !disabled && onToggle(material.type_slug)}
+        onCheckedChange={() => !disabled && onToggle(typeSlug)}
         disabled={disabled}
         className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
       />
@@ -43,7 +47,7 @@ export function MaterialCheckbox({
           "text-sm truncate block",
           isSelected ? "font-medium text-foreground" : "text-muted-foreground"
         )}>
-          {material.type_name}
+          {typeName}
         </span>
       </div>
       
