@@ -28,11 +28,11 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import { useMaterialFilter } from "@/hooks/useMaterialFilter";
+import { useSuppliers } from "@/hooks/useSuppliers";
 import { MaterialBadge } from "@/components/materials/MaterialBadge";
 import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import {
   CATEGORIES,
-  SUPPLIERS,
   PUBLICO_ALVO,
   DATAS_COMEMORATIVAS,
   ENDOMARKETING,
@@ -89,6 +89,9 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco', 'materiais']);
   const [materialSearch, setMaterialSearch] = useState('');
   const { data: categoryIcons = [] } = useCategoryIcons();
+
+  // Hook de fornecedores (API externa)
+  const { suppliers: supplierOptions, isLoading: suppliersLoading } = useSuppliers();
 
   // Hook de materiais
   const {
@@ -283,18 +286,31 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         {/* Fornecedores */}
         <FilterSection id="fornecedores" title="Fornecedores">
           <div className="space-y-2">
-            {SUPPLIERS.map((supplier) => (
-              <div key={supplier.id} className="flex items-center gap-2">
-                <Checkbox
-                  id={`sup-${supplier.id}`}
-                  checked={filters.suppliers.includes(supplier.id)}
-                  onCheckedChange={() => toggleArrayFilter('suppliers', supplier.id)}
-                />
-                <Label htmlFor={`sup-${supplier.id}`} className="text-sm cursor-pointer">
-                  {supplier.name}
-                </Label>
-              </div>
-            ))}
+            {suppliersLoading ? (
+              <>
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-6 w-3/4" />
+              </>
+            ) : supplierOptions.length > 0 ? (
+              supplierOptions.map((supplier) => (
+                <div key={supplier.id} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`sup-${supplier.id}`}
+                    checked={filters.suppliers.includes(supplier.id)}
+                    onCheckedChange={() => toggleArrayFilter('suppliers', supplier.id)}
+                  />
+                  <Label htmlFor={`sup-${supplier.id}`} className="text-sm cursor-pointer flex items-center gap-2">
+                    <span>{supplier.name}</span>
+                    {supplier.leadTimeDays && (
+                      <span className="text-xs text-muted-foreground">({supplier.leadTimeDays}d)</span>
+                    )}
+                  </Label>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">Nenhum fornecedor disponível</p>
+            )}
           </div>
         </FilterSection>
 
