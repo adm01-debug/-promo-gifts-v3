@@ -11,7 +11,6 @@ export interface Novelty {
   detected_at: string;
   expires_at: string;
   days_remaining: number;
-  is_highlighted: boolean;
 }
 
 export interface NoveltyWithProduct extends Novelty {
@@ -28,7 +27,6 @@ export interface NoveltyWithProduct extends Novelty {
 export interface NoveltyStats {
   total_novelties: number;
   active_novelties: number;
-  highlighted_novelties: number;
   expiring_soon: number;
   by_supplier: Record<string, number>;
 }
@@ -37,7 +35,6 @@ export interface UseNoveltiesOptions {
   supplierCode?: string;
   limit?: number;
   offset?: number;
-  onlyHighlighted?: boolean;
   maxDays?: number; // Filtrar por período (ex: últimos 7 dias)
 }
 
@@ -45,16 +42,15 @@ export interface UseNoveltiesOptions {
  * Hook para buscar novidades ativas usando a função RPC get_active_novelties
  */
 export function useNovelties(options: UseNoveltiesOptions = {}) {
-  const { supplierCode, limit = 50, offset = 0, onlyHighlighted = false, maxDays } = options;
+  const { supplierCode, limit = 50, offset = 0, maxDays } = options;
 
   return useQuery<Novelty[]>({
-    queryKey: ['novelties', supplierCode, limit, offset, onlyHighlighted, maxDays],
+    queryKey: ['novelties', supplierCode, limit, offset, maxDays],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_active_novelties', {
         p_supplier_code: supplierCode || null,
         p_limit: limit,
         p_offset: offset,
-        p_only_highlighted: onlyHighlighted,
       });
 
       if (error) {
@@ -81,10 +77,10 @@ export function useNovelties(options: UseNoveltiesOptions = {}) {
  * Hook para buscar novidades com dados completos do produto usando a view
  */
 export function useNoveltiesWithProducts(options: UseNoveltiesOptions = {}) {
-  const { supplierCode, limit = 50, onlyHighlighted = false, maxDays } = options;
+  const { supplierCode, limit = 50, maxDays } = options;
 
   return useQuery<NoveltyWithProduct[]>({
-    queryKey: ['novelties-full', supplierCode, limit, onlyHighlighted, maxDays],
+    queryKey: ['novelties-full', supplierCode, limit, maxDays],
     queryFn: async () => {
       let query = supabase
         .from('v_product_novelties')
@@ -94,10 +90,6 @@ export function useNoveltiesWithProducts(options: UseNoveltiesOptions = {}) {
 
       if (supplierCode) {
         query = query.eq('supplier_code', supplierCode);
-      }
-
-      if (onlyHighlighted) {
-        query = query.eq('is_highlighted', true);
       }
 
       const { data, error } = await query;
@@ -142,7 +134,6 @@ export function useNoveltyStats() {
       return {
         total_novelties: stats?.total_novelties || 0,
         active_novelties: stats?.active_novelties || 0,
-        highlighted_novelties: stats?.highlighted_novelties || 0,
         expiring_soon: stats?.expiring_soon || 0,
         by_supplier: stats?.by_supplier || {},
       };

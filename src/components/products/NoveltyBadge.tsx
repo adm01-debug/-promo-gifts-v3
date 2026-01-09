@@ -5,7 +5,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 interface NoveltyBadgeProps {
   daysRemaining: number;
-  isHighlighted?: boolean;
   showDays?: boolean;
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -19,7 +18,6 @@ interface NoveltyBadgeProps {
  */
 export function NoveltyBadge({ 
   daysRemaining, 
-  isHighlighted = false,
   showDays = true,
   size = "md",
   className 
@@ -81,7 +79,6 @@ export function NoveltyBadge({
         "inline-flex items-center font-semibold shadow-md",
         getVariantClasses(),
         getSizeClasses(),
-        isHighlighted && "ring-2 ring-primary/50 ring-offset-1",
         className
       )}
     >
@@ -106,15 +103,12 @@ export function NoveltyBadge({
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs">
         <div className="text-sm">
-          <p className="font-semibold">
-            {isHighlighted ? "⭐ Novidade em Destaque" : "🆕 Produto Novidade"}
-          </p>
+          <p className="font-semibold">🆕 Produto Novidade</p>
           <p className="text-muted-foreground">
             {daysRemaining === 1 
               ? "Último dia como novidade!" 
               : `Expira em ${daysRemaining} dias`
-            }
-          </p>
+          }</p>
           {daysRemaining < 7 && (
             <p className="text-warning text-xs mt-1">
               ⚠️ Saindo em breve da seção de novidades

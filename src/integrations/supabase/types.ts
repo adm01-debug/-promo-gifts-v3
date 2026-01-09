@@ -3139,7 +3139,6 @@ export type Database = {
       add_product_novelty: {
         Args: {
           p_days_valid?: number
-          p_is_highlighted?: boolean
           p_product_id: string
           p_supplier_code?: string
           p_supplier_product_code?: string
@@ -3148,17 +3147,11 @@ export type Database = {
       }
       cleanup_expired_novelties: { Args: never; Returns: number }
       get_active_novelties: {
-        Args: {
-          p_limit?: number
-          p_offset?: number
-          p_only_highlighted?: boolean
-          p_supplier_code?: string
-        }
+        Args: { p_limit?: number; p_offset?: number; p_supplier_code?: string }
         Returns: {
           days_remaining: number
           detected_at: string
           expires_at: string
-          is_highlighted: boolean
           novelty_id: string
           product_id: string
           product_name: string
@@ -3174,7 +3167,6 @@ export type Database = {
           active_novelties: number
           by_supplier: Json
           expiring_soon: number
-          highlighted_novelties: number
           total_novelties: number
         }[]
       }
