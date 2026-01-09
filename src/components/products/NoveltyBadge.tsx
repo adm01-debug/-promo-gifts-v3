@@ -21,9 +21,9 @@ export function NoveltyBadge({
   size = "md",
   className 
 }: NoveltyBadgeProps) {
-  // Cor verde consistente para todos os badges de novidade
+  // Cor verde esmeralda harmonizada
   const getVariantClasses = () => {
-    return "bg-[#1AAD19] text-white shadow-[#1AAD19]/30";
+    return "bg-[#10B981] text-white shadow-[#10B981]/30";
   };
 
   const getSizeClasses = () => {
