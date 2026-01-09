@@ -52,7 +52,7 @@ export function useComparison(options?: UseComparisonOptions) {
         return prev;
       }
       added = true;
-      // Call the callback for gamification
+      // Call the callback
       onProductAddedRef.current?.();
       // Track analytics
       const product = PRODUCTS.find((p) => p.id === productId);
@@ -86,7 +86,7 @@ export function useComparison(options?: UseComparisonOptions) {
         return prev;
       }
       result = { added: true, isFull: false };
-      // Call the callback for gamification when adding
+      // Call the callback when adding
       onProductAddedRef.current?.();
       // Track analytics when adding
       const product = PRODUCTS.find((p) => p.id === productId);

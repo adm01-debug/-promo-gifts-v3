@@ -180,11 +180,6 @@ export const celebrations = {
   orderConfirmed: celebrateConfetti,
   quoteApproved: gentleCelebration,
   
-  // Gamification
-  achievementUnlocked: sideCannons,
-  levelUp: starsFalling,
-  streakMilestone: () => emojiRain("🔥"),
-  
   // Special occasions
   welcome: () => emojiRain("👋"),
   birthday: () => emojiRain("🎂"),
