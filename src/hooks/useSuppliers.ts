@@ -19,7 +19,6 @@ export function useSuppliers() {
   // Buscar fornecedores ao montar
   useEffect(() => {
     fetchAll({ 
-      filters: { is_active: true }, 
       orderBy: { column: 'name', ascending: true },
       limit: 100 
     });
