@@ -300,18 +300,18 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Público-Alvo */}
         <FilterSection id="publico" title="Público-Alvo">
-          <div className="flex flex-wrap gap-1.5">
-            {PUBLICO_ALVO.slice(0, 10).map((publico) => (
-              <button
-                key={publico}
-                onClick={() => toggleArrayFilter('publicoAlvo', publico)}
-                className={cn(
-                  "filter-tag",
-                  filters.publicoAlvo.includes(publico) && "active"
-                )}
-              >
-                {publico}
-              </button>
+          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+            {[...PUBLICO_ALVO].sort((a, b) => a.localeCompare(b)).map((publico) => (
+              <div key={publico} className="flex items-center gap-2">
+                <Checkbox
+                  id={`pub-${publico}`}
+                  checked={filters.publicoAlvo.includes(publico)}
+                  onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
+                />
+                <Label htmlFor={`pub-${publico}`} className="text-sm cursor-pointer">
+                  {toTitleCase(publico)}
+                </Label>
+              </div>
             ))}
           </div>
         </FilterSection>
