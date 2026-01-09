@@ -74,7 +74,8 @@ class MaterialService {
     }
 
     const result = await response.json();
-    return result.data;
+    // A API retorna diretamente os dados (ex: { groups, count })
+    return result;
   }
 
   // Buscar todos os grupos de materiais com estatísticas
