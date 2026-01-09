@@ -198,7 +198,7 @@ export function TechniqueSelector({
               onClick={() => setShowActiveFilters(!showActiveFilters)}
             >
               <Filter className="h-4 w-4 mr-1" />
-              Filtros Avançados
+              Super Filtro
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 justify-center">
                   {activeFiltersCount}
