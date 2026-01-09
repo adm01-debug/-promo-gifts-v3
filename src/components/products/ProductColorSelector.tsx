@@ -108,7 +108,7 @@ export function ProductColorSelector({
       {/* Swatches */}
       <div className="flex flex-wrap gap-2">
         {visibleColors.map((color, idx) => {
-          const isSelected = selectedColorId === color.id || (selectedColorId === null && idx === 0 && !selectedColorId);
+          const isSelected = selectedColorId === color.id;
           const colorHex = color.hex || color.groupHex || "#CCCCCC";
           const isLight = isLightColor(colorHex);
           const isWhite = colorHex.toUpperCase() === "#FFFFFF" || colorHex.toUpperCase() === "#FFF";
@@ -201,6 +201,34 @@ export function ProductColorSelector({
           </Tooltip>
         )}
       </div>
+
+      {/* Nome da cor selecionada abaixo dos swatches */}
+      <AnimatePresence mode="wait">
+        {selectedColor && (
+          <motion.div
+            key={selectedColor.id || selectedColor.name}
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center gap-2 pt-1"
+          >
+            <span
+              className="w-4 h-4 rounded-full border border-border shadow-sm"
+              style={{ backgroundColor: selectedColor.hex }}
+            />
+            <span className="text-sm font-medium text-foreground">
+              {formatColorName(selectedColor)}
+            </span>
+            {selectedColor.nuanceName && (
+              <span className="inline-flex items-center gap-1 text-xs text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                <Sparkles className="h-3 w-3" />
+                {selectedColor.nuanceName}
+              </span>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
