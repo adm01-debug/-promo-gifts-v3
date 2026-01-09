@@ -42,7 +42,7 @@ serve(async (req) => {
     // Parse body
     const body = await req.json();
     const { action, groupId, materialId, productId, limit = 100 } = body as {
-      action: 'groups' | 'types' | 'types_by_group' | 'product_materials' | 'stats' | 'search';
+      action: 'groups' | 'types' | 'types_by_group' | 'product_materials' | 'stats' | 'search' | 'complete';
       groupId?: string;
       materialId?: string;
       productId?: string;
@@ -66,76 +66,68 @@ serve(async (req) => {
 
     switch (action) {
       case 'groups': {
-        // Buscar grupos de materiais com estatísticas
-        const { data, error } = await externalSupabase
-          .from('mv_material_group_stats')
-          .select('*')
-          .order('group_name', { ascending: true });
+        // Buscar grupos de materiais via RPC segura
+        const { data, error } = await externalSupabase.rpc('get_all_material_groups_safe');
 
-        if (error) throw error;
-        result = { groups: data, count: data?.length || 0 };
+        if (error) {
+          console.error('Error fetching material groups via RPC:', error);
+          // Fallback para materialized view
+          const { data: fallbackData, error: fallbackError } = await externalSupabase
+            .from('mv_material_group_stats')
+            .select('*')
+            .order('group_name', { ascending: true });
+          
+          if (fallbackError) throw fallbackError;
+          result = { groups: fallbackData, count: fallbackData?.length || 0 };
+        } else {
+          result = { groups: data, count: data?.length || 0 };
+        }
         break;
       }
 
       case 'types': {
-        // Buscar todos os tipos de materiais via RPC para evitar RLS
-        const { data, error } = await externalSupabase.rpc('get_all_material_types', {
-          p_limit: limit
-        });
+        // Buscar todos os tipos de materiais via RPC segura
+        const { data, error } = await externalSupabase.rpc('get_all_material_types_safe');
 
         if (error) {
           console.error('Error fetching material types via RPC:', error);
-          // Fallback: tentar buscar direto (pode falhar com RLS)
-          const { data: fallbackData, error: fallbackError } = await externalSupabase
-            .from('material_types')
-            .select('id, name, slug, description, display_order, is_active, group_id')
-            .eq('is_active', true)
-            .order('name', { ascending: true })
-            .limit(limit);
-          
-          if (fallbackError) {
-            console.error('Fallback also failed:', fallbackError);
-            throw new Error(fallbackError.message);
-          }
-          result = { types: fallbackData, count: fallbackData?.length || 0 };
-        } else {
-          result = { types: data, count: data?.length || 0 };
+          throw new Error(error.message);
         }
+        result = { types: data, count: data?.length || 0 };
         break;
       }
 
       case 'types_by_group': {
-        // Buscar tipos de um grupo específico
+        // Buscar tipos de um grupo específico por slug
         if (!groupId) {
           return new Response(
-            JSON.stringify({ error: 'groupId é obrigatório' }),
+            JSON.stringify({ error: 'groupId (slug do grupo) é obrigatório' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
-        // Tentar via RPC primeiro
-        const { data, error } = await externalSupabase.rpc('get_material_types_by_group', {
-          p_group_id: groupId
+        // Usar RPC com slug do grupo
+        const { data, error } = await externalSupabase.rpc('get_material_types_by_group_slug', {
+          p_group_slug: groupId
         });
 
         if (error) {
-          console.error('Error fetching material types by group via RPC:', error);
-          // Fallback
-          const { data: fallbackData, error: fallbackError } = await externalSupabase
-            .from('material_types')
-            .select('id, name, slug, description, display_order, is_active')
-            .eq('group_id', groupId)
-            .eq('is_active', true)
-            .order('display_order', { ascending: true });
-          
-          if (fallbackError) {
-            console.error('Fallback also failed:', fallbackError);
-            throw new Error(fallbackError.message);
-          }
-          result = { types: fallbackData, count: fallbackData?.length || 0, groupId };
-        } else {
-          result = { types: data, count: data?.length || 0, groupId };
+          console.error('Error fetching material types by group slug:', error);
+          throw new Error(error.message);
         }
+        result = { types: data, count: data?.length || 0, groupSlug: groupId };
+        break;
+      }
+
+      case 'complete': {
+        // Buscar materiais completos (tipos + grupos)
+        const { data, error } = await externalSupabase.rpc('get_materials_complete_safe');
+
+        if (error) {
+          console.error('Error fetching complete materials:', error);
+          throw new Error(error.message);
+        }
+        result = { materials: data, count: data?.length || 0 };
         break;
       }
 
@@ -202,7 +194,7 @@ serve(async (req) => {
       }
 
       case 'search': {
-        // Buscar materiais por nome
+        // Buscar materiais por nome usando dados completos
         const searchTerm = body.search || '';
         if (!searchTerm) {
           return new Response(
@@ -211,22 +203,23 @@ serve(async (req) => {
           );
         }
 
-        const { data, error } = await externalSupabase
-          .from('material_types')
-          .select(`
-            id,
-            name,
-            slug,
-            description,
-            group_id
-          `)
-          .eq('is_active', true)
-          .ilike('name', `%${searchTerm}%`)
-          .order('name', { ascending: true })
-          .limit(20);
+        // Buscar todos e filtrar (RPC não tem busca por texto)
+        const { data, error } = await externalSupabase.rpc('get_materials_complete_safe');
 
-        if (error) throw error;
-        result = { types: data, count: data?.length || 0, search: searchTerm };
+        if (error) {
+          console.error('Error searching materials:', error);
+          throw new Error(error.message);
+        }
+
+        const searchLower = searchTerm.toLowerCase();
+        const filtered = (data || [])
+          .filter((m: any) => 
+            m.type_name?.toLowerCase().includes(searchLower) ||
+            m.group_name?.toLowerCase().includes(searchLower)
+          )
+          .slice(0, 20);
+
+        result = { types: filtered, count: filtered.length, search: searchTerm };
         break;
       }
 
@@ -234,7 +227,7 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             error: `Ação '${action}' não suportada`,
-            availableActions: ['groups', 'types', 'types_by_group', 'product_materials', 'stats', 'search']
+            availableActions: ['groups', 'types', 'types_by_group', 'product_materials', 'stats', 'search', 'complete']
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
