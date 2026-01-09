@@ -842,6 +842,7 @@ export function ProductsManager() {
               </div>
             </ScrollArea>
           )}
+          <DialogFooter>
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>
               Cancelar
             </Button>
