@@ -31,3 +31,9 @@ export {
   AnimatedPresence,
   usePageLoaded 
 } from "./PageTransition";
+
+// Scroll Indicators
+export { ScrollProgressIndicator, ScrollToTopButton } from "./ScrollProgress";
+
+// Media
+export { ImageGallery } from "./ImageGallery";

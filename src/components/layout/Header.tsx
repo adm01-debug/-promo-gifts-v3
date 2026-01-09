@@ -22,6 +22,8 @@ import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicato
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FollowUpRemindersPopover } from "@/components/reminders/FollowUpRemindersPopover";
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
+import { useIsScrolled } from "@/hooks/useScroll";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -35,6 +37,10 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const { toast } = useToast();
   const { favoriteCount } = useFavoritesContext();
   const { compareCount } = useComparisonContext();
+  const { user, profile, role, isAdmin, signOut } = useAuth();
+  
+  // Hook para detectar scroll (AN-10)
+  const isScrolled = useIsScrolled(20);
   const { user, profile, role, isAdmin, signOut } = useAuth();
 
   const toggleTheme = () => {
@@ -55,7 +61,16 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
 
   return (
-    <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border shadow-sm safe-area-top">
+    <header 
+      className={cn(
+        "sticky top-0 z-40 border-b safe-area-top transition-all duration-300",
+        // Estado normal
+        "bg-card/95 backdrop-blur-md border-border",
+        // Estado scrolled - mais elevação e blur (AN-10)
+        isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80"
+      )}
+    >
+      <div className="flex items-center justify-between h-12 sm:h-14 px-2 sm:px-4 lg:px-6">
       <div className="flex items-center justify-between h-12 sm:h-14 px-2 sm:px-4 lg:px-6">
         {/* Left section - Logo & Menu */}
         <div className="flex items-center gap-2 sm:gap-3">
