@@ -27,6 +27,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 // Product Pages
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const FiltersPage = lazy(() => import("./pages/FiltersPage"));
+const NoveltiesPage = lazy(() => import("./pages/NoveltiesPage"));
 const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
 const ComparePage = lazy(() => import("./pages/ComparePage"));
 const CollectionsPage = lazy(() => import("./pages/CollectionsPage"));
@@ -144,6 +145,7 @@ const App = () => {
                                     {/* Products */}
                                     <Route path="/produto/:id" element={<ProductDetail />} />
                                     <Route path="/filtros" element={<FiltersPage />} />
+                                    <Route path="/novidades" element={<NoveltiesPage />} />
                                     <Route path="/favoritos" element={<FavoritesPage />} />
                                     <Route path="/comparar" element={<ComparePage />} />
                                     <Route path="/colecoes" element={<CollectionsPage />} />

@@ -28,6 +28,7 @@ import {
   Gift,
   Wrench,
   Lock,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -77,8 +78,9 @@ const navGroups: NavGroup[] = [
     defaultOpen: true,
     items: [
       { icon: Package, label: "Produtos", href: "/", tourId: "products" },
-      { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
       { icon: Filter, label: "Filtros Avançados", href: "/filtros" },
+      { icon: Zap, label: "Novidades", href: "/novidades" },
+      { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
     ],
   },
   {
