@@ -318,18 +318,18 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Datas Comemorativas */}
         <FilterSection id="datas" title="Datas Comemorativas">
-          <div className="flex flex-wrap gap-1.5">
-            {DATAS_COMEMORATIVAS.slice(0, 8).map((data) => (
-              <button
-                key={data}
-                onClick={() => toggleArrayFilter('datasComemorativas', data)}
-                className={cn(
-                  "filter-tag",
-                  filters.datasComemorativas.includes(data) && "active"
-                )}
-              >
-                {data}
-              </button>
+          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+            {[...DATAS_COMEMORATIVAS].sort((a, b) => a.localeCompare(b)).map((data) => (
+              <div key={data} className="flex items-center gap-2">
+                <Checkbox
+                  id={`data-${data}`}
+                  checked={filters.datasComemorativas.includes(data)}
+                  onCheckedChange={() => toggleArrayFilter('datasComemorativas', data)}
+                />
+                <Label htmlFor={`data-${data}`} className="text-sm cursor-pointer">
+                  {toTitleCase(data)}
+                </Label>
+              </div>
             ))}
           </div>
         </FilterSection>
