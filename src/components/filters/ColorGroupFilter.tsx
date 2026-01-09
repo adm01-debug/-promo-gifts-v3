@@ -148,10 +148,18 @@ export function ColorGroupFilter({
   }, [colorData, selection]);
 
   // Toggle grupo
-  const toggleGroup = (slug: string) => {
-    const newGroups = selection.groups.includes(slug)
+  const toggleGroup = (slug: string, groupId: string) => {
+    const isSelected = selection.groups.includes(slug);
+    const newGroups = isSelected
       ? selection.groups.filter(g => g !== slug)
       : [...selection.groups, slug];
+    
+    // Auto-expandir variações quando seleciona o grupo
+    if (!isSelected) {
+      const newExpanded = new Set(expandedGroups);
+      newExpanded.add(groupId);
+      setExpandedGroups(newExpanded);
+    }
     
     onChange({ ...selection, groups: newGroups });
   };
@@ -293,7 +301,7 @@ export function ColorGroupFilter({
                     <ColorSwatch
                       hexCode={group.hex_code}
                       isSelected={selection.groups.includes(group.slug)}
-                      onClick={() => toggleGroup(group.slug)}
+                      onClick={() => toggleGroup(group.slug, group.id)}
                       label={group.name}
                       size="md"
                     />
