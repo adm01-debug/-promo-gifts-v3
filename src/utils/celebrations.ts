@@ -41,7 +41,7 @@ export function bigCelebration() {
   }, 250);
 }
 
-// Side cannons (achievement unlocked)
+// Side cannons (special celebration)
 export function sideCannons() {
   const end = Date.now() + 500;
 

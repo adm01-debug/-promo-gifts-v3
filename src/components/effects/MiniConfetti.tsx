@@ -21,9 +21,8 @@ interface MiniConfettiProps {
 const defaultColors = [
   "hsl(252 87% 64%)",   // primary
   "hsl(142 71% 45%)",   // success
-  "hsl(45 93% 47%)",    // coins/gold
-  "hsl(280 85% 60%)",   // xp
-  "hsl(25 95% 53%)",    // streak
+  "hsl(45 93% 47%)",    // gold/accent
+  "hsl(25 95% 53%)",    // orange
 ];
 
 export function MiniConfetti({

@@ -71,17 +71,6 @@
     --orange-glow: 25 95% 63%;
     --orange-foreground: 0 0% 100%;
     
-    /* ===== GAMIFICAÇÃO ===== */
-    --xp: 280 85% 60%;
-    --xp-glow: 280 85% 70%;
-    --xp-foreground: 0 0% 100%;
-    --coins: 45 93% 47%;
-    --coins-glow: 45 93% 57%;
-    --coins-foreground: 0 0% 10%;
-    --streak: 25 95% 53%;
-    --streak-glow: 25 95% 63%;
-    --streak-foreground: 0 0% 100%;
-    
     /* ===== RANKS ===== */
     --rank-gold: 45 93% 47%;
     --rank-gold-foreground: 45 100% 15%;
@@ -260,17 +249,6 @@
     --orange-active: 25 95% 63%;
     --orange-glow: 25 95% 45%;
     --orange-foreground: 0 0% 100%;
-    
-    /* ===== GAMIFICAÇÃO ===== */
-    --xp: 280 85% 65%;
-    --xp-glow: 280 85% 55%;
-    --xp-foreground: 0 0% 100%;
-    --coins: 45 93% 55%;
-    --coins-glow: 45 93% 45%;
-    --coins-foreground: 0 0% 10%;
-    --streak: 25 95% 53%;
-    --streak-glow: 25 95% 45%;
-    --streak-foreground: 0 0% 100%;
     
     /* ===== RANKS ===== */
     --rank-gold: 45 93% 55%;
@@ -879,29 +857,6 @@
 
   .animate-pulse-ring {
     animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  .animate-xp-shimmer {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--xp)) 0%,
-      hsl(var(--xp) / 0.7) 50%,
-      hsl(var(--xp)) 100%
-    );
-    background-size: 200% 100%;
-    animation: xp-shimmer 2s ease-in-out infinite;
-  }
-
-  .animate-streak-fire {
-    animation: streak-fire 0.8s ease-in-out infinite;
-  }
-
-  .animate-coin-shine {
-    animation: coin-shine 2s ease-in-out infinite;
-  }
-
-  .animate-level-up {
-    animation: level-up 0.6s ease-out;
   }
 
   .animate-pulse-glow {
