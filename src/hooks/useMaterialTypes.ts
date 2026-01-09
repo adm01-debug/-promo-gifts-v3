@@ -11,7 +11,7 @@ export interface UseMaterialTypesReturn {
 
 export function useMaterialTypes(): UseMaterialTypesReturn {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['material-types'],
+    queryKey: ['material-types', 'v2'],
     queryFn: () => materialService.getTypes(),
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
@@ -37,7 +37,7 @@ export interface UseMaterialTypesByGroupReturn {
 
 export function useMaterialTypesByGroup(groupSlug: string): UseMaterialTypesByGroupReturn {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['material-types-by-group', groupSlug],
+    queryKey: ['material-types-by-group', groupSlug, 'v2'],
     queryFn: () => materialService.getTypesByGroupSlug(groupSlug),
     enabled: !!groupSlug,
     staleTime: 5 * 60 * 1000,
@@ -66,7 +66,7 @@ export interface UseMaterialsCompleteReturn {
 
 export function useMaterialsComplete(): UseMaterialsCompleteReturn {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['materials-complete'],
+    queryKey: ['materials-complete', 'v2'],
     queryFn: () => materialService.getComplete(),
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,

@@ -61,41 +61,109 @@ class MaterialService {
 
   private async callApi<T>(action: string, params: Record<string, any> = {}): Promise<T> {
     const headers = await this.getAuthHeaders();
-    
+
     const response = await fetch(this.baseUrl, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: JSON.stringify({ action, ...params }),
     });
 
+    const result = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Erro ao buscar materiais');
+      throw new Error(result?.error || "Erro ao buscar materiais");
     }
 
-    const result = await response.json();
-    // A API retorna diretamente os dados (ex: { groups, count })
-    return result;
+    // A função costuma responder no formato:
+    // { success: true, data: {...} }
+    // (mas mantém fallback para formato antigo sem envelope)
+    if (result?.success === false) {
+      throw new Error(result?.error || "Erro ao buscar materiais");
+    }
+
+    return (result?.data ?? result) as T;
   }
 
   // Buscar todos os grupos de materiais com estatísticas
   async getGroups(): Promise<{ groups: MaterialGroup[]; count: number }> {
-    return this.callApi('groups');
+    const res = await this.callApi<{ groups: any[]; count?: number }>("groups");
+
+    const groups: MaterialGroup[] = (res.groups || []).map((g) => ({
+      group_id: g.group_id ?? g.id ?? "",
+      group_name: g.group_name ?? g.name ?? "",
+      group_slug: g.group_slug ?? g.slug ?? "",
+      group_description: g.group_description ?? g.description ?? null,
+      group_hex_code: g.group_hex_code ?? g.hex_code ?? null,
+      group_icon: g.group_icon ?? g.icon ?? null,
+      display_order: g.display_order ?? g.sort_order ?? 0,
+      total_materials: g.total_materials ?? g.materials_count ?? 0,
+      products_using: g.products_using ?? g.products_count ?? 0,
+    }));
+
+    return { groups, count: res.count ?? groups.length };
   }
 
   // Buscar todos os tipos de materiais
   async getTypes(): Promise<{ types: MaterialType[]; count: number }> {
-    return this.callApi('types');
+    const res = await this.callApi<{ types: any[]; count?: number }>("types");
+
+    const types: MaterialType[] = (res.types || []).map((t) => ({
+      id: t.id ?? t.material_id ?? "",
+      name: t.name ?? t.material_name ?? "",
+      slug: t.slug ?? t.material_slug ?? "",
+      description: t.description ?? t.material_description ?? null,
+      properties: t.properties ?? t.material_properties ?? null,
+      display_order: t.display_order ?? t.sort_order ?? 0,
+      is_active: t.is_active ?? true,
+      group_id: t.group_id ?? "",
+      group_name: t.group_name,
+      group_slug: t.group_slug,
+    }));
+
+    return { types, count: res.count ?? types.length };
   }
 
   // Buscar tipos de um grupo específico por slug
   async getTypesByGroupSlug(groupSlug: string): Promise<{ types: MaterialType[]; count: number; groupSlug: string }> {
-    return this.callApi('types_by_group', { groupId: groupSlug });
+    const res = await this.callApi<{ types: any[]; count?: number }>("types_by_group", { groupId: groupSlug });
+
+    const types: MaterialType[] = (res.types || []).map((t) => ({
+      id: t.id ?? t.material_id ?? "",
+      name: t.name ?? t.material_name ?? "",
+      slug: t.slug ?? t.material_slug ?? "",
+      description: t.description ?? t.material_description ?? null,
+      properties: t.properties ?? t.material_properties ?? null,
+      display_order: t.display_order ?? t.sort_order ?? 0,
+      is_active: t.is_active ?? true,
+      group_id: t.group_id ?? "",
+      group_name: t.group_name,
+      group_slug: t.group_slug,
+    }));
+
+    return { types, count: res.count ?? types.length, groupSlug };
   }
 
   // Buscar materiais completos (tipos + grupos)
   async getComplete(): Promise<{ materials: MaterialComplete[]; count: number }> {
-    return this.callApi('complete');
+    const res = await this.callApi<{ materials: any[]; count?: number }>("complete");
+
+    const materials: MaterialComplete[] = (res.materials || []).map((m) => ({
+      type_id: m.type_id ?? m.material_id ?? m.id ?? "",
+      type_name: m.type_name ?? m.material_name ?? m.name ?? "",
+      type_slug: m.type_slug ?? m.material_slug ?? m.slug ?? "",
+      type_description: m.type_description ?? m.material_description ?? m.description ?? null,
+      type_properties: m.type_properties ?? m.properties ?? null,
+      type_display_order: m.type_display_order ?? m.display_order ?? 0,
+      group_id: m.group_id ?? "",
+      group_name: m.group_name ?? "",
+      group_slug: m.group_slug ?? "",
+      group_description: m.group_description ?? null,
+      group_hex_code: m.group_hex_code ?? null,
+      group_icon: m.group_icon ?? null,
+      group_display_order: m.group_display_order ?? m.display_order ?? 0,
+    }));
+
+    return { materials, count: res.count ?? materials.length };
   }
 
   // Buscar estatísticas gerais
