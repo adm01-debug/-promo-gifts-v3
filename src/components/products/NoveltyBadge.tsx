@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -67,22 +66,13 @@ export function NoveltyBadge({
   const content = (
     <Badge 
       className={cn(
-        "inline-flex items-center font-semibold shadow-md",
+        "inline-flex items-center font-semibold shadow-md rounded-full",
         getVariantClasses(),
         getSizeClasses(),
         className
       )}
     >
-      <Sparkles className={cn(getIconSize(), "shrink-0")} />
-      <span className="hidden sm:inline">
-        {showDays ? getDaysText() : "Novidade"}
-      </span>
-      <span className="sm:hidden">
-        {showDays && daysRemaining < 25 ? `${daysRemaining}d` : "🆕"}
-      </span>
-      {showDays && daysRemaining < 10 && (
-        <Clock className={cn(getIconSize(), "shrink-0 ml-0.5")} />
-      )}
+      <span>Novidade</span>
     </Badge>
   );
 
