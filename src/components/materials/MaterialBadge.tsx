@@ -1,16 +1,25 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MaterialBadgeProps {
   name: string;
   groupName?: string;
   hexCode?: string | null;
   size?: "sm" | "md" | "lg";
-  variant?: "default" | "outline" | "solid";
+  variant?: "default" | "outline" | "solid" | "ghost";
   showGroup?: boolean;
   onClick?: () => void;
   onRemove?: () => void;
   className?: string;
+  showTooltip?: boolean;
+  productCount?: number;
 }
 
 export function MaterialBadge({
@@ -23,39 +32,79 @@ export function MaterialBadge({
   onClick,
   onRemove,
   className,
+  showTooltip = true,
+  productCount,
 }: MaterialBadgeProps) {
   const sizeClasses = {
-    sm: "text-xs px-2 py-0.5",
-    md: "text-xs px-2.5 py-1",
-    lg: "text-sm px-3 py-1.5",
+    sm: "text-[11px] px-2 py-0.5 gap-1",
+    md: "text-xs px-2.5 py-1 gap-1.5",
+    lg: "text-sm px-3 py-1.5 gap-2",
+  };
+
+  const colorDotSizes = {
+    sm: "w-2 h-2",
+    md: "w-2.5 h-2.5",
+    lg: "w-3 h-3",
   };
 
   const variantClasses = {
-    default: "bg-muted/50 text-muted-foreground",
-    outline: "border border-border bg-transparent text-foreground",
-    solid: "bg-primary/10 text-primary",
+    default: "bg-muted/60 text-muted-foreground hover:bg-muted",
+    outline: "border border-border bg-background text-foreground hover:bg-muted/50",
+    solid: "bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25",
+    ghost: "bg-transparent text-muted-foreground hover:bg-muted/50",
   };
 
-  return (
+  const displayText = showGroup && groupName ? `${groupName}: ${name}` : name;
+
+  const badgeContent = (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full font-medium transition-colors",
+        "inline-flex items-center rounded-full font-medium transition-all duration-200",
         sizeClasses[size],
         variantClasses[variant],
-        onClick && "cursor-pointer hover:bg-muted",
+        onClick && "cursor-pointer",
+        onRemove && "pr-1",
         className
       )}
       onClick={onClick}
     >
+      {/* Indicador de cor */}
       {hexCode && (
         <span
-          className="w-2.5 h-2.5 rounded-full border border-border/50 flex-shrink-0"
-          style={{ backgroundColor: hexCode }}
+          className={cn(
+            "rounded-full flex-shrink-0 ring-1 ring-inset ring-black/10",
+            colorDotSizes[size]
+          )}
+          style={{ 
+            backgroundColor: hexCode,
+            boxShadow: `0 1px 3px ${hexCode}40`
+          }}
         />
       )}
-      <span className="truncate max-w-[120px]">
-        {showGroup && groupName ? `${groupName}: ${name}` : name}
+      
+      {/* Texto */}
+      <span className={cn(
+        "truncate",
+        size === "sm" && "max-w-[100px]",
+        size === "md" && "max-w-[120px]",
+        size === "lg" && "max-w-[150px]"
+      )}>
+        {displayText}
       </span>
+      
+      {/* Contador de produtos */}
+      {productCount !== undefined && productCount > 0 && (
+        <span className={cn(
+          "rounded-full bg-background/80 text-muted-foreground font-normal",
+          size === "sm" && "text-[9px] px-1",
+          size === "md" && "text-[10px] px-1.5",
+          size === "lg" && "text-xs px-2"
+        )}>
+          {productCount}
+        </span>
+      )}
+      
+      {/* Botão remover */}
       {onRemove && (
         <button
           type="button"
@@ -63,18 +112,85 @@ export function MaterialBadge({
             e.stopPropagation();
             onRemove();
           }}
-          className="ml-0.5 hover:text-destructive transition-colors"
+          className={cn(
+            "rounded-full transition-all duration-150 hover:bg-destructive/20 hover:text-destructive",
+            size === "sm" && "p-0.5 ml-0.5",
+            size === "md" && "p-0.5 ml-1",
+            size === "lg" && "p-1 ml-1"
+          )}
         >
-          <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
-            <path
-              d="M9 3L3 9M3 3L9 9"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-          </svg>
+          <X className={cn(
+            size === "sm" && "w-2.5 h-2.5",
+            size === "md" && "w-3 h-3",
+            size === "lg" && "w-3.5 h-3.5"
+          )} />
         </button>
       )}
     </span>
+  );
+
+  // Com tooltip
+  if (showTooltip && (groupName || productCount)) {
+    return (
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {badgeContent}
+          </TooltipTrigger>
+          <TooltipContent 
+            side="top" 
+            className="text-xs"
+          >
+            <div className="flex flex-col gap-0.5">
+              {groupName && (
+                <span className="font-medium">{groupName}</span>
+              )}
+              <span>{name}</span>
+              {productCount !== undefined && (
+                <span className="text-muted-foreground">
+                  {productCount} produto{productCount !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return badgeContent;
+}
+
+// Variante compacta para listas
+export function CompactMaterialBadge({
+  name,
+  hexCode,
+  isSelected,
+  onClick,
+}: {
+  name: string;
+  hexCode?: string | null;
+  isSelected?: boolean;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all duration-150",
+        isSelected
+          ? "bg-primary/15 text-primary font-medium ring-1 ring-primary/30"
+          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+      )}
+    >
+      {hexCode && (
+        <span
+          className="w-2 h-2 rounded-full"
+          style={{ backgroundColor: hexCode }}
+        />
+      )}
+      <span className="truncate max-w-[80px]">{name}</span>
+    </button>
   );
 }
