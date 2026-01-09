@@ -164,19 +164,8 @@ export function ProductColorSelector({
                           strokeWidth={3}
                         />
                       </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {/* Indicador de nuance (acabamento especial) */}
-                  {color.nuanceName && (
-                    <span
-                      className={cn(
-                        "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full",
-                        "bg-gradient-to-br from-primary to-primary-glow",
-                        "border border-background"
-                      )}
-                    />
                   )}
+                  </AnimatePresence>
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent side="top" className="font-medium">
