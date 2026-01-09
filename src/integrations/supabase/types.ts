@@ -221,6 +221,129 @@ export type Database = {
         }
         Relationships: []
       }
+      color_groups: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          hex_code: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          hex_code?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          hex_code?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      color_nuances: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      color_variations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          group_id: string
+          hex_code: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          group_id: string
+          hex_code?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          group_id?: string
+          hex_code?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "color_variations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "color_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "color_variations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "v_color_hierarchy"
+            referencedColumns: ["group_id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           bairro: string | null
@@ -2914,9 +3037,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_color_hierarchy: {
+        Row: {
+          group_hex: string | null
+          group_id: string | null
+          group_name: string | null
+          group_slug: string | null
+          group_sort: number | null
+          variation_hex: string | null
+          variation_id: string | null
+          variation_name: string | null
+          variation_slug: string | null
+          variation_sort: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      get_color_filters: { Args: never; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
