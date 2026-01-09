@@ -24,6 +24,7 @@ import {
   Wrench,
   Lock,
   Zap,
+  PackagePlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,7 @@ const navGroups: NavGroup[] = [
       { icon: Filter, label: "Super Filtro", href: "/filtros" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Package, label: "Cadastrar Produtos", href: "/cadastro-produtos", adminOnly: true },
+      { icon: PackagePlus, label: "Cadastrar Produtos", href: "/cadastro-produtos", adminOnly: true, badge: "Novo" },
     ],
   },
   {
