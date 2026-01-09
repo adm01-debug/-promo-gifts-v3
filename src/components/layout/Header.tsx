@@ -41,7 +41,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   
   // Hook para detectar scroll (AN-10)
   const isScrolled = useIsScrolled(20);
-  const { user, profile, role, isAdmin, signOut } = useAuth();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -70,7 +69,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
         isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80"
       )}
     >
-      <div className="flex items-center justify-between h-12 sm:h-14 px-2 sm:px-4 lg:px-6">
       <div className="flex items-center justify-between h-12 sm:h-14 px-2 sm:px-4 lg:px-6">
         {/* Left section - Logo & Menu */}
         <div className="flex items-center gap-2 sm:gap-3">
