@@ -17,9 +17,9 @@ export function ProductCardSkeleton({
   return (
     <div className={cn("rounded-2xl bg-card border border-border/50 overflow-hidden", baseClass)}>
       {/* Image skeleton - matches aspect-[4/5] */}
-      <div className="relative aspect-[4/5] bg-gradient-to-br from-muted/60 to-muted/30">
+      <div className="relative aspect-[4/5] bg-gradient-to-br from-secondary/50 to-muted/30">
         {/* Shimmer overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-background/20 to-transparent skeleton-shimmer" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
         
         {/* Badges placeholder - top left */}
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">

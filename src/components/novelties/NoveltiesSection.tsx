@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,40 @@ import { useNovelties, useNoveltyStats } from "@/hooks/useNovelties";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+
+// CountUp animation hook
+function useCountUp(end: number, duration: number = 1000) {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    if (end === 0) {
+      setCount(0);
+      return;
+    }
+    
+    let startTime: number | null = null;
+    const startValue = 0;
+    
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      const currentValue = Math.floor(startValue + (end - startValue) * easeOutQuart);
+      
+      setCount(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [end, duration]);
+  
+  return count;
+}
 
 interface NoveltyCardProps {
   novelty: {
@@ -112,31 +146,41 @@ interface NoveltyStatCardProps {
   value: number;
   icon: React.ReactNode;
   variant?: "default" | "success" | "warning" | "info";
+  delay?: number;
 }
 
-function NoveltyStatCard({ label, value, icon, variant = "default" }: NoveltyStatCardProps) {
+function NoveltyStatCard({ label, value, icon, variant = "default", delay = 0 }: NoveltyStatCardProps) {
+  const animatedValue = useCountUp(value, 800);
+  
   const getVariantClasses = () => {
     switch (variant) {
       case "success":
-        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+        return "bg-success/10 text-success";
       case "warning":
-        return "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+        return "bg-warning/10 text-warning";
       case "info":
-        return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
+        return "bg-info/10 text-info";
       default:
         return "bg-primary/10 text-primary";
     }
   };
 
   return (
-    <div className={cn(
-      "flex items-center gap-3 p-3 rounded-lg",
-      getVariantClasses()
-    )}>
-      <div className="shrink-0">{icon}</div>
+    <div 
+      className={cn(
+        "flex items-center gap-3 p-4 rounded-xl border border-transparent hover:border-border/50 transition-all duration-300",
+        getVariantClasses()
+      )}
+      style={{ 
+        animation: `scale-fade-in 0.4s ease-out ${delay}ms backwards`
+      }}
+    >
+      <div className="shrink-0 p-2 rounded-lg bg-current/10">
+        {icon}
+      </div>
       <div>
-        <p className="text-2xl font-bold">{value}</p>
-        <p className="text-xs opacity-80">{label}</p>
+        <p className="text-2xl font-bold tabular-nums">{animatedValue.toLocaleString('pt-BR')}</p>
+        <p className="text-xs opacity-80 font-medium">{label}</p>
       </div>
     </div>
   );
@@ -223,23 +267,26 @@ export function NoveltiesSection() {
 
         {/* Stats resumidas */}
         {stats && (
-          <div className="grid grid-cols-3 gap-3 mt-4">
+          <div className="grid grid-cols-3 gap-4 mt-4">
             <NoveltyStatCard
               label="Novidades ativas"
               value={stats.active_novelties}
               icon={<Sparkles className="h-5 w-5" />}
               variant="success"
+              delay={100}
             />
             <NoveltyStatCard
               label="Expirando em 7d"
               value={stats.expiring_soon}
               icon={<Clock className="h-5 w-5" />}
               variant="warning"
+              delay={200}
             />
             <NoveltyStatCard
               label="Fornecedores"
               value={Object.keys(stats.by_supplier || {}).length}
               icon={<Package className="h-5 w-5" />}
+              delay={300}
             />
           </div>
         )}
@@ -255,12 +302,17 @@ export function NoveltiesSection() {
         ) : novelties && novelties.length > 0 ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {novelties.map((novelty) => (
-                <NoveltyCard
+              {novelties.map((novelty, index) => (
+                <div 
                   key={novelty.novelty_id}
-                  novelty={novelty}
-                  onClick={() => handleProductClick(novelty.product_id)}
-                />
+                  className="stagger-item"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <NoveltyCard
+                    novelty={novelty}
+                    onClick={() => handleProductClick(novelty.product_id)}
+                  />
+                </div>
               ))}
             </div>
 

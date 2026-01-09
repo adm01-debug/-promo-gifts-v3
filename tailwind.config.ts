@@ -61,6 +61,14 @@ export default {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
+        // Semantic colors
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          hover: "hsl(var(--surface-hover))",
+        },
+        "text-secondary": "hsl(var(--text-secondary))",
+        interactive: "hsl(var(--interactive))",
+        divider: "hsl(var(--divider))",
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
