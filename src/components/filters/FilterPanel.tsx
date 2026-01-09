@@ -336,18 +336,18 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Endomarketing */}
         <FilterSection id="endomarketing" title="Endomarketing">
-          <div className="flex flex-wrap gap-1.5">
-            {ENDOMARKETING.slice(0, 6).map((endo) => (
-              <button
-                key={endo}
-                onClick={() => toggleArrayFilter('endomarketing', endo)}
-                className={cn(
-                  "filter-tag",
-                  filters.endomarketing.includes(endo) && "active"
-                )}
-              >
-                {endo}
-              </button>
+          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+            {[...ENDOMARKETING].sort((a, b) => a.localeCompare(b)).map((endo) => (
+              <div key={endo} className="flex items-center gap-2">
+                <Checkbox
+                  id={`endo-${endo}`}
+                  checked={filters.endomarketing.includes(endo)}
+                  onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
+                />
+                <Label htmlFor={`endo-${endo}`} className="text-sm cursor-pointer">
+                  {toTitleCase(endo)}
+                </Label>
+              </div>
             ))}
           </div>
         </FilterSection>
