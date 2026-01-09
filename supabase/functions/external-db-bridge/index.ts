@@ -43,6 +43,9 @@ const PRODUCT_TABLES = [
   'color_nuances',
   'color_equivalences',
   'color_variations',
+  'material_groups',
+  'material_types',
+  'material_variations',
   'collections',
   'collection_products',
   'price_lists',
@@ -90,6 +93,9 @@ const PRODUCT_VIEWS = [
   // Materialized views
   'mv_product_compositions',
   'mv_material_group_stats',
+  // Views de materiais
+  'materials_complete',
+  'products_with_materials',
   // View especial de categorias
   'categories_tree_visual',
 ] as const;
