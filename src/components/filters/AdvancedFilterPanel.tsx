@@ -15,7 +15,8 @@ import {
   Box,
   Paintbrush,
   Search,
-  X
+  X,
+  Gem
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -41,6 +42,8 @@ import {
   SORT_OPTIONS,
   CategoryOption,
 } from "@/hooks/useAdvancedFilters";
+import { useMaterialFilter } from "@/hooks/useMaterialFilter";
+import { MaterialBadge } from "@/components/materials/MaterialBadge";
 
 interface AdvancedFilterPanelProps {
   filters: AdvancedFilterState;
@@ -57,8 +60,9 @@ export function AdvancedFilterPanel({
   activeFiltersCount,
   className 
 }: AdvancedFilterPanelProps) {
-  const [openSections, setOpenSections] = useState<string[]>(['search', 'categories', 'stock']);
+  const [openSections, setOpenSections] = useState<string[]>(['search', 'categories', 'stock', 'materials']);
   const [categorySearch, setCategorySearch] = useState('');
+  const [materialSearch, setMaterialSearch] = useState('');
   
   const {
     isLoading,
@@ -68,6 +72,19 @@ export function AdvancedFilterPanel({
     colorOptions,
     tagOptions,
   } = useAdvancedFilters();
+
+  // Hook de materiais
+  const {
+    groups: materialGroups,
+    materials: allMaterials,
+    byGroup: materialsByGroup,
+    isLoading: materialsLoading,
+    filterState: materialFilterState,
+    toggleGroup: toggleMaterialGroup,
+    toggleType: toggleMaterialType,
+    isGroupSelected: isMaterialGroupSelected,
+    getTypesForGroup,
+  } = useMaterialFilter();
 
   const toggleSection = (section: string) => {
     setOpenSections(prev =>
@@ -322,6 +339,175 @@ export function AdvancedFilterPanel({
             ))}
             {colorOptions.length === 0 && (
               <p className="text-sm text-muted-foreground">Carregando cores...</p>
+            )}
+          </div>
+        </FilterSection>
+
+        {/* Materiais */}
+        <FilterSection 
+          id="materials" 
+          title="Materiais" 
+          icon={<Gem className="h-4 w-4" />}
+          badge={materialFilterState.selectedGroups.length + materialFilterState.selectedTypes.length}
+        >
+          <div className="space-y-3">
+            {/* Busca de materiais */}
+            <Input
+              placeholder="Buscar material..."
+              value={materialSearch}
+              onChange={(e) => setMaterialSearch(e.target.value)}
+              className="h-8 text-sm"
+            />
+            
+            {/* Loading */}
+            {materialsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ) : (
+              <ScrollArea className="h-52">
+                <div className="space-y-2 pr-3">
+                  {/* Grupos de materiais */}
+                  {materialGroups
+                    .filter(g => 
+                      !materialSearch || 
+                      g.group_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+                      getTypesForGroup(g.group_slug).some(t => 
+                        t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
+                      )
+                    )
+                    .map(group => {
+                      const types = getTypesForGroup(group.group_slug);
+                      const isOpen = openSections.includes(`mat-${group.group_slug}`);
+                      const isSelected = isMaterialGroupSelected(group.group_slug);
+                      const selectedTypesCount = types.filter(t => 
+                        materialFilterState.selectedTypes.includes(t.type_slug)
+                      ).length;
+                      
+                      return (
+                        <div key={group.group_id} className={cn(
+                          "border rounded-md overflow-hidden",
+                          isSelected || selectedTypesCount > 0 
+                            ? "border-primary/30 bg-primary/5" 
+                            : "border-border"
+                        )}>
+                          {/* Header do grupo */}
+                          <div className="flex items-center gap-2 p-2 bg-muted/30">
+                            <button
+                              type="button"
+                              onClick={() => toggleSection(`mat-${group.group_slug}`)}
+                              className="p-0.5 hover:bg-muted rounded"
+                            >
+                              {isOpen ? (
+                                <ChevronUp className="h-3 w-3 text-muted-foreground" />
+                              ) : (
+                                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                              )}
+                            </button>
+                            
+                            <div className="flex items-center gap-2 flex-1">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleMaterialGroup(group.group_slug)}
+                                className="data-[state=checked]:bg-primary"
+                              />
+                              {group.group_hex_code && (
+                                <span
+                                  className="w-3 h-3 rounded-full border"
+                                  style={{ backgroundColor: group.group_hex_code }}
+                                />
+                              )}
+                              <span className={cn(
+                                "text-sm font-medium",
+                                isSelected ? "text-primary" : ""
+                              )}>
+                                {group.group_name}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              {selectedTypesCount > 0 && (
+                                <Badge variant="secondary" className="h-4 text-[10px] px-1">
+                                  {selectedTypesCount}
+                                </Badge>
+                              )}
+                              <span>{group.total_materials}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Tipos do grupo */}
+                          {isOpen && types.length > 0 && (
+                            <div className="p-2 space-y-1 border-t border-border/50">
+                              {types
+                                .filter(t => 
+                                  !materialSearch || 
+                                  t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
+                                )
+                                .map(type => (
+                                  <label
+                                    key={type.type_id}
+                                    className={cn(
+                                      "flex items-center gap-2 py-1 px-2 rounded cursor-pointer text-sm",
+                                      materialFilterState.selectedTypes.includes(type.type_slug)
+                                        ? "bg-primary/10 text-foreground font-medium"
+                                        : "text-muted-foreground hover:bg-muted/50"
+                                    )}
+                                  >
+                                    <Checkbox
+                                      checked={materialFilterState.selectedTypes.includes(type.type_slug)}
+                                      onCheckedChange={() => toggleMaterialType(type.type_slug)}
+                                      className="data-[state=checked]:bg-primary"
+                                    />
+                                    <span className="truncate">{type.type_name}</span>
+                                  </label>
+                                ))
+                              }
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  }
+                  
+                  {materialGroups.length === 0 && !materialsLoading && (
+                    <p className="text-sm text-muted-foreground py-2 text-center">
+                      Nenhum material disponível
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            )}
+            
+            {/* Badges dos materiais selecionados */}
+            {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
+              <div className="flex flex-wrap gap-1 pt-2 border-t">
+                {materialFilterState.selectedGroups.map(slug => {
+                  const group = materialGroups.find(g => g.group_slug === slug);
+                  return group ? (
+                    <MaterialBadge
+                      key={`group-${slug}`}
+                      name={group.group_name}
+                      hexCode={group.group_hex_code}
+                      size="sm"
+                      variant="solid"
+                      onRemove={() => toggleMaterialGroup(slug)}
+                    />
+                  ) : null;
+                })}
+                {materialFilterState.selectedTypes.map(slug => {
+                  const material = allMaterials.find(m => m.type_slug === slug);
+                  return material ? (
+                    <MaterialBadge
+                      key={`type-${slug}`}
+                      name={material.type_name}
+                      size="sm"
+                      variant="outline"
+                      onRemove={() => toggleMaterialType(slug)}
+                    />
+                  ) : null;
+                })}
+              </div>
             )}
           </div>
         </FilterSection>
