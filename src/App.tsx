@@ -70,8 +70,6 @@ const BitrixSync = lazy(() => import("./pages/BitrixSyncPage"));
 const BIDashboard = lazy(() => import("./pages/BIDashboard"));
 const TrendsPage = lazy(() => import("./pages/TrendsPage"));
 
-// Gamification Pages - Removed
-
 // System Pages
 const SystemStatusPage = lazy(() => import("./pages/SystemStatusPage"));
 const RateLimitDashboard = lazy(() => import("./pages/RateLimitDashboardPage"));
@@ -192,9 +190,6 @@ const App = () => {
 
                                     {/* Analytics */}
                                     <Route path="/bi" element={<BIDashboard />} />
-                                    <Route path="/tendencias" element={<TrendsPage />} />
-
-                                    {/* Gamification - Removed */}
 
                                     {/* System */}
                                     <Route path="/status" element={<SystemStatusPage />} />

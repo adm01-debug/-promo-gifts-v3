@@ -280,7 +280,7 @@ export function FloatingReward({
   );
 }
 
-// Hook para gerenciar fila de recompensas
+// Hook para gerenciar fila de animações
 export function useRewardQueue() {
   const [queue, setQueue] = useState<Array<Omit<FloatingRewardProps, 'show' | 'onComplete'> & { id: string }>>([]);
   const [current, setCurrent] = useState<(Omit<FloatingRewardProps, 'show' | 'onComplete'> & { id: string }) | null>(null);

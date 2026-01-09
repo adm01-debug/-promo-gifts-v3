@@ -51,7 +51,7 @@ export function useFavorites(options?: UseFavoritesOptions) {
       if (prev.some((f) => f.productId === productId)) {
         return prev;
       }
-      // Call the callback for gamification
+      // Call the callback
       onFavoriteAddedRef.current?.();
       // Track analytics
       const product = PRODUCTS.find((p) => p.id === productId);
@@ -83,7 +83,7 @@ export function useFavorites(options?: UseFavoritesOptions) {
       if (exists) {
         return prev.filter((f) => f.productId !== productId);
       }
-      // Call the callback for gamification when adding
+      // Call the callback when adding
       onFavoriteAddedRef.current?.();
       // Track analytics when adding
       const product = PRODUCTS.find((p) => p.id === productId);
