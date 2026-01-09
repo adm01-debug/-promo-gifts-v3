@@ -15,7 +15,7 @@ import { ptBR } from "date-fns/locale";
 import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
 import { AIMockupAssistant } from "@/components/ai";
 import { MultiAreaManager, PersonalizationArea } from "@/components/mockup/MultiAreaManager";
-import { useGamification } from "@/hooks/useGamification";
+
 import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -105,7 +105,6 @@ const createDefaultArea = (): PersonalizationArea => ({
 
 export default function MockupGenerator() {
   const { user } = useAuth();
-  const { addXp } = useGamification();
   const { saveDraft, loadDraft, clearDraft, isSaving: isDraftSaving, isLoading: isDraftLoading, lastSaved, error: draftError } = useMockupDraft();
   
   const [products, setProducts] = useState<Product[]>([]);

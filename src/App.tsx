@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
-import { GamificationProvider } from "@/contexts/GamificationContext";
+
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
@@ -70,8 +70,7 @@ const BitrixSync = lazy(() => import("./pages/BitrixSyncPage"));
 const BIDashboard = lazy(() => import("./pages/BIDashboard"));
 const TrendsPage = lazy(() => import("./pages/TrendsPage"));
 
-// Gamification Pages
-const StoreRewardsPage = lazy(() => import("./pages/RewardsStorePage"));
+// Gamification Pages - Removed
 
 // System Pages
 const SystemStatusPage = lazy(() => import("./pages/SystemStatusPage"));
@@ -117,7 +116,6 @@ const App = () => {
           <AuthProvider>
             <ProductsProvider>
               <CollectionsProvider>
-                <GamificationProvider>
                     <ComparisonProvider>
                       <FavoritesProvider>
                         <RecentlyViewedProvider>
@@ -196,8 +194,7 @@ const App = () => {
                                     <Route path="/bi" element={<BIDashboard />} />
                                     <Route path="/tendencias" element={<TrendsPage />} />
 
-                                    {/* Gamification */}
-                                    <Route path="/loja-recompensas" element={<StoreRewardsPage />} />
+                                    {/* Gamification - Removed */}
 
                                     {/* System */}
                                     <Route path="/status" element={<SystemStatusPage />} />
@@ -215,7 +212,6 @@ const App = () => {
                         </RecentlyViewedProvider>
                       </FavoritesProvider>
                     </ComparisonProvider>
-                </GamificationProvider>
               </CollectionsProvider>
             </ProductsProvider>
           </AuthProvider>
