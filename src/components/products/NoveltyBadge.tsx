@@ -22,18 +22,9 @@ export function NoveltyBadge({
   size = "md",
   className 
 }: NoveltyBadgeProps) {
-  // Determinar cor baseada nos dias restantes
+  // Cor verde consistente para todos os badges de novidade
   const getVariantClasses = () => {
-    if (daysRemaining >= 20) {
-      // Muito novo - verde vibrante
-      return "bg-gradient-to-r from-emerald-500 to-green-400 text-white shadow-emerald-500/30";
-    } else if (daysRemaining >= 10) {
-      // Moderado - azul info
-      return "bg-gradient-to-r from-info to-info/80 text-info-foreground";
-    } else {
-      // Expirando em breve - laranja/âmbar
-      return "bg-gradient-to-r from-amber-500 to-orange-400 text-white animate-pulse";
-    }
+    return "bg-[#1AAD19] text-white shadow-[#1AAD19]/30";
   };
 
   const getSizeClasses = () => {
