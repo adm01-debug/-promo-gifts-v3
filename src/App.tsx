@@ -52,6 +52,7 @@ const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 // Admin Pages
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const AdminPersonalizationPage = lazy(() => import("./pages/AdminPersonalizationPage"));
+const ProductRegistrationPage = lazy(() => import("./pages/ProductRegistrationPage"));
 
 // Tools Pages
 const PersonalizationSimulator = lazy(() => import("./pages/PersonalizationSimulator"));
@@ -167,6 +168,8 @@ const App = () => {
 
                                     {/* Admin */}
                                     <Route path="/admin" element={<AdminPanel />} />
+                                    <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
+                                    <Route path="/cadastro-produtos" element={<ProductRegistrationPage />} />
                                     <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
                                     <Route path="/admin/permissoes" element={<PermissionsPage />} />
                                     <Route path="/admin/roles" element={<RolesPage />} />

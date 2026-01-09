@@ -28,6 +28,13 @@ const rolePermissions: Record<RoleName, Permission[]> = {
     { action: 'update', resource: 'orders' },
     { action: 'read', resource: 'reports' },
     { action: 'manage', resource: 'team' },
+    // Permissões de cadastro de produtos
+    { action: 'create', resource: 'products' },
+    { action: 'update', resource: 'products' },
+    { action: 'delete', resource: 'products' },
+    { action: 'import', resource: 'products' },
+    { action: 'manage', resource: 'suppliers' },
+    { action: 'manage', resource: 'categories' },
   ],
   seller: [
     { action: 'read', resource: 'products' },

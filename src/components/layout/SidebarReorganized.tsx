@@ -65,6 +65,7 @@ const navGroups: NavGroup[] = [
       { icon: Filter, label: "Super Filtro", href: "/filtros" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
+      { icon: Package, label: "Cadastrar Produtos", href: "/cadastro-produtos", adminOnly: true },
     ],
   },
   {
@@ -141,6 +142,9 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
   };
 
   const renderNavLink = (item: NavItem) => {
+    // Ocultar itens admin se usuário não for admin/manager
+    if (item.adminOnly && !isAdmin) return null;
+    
     const isActive = isItemActive(item.href);
     const Icon = item.icon;
 
