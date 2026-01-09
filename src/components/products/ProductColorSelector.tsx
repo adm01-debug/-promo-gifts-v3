@@ -130,9 +130,22 @@ export function ProductColorSelector({
                   style={{
                     backgroundColor: colorHex,
                     border: isWhite ? "2px solid hsl(var(--border))" : "2px solid transparent",
+                    boxShadow: isSelected 
+                      ? `0 0 12px 3px ${colorHex}80, 0 0 20px 6px ${colorHex}40` 
+                      : undefined,
                   }}
                   whileHover={{ scale: 1.15 }}
                   whileTap={{ scale: 0.95 }}
+                  animate={isSelected ? {
+                    boxShadow: [
+                      `0 0 12px 3px ${colorHex}80, 0 0 20px 6px ${colorHex}40`,
+                      `0 0 16px 5px ${colorHex}90, 0 0 24px 8px ${colorHex}50`,
+                      `0 0 12px 3px ${colorHex}80, 0 0 20px 6px ${colorHex}40`,
+                    ],
+                  } : {}}
+                  transition={isSelected ? {
+                    boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+                  } : {}}
                 >
                   {/* Check mark para cor selecionada */}
                   <AnimatePresence>
