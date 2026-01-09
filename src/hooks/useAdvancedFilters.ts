@@ -148,7 +148,7 @@ export function useAdvancedFilters() {
         await Promise.all([
           categoriesDB.fetchAll({ filters: { is_active: true }, limit: 500 }),
           techniquesDB.fetchAll({ filters: { is_active: true }, limit: 100 }),
-          suppliersDB.fetchAll({ filters: { is_active: true }, limit: 100 }),
+          suppliersDB.fetchAll({ limit: 100 }), // suppliers usa 'active' não 'is_active'
           colorGroupsDB.fetchAll({ filters: { is_active: true }, limit: 100 }),
           tagsDB.fetchAll({ limit: 200 }),
         ]);
