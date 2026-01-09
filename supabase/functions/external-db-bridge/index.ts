@@ -189,30 +189,36 @@ serve(async (req) => {
       );
     }
 
-    // Criar cliente local para validar usuário
+    // Criar cliente local com SERVICE_ROLE para evitar recursão de RLS
+    // ao buscar user_roles (a policy de user_roles usa has_role() que acessa user_roles)
+    const localServiceSupabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Criar cliente com token do usuário para validação
     const localSupabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Validar token e obter claims
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
+    // Validar token e obter usuário
+    const { data: { user }, error: userError } = await localSupabase.auth.getUser();
     
-    if (claimsError || !claimsData?.claims) {
-      console.error('Token validation failed:', claimsError);
+    if (userError || !user) {
+      console.error('User validation failed:', userError);
       return new Response(
         JSON.stringify({ error: 'Token inválido' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
     console.log(`Request from user: ${userId}`);
 
-    // Buscar role do usuário no banco local
-    const { data: userRoles, error: roleError } = await localSupabase
+    // Buscar role do usuário usando SERVICE_ROLE (bypassa RLS)
+    const { data: userRoles, error: roleError } = await localServiceSupabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId);
