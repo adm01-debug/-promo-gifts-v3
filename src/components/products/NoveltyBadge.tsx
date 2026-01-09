@@ -21,9 +21,9 @@ export function NoveltyBadge({
   size = "md",
   className 
 }: NoveltyBadgeProps) {
-  // Cor verde esmeralda harmonizada
+  // Cor verde esmeralda harmonizada com glow effect
   const getVariantClasses = () => {
-    return "bg-[#10B981] text-white shadow-[#10B981]/30";
+    return "bg-[#10B981] text-white shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_2px_8px_rgba(16,185,129,0.25)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_4px_12px_rgba(16,185,129,0.35)] transition-shadow duration-300";
   };
 
   const getSizeClasses = () => {
@@ -66,7 +66,7 @@ export function NoveltyBadge({
   const content = (
     <Badge 
       className={cn(
-        "inline-flex items-center font-semibold shadow-md rounded-full",
+        "inline-flex items-center font-semibold rounded-full animate-[badge-pop_0.4s_ease-out]",
         getVariantClasses(),
         getSizeClasses(),
         className

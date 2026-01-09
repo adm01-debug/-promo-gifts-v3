@@ -267,7 +267,7 @@ export default function Auth() {
                   return (
                     <div 
                       key={i} 
-                      className="shimmer-hover p-4 rounded-xl bg-card/95 backdrop-blur-sm border border-orange/40 shadow-lg hover:shadow-[0_8px_30px_hsl(var(--orange)/0.25),0_0_20px_hsl(var(--orange)/0.15)] hover:border-orange/60 hover:scale-[1.02] transition-all duration-300 group opacity-0"
+                      className="p-4 rounded-xl bg-card/95 backdrop-blur-md border border-border shadow-lg hover:shadow-xl hover:border-orange/50 hover:scale-[1.02] transition-all duration-300 group opacity-0"
                       style={{ 
                         animation: `scale-fade-in 0.5s ease-out ${300 + i * 150}ms forwards`
                       }}
@@ -275,15 +275,32 @@ export default function Auth() {
                       <div className="flex items-start justify-between">
                         <div>
                           <p className="text-2xl font-bold text-orange">{item.label}</p>
-                          <p className="text-sm text-foreground">{item.desc}</p>
-                      </div>
-                      <div className="w-10 h-10 rounded-lg bg-orange/10 flex items-center justify-center group-hover:bg-orange/20 transition-colors">
-                        <IconComponent className="h-5 w-5 text-orange" />
+                          <p className="text-sm font-medium text-foreground">{item.desc}</p>
+                        </div>
+                        <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors">
+                          <IconComponent className="h-5 w-5 text-orange" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="flex items-center gap-4 pt-6 opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 900ms forwards' }}>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Dados protegidos</span>
+              </div>
+              <div className="w-px h-4 bg-border" />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span>SSL Seguro</span>
+              </div>
             </div>
           </div>
         </div>
@@ -343,7 +360,7 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-border/60 bg-card shadow-2xl ring-1 ring-border/20 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card className={`border-border/60 bg-card shadow-2xl ring-1 ring-border/20 backdrop-blur-sm ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="pt-6 pb-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
@@ -445,7 +462,7 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       variant="orange"
-                      className="w-full h-11 text-base font-semibold" 
+                      className="w-full h-12 text-base font-semibold shadow-lg shadow-orange/25 hover:shadow-xl hover:shadow-orange/30 transition-all duration-300" 
                       disabled={isSubmitting || (showCaptcha && !canAttemptLogin())}
                     >
                       {isSubmitting ? (

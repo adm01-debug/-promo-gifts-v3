@@ -137,10 +137,10 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card border border-border/50 cursor-pointer",
-        "transition-all duration-500 ease-out",
-        "hover:border-primary/30 hover:shadow-xl hover:-translate-y-1 sm:hover:-translate-y-2",
-        "active:scale-[0.98] touch-manipulation",
+        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card border border-border/50 cursor-pointer card-lift",
+        "transition-all duration-300 ease-out",
+        "hover:border-primary/30 hover:shadow-xl",
+        "active:scale-[0.98] active:transition-transform active:duration-100 touch-manipulation",
         product.featured && "ring-2 ring-primary/20 shadow-lg",
         hasHighlightedColor && "ring-2 ring-success/40 shadow-glow-success"
       )}
@@ -150,9 +150,9 @@ export function ProductCard({
     >
       {/* Image container with gradient overlay */}
       <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-secondary/50 to-muted/30">
-        {/* Skeleton loader */}
+        {/* Skeleton loader with shimmer */}
         {!imageLoaded && (
-          <div className="absolute inset-0 animate-shimmer" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
         )}
         
         <img
@@ -240,7 +240,7 @@ export function ProductCard({
                 <Heart
                   className={cn(
                     "h-5 w-5 transition-all duration-300",
-                    isFavorited && "fill-destructive text-destructive scale-125 animate-heart-beat"
+                    isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill"
                   )}
                 />
               </Button>
