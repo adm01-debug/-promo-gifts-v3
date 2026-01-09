@@ -13,7 +13,7 @@ export interface UseMaterialGroupsReturn {
 
 export function useMaterialGroups(): UseMaterialGroupsReturn {
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['material-groups'],
+    queryKey: ['material-groups', 'v2'],
     queryFn: () => materialService.getGroups(),
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 30 * 60 * 1000, // 30 minutos
