@@ -1,13 +1,18 @@
-import { useState } from "react";
-import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
+import { useMaterialFilter } from "@/hooks/useMaterialFilter";
+import { MaterialBadge } from "@/components/materials/MaterialBadge";
 import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import {
   CATEGORIES,
@@ -16,7 +21,6 @@ import {
   DATAS_COMEMORATIVAS,
   ENDOMARKETING,
   NICHOS,
-  MATERIAIS,
   FAIXAS_PRECO,
 } from "@/data/mockData";
 
@@ -66,8 +70,49 @@ export const defaultFilters: FilterState = {
 };
 
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount }: FilterPanelProps) {
-  const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco']);
+  const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco', 'materiais']);
+  const [materialSearch, setMaterialSearch] = useState('');
   const { data: categoryIcons = [] } = useCategoryIcons();
+
+  // Hook de materiais
+  const {
+    groups: materialGroups,
+    materials: allMaterials,
+    isLoading: materialsLoading,
+    filterState: materialFilterState,
+    toggleGroup: toggleMaterialGroup,
+    toggleType: toggleMaterialType,
+    isGroupSelected: isMaterialGroupSelected,
+    getTypesForGroup,
+  } = useMaterialFilter();
+
+  // Expandir automaticamente grupos com materiais selecionados
+  useEffect(() => {
+    if (materialGroups.length > 0 && (materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0)) {
+      const groupsWithSelection = new Set<string>();
+      
+      materialFilterState.selectedGroups.forEach(slug => {
+        groupsWithSelection.add(`mat-${slug}`);
+      });
+      
+      materialFilterState.selectedTypes.forEach(typeSlug => {
+        const material = allMaterials.find(m => m.type_slug === typeSlug);
+        if (material) {
+          groupsWithSelection.add(`mat-${material.group_slug}`);
+        }
+      });
+      
+      setOpenSections(prev => {
+        const newSections = [...prev];
+        groupsWithSelection.forEach(section => {
+          if (!newSections.includes(section)) {
+            newSections.push(section);
+          }
+        });
+        return newSections;
+      });
+    }
+  }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes, materialGroups, allMaterials]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
@@ -291,21 +336,230 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           </div>
         </FilterSection>
 
-        {/* Materiais */}
+        {/* Materiais - Sistema Dinâmico com Accordion */}
         <FilterSection id="materiais" title="Materiais">
-          <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-thin">
-            {MATERIAIS.slice(0, 12).map((material) => (
-              <div key={material} className="flex items-center gap-2">
-                <Checkbox
-                  id={`mat-${material}`}
-                  checked={filters.materiais.includes(material)}
-                  onCheckedChange={() => toggleArrayFilter('materiais', material)}
-                />
-                <Label htmlFor={`mat-${material}`} className="text-sm cursor-pointer">
-                  {material}
-                </Label>
+          <div className="space-y-3">
+            {/* Badges dos materiais selecionados */}
+            {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
+              <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+                    <Gem className="h-3 w-3" />
+                    Selecionados
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      materialFilterState.selectedGroups.forEach(slug => toggleMaterialGroup(slug));
+                      materialFilterState.selectedTypes.forEach(slug => toggleMaterialType(slug));
+                    }}
+                    className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Limpar todos
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {materialFilterState.selectedGroups.map(slug => {
+                    const group = materialGroups.find(g => g.group_slug === slug);
+                    return group ? (
+                      <MaterialBadge
+                        key={`group-${slug}`}
+                        name={group.group_name}
+                        hexCode={group.group_hex_code}
+                        size="sm"
+                        variant="solid"
+                        onRemove={() => toggleMaterialGroup(slug)}
+                      />
+                    ) : null;
+                  })}
+                  {materialFilterState.selectedTypes.map(slug => {
+                    const material = allMaterials.find(m => m.type_slug === slug);
+                    const group = material ? materialGroups.find(g => g.group_slug === material.group_slug) : null;
+                    return material ? (
+                      <MaterialBadge
+                        key={`type-${slug}`}
+                        name={material.type_name}
+                        hexCode={group?.group_hex_code}
+                        size="sm"
+                        variant="outline"
+                        onRemove={() => toggleMaterialType(slug)}
+                      />
+                    ) : null;
+                  })}
+                </div>
               </div>
-            ))}
+            )}
+
+            {/* Busca de materiais */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar material..."
+                value={materialSearch}
+                onChange={(e) => setMaterialSearch(e.target.value)}
+                className="h-8 text-sm pl-8 pr-8"
+              />
+              {materialSearch && (
+                <button
+                  type="button"
+                  onClick={() => setMaterialSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Estatísticas rápidas */}
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+              <span>{materialGroups.length} grupos</span>
+              <span>•</span>
+              <span>{allMaterials.length} materiais</span>
+              <span>•</span>
+              <span className="text-primary font-medium">
+                {materialFilterState.selectedGroups.length + materialFilterState.selectedTypes.length} selecionados
+              </span>
+            </div>
+            
+            {/* Loading */}
+            {materialsLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            ) : (
+              <ScrollArea className="h-48">
+                <div className="space-y-1.5 pr-3">
+                  {/* Grupos de materiais com accordion */}
+                  {materialGroups
+                    .filter(g => 
+                      !materialSearch || 
+                      g.group_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+                      getTypesForGroup(g.group_slug).some(t => 
+                        t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
+                      )
+                    )
+                    .map(group => {
+                      const types = getTypesForGroup(group.group_slug);
+                      const isOpen = openSections.includes(`mat-${group.group_slug}`);
+                      const isSelected = isMaterialGroupSelected(group.group_slug);
+                      const selectedTypesCount = types.filter(t => 
+                        materialFilterState.selectedTypes.includes(t.type_slug)
+                      ).length;
+                      const hasSelection = isSelected || selectedTypesCount > 0;
+                      
+                      return (
+                        <div 
+                          key={group.group_slug} 
+                          className={cn(
+                            "rounded-lg border transition-all",
+                            hasSelection 
+                              ? "border-primary/30 bg-primary/5" 
+                              : "border-border/50 hover:border-border"
+                          )}
+                        >
+                          {/* Header do grupo */}
+                          <div className="flex items-center gap-2 p-2">
+                            {/* Checkbox do grupo */}
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleMaterialGroup(group.group_slug)}
+                              className="h-4 w-4"
+                            />
+                            
+                            {/* Cor do grupo */}
+                            {group.group_hex_code && (
+                              <div 
+                                className="w-3 h-3 rounded-full ring-1 ring-border/50"
+                                style={{ backgroundColor: group.group_hex_code }}
+                              />
+                            )}
+                            
+                            {/* Nome do grupo e contador */}
+                            <button
+                              type="button"
+                              onClick={() => toggleSection(`mat-${group.group_slug}`)}
+                              className="flex-1 flex items-center justify-between text-left"
+                            >
+                              <span className={cn(
+                                "text-sm font-medium",
+                                hasSelection && "text-primary"
+                              )}>
+                                {group.group_name}
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                {selectedTypesCount > 0 && (
+                                  <Badge variant="secondary" className="h-4 text-[10px] px-1.5">
+                                    {selectedTypesCount}
+                                  </Badge>
+                                )}
+                                <Badge variant="outline" className="h-4 text-[10px] px-1.5">
+                                  {types.length}
+                                </Badge>
+                                {isOpen ? (
+                                  <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                                ) : (
+                                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                                )}
+                              </div>
+                            </button>
+                          </div>
+                          
+                          {/* Tipos de material (expandido) */}
+                          {isOpen && types.length > 0 && (
+                            <div className="px-2 pb-2 pt-1 border-t border-border/30">
+                              <div className="space-y-1 pl-6">
+                                {types
+                                  .filter(t => 
+                                    !materialSearch || 
+                                    t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
+                                  )
+                                  .map(type => {
+                                    const isTypeSelected = materialFilterState.selectedTypes.includes(type.type_slug);
+                                    return (
+                                      <div 
+                                        key={type.type_slug} 
+                                        className={cn(
+                                          "flex items-center gap-2 py-1 px-2 rounded-md transition-colors",
+                                          isTypeSelected 
+                                            ? "bg-primary/10" 
+                                            : "hover:bg-muted/50"
+                                        )}
+                                      >
+                                        <Checkbox
+                                          checked={isTypeSelected}
+                                          onCheckedChange={() => toggleMaterialType(type.type_slug)}
+                                          className="h-3.5 w-3.5"
+                                        />
+                                        <Label className="text-xs cursor-pointer flex-1">
+                                          {type.type_name}
+                                        </Label>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    
+                  {/* Nenhum material encontrado */}
+                  {materialGroups.filter(g => 
+                    !materialSearch || 
+                    g.group_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+                    getTypesForGroup(g.group_slug).some(t => 
+                      t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
+                    )
+                  ).length === 0 && (
+                    <p className="text-sm text-muted-foreground py-2 text-center">
+                      Nenhum material encontrado
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            )}
           </div>
         </FilterSection>
 
