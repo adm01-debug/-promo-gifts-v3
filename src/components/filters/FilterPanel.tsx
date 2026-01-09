@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Palette, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -8,8 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
+import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import {
-  COLORS,
   CATEGORIES,
   SUPPLIERS,
   PUBLICO_ALVO,
@@ -21,6 +21,11 @@ import {
 } from "@/data/mockData";
 
 export interface FilterState {
+  // Sistema hierárquico de cores
+  colorGroups: string[];      // slugs dos grupos (Azul, Verde, etc.)
+  colorVariations: string[];  // slugs das variações (Azul Royal, etc.)
+  colorNuances: string[];     // slugs das nuances (Metalizado, etc.)
+  // Mantém compatibilidade com o antigo
   colors: string[];
   categories: number[];
   suppliers: string[];
@@ -43,6 +48,9 @@ interface FilterPanelProps {
 }
 
 export const defaultFilters: FilterState = {
+  colorGroups: [],
+  colorVariations: [],
+  colorNuances: [],
   colors: [],
   categories: [],
   suppliers: [],
@@ -143,26 +151,26 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       </div>
 
       <div className="divide-y divide-border">
-        {/* Cores */}
-        <FilterSection id="cores" title="Cores" icon={<Palette className="h-4 w-4" />}>
-          <div className="flex flex-wrap gap-2">
-            {COLORS.map((color) => (
-              <button
-                key={color.name}
-                onClick={() => toggleArrayFilter('colors', color.name)}
-                className={cn(
-                  "color-badge",
-                  filters.colors.includes(color.name) && "selected"
-                )}
-                style={{ 
-                  backgroundColor: color.hex,
-                  border: color.hex === '#FFFFFF' ? '2px solid hsl(var(--border))' : undefined
-                }}
-                title={color.name}
-              />
-            ))}
-          </div>
-        </FilterSection>
+        {/* Cores - Sistema Hierárquico */}
+        <div className="py-3">
+          <ColorGroupFilter
+            selection={{
+              groups: filters.colorGroups,
+              variations: filters.colorVariations,
+              nuances: filters.colorNuances,
+            }}
+            onChange={(selection: ColorFilterSelection) => {
+              onFilterChange({
+                ...filters,
+                colorGroups: selection.groups,
+                colorVariations: selection.variations,
+                colorNuances: selection.nuances,
+              });
+            }}
+            showNuances={true}
+            showVariations={true}
+          />
+        </div>
 
         {/* Categorias */}
         <FilterSection id="categorias" title="Categorias">
