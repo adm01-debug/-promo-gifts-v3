@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfQuarter, endOfQuarter, format } from "date-fns";
-import { useGamification } from "./useGamification";
+
 
 export interface SalesGoal {
   id: string;
@@ -33,7 +33,7 @@ export interface CreateGoalInput {
 export function useSalesGoals() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { addXp, addCoins } = useGamification();
+
 
   // Get date range based on goal type
   const getDateRange = (type: "monthly" | "weekly" | "quarterly") => {
@@ -180,20 +180,13 @@ export function useSalesGoals() {
 
       return { goal: data as SalesGoal, justAchieved: isAchieved && wasNotAchieved };
     },
-    onSuccess: async ({ goal, justAchieved }) => {
+    onSuccess: async ({ justAchieved }) => {
       queryClient.invalidateQueries({ queryKey: ["sales-goals"] });
       queryClient.invalidateQueries({ queryKey: ["active-sales-goal"] });
 
       if (justAchieved) {
-        // Reward for achieving goal
-        const xpReward = goal.goal_type === "monthly" ? 500 : goal.goal_type === "quarterly" ? 1000 : 200;
-        const coinsReward = goal.goal_type === "monthly" ? 100 : goal.goal_type === "quarterly" ? 250 : 50;
-
-        await addXp(xpReward);
-        await addCoins(coinsReward);
-
         toast.success("🎉 Meta atingida!", {
-          description: `Parabéns! Você ganhou ${xpReward} XP e ${coinsReward} moedas!`,
+          description: "Parabéns! Você atingiu sua meta!",
         });
       }
     },

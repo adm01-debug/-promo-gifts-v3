@@ -1,6 +1,5 @@
-import React, { createContext, useContext, ReactNode, useCallback, useRef } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
 import { useFavorites, FavoriteItem } from "@/hooks/useFavorites";
-import { useGamification } from "@/hooks/useGamification";
 import { Product } from "@/data/mockData";
 
 interface FavoritesContextType {
@@ -18,17 +17,7 @@ interface FavoritesContextType {
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const { addXp } = useGamification();
-  const addXpRef = useRef(addXp);
-  addXpRef.current = addXp;
-
-  const handleFavoriteAdded = useCallback(() => {
-    addXpRef.current(5);
-  }, []);
-
-  const favoritesHook = useFavorites({
-    onFavoriteAdded: handleFavoriteAdded,
-  });
+  const favoritesHook = useFavorites();
 
   return (
     <FavoritesContext.Provider value={favoritesHook}>

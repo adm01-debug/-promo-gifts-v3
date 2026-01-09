@@ -54,7 +54,7 @@ const NOTIFICATION_CONFIG: Record<
     icon: Trophy,
     color: "text-yellow-500 bg-yellow-500/10",
     actionLabel: "Ver conquistas",
-    route: "/gamification",
+    route: "/",
   },
   quote_approved: {
     icon: FileCheck,

@@ -204,14 +204,6 @@ export function EnhancedSpotlight() {
         action: () => navigate("/perfil"),
         category: "Sistema",
       },
-      {
-        id: "rewards",
-        title: "Loja de Recompensas",
-        description: "XP, conquistas e prêmios",
-        icon: <Sparkles className="h-4 w-4" />,
-        action: () => navigate("/loja-recompensas"),
-        category: "Sistema",
-      },
     ],
     [navigate]
   );

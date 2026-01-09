@@ -90,13 +90,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     route: "/tendencias",
   },
   {
-    id: "gamification",
-    title: "Sistema de Gamificação",
-    description: "Ganhe XP e moedas por cada atividade! Suba de nível, desbloqueie conquistas e troque coins por recompensas exclusivas na loja.",
-    targetSelector: "[data-tour='gamification']",
-    position: "bottom",
-  },
-  {
     id: "notifications",
     title: "Central de Notificações",
     description: "Receba alertas importantes, lembretes de follow-up e atualizações de orçamentos. Configure lembretes para nunca perder um deal!",

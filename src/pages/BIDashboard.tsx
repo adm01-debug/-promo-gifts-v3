@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { StatCard, MiniStatCard } from "@/components/ui/stat-card";
-import { SellerLeaderboard } from "@/components/gamification/SellerLeaderboard";
+
 import { SalesGoalsCard } from "@/components/goals/SalesGoalsCard";
 import { NoveltiesSection } from "@/components/novelties/NoveltiesSection";
 import {
@@ -277,8 +277,6 @@ export default function BIDashboard() {
             </CardContent>
           </Card>
 
-          {/* Seller Leaderboard */}
-          <SellerLeaderboard limit={5} className="lg:col-span-1" />
         </div>
 
         {/* Price Ranges Chart */}

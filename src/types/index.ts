@@ -8,7 +8,7 @@ export * from './quote';
 export * from './favorite';
 export * from './client';
 export * from './personalization';
-export * from './gamification';
+
 export * from './expert';
 export * from './onboarding';
 export * from './mockup';

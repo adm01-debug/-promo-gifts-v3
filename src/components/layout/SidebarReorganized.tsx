@@ -18,14 +18,9 @@ import {
   Calculator,
   Wand2,
   Sparkles,
-  BarChart3,
-  TrendingUp,
   FileText,
   ShoppingCart,
-  ShoppingBag,
-  Activity,
   Star,
-  Gift,
   Wrench,
   Lock,
   Zap,
@@ -58,19 +53,8 @@ interface NavItem {
   badge?: string | number;
 }
 
-// Reorganized navigation in 6 logical groups
+// Reorganized navigation in 4 logical groups
 const navGroups: NavGroup[] = [
-  {
-    id: "analytics",
-    label: "Analytics",
-    icon: BarChart3,
-    defaultOpen: true,
-    items: [
-      { icon: BarChart3, label: "Dashboard BI", href: "/bi", tourId: "bi" },
-      { icon: TrendingUp, label: "Tendências", href: "/tendencias" },
-      { icon: Activity, label: "Status", href: "/status" },
-    ],
-  },
   {
     id: "catalog",
     label: "Catálogo",
@@ -84,20 +68,10 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    id: "sales",
-    label: "Vendas",
-    icon: FileText,
-    defaultOpen: true,
-    items: [
-      { icon: Users, label: "Clientes", href: "/clientes", tourId: "clients" },
-      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes" },
-      { icon: ShoppingCart, label: "Pedidos", href: "/pedidos" },
-    ],
-  },
-  {
     id: "tools",
     label: "Ferramentas",
     icon: Wrench,
+    defaultOpen: false,
     items: [
       { icon: Calculator, label: "Simulador", href: "/simulador" },
       { icon: Calculator, label: "Preços por Tiragem", href: "/simulador-precos" },
@@ -107,20 +81,24 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    id: "my-items",
-    label: "Meus Itens",
-    icon: Star,
+    id: "quotes",
+    label: "Orçamentos",
+    icon: FileText,
+    defaultOpen: false,
     items: [
-      { icon: Heart, label: "Favoritos", href: "/favoritos" },
-      { icon: GitCompare, label: "Comparar", href: "/comparar" },
+      { icon: Users, label: "Clientes", href: "/clientes", tourId: "clients" },
+      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes" },
+      { icon: ShoppingCart, label: "Pedidos", href: "/pedidos" },
     ],
   },
   {
-    id: "rewards",
-    label: "Recompensas",
-    icon: Gift,
+    id: "my-items",
+    label: "Meus Itens",
+    icon: Star,
+    defaultOpen: false,
     items: [
-      { icon: ShoppingBag, label: "Loja", href: "/loja-recompensas" },
+      { icon: Heart, label: "Favoritos", href: "/favoritos" },
+      { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
 ];

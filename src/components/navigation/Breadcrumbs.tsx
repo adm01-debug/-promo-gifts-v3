@@ -30,7 +30,7 @@ const routeLabels: Record<string, string> = {
   "colecoes": "Coleções",
   "bi": "Dashboard BI",
   "tendencias": "Tendências",
-  "loja-recompensas": "Loja de Recompensas",
+  
   "perfil": "Meu Perfil",
   "seguranca": "Segurança",
   "admin": "Administração",

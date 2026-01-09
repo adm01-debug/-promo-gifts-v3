@@ -17,7 +17,7 @@ import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
-import { GamificationIndicators } from "./GamificationIndicators";
+
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FollowUpRemindersPopover } from "@/components/reminders/FollowUpRemindersPopover";
@@ -103,10 +103,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
         {/* Right section */}
         <div className="flex items-center gap-0.5 sm:gap-1.5">
-          {/* Gamification indicators - hidden on very small screens */}
-          <div data-tour="gamification" className="hidden xs:block">
-            <GamificationIndicators />
-          </div>
 
           {/* Mobile search trigger */}
           <Button 
