@@ -288,8 +288,8 @@ export function ColorGroupFilter({
           </div>
         </div>
         
-        <ScrollArea className="max-h-[400px]">
-          <div className="p-3 space-y-4">
+        <ScrollArea className="max-h-[50vh] overflow-auto">
+          <div className="p-3 space-y-4 pr-4">
             {/* Grupos de Cor (Swatches) */}
             <div>
               <h5 className="text-xs font-medium text-muted-foreground mb-2">
