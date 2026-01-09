@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -85,6 +85,37 @@ export function AdvancedFilterPanel({
     isGroupSelected: isMaterialGroupSelected,
     getTypesForGroup,
   } = useMaterialFilter();
+
+  // Expandir automaticamente grupos com materiais selecionados
+  React.useEffect(() => {
+    if (materialGroups.length > 0 && (materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0)) {
+      const groupsWithSelection = new Set<string>();
+      
+      // Adicionar grupos selecionados
+      materialFilterState.selectedGroups.forEach(slug => {
+        groupsWithSelection.add(`mat-${slug}`);
+      });
+      
+      // Adicionar grupos que contêm tipos selecionados
+      materialFilterState.selectedTypes.forEach(typeSlug => {
+        const material = allMaterials.find(m => m.type_slug === typeSlug);
+        if (material) {
+          groupsWithSelection.add(`mat-${material.group_slug}`);
+        }
+      });
+      
+      // Expandir esses grupos se ainda não estiverem abertos
+      setOpenSections(prev => {
+        const newSections = [...prev];
+        groupsWithSelection.forEach(section => {
+          if (!newSections.includes(section)) {
+            newSections.push(section);
+          }
+        });
+        return newSections;
+      });
+    }
+  }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes, materialGroups, allMaterials]);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev =>
@@ -343,7 +374,7 @@ export function AdvancedFilterPanel({
           </div>
         </FilterSection>
 
-        {/* Materiais */}
+        {/* Materiais - Design Aprimorado */}
         <FilterSection 
           id="materials" 
           title="Materiais" 
@@ -351,24 +382,99 @@ export function AdvancedFilterPanel({
           badge={materialFilterState.selectedGroups.length + materialFilterState.selectedTypes.length}
         >
           <div className="space-y-3">
-            {/* Busca de materiais */}
-            <Input
-              placeholder="Buscar material..."
-              value={materialSearch}
-              onChange={(e) => setMaterialSearch(e.target.value)}
-              className="h-8 text-sm"
-            />
+            {/* Badges dos materiais selecionados - No topo para melhor UX */}
+            {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
+              <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+                    <Gem className="h-3 w-3" />
+                    Selecionados
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      materialFilterState.selectedGroups.forEach(slug => toggleMaterialGroup(slug));
+                      materialFilterState.selectedTypes.forEach(slug => toggleMaterialType(slug));
+                    }}
+                    className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Limpar todos
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {materialFilterState.selectedGroups.map(slug => {
+                    const group = materialGroups.find(g => g.group_slug === slug);
+                    return group ? (
+                      <MaterialBadge
+                        key={`group-${slug}`}
+                        name={group.group_name}
+                        hexCode={group.group_hex_code}
+                        size="sm"
+                        variant="solid"
+                        onRemove={() => toggleMaterialGroup(slug)}
+                      />
+                    ) : null;
+                  })}
+                  {materialFilterState.selectedTypes.map(slug => {
+                    const material = allMaterials.find(m => m.type_slug === slug);
+                    const group = material ? materialGroups.find(g => g.group_slug === material.group_slug) : null;
+                    return material ? (
+                      <MaterialBadge
+                        key={`type-${slug}`}
+                        name={material.type_name}
+                        hexCode={group?.group_hex_code}
+                        size="sm"
+                        variant="outline"
+                        onRemove={() => toggleMaterialType(slug)}
+                      />
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Busca de materiais aprimorada */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar material ou grupo..."
+                value={materialSearch}
+                onChange={(e) => setMaterialSearch(e.target.value)}
+                className="h-8 text-sm pl-8 pr-8"
+              />
+              {materialSearch && (
+                <button
+                  type="button"
+                  onClick={() => setMaterialSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Estatísticas rápidas */}
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+              <span>{materialGroups.length} grupos</span>
+              <span>•</span>
+              <span>{allMaterials.length} materiais</span>
+              <span>•</span>
+              <span className="text-primary font-medium">
+                {materialFilterState.selectedGroups.length + materialFilterState.selectedTypes.length} selecionados
+              </span>
+            </div>
             
             {/* Loading */}
             {materialsLoading ? (
               <div className="space-y-2">
-                <Skeleton className="h-8 w-full" />
-                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-12 w-full rounded-lg" />
+                <Skeleton className="h-12 w-full rounded-lg" />
+                <Skeleton className="h-12 w-full rounded-lg" />
               </div>
             ) : (
-              <ScrollArea className="h-52">
-                <div className="space-y-2 pr-3">
-                  {/* Grupos de materiais */}
+              <ScrollArea className="h-56">
+                <div className="space-y-1.5 pr-3">
+                  {/* Grupos de materiais com design aprimorado */}
                   {materialGroups
                     .filter(g => 
                       !materialSearch || 
@@ -384,85 +490,136 @@ export function AdvancedFilterPanel({
                       const selectedTypesCount = types.filter(t => 
                         materialFilterState.selectedTypes.includes(t.type_slug)
                       ).length;
+                      const hasAnySelection = isSelected || selectedTypesCount > 0;
                       
                       return (
-                        <div key={group.group_id} className={cn(
-                          "border rounded-md overflow-hidden",
-                          isSelected || selectedTypesCount > 0 
-                            ? "border-primary/30 bg-primary/5" 
-                            : "border-border"
-                        )}>
-                          {/* Header do grupo */}
-                          <div className="flex items-center gap-2 p-2 bg-muted/30">
+                        <div 
+                          key={group.group_id} 
+                          className={cn(
+                            "rounded-lg overflow-hidden transition-all duration-200",
+                            hasAnySelection 
+                              ? "bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30" 
+                              : "bg-muted/30 hover:bg-muted/50"
+                          )}
+                        >
+                          {/* Header do grupo - Design aprimorado */}
+                          <div className="flex items-center gap-2 p-2.5">
+                            {/* Botão de expandir com animação */}
                             <button
                               type="button"
                               onClick={() => toggleSection(`mat-${group.group_slug}`)}
-                              className="p-0.5 hover:bg-muted rounded"
-                            >
-                              {isOpen ? (
-                                <ChevronUp className="h-3 w-3 text-muted-foreground" />
-                              ) : (
-                                <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                              className={cn(
+                                "p-1 rounded-md transition-all duration-200",
+                                isOpen ? "bg-primary/10 rotate-0" : "bg-muted hover:bg-muted/80"
                               )}
+                            >
+                              <ChevronDown className={cn(
+                                "h-3.5 w-3.5 transition-transform duration-200",
+                                isOpen ? "rotate-180 text-primary" : "text-muted-foreground"
+                              )} />
                             </button>
                             
-                            <div className="flex items-center gap-2 flex-1">
+                            {/* Checkbox e info do grupo */}
+                            <div className="flex items-center gap-2.5 flex-1 min-w-0">
                               <Checkbox
                                 checked={isSelected}
                                 onCheckedChange={() => toggleMaterialGroup(group.group_slug)}
-                                className="data-[state=checked]:bg-primary"
+                                className={cn(
+                                  "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                                  "transition-all duration-200"
+                                )}
                               />
-                              {group.group_hex_code && (
-                                <span
-                                  className="w-3 h-3 rounded-full border"
-                                  style={{ backgroundColor: group.group_hex_code }}
-                                />
-                              )}
+                              
+                              {/* Indicador de cor do grupo */}
+                              <div 
+                                className={cn(
+                                  "w-4 h-4 rounded-full flex-shrink-0 ring-2 ring-offset-1 ring-offset-background transition-all",
+                                  hasAnySelection ? "ring-primary/50 scale-110" : "ring-border/50"
+                                )}
+                                style={{ 
+                                  backgroundColor: group.group_hex_code || 'hsl(var(--muted))',
+                                  boxShadow: group.group_hex_code ? `0 2px 8px ${group.group_hex_code}40` : 'none'
+                                }}
+                              />
+                              
+                              {/* Nome do grupo */}
                               <span className={cn(
-                                "text-sm font-medium",
-                                isSelected ? "text-primary" : ""
+                                "text-sm font-medium truncate transition-colors",
+                                hasAnySelection ? "text-primary" : "text-foreground"
                               )}>
                                 {group.group_name}
                               </span>
                             </div>
                             
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            {/* Contadores */}
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
                               {selectedTypesCount > 0 && (
-                                <Badge variant="secondary" className="h-4 text-[10px] px-1">
+                                <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                                   {selectedTypesCount}
-                                </Badge>
+                                </span>
                               )}
-                              <span>{group.total_materials}</span>
+                              <span className={cn(
+                                "text-[11px] px-1.5 py-0.5 rounded-full",
+                                hasAnySelection 
+                                  ? "bg-primary/20 text-primary font-medium" 
+                                  : "bg-muted text-muted-foreground"
+                              )}>
+                                {group.total_materials}
+                              </span>
                             </div>
                           </div>
                           
-                          {/* Tipos do grupo */}
+                          {/* Tipos do grupo - Design aprimorado */}
                           {isOpen && types.length > 0 && (
-                            <div className="p-2 space-y-1 border-t border-border/50">
-                              {types
-                                .filter(t => 
-                                  !materialSearch || 
-                                  t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
-                                )
-                                .map(type => (
-                                  <label
-                                    key={type.type_id}
-                                    className={cn(
-                                      "flex items-center gap-2 py-1 px-2 rounded cursor-pointer text-sm",
-                                      materialFilterState.selectedTypes.includes(type.type_slug)
-                                        ? "bg-primary/10 text-foreground font-medium"
-                                        : "text-muted-foreground hover:bg-muted/50"
-                                    )}
-                                  >
-                                    <Checkbox
-                                      checked={materialFilterState.selectedTypes.includes(type.type_slug)}
-                                      onCheckedChange={() => toggleMaterialType(type.type_slug)}
-                                      className="data-[state=checked]:bg-primary"
-                                    />
-                                    <span className="truncate">{type.type_name}</span>
-                                  </label>
-                                ))
-                              }
+                            <div className="px-2.5 pb-2.5 space-y-0.5">
+                              <div className="border-t border-border/30 pt-2 ml-8">
+                                {types
+                                  .filter(t => 
+                                    !materialSearch || 
+                                    t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
+                                  )
+                                  .map(type => {
+                                    const isTypeSelected = materialFilterState.selectedTypes.includes(type.type_slug);
+                                    return (
+                                      <label
+                                        key={type.type_id}
+                                        className={cn(
+                                          "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md cursor-pointer text-sm transition-all duration-150",
+                                          isTypeSelected
+                                            ? "bg-primary/15 text-foreground font-medium shadow-sm"
+                                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                                        )}
+                                      >
+                                        <Checkbox
+                                          checked={isTypeSelected}
+                                          onCheckedChange={() => toggleMaterialType(type.type_slug)}
+                                          className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                        />
+                                        {/* Mini indicador de cor herdado do grupo */}
+                                        <span 
+                                          className="w-2 h-2 rounded-full flex-shrink-0"
+                                          style={{ backgroundColor: group.group_hex_code || 'hsl(var(--muted))' }}
+                                        />
+                                        <span className="truncate flex-1">{type.type_name}</span>
+                                        {isTypeSelected && (
+                                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                        )}
+                                      </label>
+                                    );
+                                  })
+                                }
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Mensagem se grupo vazio */}
+                          {isOpen && types.length === 0 && (
+                            <div className="px-2.5 pb-2.5">
+                              <div className="border-t border-border/30 pt-2 ml-8">
+                                <p className="text-xs text-muted-foreground italic py-2">
+                                  Nenhum material neste grupo
+                                </p>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -470,44 +627,39 @@ export function AdvancedFilterPanel({
                     })
                   }
                   
+                  {/* Mensagem se nenhum grupo */}
                   {materialGroups.length === 0 && !materialsLoading && (
-                    <p className="text-sm text-muted-foreground py-2 text-center">
-                      Nenhum material disponível
-                    </p>
+                    <div className="text-center py-8">
+                      <Gem className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum material disponível
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Mensagem se busca não encontrou */}
+                  {materialSearch && materialGroups.filter(g => 
+                    g.group_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
+                    getTypesForGroup(g.group_slug).some(t => 
+                      t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
+                    )
+                  ).length === 0 && (
+                    <div className="text-center py-6">
+                      <Search className="h-6 w-6 text-muted-foreground/50 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">
+                        Nenhum resultado para "{materialSearch}"
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setMaterialSearch('')}
+                        className="text-xs text-primary hover:underline mt-1"
+                      >
+                        Limpar busca
+                      </button>
+                    </div>
                   )}
                 </div>
               </ScrollArea>
-            )}
-            
-            {/* Badges dos materiais selecionados */}
-            {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
-              <div className="flex flex-wrap gap-1 pt-2 border-t">
-                {materialFilterState.selectedGroups.map(slug => {
-                  const group = materialGroups.find(g => g.group_slug === slug);
-                  return group ? (
-                    <MaterialBadge
-                      key={`group-${slug}`}
-                      name={group.group_name}
-                      hexCode={group.group_hex_code}
-                      size="sm"
-                      variant="solid"
-                      onRemove={() => toggleMaterialGroup(slug)}
-                    />
-                  ) : null;
-                })}
-                {materialFilterState.selectedTypes.map(slug => {
-                  const material = allMaterials.find(m => m.type_slug === slug);
-                  return material ? (
-                    <MaterialBadge
-                      key={`type-${slug}`}
-                      name={material.type_name}
-                      size="sm"
-                      variant="outline"
-                      onRemove={() => toggleMaterialType(slug)}
-                    />
-                  ) : null;
-                })}
-              </div>
             )}
           </div>
         </FilterSection>
