@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { StatCard, MiniStatCard } from "@/components/ui/stat-card";
 import { SellerLeaderboard } from "@/components/gamification/SellerLeaderboard";
 import { SalesGoalsCard } from "@/components/goals/SalesGoalsCard";
+import { NoveltiesSection } from "@/components/novelties/NoveltiesSection";
 import {
   Package, 
   Palette, 
@@ -248,6 +249,9 @@ export default function BIDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 🆕 Seção de Novidades */}
+        <NoveltiesSection />
 
         {/* Main KPIs */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

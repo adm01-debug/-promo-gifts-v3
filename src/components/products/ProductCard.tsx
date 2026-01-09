@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { ProductQuickView } from "./ProductQuickView";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
+import { NoveltyBadge } from "./NoveltyBadge";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 
 export interface ProductCardProps {
@@ -25,6 +26,10 @@ export interface ProductCardProps {
   canAddToCompare?: boolean;
   /** Esconder badges de categoria (útil em layouts compactos de grid) */
   hideCategoryBadges?: boolean;
+  /** Se o produto é uma novidade (opcional - se não passar, não mostra o badge) */
+  isNovelty?: boolean;
+  /** Dias restantes como novidade (para mostrar no badge) */
+  noveltyDaysRemaining?: number;
 }
 
 export function ProductCard({ 
@@ -40,6 +45,8 @@ export function ProductCard({
   onToggleCompare,
   canAddToCompare = true,
   hideCategoryBadges = false,
+  isNovelty = false,
+  noveltyDaysRemaining,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
@@ -183,7 +190,10 @@ export function ProductCard({
               <span className="sm:hidden">★</span>
             </Badge>
           )}
-          {product.newArrival && (
+          {/* Badge de novidade: prioriza isNovelty com dias, senão usa newArrival */}
+          {isNovelty && noveltyDaysRemaining !== undefined ? (
+            <NoveltyBadge daysRemaining={noveltyDaysRemaining} size="sm" />
+          ) : product.newArrival && (
             <Badge className="bg-gradient-to-r from-info to-info/80 text-info-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-md">
               <span className="hidden sm:inline">Novidade</span>
               <span className="sm:hidden">Novo</span>
