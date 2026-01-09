@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X,
   Heart,
   GitCompare,
   Share2,
@@ -26,6 +25,7 @@ import { VisuallyHidden } from "@/components/a11y/VisuallyHidden";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/data/mockData";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
+import { ProductColorSelector, type ProductColor } from "./ProductColorSelector";
 import { toast } from "sonner";
 
 interface ProductQuickViewProps {
@@ -52,7 +52,15 @@ export function ProductQuickView({
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedColorIndex, setSelectedColorIndex] = useState<number | null>(null);
+  const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
+  
+  // Mapear cores do produto para o formato do seletor
+  const productColors: ProductColor[] = product.colors.map((color, idx) => ({
+    id: `${product.id}-color-${idx}`,
+    name: color.name,
+    hex: color.hex,
+    variationName: color.name,
+  }));
 
   if (!product) return null;
 
@@ -252,48 +260,15 @@ export function ProductQuickView({
 
             <Separator className="my-4" />
 
-            {/* Colors */}
-            {product.colors.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-foreground">
-                  Cores disponíveis ({product.colors.length})
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {product.colors.slice(0, 8).map((color, idx) => {
-                    const isSelected = selectedColorIndex === idx;
-                    return (
-                      <Tooltip key={idx}>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => setSelectedColorIndex(isSelected ? null : idx)}
-                            className={cn(
-                              "w-8 h-8 rounded-full shadow-sm cursor-pointer",
-                              "transition-all duration-200 hover:scale-110 hover:shadow-md"
-                            )}
-                            style={{
-                              backgroundColor: color.hex,
-                              border: isSelected 
-                                ? `3px solid ${color.hex}` 
-                                : color.hex === "#FFFFFF" 
-                                  ? "2px solid hsl(var(--border))" 
-                                  : "2px solid transparent",
-                              boxShadow: isSelected ? `0 0 0 2px ${color.hex}40` : undefined,
-                              outline: isSelected ? `2px solid white` : undefined,
-                              outlineOffset: isSelected ? '-4px' : undefined,
-                            }}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent>{color.name}</TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                  {product.colors.length > 8 && (
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
-                      +{product.colors.length - 8}
-                    </div>
-                  )}
-                </div>
-              </div>
+            {/* Colors - Usando o novo sistema hierárquico */}
+            {productColors.length > 0 && (
+              <ProductColorSelector
+                colors={productColors}
+                selectedColorId={selectedColorId}
+                onColorSelect={(color) => setSelectedColorId(color.id || null)}
+                maxVisible={8}
+                size="md"
+              />
             )}
 
             {/* Materials */}
