@@ -1,0 +1,338 @@
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sparkles, Star, Clock, ChevronRight, Filter, Package } from "lucide-react";
+import { useNovelties, useNoveltyStats } from "@/hooks/useNovelties";
+import { NoveltyBadge } from "@/components/products/NoveltyBadge";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+
+interface NoveltyCardProps {
+  novelty: {
+    novelty_id: string;
+    product_id: string;
+    product_name: string;
+    product_sku: string | null;
+    supplier_code: string | null;
+    days_remaining: number;
+    is_highlighted: boolean;
+    detected_at: string;
+  };
+  onClick?: () => void;
+}
+
+function NoveltyCard({ novelty, onClick }: NoveltyCardProps) {
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+    });
+  };
+
+  return (
+    <Card 
+      className={cn(
+        "group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
+        "border-border/50 hover:border-primary/30",
+        novelty.is_highlighted && "ring-2 ring-primary/20 bg-gradient-to-br from-primary/5 to-transparent"
+      )}
+      onClick={onClick}
+    >
+      <CardContent className="p-4">
+        {/* Header com badges */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <NoveltyBadge 
+            daysRemaining={novelty.days_remaining} 
+            isHighlighted={novelty.is_highlighted}
+            size="sm"
+          />
+          {novelty.is_highlighted && (
+            <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30">
+              <Star className="h-3 w-3 mr-1 fill-primary text-primary" />
+              Destaque
+            </Badge>
+          )}
+        </div>
+
+        {/* Imagem placeholder */}
+        <div className="aspect-square bg-gradient-to-br from-secondary/50 to-muted/30 rounded-lg mb-3 flex items-center justify-center">
+          <Package className="h-12 w-12 text-muted-foreground/30" />
+        </div>
+
+        {/* Info do produto */}
+        <div className="space-y-2">
+          <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
+            {novelty.product_name}
+          </h4>
+          
+          {novelty.product_sku && (
+            <p className="text-xs text-muted-foreground">
+              SKU: {novelty.product_sku}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {novelty.days_remaining}d restantes
+            </span>
+            {novelty.supplier_code && (
+              <Badge variant="secondary" className="text-[10px]">
+                {novelty.supplier_code}
+              </Badge>
+            )}
+          </div>
+
+          <p className="text-[10px] text-muted-foreground/70">
+            Detectado em {formatDate(novelty.detected_at)}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function NoveltyCardSkeleton() {
+  return (
+    <Card className="border-border/50">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-20" />
+        </div>
+        <Skeleton className="aspect-square rounded-lg mb-3" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <div className="flex justify-between">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-16" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface NoveltyStatCardProps {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  variant?: "default" | "success" | "warning" | "info";
+}
+
+function NoveltyStatCard({ label, value, icon, variant = "default" }: NoveltyStatCardProps) {
+  const getVariantClasses = () => {
+    switch (variant) {
+      case "success":
+        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+      case "warning":
+        return "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+      case "info":
+        return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
+      default:
+        return "bg-primary/10 text-primary";
+    }
+  };
+
+  return (
+    <div className={cn(
+      "flex items-center gap-3 p-3 rounded-lg",
+      getVariantClasses()
+    )}>
+      <div className="shrink-0">{icon}</div>
+      <div>
+        <p className="text-2xl font-bold">{value}</p>
+        <p className="text-xs opacity-80">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+export function NoveltiesSection() {
+  const navigate = useNavigate();
+  const [supplierFilter, setSupplierFilter] = useState<string>("all");
+  const [periodFilter, setPeriodFilter] = useState<string>("all");
+  const [showHighlighted, setShowHighlighted] = useState(false);
+
+  // Calcular maxDays baseado no período
+  const maxDays = periodFilter === "7" ? 7 : periodFilter === "15" ? 15 : undefined;
+
+  const { data: novelties, isLoading } = useNovelties({
+    supplierCode: supplierFilter !== "all" ? supplierFilter : undefined,
+    onlyHighlighted: showHighlighted,
+    maxDays,
+    limit: 8,
+  });
+
+  const { data: stats } = useNoveltyStats();
+
+  // Extrair fornecedores únicos das estatísticas
+  const suppliers = stats?.by_supplier ? Object.keys(stats.by_supplier) : [];
+
+  const handleProductClick = (productId: string) => {
+    navigate(`/produto/${productId}`);
+  };
+
+  return (
+    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-transparent to-transparent">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-green-400 text-white shadow-lg">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="text-xl flex items-center gap-2">
+                Novidades
+                {stats && (
+                  <Badge variant="secondary" className="text-xs">
+                    {stats.active_novelties} produtos
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Lançamentos dos últimos 30 dias
+              </CardDescription>
+            </div>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Filtro de período */}
+            <Select value={periodFilter} onValueChange={setPeriodFilter}>
+              <SelectTrigger className="w-[130px] h-9 text-xs">
+                <Clock className="h-3 w-3 mr-1" />
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos (30d)</SelectItem>
+                <SelectItem value="7">Últimos 7 dias</SelectItem>
+                <SelectItem value="15">Últimos 15 dias</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filtro de fornecedor */}
+            <Select value={supplierFilter} onValueChange={setSupplierFilter}>
+              <SelectTrigger className="w-[140px] h-9 text-xs">
+                <Filter className="h-3 w-3 mr-1" />
+                <SelectValue placeholder="Fornecedor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {suppliers.map((supplier) => (
+                  <SelectItem key={supplier} value={supplier}>
+                    {supplier}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Toggle de destaques */}
+            <Button
+              variant={showHighlighted ? "default" : "outline"}
+              size="sm"
+              className="h-9 text-xs gap-1"
+              onClick={() => setShowHighlighted(!showHighlighted)}
+            >
+              <Star className={cn(
+                "h-3 w-3",
+                showHighlighted && "fill-primary-foreground"
+              )} />
+              Destaques
+            </Button>
+          </div>
+        </div>
+
+        {/* Stats resumidas */}
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+            <NoveltyStatCard
+              label="Novidades ativas"
+              value={stats.active_novelties}
+              icon={<Sparkles className="h-5 w-5" />}
+              variant="success"
+            />
+            <NoveltyStatCard
+              label="Em destaque"
+              value={stats.highlighted_novelties}
+              icon={<Star className="h-5 w-5" />}
+              variant="info"
+            />
+            <NoveltyStatCard
+              label="Expirando em 7d"
+              value={stats.expiring_soon}
+              icon={<Clock className="h-5 w-5" />}
+              variant="warning"
+            />
+            <NoveltyStatCard
+              label="Fornecedores"
+              value={Object.keys(stats.by_supplier || {}).length}
+              icon={<Package className="h-5 w-5" />}
+            />
+          </div>
+        )}
+      </CardHeader>
+
+      <CardContent>
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <NoveltyCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : novelties && novelties.length > 0 ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {novelties.map((novelty) => (
+                <NoveltyCard
+                  key={novelty.novelty_id}
+                  novelty={novelty}
+                  onClick={() => handleProductClick(novelty.product_id)}
+                />
+              ))}
+            </div>
+
+            {/* Link para ver todas */}
+            <div className="flex justify-center mt-6">
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => navigate('/filtros?novidades=true')}
+              >
+                Ver todas as novidades
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <Sparkles className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-muted-foreground">
+              {showHighlighted 
+                ? "Nenhuma novidade em destaque no momento"
+                : "Nenhuma novidade encontrada com os filtros aplicados"
+              }
+            </p>
+            {(supplierFilter !== "all" || periodFilter !== "all" || showHighlighted) && (
+              <Button
+                variant="link"
+                className="mt-2"
+                onClick={() => {
+                  setSupplierFilter("all");
+                  setPeriodFilter("all");
+                  setShowHighlighted(false);
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
