@@ -39,7 +39,7 @@ const routeLabels: Record<string, string> = {
   "seguranca": "Segurança",
   "relatorios": "Relatórios",
   "analytics": "Analytics",
-  "gamificacao": "Gamificação",
+  
   "admin": "Administração",
   "usuarios": "Usuários",
   "permissoes": "Permissões",

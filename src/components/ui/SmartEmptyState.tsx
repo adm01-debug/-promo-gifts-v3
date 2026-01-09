@@ -142,7 +142,7 @@ export function SmartEmptyState({
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  <Sparkles className="h-4 w-4 text-coins" />
+                  <Sparkles className="h-4 w-4 text-orange" />
                 </motion.div>
               </div>
             )}
@@ -167,7 +167,7 @@ export function SmartEmptyState({
               className="w-full max-w-sm mb-6"
             >
               <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-3 justify-center">
-                <Lightbulb className="h-4 w-4 text-coins" />
+                <Lightbulb className="h-4 w-4 text-orange" />
                 <span>Dica rápida:</span>
               </div>
               <ul className="space-y-2">
