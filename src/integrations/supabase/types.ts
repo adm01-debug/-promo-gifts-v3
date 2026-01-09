@@ -1910,6 +1910,56 @@ export type Database = {
         }
         Relationships: []
       }
+      product_novelties: {
+        Row: {
+          created_at: string
+          detected_at: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          is_highlighted: boolean
+          product_id: string
+          supplier_code: string | null
+          supplier_id: string | null
+          supplier_product_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          detected_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          product_id: string
+          supplier_code?: string | null
+          supplier_id?: string | null
+          supplier_product_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          detected_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          product_id?: string
+          supplier_code?: string | null
+          supplier_id?: string | null
+          supplier_product_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_novelties_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_sync_logs: {
         Row: {
           completed_at: string | null
@@ -3052,9 +3102,82 @@ export type Database = {
         }
         Relationships: []
       }
+      v_product_novelties: {
+        Row: {
+          base_price: number | null
+          category_id: number | null
+          category_name: string | null
+          days_remaining: number | null
+          detected_at: string | null
+          expires_at: string | null
+          is_active: boolean | null
+          is_highlighted: boolean | null
+          novelty_id: string | null
+          product_description: string | null
+          product_id: string | null
+          product_image: string | null
+          product_name: string | null
+          product_sku: string | null
+          status: string | null
+          supplier_code: string | null
+          supplier_id: string | null
+          supplier_name: string | null
+          supplier_product_code: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_novelties_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      add_product_novelty: {
+        Args: {
+          p_days_valid?: number
+          p_is_highlighted?: boolean
+          p_product_id: string
+          p_supplier_code?: string
+          p_supplier_product_code?: string
+        }
+        Returns: string
+      }
+      cleanup_expired_novelties: { Args: never; Returns: number }
+      get_active_novelties: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_only_highlighted?: boolean
+          p_supplier_code?: string
+        }
+        Returns: {
+          days_remaining: number
+          detected_at: string
+          expires_at: string
+          is_highlighted: boolean
+          novelty_id: string
+          product_id: string
+          product_name: string
+          product_sku: string
+          supplier_code: string
+          supplier_product_code: string
+        }[]
+      }
       get_color_filters: { Args: never; Returns: Json }
+      get_novelties_stats: {
+        Args: never
+        Returns: {
+          active_novelties: number
+          by_supplier: Json
+          expiring_soon: number
+          highlighted_novelties: number
+          total_novelties: number
+        }[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
