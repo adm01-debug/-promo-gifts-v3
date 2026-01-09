@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useBIMetrics } from "@/hooks/useBIMetrics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { StatCard, MiniStatCard } from "@/components/ui/stat-card";
 import { SellerLeaderboard } from "@/components/gamification/SellerLeaderboard";
 import { SalesGoalsCard } from "@/components/goals/SalesGoalsCard";
@@ -17,20 +15,13 @@ import {
   TrendingUp,
   DollarSign,
   Star,
-  Sparkles,
   Percent,
   Box,
   Factory,
   FolderOpen,
-  PartyPopper,
-  Coins,
-  Zap,
-  Trophy,
-  Gift,
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
-import { MiniConfetti, FloatingReward, SuccessCelebration } from "@/components/effects";
 import { 
   BarChart, 
   Bar, 
@@ -81,51 +72,13 @@ export default function BIDashboard() {
   const { data: metrics, isLoading } = useBIMetrics();
   const navigate = useNavigate();
 
-  // Effects Demo State
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [showReward, setShowReward] = useState(false);
-  const [rewardType, setRewardType] = useState<"xp" | "coins" | "streak" | "trophy" | "gift">("xp");
-  const [showCelebration, setShowCelebration] = useState(false);
-  const [celebrationType, setCelebrationType] = useState<"success" | "achievement" | "level-up" | "milestone">("success");
-
   const stockStatusData = metrics?.productsByStockStatus.map((item) => ({
     name: STOCK_STATUS_LABELS[item.status] || item.status,
     value: item.count,
   })) || [];
 
-  const triggerReward = (type: "xp" | "coins" | "streak" | "trophy" | "gift") => {
-    setRewardType(type);
-    setShowReward(true);
-    setTimeout(() => setShowReward(false), 1500);
-  };
-
-  const triggerCelebration = (type: "success" | "achievement" | "level-up" | "milestone") => {
-    setCelebrationType(type);
-    setShowCelebration(true);
-  };
-
   return (
     <MainLayout>
-      {/* Effects Components */}
-      <MiniConfetti trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
-      <FloatingReward show={showReward} value={rewardType === "xp" ? "150 XP" : rewardType === "coins" ? "50" : "7"} type={rewardType} />
-      <SuccessCelebration 
-        show={showCelebration} 
-        type={celebrationType}
-        title={
-          celebrationType === "success" ? "Sucesso!" :
-          celebrationType === "achievement" ? "Conquista Desbloqueada!" :
-          celebrationType === "level-up" ? "Level Up!" :
-          "Marco Alcançado!"
-        }
-        subtitle={
-          celebrationType === "success" ? "Operação realizada com sucesso" :
-          celebrationType === "achievement" ? "Você completou um desafio" :
-          celebrationType === "level-up" ? "Você subiu para o nível 5" :
-          "Parabéns pelo progresso!"
-        }
-        onComplete={() => setShowCelebration(false)}
-      />
 
       <div className="space-y-6">
         {/* Header */}
@@ -135,120 +88,6 @@ export default function BIDashboard() {
             Visão geral do catálogo de produtos
           </p>
         </div>
-
-        {/* Effects Demo Section */}
-        <Card className="border-dashed border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <PartyPopper className="h-5 w-5 text-primary" />
-              Demonstração de Efeitos Visuais
-            </CardTitle>
-            <CardDescription>
-              Teste os componentes de gamificação e celebração
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Confetti */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Confetti</p>
-              <Button 
-                onClick={() => setShowConfetti(true)}
-                variant="outline"
-                className="gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                Disparar Confetti
-              </Button>
-            </div>
-
-            {/* Floating Rewards */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Floating Rewards</p>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  onClick={() => triggerReward("xp")}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-xp/50 hover:bg-xp/10"
-                >
-                  <Zap className="h-4 w-4 text-xp" />
-                  +XP
-                </Button>
-                <Button 
-                  onClick={() => triggerReward("coins")}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-coins/50 hover:bg-coins/10"
-                >
-                  <Coins className="h-4 w-4 text-coins" />
-                  +Moedas
-                </Button>
-                <Button 
-                  onClick={() => triggerReward("streak")}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-streak/50 hover:bg-streak/10"
-                >
-                  <Star className="h-4 w-4 text-streak" />
-                  +Streak
-                </Button>
-                <Button 
-                  onClick={() => triggerReward("trophy")}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-rank-gold/50 hover:bg-rank-gold/10"
-                >
-                  <Trophy className="h-4 w-4 text-rank-gold" />
-                  +Troféu
-                </Button>
-                <Button 
-                  onClick={() => triggerReward("gift")}
-                  variant="outline"
-                  size="sm"
-                  className="gap-2 border-primary/50 hover:bg-primary/10"
-                >
-                  <Gift className="h-4 w-4 text-primary" />
-                  +Presente
-                </Button>
-              </div>
-            </div>
-
-            {/* Celebrations */}
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Celebrações</p>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  onClick={() => triggerCelebration("success")}
-                  size="sm"
-                  className="gap-2 bg-success hover:bg-success/90"
-                >
-                  Sucesso
-                </Button>
-                <Button 
-                  onClick={() => triggerCelebration("achievement")}
-                  size="sm"
-                  className="gap-2 bg-coins hover:bg-coins/90 text-coins-foreground"
-                >
-                  Conquista
-                </Button>
-                <Button 
-                  onClick={() => triggerCelebration("level-up")}
-                  size="sm"
-                  className="gap-2 bg-xp hover:bg-xp/90"
-                >
-                  Level Up
-                </Button>
-                <Button 
-                  onClick={() => triggerCelebration("milestone")}
-                  size="sm"
-                  className="gap-2"
-                >
-                  Marco
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* 🆕 Seção de Novidades */}
         <NoveltiesSection />
