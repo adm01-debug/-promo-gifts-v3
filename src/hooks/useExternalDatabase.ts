@@ -32,6 +32,9 @@ export const PRODUCT_TABLES = [
   'category_relationships',
   'suppliers',
   'supplier_colors',
+  'supplier_materials',
+  'supplier_attribute_definitions',
+  'supplier_product_attributes',
   'tags',
   'personalization_techniques',
   'customization_price_tables',
@@ -245,6 +248,26 @@ export function useExternalSuppliers() {
   return useExternalDatabase<ExternalSupplier>('suppliers');
 }
 
+export function useExternalSupplierColors() {
+  return useExternalDatabase<ExternalSupplierColor>('supplier_colors');
+}
+
+export function useExternalSupplierMaterials() {
+  return useExternalDatabase<ExternalSupplierMaterial>('supplier_materials');
+}
+
+export function useExternalSupplierAttributeDefinitions() {
+  return useExternalDatabase<ExternalSupplierAttributeDefinition>('supplier_attribute_definitions');
+}
+
+export function useExternalSupplierProductAttributes() {
+  return useExternalDatabase<ExternalSupplierProductAttribute>('supplier_product_attributes');
+}
+
+export function useExternalProductSuppliers() {
+  return useExternalDatabase<ExternalProductSupplier>('product_suppliers');
+}
+
 export function useExternalTechniques() {
   return useExternalDatabase<ExternalTechnique>('personalization_techniques');
 }
@@ -356,6 +379,68 @@ export interface ExternalSupplier {
   lead_time_days?: number;
   is_active?: boolean;
   created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalSupplierColor {
+  id: string;
+  supplier_id: string;
+  color_name: string;
+  color_code?: string;
+  hex_code?: string;
+  pantone_code?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalSupplierMaterial {
+  id: string;
+  supplier_id: string;
+  material_name: string;
+  material_code?: string;
+  description?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalSupplierAttributeDefinition {
+  id: string;
+  supplier_id?: string;
+  attribute_name: string;
+  attribute_code?: string;
+  attribute_type?: string;
+  possible_values?: string[];
+  is_required?: boolean;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalSupplierProductAttribute {
+  id: string;
+  product_id: string;
+  supplier_id?: string;
+  attribute_definition_id?: string;
+  attribute_name: string;
+  attribute_value: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalProductSupplier {
+  id: string;
+  product_id: string;
+  supplier_id: string;
+  supplier_sku?: string;
+  cost_price?: number;
+  lead_time_days?: number;
+  min_quantity?: number;
+  is_primary?: boolean;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ExternalTechnique {
