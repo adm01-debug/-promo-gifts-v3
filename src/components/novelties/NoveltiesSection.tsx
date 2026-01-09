@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Star, Clock, ChevronRight, Filter, Package } from "lucide-react";
+import { Sparkles, Clock, ChevronRight, Filter, Package } from "lucide-react";
 import { useNovelties, useNoveltyStats } from "@/hooks/useNovelties";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,6 @@ interface NoveltyCardProps {
     product_sku: string | null;
     supplier_code: string | null;
     days_remaining: number;
-    is_highlighted: boolean;
     detected_at: string;
   };
   onClick?: () => void;
@@ -36,25 +35,17 @@ function NoveltyCard({ novelty, onClick }: NoveltyCardProps) {
     <Card 
       className={cn(
         "group cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
-        "border-border/50 hover:border-primary/30",
-        novelty.is_highlighted && "ring-2 ring-primary/20 bg-gradient-to-br from-primary/5 to-transparent"
+        "border-border/50 hover:border-primary/30"
       )}
       onClick={onClick}
     >
       <CardContent className="p-4">
-        {/* Header com badges */}
+        {/* Header com badge */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <NoveltyBadge 
             daysRemaining={novelty.days_remaining} 
-            isHighlighted={novelty.is_highlighted}
             size="sm"
           />
-          {novelty.is_highlighted && (
-            <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30">
-              <Star className="h-3 w-3 mr-1 fill-primary text-primary" />
-              Destaque
-            </Badge>
-          )}
         </div>
 
         {/* Imagem placeholder */}
@@ -101,7 +92,6 @@ function NoveltyCardSkeleton() {
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-2 mb-3">
           <Skeleton className="h-5 w-16" />
-          <Skeleton className="h-5 w-20" />
         </div>
         <Skeleton className="aspect-square rounded-lg mb-3" />
         <div className="space-y-2">
@@ -156,14 +146,12 @@ export function NoveltiesSection() {
   const navigate = useNavigate();
   const [supplierFilter, setSupplierFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState<string>("all");
-  const [showHighlighted, setShowHighlighted] = useState(false);
 
   // Calcular maxDays baseado no período
   const maxDays = periodFilter === "7" ? 7 : periodFilter === "15" ? 15 : undefined;
 
   const { data: novelties, isLoading } = useNovelties({
     supplierCode: supplierFilter !== "all" ? supplierFilter : undefined,
-    onlyHighlighted: showHighlighted,
     maxDays,
     limit: 8,
   });
@@ -230,37 +218,17 @@ export function NoveltiesSection() {
                 ))}
               </SelectContent>
             </Select>
-
-            {/* Toggle de destaques */}
-            <Button
-              variant={showHighlighted ? "default" : "outline"}
-              size="sm"
-              className="h-9 text-xs gap-1"
-              onClick={() => setShowHighlighted(!showHighlighted)}
-            >
-              <Star className={cn(
-                "h-3 w-3",
-                showHighlighted && "fill-primary-foreground"
-              )} />
-              Destaques
-            </Button>
           </div>
         </div>
 
         {/* Stats resumidas */}
         {stats && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+          <div className="grid grid-cols-3 gap-3 mt-4">
             <NoveltyStatCard
               label="Novidades ativas"
               value={stats.active_novelties}
               icon={<Sparkles className="h-5 w-5" />}
               variant="success"
-            />
-            <NoveltyStatCard
-              label="Em destaque"
-              value={stats.highlighted_novelties}
-              icon={<Star className="h-5 w-5" />}
-              variant="info"
             />
             <NoveltyStatCard
               label="Expirando em 7d"
@@ -312,19 +280,15 @@ export function NoveltiesSection() {
           <div className="text-center py-12">
             <Sparkles className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground">
-              {showHighlighted 
-                ? "Nenhuma novidade em destaque no momento"
-                : "Nenhuma novidade encontrada com os filtros aplicados"
-              }
+              Nenhuma novidade encontrada com os filtros aplicados
             </p>
-            {(supplierFilter !== "all" || periodFilter !== "all" || showHighlighted) && (
+            {(supplierFilter !== "all" || periodFilter !== "all") && (
               <Button
                 variant="link"
                 className="mt-2"
                 onClick={() => {
                   setSupplierFilter("all");
                   setPeriodFilter("all");
-                  setShowHighlighted(false);
                 }}
               >
                 Limpar filtros
