@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem } from "lucide-react";
+
+// Função para padronizar texto: primeira letra maiúscula, resto minúsculo
+// Mantém preposições em minúsculo
+const toTitleCase = (str: string): string => {
+  const prepositions = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'com', 'por'];
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      if (index > 0 && prepositions.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -236,7 +252,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                     className="text-sm cursor-pointer flex items-center gap-1.5 leading-tight"
                   >
                     <span className="flex-shrink-0">{icon}</span>
-                    <span className="break-words">{category.name}</span>
+                    <span className="break-words">{toTitleCase(category.name)}</span>
                   </Label>
                 </div>
               );
