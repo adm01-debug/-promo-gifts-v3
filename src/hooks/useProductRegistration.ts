@@ -17,6 +17,7 @@ import {
   ExternalSupplierColor,
   ExternalSupplierMaterial,
 } from './useExternalDatabase';
+import { useAuditLog } from './useAuditLog';
 
 // Tipos para o formulário de cadastro
 export interface ProductFormData {
@@ -121,6 +122,7 @@ export function useProductRegistration() {
   const tagsDb = useExternalTags();
   const colorsDb = useExternalSupplierColors();
   const materialsDb = useExternalSupplierMaterials();
+  const { logAction } = useAuditLog();
 
   // Carregar dados de referência
   const [referenceData, setReferenceData] = useState<{
@@ -231,6 +233,24 @@ export function useProductRegistration() {
         );
       }
 
+      // Registrar na auditoria
+      await logAction({
+        action: 'INSERT',
+        entityType: 'products',
+        entityId: createdProduct.id,
+        oldValues: null,
+        newValues: {
+          name: data.name,
+          sku: data.sku,
+          price: data.price,
+          supplier_id: data.supplier_id,
+          category_id: data.category_id,
+          colors: data.colors,
+          materials: data.materials,
+          images_count: data.images.length,
+        }
+      });
+
       toast.success(`Produto "${data.name}" cadastrado com sucesso!`);
       return createdProduct;
     } catch (error) {
@@ -240,7 +260,7 @@ export function useProductRegistration() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [productsDb, imagesDb]);
+  }, [productsDb, imagesDb, logAction]);
 
   // Validar linha de importação
   const validateImportRow = useCallback((
