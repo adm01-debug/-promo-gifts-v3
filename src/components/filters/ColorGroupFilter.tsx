@@ -302,19 +302,6 @@ export function ColorGroupFilter({
                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-popover border rounded shadow-sm text-xs whitespace-nowrap opacity-0 group-hover/swatch:opacity-100 transition-opacity pointer-events-none z-10">
                       {group.name}
                     </div>
-                    
-                    {/* Indicador de variações disponíveis */}
-                    {showVariations && group.variations.length > 1 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleExpand(group.id);
-                        }}
-                        className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center hover:scale-110 transition-transform"
-                      >
-                        {expandedGroups.has(group.id) ? '-' : '+'}
-                      </button>
-                    )}
                   </div>
                 ))}
               </div>
