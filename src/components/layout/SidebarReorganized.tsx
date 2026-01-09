@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRBAC } from "@/hooks/useRBAC";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ interface NavItem {
   href: string;
   tourId?: string;
   adminOnly?: boolean;
+  requiredPermission?: { action: string; resource: string };
   badge?: string | number;
 }
 
@@ -66,7 +68,7 @@ const navGroups: NavGroup[] = [
       { icon: Filter, label: "Super Filtro", href: "/filtros" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: PackagePlus, label: "Cadastrar Produtos", href: "/cadastro-produtos", adminOnly: true, badge: "Novo" },
+      { icon: PackagePlus, label: "Cadastrar Produtos", href: "/cadastro-produtos", requiredPermission: { action: 'create', resource: 'products' }, badge: "Novo" },
     ],
   },
   {
@@ -125,6 +127,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     return initial;
   });
   const { isAdmin } = useAuth();
+  const { hasPermission } = useRBAC();
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -145,6 +148,8 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
   const renderNavLink = (item: NavItem) => {
     // Ocultar itens admin se usuário não for admin/manager
     if (item.adminOnly && !isAdmin) return null;
+    // Ocultar itens baseado em permissão específica
+    if (item.requiredPermission && !hasPermission(item.requiredPermission.action, item.requiredPermission.resource)) return null;
     
     const isActive = isItemActive(item.href);
     const Icon = item.icon;
