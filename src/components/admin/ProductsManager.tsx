@@ -1,5 +1,5 @@
 /**
- * Gerenciador de Produtos - CRUD completo
+ * Gerenciador de Produtos - CRUD completo com Auditoria
  */
 
 import { useState, useEffect } from "react";
@@ -39,6 +39,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Pencil,
@@ -48,8 +49,11 @@ import {
   Package,
   ImageIcon,
   RefreshCw,
+  History,
 } from "lucide-react";
 import { ImageUploadButton } from "./ImageUploadButton";
+import { useAuditLog } from "@/hooks/useAuditLog";
+import { AuditHistory } from "@/components/audit/AuditHistory";
 
 interface Product {
   id: string;
@@ -126,6 +130,10 @@ export function ProductsManager() {
   const [formData, setFormData] = useState<ProductFormData>(initialFormData);
   const [isSaving, setIsSaving] = useState(false);
   const [productImages, setProductImages] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<"form" | "history">("form");
+  
+  // Audit hook
+  const { logAction, getChangedFields } = useAuditLog();
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -201,6 +209,7 @@ export function ProductsManager() {
       materials: product.materials?.join(", ") || "",
     });
     setProductImages(product.images || []);
+    setActiveTab("form");
     setIsFormOpen(true);
   };
 
@@ -246,12 +255,61 @@ export function ProductsManager() {
           .eq("id", selectedProduct.id);
 
         if (error) throw error;
+        
+        // Registrar auditoria de UPDATE
+        const { oldFields, newFields } = getChangedFields(
+          {
+            sku: selectedProduct.sku,
+            name: selectedProduct.name,
+            description: selectedProduct.description,
+            price: selectedProduct.price,
+            stock: selectedProduct.stock,
+            category_name: selectedProduct.category_name,
+            is_active: selectedProduct.is_active,
+            featured: selectedProduct.featured,
+            images: selectedProduct.images,
+          },
+          productData
+        );
+        
+        if (Object.keys(newFields).length > 0) {
+          await logAction({
+            action: 'UPDATE',
+            entityType: 'products',
+            entityId: selectedProduct.id,
+            oldValues: oldFields,
+            newValues: newFields,
+          });
+        }
+        
         toast.success("Produto atualizado com sucesso");
       } else {
         // Create
-        const { error } = await supabase.from("products").insert(productData);
+        const { data: newProduct, error } = await supabase
+          .from("products")
+          .insert(productData)
+          .select()
+          .single();
 
         if (error) throw error;
+        
+        // Registrar auditoria de INSERT
+        if (newProduct) {
+          await logAction({
+            action: 'INSERT',
+            entityType: 'products',
+            entityId: newProduct.id,
+            oldValues: null,
+            newValues: {
+              sku: productData.sku,
+              name: productData.name,
+              price: productData.price,
+              category_name: productData.category_name,
+              is_active: productData.is_active,
+            },
+          });
+        }
+        
         toast.success("Produto criado com sucesso");
       }
 
@@ -275,6 +333,20 @@ export function ProductsManager() {
         .eq("id", selectedProduct.id);
 
       if (error) throw error;
+      
+      // Registrar auditoria de DELETE
+      await logAction({
+        action: 'DELETE',
+        entityType: 'products',
+        entityId: selectedProduct.id,
+        oldValues: {
+          sku: selectedProduct.sku,
+          name: selectedProduct.name,
+          price: selectedProduct.price,
+          category_name: selectedProduct.category_name,
+        },
+        newValues: null,
+      });
 
       toast.success("Produto excluído com sucesso");
       setIsDeleteOpen(false);
@@ -434,19 +506,33 @@ export function ProductsManager() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh]">
+        <DialogContent className="max-w-3xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>
               {selectedProduct ? "Editar Produto" : "Novo Produto"}
             </DialogTitle>
             <DialogDescription>
               {selectedProduct
-                ? "Atualize as informações do produto"
+                ? "Atualize as informações do produto ou visualize o histórico de alterações"
                 : "Preencha os dados para cadastrar um novo produto"}
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="max-h-[60vh] pr-4">
+          {selectedProduct ? (
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "form" | "history")}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="form" className="flex items-center gap-2">
+                  <Pencil className="h-4 w-4" />
+                  Editar
+                </TabsTrigger>
+                <TabsTrigger value="history" className="flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  Histórico
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="form" className="mt-4">
+                <ScrollArea className="max-h-[55vh] pr-4">
             <div className="grid gap-4 py-4">
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
@@ -631,9 +717,131 @@ export function ProductsManager() {
                 </div>
               </div>
             </div>
-          </ScrollArea>
+                </ScrollArea>
+              </TabsContent>
 
-          <DialogFooter>
+              <TabsContent value="history" className="mt-4">
+                <AuditHistory
+                  entityType="products"
+                  entityId={selectedProduct.id}
+                  title="Histórico de Alterações"
+                  maxHeight="55vh"
+                />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <ScrollArea className="max-h-[60vh] pr-4">
+              {/* Form content for new product - same as edit form */}
+              <div className="grid gap-4 py-4">
+                {/* Basic Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="sku-new">SKU *</Label>
+                    <Input
+                      id="sku-new"
+                      value={formData.sku}
+                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                      placeholder="Ex: PROD-001"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="name-new">Nome *</Label>
+                    <Input
+                      id="name-new"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Nome do produto"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description-new">Descrição</Label>
+                  <Textarea
+                    id="description-new"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Descrição detalhada do produto"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Pricing & Stock */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="price-new">Preço (R$)</Label>
+                    <Input
+                      id="price-new"
+                      type="number"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="stock-new">Estoque</Label>
+                    <Input
+                      id="stock-new"
+                      type="number"
+                      value={formData.stock}
+                      onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="min_quantity-new">Qtd. Mínima</Label>
+                    <Input
+                      id="min_quantity-new"
+                      type="number"
+                      value={formData.min_quantity}
+                      onChange={(e) => setFormData({ ...formData, min_quantity: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                </div>
+
+                {/* Category & Supplier */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="category-new">Categoria</Label>
+                    <Input
+                      id="category-new"
+                      value={formData.category_name}
+                      onChange={(e) => setFormData({ ...formData, category_name: e.target.value })}
+                      placeholder="Nome da categoria"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="supplier-new">Fornecedor</Label>
+                    <Input
+                      id="supplier-new"
+                      value={formData.supplier_name}
+                      onChange={(e) => setFormData({ ...formData, supplier_name: e.target.value })}
+                      placeholder="Nome do fornecedor"
+                    />
+                  </div>
+                </div>
+
+                {/* Flags */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="is_active-new"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                    />
+                    <Label htmlFor="is_active-new">Ativo</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="featured-new"
+                      checked={formData.featured}
+                      onCheckedChange={(checked) => setFormData({ ...formData, featured: checked })}
+                    />
+                    <Label htmlFor="featured-new">Destaque</Label>
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
             <Button variant="outline" onClick={() => setIsFormOpen(false)}>
               Cancelar
             </Button>
