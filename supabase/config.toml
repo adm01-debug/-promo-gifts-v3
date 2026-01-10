@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.cleanup-novelties]
 verify_jwt = false
+
+[functions.commemorative-dates]
+verify_jwt = false
