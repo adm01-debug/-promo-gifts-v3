@@ -124,6 +124,16 @@ export function useProductRegistration() {
   const materialsDb = useExternalSupplierMaterials();
   const { logAction } = useAuditLog();
 
+  // Desestruturar ações (funções) para manter referências estáveis e evitar loops em useEffect
+  const fetchCategoriesAll = categoriesDb.fetchAll;
+  const fetchSuppliersAll = suppliersDb.fetchAll;
+  const fetchTechniquesAll = techniquesDb.fetchAll;
+  const fetchTagsAll = tagsDb.fetchAll;
+  const fetchColorsAll = colorsDb.fetchAll;
+  const fetchMaterialsAll = materialsDb.fetchAll;
+  const createProductRecord = productsDb.create;
+  const createImageRecord = imagesDb.create;
+
   // Carregar dados de referência
   const [referenceData, setReferenceData] = useState<{
     categories: ExternalCategory[];
@@ -146,7 +156,7 @@ export function useProductRegistration() {
   });
 
   const loadReferenceData = useCallback(async () => {
-    setReferenceData(prev => ({ ...prev, isLoading: true, error: null }));
+    setReferenceData((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       const [
@@ -157,12 +167,12 @@ export function useProductRegistration() {
         colorsResult,
         materialsResult,
       ] = await Promise.all([
-        categoriesDb.fetchAll({ filters: { is_active: true }, limit: 500 }),
-        suppliersDb.fetchAll({ limit: 200 }),
-        techniquesDb.fetchAll({ filters: { is_active: true }, limit: 100 }),
-        tagsDb.fetchAll({ limit: 500 }),
-        colorsDb.fetchAll({ limit: 500 }),
-        materialsDb.fetchAll({ limit: 500 }),
+        fetchCategoriesAll({ filters: { is_active: true }, limit: 500 }),
+        fetchSuppliersAll({ limit: 200 }),
+        fetchTechniquesAll({ filters: { is_active: true }, limit: 100 }),
+        fetchTagsAll({ limit: 500 }),
+        fetchColorsAll({ limit: 500 }),
+        fetchMaterialsAll({ limit: 500 }),
       ]);
 
       setReferenceData({
@@ -177,90 +187,100 @@ export function useProductRegistration() {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Erro ao carregar dados de referência';
-      setReferenceData(prev => ({ ...prev, isLoading: false, error: message }));
+      setReferenceData((prev) => ({ ...prev, isLoading: false, error: message }));
       toast.error(message);
     }
-  }, [categoriesDb, suppliersDb, techniquesDb, tagsDb, colorsDb, materialsDb]);
+  }, [
+    fetchCategoriesAll,
+    fetchSuppliersAll,
+    fetchTechniquesAll,
+    fetchTagsAll,
+    fetchColorsAll,
+    fetchMaterialsAll,
+  ]);
 
   // Criar produto individual
-  const createProduct = useCallback(async (data: ProductFormData): Promise<ExternalProduct | null> => {
-    setIsSubmitting(true);
+  const createProduct = useCallback(
+    async (data: ProductFormData): Promise<ExternalProduct | null> => {
+      setIsSubmitting(true);
 
-    try {
-      // Criar o produto principal
-      const productData: Partial<ExternalProduct> = {
-        name: data.name,
-        sku: data.sku,
-        price: data.price,
-        supplier_id: data.supplier_id,
-        category_id: data.category_id,
-        description: data.description,
-        short_description: data.short_description,
-        cost_price: data.cost_price,
-        subcategory_id: data.subcategory_id,
-        brand: data.brand,
-        model: data.model,
-        weight_grams: data.weight_grams,
-        width_cm: data.width_cm,
-        height_cm: data.height_cm,
-        depth_cm: data.depth_cm,
-        min_quantity: data.min_quantity || 1,
-        stock: data.stock || 0,
-        lead_time_days: data.lead_time_days,
-        is_kit: data.is_kit || false,
-        is_active: data.is_active ?? true,
-      };
-
-      const createdProduct = await productsDb.create(productData);
-
-      if (!createdProduct) {
-        throw new Error('Falha ao criar produto');
-      }
-
-      // Criar imagens do produto
-      if (data.images && data.images.length > 0) {
-        await Promise.all(
-          data.images.map((img, index) =>
-            imagesDb.create({
-              product_id: createdProduct.id,
-              url: img.url,
-              alt_text: img.alt_text || data.name,
-              position: index,
-              is_primary: img.is_primary || index === 0,
-              image_type: img.image_type || 'main',
-            })
-          )
-        );
-      }
-
-      // Registrar na auditoria
-      await logAction({
-        action: 'INSERT',
-        entityType: 'products',
-        entityId: createdProduct.id,
-        oldValues: null,
-        newValues: {
+      try {
+        // Criar o produto principal
+        const productData: Partial<ExternalProduct> = {
           name: data.name,
           sku: data.sku,
           price: data.price,
           supplier_id: data.supplier_id,
           category_id: data.category_id,
-          colors: data.colors,
-          materials: data.materials,
-          images_count: data.images.length,
-        }
-      });
+          description: data.description,
+          short_description: data.short_description,
+          cost_price: data.cost_price,
+          subcategory_id: data.subcategory_id,
+          brand: data.brand,
+          model: data.model,
+          weight_grams: data.weight_grams,
+          width_cm: data.width_cm,
+          height_cm: data.height_cm,
+          depth_cm: data.depth_cm,
+          min_quantity: data.min_quantity || 1,
+          stock: data.stock || 0,
+          lead_time_days: data.lead_time_days,
+          is_kit: data.is_kit || false,
+          is_active: data.is_active ?? true,
+        };
 
-      toast.success(`Produto "${data.name}" cadastrado com sucesso!`);
-      return createdProduct;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao cadastrar produto';
-      toast.error(message);
-      return null;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [productsDb, imagesDb, logAction]);
+        const createdProduct = await createProductRecord(productData);
+
+        if (!createdProduct) {
+          throw new Error('Falha ao criar produto');
+        }
+
+        // Criar imagens do produto
+        if (data.images && data.images.length > 0) {
+          await Promise.all(
+            data.images.map((img, index) =>
+              createImageRecord({
+                product_id: createdProduct.id,
+                url: img.url,
+                alt_text: img.alt_text || data.name,
+                position: index,
+                is_primary: img.is_primary || index === 0,
+                image_type: img.image_type || 'main',
+              })
+            )
+          );
+        }
+
+        // Registrar na auditoria
+        await logAction({
+          action: 'INSERT',
+          entityType: 'products',
+          entityId: createdProduct.id,
+          oldValues: null,
+          newValues: {
+            name: data.name,
+            sku: data.sku,
+            price: data.price,
+            supplier_id: data.supplier_id,
+            category_id: data.category_id,
+            colors: data.colors,
+            materials: data.materials,
+            images_count: data.images.length,
+          },
+        });
+
+        toast.success(`Produto "${data.name}" cadastrado com sucesso!`);
+        return createdProduct;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Erro ao cadastrar produto';
+        toast.error(message);
+        return null;
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [createProductRecord, createImageRecord, logAction]
+  );
 
   // Validar linha de importação
   const validateImportRow = useCallback((
