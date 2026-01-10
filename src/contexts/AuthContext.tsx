@@ -2,16 +2,16 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-// Tipos de role conforme especificação
-type AppRole = "admin" | "manager" | "seller" | "viewer";
+// Tipos de role conforme app_role enum no banco
+type AppRole = "admin" | "manager" | "vendedor";
 
-// Interface do Profile atualizada conforme especificação
+// Interface do Profile
 export interface Profile {
   id: string;
   user_id: string;
   email: string | null;
   full_name: string | null;
-  role: string | null;           // TEXT direto - "admin" | "seller" | "manager" | "viewer"
+  role: string | null;           // Campo legado - mantido por compatibilidade
   avatar_url: string | null;
   phone: string | null;
   department: string | null;
@@ -27,12 +27,12 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  // Role e helpers de permissão
-  role: string | null;
+  // Role do user_roles (fonte principal)
+  role: AppRole | null;
+  // Helpers de permissão baseados em user_roles
   isAdmin: boolean;
   isManager: boolean;
   isSeller: boolean;
-  isViewer: boolean;
   canManage: boolean;           // admin ou manager
   isAuthenticated: boolean;
   // Métodos
@@ -48,37 +48,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchUserData = async (userId: string) => {
     try {
-      // Buscar profile - profiles.id = auth.users.id (são o mesmo UUID)
-      const { data: profileData, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
-      
-      if (error) {
-        if (import.meta.env.DEV) {
-          console.error("Error fetching profile:", error);
-        }
-        return;
-      }
+      // Buscar profile e role em paralelo
+      const [profileResult, roleResult] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .single(),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .single()
+      ]);
 
-      if (profileData) {
-        setProfile(profileData as Profile);
+      if (profileResult.error) {
+        if (import.meta.env.DEV) {
+          console.error("Error fetching profile:", profileResult.error);
+        }
+      } else if (profileResult.data) {
+        setProfile(profileResult.data as Profile);
         
-        // Atualizar last_login_at
-        await supabase
+        // Atualizar last_login_at (não bloqueia)
+        supabase
           .from("profiles")
           .update({ last_login_at: new Date().toISOString() })
-          .eq("user_id", userId);
+          .eq("user_id", userId)
+          .then(() => {});
+      }
+
+      if (roleResult.error) {
+        if (import.meta.env.DEV) {
+          console.error("Error fetching user role:", roleResult.error);
+        }
+        // Fallback para vendedor se não encontrar role
+        setUserRole("vendedor");
+      } else if (roleResult.data) {
+        setUserRole(roleResult.data.role as AppRole);
       }
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error("Error fetching profile:", error);
+        console.error("Error fetching user data:", error);
       }
+      setUserRole("vendedor");
     }
   };
 
@@ -92,10 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Defer Supabase calls with setTimeout to avoid deadlocks
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchUserData(session.user.id);
           }, 0);
         } else {
           setProfile(null);
+          setUserRole(null);
         }
         
         setIsLoading(false);
@@ -108,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchUserData(session.user.id);
       }
       
       setIsLoading(false);
@@ -148,32 +166,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setUserRole(null);
   };
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await fetchUserData(user.id);
     }
   };
 
-  // Helpers de permissão baseados em profile.role (TEXT direto)
-  const role = profile?.role || null;
-  const isAdmin = role === "admin";
-  const isManager = role === "manager";
-  const isSeller = role === "seller" || role === "vendedor"; // Suporte para ambos
-  const isViewer = role === "viewer";
-  const canManage = ["admin", "manager"].includes(role || "");
+  // Helpers de permissão baseados em user_roles (fonte principal)
+  const isAdmin = userRole === "admin";
+  const isManager = userRole === "manager";
+  const isSeller = userRole === "vendedor";
+  const canManage = isAdmin || isManager;
 
   const value: AuthContextType = {
     user,
     session,
     profile,
     isLoading,
-    role,
+    role: userRole,
     isAdmin,
     isManager,
     isSeller,
-    isViewer,
     canManage,
     isAuthenticated: !!user,
     signUp,
