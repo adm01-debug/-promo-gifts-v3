@@ -34,11 +34,11 @@ import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import {
   CATEGORIES,
   PUBLICO_ALVO,
-  DATAS_COMEMORATIVAS,
   ENDOMARKETING,
   NICHOS,
   FAIXAS_PRECO,
 } from "@/data/mockData";
+import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
 
 export interface FilterState {
   // Sistema hierárquico de cores
@@ -332,23 +332,19 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           </div>
         </FilterSection>
 
-        {/* Datas Comemorativas */}
-        <FilterSection id="datas" title="Datas Comemorativas">
-          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
-            {[...DATAS_COMEMORATIVAS].sort((a, b) => a.localeCompare(b)).map((data) => (
-              <div key={data} className="flex items-center gap-2">
-                <Checkbox
-                  id={`data-${data}`}
-                  checked={filters.datasComemorativas.includes(data)}
-                  onCheckedChange={() => toggleArrayFilter('datasComemorativas', data)}
-                />
-                <Label htmlFor={`data-${data}`} className="text-sm cursor-pointer">
-                  {toTitleCase(data)}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </FilterSection>
+        {/* Datas Comemorativas - Agora com dados reais da API */}
+        <div className="py-3 border-t border-border">
+          <CommemorativeDateFilter
+            selectedDate={filters.datasComemorativas[0] || null}
+            onSelectDate={(slug) => {
+              onFilterChange({
+                ...filters,
+                datasComemorativas: slug ? [slug] : [],
+              });
+            }}
+            compact
+          />
+        </div>
 
         {/* Endomarketing */}
         <FilterSection id="endomarketing" title="Endomarketing">

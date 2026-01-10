@@ -6,12 +6,14 @@ import { GripVertical, LayoutDashboard, TrendingUp, Users, ShoppingCart, Package
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { UpcomingDatesWidget } from '@/components/dashboard/UpcomingDatesWidget';
 
 interface DashboardWidget {
   id: string;
   title: string;
   icon: React.ReactNode;
   content: React.ReactNode;
+  colSpan?: number;
 }
 
 function SortableWidget({ widget }: { widget: DashboardWidget }) {
@@ -24,7 +26,7 @@ function SortableWidget({ widget }: { widget: DashboardWidget }) {
   };
 
   return (
-    <Card ref={setNodeRef} style={style} className="relative">
+    <Card ref={setNodeRef} style={style} className={`relative ${widget.colSpan === 2 ? 'md:col-span-2' : ''}`}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           {widget.icon}
@@ -92,6 +94,9 @@ export function CustomizableDashboard() {
             </p>
           </div>
         </div>
+
+        {/* Widget de Próximas Datas Comemorativas - Fixo no topo */}
+        <UpcomingDatesWidget variant="compact" daysAhead={60} maxItems={6} />
 
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={widgets.map(w => w.id)} strategy={verticalListSortingStrategy}>
