@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Package } from "lucide-react";
+import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Package, Crown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,24 +27,57 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PasswordResetApproval } from "@/components/admin/PasswordResetApproval";
 import { usePasswordResetRequests } from "@/hooks/usePasswordResetRequests";
 import { ProductsManager } from "@/components/admin/ProductsManager";
+
+type AppRole = "admin" | "manager" | "vendedor";
 
 interface UserWithRole {
   id: string;
   user_id: string;
   full_name: string | null;
-  email: string;
-  role: "admin" | "vendedor";
+  email: string | null;
+  role: AppRole;
   created_at: string;
+  is_active: boolean | null;
 }
+
+const roleConfig: Record<AppRole, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "outline"; color: string }> = {
+  admin: {
+    label: "Administrador",
+    icon: <Crown className="h-3 w-3" />,
+    variant: "default",
+    color: "bg-primary text-primary-foreground",
+  },
+  manager: {
+    label: "Gerente",
+    icon: <ShieldCheck className="h-3 w-3" />,
+    variant: "default",
+    color: "bg-blue-500 text-white",
+  },
+  vendedor: {
+    label: "Vendedor",
+    icon: <Shield className="h-3 w-3" />,
+    variant: "secondary",
+    color: "",
+  },
+};
 
 export default function AdminPanel() {
   const { user } = useAuth();
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
+  const [dialogUser, setDialogUser] = useState<UserWithRole | null>(null);
   const { pendingCount } = usePasswordResetRequests();
 
   const fetchUsers = async () => {
@@ -53,7 +86,8 @@ export default function AdminPanel() {
       // Fetch profiles with their roles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, user_id, full_name, created_at");
+        .select("id, user_id, full_name, email, is_active, created_at")
+        .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
 
@@ -70,9 +104,10 @@ export default function AdminPanel() {
           id: profile.id,
           user_id: profile.user_id,
           full_name: profile.full_name,
-          email: "",
-          role: (userRole?.role as "admin" | "vendedor") || "vendedor",
+          email: profile.email,
+          role: (userRole?.role as AppRole) || "vendedor",
           created_at: profile.created_at,
+          is_active: profile.is_active,
         };
       });
 
@@ -89,7 +124,7 @@ export default function AdminPanel() {
     fetchUsers();
   }, []);
 
-  const handleRoleChange = async (userId: string, newRole: "admin" | "vendedor") => {
+  const handleRoleChange = async (userId: string, newRole: AppRole) => {
     setUpdatingUserId(userId);
     try {
       const { error } = await supabase
@@ -103,20 +138,25 @@ export default function AdminPanel() {
         prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u))
       );
 
-      toast.success(
-        newRole === "admin"
-          ? "Usuário promovido a administrador"
-          : "Usuário rebaixado para vendedor"
-      );
+      const roleLabel = roleConfig[newRole].label;
+      toast.success(`Usuário alterado para ${roleLabel}`);
     } catch (error) {
       console.error("Error updating role:", error);
       toast.error("Erro ao atualizar permissão");
     } finally {
       setUpdatingUserId(null);
+      setDialogUser(null);
+      setSelectedRole(null);
     }
   };
 
+  const openRoleDialog = (userItem: UserWithRole) => {
+    setDialogUser(userItem);
+    setSelectedRole(userItem.role);
+  };
+
   const adminCount = users.filter((u) => u.role === "admin").length;
+  const managerCount = users.filter((u) => u.role === "manager").length;
   const vendedorCount = users.filter((u) => u.role === "vendedor").length;
 
   return (
@@ -128,12 +168,12 @@ export default function AdminPanel() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Painel Administrativo</h1>
-            <p className="text-muted-foreground">Gerencie usuários e permissões do sistema</p>
+            <p className="text-muted-foreground">Gerencie usuários, roles e permissões do sistema</p>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
@@ -147,10 +187,20 @@ export default function AdminPanel() {
           <Card className="border-border/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Administradores</CardTitle>
-              <ShieldCheck className="h-4 w-4 text-primary" />
+              <Crown className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{adminCount}</div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Gerentes</CardTitle>
+              <ShieldCheck className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-500">{managerCount}</div>
             </CardContent>
           </Card>
 
@@ -201,9 +251,9 @@ export default function AdminPanel() {
             {/* Users Table */}
             <Card className="border-border/50">
               <CardHeader>
-                <CardTitle>Usuários do Sistema</CardTitle>
+                <CardTitle>Gerenciamento de Usuários e Roles</CardTitle>
                 <CardDescription>
-                  Gerencie as permissões de acesso de cada usuário
+                  Atribua roles aos usuários: Admin (acesso total), Gerente (acesso intermediário) ou Vendedor (acesso básico)
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -219,87 +269,72 @@ export default function AdminPanel() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Função</TableHead>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
                         <TableHead>Criado em</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((userItem) => (
-                        <TableRow key={userItem.id}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              {userItem.role === "admin" && (
-                                <ShieldCheck className="h-4 w-4 text-primary" />
+                      {users.map((userItem) => {
+                        const config = roleConfig[userItem.role];
+                        return (
+                          <TableRow key={userItem.id}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                {userItem.role === "admin" && (
+                                  <Crown className="h-4 w-4 text-primary" />
+                                )}
+                                {userItem.role === "manager" && (
+                                  <ShieldCheck className="h-4 w-4 text-blue-500" />
+                                )}
+                                {userItem.full_name || "Sem nome"}
+                                {userItem.user_id === user?.id && (
+                                  <Badge variant="outline" className="text-xs">Você</Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {userItem.email || "-"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={config.variant}
+                                className={`gap-1 ${config.color}`}
+                              >
+                                {config.icon}
+                                {config.label}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={userItem.is_active !== false ? "outline" : "secondary"}>
+                                {userItem.is_active !== false ? "Ativo" : "Inativo"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {new Date(userItem.created_at).toLocaleDateString("pt-BR")}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {userItem.user_id !== user?.id && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openRoleDialog(userItem)}
+                                  disabled={updatingUserId === userItem.user_id}
+                                >
+                                  {updatingUserId === userItem.user_id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    "Alterar Role"
+                                  )}
+                                </Button>
                               )}
-                              {userItem.full_name || "Sem nome"}
-                              {userItem.user_id === user?.id && (
-                                <Badge variant="outline" className="text-xs">Você</Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={userItem.role === "admin" ? "default" : "secondary"}
-                              className={userItem.role === "admin" ? "bg-primary" : ""}
-                            >
-                              {userItem.role === "admin" ? "Administrador" : "Vendedor"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {new Date(userItem.created_at).toLocaleDateString("pt-BR")}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {userItem.user_id !== user?.id && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    variant={userItem.role === "admin" ? "outline" : "default"}
-                                    size="sm"
-                                    disabled={updatingUserId === userItem.user_id}
-                                  >
-                                    {updatingUserId === userItem.user_id ? (
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : userItem.role === "admin" ? (
-                                      "Rebaixar"
-                                    ) : (
-                                      "Promover"
-                                    )}
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      {userItem.role === "admin"
-                                        ? "Rebaixar para Vendedor?"
-                                        : "Promover a Administrador?"}
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      {userItem.role === "admin"
-                                        ? `${userItem.full_name || "Este usuário"} perderá acesso ao painel administrativo.`
-                                        : `${userItem.full_name || "Este usuário"} terá acesso total ao painel administrativo.`}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() =>
-                                        handleRoleChange(
-                                          userItem.user_id,
-                                          userItem.role === "admin" ? "vendedor" : "admin"
-                                        )
-                                      }
-                                    >
-                                      Confirmar
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 )}
@@ -315,6 +350,72 @@ export default function AdminPanel() {
             <PasswordResetApproval />
           </TabsContent>
         </Tabs>
+
+        {/* Role Change Dialog */}
+        <AlertDialog open={!!dialogUser} onOpenChange={(open) => !open && setDialogUser(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Alterar Role do Usuário</AlertDialogTitle>
+              <AlertDialogDescription>
+                Selecione o novo role para <span className="font-semibold">{dialogUser?.full_name || "este usuário"}</span>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            
+            <div className="py-4">
+              <Select
+                value={selectedRole || undefined}
+                onValueChange={(value) => setSelectedRole(value as AppRole)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione um role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-primary" />
+                      <div>
+                        <div className="font-medium">Administrador</div>
+                        <div className="text-xs text-muted-foreground">Acesso total ao sistema</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="manager">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 text-blue-500" />
+                      <div>
+                        <div className="font-medium">Gerente</div>
+                        <div className="text-xs text-muted-foreground">Gerencia equipes e relatórios</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="vendedor">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      <div>
+                        <div className="font-medium">Vendedor</div>
+                        <div className="text-xs text-muted-foreground">Acesso às funcionalidades de vendas</div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={!selectedRole || selectedRole === dialogUser?.role}
+                onClick={() => {
+                  if (dialogUser && selectedRole) {
+                    handleRoleChange(dialogUser.user_id, selectedRole);
+                  }
+                }}
+              >
+                Confirmar Alteração
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );
