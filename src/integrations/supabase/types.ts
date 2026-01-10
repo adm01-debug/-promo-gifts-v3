@@ -3184,6 +3184,7 @@ export type Database = {
         }
         Returns: string
       }
+      can_manage: { Args: { _user_id: string }; Returns: boolean }
       cleanup_expired_novelties: { Args: never; Returns: number }
       get_active_novelties: {
         Args: { p_limit?: number; p_offset?: number; p_supplier_code?: string }
