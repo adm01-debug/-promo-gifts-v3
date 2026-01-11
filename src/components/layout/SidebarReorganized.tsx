@@ -69,6 +69,7 @@ const navGroups: NavGroup[] = [
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
       { icon: PackagePlus, label: "Cadastrar Produtos", href: "/cadastro-produtos", requiredPermission: { action: 'create', resource: 'products' }, badge: "Novo" },
+      { icon: Palette, label: "Cadastrar Gravação", href: "/cadastro-gravacao", requiredPermission: { action: 'create', resource: 'products' } },
     ],
   },
   {
