@@ -168,6 +168,7 @@ const App = () => {
                                     <Route path="/pedidos/:id" element={<OrderDetailPage />} />
 
                                     {/* Admin */}
+                                    <Route path="/configuracoes" element={<Navigate to="/admin" replace />} />
                                     <Route path="/admin" element={<AdminPanel />} />
                                     <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
                                     <Route path="/cadastro-produtos" element={<ProductRegistrationPage />} />
