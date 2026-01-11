@@ -11,3 +11,17 @@ export {
   type MultiStepFormProps,
   type UseMultiStepFormOptions 
 } from "./MultiStepForm";
+export {
+  ConditionalFields,
+  ConditionalGroup,
+  DependentField,
+  useConditionalField,
+  when,
+  whenNot,
+  whenIn,
+  whenEmpty,
+  whenNotEmpty,
+  whenGreaterThan,
+  whenLessThan,
+  whenCustom,
+} from "./ConditionalFields";
