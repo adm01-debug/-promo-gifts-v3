@@ -283,9 +283,9 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         <FilterSection id="preco" title="Faixa de Preço">
           <div className="space-y-4 px-1">
             <Slider
-              value={filters.priceRange}
+              value={[filters.priceRange[1]]}
               onValueChange={(value) =>
-                onFilterChange({ ...filters, priceRange: value as [number, number] })
+                onFilterChange({ ...filters, priceRange: [0, value[0]] })
               }
               min={0}
               max={500}
@@ -293,7 +293,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
               className="w-full"
             />
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>R$ {filters.priceRange[0]}</span>
+              <span>R$ 0</span>
               <span>R$ {filters.priceRange[1]}+</span>
             </div>
           </div>
