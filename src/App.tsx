@@ -53,6 +53,7 @@ const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const AdminPersonalizationPage = lazy(() => import("./pages/AdminPersonalizationPage"));
 const ProductRegistrationPage = lazy(() => import("./pages/ProductRegistrationPage"));
+const EngravingRegistrationPage = lazy(() => import("./pages/EngravingRegistrationPage"));
 
 // Tools Pages
 const PersonalizationSimulator = lazy(() => import("./pages/PersonalizationSimulator"));
@@ -170,6 +171,7 @@ const App = () => {
                                     <Route path="/admin" element={<AdminPanel />} />
                                     <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
                                     <Route path="/cadastro-produtos" element={<ProductRegistrationPage />} />
+                                    <Route path="/cadastro-gravacao" element={<EngravingRegistrationPage />} />
                                     <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
                                     <Route path="/admin/permissoes" element={<PermissionsPage />} />
                                     <Route path="/admin/roles" element={<RolesPage />} />
