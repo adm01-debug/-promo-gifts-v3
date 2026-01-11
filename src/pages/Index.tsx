@@ -94,7 +94,8 @@ export default function Index() {
     if (filters.publicoAlvo.length) count += filters.publicoAlvo.length;
     if (filters.datasComemorativas.length) count += filters.datasComemorativas.length;
     if (filters.endomarketing.length) count += filters.endomarketing.length;
-    if (filters.nichos.length) count += filters.nichos.length;
+    if (filters.ramosAtividade?.length) count += filters.ramosAtividade.length;
+    if (filters.segmentosAtividade?.length) count += filters.segmentosAtividade.length;
     if (filters.materiais.length) count += filters.materiais.length;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) count += 1;
     if (filters.inStock) count += 1;

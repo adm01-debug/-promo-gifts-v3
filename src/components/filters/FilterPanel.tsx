@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem } from "lucide-react";
+import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem, Building2 } from "lucide-react";
 
 // Função para padronizar texto: primeira letra maiúscula, resto minúsculo
 // Mantém preposições em minúsculo
@@ -29,13 +29,15 @@ import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import { useMaterialFilter } from "@/hooks/useMaterialFilter";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { useRamoAtividadeFilter } from "@/hooks/useRamoAtividadeFilter";
 import { MaterialBadge } from "@/components/materials/MaterialBadge";
+import { RamoAtividadeBadge } from "@/components/ramo-atividade/RamoAtividadeBadge";
+import { RamoAtividadeGroupAccordion } from "@/components/ramo-atividade/RamoAtividadeGroupAccordion";
 import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import {
   CATEGORIES,
   PUBLICO_ALVO,
   ENDOMARKETING,
-  NICHOS,
   FAIXAS_PRECO,
 } from "@/data/mockData";
 import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
@@ -52,7 +54,9 @@ export interface FilterState {
   publicoAlvo: string[];
   datasComemorativas: string[];
   endomarketing: string[];
-  nichos: string[];
+  // Sistema hierárquico de Ramos de Atividade
+  ramosAtividade: string[];      // slugs dos ramos (grupos pai)
+  segmentosAtividade: string[];  // slugs dos segmentos (filhos)
   materiais: string[];
   priceRange: [number, number];
   inStock: boolean;
@@ -77,7 +81,8 @@ export const defaultFilters: FilterState = {
   publicoAlvo: [],
   datasComemorativas: [],
   endomarketing: [],
-  nichos: [],
+  ramosAtividade: [],
+  segmentosAtividade: [],
   materiais: [],
   priceRange: [0, 500],
   inStock: false,
@@ -86,8 +91,9 @@ export const defaultFilters: FilterState = {
 };
 
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount }: FilterPanelProps) {
-  const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco', 'materiais']);
+  const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco', 'materiais', 'ramos-atividade']);
   const [materialSearch, setMaterialSearch] = useState('');
+  const [ramoSearch, setRamoSearch] = useState('');
   const { data: categoryIcons = [] } = useCategoryIcons();
 
   // Hook de fornecedores (API externa)
@@ -104,6 +110,16 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     isGroupSelected: isMaterialGroupSelected,
     getTypesForGroup,
   } = useMaterialFilter();
+
+  // Hook de Ramos de Atividade
+  const {
+    groups: ramoGroups,
+    segmentos: allSegmentos,
+    isLoading: ramosLoading,
+    totalGroups: totalRamoGroups,
+    totalSegmentos: totalRamoSegmentos,
+    getSegmentosForRamo,
+  } = useRamoAtividadeFilter();
 
   // Expandir automaticamente grupos com materiais selecionados
   useEffect(() => {
@@ -591,21 +607,190 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           </div>
         </FilterSection>
 
-        {/* Nichos */}
-        <FilterSection id="nichos" title="Nichos/Segmentos">
-          <div className="flex flex-wrap gap-1.5">
-            {NICHOS.slice(0, 8).map((nicho) => (
-              <button
-                key={nicho}
-                onClick={() => toggleArrayFilter('nichos', nicho)}
-                className={cn(
-                  "filter-tag",
-                  filters.nichos.includes(nicho) && "active"
-                )}
-              >
-                {nicho}
-              </button>
-            ))}
+        {/* Ramos de Atividade (Nichos/Segmentos) - Sistema Hierárquico */}
+        <FilterSection id="ramos-atividade" title="Nichos/Segmentos">
+          <div className="space-y-3">
+            {/* Badges dos ramos/segmentos selecionados */}
+            {(filters.ramosAtividade.length > 0 || filters.segmentosAtividade.length > 0) && (
+              <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+                    <Building2 className="h-3 w-3" />
+                    Selecionados
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onFilterChange({
+                        ...filters,
+                        ramosAtividade: [],
+                        segmentosAtividade: [],
+                      });
+                    }}
+                    className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Limpar todos
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {filters.ramosAtividade.map(slug => {
+                    const group = ramoGroups.find(g => g.group_slug === slug);
+                    return group ? (
+                      <RamoAtividadeBadge
+                        key={`ramo-${slug}`}
+                        name={group.group_name}
+                        hexCode={group.group_hex_code}
+                        size="sm"
+                        variant="solid"
+                        onRemove={() => {
+                          const segmentosNoRamo = getSegmentosForRamo(slug).map(s => s.segmento_slug);
+                          onFilterChange({
+                            ...filters,
+                            ramosAtividade: filters.ramosAtividade.filter(r => r !== slug),
+                            segmentosAtividade: filters.segmentosAtividade.filter(s => !segmentosNoRamo.includes(s)),
+                          });
+                        }}
+                      />
+                    ) : null;
+                  })}
+                  {filters.segmentosAtividade.map(slug => {
+                    const segmento = allSegmentos.find(s => s.segmento_slug === slug);
+                    const group = segmento ? ramoGroups.find(g => g.group_slug === segmento.ramo_slug) : null;
+                    return segmento ? (
+                      <RamoAtividadeBadge
+                        key={`seg-${slug}`}
+                        name={segmento.segmento_name}
+                        hexCode={group?.group_hex_code}
+                        size="sm"
+                        variant="outline"
+                        onRemove={() => {
+                          onFilterChange({
+                            ...filters,
+                            segmentosAtividade: filters.segmentosAtividade.filter(s => s !== slug),
+                          });
+                        }}
+                      />
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Busca de ramos/segmentos */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar nicho/segmento..."
+                value={ramoSearch}
+                onChange={(e) => setRamoSearch(e.target.value)}
+                className="h-8 text-sm pl-8 pr-8"
+              />
+              {ramoSearch && (
+                <button
+                  type="button"
+                  onClick={() => setRamoSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Estatísticas rápidas */}
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+              <span>{totalRamoGroups} ramos</span>
+              <span>•</span>
+              <span>{totalRamoSegmentos} segmentos</span>
+              <span>•</span>
+              <span className="text-primary font-medium">
+                {filters.ramosAtividade.length + filters.segmentosAtividade.length} selecionados
+              </span>
+            </div>
+
+            {/* Loading */}
+            {ramosLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            ) : (
+              <ScrollArea className="h-48">
+                <div className="space-y-1.5 pr-3">
+                  {/* Grupos de ramos com accordion */}
+                  {ramoGroups
+                    .filter(g => 
+                      !ramoSearch || 
+                      g.group_name.toLowerCase().includes(ramoSearch.toLowerCase()) ||
+                      getSegmentosForRamo(g.group_slug).some(s => 
+                        s.segmento_name.toLowerCase().includes(ramoSearch.toLowerCase())
+                      )
+                    )
+                    .map(group => {
+                      const segmentos = getSegmentosForRamo(group.group_slug).filter(s =>
+                        !ramoSearch || s.segmento_name.toLowerCase().includes(ramoSearch.toLowerCase())
+                      );
+                      const isRamoSelected = filters.ramosAtividade.includes(group.group_slug);
+                      
+                      return (
+                        <RamoAtividadeGroupAccordion
+                          key={group.group_slug}
+                          group={group}
+                          segmentos={segmentos}
+                          isRamoSelected={isRamoSelected}
+                          selectedSegmentos={filters.segmentosAtividade}
+                          onRamoToggle={(ramoSlug) => {
+                            const currentSelected = filters.ramosAtividade.includes(ramoSlug);
+                            if (currentSelected) {
+                              // Remove ramo e todos os segmentos desse ramo
+                              const segmentosNoRamo = getSegmentosForRamo(ramoSlug).map(s => s.segmento_slug);
+                              onFilterChange({
+                                ...filters,
+                                ramosAtividade: filters.ramosAtividade.filter(r => r !== ramoSlug),
+                                segmentosAtividade: filters.segmentosAtividade.filter(s => !segmentosNoRamo.includes(s)),
+                              });
+                            } else {
+                              onFilterChange({
+                                ...filters,
+                                ramosAtividade: [...filters.ramosAtividade, ramoSlug],
+                              });
+                            }
+                          }}
+                          onSegmentoToggle={(segmentoSlug) => {
+                            const currentSelected = filters.segmentosAtividade.includes(segmentoSlug);
+                            if (currentSelected) {
+                              onFilterChange({
+                                ...filters,
+                                segmentosAtividade: filters.segmentosAtividade.filter(s => s !== segmentoSlug),
+                              });
+                            } else {
+                              onFilterChange({
+                                ...filters,
+                                segmentosAtividade: [...filters.segmentosAtividade, segmentoSlug],
+                              });
+                            }
+                          }}
+                          defaultOpen={isRamoSelected || segmentos.some(s => filters.segmentosAtividade.includes(s.segmento_slug))}
+                          compact
+                        />
+                      );
+                    })}
+                    
+                  {/* Nenhum ramo encontrado */}
+                  {ramoGroups.filter(g => 
+                    !ramoSearch || 
+                    g.group_name.toLowerCase().includes(ramoSearch.toLowerCase()) ||
+                    getSegmentosForRamo(g.group_slug).some(s => 
+                      s.segmento_name.toLowerCase().includes(ramoSearch.toLowerCase())
+                    )
+                  ).length === 0 && (
+                    <p className="text-sm text-muted-foreground py-2 text-center">
+                      Nenhum nicho/segmento encontrado
+                    </p>
+                  )}
+                </div>
+              </ScrollArea>
+            )}
           </div>
         </FilterSection>
 
