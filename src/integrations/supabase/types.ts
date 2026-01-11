@@ -2237,6 +2237,93 @@ export type Database = {
           },
         ]
       }
+      promotion_products: {
+        Row: {
+          created_at: string
+          external_product_id: string
+          id: string
+          original_price: number | null
+          product_name: string
+          product_sku: string | null
+          promotion_id: string
+        }
+        Insert: {
+          created_at?: string
+          external_product_id: string
+          id?: string
+          original_price?: number | null
+          product_name: string
+          product_sku?: string | null
+          promotion_id: string
+        }
+        Update: {
+          created_at?: string
+          external_product_id?: string
+          id?: string
+          original_price?: number | null
+          product_name?: string
+          product_sku?: string | null
+          promotion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_products_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_products_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promotions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string
+          id: string
+          is_active: boolean
+          name: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          end_date: string
+          id?: string
+          is_active?: boolean
+          name: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       quote_approval_tokens: {
         Row: {
           created_at: string
@@ -3126,6 +3213,51 @@ export type Database = {
       }
     }
     Views: {
+      v_active_promotions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          discount_type: string | null
+          discount_value: number | null
+          end_date: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          end_date?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          start_date?: string | null
+          status?: never
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
+          end_date?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          start_date?: string | null
+          status?: never
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       v_color_hierarchy: {
         Row: {
           group_hex: string | null
