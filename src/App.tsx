@@ -11,6 +11,7 @@ import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
 import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
+import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
 
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
@@ -113,17 +114,19 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <AuthProvider>
-            <ProductsProvider>
-              <CollectionsProvider>
-                    <ComparisonProvider>
-                      <FavoritesProvider>
-                        <RecentlyViewedProvider>
-                          <Toaster />
-                          <Sonner />
-                      <BrowserRouter>
-                        <Suspense fallback={<LoadingScreen />}>
+        <AccessibilityProvider>
+          <AriaLiveProvider>
+            <TooltipProvider>
+              <AuthProvider>
+                <ProductsProvider>
+                  <CollectionsProvider>
+                        <ComparisonProvider>
+                          <FavoritesProvider>
+                            <RecentlyViewedProvider>
+                              <Toaster />
+                              <Sonner />
+                          <BrowserRouter>
+                            <Suspense fallback={<LoadingScreen />}>
                           <Routes>
                             {/* Public Routes */}
                             <Route path="/login" element={<Auth />} errorElement={<RouteErrorBoundary />} />
@@ -211,13 +214,15 @@ const App = () => {
                           </Routes>
                         </Suspense>
                       </BrowserRouter>
-                        </RecentlyViewedProvider>
-                      </FavoritesProvider>
-                    </ComparisonProvider>
+                    </RecentlyViewedProvider>
+                  </FavoritesProvider>
+                </ComparisonProvider>
               </CollectionsProvider>
             </ProductsProvider>
           </AuthProvider>
         </TooltipProvider>
+          </AriaLiveProvider>
+        </AccessibilityProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
