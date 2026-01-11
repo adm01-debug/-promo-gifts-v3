@@ -1,10 +1,7 @@
 import { useActiveCommemorativeDates, CommemorativeDate } from "@/hooks/useCommemorativeDates";
-import { Calendar, Gift, Sparkles, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CommemorativeDateFilterProps {
   selectedDate: string | null;
@@ -87,73 +84,44 @@ interface CommemorativeDateItemProps {
 
 function CommemorativeDateItem({ date, isSelected, onSelect, compact }: CommemorativeDateItemProps) {
   const daysUntilText = getDaysUntilText(date.days_until);
-  const isToday = date.days_until === 0;
-  const isThisWeek = date.days_until !== null && date.days_until <= 7;
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            type="button"
-            onClick={onSelect}
-            className={cn(
-              "w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between gap-2 transition-all",
-              "border border-transparent",
-              isSelected
-                ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                : "hover:bg-muted/80 hover:border-border",
-              isToday && !isSelected && "bg-accent/50 border-accent",
-              date.is_featured && !isSelected && "ring-1 ring-primary/20"
-            )}
-          >
-            <div className="flex items-center gap-2 min-w-0">
+    <label className="flex items-center gap-3 py-1.5 cursor-pointer group">
+      {/* Checkbox visual */}
+      <div
+        className={cn(
+          "w-4 h-4 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0",
+          isSelected
+            ? "bg-primary border-primary"
+            : "border-muted-foreground/40 group-hover:border-primary/60"
+        )}
+        onClick={onSelect}
+      >
+        {isSelected && (
+          <svg className="w-3 h-3 text-primary-foreground" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </div>
 
-              {/* Nome da data */}
-              <span className={cn("truncate", compact && "text-xs")}>
-                {date.name}
-              </span>
+      {/* Nome da data */}
+      <span 
+        className={cn(
+          "text-sm flex-1 truncate",
+          isSelected ? "text-foreground font-medium" : "text-muted-foreground group-hover:text-foreground"
+        )}
+        onClick={onSelect}
+      >
+        {date.name}
+      </span>
 
-              {/* Badge de destaque */}
-              {date.is_featured && !compact && (
-                <Sparkles className="h-3 w-3 text-yellow-500 flex-shrink-0" />
-              )}
-            </div>
-
-            {/* Countdown */}
-            {daysUntilText && (
-              <span
-                className={cn(
-                  "text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0",
-                  isSelected
-                    ? "bg-primary-foreground/20 text-primary-foreground"
-                    : isToday
-                    ? "bg-green-500/20 text-green-700 dark:text-green-400"
-                    : isThisWeek
-                    ? "bg-amber-500/20 text-amber-700 dark:text-amber-400"
-                    : "bg-muted text-muted-foreground"
-                )}
-              >
-                {daysUntilText}
-              </span>
-            )}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-[200px]">
-          <div className="space-y-1">
-            <p className="font-medium">{date.name}</p>
-            {date.formatted_date && (
-              <p className="text-xs text-muted-foreground">{date.formatted_date}</p>
-            )}
-            {date.product_count !== undefined && (
-              <p className="text-xs">
-                <span className="text-primary font-medium">{date.product_count}</span> produtos
-              </p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+      {/* Countdown badge */}
+      {daysUntilText && (
+        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground flex-shrink-0">
+          {daysUntilText}
+        </span>
+      )}
+    </label>
   );
 }
 
