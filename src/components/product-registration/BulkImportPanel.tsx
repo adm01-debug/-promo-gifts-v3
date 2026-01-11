@@ -348,8 +348,8 @@ export function BulkImportPanel() {
                         </TableCell>
                         <TableCell>
                           <Select
-                            value={mapping.targetField}
-                            onValueChange={(value) => updateMapping(mapping.sourceColumn, value)}
+                            value={mapping.targetField || "_ignore"}
+                            onValueChange={(value) => updateMapping(mapping.sourceColumn, value === "_ignore" ? "" : value)}
                           >
                             <SelectTrigger className={cn(
                               "w-[200px]",
@@ -358,7 +358,7 @@ export function BulkImportPanel() {
                               <SelectValue placeholder="Selecionar campo..." />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Ignorar</SelectItem>
+                              <SelectItem value="_ignore">Ignorar</SelectItem>
                               {PRODUCT_FIELDS.map(f => (
                                 <SelectItem key={f.key} value={f.key}>
                                   {f.label}

@@ -309,11 +309,13 @@ export function CategoryLinkPanel() {
                   <SelectValue placeholder="Selecione uma variante" />
                 </SelectTrigger>
                 <SelectContent>
-                  {variantes.map((variante) => (
-                    <SelectItem key={variante.id} value={variante.id}>
-                      {variante.nome}
-                    </SelectItem>
-                  ))}
+                  {variantes
+                    .filter((variante) => variante.id && variante.id.trim() !== '')
+                    .map((variante) => (
+                      <SelectItem key={variante.id} value={variante.id}>
+                        {variante.nome}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -321,16 +323,16 @@ export function CategoryLinkPanel() {
               <div className="space-y-2">
                 <Label htmlFor="regra_formato">Formato (regra)</Label>
                 <Select
-                  value={formData.regra_formato}
+                  value={formData.regra_formato || "_none"}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, regra_formato: value })
+                    setFormData({ ...formData, regra_formato: value === "_none" ? "" : value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Opcional" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="_none">Nenhum</SelectItem>
                     <SelectItem value="plana">Plana</SelectItem>
                     <SelectItem value="cilindrica">Cilíndrica</SelectItem>
                     <SelectItem value="textil">Têxtil</SelectItem>

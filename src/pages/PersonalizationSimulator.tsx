@@ -1219,14 +1219,14 @@ Opção ${idx + 1}: ${opt.techniqueName}
                     />
                   </div>
                   <Select 
-                    value={filterClientId || ""} 
-                    onValueChange={(val) => setFilterClientId(val || null)}
+                    value={filterClientId || "_all"} 
+                    onValueChange={(val) => setFilterClientId(val === "_all" ? null : val)}
                   >
                     <SelectTrigger className="w-full sm:w-[200px] h-9">
                       <SelectValue placeholder="Todos os clientes" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60">
-                      <SelectItem value="">Todos os clientes</SelectItem>
+                      <SelectItem value="_all">Todos os clientes</SelectItem>
                       {clients?.map(client => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
@@ -1390,14 +1390,14 @@ Opção ${idx + 1}: ${opt.techniqueName}
                 Vincular a cliente (opcional)
               </Label>
               <Select 
-                value={selectedClientId || ""} 
-                onValueChange={(val) => setSelectedClientId(val || null)}
+                value={selectedClientId || "_none"} 
+                onValueChange={(val) => setSelectedClientId(val === "_none" ? null : val)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione um cliente..." />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
-                  <SelectItem value="">Nenhum cliente</SelectItem>
+                  <SelectItem value="_none">Nenhum cliente</SelectItem>
                   {clients?.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       <div className="flex items-center gap-2">

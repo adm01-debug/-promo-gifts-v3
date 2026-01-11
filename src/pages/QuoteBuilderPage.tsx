@@ -526,12 +526,12 @@ export default function QuoteBuilderPage() {
                       <User className="h-4 w-4" />
                       Cliente
                     </Label>
-                    <Select value={clientId} onValueChange={setClientId}>
+                    <Select value={clientId || "_none"} onValueChange={(val) => setClientId(val === "_none" ? "" : val)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione um cliente" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Sem cliente</SelectItem>
+                        <SelectItem value="_none">Sem cliente</SelectItem>
                         {clients?.map((client) => (
                           <SelectItem key={client.id} value={client.id}>
                             {client.name}

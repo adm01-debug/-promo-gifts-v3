@@ -273,11 +273,13 @@ export function PricingPanel() {
                       <SelectValue placeholder="Selecione a técnica" />
                     </SelectTrigger>
                     <SelectContent>
-                      {techniques.map((technique) => (
-                        <SelectItem key={technique.id} value={technique.id}>
-                          {technique.name} ({technique.code})
-                        </SelectItem>
-                      ))}
+                      {techniques
+                        .filter((technique) => technique.id && technique.id.trim() !== '')
+                        .map((technique) => (
+                          <SelectItem key={technique.id} value={technique.id}>
+                            {technique.name} ({technique.code})
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -407,11 +409,13 @@ export function PricingPanel() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as técnicas</SelectItem>
-              {techniques.map((technique) => (
-                <SelectItem key={technique.id} value={technique.id}>
-                  {technique.name}
-                </SelectItem>
-              ))}
+              {techniques
+                .filter((technique) => technique.id && technique.id.trim() !== '')
+                .map((technique) => (
+                  <SelectItem key={technique.id} value={technique.id}>
+                    {technique.name}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         </div>
