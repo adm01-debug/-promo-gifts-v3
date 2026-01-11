@@ -92,34 +92,11 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Gamificação
-        xp: {
-          DEFAULT: "hsl(var(--xp))",
-          glow: "hsl(var(--xp-glow))",
-          foreground: "hsl(var(--xp-foreground))",
-        },
-        coins: {
-          DEFAULT: "hsl(var(--coins))",
-          glow: "hsl(var(--coins-glow))",
-          foreground: "hsl(var(--coins-foreground))",
-        },
-        streak: {
-          DEFAULT: "hsl(var(--streak))",
-          glow: "hsl(var(--streak-glow))",
-          foreground: "hsl(var(--streak-foreground))",
-        },
-        // Ranks
-        "rank-gold": {
-          DEFAULT: "hsl(var(--rank-gold))",
-          foreground: "hsl(var(--rank-gold-foreground))",
-        },
-        "rank-silver": {
-          DEFAULT: "hsl(var(--rank-silver))",
-          foreground: "hsl(var(--rank-silver-foreground))",
-        },
-        "rank-bronze": {
-          DEFAULT: "hsl(var(--rank-bronze))",
-          foreground: "hsl(var(--rank-bronze-foreground))",
+        // Status indicators (replacing gamification colors)
+        status: {
+          active: "hsl(var(--success))",
+          pending: "hsl(var(--warning))",
+          inactive: "hsl(var(--muted-foreground))",
         },
         // Chart colors
         chart: {
@@ -170,7 +147,7 @@ export default {
         "glow-primary": "var(--shadow-glow-primary)",
         "glow-secondary": "var(--shadow-glow-secondary)",
         "glow-success": "var(--shadow-glow-success)",
-        "glow-gold": "var(--shadow-glow-gold)",
+        "glow-warning": "var(--shadow-glow-warning)",
         "glow-orange": "0 0 20px hsl(var(--orange) / 0.4)",
         header: "var(--shadow-header)",
         elevated: "0 4px 20px -2px hsl(var(--foreground) / 0.08)",

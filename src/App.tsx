@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
+import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
 
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
@@ -125,10 +126,10 @@ const App = () => {
                         <Suspense fallback={<LoadingScreen />}>
                           <Routes>
                             {/* Public Routes */}
-                            <Route path="/login" element={<Auth />} />
-                            <Route path="/reset-password" element={<ResetPassword />} />
-                            <Route path="/approve/:token" element={<PublicQuoteApproval />} />
-                            <Route path="/auth/callback" element={<SSOCallbackPage />} />
+                            <Route path="/login" element={<Auth />} errorElement={<RouteErrorBoundary />} />
+                            <Route path="/reset-password" element={<ResetPassword />} errorElement={<RouteErrorBoundary />} />
+                            <Route path="/approve/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
+                            <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
                             {/* Protected Routes */}
                             <Route

@@ -71,13 +71,10 @@
     --orange-glow: 25 95% 63%;
     --orange-foreground: 0 0% 100%;
     
-    /* ===== RANKS ===== */
-    --rank-gold: 45 93% 47%;
-    --rank-gold-foreground: 45 100% 15%;
-    --rank-silver: 220 13% 70%;
-    --rank-silver-foreground: 220 20% 20%;
-    --rank-bronze: 30 50% 50%;
-    --rank-bronze-foreground: 30 60% 15%;
+    /* ===== HIGHLIGHT COLORS ===== */
+    --highlight-gold: 45 93% 47%;
+    --highlight-silver: 220 13% 70%;
+    --highlight-bronze: 30 50% 50%;
     
     /* ===== BORDAS E INPUTS ===== */
     --border: 40 20% 82%;
@@ -90,9 +87,15 @@
     --elevated: 0 0% 100%;
     --elevated-hover: 40 25% 98%;
     
-    /* ===== GLASS ===== */
+    /* ===== GLASS MORPHISM ===== */
     --glass-bg: 0 0% 100% / 0.7;
+    --glass-bg-strong: 0 0% 100% / 0.85;
+    --glass-bg-subtle: 0 0% 100% / 0.5;
     --glass-border: 0 0% 100% / 0.3;
+    --glass-border-strong: 0 0% 100% / 0.5;
+    --glass-blur: 12px;
+    --glass-blur-strong: 20px;
+    --glass-shadow: 0 4px 30px hsl(225 25% 12% / 0.05);
     
     /* ===== SIDEBAR ===== */
     --sidebar-background: 40 25% 97%;
@@ -108,8 +111,6 @@
     --gradient-primary: linear-gradient(135deg, hsl(252 87% 64%), hsl(280 85% 60%));
     --gradient-secondary: linear-gradient(135deg, hsl(40 30% 92%), hsl(40 25% 97%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-xp: linear-gradient(90deg, hsl(280 85% 60%), hsl(252 87% 64%));
-    --gradient-gold: linear-gradient(135deg, hsl(45 93% 47%), hsl(38 92% 50%));
     --gradient-surface: linear-gradient(180deg, hsl(40 25% 97%), hsl(40 20% 95%));
     --gradient-divider: linear-gradient(90deg, transparent, hsl(40 20% 82% / 0.5), transparent);
     --gradient-hero: linear-gradient(135deg, hsl(252 87% 64% / 0.1) 0%, hsl(280 85% 60% / 0.05) 100%);
@@ -129,7 +130,7 @@
     --shadow-glow-primary: 0 0 20px hsl(252 87% 64% / 0.25);
     --shadow-glow-secondary: 0 0 20px hsl(40 30% 92% / 0.3);
     --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.25);
-    --shadow-glow-gold: 0 0 20px hsl(45 93% 47% / 0.3);
+    --shadow-glow-warning: 0 0 20px hsl(38 92% 50% / 0.3);
     --shadow-header: 0 1px 3px hsl(225 25% 12% / 0.05), 0 1px 2px hsl(225 25% 12% / 0.03);
     
     /* ===== SPACING RHYTHM ===== */
@@ -250,13 +251,10 @@
     --orange-glow: 25 95% 45%;
     --orange-foreground: 0 0% 100%;
     
-    /* ===== RANKS ===== */
-    --rank-gold: 45 93% 55%;
-    --rank-gold-foreground: 45 100% 95%;
-    --rank-silver: 220 15% 75%;
-    --rank-silver-foreground: 220 20% 95%;
-    --rank-bronze: 30 55% 55%;
-    --rank-bronze-foreground: 30 60% 95%;
+    /* ===== HIGHLIGHT COLORS ===== */
+    --highlight-gold: 45 93% 55%;
+    --highlight-silver: 220 15% 75%;
+    --highlight-bronze: 30 55% 55%;
     
     /* ===== BORDAS E INPUTS ===== */
     --border: 220 12% 18%;
@@ -267,9 +265,15 @@
     --elevated: 220 15% 13%;
     --elevated-hover: 220 15% 16%;
     
-    /* ===== GLASS ===== */
+    /* ===== GLASS MORPHISM ===== */
     --glass-bg: 220 15% 10% / 0.9;
+    --glass-bg-strong: 220 15% 8% / 0.95;
+    --glass-bg-subtle: 220 15% 12% / 0.7;
     --glass-border: 220 15% 25% / 0.3;
+    --glass-border-strong: 220 15% 30% / 0.5;
+    --glass-blur: 12px;
+    --glass-blur-strong: 20px;
+    --glass-shadow: 0 4px 30px hsl(220 20% 3% / 0.3);
     
     /* ===== SIDEBAR ===== */
     --sidebar-background: 220 15% 8%;
@@ -285,8 +289,6 @@
     --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(25 95% 45%));
     --gradient-secondary: linear-gradient(135deg, hsl(220 15% 15%), hsl(220 15% 10%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-xp: linear-gradient(90deg, hsl(280 85% 65%), hsl(252 87% 70%));
-    --gradient-gold: linear-gradient(135deg, hsl(45 93% 55%), hsl(38 92% 50%));
     --gradient-surface: linear-gradient(180deg, hsl(220 15% 10%), hsl(220 15% 6%));
     --gradient-divider: linear-gradient(90deg, transparent, hsl(220 12% 20% / 0.5), transparent);
     --gradient-hero: linear-gradient(135deg, hsl(25 95% 53% / 0.15) 0%, hsl(25 95% 45% / 0.08) 100%);
@@ -301,7 +303,7 @@
     --shadow-glow-primary: 0 0 30px hsl(25 95% 53% / 0.35);
     --shadow-glow-secondary: 0 0 25px hsl(220 15% 15% / 0.4);
     --shadow-glow-success: 0 0 25px hsl(142 71% 45% / 0.3);
-    --shadow-glow-gold: 0 0 25px hsl(45 93% 55% / 0.35);
+    --shadow-glow-warning: 0 0 25px hsl(38 92% 50% / 0.35);
     --shadow-header: 0 1px 3px hsl(220 20% 3% / 0.6), inset 0 1px 0 hsl(220 15% 20% / 0.2);
     
     /* ===== CHART ===== */
@@ -676,9 +678,9 @@
     background-image: var(--gradient-success);
   }
 
-  .gradient-text-gold {
+  .gradient-text-highlight {
     @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-gold);
+    background-image: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
   }
 
   /* Hover Lift Effects */
@@ -971,26 +973,17 @@
     background: var(--gradient-primary);
   }
 
-  /* Rank Badges */
-  .rank-gold {
-    @apply relative;
-    background: linear-gradient(135deg, hsl(45 93% 47%), hsl(38 92% 50%));
-    box-shadow: 0 0 15px hsl(45 93% 47% / 0.4);
-    color: hsl(var(--rank-gold-foreground));
+  /* Featured Badge */
+  .badge-featured {
+    @apply relative px-3 py-1 rounded-full text-xs font-semibold;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    color: hsl(var(--primary-foreground));
   }
 
-  .rank-silver {
-    @apply relative;
-    background: linear-gradient(135deg, hsl(220 15% 75%), hsl(220 13% 65%));
-    box-shadow: 0 0 12px hsl(220 15% 75% / 0.3);
-    color: hsl(var(--rank-silver-foreground));
-  }
-
-  .rank-bronze {
-    @apply relative;
-    background: linear-gradient(135deg, hsl(30 55% 55%), hsl(25 50% 45%));
-    box-shadow: 0 0 10px hsl(30 55% 55% / 0.3);
-    color: hsl(var(--rank-bronze-foreground));
+  .badge-featured-outline {
+    @apply relative px-3 py-1 rounded-full text-xs font-semibold border-2;
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary));
   }
 
   /* Color Badge */
