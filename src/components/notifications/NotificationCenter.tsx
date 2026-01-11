@@ -7,7 +7,6 @@ import {
   Trash2,
   Eye,
   AlertTriangle,
-  Trophy,
   FileCheck,
   FileX,
   X,
@@ -49,12 +48,6 @@ const NOTIFICATION_CONFIG: Record<
     color: "text-amber-500 bg-amber-500/10",
     actionLabel: "Ver estoque",
     route: "/inventory",
-  },
-  goal_achieved: {
-    icon: Trophy,
-    color: "text-yellow-500 bg-yellow-500/10",
-    actionLabel: "Ver conquistas",
-    route: "/",
   },
   quote_approved: {
     icon: FileCheck,

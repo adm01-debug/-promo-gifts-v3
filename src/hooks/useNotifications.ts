@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'quote_viewed' | 'low_stock' | 'goal_achieved' | 'quote_approved' | 'quote_rejected' | string;
+  type: 'quote_viewed' | 'low_stock' | 'quote_approved' | 'quote_rejected' | string;
   title: string;
   message: string;
   metadata: Record<string, unknown>;
