@@ -60,16 +60,6 @@ export function RamoAtividadeGroupAccordion({
               className="data-[state=checked]:bg-primary"
             />
             
-            {group.group_hex_code ? (
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: group.group_hex_code }}
-              />
-            ) : group.group_icon ? (
-              <span className="text-xs">{group.group_icon}</span>
-            ) : (
-              <Building2 className="w-3 h-3 text-muted-foreground" />
-            )}
             
             <span className={cn(
               "text-sm",
@@ -145,28 +135,6 @@ export function RamoAtividadeGroupAccordion({
           )}
         </div>
         
-        {/* Ícone/Cor do grupo */}
-        {group.group_hex_code ? (
-          <div 
-            className={cn(
-              "w-5 h-5 rounded-full flex-shrink-0 transition-all duration-300",
-              hasSelection && "ring-2 ring-offset-1 ring-offset-background ring-primary/40 scale-110"
-            )}
-            style={{ 
-              backgroundColor: group.group_hex_code,
-              boxShadow: group.group_hex_code && hasSelection 
-                ? `0 4px 12px ${group.group_hex_code}50` 
-                : 'none'
-            }}
-          />
-        ) : group.group_icon ? (
-          <span className="text-lg">{group.group_icon}</span>
-        ) : (
-          <Building2 className={cn(
-            "w-5 h-5 flex-shrink-0",
-            hasSelection ? "text-primary" : "text-muted-foreground"
-          )} />
-        )}
         
         {/* Info do grupo */}
         <div className="flex-1 min-w-0">
