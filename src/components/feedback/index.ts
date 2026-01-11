@@ -3,3 +3,10 @@
  */
 export { EmptyState, ErrorEmptyState, InlineEmptyState } from "./EmptyState";
 export { toast, useToastAction } from "./EnhancedToast";
+export { 
+  OfflineIndicator, 
+  ConnectionStatus, 
+  OfflineQueueIndicator, 
+  OfflineAware,
+  useOnlineStatus,
+} from "./OfflineIndicator";
