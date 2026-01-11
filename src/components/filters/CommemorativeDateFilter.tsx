@@ -33,16 +33,10 @@ export function CommemorativeDateFilter({
 
   if (isLoading) {
     return (
-      <div className={cn("space-y-3", className)}>
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Calendar className="h-4 w-4" />
-          <span>Datas Comemorativas</span>
-        </div>
-        <div className="space-y-2">
-          <Skeleton className="h-9 w-full rounded-lg" />
-          <Skeleton className="h-9 w-full rounded-lg" />
-          <Skeleton className="h-9 w-3/4 rounded-lg" />
-        </div>
+      <div className={cn("space-y-2", className)}>
+        <Skeleton className="h-9 w-full rounded-lg" />
+        <Skeleton className="h-9 w-full rounded-lg" />
+        <Skeleton className="h-9 w-3/4 rounded-lg" />
       </div>
     );
   }
@@ -52,17 +46,10 @@ export function CommemorativeDateFilter({
   }
 
   return (
-    <div className={cn("space-y-3", className)}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Gift className="h-4 w-4 text-primary" />
-          <span>Datas Comemorativas</span>
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-            {activeDates.length}
-          </Badge>
-        </div>
-        {selectedDate && (
+    <div className={cn("space-y-2", className)}>
+      {/* Botão limpar se tiver seleção */}
+      {selectedDate && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => onSelectDate(null)}
@@ -70,8 +57,8 @@ export function CommemorativeDateFilter({
           >
             Limpar
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Lista de datas */}
       <ScrollArea className={cn("pr-2", compact ? "max-h-40" : "max-h-56")}>
@@ -121,13 +108,6 @@ function CommemorativeDateItem({ date, isSelected, onSelect, compact }: Commemor
             )}
           >
             <div className="flex items-center gap-2 min-w-0">
-              {/* Cor indicadora */}
-              {date.color_hex && (
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0 ring-1 ring-black/10"
-                  style={{ backgroundColor: date.color_hex }}
-                />
-              )}
 
               {/* Nome da data */}
               <span className={cn("truncate", compact && "text-xs")}>

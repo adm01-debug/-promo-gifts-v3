@@ -349,7 +349,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Datas Comemorativas - Agora com dados reais da API */}
-        <div className="py-3 border-t border-border">
+        <FilterSection id="datas-comemorativas" title="Datas Comemorativas">
           <CommemorativeDateFilter
             selectedDate={filters.datasComemorativas[0] || null}
             onSelectDate={(slug) => {
@@ -360,7 +360,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             }}
             compact
           />
-        </div>
+        </FilterSection>
 
         {/* Endomarketing */}
         <FilterSection id="endomarketing" title="Endomarketing">
@@ -512,13 +512,6 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                               className="h-4 w-4"
                             />
                             
-                            {/* Cor do grupo */}
-                            {group.group_hex_code && (
-                              <div 
-                                className="w-3 h-3 rounded-full ring-1 ring-border/50"
-                                style={{ backgroundColor: group.group_hex_code }}
-                              />
-                            )}
                             
                             {/* Nome do grupo e contador */}
                             <button
