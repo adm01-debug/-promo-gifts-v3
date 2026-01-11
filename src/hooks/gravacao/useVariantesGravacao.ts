@@ -118,20 +118,6 @@ export function useVariantesGravacao(tecnicaId?: string) {
   // Excluir variante
   const deleteMutation = useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      // Verificar se tem mapeamentos vinculados
-      const { count, error: countError } = await supabaseGravacao
-        .from('spot_tecnica_mapeamento')
-        .select('*', { count: 'exact', head: true })
-        .eq('tecnica_variante_id', id);
-
-      if (countError) {
-        throw new Error(`Erro ao verificar mapeamentos: ${countError.message}`);
-      }
-
-      if (count && count > 0) {
-        throw new Error(`Não é possível excluir: existem ${count} mapeamento(s) vinculado(s)`);
-      }
-
       const { error } = await supabaseGravacao
         .from('tecnica_gravacao_variante')
         .delete()
