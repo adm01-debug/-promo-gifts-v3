@@ -4,19 +4,13 @@ import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Heart, Trash2, Share2, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { EmptyState } from "@/components/common/EmptyState";
+import { FadeInView, HoverCard, StaggerList } from "@/components/common/MicroInteractions";
+import { DataCard, DataCardGrid, MiniStatCard } from "@/components/ui/DataCard";
+import { Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
@@ -76,32 +70,18 @@ export default function FavoritesPage() {
                 Compartilhar Lista
               </Button>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
+              <DeleteConfirmDialog
+                trigger={
                   <Button variant="outline" className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Limpar Tudo
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Limpar todos os favoritos?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta ação irá remover todos os {favoriteCount} produtos da sua lista de favoritos.
-                      Esta ação não pode ser desfeita.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleClearAll}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Limpar Tudo
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                }
+                title="Limpar todos os favoritos?"
+                description={`Esta ação irá remover todos os ${favoriteCount} produtos da sua lista de favoritos. Esta ação não pode ser desfeita.`}
+                onConfirm={handleClearAll}
+                itemName="favoritos"
+              />
             </div>
           )}
         </div>
@@ -138,60 +118,54 @@ export default function FavoritesPage() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-6">
-              <Heart className="h-10 w-10 text-muted-foreground" />
-            </div>
-            <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-              Nenhum favorito ainda
-            </h3>
-            <p className="text-muted-foreground max-w-md mb-6">
-              Navegue pelos produtos e clique no ícone de coração para adicionar
-              produtos à sua lista de favoritos.
-            </p>
-            <Button onClick={() => navigate("/")}>
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Explorar Produtos
-            </Button>
-          </div>
+          <EmptyState
+            variant="favorites"
+            title="Nenhum favorito ainda"
+            description="Navegue pelos produtos e clique no ícone de coração para adicionar produtos à sua lista de favoritos."
+            action={{
+              label: "Explorar Produtos",
+              onClick: () => navigate("/"),
+            }}
+          />
         )}
 
-        {/* Quick stats */}
+        {/* Quick stats using DataCard */}
         {favoriteProducts.length > 0 && (
-          <div className="card-elevated p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-display font-bold text-foreground">
-                  {favoriteProducts.length}
-                </p>
-                <p className="text-sm text-muted-foreground">Produtos</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-display font-bold text-foreground">
-                  {new Set(favoriteProducts.map((p) => p.category.id)).size}
-                </p>
-                <p className="text-sm text-muted-foreground">Categorias</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-display font-bold text-success">
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(Math.min(...favoriteProducts.map((p) => p.price)))}
-                </p>
-                <p className="text-sm text-muted-foreground">Menor preço</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-display font-bold text-primary">
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(Math.max(...favoriteProducts.map((p) => p.price)))}
-                </p>
-                <p className="text-sm text-muted-foreground">Maior preço</p>
-              </div>
-            </div>
-          </div>
+          <DataCardGrid columns={4}>
+            <DataCard
+              icon={Package}
+              value={favoriteProducts.length}
+              label="Produtos"
+              variant="primary"
+              size="sm"
+            />
+            <DataCard
+              icon={Layers}
+              value={new Set(favoriteProducts.map((p) => p.category.id)).size}
+              label="Categorias"
+              size="sm"
+            />
+            <DataCard
+              icon={TrendingDown}
+              value={new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(Math.min(...favoriteProducts.map((p) => p.price)))}
+              label="Menor preço"
+              variant="success"
+              size="sm"
+            />
+            <DataCard
+              icon={TrendingUp}
+              value={new Intl.NumberFormat("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              }).format(Math.max(...favoriteProducts.map((p) => p.price)))}
+              label="Maior preço"
+              variant="primary"
+              size="sm"
+            />
+          </DataCardGrid>
         )}
       </div>
     </MainLayout>

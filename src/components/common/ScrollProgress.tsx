@@ -1,5 +1,7 @@
-import { motion, useScroll, useSpring } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, useScroll, useSpring, useMotionValueEvent } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { ArrowUp } from "lucide-react";
 
 interface ScrollProgressProps {
   className?: string;
@@ -58,6 +60,11 @@ export function ScrollToTopButton({
   className?: string;
 }) {
   const { scrollY } = useScroll();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsVisible(latest > threshold);
+  });
   
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -66,7 +73,7 @@ export function ScrollToTopButton({
   return (
     <motion.button
       className={cn(
-        "fixed bottom-6 right-6 z-40 p-3 rounded-full",
+        "fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 p-3 rounded-full",
         "bg-primary text-primary-foreground shadow-lg",
         "hover:shadow-xl hover:scale-105 active:scale-95",
         "transition-transform duration-200",
@@ -74,27 +81,16 @@ export function ScrollToTopButton({
       )}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ 
-        opacity: scrollY.get() > threshold ? 1 : 0,
-        scale: scrollY.get() > threshold ? 1 : 0.8,
+        opacity: isVisible ? 1 : 0,
+        scale: isVisible ? 1 : 0.8,
+        pointerEvents: isVisible ? "auto" : "none",
       }}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={handleScrollToTop}
       aria-label="Voltar ao topo"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="m18 15-6-6-6 6" />
-      </svg>
+      <ArrowUp className="h-5 w-5" />
     </motion.button>
   );
 }

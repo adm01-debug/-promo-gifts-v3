@@ -148,7 +148,7 @@ export function DataCard({
 // Grid wrapper for DataCards
 interface DataCardGridProps {
   children: React.ReactNode;
-  columns?: 2 | 3 | 4;
+  columns?: 2 | 3 | 4 | 5;
   className?: string;
 }
 
@@ -160,10 +160,52 @@ export function DataCardGrid({ children, columns = 4, className }: DataCardGridP
         columns === 2 && "grid-cols-1 sm:grid-cols-2",
         columns === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
         columns === 4 && "grid-cols-2 lg:grid-cols-4",
+        columns === 5 && "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5",
         className
       )}
     >
       {children}
+    </div>
+  );
+}
+
+// Mini Stat Card for compact displays
+interface MiniStatCardProps {
+  label: string;
+  value: string | number;
+  icon?: React.ReactNode;
+  color?: "default" | "primary" | "success" | "warning" | "destructive";
+  className?: string;
+}
+
+const colorStyles = {
+  default: "bg-muted/50",
+  primary: "bg-primary/10 text-primary",
+  success: "bg-success/10 text-success",
+  warning: "bg-warning/10 text-warning",
+  destructive: "bg-destructive/10 text-destructive",
+};
+
+export function MiniStatCard({
+  label,
+  value,
+  icon,
+  color = "default",
+  className,
+}: MiniStatCardProps) {
+  return (
+    <div className={cn(
+      "flex items-center gap-2 px-3 py-2 rounded-lg",
+      colorStyles[color],
+      className
+    )}>
+      {icon && <span className="shrink-0">{icon}</span>}
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground truncate">{label}</p>
+        <p className="font-semibold truncate">
+          {typeof value === "number" ? value.toLocaleString("pt-BR") : value}
+        </p>
+      </div>
     </div>
   );
 }
