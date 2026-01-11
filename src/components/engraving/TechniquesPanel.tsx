@@ -448,7 +448,6 @@ export function TechniquesPanel() {
                 <TableHead className="w-[40px]"></TableHead>
                 <TableHead className="w-[120px]">Código</TableHead>
                 <TableHead>Nome</TableHead>
-                <TableHead className="hidden md:table-cell">Descrição</TableHead>
                 <TableHead className="text-center w-[80px]">Cores</TableHead>
                 <TableHead className="text-center hidden sm:table-cell w-[80px]">Variantes</TableHead>
                 <TableHead className="text-center hidden sm:table-cell w-[60px]">Dias</TableHead>
@@ -459,7 +458,7 @@ export function TechniquesPanel() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8">
+                  <TableCell colSpan={8} className="text-center py-8">
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                       <span className="text-muted-foreground">Carregando técnicas...</span>
@@ -468,7 +467,7 @@ export function TechniquesPanel() {
                 </TableRow>
               ) : filteredTechniques.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Nenhuma técnica encontrada
                   </TableCell>
                 </TableRow>
@@ -499,9 +498,6 @@ export function TechniquesPanel() {
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">{technique.nome}</TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground max-w-[200px] truncate">
-                        {technique.descricao || "-"}
-                      </TableCell>
                       <TableCell className="text-center">
                         {technique.permite_cores ? technique.max_cores : "-"}
                       </TableCell>
