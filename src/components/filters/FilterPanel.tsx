@@ -786,42 +786,6 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             )}
           </div>
         </FilterSection>
-
-        {/* Opções Rápidas */}
-        <FilterSection id="opcoes" title="Opções Rápidas">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="in-stock"
-                checked={filters.inStock}
-                onCheckedChange={() => toggleBooleanFilter('inStock')}
-              />
-              <Label htmlFor="in-stock" className="text-sm cursor-pointer">
-                Apenas em estoque
-              </Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="is-kit"
-                checked={filters.isKit}
-                onCheckedChange={() => toggleBooleanFilter('isKit')}
-              />
-              <Label htmlFor="is-kit" className="text-sm cursor-pointer">
-                Apenas KITs
-              </Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="featured"
-                checked={filters.featured}
-                onCheckedChange={() => toggleBooleanFilter('featured')}
-              />
-              <Label htmlFor="featured" className="text-sm cursor-pointer">
-                Apenas destaques
-              </Label>
-            </div>
-          </div>
-        </FilterSection>
       </div>
     </div>
   );
