@@ -106,29 +106,41 @@ export function ProductQuantityCard({
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium">Quantidade</Label>
             <div className="flex gap-1">
-              {QUICK_QUANTITIES.map(qty => (
-                <button
+              {QUICK_QUANTITIES.map((qty, idx) => (
+                <motion.button
                   key={qty}
                   onClick={() => onQuantityChange(qty)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
                   className={`
-                    px-2 py-0.5 text-xs rounded-md transition-all
+                    px-2.5 py-1 text-xs rounded-lg font-medium transition-colors
                     ${quantity === qty 
-                      ? 'bg-primary text-primary-foreground' 
+                      ? 'bg-primary text-primary-foreground shadow-md' 
                       : 'bg-muted hover:bg-muted/80 text-muted-foreground'}
                   `}
                 >
                   {qty >= 1000 ? `${qty/1000}k` : qty}
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
-          <Input
-            type="number"
-            min={1}
-            value={quantity}
-            onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
-            className="h-12 text-lg font-semibold text-center"
-          />
+          <motion.div
+            key={quantity}
+            initial={{ scale: 1.02 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 400 }}
+          >
+            <Input
+              type="number"
+              min={1}
+              value={quantity}
+              onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
+              className="h-12 text-lg font-semibold text-center"
+            />
+          </motion.div>
         </div>
 
         {/* Custom Price Override */}
@@ -203,12 +215,23 @@ export function ProductQuantityCard({
                 )}
               </div>
 
-              <div className="mt-3 p-2 rounded-lg bg-primary/10 text-center">
+              <motion.div 
+                className="mt-3 p-3 rounded-lg bg-primary/10 text-center"
+                key={effectiveProductPrice * quantity}
+                initial={{ scale: 0.98, opacity: 0.8 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <p className="text-xs text-muted-foreground">Total produtos</p>
-                <p className="font-bold text-xl text-primary">
+                <motion.p 
+                  className="font-bold text-xl text-primary"
+                  key={`${effectiveProductPrice}-${quantity}`}
+                  initial={{ y: -5 }}
+                  animate={{ y: 0 }}
+                >
                   {formatCurrency(effectiveProductPrice * quantity)}
-                </p>
-              </div>
+                </motion.p>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
