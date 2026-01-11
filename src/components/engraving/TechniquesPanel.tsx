@@ -15,6 +15,23 @@ import {
   DialogTitle, 
   DialogTrigger 
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Table,
   TableBody,
@@ -23,119 +40,83 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Loader2, Search, Settings } from "lucide-react";
-import { toast } from "sonner";
+import { Plus, Pencil, Trash2, Loader2, Search, Settings, ChevronDown, ChevronRight, AlertCircle } from "lucide-react";
+import { useTecnicasGravacao } from "@/hooks/gravacao/useTecnicasGravacao";
+import type { TecnicaGravacaoFormData, TecnicaGravacaoWithVariantes, TipoSetup } from "@/types/gravacao-database";
+import { VariantesSubPanel } from "./VariantesSubPanel";
 
-// Mock data - será substituído por chamadas à API externa
-const mockTechniques = [
-  {
-    id: "1",
-    code: "SERI",
-    name: "Serigrafia",
-    description: "Impressão com tinta através de tela vazada",
-    maxColors: 6,
-    minQuantity: 50,
-    estimatedDays: 5,
-    isActive: true,
-  },
-  {
-    id: "2",
-    code: "LASER",
-    name: "Gravação a Laser",
-    description: "Gravação permanente através de feixe de laser",
-    maxColors: 1,
-    minQuantity: 10,
-    estimatedDays: 3,
-    isActive: true,
-  },
-  {
-    id: "3",
-    code: "TAMP",
-    name: "Tampografia",
-    description: "Impressão com carimbo de silicone",
-    maxColors: 4,
-    minQuantity: 100,
-    estimatedDays: 7,
-    isActive: true,
-  },
-  {
-    id: "4",
-    code: "BORDO",
-    name: "Bordado",
-    description: "Aplicação de fios sobre o tecido",
-    maxColors: 12,
-    minQuantity: 20,
-    estimatedDays: 10,
-    isActive: false,
-  },
-  {
-    id: "5",
-    code: "SUBLI",
-    name: "Sublimação",
-    description: "Transferência de tinta para o material por calor",
-    maxColors: null,
-    minQuantity: 1,
-    estimatedDays: 4,
-    isActive: true,
-  },
+const TIPO_SETUP_OPTIONS: { value: TipoSetup; label: string }[] = [
+  { value: 'nenhum', label: 'Nenhum' },
+  { value: 'fotolito', label: 'Fotolito' },
+  { value: 'cliche', label: 'Clichê' },
+  { value: 'matriz', label: 'Matriz' },
+  { value: 'arte_digital', label: 'Arte Digital' },
 ];
 
-interface Technique {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-  maxColors: number | null;
-  minQuantity: number;
-  estimatedDays: number;
-  isActive: boolean;
-}
-
-interface TechniqueFormData {
-  code: string;
-  name: string;
-  description: string;
-  maxColors: string;
-  minQuantity: string;
-  estimatedDays: string;
-  isActive: boolean;
-}
-
-const initialFormData: TechniqueFormData = {
-  code: "",
-  name: "",
-  description: "",
-  maxColors: "",
-  minQuantity: "1",
-  estimatedDays: "5",
-  isActive: true,
+const initialFormData: TecnicaGravacaoFormData = {
+  codigo: "",
+  codigo_interno: "",
+  nome: "",
+  descricao: "",
+  permite_cores: true,
+  max_cores: 4,
+  cobra_por_cor: true,
+  cobra_por_area: false,
+  cobra_por_pontos: false,
+  requer_setup: true,
+  tipo_setup: 'fotolito',
+  tempo_producao_dias: 5,
+  ordem_exibicao: 100,
+  ativo: true,
 };
 
 export function TechniquesPanel() {
-  const [techniques, setTechniques] = useState<Technique[]>(mockTechniques);
+  const { 
+    tecnicas, 
+    isLoading, 
+    isError,
+    error,
+    create, 
+    update, 
+    delete: deleteTecnica, 
+    toggleStatus,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useTecnicasGravacao();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [editingTechnique, setEditingTechnique] = useState<Technique | null>(null);
-  const [formData, setFormData] = useState<TechniqueFormData>(initialFormData);
+  const [editingTechnique, setEditingTechnique] = useState<TecnicaGravacaoWithVariantes | null>(null);
+  const [formData, setFormData] = useState<TecnicaGravacaoFormData>(initialFormData);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [techniqueToDelete, setTechniqueToDelete] = useState<TecnicaGravacaoWithVariantes | null>(null);
+  const [expandedTechniqueId, setExpandedTechniqueId] = useState<string | null>(null);
 
-  const filteredTechniques = techniques.filter(
+  const filteredTechniques = tecnicas.filter(
     (t) =>
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.code.toLowerCase().includes(searchQuery.toLowerCase())
+      t.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.codigo.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleOpenDialog = (technique?: Technique) => {
+  const handleOpenDialog = (technique?: TecnicaGravacaoWithVariantes) => {
     if (technique) {
       setEditingTechnique(technique);
       setFormData({
-        code: technique.code,
-        name: technique.name,
-        description: technique.description,
-        maxColors: technique.maxColors?.toString() || "",
-        minQuantity: technique.minQuantity.toString(),
-        estimatedDays: technique.estimatedDays.toString(),
-        isActive: technique.isActive,
+        codigo: technique.codigo,
+        codigo_interno: technique.codigo_interno,
+        nome: technique.nome,
+        descricao: technique.descricao || "",
+        permite_cores: technique.permite_cores,
+        max_cores: technique.max_cores,
+        cobra_por_cor: technique.cobra_por_cor,
+        cobra_por_area: technique.cobra_por_area,
+        cobra_por_pontos: technique.cobra_por_pontos,
+        requer_setup: technique.requer_setup,
+        tipo_setup: technique.tipo_setup,
+        tempo_producao_dias: technique.tempo_producao_dias,
+        ordem_exibicao: technique.ordem_exibicao,
+        ativo: technique.ativo,
       });
     } else {
       setEditingTechnique(null);
@@ -145,56 +126,64 @@ export function TechniquesPanel() {
   };
 
   const handleSave = async () => {
-    if (!formData.code || !formData.name) {
-      toast.error("Código e nome são obrigatórios");
+    if (!formData.codigo || !formData.nome) {
       return;
     }
 
-    setIsLoading(true);
-    
-    // Simular chamada à API
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const newTechnique: Technique = {
-      id: editingTechnique?.id || Date.now().toString(),
-      code: formData.code.toUpperCase(),
-      name: formData.name,
-      description: formData.description,
-      maxColors: formData.maxColors ? parseInt(formData.maxColors) : null,
-      minQuantity: parseInt(formData.minQuantity) || 1,
-      estimatedDays: parseInt(formData.estimatedDays) || 5,
-      isActive: formData.isActive,
-    };
-
-    if (editingTechnique) {
-      setTechniques((prev) =>
-        prev.map((t) => (t.id === editingTechnique.id ? newTechnique : t))
-      );
-      toast.success("Técnica atualizada com sucesso!");
-    } else {
-      setTechniques((prev) => [...prev, newTechnique]);
-      toast.success("Técnica cadastrada com sucesso!");
+    try {
+      if (editingTechnique) {
+        await update({ id: editingTechnique.id, ...formData });
+      } else {
+        await create(formData);
+      }
+      setIsDialogOpen(false);
+      setFormData(initialFormData);
+      setEditingTechnique(null);
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
     }
-
-    setIsLoading(false);
-    setIsDialogOpen(false);
-    setFormData(initialFormData);
-    setEditingTechnique(null);
   };
 
-  const handleDelete = async (id: string) => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setTechniques((prev) => prev.filter((t) => t.id !== id));
-    toast.success("Técnica removida com sucesso!");
-    setIsLoading(false);
+  const handleDeleteClick = (technique: TecnicaGravacaoWithVariantes) => {
+    setTechniqueToDelete(technique);
+    setDeleteDialogOpen(true);
   };
 
-  const handleToggleActive = async (id: string) => {
-    setTechniques((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, isActive: !t.isActive } : t))
+  const handleConfirmDelete = async () => {
+    if (!techniqueToDelete) return;
+    
+    try {
+      await deleteTecnica(techniqueToDelete.id);
+      setDeleteDialogOpen(false);
+      setTechniqueToDelete(null);
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+    }
+  };
+
+  const handleToggleActive = (id: string, currentStatus: boolean) => {
+    toggleStatus({ id, ativo: !currentStatus });
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedTechniqueId(expandedTechniqueId === id ? null : id);
+  };
+
+  const isSaving = isCreating || isUpdating;
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+          <p className="text-lg font-medium text-destructive mb-2">Erro ao carregar técnicas</p>
+          <p className="text-sm text-muted-foreground text-center max-w-md">
+            {error?.message || 'Não foi possível conectar ao banco de dados externo.'}
+          </p>
+        </CardContent>
+      </Card>
     );
-  };
+  }
 
   return (
     <Card>
@@ -206,7 +195,7 @@ export function TechniquesPanel() {
               Técnicas de Gravação
             </CardTitle>
             <CardDescription>
-              Cadastre e gerencie as técnicas de personalização disponíveis
+              Gerencie as técnicas de personalização do banco externo ({tecnicas.length} técnicas)
             </CardDescription>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -216,7 +205,7 @@ export function TechniquesPanel() {
                 Nova Técnica
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>
                   {editingTechnique ? "Editar Técnica" : "Nova Técnica de Gravação"}
@@ -226,106 +215,212 @@ export function TechniquesPanel() {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="code">Código *</Label>
-                    <Input
-                      id="code"
-                      placeholder="Ex: SERI"
-                      value={formData.code}
-                      onChange={(e) =>
-                        setFormData({ ...formData, code: e.target.value.toUpperCase() })
-                      }
-                      maxLength={10}
-                    />
+                {/* Seção: Informações Básicas */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-muted-foreground">Informações Básicas</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="codigo">Código *</Label>
+                      <Input
+                        id="codigo"
+                        placeholder="Ex: SERIGRAFIA"
+                        value={formData.codigo}
+                        onChange={(e) =>
+                          setFormData({ ...formData, codigo: e.target.value.toUpperCase().replace(/\s/g, '_') })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="codigo_interno">Código Interno</Label>
+                      <Input
+                        id="codigo_interno"
+                        placeholder="Ex: SERI"
+                        value={formData.codigo_interno}
+                        onChange={(e) =>
+                          setFormData({ ...formData, codigo_interno: e.target.value.toUpperCase() })
+                        }
+                        maxLength={4}
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nome *</Label>
+                    <Label htmlFor="nome">Nome *</Label>
                     <Input
-                      id="name"
+                      id="nome"
                       placeholder="Ex: Serigrafia"
-                      value={formData.name}
+                      value={formData.nome}
                       onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Descreva a técnica..."
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="maxColors">Máx. Cores</Label>
-                    <Input
-                      id="maxColors"
-                      type="number"
-                      placeholder="∞"
-                      min="1"
-                      value={formData.maxColors}
-                      onChange={(e) =>
-                        setFormData({ ...formData, maxColors: e.target.value })
+                        setFormData({ ...formData, nome: e.target.value })
                       }
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="minQuantity">Qtd. Mínima</Label>
-                    <Input
-                      id="minQuantity"
-                      type="number"
-                      min="1"
-                      value={formData.minQuantity}
+                    <Label htmlFor="descricao">Descrição</Label>
+                    <Textarea
+                      id="descricao"
+                      placeholder="Descreva a técnica..."
+                      value={formData.descricao}
                       onChange={(e) =>
-                        setFormData({ ...formData, minQuantity: e.target.value })
+                        setFormData({ ...formData, descricao: e.target.value })
                       }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="estimatedDays">Dias Prod.</Label>
-                    <Input
-                      id="estimatedDays"
-                      type="number"
-                      min="1"
-                      value={formData.estimatedDays}
-                      onChange={(e) =>
-                        setFormData({ ...formData, estimatedDays: e.target.value })
-                      }
+                      rows={3}
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="isActive">Técnica Ativa</Label>
-                  <Switch
-                    id="isActive"
-                    checked={formData.isActive}
-                    onCheckedChange={(checked) =>
-                      setFormData({ ...formData, isActive: checked })
-                    }
-                  />
+                {/* Seção: Configurações de Cobrança */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h4 className="text-sm font-medium text-muted-foreground">Configurações de Cobrança</h4>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="permite_cores">Permite múltiplas cores</Label>
+                    <Switch
+                      id="permite_cores"
+                      checked={formData.permite_cores}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, permite_cores: checked })
+                      }
+                    />
+                  </div>
+                  {formData.permite_cores && (
+                    <div className="space-y-2">
+                      <Label htmlFor="max_cores">Máximo de cores</Label>
+                      <Input
+                        id="max_cores"
+                        type="number"
+                        min="1"
+                        max="12"
+                        value={formData.max_cores}
+                        onChange={(e) =>
+                          setFormData({ ...formData, max_cores: parseInt(e.target.value) || 1 })
+                        }
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="cobra_por_cor"
+                        checked={formData.cobra_por_cor}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, cobra_por_cor: checked, cobra_por_area: checked ? false : formData.cobra_por_area, cobra_por_pontos: checked ? false : formData.cobra_por_pontos })
+                        }
+                      />
+                      <Label htmlFor="cobra_por_cor" className="text-sm">Por cor</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="cobra_por_area"
+                        checked={formData.cobra_por_area}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, cobra_por_area: checked, cobra_por_cor: checked ? false : formData.cobra_por_cor, cobra_por_pontos: checked ? false : formData.cobra_por_pontos })
+                        }
+                      />
+                      <Label htmlFor="cobra_por_area" className="text-sm">Por área</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="cobra_por_pontos"
+                        checked={formData.cobra_por_pontos}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, cobra_por_pontos: checked, cobra_por_cor: checked ? false : formData.cobra_por_cor, cobra_por_area: checked ? false : formData.cobra_por_area })
+                        }
+                      />
+                      <Label htmlFor="cobra_por_pontos" className="text-sm">Por pontos</Label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seção: Configurações de Produção */}
+                <div className="space-y-4 pt-4 border-t">
+                  <h4 className="text-sm font-medium text-muted-foreground">Configurações de Produção</h4>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="requer_setup">Requer setup/preparação</Label>
+                    <Switch
+                      id="requer_setup"
+                      checked={formData.requer_setup}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, requer_setup: checked })
+                      }
+                    />
+                  </div>
+                  {formData.requer_setup && (
+                    <div className="space-y-2">
+                      <Label htmlFor="tipo_setup">Tipo de Setup</Label>
+                      <Select
+                        value={formData.tipo_setup}
+                        onValueChange={(value: TipoSetup) =>
+                          setFormData({ ...formData, tipo_setup: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIPO_SETUP_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tempo_producao_dias">Tempo de produção (dias)</Label>
+                      <Input
+                        id="tempo_producao_dias"
+                        type="number"
+                        min="1"
+                        max="60"
+                        value={formData.tempo_producao_dias}
+                        onChange={(e) =>
+                          setFormData({ ...formData, tempo_producao_dias: parseInt(e.target.value) || 1 })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ordem_exibicao">Ordem de exibição</Label>
+                      <Input
+                        id="ordem_exibicao"
+                        type="number"
+                        min="1"
+                        value={formData.ordem_exibicao}
+                        onChange={(e) =>
+                          setFormData({ ...formData, ordem_exibicao: parseInt(e.target.value) || 1 })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seção: Status */}
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="ativo">Técnica Ativa</Label>
+                      <p className="text-xs text-muted-foreground">Técnicas inativas não aparecem no catálogo</p>
+                    </div>
+                    <Switch
+                      id="ativo"
+                      checked={formData.ativo}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, ativo: checked })
+                      }
+                    />
+                  </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
-                  disabled={isLoading}
+                  disabled={isSaving}
                 >
                   Cancelar
                 </Button>
-                <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                <Button onClick={handleSave} disabled={isSaving || !formData.codigo || !formData.nome}>
+                  {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   {editingTechnique ? "Salvar Alterações" : "Cadastrar"}
                 </Button>
               </DialogFooter>
@@ -350,77 +445,144 @@ export function TechniquesPanel() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Código</TableHead>
+                <TableHead className="w-[40px]"></TableHead>
+                <TableHead className="w-[120px]">Código</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead className="hidden md:table-cell">Descrição</TableHead>
-                <TableHead className="text-center">Cores</TableHead>
-                <TableHead className="text-center hidden sm:table-cell">Qtd. Mín.</TableHead>
-                <TableHead className="text-center hidden sm:table-cell">Dias</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="text-center w-[80px]">Cores</TableHead>
+                <TableHead className="text-center hidden sm:table-cell w-[80px]">Variantes</TableHead>
+                <TableHead className="text-center hidden sm:table-cell w-[60px]">Dias</TableHead>
+                <TableHead className="text-center w-[80px]">Status</TableHead>
+                <TableHead className="text-right w-[100px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTechniques.length === 0 ? (
+              {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      <span className="text-muted-foreground">Carregando técnicas...</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredTechniques.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Nenhuma técnica encontrada
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredTechniques.map((technique) => (
-                  <TableRow key={technique.id}>
-                    <TableCell>
-                      <Badge variant="outline" className="font-mono">
-                        {technique.code}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">{technique.name}</TableCell>
-                    <TableCell className="hidden md:table-cell text-muted-foreground max-w-[200px] truncate">
-                      {technique.description}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {technique.maxColors || "∞"}
-                    </TableCell>
-                    <TableCell className="text-center hidden sm:table-cell">
-                      {technique.minQuantity}
-                    </TableCell>
-                    <TableCell className="text-center hidden sm:table-cell">
-                      {technique.estimatedDays}d
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Switch
-                        checked={technique.isActive}
-                        onCheckedChange={() => handleToggleActive(technique.id)}
-                        aria-label="Ativar/Desativar técnica"
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                  <>
+                    <TableRow 
+                      key={technique.id} 
+                      className={!technique.ativo ? "opacity-60" : ""}
+                    >
+                      <TableCell>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleOpenDialog(technique)}
+                          className="h-6 w-6"
+                          onClick={() => toggleExpand(technique.id)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          {expandedTechniqueId === technique.id ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(technique.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {technique.codigo_interno || technique.codigo}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium">{technique.nome}</TableCell>
+                      <TableCell className="hidden md:table-cell text-muted-foreground max-w-[200px] truncate">
+                        {technique.descricao || "-"}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {technique.permite_cores ? technique.max_cores : "-"}
+                      </TableCell>
+                      <TableCell className="text-center hidden sm:table-cell">
+                        <Badge variant="secondary" className="text-xs">
+                          {technique.variantes_count || 0}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center hidden sm:table-cell">
+                        {technique.tempo_producao_dias}d
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Switch
+                          checked={technique.ativo}
+                          onCheckedChange={() => handleToggleActive(technique.id, technique.ativo)}
+                          aria-label="Ativar/Desativar técnica"
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(technique)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteClick(technique)}
+                            className="text-destructive hover:text-destructive"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    {expandedTechniqueId === technique.id && (
+                      <TableRow>
+                        <TableCell colSpan={9} className="bg-muted/30 p-0">
+                          <VariantesSubPanel tecnicaId={technique.id} tecnicaNome={technique.nome} />
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </>
                 ))
               )}
             </TableBody>
           </Table>
         </div>
       </CardContent>
+
+      {/* Dialog de confirmação de exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir técnica?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a técnica "{techniqueToDelete?.nome}"? 
+              Esta ação não pode ser desfeita.
+              {techniqueToDelete?.variantes_count ? (
+                <span className="block mt-2 text-destructive">
+                  Atenção: Esta técnica possui {techniqueToDelete.variantes_count} variante(s) vinculada(s).
+                </span>
+              ) : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

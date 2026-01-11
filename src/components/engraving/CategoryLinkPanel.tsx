@@ -3,118 +3,145 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Link2, Search, Save, Loader2, Package, Check } from "lucide-react";
-import { toast } from "sonner";
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Link2, Search, Plus, Pencil, Trash2, Loader2, AlertCircle, Check } from "lucide-react";
+import { useMapeamentosSpot } from "@/hooks/gravacao/useMapeamentosSpot";
+import { useAllVariantes } from "@/hooks/gravacao/useVariantesGravacao";
+import type { SpotMapeamentoWithVariante } from "@/types/gravacao-database";
 
-// Mock data - será substituído por chamadas à API externa
-const mockCategories = [
-  { id: "1", name: "Canetas", productCount: 45 },
-  { id: "2", name: "Garrafas e Squeezes", productCount: 32 },
-  { id: "3", name: "Bolsas e Mochilas", productCount: 28 },
-  { id: "4", name: "Camisetas", productCount: 120 },
-  { id: "5", name: "Bonés", productCount: 35 },
-  { id: "6", name: "Cadernos", productCount: 22 },
-  { id: "7", name: "Chaveiros", productCount: 55 },
-  { id: "8", name: "Copos e Canecas", productCount: 40 },
-  { id: "9", name: "Acessórios de Escritório", productCount: 67 },
-  { id: "10", name: "Ecobags", productCount: 18 },
-];
+interface MapeamentoFormData {
+  spot_customization_type: string;
+  spot_table_code: string;
+  tecnica_variante_id: string;
+  regra_formato: string;
+  regra_observacao: string;
+  mapeamento_automatico: boolean;
+  ativo: boolean;
+}
 
-const mockTechniques = [
-  { id: "1", code: "SERI", name: "Serigrafia" },
-  { id: "2", code: "LASER", name: "Gravação a Laser" },
-  { id: "3", code: "TAMP", name: "Tampografia" },
-  { id: "4", code: "BORDO", name: "Bordado" },
-  { id: "5", code: "SUBLI", name: "Sublimação" },
-];
-
-// Mock de vínculos existentes
-const mockLinks: Record<string, string[]> = {
-  "1": ["1", "2", "3"], // Canetas: Serigrafia, Laser, Tampografia
-  "2": ["1", "2", "5"], // Garrafas: Serigrafia, Laser, Sublimação
-  "3": ["1", "4", "5"], // Bolsas: Serigrafia, Bordado, Sublimação
-  "4": ["1", "4", "5"], // Camisetas: Serigrafia, Bordado, Sublimação
-  "5": ["1", "4"], // Bonés: Serigrafia, Bordado
-  "6": ["1", "2"], // Cadernos: Serigrafia, Laser
-  "7": ["2", "3"], // Chaveiros: Laser, Tampografia
-  "8": ["1", "2", "5"], // Copos: Serigrafia, Laser, Sublimação
-  "9": ["1", "2", "3"], // Acessórios: Serigrafia, Laser, Tampografia
-  "10": ["1", "5"], // Ecobags: Serigrafia, Sublimação
+const initialFormData: MapeamentoFormData = {
+  spot_customization_type: "",
+  spot_table_code: "",
+  tecnica_variante_id: "",
+  regra_formato: "",
+  regra_observacao: "",
+  mapeamento_automatico: true,
+  ativo: true,
 };
 
-interface Category {
-  id: string;
-  name: string;
-  productCount: number;
-}
-
-interface Technique {
-  id: string;
-  code: string;
-  name: string;
-}
-
 export function CategoryLinkPanel() {
-  const [categories] = useState<Category[]>(mockCategories);
-  const [techniques] = useState<Technique[]>(mockTechniques);
-  const [links, setLinks] = useState<Record<string, string[]>>(mockLinks);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const { 
+    mapeamentos, 
+    isLoading, 
+    isError,
+    error,
+    create, 
+    update, 
+    delete: deleteMapeamento,
+    isCreating,
+    isUpdating,
+    isDeleting,
+  } = useMapeamentosSpot();
 
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const { data: variantes = [], isLoading: isLoadingVariantes } = useAllVariantes();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingMapeamento, setEditingMapeamento] = useState<SpotMapeamentoWithVariante | null>(null);
+  const [formData, setFormData] = useState<MapeamentoFormData>(initialFormData);
+
+  const filteredMapeamentos = mapeamentos.filter(
+    (m) =>
+      m.spot_table_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.spot_customization_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.variante?.nome.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleToggleLink = (categoryId: string, techniqueId: string) => {
-    setLinks((prev) => {
-      const currentLinks = prev[categoryId] || [];
-      const newLinks = currentLinks.includes(techniqueId)
-        ? currentLinks.filter((id) => id !== techniqueId)
-        : [...currentLinks, techniqueId];
-      
-      return { ...prev, [categoryId]: newLinks };
-    });
-    setHasChanges(true);
-  };
-
-  const handleSelectAll = (categoryId: string) => {
-    setLinks((prev) => ({
-      ...prev,
-      [categoryId]: techniques.map((t) => t.id),
-    }));
-    setHasChanges(true);
-  };
-
-  const handleDeselectAll = (categoryId: string) => {
-    setLinks((prev) => ({
-      ...prev,
-      [categoryId]: [],
-    }));
-    setHasChanges(true);
+  const handleOpenDialog = (mapeamento?: SpotMapeamentoWithVariante) => {
+    if (mapeamento) {
+      setEditingMapeamento(mapeamento);
+      setFormData({
+        spot_customization_type: mapeamento.spot_customization_type,
+        spot_table_code: mapeamento.spot_table_code,
+        tecnica_variante_id: mapeamento.tecnica_variante_id,
+        regra_formato: mapeamento.regra_formato || "",
+        regra_observacao: mapeamento.regra_observacao || "",
+        mapeamento_automatico: mapeamento.mapeamento_automatico,
+        ativo: mapeamento.ativo,
+      });
+    } else {
+      setEditingMapeamento(null);
+      setFormData(initialFormData);
+    }
+    setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
-    // Simular chamada à API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    toast.success("Vínculos salvos com sucesso!");
-    setIsSaving(false);
-    setHasChanges(false);
+    if (!formData.spot_table_code || !formData.tecnica_variante_id) {
+      return;
+    }
+
+    try {
+      if (editingMapeamento) {
+        await update({ id: editingMapeamento.id, ...formData });
+      } else {
+        await create(formData);
+      }
+      setIsDialogOpen(false);
+      setFormData(initialFormData);
+      setEditingMapeamento(null);
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+    }
   };
 
-  const getLinkedTechniques = (categoryId: string) => {
-    const linkedIds = links[categoryId] || [];
-    return techniques.filter((t) => linkedIds.includes(t.id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteMapeamento(id);
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
+    }
   };
+
+  const isSaving = isCreating || isUpdating;
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+          <p className="text-lg font-medium text-destructive mb-2">Erro ao carregar mapeamentos</p>
+          <p className="text-sm text-muted-foreground text-center max-w-md">
+            {error?.message || 'Não foi possível conectar ao banco de dados externo.'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -123,23 +150,15 @@ export function CategoryLinkPanel() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Link2 className="h-5 w-5 text-primary" />
-              Vínculos com Categorias
+              Mapeamentos SPOT
             </CardTitle>
             <CardDescription>
-              Defina quais técnicas de gravação estão disponíveis para cada categoria de produto
+              Vincule códigos da API SPOT às variantes internas ({mapeamentos.length} mapeamentos)
             </CardDescription>
           </div>
-          <Button 
-            onClick={handleSave} 
-            disabled={!hasChanges || isSaving}
-            className="shrink-0"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-2" />
-            )}
-            Salvar Vínculos
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Mapeamento
           </Button>
         </div>
       </CardHeader>
@@ -148,7 +167,7 @@ export function CategoryLinkPanel() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar categorias..."
+              placeholder="Buscar mapeamentos..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -156,99 +175,220 @@ export function CategoryLinkPanel() {
           </div>
         </div>
 
-        <ScrollArea className="h-[500px] pr-4">
-          <Accordion type="multiple" className="space-y-2">
-            {filteredCategories.map((category) => {
-              const linkedTechniques = getLinkedTechniques(category.id);
-              const allSelected = linkedTechniques.length === techniques.length;
-
-              return (
-                <AccordionItem
-                  key={category.id}
-                  value={category.id}
-                  className="border rounded-lg px-4"
-                >
-                  <AccordionTrigger className="hover:no-underline py-3">
-                    <div className="flex items-center gap-3 flex-1">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">{category.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {category.productCount} produtos
-                        </span>
-                      </div>
-                      <div className="flex-1" />
-                      <div className="flex items-center gap-2 mr-4">
-                        {linkedTechniques.length > 0 ? (
-                          <Badge variant="secondary" className="text-xs">
-                            {linkedTechniques.length} técnica{linkedTechniques.length !== 1 ? "s" : ""}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-xs text-muted-foreground">
-                            Nenhuma
-                          </Badge>
-                        )}
-                      </div>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Cód. SPOT</TableHead>
+                <TableHead>Tipo SPOT</TableHead>
+                <TableHead>→ Variante Interna</TableHead>
+                <TableHead className="text-center w-[80px]">Auto</TableHead>
+                <TableHead className="text-center w-[80px]">Status</TableHead>
+                <TableHead className="text-right w-[100px]">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                      <span className="text-muted-foreground">Carregando mapeamentos...</span>
                     </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-4">
-                    <div className="space-y-3">
+                  </TableCell>
+                </TableRow>
+              ) : filteredMapeamentos.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    Nenhum mapeamento encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredMapeamentos.map((mapeamento) => (
+                  <TableRow key={mapeamento.id} className={!mapeamento.ativo ? "opacity-60" : ""}>
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono text-xs">
+                        {mapeamento.spot_table_code}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {mapeamento.spot_customization_type}
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">→</span>
+                        <span className="font-medium">{mapeamento.variante?.nome || 'N/A'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {mapeamento.mapeamento_automatico ? (
+                        <Check className="h-4 w-4 text-green-500 mx-auto" />
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={mapeamento.ativo ? "default" : "secondary"} className="text-xs">
+                        {mapeamento.ativo ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSelectAll(category.id)}
-                          disabled={allSelected}
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenDialog(mapeamento)}
                         >
-                          <Check className="h-3 w-3 mr-1" />
-                          Selecionar Todas
+                          <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeselectAll(category.id)}
-                          disabled={linkedTechniques.length === 0}
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(mapeamento.id)}
+                          className="text-destructive hover:text-destructive"
+                          disabled={isDeleting}
                         >
-                          Limpar
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {techniques.map((technique) => {
-                          const isLinked = (links[category.id] || []).includes(technique.id);
-                          return (
-                            <div
-                              key={technique.id}
-                              className={`flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
-                                isLinked
-                                  ? "bg-primary/5 border-primary/30"
-                                  : "bg-muted/30 hover:bg-muted/50"
-                              }`}
-                              onClick={() => handleToggleLink(category.id, technique.id)}
-                            >
-                              <Checkbox
-                                checked={isLinked}
-                                onCheckedChange={() =>
-                                  handleToggleLink(category.id, technique.id)
-                                }
-                              />
-                              <div className="flex flex-col">
-                                <span className="font-medium text-sm">{technique.name}</span>
-                                <span className="text-xs text-muted-foreground font-mono">
-                                  {technique.code}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              );
-            })}
-          </Accordion>
-        </ScrollArea>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
+
+      {/* Dialog de criação/edição */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingMapeamento ? "Editar Mapeamento" : "Novo Mapeamento SPOT"}
+            </DialogTitle>
+            <DialogDescription>
+              Vincule um código da API SPOT a uma variante interna
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="spot_table_code">Código SPOT *</Label>
+                <Input
+                  id="spot_table_code"
+                  placeholder="Ex: TXP1"
+                  value={formData.spot_table_code}
+                  onChange={(e) =>
+                    setFormData({ ...formData, spot_table_code: e.target.value.toUpperCase() })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="spot_customization_type">Tipo SPOT</Label>
+                <Input
+                  id="spot_customization_type"
+                  placeholder="Ex: Silk screen têxtil"
+                  value={formData.spot_customization_type}
+                  onChange={(e) =>
+                    setFormData({ ...formData, spot_customization_type: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tecnica_variante_id">Variante Interna *</Label>
+              <Select
+                value={formData.tecnica_variante_id}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, tecnica_variante_id: value })
+                }
+                disabled={isLoadingVariantes}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma variante" />
+                </SelectTrigger>
+                <SelectContent>
+                  {variantes.map((variante) => (
+                    <SelectItem key={variante.id} value={variante.id}>
+                      {variante.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="regra_formato">Formato (regra)</Label>
+                <Select
+                  value={formData.regra_formato}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, regra_formato: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Opcional" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum</SelectItem>
+                    <SelectItem value="plana">Plana</SelectItem>
+                    <SelectItem value="cilindrica">Cilíndrica</SelectItem>
+                    <SelectItem value="textil">Têxtil</SelectItem>
+                    <SelectItem value="patch">Patch</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-2 pt-8">
+                <Switch
+                  id="mapeamento_automatico"
+                  checked={formData.mapeamento_automatico}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, mapeamento_automatico: checked })
+                  }
+                />
+                <Label htmlFor="mapeamento_automatico" className="text-sm">Mapeamento automático</Label>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="regra_observacao">Observação</Label>
+              <Input
+                id="regra_observacao"
+                placeholder="Observações do mapeamento..."
+                value={formData.regra_observacao}
+                onChange={(e) =>
+                  setFormData({ ...formData, regra_observacao: e.target.value })
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <Label htmlFor="map_ativo">Mapeamento Ativo</Label>
+              <Switch
+                id="map_ativo"
+                checked={formData.ativo}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, ativo: checked })
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isSaving}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSave} 
+              disabled={isSaving || !formData.spot_table_code || !formData.tecnica_variante_id}
+            >
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {editingMapeamento ? "Salvar" : "Criar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
