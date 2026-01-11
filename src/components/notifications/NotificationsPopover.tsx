@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Check, CheckCheck, Trash2, Eye, AlertTriangle, Trophy, FileCheck, FileX } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Eye, AlertTriangle, FileCheck, FileX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 const notificationIcons: Record<string, React.ReactNode> = {
   quote_viewed: <Eye className="h-4 w-4 text-blue-500" />,
   low_stock: <AlertTriangle className="h-4 w-4 text-amber-500" />,
-  goal_achieved: <Trophy className="h-4 w-4 text-yellow-500" />,
   quote_approved: <FileCheck className="h-4 w-4 text-green-500" />,
   quote_rejected: <FileX className="h-4 w-4 text-red-500" />,
 };

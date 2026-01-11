@@ -187,7 +187,7 @@ export default function BIDashboard() {
           )}
         </div>
 
-        {/* Sales Goals + Charts Row + Leaderboard */}
+        {/* Sales Goals + Charts Row */}
         <div className="grid gap-6 lg:grid-cols-4">
           {/* Sales Goals Card */}
           <SalesGoalsCard />
