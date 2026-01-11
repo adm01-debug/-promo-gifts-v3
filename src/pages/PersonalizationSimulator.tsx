@@ -619,7 +619,7 @@ Opção ${idx + 1}: ${opt.techniqueName}
                   </CardContent>
                 </Card>
 
-                {/* Techniques Selection */}
+                {/* Techniques Selection - Compact */}
                 <Card>
                   <CardHeader className="pb-4">
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -627,79 +627,114 @@ Opção ${idx + 1}: ${opt.techniqueName}
                       Técnicas
                     </CardTitle>
                     <CardDescription>
-                      Selecione as técnicas para comparar
+                      Adicione técnicas para comparar
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
+                    {/* Add Technique Dropdown */}
                     {techniquesLoading ? (
-                      <div className="space-y-2">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                      </div>
+                      <Skeleton className="h-10 w-full" />
                     ) : (
-                      <div className="space-y-3">
-                        {techniques?.map(technique => {
+                      <Select
+                        value=""
+                        onValueChange={(value) => {
+                          if (value && !selectedTechniques.includes(value)) {
+                            handleTechniqueToggle(value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="+ Adicionar técnica..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-80">
+                          {techniques?.filter(t => !selectedTechniques.includes(t.id)).map(technique => {
+                            const slaColor = technique.estimated_days <= 3 
+                              ? "text-emerald-600" 
+                              : technique.estimated_days <= 7 
+                                ? "text-amber-600" 
+                                : "text-destructive";
+                            
+                            return (
+                              <SelectItem key={technique.id} value={technique.id}>
+                                <div className="flex items-center gap-3 py-1">
+                                  <div className="flex-1">
+                                    <span className="font-medium">{technique.name}</span>
+                                    <span className="text-xs text-muted-foreground ml-2">({technique.code})</span>
+                                  </div>
+                                  <span className={cn("text-xs font-medium", slaColor)}>
+                                    {technique.estimated_days}d
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatCurrency(technique.unit_cost)}/un
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                          {techniques?.filter(t => !selectedTechniques.includes(t.id)).length === 0 && (
+                            <div className="p-3 text-center text-sm text-muted-foreground">
+                              Todas as técnicas já foram adicionadas
+                            </div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
+
+                    {/* Selected Techniques as Chips */}
+                    {selectedTechniques.length > 0 ? (
+                      <div className="space-y-2">
+                        {selectedTechniques.map(techId => {
+                          const technique = techniques?.find(t => t.id === techId);
+                          if (!technique) return null;
+                          
                           const slaColor = technique.estimated_days <= 3 
                             ? "bg-emerald-500" 
                             : technique.estimated_days <= 7 
                               ? "bg-amber-500" 
                               : "bg-destructive";
-                          const slaLabel = technique.estimated_days <= 3 
-                            ? "Express" 
-                            : technique.estimated_days <= 7 
-                              ? "Normal" 
-                              : "Estendido";
                           
                           return (
                             <div 
-                              key={technique.id}
-                              className={cn(
-                                "p-3 rounded-lg border transition-all cursor-pointer",
-                                selectedTechniques.includes(technique.id)
-                                  ? "border-primary bg-primary/5"
-                                  : "border-border hover:border-primary/50"
-                              )}
-                              onClick={() => handleTechniqueToggle(technique.id)}
+                              key={techId}
+                              className="flex items-center justify-between p-3 rounded-lg border border-primary/30 bg-primary/5"
                             >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <Checkbox
-                                    checked={selectedTechniques.includes(technique.id)}
-                                    onCheckedChange={() => handleTechniqueToggle(technique.id)}
-                                  />
-                                  <div>
-                                    <p className="font-medium text-sm">{technique.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {formatCurrency(technique.unit_cost)}/un • Setup: {formatCurrency(technique.setup_cost)}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Badge 
-                                          variant="secondary" 
-                                          className={cn("gap-1 text-white text-[10px]", slaColor)}
-                                        >
-                                          <Clock className="h-3 w-3" />
-                                          {technique.estimated_days}d
-                                        </Badge>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>SLA: {slaLabel} ({technique.estimated_days} dias úteis)</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <Badge variant="outline" className="text-xs">
-                                    {technique.code}
-                                  </Badge>
-                                </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs font-mono">
+                                  {technique.code}
+                                </Badge>
+                                <span className="font-medium text-sm">{technique.name}</span>
+                                <Badge 
+                                  variant="secondary" 
+                                  className={cn("gap-1 text-white text-[10px]", slaColor)}
+                                >
+                                  <Clock className="h-3 w-3" />
+                                  {technique.estimated_days}d
+                                </Badge>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleTechniqueToggle(techId)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
                           );
                         })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-muted-foreground text-sm">
+                        <Palette className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>Nenhuma técnica selecionada</p>
+                        <p className="text-xs">Use o dropdown acima para adicionar</p>
+                      </div>
+                    )}
+
+                    {/* Quick info */}
+                    {selectedTechniques.length > 0 && (
+                      <div className="text-xs text-muted-foreground text-center pt-2 border-t">
+                        {selectedTechniques.length} técnica{selectedTechniques.length > 1 ? 's' : ''} selecionada{selectedTechniques.length > 1 ? 's' : ''}
                       </div>
                     )}
                   </CardContent>
