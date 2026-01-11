@@ -1334,3 +1334,163 @@
     100% { background-position: -200% 0; }
   }
 }
+
+/* ============================================
+   ACCESSIBILITY ENHANCEMENTS (WCAG 2.2 AA)
+   ============================================ */
+
+/* High Contrast Mode */
+.high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 0%;
+  --muted: 0 0% 90%;
+  --muted-foreground: 0 0% 20%;
+  --border: 0 0% 0%;
+  --primary: 220 100% 40%;
+  --primary-foreground: 0 0% 100%;
+}
+
+.dark.high-contrast {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 5%;
+  --card-foreground: 0 0% 100%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 85%;
+  --border: 0 0% 100%;
+  --primary: 45 100% 50%;
+  --primary-foreground: 0 0% 0%;
+}
+
+/* Keyboard Mode - Enhanced Focus Indicators */
+.keyboard-mode *:focus-visible {
+  outline: 3px solid hsl(var(--ring)) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 6px hsl(var(--primary) / 0.2) !important;
+}
+
+.keyboard-mode button:focus-visible,
+.keyboard-mode a:focus-visible,
+.keyboard-mode [role="button"]:focus-visible {
+  transform: scale(1.02);
+}
+
+/* Skip Links Enhancement */
+.skip-links a:focus {
+  position: fixed !important;
+  z-index: 99999 !important;
+  top: 1rem;
+  left: 1rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 20px hsl(var(--foreground) / 0.2);
+}
+
+/* Focus Within for form groups */
+.focus-within-highlight:focus-within {
+  outline: 2px solid hsl(var(--primary) / 0.5);
+  outline-offset: 4px;
+  border-radius: var(--radius);
+}
+
+/* Screen Reader Only - Enhanced */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Focus Not SR Only - reveals on focus */
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-within {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: inherit !important;
+  margin: inherit !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+/* Interactive element minimum size (WCAG 2.5.5 Target Size) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Reduced Motion - Additional Styles */
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin {
+    animation: none !important;
+  }
+  
+  .transition-all,
+  .transition-transform,
+  .transition-opacity,
+  .transition-colors {
+    transition-duration: 0.01ms !important;
+  }
+  
+  .hover-lift,
+  .hover-scale,
+  .card-lift {
+    transform: none !important;
+  }
+}
+
+/* Forced Colors Mode (Windows High Contrast) */
+@media (forced-colors: active) {
+  *:focus-visible {
+    outline: 3px solid CanvasText !important;
+    outline-offset: 2px !important;
+  }
+  
+  button,
+  a,
+  [role="button"] {
+    border: 2px solid ButtonText !important;
+  }
+  
+  button:hover,
+  a:hover,
+  [role="button"]:hover {
+    background-color: Highlight !important;
+    color: HighlightText !important;
+  }
+}
+
+/* Print Styles for Accessibility */
+@media print {
+  .sr-only {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    clip: auto !important;
+    white-space: normal !important;
+  }
+  
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}
