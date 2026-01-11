@@ -2,14 +2,14 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
-import { PresetManager } from "@/components/filters/PresetManager";
+import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 import { PRODUCTS } from "@/data/mockData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+
 import {
   Sheet,
   SheetContent,
@@ -457,13 +457,7 @@ export default function FiltersPage() {
                   <SheetHeader>
                     <SheetTitle>Filtros</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-6 space-y-6">
-                    <PresetManager
-                      currentFilters={filters}
-                      onApplyPreset={(f) => handleApplyPreset(f)}
-                      activePresetId={activePresetId}
-                    />
-                    <Separator />
+                  <div className="mt-6">
                     <FilterPanel
                       filters={filters}
                       onFilterChange={handleFilterChange}
@@ -507,13 +501,7 @@ export default function FiltersPage() {
         <div className="flex gap-6">
           {/* Sidebar - Desktop */}
           <aside className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-20 space-y-6 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin pr-2">
-              <PresetManager
-                currentFilters={filters}
-                onApplyPreset={(f) => handleApplyPreset(f)}
-                activePresetId={activePresetId}
-              />
-              <Separator />
+            <div className="sticky top-20 space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin pr-2">
               <FilterPanel
                 filters={filters}
                 onFilterChange={handleFilterChange}
@@ -523,8 +511,14 @@ export default function FiltersPage() {
             </div>
           </aside>
 
-          {/* Products grid */}
-          <div className="flex-1 min-h-[600px]">
+          {/* Products area */}
+          <div className="flex-1 min-h-[600px] space-y-4">
+            {/* Presets Bar - Above products */}
+            <PresetsBar
+              currentFilters={filters}
+              onApplyPreset={(f) => handleApplyPreset(f)}
+              activePresetId={activePresetId}
+            />
             {filteredProducts.length > 0 ? (
               viewMode === "grid" ? (
                 <VirtualizedProductGrid
