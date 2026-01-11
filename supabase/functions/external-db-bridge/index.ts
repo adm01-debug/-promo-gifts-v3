@@ -64,6 +64,10 @@ const PRODUCT_TABLES = [
   'mockup_generation_jobs',
   'mockup_approval_links',
   'generated_mockups',
+  // Ramos de Atividade (hierarquia de nichos/segmentos)
+  'ramo_atividade',
+  'ramo_atividade_filho',
+  'produto_ramo_atividade',
 ] as const;
 
 // Views e Materialized Views (somente leitura)
