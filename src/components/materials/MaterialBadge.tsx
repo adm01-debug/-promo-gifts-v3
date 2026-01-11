@@ -68,19 +68,6 @@ export function MaterialBadge({
       )}
       onClick={onClick}
     >
-      {/* Indicador de cor */}
-      {hexCode && (
-        <span
-          className={cn(
-            "rounded-full flex-shrink-0 ring-1 ring-inset ring-black/10",
-            colorDotSizes[size]
-          )}
-          style={{ 
-            backgroundColor: hexCode,
-            boxShadow: `0 1px 3px ${hexCode}40`
-          }}
-        />
-      )}
       
       {/* Texto */}
       <span className={cn(
@@ -184,12 +171,6 @@ export function CompactMaterialBadge({
           : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      {hexCode && (
-        <span
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: hexCode }}
-        />
-      )}
       <span className="truncate max-w-[80px]">{name}</span>
     </button>
   );
