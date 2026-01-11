@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -269,8 +269,35 @@ function ProductSearch({
 }
 
 // ============================================
-// TECHNIQUE SELECTOR
+// TECHNIQUE SELECTOR - WIZARD SEQUENCIAL
 // ============================================
+
+interface ComponentData {
+  id: string;
+  name: string;
+  code: string;
+  locations: LocationData[];
+}
+
+interface LocationData {
+  id: string;
+  name: string;
+  code: string;
+  maxWidth: number | null;
+  maxHeight: number | null;
+  maxArea: number | null;
+  techniques: TechniqueData[];
+}
+
+interface TechniqueData {
+  id: string;
+  techniqueId: string;
+  name: string;
+  code: string;
+  composedCode: string;
+  maxColors: number | null;
+  isDefault: boolean;
+}
 
 function TechniqueSelector({
   productId,
@@ -281,11 +308,13 @@ function TechniqueSelector({
   onSelect: (technique: ProductTechnique | null) => void;
   selectedTechnique: ProductTechnique | null;
 }) {
-  const { data: techniques, isLoading, error } = useQuery({
-    queryKey: ['product-techniques', productId],
+  const [selectedComponent, setSelectedComponent] = useState<ComponentData | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
+
+  const { data: components, isLoading, error } = useQuery({
+    queryKey: ['product-components-hierarchy', productId],
     queryFn: async () => {
-      // Buscar componentes do produto com técnicas
-      const { data: components, error: compError } = await supabase
+      const { data: comps, error: compError } = await supabase
         .from('product_components')
         .select(`
           id,
@@ -307,8 +336,7 @@ function TechniqueSelector({
               personalization_techniques (
                 id,
                 name,
-                code,
-                description
+                code
               )
             )
           )
@@ -318,45 +346,95 @@ function TechniqueSelector({
         .eq('is_personalizable', true);
 
       if (compError) throw compError;
-      if (!components?.length) return [];
+      if (!comps?.length) return [];
 
-      // Flatten into techniques list
-      const techList: ProductTechnique[] = [];
-      
-      for (const comp of components) {
-        for (const loc of comp.product_component_locations || []) {
-          for (const tech of loc.product_component_location_techniques || []) {
-            const technique = tech.personalization_techniques as any;
-            if (technique) {
-              techList.push({
-                id: tech.id,
-                techniqueId: tech.technique_id,
-                techniqueName: technique.name,
-                techniqueCode: technique.code,
-                componentName: comp.component_name,
-                locationName: loc.location_name,
-                locationCode: loc.location_code,
-                composedCode: tech.composed_code,
-                maxWidth: loc.max_width_cm,
-                maxHeight: loc.max_height_cm,
-                maxArea: loc.max_area_cm2,
-                maxColors: tech.max_colors,
-                isDefault: tech.is_default || false,
-              });
-            }
-          }
-        }
-      }
+      // Transform into hierarchical structure
+      const result: ComponentData[] = comps.map(comp => ({
+        id: comp.id,
+        name: comp.component_name,
+        code: comp.component_code,
+        locations: (comp.product_component_locations || []).map((loc: any) => ({
+          id: loc.id,
+          name: loc.location_name,
+          code: loc.location_code,
+          maxWidth: loc.max_width_cm,
+          maxHeight: loc.max_height_cm,
+          maxArea: loc.max_area_cm2,
+          techniques: (loc.product_component_location_techniques || []).map((tech: any) => ({
+            id: tech.id,
+            techniqueId: tech.technique_id,
+            name: tech.personalization_techniques?.name || 'Técnica',
+            code: tech.personalization_techniques?.code || '',
+            composedCode: tech.composed_code,
+            maxColors: tech.max_colors,
+            isDefault: tech.is_default || false,
+          })),
+        })).filter((loc: LocationData) => loc.techniques.length > 0),
+      })).filter(comp => comp.locations.length > 0);
 
-      return techList;
+      return result;
     },
     enabled: !!productId,
   });
 
+  // Reset selections when product changes
+  useEffect(() => {
+    setSelectedComponent(null);
+    setSelectedLocation(null);
+    onSelect(null);
+  }, [productId]);
+
+  const handleComponentSelect = (comp: ComponentData) => {
+    setSelectedComponent(comp);
+    setSelectedLocation(null);
+    onSelect(null);
+    
+    // Auto-select if only one location
+    if (comp.locations.length === 1) {
+      handleLocationSelect(comp.locations[0], comp);
+    }
+  };
+
+  const handleLocationSelect = (loc: LocationData, comp: ComponentData = selectedComponent!) => {
+    setSelectedLocation(loc);
+    onSelect(null);
+    
+    // Auto-select if only one technique or has default
+    const defaultTech = loc.techniques.find(t => t.isDefault);
+    if (loc.techniques.length === 1 || defaultTech) {
+      const techToSelect = defaultTech || loc.techniques[0];
+      handleTechniqueSelect(techToSelect, loc, comp);
+    }
+  };
+
+  const handleTechniqueSelect = (
+    tech: TechniqueData, 
+    loc: LocationData = selectedLocation!, 
+    comp: ComponentData = selectedComponent!
+  ) => {
+    const fullTechnique: ProductTechnique = {
+      id: tech.id,
+      techniqueId: tech.techniqueId,
+      techniqueName: tech.name,
+      techniqueCode: tech.code,
+      componentName: comp.name,
+      locationName: loc.name,
+      locationCode: loc.code,
+      composedCode: tech.composedCode,
+      maxWidth: loc.maxWidth,
+      maxHeight: loc.maxHeight,
+      maxArea: loc.maxArea,
+      maxColors: tech.maxColors,
+      isDefault: tech.isDefault,
+    };
+    onSelect(fullTechnique);
+  };
+
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-20" />)}
+      <div className="space-y-3">
+        <Skeleton className="h-12" />
+        <Skeleton className="h-12" />
       </div>
     );
   }
@@ -370,7 +448,7 @@ function TechniqueSelector({
     );
   }
 
-  if (!techniques?.length) {
+  if (!components?.length) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Paintbrush className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -379,67 +457,182 @@ function TechniqueSelector({
     );
   }
 
-  // Group by component
-  const grouped = techniques.reduce((acc, tech) => {
-    if (!acc[tech.componentName]) acc[tech.componentName] = [];
-    acc[tech.componentName].push(tech);
-    return acc;
-  }, {} as Record<string, ProductTechnique[]>);
+  const wizardStep = !selectedComponent ? 1 : !selectedLocation ? 2 : !selectedTechnique ? 3 : 4;
 
   return (
     <div className="space-y-4">
-      {Object.entries(grouped).map(([componentName, techs]) => (
-        <div key={componentName} className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Package className="w-4 h-4" />
-            {componentName}
-          </h4>
+      {/* Mini step indicator */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <span className={cn("px-2 py-1 rounded", wizardStep >= 1 ? "bg-primary/20 text-primary font-medium" : "bg-muted")}>
+          Componente
+        </span>
+        <ChevronRight className="w-3 h-3" />
+        <span className={cn("px-2 py-1 rounded", wizardStep >= 2 ? "bg-primary/20 text-primary font-medium" : "bg-muted")}>
+          Local
+        </span>
+        <ChevronRight className="w-3 h-3" />
+        <span className={cn("px-2 py-1 rounded", wizardStep >= 3 ? "bg-primary/20 text-primary font-medium" : "bg-muted")}>
+          Técnica
+        </span>
+      </div>
+
+      {/* Step 1: Component Selection */}
+      {!selectedComponent && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Qual parte do produto será personalizada?</p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {techs.map(tech => (
+            {components.map(comp => (
               <button
-                key={tech.id}
-                onClick={() => onSelect(selectedTechnique?.id === tech.id ? null : tech)}
-                className={cn(
-                  "p-3 rounded-lg border text-left transition-all",
-                  selectedTechnique?.id === tech.id
-                    ? "bg-primary/10 border-primary ring-1 ring-primary"
-                    : "bg-card hover:bg-accent border-border"
-                )}
+                key={comp.id}
+                onClick={() => handleComponentSelect(comp)}
+                className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Paintbrush className="w-4 h-4 text-primary" />
-                    <span className="font-medium">{tech.techniqueName}</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <Package className="w-5 h-5 text-primary" />
                   </div>
-                  {tech.isDefault && (
-                    <Badge variant="secondary" className="text-xs">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      Padrão
-                    </Badge>
-                  )}
-                </div>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Local: {tech.locationName}</p>
-                  <div className="flex items-center gap-3">
-                    {tech.maxWidth && tech.maxHeight && (
-                      <span className="flex items-center gap-1">
-                        <Ruler className="w-3 h-3" />
-                        {tech.maxWidth}x{tech.maxHeight}cm
-                      </span>
-                    )}
-                    {tech.maxColors && (
-                      <span className="flex items-center gap-1">
-                        <Palette className="w-3 h-3" />
-                        {tech.maxColors} cor{tech.maxColors > 1 ? 'es' : ''}
-                      </span>
-                    )}
+                  <div>
+                    <p className="font-medium">{comp.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {comp.locations.length} {comp.locations.length === 1 ? 'local' : 'locais'} disponíveis
+                    </p>
                   </div>
                 </div>
               </button>
             ))}
           </div>
         </div>
-      ))}
+      )}
+
+      {/* Step 2: Location Selection */}
+      {selectedComponent && !selectedLocation && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Onde será a gravação em "{selectedComponent.name}"?</p>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedComponent(null)}>
+              <X className="w-3 h-3 mr-1" /> Voltar
+            </Button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {selectedComponent.locations.map(loc => (
+              <button
+                key={loc.id}
+                onClick={() => handleLocationSelect(loc)}
+                className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
+                    <Ruler className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{loc.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {loc.maxWidth && loc.maxHeight ? `${loc.maxWidth}x${loc.maxHeight}cm` : 'Área variável'}
+                      {' • '}
+                      {loc.techniques.length} {loc.techniques.length === 1 ? 'técnica' : 'técnicas'}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Technique Selection */}
+      {selectedComponent && selectedLocation && !selectedTechnique && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Qual técnica de gravação?</p>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedLocation(null)}>
+              <X className="w-3 h-3 mr-1" /> Voltar
+            </Button>
+          </div>
+          <div className="grid gap-2">
+            {selectedLocation.techniques.map(tech => (
+              <button
+                key={tech.id}
+                onClick={() => handleTechniqueSelect(tech)}
+                className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                      <Paintbrush className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{tech.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {tech.code && `Código: ${tech.code}`}
+                        {tech.maxColors && ` • Até ${tech.maxColors} cores`}
+                      </p>
+                    </div>
+                  </div>
+                  {tech.isDefault && (
+                    <Badge className="bg-green-500/20 text-green-700 border-green-500/30">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Recomendado
+                    </Badge>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Selected summary */}
+      {selectedTechnique && (
+        <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Check className="w-5 h-5 text-green-500" />
+              <span className="font-medium">Técnica selecionada</span>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                setSelectedComponent(null);
+                setSelectedLocation(null);
+                onSelect(null);
+              }}
+            >
+              Alterar
+            </Button>
+          </div>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground text-xs">Componente</p>
+              <p className="font-medium">{selectedTechnique.componentName}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Local</p>
+              <p className="font-medium">{selectedTechnique.locationName}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Técnica</p>
+              <p className="font-medium">{selectedTechnique.techniqueName}</p>
+            </div>
+          </div>
+          {(selectedTechnique.maxWidth || selectedTechnique.maxColors) && (
+            <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
+              {selectedTechnique.maxWidth && selectedTechnique.maxHeight && (
+                <span className="flex items-center gap-1">
+                  <Ruler className="w-3 h-3" />
+                  Área máx: {selectedTechnique.maxWidth}x{selectedTechnique.maxHeight}cm
+                </span>
+              )}
+              {selectedTechnique.maxColors && (
+                <span className="flex items-center gap-1">
+                  <Palette className="w-3 h-3" />
+                  Até {selectedTechnique.maxColors} cores
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
