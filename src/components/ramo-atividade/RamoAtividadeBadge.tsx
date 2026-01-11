@@ -70,26 +70,6 @@ export function RamoAtividadeBadge({
       )}
       onClick={onClick}
     >
-      {/* Indicador de cor/ícone */}
-      {hexCode ? (
-        <span
-          className={cn(
-            "rounded-full flex-shrink-0 ring-1 ring-inset ring-black/10",
-            colorDotSizes[size]
-          )}
-          style={{ 
-            backgroundColor: hexCode,
-            boxShadow: `0 1px 3px ${hexCode}40`
-          }}
-        />
-      ) : (
-        <Building2 className={cn(
-          "flex-shrink-0 text-muted-foreground",
-          size === "sm" && "w-2.5 h-2.5",
-          size === "md" && "w-3 h-3",
-          size === "lg" && "w-3.5 h-3.5"
-        )} />
-      )}
       
       {/* Texto */}
       <span className={cn(
@@ -193,12 +173,6 @@ export function CompactRamoAtividadeBadge({
           : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      {hexCode && (
-        <span
-          className="w-2 h-2 rounded-full"
-          style={{ backgroundColor: hexCode }}
-        />
-      )}
       <span className="truncate max-w-[100px]">{name}</span>
     </button>
   );
