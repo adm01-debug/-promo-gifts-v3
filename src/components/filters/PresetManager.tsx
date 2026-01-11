@@ -36,10 +36,7 @@ import {
   Plus, 
   MoreVertical, 
   Pencil, 
-  Trash2, 
-  Check,
-  Star,
-  Sparkles
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -51,8 +48,8 @@ interface PresetManagerProps {
 }
 
 export function PresetManager({ currentFilters, onApplyPreset, activePresetId }: PresetManagerProps) {
-  const { getAllPresets, savePreset, updatePreset, deletePreset, getStoredPresets } = useFilterPresets();
-  const [presets, setPresets] = useState<FilterPreset[]>(getAllPresets());
+  const { getStoredPresets, savePreset, updatePreset, deletePreset } = useFilterPresets();
+  const [presets, setPresets] = useState<FilterPreset[]>(getStoredPresets());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -61,7 +58,7 @@ export function PresetManager({ currentFilters, onApplyPreset, activePresetId }:
   const [newPresetDescription, setNewPresetDescription] = useState("");
 
   const refreshPresets = () => {
-    setPresets(getAllPresets());
+    setPresets(getStoredPresets());
   };
 
   const handleCreatePreset = () => {
@@ -128,9 +125,6 @@ export function PresetManager({ currentFilters, onApplyPreset, activePresetId }:
 
   const hasActiveFilters = JSON.stringify(currentFilters) !== JSON.stringify(defaultFilters);
 
-  const defaultPresets = presets.filter((p) => p.isDefault);
-  const customPresets = presets.filter((p) => !p.isDefault);
-
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -184,113 +178,76 @@ export function PresetManager({ currentFilters, onApplyPreset, activePresetId }:
         </Dialog>
       </div>
 
-      {/* Presets padrão */}
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1">
-          <Star className="h-3 w-3" />
-          Presets do Sistema
-        </p>
-        <ScrollArea className="w-full">
-          <div className="flex gap-2 pb-2">
-            {defaultPresets.map((preset) => (
+
+      {/* Meus Presets */}
+      {presets.length === 0 ? (
+        <div className="text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border">
+          <Bookmark className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">
+            Nenhum preset salvo
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Aplique filtros e clique em "Salvar" para criar um preset
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {presets.map((preset) => (
+            <div
+              key={preset.id}
+              className={cn(
+                "flex items-center justify-between p-3 rounded-lg border transition-all",
+                "hover:bg-accent/50",
+                activePresetId === preset.id
+                  ? "bg-primary/10 border-primary"
+                  : "bg-card border-border"
+              )}
+            >
               <button
-                key={preset.id}
+                className="flex-1 flex items-center gap-3 text-left"
                 onClick={() => handleApplyPreset(preset)}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all whitespace-nowrap",
-                  "hover:bg-accent hover:border-primary/50",
-                  activePresetId === preset.id
-                    ? "bg-primary/10 border-primary text-primary"
-                    : "bg-card border-border text-foreground"
-                )}
               >
-                {preset.icon && <span className="text-lg">{preset.icon}</span>}
-                <span className="text-sm font-medium">{preset.name}</span>
-                {activePresetId === preset.id && (
-                  <Check className="h-4 w-4 text-primary" />
-                )}
-              </button>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
-
-      {/* Presets personalizados */}
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium flex items-center gap-1">
-          <Sparkles className="h-3 w-3" />
-          Meus Presets
-        </p>
-        
-        {customPresets.length === 0 ? (
-          <div className="text-center py-6 bg-muted/30 rounded-lg border border-dashed border-border">
-            <Bookmark className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Nenhum preset personalizado
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Aplique filtros e clique em "Salvar" para criar um preset
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {customPresets.map((preset) => (
-              <div
-                key={preset.id}
-                className={cn(
-                  "flex items-center justify-between p-3 rounded-lg border transition-all",
-                  "hover:bg-accent/50",
-                  activePresetId === preset.id
-                    ? "bg-primary/10 border-primary"
-                    : "bg-card border-border"
-                )}
-              >
-                <button
-                  className="flex-1 flex items-center gap-3 text-left"
-                  onClick={() => handleApplyPreset(preset)}
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: preset.color || 'hsl(var(--primary))' }}
                 >
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: preset.color || 'hsl(var(--primary))' }}
-                  >
-                    <Bookmark className="h-4 w-4 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">{preset.name}</p>
-                    {preset.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-1">
-                        {preset.description}
-                      </p>
-                    )}
-                  </div>
-                </button>
+                  <Bookmark className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">{preset.name}</p>
+                  {preset.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-1">
+                      {preset.description}
+                    </p>
+                  )}
+                </div>
+              </button>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => openEditDialog(preset)}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => openDeleteDialog(preset)}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => openEditDialog(preset)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => openDeleteDialog(preset)}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
