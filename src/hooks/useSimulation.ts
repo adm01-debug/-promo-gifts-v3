@@ -15,6 +15,7 @@ import type {
   SavedSimulation,
   SimulatorStep 
 } from "@/types/simulation";
+import type { SimulationScenario } from "@/components/simulator/ScenarioComparison";
 
 export function useSimulation() {
   const { user } = useAuth();
@@ -31,12 +32,17 @@ export function useSimulation() {
   const [techniqueSettings, setTechniqueSettings] = useState<Record<string, TechniqueSettings>>({});
   const [simulationOptions, setSimulationOptions] = useState<SimulationOption[]>([]);
 
+  // Scenario comparison state
+  const [scenarioA, setScenarioA] = useState<SimulationScenario | null>(null);
+  const [scenarioB, setScenarioB] = useState<SimulationScenario | null>(null);
+
   // UI state
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [simulationNotes, setSimulationNotes] = useState("");
   const [viewSimulation, setViewSimulation] = useState<SavedSimulation | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
   
   // Margin calculator
   const [sellingPrice, setSellingPrice] = useState<string>("");
@@ -445,6 +451,41 @@ Opção ${idx + 1}: ${opt.techniqueName}
     },
   });
 
+  // Scenario comparison actions
+  const saveAsScenario = useCallback((name: 'A' | 'B') => {
+    if (!selectedProduct || simulationOptions.length === 0) {
+      toast.error("Nenhuma simulação para salvar");
+      return;
+    }
+
+    const scenario: SimulationScenario = {
+      id: `${name}-${Date.now()}`,
+      name: `Cenário ${name}`,
+      productName: selectedProduct.name,
+      quantity,
+      options: [...simulationOptions],
+      bestOption,
+      createdAt: new Date(),
+    };
+
+    if (name === 'A') {
+      setScenarioA(scenario);
+    } else {
+      setScenarioB(scenario);
+    }
+
+    toast.success(`Simulação salva como Cenário ${name}`);
+  }, [selectedProduct, simulationOptions, quantity, bestOption]);
+
+  const clearScenario = useCallback((name: 'A' | 'B') => {
+    if (name === 'A') {
+      setScenarioA(null);
+    } else {
+      setScenarioB(null);
+    }
+    toast.success(`Cenário ${name} removido`);
+  }, []);
+
   return {
     // Data
     products,
@@ -461,6 +502,7 @@ Opção ${idx + 1}: ${opt.techniqueName}
     productsLoading,
     techniquesLoading,
     savedSimulationsLoading,
+    isCalculating,
 
     // Wizard state
     currentStep,
@@ -475,6 +517,12 @@ Opção ${idx + 1}: ${opt.techniqueName}
     setCustomProductPrice,
     selectedTechniques,
     techniqueSettings,
+
+    // Scenario comparison
+    scenarioA,
+    scenarioB,
+    saveAsScenario,
+    clearScenario,
 
     // UI state
     copiedId,

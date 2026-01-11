@@ -62,6 +62,8 @@ import { SimulatorStepIndicator } from "@/components/simulator/SimulatorStepIndi
 import { ProductQuantityCard } from "@/components/simulator/ProductQuantityCard";
 import { TechniqueSelectionCard } from "@/components/simulator/TechniqueSelectionCard";
 import { SimulationResultsCard } from "@/components/simulator/SimulationResultsCard";
+import { ScenarioComparison } from "@/components/simulator/ScenarioComparison";
+import { UpsellSuggestion } from "@/components/simulator/UpsellSuggestion";
 import { useSimulation, formatCurrency } from "@/hooks/useSimulation";
 
 export default function PersonalizationSimulator() {
@@ -164,6 +166,32 @@ export default function PersonalizationSimulator() {
                   onCopy={sim.copyToClipboard}
                   onCopyAll={sim.copyAllOptions}
                   onSave={() => sim.setSaveDialogOpen(true)}
+                />
+
+                {/* Upsell Suggestion */}
+                {sim.simulationOptions.length > 0 && (
+                  <UpsellSuggestion
+                    currentQuantity={sim.quantity}
+                    productPrice={sim.effectiveProductPrice}
+                    bestOption={sim.bestOption}
+                    techniques={sim.techniques}
+                    selectedTechniques={sim.selectedTechniques}
+                    onQuantityChange={sim.setQuantity}
+                  />
+                )}
+
+                {/* Scenario Comparison */}
+                <ScenarioComparison
+                  scenarioA={sim.scenarioA}
+                  scenarioB={sim.scenarioB}
+                  currentSimulation={{
+                    options: sim.simulationOptions,
+                    product: sim.selectedProduct,
+                    quantity: sim.quantity,
+                    bestOption: sim.bestOption,
+                  }}
+                  onSaveAsScenario={sim.saveAsScenario}
+                  onClearScenario={sim.clearScenario}
                 />
 
                 {/* Empty State */}
