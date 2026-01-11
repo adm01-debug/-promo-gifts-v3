@@ -57,13 +57,6 @@ export function MaterialCheckbox({
           {isSelected && <Check className="w-2.5 h-2.5 text-primary-foreground" />}
         </span>
         
-        {/* Cor do material */}
-        {hexCode && (
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: hexCode }}
-          />
-        )}
         
         {/* Nome */}
         <span className={cn(
@@ -114,21 +107,6 @@ export function MaterialCheckbox({
         )}
       </div>
       
-      {/* Indicador de cor do grupo */}
-      {hexCode && (
-        <span
-          className={cn(
-            "w-3 h-3 rounded-full flex-shrink-0 transition-all duration-200 ring-1",
-            isSelected 
-              ? "ring-primary/50 scale-110" 
-              : "ring-border/50 group-hover:scale-105"
-          )}
-          style={{ 
-            backgroundColor: hexCode,
-            boxShadow: isSelected ? `0 2px 8px ${hexCode}50` : 'none'
-          }}
-        />
-      )}
       
       {/* Conteúdo principal */}
       <div className="flex-1 min-w-0 flex items-center gap-2">

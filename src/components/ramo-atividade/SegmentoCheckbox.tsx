@@ -35,15 +35,6 @@ export function SegmentoCheckbox({
           className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
         />
         
-        {/* Ícone ou indicador de cor */}
-        {segmento.segmento_icon ? (
-          <span className="text-xs">{segmento.segmento_icon}</span>
-        ) : ramoHexCode && (
-          <span
-            className="w-2 h-2 rounded-full flex-shrink-0"
-            style={{ backgroundColor: ramoHexCode }}
-          />
-        )}
         
         <span className={cn(
           "text-xs truncate",
@@ -73,26 +64,12 @@ export function SegmentoCheckbox({
         )}
       />
       
-      {/* Indicador de cor ou ícone */}
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        {segmento.segmento_icon ? (
-          <span className="text-sm flex-shrink-0">{segmento.segmento_icon}</span>
-        ) : ramoHexCode ? (
-          <span
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: ramoHexCode }}
-          />
-        ) : (
-          <Building2 className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
-        )}
-        
-        <span className={cn(
-          "text-sm truncate",
-          isSelected && "font-medium"
-        )}>
-          {segmento.segmento_name}
-        </span>
-      </div>
+      <span className={cn(
+        "text-sm truncate flex-1",
+        isSelected && "font-medium"
+      )}>
+        {segmento.segmento_name}
+      </span>
       
       {/* Descrição se houver */}
       {segmento.segmento_description && !isSelected && (
