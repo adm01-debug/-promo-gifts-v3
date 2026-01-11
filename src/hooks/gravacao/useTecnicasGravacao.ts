@@ -31,7 +31,7 @@ export function useTecnicasGravacao() {
       const { data: tecnicas, error: tecnicasError } = await supabaseGravacao
         .from('tecnica_gravacao')
         .select('*')
-        .order('ordem_exibicao', { ascending: true });
+        .order('nome', { ascending: true });
 
       if (tecnicasError) {
         console.error('Erro ao buscar técnicas:', tecnicasError);
