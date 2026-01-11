@@ -1,0 +1,237 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./alert-dialog";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { AlertTriangle, Trash2, Info, HelpCircle, Loader2, LucideIcon } from "lucide-react";
+
+interface ConfirmDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void | Promise<void>;
+  onCancel?: () => void;
+  variant?: "default" | "destructive" | "warning" | "info";
+  icon?: LucideIcon;
+  loading?: boolean;
+  impactPreview?: {
+    title: string;
+    items: string[];
+  };
+}
+
+const variantConfig = {
+  default: {
+    icon: HelpCircle,
+    iconColor: "text-primary",
+    iconBg: "bg-primary/10",
+    buttonVariant: "default" as const,
+  },
+  destructive: {
+    icon: Trash2,
+    iconColor: "text-destructive",
+    iconBg: "bg-destructive/10",
+    buttonVariant: "destructive" as const,
+  },
+  warning: {
+    icon: AlertTriangle,
+    iconColor: "text-warning",
+    iconBg: "bg-warning/10",
+    buttonVariant: "default" as const,
+  },
+  info: {
+    icon: Info,
+    iconColor: "text-info",
+    iconBg: "bg-info/10",
+    buttonVariant: "default" as const,
+  },
+};
+
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  confirmLabel = "Confirmar",
+  cancelLabel = "Cancelar",
+  onConfirm,
+  onCancel,
+  variant = "default",
+  icon: CustomIcon,
+  loading = false,
+  impactPreview,
+}: ConfirmDialogProps) {
+  const config = variantConfig[variant];
+  const Icon = CustomIcon || config.icon;
+
+  const handleConfirm = async () => {
+    await onConfirm();
+    if (!loading) {
+      onOpenChange(false);
+    }
+  };
+
+  const handleCancel = () => {
+    onCancel?.();
+    onOpenChange(false);
+  };
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="max-w-md">
+        <AlertDialogHeader>
+          <div className="flex items-start gap-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className={cn(
+                "flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0",
+                config.iconBg
+              )}
+            >
+              <Icon className={cn("w-6 h-6", config.iconColor)} />
+            </motion.div>
+            <div className="space-y-2">
+              <AlertDialogTitle className="text-lg">
+                {title}
+              </AlertDialogTitle>
+              {description && (
+                <AlertDialogDescription>
+                  {description}
+                </AlertDialogDescription>
+              )}
+            </div>
+          </div>
+        </AlertDialogHeader>
+
+        {/* Impact Preview */}
+        {impactPreview && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="my-4 p-4 rounded-lg bg-muted/50 border border-border"
+          >
+            <h4 className="text-sm font-medium mb-2">{impactPreview.title}</h4>
+            <ul className="space-y-1">
+              {impactPreview.items.map((item, index) => (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + index * 0.05 }}
+                  className="text-sm text-muted-foreground flex items-center gap-2"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+                  {item}
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleCancel} disabled={loading}>
+            {cancelLabel}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            disabled={loading}
+            className={cn(
+              variant === "destructive" && "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            )}
+          >
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {confirmLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+// Delete Confirmation
+export function DeleteConfirmDialog({
+  open,
+  onOpenChange,
+  entityName,
+  itemName,
+  onConfirm,
+  loading,
+  affectedItems,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  entityName: string;
+  itemName?: string;
+  onConfirm: () => void | Promise<void>;
+  loading?: boolean;
+  affectedItems?: string[];
+}) {
+  return (
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      variant="destructive"
+      title={`Excluir ${entityName}?`}
+      description={
+        itemName
+          ? `Você está prestes a excluir "${itemName}". Esta ação não pode ser desfeita.`
+          : `Você está prestes a excluir este ${entityName}. Esta ação não pode ser desfeita.`
+      }
+      confirmLabel="Excluir"
+      cancelLabel="Cancelar"
+      onConfirm={onConfirm}
+      loading={loading}
+      impactPreview={
+        affectedItems && affectedItems.length > 0
+          ? {
+              title: "Isso irá afetar:",
+              items: affectedItems,
+            }
+          : undefined
+      }
+    />
+  );
+}
+
+// Unsaved Changes Dialog
+export function UnsavedChangesDialog({
+  open,
+  onOpenChange,
+  onDiscard,
+  onSave,
+  loading,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onDiscard: () => void;
+  onSave?: () => void | Promise<void>;
+  loading?: boolean;
+}) {
+  return (
+    <ConfirmDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      variant="warning"
+      title="Alterações não salvas"
+      description="Você tem alterações que não foram salvas. Deseja descartar as alterações ou salvá-las?"
+      confirmLabel={onSave ? "Salvar" : "Descartar"}
+      cancelLabel="Continuar editando"
+      onConfirm={onSave || onDiscard}
+      onCancel={() => onOpenChange(false)}
+      loading={loading}
+    />
+  );
+}
