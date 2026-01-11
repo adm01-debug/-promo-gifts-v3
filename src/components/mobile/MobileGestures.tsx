@@ -289,3 +289,171 @@ export function DragHandle({ className }: { className?: string }) {
     </div>
   );
 }
+
+/**
+ * Swipe Navigation for pages
+ */
+interface SwipeNavigationProps {
+  children: ReactNode[];
+  currentIndex: number;
+  onChange: (index: number) => void;
+  showIndicators?: boolean;
+  className?: string;
+}
+
+export function SwipeNavigation({
+  children,
+  currentIndex,
+  onChange,
+  showIndicators = true,
+  className,
+}: SwipeNavigationProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleDragEnd = (_: unknown, info: { offset: { x: number } }) => {
+    const threshold = 50;
+    if (info.offset.x < -threshold && currentIndex < children.length - 1) {
+      onChange(currentIndex + 1);
+    } else if (info.offset.x > threshold && currentIndex > 0) {
+      onChange(currentIndex - 1);
+    }
+  };
+
+  return (
+    <div className={cn("relative", className)}>
+      <div ref={containerRef} className="overflow-hidden">
+        <motion.div
+          drag="x"
+          dragConstraints={containerRef}
+          dragElastic={0.2}
+          onDragEnd={handleDragEnd}
+          animate={{ x: -currentIndex * 100 + "%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="flex"
+        >
+          {children.map((child, index) => (
+            <div key={index} className="flex-shrink-0 w-full">
+              {child}
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {showIndicators && children.length > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          {children.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => onChange(index)}
+              className={cn(
+                "w-2 h-2 rounded-full transition-all",
+                index === currentIndex
+                  ? "bg-primary w-4"
+                  : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              )}
+              aria-label={`Ir para slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Touch-friendly tab bar
+ */
+interface TouchTabBarProps {
+  tabs: { id: string; label: string; icon?: ReactNode }[];
+  activeTab: string;
+  onChange: (tabId: string) => void;
+  className?: string;
+}
+
+export function TouchTabBar({
+  tabs,
+  activeTab,
+  onChange,
+  className,
+}: TouchTabBarProps) {
+  return (
+    <div className={cn("flex bg-muted rounded-lg p-1 gap-1", className)}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          onClick={() => onChange(tab.id)}
+          className={cn(
+            "relative flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-md",
+            "text-sm font-medium transition-colors min-h-[44px]",
+            tab.id === activeTab
+              ? "text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {tab.id === activeTab && (
+            <motion.div
+              layoutId="active-tab-mobile"
+              className="absolute inset-0 bg-background rounded-md shadow-sm"
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="relative z-10 flex items-center gap-2">
+            {tab.icon}
+            {tab.label}
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Hook for detecting touch/swipe gestures
+ */
+export function useSwipeGesture(options: {
+  onSwipeLeft?: () => void;
+  onSwipeRight?: () => void;
+  onSwipeUp?: () => void;
+  onSwipeDown?: () => void;
+  threshold?: number;
+}) {
+  const {
+    onSwipeLeft,
+    onSwipeRight,
+    onSwipeUp,
+    onSwipeDown,
+    threshold = 50,
+  } = options;
+
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  const handlers = {
+    onTouchStart: (e: React.TouchEvent) => {
+      touchStart.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+    },
+    onTouchEnd: (e: React.TouchEvent) => {
+      if (!touchStart.current) return;
+
+      const deltaX = e.changedTouches[0].clientX - touchStart.current.x;
+      const deltaY = e.changedTouches[0].clientY - touchStart.current.y;
+
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      if (absX > absY && absX > threshold) {
+        if (deltaX > 0) onSwipeRight?.();
+        else onSwipeLeft?.();
+      } else if (absY > absX && absY > threshold) {
+        if (deltaY > 0) onSwipeDown?.();
+        else onSwipeUp?.();
+      }
+
+      touchStart.current = null;
+    },
+  };
+
+  return handlers;
+}
