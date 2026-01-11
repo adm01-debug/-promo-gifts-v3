@@ -219,7 +219,8 @@ export default function FiltersPage() {
     if (filters.publicoAlvo.length > 0) count++;
     if (filters.datasComemorativas.length > 0) count++;
     if (filters.endomarketing.length > 0) count++;
-    if (filters.nichos.length > 0) count++;
+    if (filters.ramosAtividade?.length > 0) count++;
+    if (filters.segmentosAtividade?.length > 0) count++;
     if (filters.materiais.length > 0) count++;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) count++;
     if (filters.inStock) count++;
@@ -276,12 +277,9 @@ export default function FiltersPage() {
       );
     }
 
-    // Filtro por nichos
-    if (filters.nichos.length > 0) {
-      result = result.filter((product) =>
-        product.tags.nicho.some((n) => filters.nichos.includes(n))
-      );
-    }
+    // Filtro por ramos de atividade (nichos/segmentos)
+    // TODO: Integrar com dados reais de produto_ramo_atividade quando estiver implementado
+    // Por enquanto, o filtro é aplicado apenas no banco de dados externo
 
     // Filtro por materiais
     if (filters.materiais.length > 0) {
