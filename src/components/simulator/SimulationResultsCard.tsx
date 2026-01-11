@@ -27,12 +27,12 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
-  Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
 import { MarginCalculatorCard } from "./MarginCalculatorCard";
+import { ExportActions } from "./ExportActions";
 import type { SimulationOption, Product } from "@/types/simulation";
 
 interface SimulationResultsCardProps {
@@ -112,7 +112,14 @@ export function SimulationResultsCard({
                 </CardDescription>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
+              <ExportActions
+                simulationOptions={simulationOptions}
+                selectedProduct={selectedProduct}
+                quantity={quantity}
+                effectiveProductPrice={effectiveProductPrice}
+                bestOption={bestOption}
+              />
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -124,7 +131,7 @@ export function SimulationResultsCard({
               </Button>
               <Button variant="outline" size="sm" onClick={onCopyAll} className="gap-2">
                 <Copy className="h-4 w-4" />
-                Copiar Tudo
+                Copiar
               </Button>
             </div>
           </div>
