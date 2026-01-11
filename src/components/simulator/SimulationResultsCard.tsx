@@ -1,9 +1,11 @@
 // src/components/simulator/SimulationResultsCard.tsx
-// Resultados da simulação com destaque visual
+// Resultados da simulação com destaque visual e micro-interações
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Table,
   TableBody,
@@ -22,11 +24,15 @@ import {
   Save,
   TrendingDown,
   TrendingUp,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Info
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
+import { MarginCalculatorCard } from "./MarginCalculatorCard";
 import type { SimulationOption, Product } from "@/types/simulation";
 
 interface SimulationResultsCardProps {
@@ -40,6 +46,7 @@ interface SimulationResultsCardProps {
   onCopy: (option: SimulationOption) => void;
   onCopyAll: () => void;
   onSave: () => void;
+  isCalculating?: boolean;
 }
 
 export function SimulationResultsCard({
@@ -53,7 +60,11 @@ export function SimulationResultsCard({
   onCopy,
   onCopyAll,
   onSave,
+  isCalculating = false,
 }: SimulationResultsCardProps) {
+  const [showMarginCalculator, setShowMarginCalculator] = useState(true);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
   if (simulationOptions.length === 0) return null;
 
   const sortedOptions = [...simulationOptions].sort((a, b) => a.grandTotal - b.grandTotal);
@@ -62,6 +73,18 @@ export function SimulationResultsCard({
   const savings = sortedOptions.length > 1 
     ? sortedOptions[sortedOptions.length - 1].grandTotal - sortedOptions[0].grandTotal
     : 0;
+
+  const toggleRowExpand = (id: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   return (
     <motion.div
@@ -307,8 +330,8 @@ export function SimulationResultsCard({
           </div>
 
           {/* Bottom summary */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
-            <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border flex-wrap gap-4">
+            <div className="flex items-center gap-6 text-sm flex-wrap">
               <div>
                 <span className="text-muted-foreground">Qtd:</span>
                 <span className="font-semibold ml-1">{quantity} un</span>
@@ -324,13 +347,47 @@ export function SimulationResultsCard({
             </div>
             <div className="text-right">
               <p className="text-xs text-muted-foreground">Melhor opção total</p>
-              <p className="text-2xl font-bold text-success">
+              <motion.p 
+                className="text-2xl font-bold text-success"
+                key={bestOption?.grandTotal}
+                initial={{ scale: 1.1 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 {formatCurrency(bestOption?.grandTotal || 0)}
-              </p>
+              </motion.p>
             </div>
           </div>
+
+          {/* Margin Calculator Toggle */}
+          <Button
+            variant="ghost"
+            className="w-full justify-between h-12 text-left"
+            onClick={() => setShowMarginCalculator(!showMarginCalculator)}
+          >
+            <span className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4 text-primary" />
+              <span className="font-medium">Calculadora de Margem</span>
+              <Badge variant="outline" className="text-xs">Pro</Badge>
+            </span>
+            {showMarginCalculator ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+          </Button>
         </CardContent>
       </Card>
+
+      {/* Margin Calculator */}
+      <AnimatePresence>
+        {showMarginCalculator && (
+          <MarginCalculatorCard 
+            bestOption={bestOption} 
+            quantity={quantity} 
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

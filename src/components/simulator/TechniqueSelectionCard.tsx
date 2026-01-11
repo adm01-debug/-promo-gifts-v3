@@ -130,13 +130,15 @@ export function TechniqueSelectionCard({
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95, x: -20 }}
                     transition={{ duration: 0.2, delay: idx * 0.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
                     <div
                       className={cn(
                         "relative rounded-xl border-2 transition-all duration-200 overflow-hidden",
                         isSelected 
-                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10" 
-                          : "border-border hover:border-primary/50 bg-card"
+                          ? "border-primary bg-primary/5 shadow-lg shadow-primary/10 ring-2 ring-primary/20" 
+                          : "border-border hover:border-primary/50 hover:shadow-md bg-card"
                       )}
                     >
                       {/* Main row */}
@@ -145,13 +147,29 @@ export function TechniqueSelectionCard({
                         onClick={() => onToggle(technique.id)}
                       >
                         <div className="flex items-start gap-3">
-                          {/* Icon */}
-                          <div className={cn(
-                            "w-12 h-12 rounded-xl flex items-center justify-center text-2xl",
-                            style.color, "text-white"
-                          )}>
+                          {/* Icon with pulse animation when selected */}
+                          <motion.div 
+                            className={cn(
+                              "w-12 h-12 rounded-xl flex items-center justify-center text-2xl relative",
+                              style.color, "text-white"
+                            )}
+                            animate={isSelected ? { 
+                              boxShadow: ["0 0 0 0 rgba(99, 102, 241, 0)", "0 0 0 8px rgba(99, 102, 241, 0.1)", "0 0 0 0 rgba(99, 102, 241, 0)"] 
+                            } : {}}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
                             {style.icon}
-                          </div>
+                            {isSelected && (
+                              <motion.div
+                                className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                              >
+                                <span className="text-[10px] text-primary-foreground">✓</span>
+                              </motion.div>
+                            )}
+                          </motion.div>
 
                           {/* Info */}
                           <div className="flex-1 min-w-0">
