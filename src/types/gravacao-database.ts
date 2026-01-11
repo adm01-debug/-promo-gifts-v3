@@ -74,19 +74,6 @@ export interface FornecedorGravacao {
 
 export type TipoIntegracao = 'api_spot' | 'api_rest' | 'manual';
 
-// === MAPEAMENTO SPOT ===
-export interface SpotTecnicaMapeamento {
-  id: string;
-  spot_customization_type: string;
-  spot_table_code: string;
-  tecnica_variante_id: string;
-  regra_formato: string | null;
-  regra_observacao: string | null;
-  mapeamento_automatico: boolean;
-  ativo: boolean;
-  created_at: string;
-  updated_at: string;
-}
 
 // === FAIXAS DE ÁREA ===
 export interface TecnicaFaixaArea {
@@ -193,15 +180,6 @@ export interface Database {
         };
         Update: Partial<Omit<FornecedorGravacao, 'id' | 'created_at'>>;
       };
-      spot_tecnica_mapeamento: {
-        Row: SpotTecnicaMapeamento;
-        Insert: Omit<SpotTecnicaMapeamento, 'id' | 'created_at' | 'updated_at'> & {
-          id?: string;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: Partial<Omit<SpotTecnicaMapeamento, 'id' | 'created_at'>>;
-      };
       tecnica_faixa_area: {
         Row: TecnicaFaixaArea;
         Insert: Omit<TecnicaFaixaArea, 'id' | 'created_at' | 'updated_at'> & {
@@ -278,6 +256,3 @@ export interface TecnicaGravacaoWithVariantes extends TecnicaGravacao {
   variantes_count?: number;
 }
 
-export interface SpotMapeamentoWithVariante extends SpotTecnicaMapeamento {
-  variante?: TecnicaGravacaoVariante;
-}
