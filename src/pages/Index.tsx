@@ -199,7 +199,6 @@ export default function Index() {
         result.sort((a, b) => getColorMatchScore(b) - getColorMatchScore(a));
         break;
     }
-    }
 
     return result;
   }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore]);
