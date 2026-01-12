@@ -178,7 +178,6 @@ const App = () => {
                                     <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
                                     <Route path="/cadastro-produtos" element={<ProductRegistrationPage />} />
                                     <Route path="/cadastro-gravacao" element={<EngravingRegistrationPage />} />
-                                    <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
                                     <Route path="/admin/permissoes" element={<PermissionsPage />} />
                                     <Route path="/admin/roles" element={<RolesPage />} />
                                     <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
@@ -201,6 +200,7 @@ const App = () => {
 
                                     {/* Analytics */}
                                     <Route path="/bi" element={<BIDashboard />} />
+                                    <Route path="/tendencias" element={<TrendsPage />} />
 
                                     {/* System */}
                                     <Route path="/status" element={<SystemStatusPage />} />
