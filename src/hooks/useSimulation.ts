@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from "@/lib/external-db";
+import { useMultipleTechniquePricing } from "./useTechniquePricingOptions";
 import type { 
   Product, 
   Client, 
@@ -98,6 +99,14 @@ export function useSimulation() {
     },
   });
 
+  // Get technique codes for pricing lookup
+  const techniqueCodes = useMemo(() => {
+    return techniques?.map(t => t.code).filter(Boolean) || [];
+  }, [techniques]);
+
+  // Fetch dynamic pricing info for all techniques
+  const { isLoading: pricingLoading, getPricingInfo } = useMultipleTechniquePricing(techniqueCodes);
+
   // Fetch saved simulations
   const { data: savedSimulations, isLoading: savedSimulationsLoading } = useQuery({
     queryKey: ["saved-simulations"],
@@ -150,17 +159,27 @@ export function useSimulation() {
     );
   }, [simulationOptions]);
 
-  // Helpers
+  // Helpers - agora usa tabelas dinâmicas quando disponíveis
   const needsColorInput = useCallback((code: string) => {
+    // Primeiro verifica nas tabelas de preços dinâmicas
+    const pricingInfo = getPricingInfo(code);
+    if (pricingInfo.hasPriceByColor) return true;
+    
+    // Fallback para lógica baseada em código
     const c = code?.toUpperCase() || "";
     return c.includes("SILK") || c.includes("SERIGRAFIA") || c.includes("BORD") || c.includes("EMBROID");
-  }, []);
+  }, [getPricingInfo]);
 
   const needsSizeInput = useCallback((code: string) => {
+    // Primeiro verifica nas tabelas de preços dinâmicas
+    const pricingInfo = getPricingInfo(code);
+    if (pricingInfo.hasPriceByArea) return true;
+    
+    // Fallback para lógica baseada em código
     const c = code?.toUpperCase() || "";
     return c.includes("DTF") || c.includes("SUB") || c.includes("TRANSFER") || 
            c.includes("BORD") || c.includes("EMBROID") || c.includes("LASER");
-  }, []);
+  }, [getPricingInfo]);
 
   // Actions
   const handleTechniqueToggle = useCallback((techniqueId: string) => {
@@ -508,6 +527,7 @@ Opção ${idx + 1}: ${opt.techniqueName}
     techniquesLoading,
     savedSimulationsLoading,
     isCalculating,
+    pricingLoading,
 
     // Wizard state
     currentStep,
@@ -555,6 +575,7 @@ Opção ${idx + 1}: ${opt.techniqueName}
     // Helpers
     needsColorInput,
     needsSizeInput,
+    getPricingInfo,
 
     // Actions
     handleTechniqueToggle,

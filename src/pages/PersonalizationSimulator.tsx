@@ -152,6 +152,7 @@ export default function PersonalizationSimulator() {
                   needsColorInput={sim.needsColorInput}
                   needsSizeInput={sim.needsSizeInput}
                   quantity={sim.quantity}
+                  getPricingInfo={sim.getPricingInfo}
                 />
 
                 {/* Results */}
