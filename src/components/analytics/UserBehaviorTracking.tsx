@@ -553,7 +553,7 @@ export function trackABTestConversion(testName: string, conversionName: string) 
   const variant = localStorage.getItem(storageKey);
   
   if (variant) {
-    // This would integrate with your analytics
-    console.log(`[A/B Test] Conversion: ${testName} - ${variant} - ${conversionName}`);
+    // TODO: Integrar com analytics real quando disponível
+    // Silenciado: A/B Test conversion tracking
   }
 }

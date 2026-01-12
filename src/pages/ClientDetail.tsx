@@ -70,15 +70,56 @@ interface BitrixDeal {
   created_at_bitrix: string | null;
 }
 
+interface TimelineEvent {
+  id: string;
+  type: 'deal' | 'quote' | 'order' | 'conversation' | 'reminder';
+  title: string;
+  status?: string | null;
+  value?: number;
+  date: string;
+  description?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+interface QuoteData {
+  id: string;
+  quote_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+}
+
+interface OrderData {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+}
+
+interface ConversationData {
+  id: string;
+  title: string;
+  created_at: string;
+}
+
+interface ReminderData {
+  id: string;
+  title: string;
+  description: string | null;
+  is_completed: boolean;
+  reminder_date: string;
+}
+
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [client, setClient] = useState<BitrixClient | null>(null);
   const [deals, setDeals] = useState<BitrixDeal[]>([]);
-  const [quotes, setQuotes] = useState<any[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [reminders, setReminders] = useState<any[]>([]);
+  const [quotes, setQuotes] = useState<QuoteData[]>([]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [conversations, setConversations] = useState<ConversationData[]>([]);
+  const [reminders, setReminders] = useState<ReminderData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingDeals, setIsLoadingDeals] = useState(true);
 
@@ -225,7 +266,7 @@ export default function ClientDetail() {
 
   // Build timeline events
   const timelineEvents = useMemo(() => {
-    const events: any[] = [];
+    const events: TimelineEvent[] = [];
     deals.forEach((deal) => {
       events.push({ id: `deal-${deal.id}`, type: "deal", title: deal.title, status: deal.stage, value: deal.value || 0, date: deal.created_at_bitrix || new Date().toISOString() });
     });

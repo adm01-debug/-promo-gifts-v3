@@ -8,7 +8,7 @@ import { Suspense, lazy } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
-import { ProductsProvider } from "@/contexts/ProductsContext";
+
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
 import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
@@ -118,8 +118,7 @@ const App = () => {
           <AriaLiveProvider>
             <TooltipProvider>
               <AuthProvider>
-                <ProductsProvider>
-                  <CollectionsProvider>
+                <CollectionsProvider>
                         <ComparisonProvider>
                           <FavoritesProvider>
                             <RecentlyViewedProvider>
@@ -219,7 +218,6 @@ const App = () => {
                   </FavoritesProvider>
                 </ComparisonProvider>
               </CollectionsProvider>
-            </ProductsProvider>
           </AuthProvider>
         </TooltipProvider>
           </AriaLiveProvider>
