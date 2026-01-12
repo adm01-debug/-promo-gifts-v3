@@ -1,6 +1,10 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  useExternalProductSearch, 
+  useExternalPrintAreas,
+  ExternalProduct,
+  GroupedPrintArea,
+} from '@/hooks/useExternalSimulator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -42,20 +46,22 @@ import {
 // TIPOS
 // ============================================
 
+// Tipo adaptado para compatibilidade com banco externo
 interface Product {
   id: string;
   name: string;
   sku: string;
   price: number;
-  images: any;
+  images: string[];
   category_name: string | null;
+  supplier_reference?: string | null;
+  brand?: string | null;
 }
 
 interface ProductTechnique {
   id: string;
-  techniqueId: string;
-  techniqueName: string;
   techniqueCode: string;
+  techniqueName: string;
   componentName: string;
   locationName: string;
   locationCode: string;
@@ -64,7 +70,8 @@ interface ProductTechnique {
   maxHeight: number | null;
   maxArea: number | null;
   maxColors: number | null;
-  isDefault: boolean;
+  isCurved: boolean;
+  isPrimary: boolean;
 }
 
 interface SimulationResult {
@@ -145,23 +152,23 @@ function ProductSearch({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ['products-search', searchQuery],
-    queryFn: async () => {
-      if (!searchQuery || searchQuery.length < 2) return [];
-      
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, name, sku, price, images, category_name')
-        .or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`)
-        .eq('is_active', true)
-        .limit(20);
-      
-      if (error) throw error;
-      return data as Product[];
-    },
-    enabled: searchQuery.length >= 2,
-  });
+  // Usar hook do banco externo Promobrind
+  const { data: externalProducts, isLoading } = useExternalProductSearch(searchQuery);
+  
+  // Converter para formato Product
+  const products = useMemo(() => {
+    if (!externalProducts) return [];
+    return externalProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      price: p.base_price,
+      images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
+      category_name: null,
+      supplier_reference: p.supplier_reference,
+      brand: p.brand,
+    }));
+  }, [externalProducts]);
 
   if (selectedProduct && !isSearching) {
     return (
@@ -272,31 +279,30 @@ function ProductSearch({
 // TECHNIQUE SELECTOR - WIZARD SEQUENCIAL
 // ============================================
 
+// Tipos para uso interno do TechniqueSelector
 interface ComponentData {
-  id: string;
   name: string;
   code: string;
   locations: LocationData[];
 }
 
 interface LocationData {
-  id: string;
   name: string;
   code: string;
-  maxWidth: number | null;
-  maxHeight: number | null;
-  maxArea: number | null;
   techniques: TechniqueData[];
 }
 
 interface TechniqueData {
   id: string;
-  techniqueId: string;
-  name: string;
-  code: string;
-  composedCode: string;
+  areaName: string;
+  techniqueCode: string;
+  maxWidth: number | null;
+  maxHeight: number | null;
   maxColors: number | null;
-  isDefault: boolean;
+  areaCm2: number | null;
+  isCurved: boolean;
+  isPrimary: boolean;
+  servCode: string | null;
 }
 
 function TechniqueSelector({
@@ -311,71 +317,22 @@ function TechniqueSelector({
   const [selectedComponent, setSelectedComponent] = useState<ComponentData | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<LocationData | null>(null);
 
-  const { data: components, isLoading, error } = useQuery({
-    queryKey: ['product-components-hierarchy', productId],
-    queryFn: async () => {
-      const { data: comps, error: compError } = await supabase
-        .from('product_components')
-        .select(`
-          id,
-          component_name,
-          component_code,
-          product_component_locations (
-            id,
-            location_name,
-            location_code,
-            max_width_cm,
-            max_height_cm,
-            max_area_cm2,
-            product_component_location_techniques (
-              id,
-              technique_id,
-              composed_code,
-              is_default,
-              max_colors,
-              personalization_techniques (
-                id,
-                name,
-                code
-              )
-            )
-          )
-        `)
-        .eq('product_id', productId)
-        .eq('is_active', true)
-        .eq('is_personalizable', true);
-
-      if (compError) throw compError;
-      if (!comps?.length) return [];
-
-      // Transform into hierarchical structure
-      const result: ComponentData[] = comps.map(comp => ({
-        id: comp.id,
-        name: comp.component_name,
-        code: comp.component_code,
-        locations: (comp.product_component_locations || []).map((loc: any) => ({
-          id: loc.id,
-          name: loc.location_name,
-          code: loc.location_code,
-          maxWidth: loc.max_width_cm,
-          maxHeight: loc.max_height_cm,
-          maxArea: loc.max_area_cm2,
-          techniques: (loc.product_component_location_techniques || []).map((tech: any) => ({
-            id: tech.id,
-            techniqueId: tech.technique_id,
-            name: tech.personalization_techniques?.name || 'Técnica',
-            code: tech.personalization_techniques?.code || '',
-            composedCode: tech.composed_code,
-            maxColors: tech.max_colors,
-            isDefault: tech.is_default || false,
-          })),
-        })).filter((loc: LocationData) => loc.techniques.length > 0),
-      })).filter(comp => comp.locations.length > 0);
-
-      return result;
-    },
-    enabled: !!productId,
-  });
+  // Usar hook do banco externo Promobrind
+  const { data: printAreas, isLoading, error } = useExternalPrintAreas(productId);
+  
+  // Converter GroupedPrintArea para ComponentData
+  const components = useMemo(() => {
+    if (!printAreas) return [];
+    return printAreas.map(area => ({
+      name: area.componentName,
+      code: area.componentCode,
+      locations: area.locations.map(loc => ({
+        name: loc.locationName,
+        code: loc.locationCode,
+        techniques: loc.techniques,
+      })),
+    }));
+  }, [printAreas]);
 
   // Reset selections when product changes
   useEffect(() => {
@@ -399,10 +356,10 @@ function TechniqueSelector({
     setSelectedLocation(loc);
     onSelect(null);
     
-    // Auto-select if only one technique or has default
-    const defaultTech = loc.techniques.find(t => t.isDefault);
-    if (loc.techniques.length === 1 || defaultTech) {
-      const techToSelect = defaultTech || loc.techniques[0];
+    // Auto-select if only one technique or has primary
+    const primaryTech = loc.techniques.find(t => t.isPrimary);
+    if (loc.techniques.length === 1 || primaryTech) {
+      const techToSelect = primaryTech || loc.techniques[0];
       handleTechniqueSelect(techToSelect, loc, comp);
     }
   };
@@ -414,18 +371,18 @@ function TechniqueSelector({
   ) => {
     const fullTechnique: ProductTechnique = {
       id: tech.id,
-      techniqueId: tech.techniqueId,
-      techniqueName: tech.name,
-      techniqueCode: tech.code,
+      techniqueCode: tech.techniqueCode,
+      techniqueName: tech.areaName || tech.techniqueCode,
       componentName: comp.name,
       locationName: loc.name,
       locationCode: loc.code,
-      composedCode: tech.composedCode,
-      maxWidth: loc.maxWidth,
-      maxHeight: loc.maxHeight,
-      maxArea: loc.maxArea,
+      composedCode: tech.servCode || `${comp.code}.${loc.code}.${tech.techniqueCode}`,
+      maxWidth: tech.maxWidth,
+      maxHeight: tech.maxHeight,
+      maxArea: tech.areaCm2,
       maxColors: tech.maxColors,
-      isDefault: tech.isDefault,
+      isCurved: tech.isCurved,
+      isPrimary: tech.isPrimary,
     };
     onSelect(fullTechnique);
   };
@@ -481,9 +438,9 @@ function TechniqueSelector({
         <div className="space-y-2">
           <p className="text-sm font-medium">Qual parte do produto será personalizada?</p>
           <div className="grid gap-2 sm:grid-cols-2">
-            {components.map(comp => (
+            {components.map((comp, idx) => (
               <button
-                key={comp.id}
+                key={`${comp.code}-${idx}`}
                 onClick={() => handleComponentSelect(comp)}
                 className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
               >
@@ -514,27 +471,34 @@ function TechniqueSelector({
             </Button>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            {selectedComponent.locations.map(loc => (
-              <button
-                key={loc.id}
-                onClick={() => handleLocationSelect(loc)}
-                className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
-                    <Ruler className="w-5 h-5 text-orange-500" />
+            {selectedComponent.locations.map((loc, idx) => {
+              // Pegar as dimensões da primeira técnica do local
+              const firstTech = loc.techniques[0];
+              const maxWidth = firstTech?.maxWidth;
+              const maxHeight = firstTech?.maxHeight;
+              
+              return (
+                <button
+                  key={`${loc.code}-${idx}`}
+                  onClick={() => handleLocationSelect(loc)}
+                  className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
+                      <Ruler className="w-5 h-5 text-orange-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{loc.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {maxWidth && maxHeight ? `${maxWidth}x${maxHeight}mm` : 'Área variável'}
+                        {' • '}
+                        {loc.techniques.length} {loc.techniques.length === 1 ? 'técnica' : 'técnicas'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{loc.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {loc.maxWidth && loc.maxHeight ? `${loc.maxWidth}x${loc.maxHeight}cm` : 'Área variável'}
-                      {' • '}
-                      {loc.techniques.length} {loc.techniques.length === 1 ? 'técnica' : 'técnicas'}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -561,14 +525,15 @@ function TechniqueSelector({
                       <Paintbrush className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <p className="font-medium">{tech.name}</p>
+                      <p className="font-medium">{tech.areaName || tech.techniqueCode}</p>
                       <p className="text-xs text-muted-foreground">
-                        {tech.code && `Código: ${tech.code}`}
+                        {tech.techniqueCode && `Código: ${tech.techniqueCode}`}
                         {tech.maxColors && ` • Até ${tech.maxColors} cores`}
+                        {tech.areaCm2 && ` • ${tech.areaCm2}cm²`}
                       </p>
                     </div>
                   </div>
-                  {tech.isDefault && (
+                  {tech.isPrimary && (
                     <Badge className="bg-green-500/20 text-green-700 border-green-500/30">
                       <Sparkles className="w-3 h-3 mr-1" />
                       Recomendado
@@ -620,7 +585,7 @@ function TechniqueSelector({
               {selectedTechnique.maxWidth && selectedTechnique.maxHeight && (
                 <span className="flex items-center gap-1">
                   <Ruler className="w-3 h-3" />
-                  Área máx: {selectedTechnique.maxWidth}x{selectedTechnique.maxHeight}cm
+                  Área máx: {selectedTechnique.maxWidth}x{selectedTechnique.maxHeight}mm
                 </span>
               )}
               {selectedTechnique.maxColors && (
@@ -712,7 +677,7 @@ function CustomizationOptions({
       {technique.maxWidth && technique.maxHeight && (
         <div className="p-3 rounded-lg bg-muted/50 text-sm">
           <p className="text-muted-foreground">
-            Área máxima de gravação: <strong>{technique.maxWidth} x {technique.maxHeight} cm</strong>
+            Área máxima de gravação: <strong>{technique.maxWidth} x {technique.maxHeight} mm</strong>
             {technique.maxArea && <span> ({technique.maxArea} cm²)</span>}
           </p>
         </div>
