@@ -18,7 +18,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
-import { Skeleton } from "@/components/loading/SkeletonLoading";
+import { LegacySkeleton as Skeleton } from "@/components/loading";
 
 // Intersection Observer Hook for Lazy Loading
 export function useIntersectionObserver(
