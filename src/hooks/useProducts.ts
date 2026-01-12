@@ -23,7 +23,7 @@ export interface Product {
   created_at?: string;
   updated_at?: string;
   colors: ProductColor[];
-  materials?: string | null;
+  materials: string[];
   supplier_reference?: string | null;
   brand?: string | null;
   is_active?: boolean;
@@ -68,6 +68,16 @@ function getStockStatus(stock: number): 'in-stock' | 'low-stock' | 'out-of-stock
   return 'in-stock';
 }
 
+// Parse materials string to array
+function parseMaterials(materials: any): string[] {
+  if (!materials) return [];
+  if (Array.isArray(materials)) return materials.filter(Boolean);
+  if (typeof materials === 'string') {
+    return materials.split(/[,;|]/).map(m => m.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 // Converte produto Promobrind para formato interno
 function mapPromobrindToProduct(p: PromobrindProduct): Product {
   const imageUrl = getProductImageUrl(p);
@@ -101,7 +111,7 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
     sku: p.sku,
     stock,
     colors,
-    materials: p.materials,
+    materials: parseMaterials(p.materials),
     supplier_reference: p.supplier_reference,
     brand: p.brand,
     is_active: p.is_active || p.active,
