@@ -263,13 +263,10 @@ export default function MockupGenerator() {
 
   const fetchData = async () => {
     try {
-      const [productsRes, techniquesRes, clientsRes] = await Promise.all([
-        supabase
-          .from("products")
-          .select("id, name, sku, images")
-          .eq("is_active", true)
-          .order("name")
-          .limit(500),
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      
+      const [productsData, techniquesRes, clientsRes] = await Promise.all([
+        fetchPromobrindProducts({ limit: 500 }),
         supabase
           .from("personalization_techniques")
           .select("id, name, code")
@@ -281,10 +278,17 @@ export default function MockupGenerator() {
           .order("name")
       ]);
 
-      if (productsRes.error) throw productsRes.error;
       if (techniquesRes.error) throw techniquesRes.error;
 
-      setProducts(productsRes.data || []);
+      // Mapear produtos Promobrind para formato esperado
+      const mappedProducts = productsData.map(p => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
+      }));
+
+      setProducts(mappedProducts);
       setTechniques(techniquesRes.data || []);
       setClients(clientsRes.data || []);
     } catch (error) {

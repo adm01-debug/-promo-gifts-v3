@@ -77,31 +77,25 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
     saveMessage,
   } = useExpertConversations(clientId);
 
-  // Fetch categories and materials
+  // Fetch categories and materials from Promobrind
   useEffect(() => {
     const fetchFilters = async () => {
-      const [categoriesResult, materialsResult] = await Promise.all([
-        supabase
-          .from("products")
-          .select("category_name")
-          .eq("is_active", true)
-          .not("category_name", "is", null),
-        supabase
-          .from("products")
-          .select("materials")
-          .eq("is_active", true)
-          .not("materials", "is", null),
-      ]);
+      try {
+        const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        const productsData = await fetchPromobrindProducts({ limit: 500 });
 
-      if (!categoriesResult.error && categoriesResult.data) {
-        const uniqueCategories = [...new Set(categoriesResult.data.map(p => p.category_name).filter(Boolean))] as string[];
+        // Extrair categorias únicas
+        const uniqueCategories = [...new Set(
+          productsData.map(p => p.category_name).filter(Boolean)
+        )] as string[];
         setCategories(uniqueCategories.sort());
-      }
 
-      if (!materialsResult.error && materialsResult.data) {
-        const allMaterials = materialsResult.data.flatMap(p => p.materials || []).filter(Boolean);
+        // Extrair materiais únicos
+        const allMaterials = productsData.flatMap(p => p.materials || []).filter(Boolean);
         const uniqueMaterials = [...new Set(allMaterials)] as string[];
         setMaterials(uniqueMaterials.sort());
+      } catch (error) {
+        console.error("Error fetching filters:", error);
       }
     };
     

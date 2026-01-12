@@ -1,16 +1,25 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchPromobrindProducts, fetchPromobrindProductById, PromobrindProduct } from '@/lib/external-db';
 
+// Interface adaptada para compatibilidade com o sistema
 export interface Product {
   id: string;
   name: string;
-  description?: string;
-  category_id: string;
+  description?: string | null;
+  category_id?: string | null;
+  category_name?: string | null;
   price: number;
   image_url?: string;
-  stock?: number;
+  images?: string[];
+  sku: string;
+  stock?: number | null;
   created_at?: string;
   updated_at?: string;
+  colors?: any[];
+  materials?: string[];
+  supplier_reference?: string | null;
+  brand?: string | null;
+  is_active?: boolean;
 }
 
 export interface ProductFilters {
@@ -21,46 +30,65 @@ export interface ProductFilters {
   inStock?: boolean;
 }
 
+// Converte produto Promobrind para formato interno
+function mapPromobrindToProduct(p: PromobrindProduct): Product {
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    category_id: p.category_id,
+    category_name: p.category_name,
+    price: p.base_price || 0,
+    image_url: p.primary_image_url || (p.images?.[0] ?? undefined),
+    images: p.images || [],
+    sku: p.sku,
+    stock: p.stock,
+    colors: p.colors || [],
+    materials: p.materials || [],
+    supplier_reference: p.supplier_reference,
+    brand: p.brand,
+    is_active: p.is_active,
+  };
+}
+
+/**
+ * Hook para buscar produtos do banco Promobrind
+ */
 export function useProducts(
   filters?: ProductFilters,
   options?: Omit<UseQueryOptions<Product[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery<Product[]>({
-    queryKey: ['products', filters],
+    queryKey: ['promobrind-products', filters],
     queryFn: async () => {
-      let query = supabase
-        .from('products')
-        .select('*')
-        .order('name');
+      const products = await fetchPromobrindProducts({
+        search: filters?.search,
+        limit: 500,
+      });
 
-      // Aplicar filtros
+      let result = products.map(mapPromobrindToProduct);
+
+      // Aplicar filtros locais
       if (filters?.category) {
-        query = query.eq('category_id', filters.category);
-      }
-
-      if (filters?.search) {
-        query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+        result = result.filter(p => 
+          p.category_name?.toLowerCase().includes(filters.category!.toLowerCase()) ||
+          p.category_id === filters.category
+        );
       }
 
       if (filters?.minPrice !== undefined) {
-        query = query.gte('price', filters.minPrice);
+        result = result.filter(p => p.price >= filters.minPrice!);
       }
 
       if (filters?.maxPrice !== undefined) {
-        query = query.lte('price', filters.maxPrice);
+        result = result.filter(p => p.price <= filters.maxPrice!);
       }
 
       if (filters?.inStock) {
-        query = query.gt('stock', 0);
+        result = result.filter(p => (p.stock || 0) > 0);
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        throw new Error(`Failed to fetch products: ${error.message}`);
-      }
-
-      return data || [];
+      return result;
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
     retry: 3,
@@ -69,22 +97,15 @@ export function useProducts(
   });
 }
 
+/**
+ * Hook para buscar um produto específico por ID
+ */
 export function useProduct(id: string) {
   return useQuery<Product | null>({
-    queryKey: ['products', id],
+    queryKey: ['promobrind-product', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') return null; // Not found
-        throw new Error(`Failed to fetch product: ${error.message}`);
-      }
-
-      return data;
+      const product = await fetchPromobrindProductById(id);
+      return product ? mapPromobrindToProduct(product) : null;
     },
     staleTime: 10 * 60 * 1000,
     enabled: !!id,

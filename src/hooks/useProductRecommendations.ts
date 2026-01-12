@@ -153,34 +153,39 @@ export function useProductRecommendations(productId?: string, productSku?: strin
         }));
       }
 
-      // Buscar produtos relacionados às categorias visualizadas
-      const { data: viewedProducts } = await supabase
-        .from('products')
-        .select('category_name')
-        .in('sku', viewedSkus);
+      // Buscar produtos do Promobrind para recomendações
+      try {
+        const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        const productsData = await fetchPromobrindProducts({ limit: 100 });
+        
+        // Filtrar apenas categorias visualizadas
+        const viewedCategories = [...new Set(viewedSkus.map(sku => {
+          const product = productsData.find(p => p.sku === sku);
+          return product?.category_name;
+        }).filter(Boolean))];
 
-      const categories = [...new Set(viewedProducts?.map(p => p.category_name).filter(Boolean))];
+        if (viewedCategories.length === 0) return [];
 
-      if (categories.length === 0) return [];
+        // Filtrar produtos das mesmas categorias (exceto os já vistos)
+        const recommendations = productsData
+          .filter(p => viewedCategories.includes(p.category_name) && !viewedSkus.includes(p.sku))
+          .slice(0, 6)
+          .map(p => ({
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            price: p.base_price || 0,
+            images: p.images,
+            category_name: p.category_name,
+            score: 80,
+            reason: 'Baseado no seu histórico'
+          }));
 
-      const { data: recommendedProducts } = await supabase
-        .from('products')
-        .select('id, name, sku, price, images, category_name')
-        .in('category_name', categories)
-        .not('sku', 'in', `(${viewedSkus.join(',')})`)
-        .eq('is_active', true)
-        .limit(6);
-
-      return (recommendedProducts || []).map(p => ({
-        id: p.id,
-        name: p.name,
-        sku: p.sku,
-        price: p.price,
-        images: p.images,
-        category_name: p.category_name,
-        score: 80,
-        reason: 'Baseado no seu histórico'
-      }));
+        return recommendations;
+      } catch (error) {
+        console.error("Error fetching recommendations:", error);
+        return [];
+      }
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,

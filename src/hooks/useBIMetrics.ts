@@ -61,29 +61,31 @@ export interface ProductBIMetrics {
 
 export function useBIMetrics() {
   return useQuery({
-    queryKey: ["product-bi-metrics"],
+    queryKey: ["product-bi-metrics-promobrind"],
     queryFn: async (): Promise<ProductBIMetrics> => {
-      // Fetch products and groups in parallel
-      const [productsResult, groupMembersResult, groupsResult] = await Promise.all([
-        supabase.from("products").select("*"),
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      
+      // Fetch products from Promobrind and groups from local
+      const [productsData, groupMembersResult, groupsResult] = await Promise.all([
+        fetchPromobrindProducts({ limit: 1000 }),
         supabase.from("product_group_members").select("product_id, product_group_id"),
         supabase.from("product_groups").select("id, group_name"),
       ]);
 
-      const products = productsResult.data || [];
+      const products = productsData;
       const groupMembers = groupMembersResult.data || [];
       const groups = groupsResult.data || [];
 
       // Basic counts
       const totalProducts = products.length;
       const totalActiveProducts = products.filter((p) => p.is_active).length;
-      const totalKits = products.filter((p) => p.is_kit).length;
-      const featuredCount = products.filter((p) => p.featured).length;
-      const newArrivalCount = products.filter((p) => p.new_arrival).length;
-      const onSaleCount = products.filter((p) => p.on_sale).length;
+      const totalKits = 0; // Promobrind não tem is_kit
+      const featuredCount = 0;
+      const newArrivalCount = 0;
+      const onSaleCount = 0;
 
       // Average price
-      const totalPrice = products.reduce((sum, p) => sum + (p.price || 0), 0);
+      const totalPrice = products.reduce((sum, p) => sum + (p.base_price || 0), 0);
       const averagePrice = totalProducts > 0 ? totalPrice / totalProducts : 0;
 
       // Products by category

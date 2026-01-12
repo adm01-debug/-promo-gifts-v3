@@ -138,19 +138,25 @@ export function ProductsManager() {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("updated_at", { ascending: false })
-        .limit(100);
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const productsData = await fetchPromobrindProducts({ limit: 100 });
 
-      if (error) throw error;
-
-      const formattedProducts: Product[] = (data || []).map((p) => ({
-        ...p,
-        images: Array.isArray(p.images) ? p.images : [],
+      const formattedProducts: Product[] = productsData.map((p) => ({
+        id: p.id,
+        sku: p.sku,
+        name: p.name,
+        description: p.description || null,
+        price: p.base_price || 0,
+        stock: p.stock || 0,
+        stock_status: (p.stock || 0) > 0 ? 'in_stock' : 'out_of_stock',
+        category_name: p.category_name || null,
+        supplier_name: null,
+        is_active: p.is_active,
+        images: Array.isArray(p.images) ? p.images : (p.primary_image_url ? [p.primary_image_url] : []),
         colors: Array.isArray(p.colors) ? p.colors : [],
         materials: Array.isArray(p.materials) ? p.materials : [],
+        created_at: '',
+        updated_at: '',
       }));
 
       setProducts(formattedProducts);

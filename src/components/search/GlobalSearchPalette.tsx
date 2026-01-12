@@ -518,38 +518,35 @@ export function GlobalSearchPalette() {
 
       // Search based on intent
       if (intent.type === 'product' || intent.type === 'mixed') {
-        let productQuery = supabase
-          .from("products")
-          .select("id, name, sku, category_name, price, colors")
-          .eq("is_active", true);
+        try {
+          const { fetchPromobrindProducts } = await import('@/lib/external-db');
+          const productsData = await fetchPromobrindProducts({ 
+            search: intent.keywords.join(' '),
+            limit: 8 
+          });
 
-        // Apply semantic filters
-        if (intent.filters.category) {
-          productQuery = productQuery.ilike("category_name", `%${intent.filters.category}%`);
-        }
-        
-        if (intent.filters.priceRange) {
-          if (intent.filters.priceRange === 'low') {
-            productQuery = productQuery.lt("price", 50);
-          } else if (intent.filters.priceRange === 'high') {
-            productQuery = productQuery.gt("price", 200);
+          let filteredProducts = productsData;
+
+          // Apply filters
+          if (intent.filters.category) {
+            const catFilter = intent.filters.category.toLowerCase();
+            filteredProducts = filteredProducts.filter(p => 
+              p.category_name?.toLowerCase().includes(catFilter)
+            );
           }
-        }
+          
+          if (intent.filters.priceRange) {
+            if (intent.filters.priceRange === 'low') {
+              filteredProducts = filteredProducts.filter(p => (p.base_price || 0) < 50);
+            } else if (intent.filters.priceRange === 'high') {
+              filteredProducts = filteredProducts.filter(p => (p.base_price || 0) > 200);
+            }
+          }
 
-        // Text search with keywords
-        const keywordSearch = intent.keywords.join('%');
-        if (keywordSearch) {
-          productQuery = productQuery.or(`name.ilike.%${keywordSearch}%,sku.ilike.%${keywordSearch}%,category_name.ilike.%${keywordSearch}%`);
-        }
-
-        const { data: products } = await productQuery.limit(8);
-
-        if (products) {
           // Filter by color if specified
-          let filteredProducts = products;
           if (intent.filters.color) {
             const colorLower = intent.filters.color.toLowerCase();
-            filteredProducts = products.filter((p: any) => {
+            filteredProducts = filteredProducts.filter(p => {
               if (!p.colors) return false;
               const colors = Array.isArray(p.colors) ? p.colors : [];
               return colors.some((c: any) => 
@@ -558,18 +555,20 @@ export function GlobalSearchPalette() {
               );
             });
             // If no color matches, show all products
-            if (filteredProducts.length === 0) filteredProducts = products;
+            if (filteredProducts.length === 0) filteredProducts = productsData.slice(0, 8);
           }
 
-          filteredProducts.forEach((p: any) => {
+          filteredProducts.forEach((p) => {
             allResults.push({
               id: p.id,
               title: p.name,
-              subtitle: `SKU: ${p.sku} • ${p.category_name || "Sem categoria"} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p.price)}`,
+              subtitle: `SKU: ${p.sku} • ${p.category_name || "Sem categoria"} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p.base_price || 0)}`,
               type: "product",
               href: `/produto/${p.id}`,
             });
           });
+        } catch (error) {
+          console.error("Error searching products:", error);
         }
       }
 

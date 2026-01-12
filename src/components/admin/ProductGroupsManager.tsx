@@ -76,16 +76,17 @@ export function ProductGroupsManager() {
     },
   });
 
-  // Fetch all products
+  // Fetch all products from Promobrind
   const { data: allProducts } = useQuery({
-    queryKey: ["all-products"],
+    queryKey: ["all-products-promobrind"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, sku")
-        .order("name");
-      if (error) throw error;
-      return data as Product[];
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      return productsData.map(p => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+      })) as Product[];
     },
   });
 

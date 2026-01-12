@@ -160,16 +160,17 @@ export function ProductPersonalizationManager() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // Fetch products
+  // Fetch products from Promobrind
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ["admin-products"],
+    queryKey: ["admin-products-promobrind"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, sku")
-        .order("name");
-      if (error) throw error;
-      return data as Product[];
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      return productsData.map(p => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+      })) as Product[];
     },
   });
 
