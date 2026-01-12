@@ -139,18 +139,21 @@ export default function QuoteBuilderPage() {
     }
   }, [isEditMode, quoteId]);
 
-  // Fetch products
+  // Fetch products from Promobrind
   const { data: products } = useQuery({
-    queryKey: ["quote-products"],
+    queryKey: ["quote-products-promobrind"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, sku, price, images")
-        .eq("is_active", true)
-        .order("name")
-        .limit(500);
-      if (error) throw error;
-      return data as Product[];
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      
+      // Mapear para formato esperado
+      return productsData.map(p => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        price: p.base_price || 0,
+        images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
+      })) as Product[];
     },
   });
 

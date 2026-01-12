@@ -103,18 +103,23 @@ export default function MagicUp() {
   }, []);
 
   const loadProducts = async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("id, name, sku, images")
-      .eq("is_active", true)
-      .order("name");
+    try {
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      
+      // Mapear para formato esperado
+      const mappedProducts = productsData.map(p => ({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
+      }));
 
-    if (error) {
+      setProducts(mappedProducts);
+    } catch (error) {
+      console.error("Error loading products:", error);
       toast.error("Erro ao carregar produtos");
-      return;
     }
-
-    setProducts(data || []);
   };
 
   const loadTechniques = async () => {

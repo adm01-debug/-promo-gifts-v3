@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Json } from '@/integrations/supabase/types';
+import { fetchPromobrindColors } from '@/lib/external-db';
 
 export interface ProductColor {
   id?: string;
@@ -11,41 +10,17 @@ export interface ProductColor {
 }
 
 /**
- * Hook para buscar cores únicas dos produtos
- * Como não existe tabela 'colors', extraímos de products.colors (JSONB)
+ * Hook para buscar cores únicas dos produtos Promobrind
  */
 export function useColors() {
   return useQuery<ProductColor[]>({
-    queryKey: ['colors'],
+    queryKey: ['promobrind-colors'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('colors')
-        .not('colors', 'is', null);
-
-      if (error) throw new Error(`Failed to fetch colors: ${error.message}`);
-
-      // Extrair cores únicas dos produtos
-      const uniqueColors = new Map<string, ProductColor>();
-      
-      data?.forEach((product) => {
-        if (product.colors && Array.isArray(product.colors)) {
-          (product.colors as unknown as ProductColor[]).forEach((color) => {
-            if (color && color.name && !uniqueColors.has(color.name)) {
-              uniqueColors.set(color.name, {
-                name: color.name,
-                hex: color.hex || '#000000',
-                pantone: color.pantone,
-                group: color.group,
-              });
-            }
-          });
-        }
-      });
-
-      return Array.from(uniqueColors.values()).sort((a, b) => 
-        a.name.localeCompare(b.name)
-      );
+      const colors = await fetchPromobrindColors();
+      return colors.map(c => ({
+        name: c.name,
+        hex: c.hex,
+      }));
     },
     staleTime: 60 * 60 * 1000, // 1 hora (dados muito estáveis)
   });

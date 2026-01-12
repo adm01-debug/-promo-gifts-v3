@@ -93,21 +93,17 @@ export function StockAlertsIndicator({
 
   const fetchStockAlerts = async () => {
     try {
-      const { data: products, error } = await supabase
-        .from("products")
-        .select("id, name, sku, stock, supplier_name")
-        .eq("is_active", true)
-        .lt("stock", lowStockThreshold)
-        .order("stock", { ascending: true })
-        .limit(50);
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const productsData = await fetchPromobrindProducts({ limit: 500 });
 
-      if (error) throw error;
+      // Filtrar produtos com estoque baixo
+      const lowStockProducts = productsData.filter(p => (p.stock || 0) < lowStockThreshold);
 
-      const newAlerts: StockAlert[] = (products || []).map((product) => {
+      const newAlerts: StockAlert[] = lowStockProducts.map((product) => {
         let alertType: "low" | "critical" | "out" = "low";
-        if (product.stock === 0) {
+        if ((product.stock || 0) === 0) {
           alertType = "out";
-        } else if (product.stock <= criticalStockThreshold) {
+        } else if ((product.stock || 0) <= criticalStockThreshold) {
           alertType = "critical";
         }
 
@@ -118,10 +114,10 @@ export function StockAlertsIndicator({
           sku: product.sku,
           currentStock: product.stock || 0,
           alertType,
-          supplier: product.supplier_name || "Desconhecido",
+          supplier: product.brand || "Desconhecido",
           createdAt: new Date(),
         };
-      });
+      }).slice(0, 50);
 
       setAlerts(newAlerts);
     } catch (error) {
