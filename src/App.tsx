@@ -145,6 +145,7 @@ const App = () => {
                                     <Route path="/dashboard" element={<CustomizableDashboard />} />
 
                                     {/* Products */}
+                                    <Route path="/produtos" element={<FiltersPage />} />
                                     <Route path="/produto/:id" element={<ProductDetail />} />
                                     <Route path="/filtros" element={<FiltersPage />} />
                                     <Route path="/novidades" element={<NoveltiesPage />} />
