@@ -1,5 +1,5 @@
 // Hooks utilitários reutilizáveis
-export { useDebounce } from './useDebounce';
+export { useDebounce, useDebouncedCallback, useThrottle, useSearchAsYouType } from './useDebounce';
 export { useLocalStorage } from './useLocalStorage';
 export { useMediaQuery, useBreakpoint } from './useMediaQuery';
 export { useClickOutside, useClickOutsideMultiple } from './useClickOutside';
@@ -8,5 +8,6 @@ export { useKeyPress, useKeyCombo, useKeyState } from './useKeyPress';
 export { useToggle, useMultiToggle } from './useToggle';
 export { usePagination } from './usePagination';
 export { useDebouncedSearch } from './useDebouncedSearch';
-export { useConfirmDialog, useDeleteConfirm } from './useConfirmDialog';
+export { useConfirmDialog, useDeleteConfirm, useGlobalConfirm, ConfirmDialogProvider } from './useConfirmDialog.tsx';
 export { useBulkSelection } from './useBulkSelection';
+export { useAutoSave, AutoSaveIndicator, DraftRecovery, useFormDraft } from './useAutoSave.tsx';
