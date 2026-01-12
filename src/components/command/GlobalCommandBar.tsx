@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Command,
@@ -76,7 +76,13 @@ interface RecentItem {
 
 const RECENT_ITEMS_KEY = "command-bar-recent";
 
-export function GlobalCommandBar() {
+interface GlobalCommandBarProps {
+  children?: ReactNode;
+  /** Renderiza o botão "Buscar" na UI (além do atalho Cmd/Ctrl+K) */
+  showTrigger?: boolean;
+}
+
+export function GlobalCommandBar({ children, showTrigger = false }: GlobalCommandBarProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
@@ -434,19 +440,23 @@ export function GlobalCommandBar() {
 
   return (
     <>
-      {/* Trigger Button (optional, can be hidden) */}
-      <button
-        onClick={() => setOpen(true)}
-        className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground 
+      {children}
+
+      {/* Trigger Button (opcional, pode ser ocultado) */}
+      {showTrigger && (
+        <button
+          onClick={() => setOpen(true)}
+          className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground 
                    bg-muted/50 hover:bg-muted rounded-lg border border-border 
                    transition-all duration-200 hover:text-foreground"
-      >
-        <Search className="h-4 w-4" />
-        <span>Buscar...</span>
-        <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </button>
+        >
+          <Search className="h-4 w-4" />
+          <span>Buscar...</span>
+          <kbd className="hidden sm:inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </button>
+      )}
 
       <CommandDialog open={open} onOpenChange={setOpen}>
         <Command className="rounded-lg border-0 shadow-2xl">
