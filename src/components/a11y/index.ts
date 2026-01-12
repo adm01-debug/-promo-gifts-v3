@@ -16,6 +16,5 @@ export {
   FormErrorAnnouncer,
   ActionResultAnnouncer,
   ListUpdateAnnouncer,
-  SkipLink
 } from "./AriaLive";
 export { TouchTarget, IconButton } from "./TouchTarget";
