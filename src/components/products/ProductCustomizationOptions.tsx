@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchPromobrindProductBySku } from "@/lib/external-db";
 import { 
   Paintbrush, 
   ChevronDown, 
@@ -73,17 +74,13 @@ export function ProductCustomizationOptions({ productId, productSku }: ProductCu
       // Primeiro, tentar encontrar o produto no banco pelo ID ou SKU
       let dbProductId = productId;
       
-      // Se o productId não é um UUID válido, tentar buscar pelo SKU
+      // Se o productId não é um UUID válido, tentar buscar pelo SKU no Promobrind
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(productId) && productSku) {
-        const { data: productData } = await supabase
-          .from("products")
-          .select("id")
-          .eq("sku", productSku)
-          .maybeSingle();
+        const promobrindProduct = await fetchPromobrindProductBySku(productSku);
         
-        if (productData) {
-          dbProductId = productData.id;
+        if (promobrindProduct) {
+          dbProductId = promobrindProduct.id;
         }
       }
 

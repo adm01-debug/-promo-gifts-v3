@@ -55,9 +55,9 @@ export default function SystemStatusPage() {
       icon: <Server className="h-5 w-5" />
     });
 
-    // 3. Check Supabase Connection
+    // 3. Check Supabase Connection (usando profiles como tabela de teste)
     try {
-      const { data, error } = await supabase.from('products').select('count').limit(1);
+      const { data, error } = await supabase.from('profiles').select('id').limit(1);
       results.push({
         name: "Conexão com Database",
         status: error ? "error" : "ok",

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchPromobrindProductBySku } from "@/lib/external-db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,39 +76,38 @@ export function ProductPersonalizationRules({ productId, productSku, productName
   const { data: productData, isLoading: loadingProduct } = useQuery({
     queryKey: ["product-personalization-source", productSku],
     queryFn: async () => {
-      // First find the product in our DB by SKU
-      const { data: dbProduct } = await supabase
-        .from("products")
-        .select("id")
-        .eq("sku", productSku)
-        .maybeSingle();
+      // Buscar produto no banco Promobrind pelo SKU
+      const promobrindProduct = await fetchPromobrindProductBySku(productSku);
 
-      if (!dbProduct) return { source: "none" as const, productDbId: null };
+      if (!promobrindProduct) return { source: "none" as const, productDbId: null };
+
+      // Usar o ID do produto Promobrind para verificar regras
+      const productDbId = promobrindProduct.id;
 
       // Check if product has custom components
       const { data: customComponents } = await supabase
         .from("product_components")
         .select("id")
-        .eq("product_id", dbProduct.id)
+        .eq("product_id", productDbId)
         .eq("is_active", true)
         .limit(1);
 
       if (customComponents && customComponents.length > 0) {
-        return { source: "product" as const, productDbId: dbProduct.id };
+        return { source: "product" as const, productDbId };
       }
 
       // Check if product belongs to a group
       const { data: groupMember } = await supabase
         .from("product_group_members")
         .select("product_group_id, use_group_rules")
-        .eq("product_id", dbProduct.id)
+        .eq("product_id", productDbId)
         .maybeSingle();
 
       if (groupMember?.use_group_rules) {
-        return { source: "group" as const, productDbId: dbProduct.id, groupId: groupMember.product_group_id };
+        return { source: "group" as const, productDbId, groupId: groupMember.product_group_id };
       }
 
-      return { source: "none" as const, productDbId: dbProduct.id };
+      return { source: "none" as const, productDbId };
     },
   });
 
