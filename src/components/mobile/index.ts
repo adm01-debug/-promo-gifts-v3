@@ -17,3 +17,20 @@ export {
   FloatingActionButton, 
   TouchRipple 
 } from "./MobileComponents";
+
+// Enhanced mobile components
+export { 
+  HapticProvider, 
+  useHaptic, 
+  HapticButton,
+  TouchFeedback,
+  LongPress,
+  ScaleOnPress
+} from "./HapticFeedback";
+export {
+  TouchListItem,
+  TouchButton,
+  TouchCheckbox,
+  FAB,
+  SwipeIndicator
+} from "./TouchOptimized";
