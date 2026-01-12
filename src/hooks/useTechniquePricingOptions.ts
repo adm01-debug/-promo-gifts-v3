@@ -56,7 +56,7 @@ export function useTechniquePricingOptions(techniqueCode: string | null): Techni
           body: {
             table: 'customization_price_tables',
             operation: 'select',
-            filters: { composed_code: techniqueCode },
+            filters: { table_code: techniqueCode },
             limit: 100
           }
         });
@@ -196,7 +196,7 @@ export function useMultipleTechniquePricing(techniqueCodes: string[]) {
               body: {
                 table: 'customization_price_tables',
                 operation: 'select',
-                filters: { composed_code: code },
+                filters: { table_code: code },
                 limit: 100
               }
             });
