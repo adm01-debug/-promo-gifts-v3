@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from "@/lib/external-db";
 import type { 
   Product, 
   Client, 
@@ -52,18 +53,22 @@ export function useSimulation() {
   const [filterClientId, setFilterClientId] = useState<string | null>(null);
   const [filterProductSearch, setFilterProductSearch] = useState("");
 
-  // Fetch products
+  // Fetch products from Promobrind API
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ["simulator-products"],
+    queryKey: ["simulator-products-promobrind"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, name, sku, price")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data as Product[];
+      const promobrindProducts = await fetchPromobrindProducts({ limit: 500 });
+      return promobrindProducts
+        .filter(p => p.active !== false && p.is_active !== false)
+        .map(p => ({
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          price: getProductPrice(p),
+          image_url: getProductImageUrl(p),
+        })) as Product[];
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch clients
