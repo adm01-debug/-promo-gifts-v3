@@ -78,20 +78,21 @@ export function useBIMetrics() {
 
       // Basic counts
       const totalProducts = products.length;
-      const totalActiveProducts = products.filter((p) => p.is_active).length;
+      const totalActiveProducts = products.filter((p) => p.is_active || p.active).length;
       const totalKits = 0; // Promobrind não tem is_kit
       const featuredCount = 0;
       const newArrivalCount = 0;
       const onSaleCount = 0;
 
-      // Average price
-      const totalPrice = products.reduce((sum, p) => sum + (p.base_price || 0), 0);
+      // Average price (usando getProductPrice)
+      const { getProductPrice } = await import('@/lib/external-db');
+      const totalPrice = products.reduce((sum, p) => sum + getProductPrice(p), 0);
       const averagePrice = totalProducts > 0 ? totalPrice / totalProducts : 0;
 
-      // Products by category
+      // Products by category (usando category_id que existe no schema)
       const categoryMap = new Map<string, number>();
       products.forEach((p) => {
-        const category = p.category_name || "Sem categoria";
+        const category = p.category_id || p.main_category_id || "Sem categoria";
         categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
       });
       const productsByCategory = Array.from(categoryMap.entries())
@@ -99,17 +100,8 @@ export function useBIMetrics() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      // Products by subcategory
-      const subcategoryMap = new Map<string, number>();
-      products.forEach((p) => {
-        if (p.subcategory) {
-          subcategoryMap.set(p.subcategory, (subcategoryMap.get(p.subcategory) || 0) + 1);
-        }
-      });
-      const productsBySubcategory = Array.from(subcategoryMap.entries())
-        .map(([subcategory, count]) => ({ subcategory, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
+      // Products by subcategory (schema não tem - vazio)
+      const productsBySubcategory: { subcategory: string; count: number }[] = [];
 
       // Products by color
       const colorMap = new Map<string, { hex: string; count: number }>();
@@ -129,13 +121,13 @@ export function useBIMetrics() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 15);
 
-      // Products by material
+      // Products by material (materials é string no schema, não array)
       const materialMap = new Map<string, number>();
       products.forEach((p) => {
-        if (p.materials && Array.isArray(p.materials)) {
-          p.materials.forEach((material: string) => {
-            materialMap.set(material, (materialMap.get(material) || 0) + 1);
-          });
+        if (p.materials) {
+          // materials é uma string no schema Promobrind
+          const material = typeof p.materials === 'string' ? p.materials : 'Desconhecido';
+          materialMap.set(material, (materialMap.get(material) || 0) + 1);
         }
       });
       const productsByMaterial = Array.from(materialMap.entries())
@@ -143,10 +135,10 @@ export function useBIMetrics() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      // Products by supplier
+      // Products by supplier (schema não tem supplier_name, temos supplier_reference)
       const supplierMap = new Map<string, number>();
       products.forEach((p) => {
-        const supplier = p.supplier_name || "Sem fornecedor";
+        const supplier = p.supplier_reference || "Sem fornecedor";
         supplierMap.set(supplier, (supplierMap.get(supplier) || 0) + 1);
       });
       const productsBySupplier = Array.from(supplierMap.entries())
@@ -154,10 +146,12 @@ export function useBIMetrics() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 10);
 
-      // Products by stock status
+      // Products by stock status (usando stock_quantity)
+      const { getProductStock } = await import('@/lib/external-db');
       const stockStatusMap = new Map<string, number>();
       products.forEach((p) => {
-        const status = p.stock_status || "in-stock";
+        const stock = getProductStock(p);
+        const status = stock > 0 ? "in-stock" : "out-of-stock";
         stockStatusMap.set(status, (stockStatusMap.get(status) || 0) + 1);
       });
       const productsByStockStatus = Array.from(stockStatusMap.entries())
@@ -192,20 +186,22 @@ export function useBIMetrics() {
 
       const priceRanges = priceRangesConfig.map((range) => ({
         range: range.label,
-        count: products.filter((p) => p.price >= range.min && p.price < range.max).length,
+        count: products.filter((p) => {
+          const price = getProductPrice(p);
+          return price >= range.min && price < range.max;
+        }).length,
       }));
 
-      // Recent products
-      const recentProducts = [...products]
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      // Recent products (schema não tem created_at confiável)
+      const recentProducts = products
         .slice(0, 5)
         .map((p) => ({
           id: p.id,
           name: p.name,
           sku: p.sku,
-          price: p.price,
-          category_name: p.category_name,
-          created_at: p.created_at,
+          price: getProductPrice(p),
+          category_name: p.category_id || p.main_category_id || null,
+          created_at: '',
         }));
 
       return {

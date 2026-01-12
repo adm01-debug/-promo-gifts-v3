@@ -82,6 +82,7 @@ export async function invokeExternalDbDelete(
 
 // ============================================
 // TIPOS PARA PRODUTOS PROMOBRIND
+// Schema validado do banco externo (12/01/2026)
 // ============================================
 
 export interface PromobrindProduct {
@@ -89,22 +90,34 @@ export interface PromobrindProduct {
   name: string;
   sku: string;
   base_price: number | null;
+  image_url: string | null;        // Campo correto do schema
   images: string[] | null;
   primary_image_url: string | null;
   category_id: string | null;
-  category_name: string | null;
+  main_category_id: string | null; // Campo correto do schema
   supplier_reference: string | null;
   description: string | null;
+  short_description: string | null;
   brand: string | null;
   is_active: boolean;
-  stock?: number | null;
+  active: boolean;                 // Alias no schema externo
+  stock_quantity?: number | null;
   colors?: any[] | null;
-  materials?: string[] | null;
+  materials?: string | null;       // É string no schema, não array
+  dimensions?: string | null;
+  min_quantity?: number | null;
 }
 
 // ============================================
 // FUNÇÕES AUXILIARES PARA PRODUTOS
 // ============================================
+
+// Select fields que existem no schema Promobrind
+const PRODUCT_SELECT_FIELDS = 
+  'id, name, sku, base_price, image_url, images, primary_image_url, ' +
+  'category_id, main_category_id, supplier_reference, description, ' +
+  'short_description, brand, is_active, active, stock_quantity, colors, ' +
+  'materials, dimensions, min_quantity';
 
 /**
  * Busca produtos do banco Promobrind via bridge
@@ -115,7 +128,7 @@ export async function fetchPromobrindProducts(options?: {
   filters?: Record<string, unknown>;
 }): Promise<PromobrindProduct[]> {
   const filters: Record<string, unknown> = {
-    is_active: true,
+    active: true,  // Campo correto no schema externo
     ...options?.filters,
   };
 
@@ -127,7 +140,7 @@ export async function fetchPromobrindProducts(options?: {
     table: 'products',
     operation: 'select',
     filters,
-    select: 'id, name, sku, base_price, images, primary_image_url, category_id, category_name, supplier_reference, description, brand, is_active, stock, colors, materials',
+    select: PRODUCT_SELECT_FIELDS,
     limit: options?.limit || 100,
     orderBy: { column: 'name', ascending: true },
   });
@@ -145,7 +158,7 @@ export async function fetchPromobrindProductById(
     table: 'products',
     operation: 'select',
     filters: { id: productId },
-    select: 'id, name, sku, base_price, images, primary_image_url, category_id, category_name, supplier_reference, description, brand, is_active, stock, colors, materials',
+    select: PRODUCT_SELECT_FIELDS,
     limit: 1,
   });
 
@@ -162,7 +175,7 @@ export async function fetchPromobrindProductBySku(
     table: 'products',
     operation: 'select',
     filters: { sku },
-    select: 'id, name, sku, base_price, images, primary_image_url, category_id, category_name, supplier_reference, description, brand, is_active',
+    select: PRODUCT_SELECT_FIELDS,
     limit: 1,
   });
 
@@ -171,29 +184,37 @@ export async function fetchPromobrindProductBySku(
 
 /**
  * Busca categorias únicas dos produtos Promobrind
+ * Nota: O schema externo usa main_category_id, não category_name
  */
 export async function fetchPromobrindCategories(): Promise<{ id: string; name: string }[]> {
-  const result = await invokeExternalDb<{ category_id: string; category_name: string }>({
-    table: 'products',
-    operation: 'select',
-    filters: { is_active: true },
-    select: 'category_id, category_name',
-    limit: 1000,
-  });
+  // Tenta buscar da tabela categories se existir, senão extrai dos produtos
+  try {
+    const result = await invokeExternalDb<{ id: string; name: string }>({
+      table: 'categories',
+      operation: 'select',
+      select: 'id, name',
+      limit: 500,
+      orderBy: { column: 'name', ascending: true },
+    });
+    return result.records;
+  } catch {
+    // Fallback: extrair IDs únicos de category_id dos produtos
+    const result = await invokeExternalDb<{ category_id: string; main_category_id: string }>({
+      table: 'products',
+      operation: 'select',
+      filters: { active: true },
+      select: 'category_id, main_category_id',
+      limit: 1000,
+    });
 
-  const uniqueCategories = new Map<string, { id: string; name: string }>();
-  result.records.forEach((p) => {
-    if (p.category_name && !uniqueCategories.has(p.category_name)) {
-      uniqueCategories.set(p.category_name, {
-        id: p.category_id || p.category_name,
-        name: p.category_name,
-      });
-    }
-  });
+    const uniqueIds = new Set<string>();
+    result.records.forEach((p) => {
+      if (p.category_id) uniqueIds.add(p.category_id);
+      if (p.main_category_id) uniqueIds.add(p.main_category_id);
+    });
 
-  return Array.from(uniqueCategories.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+    return Array.from(uniqueIds).map(id => ({ id, name: id }));
+  }
 }
 
 /**
@@ -203,7 +224,7 @@ export async function fetchPromobrindColors(): Promise<{ name: string; hex: stri
   const result = await invokeExternalDb<{ colors: any[] }>({
     table: 'products',
     operation: 'select',
-    filters: { is_active: true },
+    filters: { active: true },
     select: 'colors',
     limit: 1000,
   });
@@ -225,4 +246,25 @@ export async function fetchPromobrindColors(): Promise<{ name: string; hex: stri
   return Array.from(uniqueColors.values()).sort((a, b) =>
     a.name.localeCompare(b.name)
   );
+}
+
+/**
+ * Helper para obter URL da imagem do produto
+ */
+export function getProductImageUrl(product: PromobrindProduct): string | null {
+  return product.primary_image_url || product.image_url || (product.images?.[0] ?? null);
+}
+
+/**
+ * Helper para obter preço do produto (fallback 0)
+ */
+export function getProductPrice(product: PromobrindProduct): number {
+  return product.base_price || 0;
+}
+
+/**
+ * Helper para obter estoque
+ */
+export function getProductStock(product: PromobrindProduct): number {
+  return product.stock_quantity || 0;
 }

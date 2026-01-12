@@ -1,5 +1,5 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { fetchPromobrindProducts, fetchPromobrindProductById, PromobrindProduct } from '@/lib/external-db';
+import { fetchPromobrindProducts, fetchPromobrindProductById, PromobrindProduct, getProductImageUrl, getProductPrice, getProductStock } from '@/lib/external-db';
 
 // Interface adaptada para compatibilidade com o sistema
 export interface Product {
@@ -16,7 +16,7 @@ export interface Product {
   created_at?: string;
   updated_at?: string;
   colors?: any[];
-  materials?: string[];
+  materials?: string | null;
   supplier_reference?: string | null;
   brand?: string | null;
   is_active?: boolean;
@@ -32,22 +32,23 @@ export interface ProductFilters {
 
 // Converte produto Promobrind para formato interno
 function mapPromobrindToProduct(p: PromobrindProduct): Product {
+  const imageUrl = getProductImageUrl(p);
   return {
     id: p.id,
     name: p.name,
-    description: p.description,
-    category_id: p.category_id,
-    category_name: p.category_name,
-    price: p.base_price || 0,
-    image_url: p.primary_image_url || (p.images?.[0] ?? undefined),
-    images: p.images || [],
+    description: p.description || p.short_description,
+    category_id: p.category_id || p.main_category_id,
+    category_name: null, // Schema não tem category_name
+    price: getProductPrice(p),
+    image_url: imageUrl ?? undefined,
+    images: p.images || (imageUrl ? [imageUrl] : []),
     sku: p.sku,
-    stock: p.stock,
+    stock: getProductStock(p),
     colors: p.colors || [],
-    materials: p.materials || [],
+    materials: p.materials,
     supplier_reference: p.supplier_reference,
     brand: p.brand,
-    is_active: p.is_active,
+    is_active: p.is_active || p.active,
   };
 }
 

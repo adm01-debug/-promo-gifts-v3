@@ -6,18 +6,23 @@ import { supabase } from '@/integrations/supabase/client';
 // TIPOS
 // ============================================
 
+// Schema validado do banco Promobrind (12/01/2026)
 export interface ExternalProduct {
   id: string;
   name: string;
   sku: string;
-  base_price: number;
-  images: string[];
+  base_price: number | null;
+  image_url: string | null;
+  images: string[] | null;
   primary_image_url: string | null;
   category_id: string | null;
+  main_category_id: string | null;
   supplier_reference: string | null;
   description: string | null;
   brand: string | null;
   is_active: boolean;
+  active: boolean;
+  stock_quantity: number | null;
 }
 
 export interface ExternalPrintArea {
@@ -94,6 +99,9 @@ async function invokeExternalDb<T>(
 // HOOKS
 // ============================================
 
+// Select fields que existem no schema Promobrind
+const PRODUCT_SELECT = 'id, name, sku, base_price, image_url, images, primary_image_url, category_id, main_category_id, supplier_reference, description, brand, is_active, active, stock_quantity';
+
 /**
  * Busca produtos do banco externo Promobrind
  */
@@ -106,9 +114,9 @@ export function useExternalProductSearch(searchQuery: string) {
       const result = await invokeExternalDb<ExternalProduct>('products', 'select', {
         filters: {
           name: searchQuery,
-          is_active: true,
+          active: true, // Campo correto do schema
         },
-        select: 'id, name, sku, base_price, images, primary_image_url, category_id, supplier_reference, description, brand, is_active',
+        select: PRODUCT_SELECT,
         limit: 20,
         orderBy: { column: 'name', ascending: true },
       });
@@ -131,7 +139,7 @@ export function useExternalProduct(productId: string | null) {
       
       const result = await invokeExternalDb<ExternalProduct>('products', 'select', {
         filters: { id: productId },
-        select: 'id, name, sku, base_price, images, primary_image_url, category_id, supplier_reference, description, brand, is_active',
+        select: PRODUCT_SELECT,
         limit: 1,
       });
 
@@ -220,9 +228,9 @@ export function useExternalProductsList(options?: {
     queryFn: async () => {
       const result = await invokeExternalDb<ExternalProduct>('products', 'select', {
         filters: { 
-          is_active: true,
+          active: true, // Campo correto do schema
         },
-        select: 'id, name, sku, base_price, images, primary_image_url, supplier_reference, brand',
+        select: 'id, name, sku, base_price, image_url, images, primary_image_url, supplier_reference, brand',
         limit: options?.limit || 100,
         orderBy: { column: 'name', ascending: true },
       });
