@@ -50,8 +50,8 @@ export default function PriceSimulatorPage() {
           <TabsContent value="by-quantity" className="mt-6">
             <QuantityPriceCalculator 
               productBasePrice={0}
-              onSelectTechnique={(code, calc) => {
-                console.log('Técnica selecionada:', code, calc);
+              onSelectTechnique={() => {
+                // Handler para técnica selecionada
               }}
             />
           </TabsContent>
