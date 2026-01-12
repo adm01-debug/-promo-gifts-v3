@@ -1,5 +1,5 @@
 // src/components/simulator/TechniqueSelectionCard.tsx
-// Seleção de técnicas com cards visuais
+// Seleção de técnicas com cards visuais e opções dinâmicas de cores/tamanhos
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,27 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Palette, Clock, DollarSign, Zap, X, Info, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Palette, Clock, DollarSign, Zap, X, Info, ChevronDown, ChevronUp, Sparkles, Ruler } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
 import { useState, forwardRef } from "react";
 import type { Technique, TechniqueSettings } from "@/types/simulation";
+import type { ColorOption, SizeOption } from "@/hooks/useTechniquePricingOptions";
+
+interface TechniquePricingInfo {
+  hasPriceByColor: boolean;
+  hasPriceByArea: boolean;
+  colorOptions: ColorOption[];
+  sizeOptions: SizeOption[];
+}
 
 interface TechniqueSelectionCardProps {
   techniques: Technique[] | undefined;
@@ -30,6 +45,7 @@ interface TechniqueSelectionCardProps {
   needsColorInput: (code: string) => boolean;
   needsSizeInput: (code: string) => boolean;
   quantity: number;
+  getPricingInfo?: (code: string) => TechniquePricingInfo;
 }
 
 // Ícone e cor baseado no código da técnica
@@ -64,6 +80,7 @@ export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelect
     needsColorInput,
     needsSizeInput,
     quantity,
+    getPricingInfo,
   },
   ref
 ) {
@@ -119,8 +136,13 @@ export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelect
                 const sla = getSlaInfo(technique.estimated_days);
                 const settings = techniqueSettings[technique.id] || { colors: 1, width: 10, height: 10, positions: 1 };
                 const isExpanded = expandedTechnique === technique.id;
-                const showColors = needsColorInput(technique.code || "");
-                const showSize = needsSizeInput(technique.code || "");
+                
+                // Get dynamic pricing info if available
+                const pricingInfo = getPricingInfo?.(technique.code || "");
+                const showColors = pricingInfo?.hasPriceByColor ?? needsColorInput(technique.code || "");
+                const showSize = pricingInfo?.hasPriceByArea ?? needsSizeInput(technique.code || "");
+                const colorOptions = pricingInfo?.colorOptions || [];
+                const sizeOptions = pricingInfo?.sizeOptions || [];
 
                 // Estimate total cost preview
                 let estimatedCost = technique.unit_cost * quantity + technique.setup_cost;
@@ -280,43 +302,100 @@ export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelect
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
                                 {showColors && (
                                   <div className="space-y-1.5">
-                                    <Label className="text-xs text-muted-foreground">Cores</Label>
-                                    <Input
-                                      type="number"
-                                      min={1}
-                                      max={12}
-                                      value={settings.colors}
-                                      onChange={(e) => onUpdateSetting(technique.id, 'colors', parseInt(e.target.value) || 1)}
-                                      className="h-10"
-                                      onClick={(e) => e.stopPropagation()}
-                                    />
+                                    <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Palette className="h-3 w-3" />
+                                      Cores
+                                    </Label>
+                                    {colorOptions.length > 0 ? (
+                                      <Select
+                                        value={settings.colors.toString()}
+                                        onValueChange={(val) => onUpdateSetting(technique.id, 'colors', parseInt(val))}
+                                      >
+                                        <SelectTrigger 
+                                          className="h-10"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {colorOptions.map((opt) => (
+                                            <SelectItem key={opt.value} value={opt.value.toString()}>
+                                              {opt.label}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    ) : (
+                                      <Input
+                                        type="number"
+                                        min={1}
+                                        max={12}
+                                        value={settings.colors}
+                                        onChange={(e) => onUpdateSetting(technique.id, 'colors', parseInt(e.target.value) || 1)}
+                                        className="h-10"
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    )}
                                   </div>
                                 )}
 
                                 {showSize && (
                                   <>
-                                    <div className="space-y-1.5">
-                                      <Label className="text-xs text-muted-foreground">Largura (cm)</Label>
-                                      <Input
-                                        type="number"
-                                        min={1}
-                                        value={settings.width}
-                                        onChange={(e) => onUpdateSetting(technique.id, 'width', parseInt(e.target.value) || 1)}
-                                        className="h-10"
-                                        onClick={(e) => e.stopPropagation()}
-                                      />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                      <Label className="text-xs text-muted-foreground">Altura (cm)</Label>
-                                      <Input
-                                        type="number"
-                                        min={1}
-                                        value={settings.height}
-                                        onChange={(e) => onUpdateSetting(technique.id, 'height', parseInt(e.target.value) || 1)}
-                                        className="h-10"
-                                        onClick={(e) => e.stopPropagation()}
-                                      />
-                                    </div>
+                                    {sizeOptions.length > 0 ? (
+                                      <div className="space-y-1.5 col-span-2">
+                                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                                          <Ruler className="h-3 w-3" />
+                                          Tamanho
+                                        </Label>
+                                        <Select
+                                          value={`${settings.width}x${settings.height}`}
+                                          onValueChange={(val) => {
+                                            const [w, h] = val.split('x').map(Number);
+                                            onUpdateSetting(technique.id, 'width', w);
+                                            onUpdateSetting(technique.id, 'height', h);
+                                          }}
+                                        >
+                                          <SelectTrigger 
+                                            className="h-10"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {sizeOptions.map((opt) => (
+                                              <SelectItem key={opt.value} value={opt.value}>
+                                                {opt.label} ({opt.areaCm2} cm²)
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                    ) : (
+                                      <>
+                                        <div className="space-y-1.5">
+                                          <Label className="text-xs text-muted-foreground">Largura (cm)</Label>
+                                          <Input
+                                            type="number"
+                                            min={1}
+                                            value={settings.width}
+                                            onChange={(e) => onUpdateSetting(technique.id, 'width', parseInt(e.target.value) || 1)}
+                                            className="h-10"
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                          <Label className="text-xs text-muted-foreground">Altura (cm)</Label>
+                                          <Input
+                                            type="number"
+                                            min={1}
+                                            value={settings.height}
+                                            onChange={(e) => onUpdateSetting(technique.id, 'height', parseInt(e.target.value) || 1)}
+                                            className="h-10"
+                                            onClick={(e) => e.stopPropagation()}
+                                          />
+                                        </div>
+                                      </>
+                                    )}
                                   </>
                                 )}
 
@@ -346,7 +425,7 @@ export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelect
                                 </div>
                               </div>
 
-                              {showSize && (
+                              {showSize && sizeOptions.length === 0 && (
                                 <p className="text-xs text-muted-foreground mt-2">
                                   Área: <span className="font-mono font-medium">{settings.width * settings.height} cm²</span>
                                 </p>
