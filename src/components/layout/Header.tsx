@@ -1,5 +1,5 @@
 import { User, Menu, Sparkles, Sun, Moon, Heart, GitCompare, Search, LogOut, Settings, HelpCircle, Shield } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, actualTheme, setTheme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { favoriteCount } = useFavoritesContext();
@@ -42,8 +42,14 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   // Hook para detectar scroll (AN-10)
   const isScrolled = useIsScrolled(20);
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+  const handleToggleTheme = () => {
+    // Se estiver em "auto", ao clicar a gente fixa o tema oposto ao atual
+    if (theme === "auto") {
+      setTheme(actualTheme === "dark" ? "light" : "dark");
+      return;
+    }
+
+    toggleTheme();
   };
 
   const handleSignOut = async () => {
@@ -121,7 +127,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           <Button
             variant="ghost"
             size="icon"
-            onClick={toggleTheme}
+            onClick={handleToggleTheme}
             className="relative h-8 w-8 sm:h-9 sm:w-9 hover:bg-orange/10 hover:text-orange"
           >
             <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
