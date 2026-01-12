@@ -1,6 +1,6 @@
-// Hook CRUD para Variantes de Técnicas de Gravação
+// Hook CRUD para Variantes de Técnicas de Gravação (via external-db-bridge)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabaseGravacao } from '@/lib/supabase-gravacao';
+import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
 import type { 
   TecnicaGravacaoVariante, 
   VarianteFormData 
@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 
 const QUERY_KEY = 'variantes-gravacao';
 
-// Gerar slug a partir do nome
 const generateSlug = (nome: string): string => {
   return nome
     .toLowerCase()
@@ -22,51 +21,34 @@ const generateSlug = (nome: string): string => {
 export function useVariantesGravacao(tecnicaId?: string) {
   const queryClient = useQueryClient();
 
-  // Listar variantes (opcionalmente filtradas por técnica)
   const variantesQuery = useQuery({
     queryKey: [QUERY_KEY, tecnicaId],
     queryFn: async (): Promise<TecnicaGravacaoVariante[]> => {
-      let query = supabaseGravacao
-        .from('tecnica_gravacao_variante')
-        .select('*')
-        .order('ordem_exibicao', { ascending: true });
-
+      const filters: Record<string, unknown> = {};
       if (tecnicaId) {
-        query = query.eq('tecnica_gravacao_id', tecnicaId);
+        filters.tecnica_gravacao_id = tecnicaId;
       }
 
-      const { data, error } = await query;
+      const result = await invokeExternalDb<TecnicaGravacaoVariante>({
+        table: 'tecnica_gravacao_variante',
+        operation: 'select',
+        filters,
+        orderBy: { column: 'ordem_exibicao', ascending: true },
+      });
 
-      if (error) {
-        console.error('Erro ao buscar variantes:', error);
-        throw new Error(`Erro ao carregar variantes: ${error.message}`);
-      }
-
-      return data || [];
+      return result.records;
     },
     staleTime: 5 * 60 * 1000,
   });
 
-  // Criar nova variante
   const createMutation = useMutation({
     mutationFn: async (formData: VarianteFormData): Promise<TecnicaGravacaoVariante> => {
       const slug = generateSlug(formData.nome);
-      
-      const { data, error } = await supabaseGravacao
-        .from('tecnica_gravacao_variante')
-        .insert({
-          ...formData,
-          slug,
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao criar variante:', error);
-        throw new Error(`Erro ao criar variante: ${error.message}`);
-      }
-
-      return data;
+      return invokeExternalDbSingle<TecnicaGravacaoVariante>({
+        table: 'tecnica_gravacao_variante',
+        operation: 'insert',
+        data: { ...formData, slug },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -78,33 +60,21 @@ export function useVariantesGravacao(tecnicaId?: string) {
     },
   });
 
-  // Atualizar variante
   const updateMutation = useMutation({
     mutationFn: async ({ 
       id, 
       ...updates 
     }: Partial<VarianteFormData> & { id: string }): Promise<TecnicaGravacaoVariante> => {
       const updateData: Record<string, unknown> = { ...updates };
-      
       if (updates.nome) {
         updateData.slug = generateSlug(updates.nome);
       }
-      
-      updateData.updated_at = new Date().toISOString();
-
-      const { data, error } = await supabaseGravacao
-        .from('tecnica_gravacao_variante')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao atualizar variante:', error);
-        throw new Error(`Erro ao atualizar variante: ${error.message}`);
-      }
-
-      return data;
+      return invokeExternalDbSingle<TecnicaGravacaoVariante>({
+        table: 'tecnica_gravacao_variante',
+        operation: 'update',
+        id,
+        data: updateData,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -115,18 +85,9 @@ export function useVariantesGravacao(tecnicaId?: string) {
     },
   });
 
-  // Excluir variante
   const deleteMutation = useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabaseGravacao
-        .from('tecnica_gravacao_variante')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Erro ao excluir variante:', error);
-        throw new Error(`Erro ao excluir variante: ${error.message}`);
-      }
+      await invokeExternalDbDelete('tecnica_gravacao_variante', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -138,21 +99,40 @@ export function useVariantesGravacao(tecnicaId?: string) {
     },
   });
 
-  // Toggle status ativo
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }): Promise<void> => {
-      const { error } = await supabaseGravacao
-        .from('tecnica_gravacao_variante')
-        .update({ ativo, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (error) {
-        throw new Error(`Erro ao alterar status: ${error.message}`);
-      }
+      await invokeExternalDbSingle({
+        table: 'tecnica_gravacao_variante',
+        operation: 'update',
+        id,
+        data: { ativo },
+      });
     },
     onSuccess: (_, { ativo }) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
       toast.success(ativo ? 'Variante ativada!' : 'Variante desativada!');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (orderedIds: string[]): Promise<void> => {
+      await Promise.all(
+        orderedIds.map((id, index) =>
+          invokeExternalDbSingle({
+            table: 'tecnica_gravacao_variante',
+            operation: 'update',
+            id,
+            data: { ordem_exibicao: index + 1 },
+          })
+        )
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      toast.success('Ordem atualizada!');
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -165,37 +145,14 @@ export function useVariantesGravacao(tecnicaId?: string) {
     isError: variantesQuery.isError,
     error: variantesQuery.error,
     refetch: variantesQuery.refetch,
-    
-    // Mutations
     create: createMutation.mutateAsync,
     update: updateMutation.mutateAsync,
     delete: deleteMutation.mutateAsync,
     toggleStatus: toggleStatusMutation.mutate,
-    
-    // Estados das mutations
+    reorder: reorderMutation.mutateAsync,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isReordering: reorderMutation.isPending,
   };
-}
-
-// Hook para todas as variantes (para selects/dropdowns)
-export function useAllVariantes() {
-  return useQuery({
-    queryKey: [QUERY_KEY, 'all'],
-    queryFn: async (): Promise<TecnicaGravacaoVariante[]> => {
-      const { data, error } = await supabaseGravacao
-        .from('tecnica_gravacao_variante')
-        .select('*')
-        .eq('ativo', true)
-        .order('nome');
-
-      if (error) {
-        throw new Error(`Erro ao carregar variantes: ${error.message}`);
-      }
-
-      return data || [];
-    },
-    staleTime: 10 * 60 * 1000,
-  });
 }

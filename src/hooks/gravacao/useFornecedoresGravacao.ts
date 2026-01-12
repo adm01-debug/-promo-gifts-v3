@@ -1,6 +1,6 @@
-// Hook CRUD para Fornecedores de Gravação
+// Hook CRUD para Fornecedores de Gravação (via external-db-bridge)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabaseGravacao } from '@/lib/supabase-gravacao';
+import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
 import type { FornecedorGravacao } from '@/types/gravacao-database';
 import { toast } from 'sonner';
 
@@ -23,40 +23,26 @@ interface FornecedorFormData {
 export function useFornecedoresGravacao() {
   const queryClient = useQueryClient();
 
-  // Listar fornecedores
   const fornecedoresQuery = useQuery({
     queryKey: [QUERY_KEY],
     queryFn: async (): Promise<FornecedorGravacao[]> => {
-      const { data, error } = await supabaseGravacao
-        .from('fornecedor_gravacao')
-        .select('*')
-        .order('nome', { ascending: true });
-
-      if (error) {
-        console.error('Erro ao buscar fornecedores:', error);
-        throw new Error(`Erro ao carregar fornecedores: ${error.message}`);
-      }
-
-      return data || [];
+      const result = await invokeExternalDb<FornecedorGravacao>({
+        table: 'fornecedor_gravacao',
+        operation: 'select',
+        orderBy: { column: 'nome', ascending: true },
+      });
+      return result.records;
     },
     staleTime: 10 * 60 * 1000,
   });
 
-  // Criar fornecedor
   const createMutation = useMutation({
     mutationFn: async (formData: FornecedorFormData): Promise<FornecedorGravacao> => {
-      const { data, error } = await supabaseGravacao
-        .from('fornecedor_gravacao')
-        .insert(formData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao criar fornecedor:', error);
-        throw new Error(`Erro ao criar fornecedor: ${error.message}`);
-      }
-
-      return data;
+      return invokeExternalDbSingle<FornecedorGravacao>({
+        table: 'fornecedor_gravacao',
+        operation: 'insert',
+        data: formData,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -67,25 +53,17 @@ export function useFornecedoresGravacao() {
     },
   });
 
-  // Atualizar fornecedor
   const updateMutation = useMutation({
     mutationFn: async ({ 
       id, 
       ...updates 
     }: Partial<FornecedorFormData> & { id: string }): Promise<FornecedorGravacao> => {
-      const { data, error } = await supabaseGravacao
-        .from('fornecedor_gravacao')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao atualizar fornecedor:', error);
-        throw new Error(`Erro ao atualizar fornecedor: ${error.message}`);
-      }
-
-      return data;
+      return invokeExternalDbSingle<FornecedorGravacao>({
+        table: 'fornecedor_gravacao',
+        operation: 'update',
+        id,
+        data: updates,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -96,18 +74,9 @@ export function useFornecedoresGravacao() {
     },
   });
 
-  // Excluir fornecedor
   const deleteMutation = useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabaseGravacao
-        .from('fornecedor_gravacao')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Erro ao excluir fornecedor:', error);
-        throw new Error(`Erro ao excluir fornecedor: ${error.message}`);
-      }
+      await invokeExternalDbDelete('fornecedor_gravacao', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -124,13 +93,9 @@ export function useFornecedoresGravacao() {
     isError: fornecedoresQuery.isError,
     error: fornecedoresQuery.error,
     refetch: fornecedoresQuery.refetch,
-    
-    // Mutations
     create: createMutation.mutateAsync,
     update: updateMutation.mutateAsync,
     delete: deleteMutation.mutateAsync,
-    
-    // Estados
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
