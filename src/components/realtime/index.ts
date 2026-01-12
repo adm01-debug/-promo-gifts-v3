@@ -9,12 +9,15 @@ export {
   ActivityPulse,
   DataUpdateFlash,
   StreamingIndicator,
-  type ConnectionStatus,
-  type RealtimeIndicatorProps,
-  type LiveBadgeProps,
-  type LastUpdatedProps,
-  type SyncStatusProps,
-  type ActivityPulseProps,
-  type DataUpdateFlashProps,
-  type StreamingIndicatorProps,
+} from "./RealtimeIndicator";
+
+export type {
+  ConnectionStatus,
+  RealtimeIndicatorProps,
+  LiveBadgeProps,
+  LastUpdatedProps,
+  SyncStatusProps,
+  ActivityPulseProps,
+  DataUpdateFlashProps,
+  StreamingIndicatorProps,
 } from "./RealtimeIndicator";
