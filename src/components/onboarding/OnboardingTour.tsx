@@ -1,10 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronLeft, ChevronRight, SkipForward, Sparkles } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, SkipForward, Sparkles, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useOnboarding, ONBOARDING_STEPS } from "@/hooks/useOnboarding";
 import { useNavigate, useLocation } from "react-router-dom";
-
+import { cn } from "@/lib/utils";
 interface TooltipPosition {
   top?: number;
   left?: number;
