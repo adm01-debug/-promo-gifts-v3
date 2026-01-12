@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
 
 interface RelatedProductsProps {
   currentProduct: Product;

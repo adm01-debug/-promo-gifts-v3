@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useFavorites, FavoriteItem } from "@/hooks/useFavorites";
-import { Product } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
 
 interface FavoritesContextType {
   favorites: FavoriteItem[];

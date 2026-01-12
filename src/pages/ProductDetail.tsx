@@ -31,7 +31,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
-import { PRODUCTS, type Product, type ProductVariation, type KitItem } from "@/data/mockData";
+import { PRODUCTS } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
+type ProductVariation = any;
+type KitItem = any;
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";

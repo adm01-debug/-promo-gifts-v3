@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
-import { Product } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
 
 interface RecentlyViewedContextType {
   items: { productId: string; viewedAt: string }[];

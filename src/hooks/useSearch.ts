@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { PRODUCTS, CATEGORIES, SUPPLIERS, type Product } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
+import { PRODUCTS, CATEGORIES, SUPPLIERS } from "@/data/mockData";
 
 const HISTORY_KEY = "search-history";
 const MAX_HISTORY = 10;

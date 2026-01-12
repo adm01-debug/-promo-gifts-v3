@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { PRODUCTS } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 
 export function FloatingCompareBar() {

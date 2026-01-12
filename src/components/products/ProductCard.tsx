@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
 import { toast } from "sonner";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { ProductQuickView } from "./ProductQuickView";

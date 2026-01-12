@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useComparison } from "@/hooks/useComparison";
-import { Product } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
 
 interface ComparisonContextType {
   compareIds: string[];

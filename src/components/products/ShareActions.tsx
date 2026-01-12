@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import type { Product } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
 
 interface ShareActionsProps {
   product: Product;

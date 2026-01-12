@@ -1,5 +1,5 @@
 import { ProductListItem } from "./ProductListItem";
-import type { Product } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
 import { useEffect, useState, useRef } from "react";
 
 export interface ProductListProps {
