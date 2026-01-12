@@ -48,7 +48,7 @@ import {
   Upload,
   Printer,
 } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -87,7 +87,7 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
   const [search, setSearch] = useState("");
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
+  const { theme, actualTheme, setTheme } = useTheme();
 
   // Load recent items
   useEffect(() => {
@@ -359,12 +359,12 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
       },
       {
         id: "theme-toggle",
-        label: theme === "dark" ? "Modo Claro" : "Modo Escuro",
+        label: actualTheme === "dark" ? "Modo Claro" : "Modo Escuro",
         description: "Alternar tema do sistema",
-        icon: theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />,
+        icon: actualTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />,
         shortcut: "⌘D",
         action: () => {
-          setTheme(theme === "dark" ? "light" : "dark");
+          setTheme(actualTheme === "dark" ? "light" : "dark");
         },
         keywords: ["tema", "theme", "dark", "light", "escuro", "claro"],
         category: "settings",

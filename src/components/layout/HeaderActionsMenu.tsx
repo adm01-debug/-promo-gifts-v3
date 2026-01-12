@@ -6,7 +6,7 @@ import {
   Sun, Moon, Bell, Package, Settings, MoreHorizontal, 
   HelpCircle, Palette, Shield
 } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -86,12 +86,12 @@ export function HeaderActionsMenu({
               {theme === "dark" && <span className="ml-auto text-primary">✓</span>}
             </DropdownMenuItem>
             <DropdownMenuItem 
-              onClick={() => setTheme("system")}
+              onClick={() => setTheme("auto")}
               className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
             >
               <Settings className="h-4 w-4 mr-2" />
               Sistema
-              {theme === "system" && <span className="ml-auto text-primary">✓</span>}
+              {theme === "auto" && <span className="ml-auto text-primary">✓</span>}
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
