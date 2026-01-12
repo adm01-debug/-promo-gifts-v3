@@ -1,4 +1,13 @@
-// Skeleton components with shimmer effect (preferred)
+/**
+ * Loading Components
+ * 
+ * PREFERRED: Use SkeletonShimmer components (modern, accessible)
+ * LEGACY: SkeletonLoading components are kept for backwards compatibility
+ */
+
+// ============================================
+// SHIMMER SKELETONS (Preferred - Modern API)
+// ============================================
 export {
   SkeletonShimmer,
   TextSkeleton,
@@ -15,9 +24,12 @@ export {
   PageSkeleton
 } from "./SkeletonShimmer";
 
-// Legacy skeleton components
+// ============================================
+// LEGACY SKELETONS (Backwards Compatibility)
+// Use "Legacy" prefix to avoid naming conflicts
+// ============================================
 export {
-  Skeleton,
+  Skeleton as LegacySkeleton,
   ListSkeleton,
   DashboardWidgetSkeleton,
   DashboardSkeleton,
@@ -28,10 +40,19 @@ export {
   NavigationSkeleton,
   ShimmerSkeleton,
   PulseSkeleton,
-  ContentPlaceholder
+  ContentPlaceholder,
+  // Re-export with legacy prefix for conflicting names
+  CardSkeleton as LegacyCardSkeleton,
+  TableRowSkeleton as LegacyTableRowSkeleton,
+  TableSkeleton as LegacyTableSkeleton,
+  TextSkeleton as LegacyTextSkeleton,
+  FormSkeleton as LegacyFormSkeleton,
+  ChartSkeleton as LegacyChartSkeleton,
 } from "./SkeletonLoading";
 
-// Loading overlays and indicators
+// ============================================
+// LOADING OVERLAYS AND INDICATORS
+// ============================================
 export {
   LoadingOverlay,
   Spinner,
