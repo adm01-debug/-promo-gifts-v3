@@ -1,5 +1,4 @@
 export { VisuallyHidden, LiveRegion, LoadingAnnouncer } from "./VisuallyHidden";
-export { FocusTrap, useFocusManagement } from "./FocusTrap";
 export { 
   AccessibilityProvider, 
   useA11y, 
@@ -7,7 +6,6 @@ export {
   useFocusTrap,
   useKeyboardShortcut 
 } from "./AccessibilityProvider";
-export { AccessibilitySettings } from "./AccessibilitySettings";
 export {
   AriaLiveProvider,
   useAriaLive,
@@ -17,4 +15,3 @@ export {
   ActionResultAnnouncer,
   ListUpdateAnnouncer,
 } from "./AriaLive";
-export { TouchTarget, IconButton } from "./TouchTarget";
