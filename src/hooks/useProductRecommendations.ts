@@ -8,7 +8,7 @@ interface ProductRecommendation {
   sku: string;
   price: number;
   images: string[] | string | null;
-  category_name: string | null;
+  category_id: string | null; // Schema Promobrind não tem category_name
   score: number;
   reason: string;
 }
@@ -132,54 +132,71 @@ export function useProductRecommendations(productId?: string, productSku?: strin
       // Buscar categorias mais visualizadas
       const viewedSkus = recentViews?.map(v => v.product_sku).filter(Boolean) || [];
       
-      if (viewedSkus.length === 0) {
-        // Retornar produtos mais populares se não há histórico
-        const { data: popularProducts } = await supabase
-          .from('products')
-          .select('id, name, sku, price, images, category_name')
-          .eq('is_active', true)
-          .eq('featured', true)
-          .limit(6);
-
-        return (popularProducts || []).map(p => ({
-          id: p.id,
-          name: p.name,
-          sku: p.sku,
-          price: p.price,
-          images: p.images,
-          category_name: p.category_name,
-          score: 50,
-          reason: 'Produto em destaque'
-        }));
-      }
-
       // Buscar produtos do Promobrind para recomendações
       try {
-        const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        const { fetchPromobrindProducts, getProductPrice, getProductImageUrl } = await import('@/lib/external-db');
         const productsData = await fetchPromobrindProducts({ limit: 100 });
         
-        // Filtrar apenas categorias visualizadas
+        if (viewedSkus.length === 0) {
+          // Retornar primeiros produtos se não há histórico
+          return productsData.slice(0, 6).map(p => {
+            const imageUrl = getProductImageUrl(p);
+            return {
+              id: p.id,
+              name: p.name,
+              sku: p.sku,
+              price: getProductPrice(p),
+              images: imageUrl ? [imageUrl] : p.images,
+              category_id: p.category_id || p.main_category_id,
+              score: 50,
+              reason: 'Produto em destaque'
+            };
+          });
+        }
+        
+        // Filtrar por categorias visualizadas (usando category_id)
         const viewedCategories = [...new Set(viewedSkus.map(sku => {
           const product = productsData.find(p => p.sku === sku);
-          return product?.category_name;
+          return product?.category_id || product?.main_category_id;
         }).filter(Boolean))];
 
-        if (viewedCategories.length === 0) return [];
+        if (viewedCategories.length === 0) {
+          // Retornar produtos aleatórios se não há categorias
+          return productsData.slice(0, 6).map(p => {
+            const imageUrl = getProductImageUrl(p);
+            return {
+              id: p.id,
+              name: p.name,
+              sku: p.sku,
+              price: getProductPrice(p),
+              images: imageUrl ? [imageUrl] : p.images,
+              category_id: p.category_id || p.main_category_id,
+              score: 60,
+              reason: 'Sugestão'
+            };
+          });
+        }
 
         // Filtrar produtos das mesmas categorias (exceto os já vistos)
         const recommendations = productsData
-          .filter(p => viewedCategories.includes(p.category_name) && !viewedSkus.includes(p.sku))
+          .filter(p => {
+            const catId = p.category_id || p.main_category_id;
+            return catId && viewedCategories.includes(catId) && !viewedSkus.includes(p.sku);
+          })
           .slice(0, 6)
-          .map(p => ({
-            id: p.id,
-            name: p.name,
-            sku: p.sku,
-            price: p.base_price || 0,
-            images: p.images,
-            category_name: p.category_name,
-            score: 80,
-            reason: 'Baseado no seu histórico'
-          }));
+          .map(p => {
+            const imageUrl = getProductImageUrl(p);
+            return {
+              id: p.id,
+              name: p.name,
+              sku: p.sku,
+              price: getProductPrice(p),
+              images: imageUrl ? [imageUrl] : p.images,
+              category_id: p.category_id || p.main_category_id,
+              score: 80,
+              reason: 'Baseado no seu histórico'
+            };
+          });
 
         return recommendations;
       } catch (error) {
@@ -226,26 +243,35 @@ export function useProductRecommendations(productId?: string, productSku?: strin
         .sort((a, b) => b.count - a.count)
         .slice(0, 6);
 
-      // Buscar dados completos dos produtos
+      // Buscar dados completos dos produtos do Promobrind
       const skus = sorted.map((p) => p.sku).filter(Boolean) as string[];
       
       if (skus.length === 0) return [];
 
-      const { data: fullProducts } = await supabase
-        .from('products')
-        .select('id, name, sku, price, images, category_name')
-        .in('sku', skus);
-
-      return (fullProducts || []).map(p => ({
-        id: p.id,
-        name: p.name,
-        sku: p.sku,
-        price: p.price,
-        images: p.images,
-        category_name: p.category_name,
-        score: 90,
-        reason: 'Em alta nas cotações'
-      }));
+      try {
+        const { fetchPromobrindProducts, getProductPrice, getProductImageUrl } = await import('@/lib/external-db');
+        const productsData = await fetchPromobrindProducts({ limit: 500 });
+        
+        // Filtrar pelos SKUs encontrados nas cotações
+        const matchedProducts = productsData.filter(p => skus.includes(p.sku));
+        
+        return matchedProducts.map(p => {
+          const imageUrl = getProductImageUrl(p);
+          return {
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            price: getProductPrice(p),
+            images: imageUrl ? [imageUrl] : p.images,
+            category_id: p.category_id || p.main_category_id,
+            score: 90,
+            reason: 'Em alta nas cotações'
+          };
+        });
+      } catch (error) {
+        console.error("Error fetching trending products:", error);
+        return [];
+      }
     },
     staleTime: 15 * 60 * 1000,
   });

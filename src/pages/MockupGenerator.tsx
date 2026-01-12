@@ -263,7 +263,7 @@ export default function MockupGenerator() {
 
   const fetchData = async () => {
     try {
-      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const { fetchPromobrindProducts, getProductImageUrl } = await import('@/lib/external-db');
       
       const [productsData, techniquesRes, clientsRes] = await Promise.all([
         fetchPromobrindProducts({ limit: 500 }),
@@ -281,12 +281,15 @@ export default function MockupGenerator() {
       if (techniquesRes.error) throw techniquesRes.error;
 
       // Mapear produtos Promobrind para formato esperado
-      const mappedProducts = productsData.map(p => ({
-        id: p.id,
-        name: p.name,
-        sku: p.sku,
-        images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
-      }));
+      const mappedProducts = productsData.map(p => {
+        const imageUrl = getProductImageUrl(p);
+        return {
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          images: imageUrl ? [imageUrl] : (Array.isArray(p.images) ? p.images : []),
+        };
+      });
 
       setProducts(mappedProducts);
       setTechniques(techniquesRes.data || []);

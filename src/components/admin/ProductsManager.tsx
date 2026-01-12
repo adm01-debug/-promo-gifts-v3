@@ -138,26 +138,35 @@ export function ProductsManager() {
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
-      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const { fetchPromobrindProducts, getProductImageUrl, getProductPrice, getProductStock } = await import('@/lib/external-db');
       const productsData = await fetchPromobrindProducts({ limit: 100 });
 
-      const formattedProducts: Product[] = productsData.map((p) => ({
-        id: p.id,
-        sku: p.sku,
-        name: p.name,
-        description: p.description || null,
-        price: p.base_price || 0,
-        stock: p.stock || 0,
-        stock_status: (p.stock || 0) > 0 ? 'in_stock' : 'out_of_stock',
-        category_name: p.category_name || null,
-        supplier_name: null,
-        is_active: p.is_active,
-        images: Array.isArray(p.images) ? p.images : (p.primary_image_url ? [p.primary_image_url] : []),
-        colors: Array.isArray(p.colors) ? p.colors : [],
-        materials: Array.isArray(p.materials) ? p.materials : [],
-        created_at: '',
-        updated_at: '',
-      }));
+      const formattedProducts: Product[] = productsData.map((p) => {
+        const imageUrl = getProductImageUrl(p);
+        return {
+          id: p.id,
+          sku: p.sku,
+          name: p.name,
+          description: p.description || p.short_description || null,
+          price: getProductPrice(p),
+          stock: getProductStock(p),
+          stock_status: getProductStock(p) > 0 ? 'in_stock' : 'out_of_stock',
+          category_name: null, // Schema Promobrind não tem category_name
+          subcategory: null,
+          supplier_name: null,
+          is_active: p.is_active || p.active,
+          images: imageUrl ? [imageUrl] : (Array.isArray(p.images) ? p.images : []),
+          colors: Array.isArray(p.colors) ? p.colors : [],
+          materials: p.materials ? (typeof p.materials === 'string' ? [p.materials] : p.materials) : [],
+          min_quantity: p.min_quantity || 1,
+          featured: false,
+          new_arrival: false,
+          on_sale: false,
+          video_url: null,
+          created_at: '',
+          updated_at: '',
+        };
+      });
 
       setProducts(formattedProducts);
       setFilteredProducts(formattedProducts);
