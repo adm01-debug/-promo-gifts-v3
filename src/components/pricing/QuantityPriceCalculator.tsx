@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useExternalProductSearch } from '@/hooks/useExternalSimulator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
@@ -127,23 +128,20 @@ function ProductSearch({
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
-  const { data: products, isLoading } = useQuery({
-    queryKey: ['products-search-qty', searchQuery],
-    queryFn: async () => {
-      if (!searchQuery || searchQuery.length < 2) return [];
-      
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, name, sku, price, images, category_name')
-        .or(`name.ilike.%${searchQuery}%,sku.ilike.%${searchQuery}%`)
-        .eq('is_active', true)
-        .limit(20);
-      
-      if (error) throw error;
-      return data as Product[];
-    },
-    enabled: searchQuery.length >= 2,
-  });
+  const { data: externalProducts, isLoading } = useExternalProductSearch(searchQuery);
+
+  // Mapear produtos externos para o formato esperado
+  const products = useMemo(() => {
+    if (!externalProducts) return [];
+    return externalProducts.map((p) => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      price: p.base_price || 0,
+      images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
+      category_name: null,
+    }));
+  }, [externalProducts]);
 
   if (selectedProduct && !isSearching) {
     return (
