@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -473,9 +473,8 @@ export function TechniquesPanel() {
                 </TableRow>
               ) : (
                 filteredTechniques.map((technique) => (
-                  <>
+                  <React.Fragment key={technique.id}>
                     <TableRow 
-                      key={technique.id} 
                       className={!technique.ativo ? "opacity-60" : ""}
                     >
                       <TableCell>
@@ -544,7 +543,7 @@ export function TechniquesPanel() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </React.Fragment>
                 ))
               )}
             </TableBody>
