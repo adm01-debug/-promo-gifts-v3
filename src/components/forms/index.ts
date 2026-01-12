@@ -25,3 +25,4 @@ export {
   whenLessThan,
   whenCustom,
 } from "./ConditionalFields";
+export { FocusTrap, useFocusTrap, AccessibleModal } from "../ui/FocusTrap";
