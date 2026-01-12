@@ -6,3 +6,5 @@ export { ProductSearch } from './ProductSearch';
 export { TechniqueSelector } from './TechniqueSelector';
 export { CustomizationOptions } from './CustomizationOptions';
 export { QuantityAndResult } from './QuantityAndResult';
+export { EngravingList } from './EngravingList';
+export { MultiEngravingResult } from './MultiEngravingResult';

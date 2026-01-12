@@ -27,6 +27,15 @@ export interface ProductTechnique {
   isPrimary: boolean;
 }
 
+// Gravação configurada (com opções selecionadas)
+export interface ConfiguredEngraving {
+  id: string; // ID único para esta gravação
+  technique: ProductTechnique;
+  colors: number;
+  sizeOption: string | null; // "WxH" ou null se não usa tamanho
+  tableCode: string | null; // Código da tabela de preços correspondente
+}
+
 export interface SimulationResult {
   technique: ProductTechnique;
   priceCalculation: unknown; // PriceCalculation from useCustomizationPricing
@@ -66,4 +75,7 @@ export interface SizeOption {
   label: string;
   value: string;
   modifier: number;
+  width?: number;
+  height?: number;
+  areaCm2?: number;
 }
