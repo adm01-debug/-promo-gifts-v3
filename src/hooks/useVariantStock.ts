@@ -129,8 +129,8 @@ export function useVariantStock() {
             variantStockMap.get(key)!.push(vs);
           });
         }
-      } catch (e) {
-        console.log('Tabela variant_stocks não disponível ou vazia');
+      } catch {
+        // Tabela variant_stocks não disponível ou vazia
       }
       
       if (productsResult?.records) {
