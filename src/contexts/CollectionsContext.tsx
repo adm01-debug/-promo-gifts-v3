@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useCollections, Collection } from "@/hooks/useCollections";
-import { Product } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
 
 interface CollectionsContextType {
   collections: Collection[];

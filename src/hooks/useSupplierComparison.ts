@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Product, PRODUCTS } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
+import { PRODUCTS } from "@/data/mockData";
 
 interface SupplierProduct {
   product: Product;

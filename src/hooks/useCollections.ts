@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { PRODUCTS, type Product } from "@/data/mockData";
+import { Product } from "@/hooks/useProducts";
+import { PRODUCTS } from "@/data/mockData";
 
 const STORAGE_KEY = "product-collections";
 

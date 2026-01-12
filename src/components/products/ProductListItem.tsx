@@ -3,7 +3,7 @@ import { Heart, Eye, Share2, Scale, Package, Star, Sparkles, ChevronRight } from
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
 
 interface ProductListItemProps {
   product: Product;

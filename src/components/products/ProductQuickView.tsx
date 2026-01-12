@@ -23,7 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VisuallyHidden } from "@/components/a11y/VisuallyHidden";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { ProductColorSelector, type ProductColor } from "./ProductColorSelector";
 import { toast } from "sonner";

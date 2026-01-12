@@ -6,7 +6,7 @@ import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
-import { PRODUCTS } from "@/data/mockData";
+import { useProducts, type Product } from "@/hooks/useProducts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -44,6 +44,10 @@ export default function FiltersPage() {
   const navigate = useNavigate();
   const { isFavorite, toggleFavorite } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  
+  // Buscar produtos reais do banco de dados
+  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
+  
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
   const [sortBy, setSortBy] = useState<string>("name");
@@ -229,53 +233,35 @@ export default function FiltersPage() {
     return count;
   }, [filters]);
 
-  // Aplicar filtros nos produtos
+  // Aplicar filtros nos produtos - USANDO PRODUTOS REAIS
   const filteredProducts = useMemo(() => {
-    let result = [...PRODUCTS];
+    let result = [...realProducts];
 
     // Filtro por cores
     if (filters.colors.length > 0) {
       result = result.filter((product) =>
-        product.colors.some((color) => filters.colors.includes(color.name))
+        product.colors?.some((color: any) => filters.colors.includes(color.name)) || false
       );
     }
 
     // Filtro por categorias
     if (filters.categories.length > 0) {
       result = result.filter((product) =>
-        filters.categories.includes(product.category.id)
+        filters.categories.includes(parseInt(product.category_id || '0')) ||
+        filters.categories.map(String).includes(product.category_id || '')
       );
     }
 
     // Filtro por fornecedores
     if (filters.suppliers.length > 0) {
       result = result.filter((product) =>
-        filters.suppliers.includes(product.supplier.id)
+        filters.suppliers.includes(product.brand || '') ||
+        filters.suppliers.includes(product.supplier_reference || '')
       );
     }
 
-    // Filtro por público-alvo
-    if (filters.publicoAlvo.length > 0) {
-      result = result.filter((product) =>
-        product.tags.publicoAlvo.some((p) => filters.publicoAlvo.includes(p))
-      );
-    }
-
-    // Filtro por datas comemorativas
-    if (filters.datasComemorativas.length > 0) {
-      result = result.filter((product) =>
-        product.tags.datasComemorativas.some((d) =>
-          filters.datasComemorativas.includes(d)
-        )
-      );
-    }
-
-    // Filtro por endomarketing
-    if (filters.endomarketing.length > 0) {
-      result = result.filter((product) =>
-        product.tags.endomarketing.some((e) => filters.endomarketing.includes(e))
-      );
-    }
+    // Filtros de tags não existem no banco externo, ignorar por enquanto
+    // (publicoAlvo, datasComemorativas, endomarketing)
 
     // Filtro por ramos de atividade (nichos/segmentos)
     // TODO: Integrar com dados reais de produto_ramo_atividade quando estiver implementado
@@ -284,7 +270,9 @@ export default function FiltersPage() {
     // Filtro por materiais
     if (filters.materiais.length > 0) {
       result = result.filter((product) =>
-        product.materials.some((m) => filters.materiais.includes(m))
+        filters.materiais.some((m) => 
+          (product.materials || '').toLowerCase().includes(m.toLowerCase())
+        )
       );
     }
 
@@ -297,18 +285,10 @@ export default function FiltersPage() {
 
     // Filtro por estoque
     if (filters.inStock) {
-      result = result.filter((product) => product.stockStatus !== "out-of-stock");
+      result = result.filter((product) => (product.stock || 0) > 0);
     }
 
-    // Filtro por KIT
-    if (filters.isKit) {
-      result = result.filter((product) => product.isKit);
-    }
-
-    // Filtro por destaque
-    if (filters.featured) {
-      result = result.filter((product) => product.featured);
-    }
+    // isKit e featured não existem no banco externo, ignorar por enquanto
 
     // Ordenação
     switch (sortBy) {
@@ -322,12 +302,12 @@ export default function FiltersPage() {
         result.sort((a, b) => b.price - a.price);
         break;
       case "stock":
-        result.sort((a, b) => b.stock - a.stock);
+        result.sort((a, b) => (b.stock || 0) - (a.stock || 0));
         break;
     }
 
     return result;
-  }, [filters, sortBy]);
+  }, [filters, sortBy, realProducts]);
 
   // Resumo dos filtros ativos para exibição
   const activeFiltersSummary = useMemo(() => {

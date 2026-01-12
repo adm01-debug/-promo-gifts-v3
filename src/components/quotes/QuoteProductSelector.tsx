@@ -11,7 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PRODUCTS, Product, ProductColor } from "@/data/mockData";
+import { PRODUCTS } from "@/data/mockData";
+import { Product, ProductColor } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
 
 interface QuoteProductSelectorProps {

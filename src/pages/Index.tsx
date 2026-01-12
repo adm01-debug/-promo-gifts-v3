@@ -34,7 +34,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { PRODUCTS, CATEGORIES, SUPPLIERS, type Product, type Client } from "@/data/mockData";
+import { CATEGORIES, SUPPLIERS, type Client } from "@/data/mockData";
+import { useProducts, type Product } from "@/hooks/useProducts";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
@@ -56,6 +57,10 @@ export default function Index() {
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch();
+  
+  // Buscar produtos reais do banco de dados
+  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
+  
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("name");
@@ -64,7 +69,6 @@ export default function Index() {
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeQuickFilterId, setActiveQuickFilterId] = useState<string | undefined>();
-  const [isLoading, setIsLoading] = useState(true);
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(12);
   const [selectedExternalCategory, setSelectedExternalCategory] = useState<{ id: string; name: string } | null>(null);
@@ -73,13 +77,9 @@ export default function Index() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const ITEMS_PER_PAGE = 12;
-
-  // Simular carregamento inicial
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  
+  // Estado de loading combinado
+  const isLoading = isLoadingProducts;
 
   // Reset pagination when filters change
   useEffect(() => {
@@ -111,17 +111,18 @@ export default function Index() {
     return colors.map((c) => c.group);
   }, [selectedClient]);
 
-  // Calculate color match score for a product
+  // Calculate color match score for a product (adaptado para novo formato)
   const getColorMatchScore = (product: Product): number => {
     if (!selectedClient) return 0;
     const clientColors = [selectedClient.primaryColor.group, ...selectedClient.secondaryColors.map((c) => c.group)];
-    const matchCount = product.colors.filter((c) => clientColors.includes(c.group)).length;
+    const productColors = product.colors?.map((c: any) => c.group || c.name) || [];
+    const matchCount = productColors.filter((c: string) => clientColors.includes(c)).length;
     return matchCount;
   };
 
-  // Filtrar e ordenar produtos
+  // Filtrar e ordenar produtos - USANDO PRODUTOS REAIS
   const filteredProducts = useMemo(() => {
-    let result = [...PRODUCTS];
+    let result = [...realProducts];
 
     // Text search filter
     if (searchQuery) {
@@ -129,24 +130,31 @@ export default function Index() {
       result = result.filter(
         (p) =>
           p.name.toLowerCase().includes(query) ||
-          p.category.name.toLowerCase().includes(query) ||
-          p.materials.some((m) => m.toLowerCase().includes(query)) ||
-          p.tags.datasComemorativas.some((d) => d.toLowerCase().includes(query)) ||
-          p.tags.publicoAlvo.some((pa) => pa.toLowerCase().includes(query)),
+          (p.category_name || '').toLowerCase().includes(query) ||
+          (p.materials || '').toLowerCase().includes(query) ||
+          (p.description || '').toLowerCase().includes(query),
       );
     }
 
     // Aplicar filtros
     if (filters.colors.length) {
-      result = result.filter((p) => p.colors.some((c) => filters.colors.includes(c.name)));
+      result = result.filter((p) => 
+        p.colors?.some((c: any) => filters.colors.includes(c.name)) || false
+      );
     }
 
     if (filters.categories.length) {
-      result = result.filter((p) => filters.categories.includes(p.category.id));
+      result = result.filter((p) => 
+        filters.categories.includes(parseInt(p.category_id || '0')) ||
+        filters.categories.map(String).includes(p.category_id || '')
+      );
     }
 
     if (filters.suppliers.length) {
-      result = result.filter((p) => filters.suppliers.includes(p.supplier.id));
+      result = result.filter((p) => 
+        filters.suppliers.includes(p.brand || '') ||
+        filters.suppliers.includes(p.supplier_reference || '')
+      );
     }
 
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
@@ -154,20 +162,18 @@ export default function Index() {
     }
 
     if (filters.inStock) {
-      result = result.filter((p) => p.stockStatus !== "out-of-stock");
+      result = result.filter((p) => (p.stock || 0) > 0);
     }
 
-    if (filters.isKit) {
-      result = result.filter((p) => p.isKit);
-    }
-
-    if (filters.featured) {
-      result = result.filter((p) => p.featured);
-    }
+    // isKit e featured não existem no banco externo, ignorar por enquanto
 
     if (filters.materiais.length) {
-      result = result.filter((p) => p.materials.some((m) => filters.materiais.includes(m)));
+      result = result.filter((p) => 
+        filters.materiais.some((m) => (p.materials || '').toLowerCase().includes(m.toLowerCase()))
+      );
     }
+
+    // Filtro por materiais já aplicado acima
 
     // Ordenar
     switch (sortBy) {
@@ -181,18 +187,22 @@ export default function Index() {
         result.sort((a, b) => b.price - a.price);
         break;
       case "stock":
-        result.sort((a, b) => b.stock - a.stock);
+        result.sort((a, b) => (b.stock || 0) - (a.stock || 0));
         break;
       case "newest":
-        result.sort((a, b) => (b.newArrival ? 1 : 0) - (a.newArrival ? 1 : 0));
+        // Ordenar por data de criação se disponível
+        result.sort((a, b) => 
+          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        );
         break;
       case "color-match":
         result.sort((a, b) => getColorMatchScore(b) - getColorMatchScore(a));
         break;
     }
+    }
 
     return result;
-  }, [filters, sortBy, selectedClient, searchQuery]);
+  }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore]);
 
   // Paginated products
   const paginatedProducts = useMemo(() => {

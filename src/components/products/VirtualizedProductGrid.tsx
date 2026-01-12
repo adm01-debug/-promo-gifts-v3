@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowUp } from "lucide-react";
 import { ProductCard } from "./ProductCard";
 import { ProductCardSkeleton } from "./ProductCardSkeleton";
-import type { Product } from "@/data/mockData";
+import type { Product } from "@/hooks/useProducts";
 
 interface VirtualizedProductGridProps {
   products: Product[];
