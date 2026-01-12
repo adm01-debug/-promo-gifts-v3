@@ -17,7 +17,7 @@ import { Palette, Clock, DollarSign, Zap, X, Info, ChevronDown, ChevronUp, Spark
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import type { Technique, TechniqueSettings } from "@/types/simulation";
 
 interface TechniqueSelectionCardProps {
@@ -53,17 +53,20 @@ const getTechniqueStyle = (code: string) => {
   return { color: "bg-slate-500", icon: "✨" };
 };
 
-export function TechniqueSelectionCard({
-  techniques,
-  techniquesLoading,
-  selectedTechniques,
-  techniqueSettings,
-  onToggle,
-  onUpdateSetting,
-  needsColorInput,
-  needsSizeInput,
-  quantity,
-}: TechniqueSelectionCardProps) {
+export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelectionCardProps>(function TechniqueSelectionCard(
+  {
+    techniques,
+    techniquesLoading,
+    selectedTechniques,
+    techniqueSettings,
+    onToggle,
+    onUpdateSetting,
+    needsColorInput,
+    needsSizeInput,
+    quantity,
+  },
+  ref
+) {
   const [expandedTechnique, setExpandedTechnique] = useState<string | null>(null);
 
   const getSlaInfo = (days: number) => {
@@ -82,7 +85,7 @@ export function TechniqueSelectionCard({
   });
 
   return (
-    <Card className="border-2 border-primary/20">
+    <Card ref={ref} className="border-2 border-primary/20">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg flex items-center gap-2">
           <div className="p-2 rounded-lg bg-primary/10">
@@ -370,4 +373,4 @@ export function TechniqueSelectionCard({
       </CardContent>
     </Card>
   );
-}
+});
