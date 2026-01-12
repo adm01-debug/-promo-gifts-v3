@@ -54,17 +54,19 @@ export function useTechniquePricingOptions(techniqueCode: string | null): Techni
       try {
         const { data, error } = await supabase.functions.invoke('external-db-bridge', {
           body: {
-            action: 'customization_price_tables',
-            params: { technique_code: techniqueCode }
+            table: 'customization_price_tables',
+            operation: 'select',
+            filters: { composed_code: techniqueCode },
+            limit: 100
           }
         });
 
         if (error) throw error;
         
-        if (data?.tables) {
-          setTables(data.tables);
-        } else if (Array.isArray(data)) {
-          setTables(data);
+        if (data?.success && data?.data?.records) {
+          setTables(data.data.records);
+        } else if (Array.isArray(data?.data)) {
+          setTables(data.data);
         } else {
           setTables([]);
         }
@@ -192,13 +194,17 @@ export function useMultipleTechniquePricing(techniqueCodes: string[]) {
           try {
             const { data, error } = await supabase.functions.invoke('external-db-bridge', {
               body: {
-                action: 'customization_price_tables',
-                params: { technique_code: code }
+                table: 'customization_price_tables',
+                operation: 'select',
+                filters: { composed_code: code },
+                limit: 100
               }
             });
 
-            if (!error && data) {
-              results[code] = data.tables || (Array.isArray(data) ? data : []);
+            if (!error && data?.success && data?.data?.records) {
+              results[code] = data.data.records;
+            } else if (!error && Array.isArray(data?.data)) {
+              results[code] = data.data;
             }
           } catch (err) {
             console.error(`Error fetching pricing for ${code}:`, err);
