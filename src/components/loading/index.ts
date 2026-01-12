@@ -1,4 +1,4 @@
-// Skeleton components with shimmer effect
+// Skeleton components with shimmer effect (preferred)
 export {
   SkeletonShimmer,
   TextSkeleton,
@@ -14,6 +14,22 @@ export {
   PageHeaderSkeleton,
   PageSkeleton
 } from "./SkeletonShimmer";
+
+// Legacy skeleton components
+export {
+  Skeleton,
+  ListSkeleton,
+  DashboardWidgetSkeleton,
+  DashboardSkeleton,
+  ProfileSkeleton,
+  KanbanColumnSkeleton,
+  KanbanSkeleton,
+  ImageSkeleton,
+  NavigationSkeleton,
+  ShimmerSkeleton,
+  PulseSkeleton,
+  ContentPlaceholder
+} from "./SkeletonLoading";
 
 // Loading overlays and indicators
 export {
