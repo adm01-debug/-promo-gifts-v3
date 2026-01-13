@@ -39,6 +39,8 @@ import {
   Droplets,
   Ruler,
   Hash,
+  Clock,
+  Package,
 } from "lucide-react";
 import { InlineEditField } from "./InlineEditField";
 import { useTecnicasUnificadas, useCategoriasTecnicas } from "@/hooks/useTecnicasUnificadas";
@@ -54,6 +56,8 @@ export function TechniquesManager() {
     handlingPrice: "",
     minColors: "",
     maxColors: "",
+    minQuantity: "",
+    estimatedDays: "",
     priceByColor: false,
     priceByArea: false,
     priceByStitches: false,
@@ -85,6 +89,8 @@ export function TechniquesManager() {
       handling_price: newTechnique.handlingPrice ? parseFloat(newTechnique.handlingPrice) : undefined,
       min_colors: newTechnique.minColors ? parseInt(newTechnique.minColors) : 1,
       max_colors: newTechnique.maxColors ? parseInt(newTechnique.maxColors) : undefined,
+      min_quantity: newTechnique.minQuantity ? parseInt(newTechnique.minQuantity) : undefined,
+      estimated_days: newTechnique.estimatedDays ? parseInt(newTechnique.estimatedDays) : undefined,
       price_by_color: newTechnique.priceByColor,
       price_by_area: newTechnique.priceByArea,
       price_by_stitches: newTechnique.priceByStitches,
@@ -103,6 +109,8 @@ export function TechniquesManager() {
       handlingPrice: "",
       minColors: "",
       maxColors: "",
+      minQuantity: "",
+      estimatedDays: "",
       priceByColor: false,
       priceByArea: false,
       priceByStitches: false,
@@ -259,6 +267,34 @@ export function TechniquesManager() {
                   </div>
                 </div>
 
+                {/* Production */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="flex items-center gap-1">
+                      <Package className="h-3 w-3" />
+                      Qtd. Mínima
+                    </Label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 50"
+                      value={newTechnique.minQuantity}
+                      onChange={(e) => setNewTechnique({ ...newTechnique, minQuantity: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Prazo (dias úteis)
+                    </Label>
+                    <Input
+                      type="number"
+                      placeholder="Ex: 7"
+                      value={newTechnique.estimatedDays}
+                      onChange={(e) => setNewTechnique({ ...newTechnique, estimatedDays: e.target.value })}
+                    />
+                  </div>
+                </div>
+
                 {/* Pricing Options */}
                 <div className="space-y-3 pt-2 border-t">
                   <Label className="text-base">Tipo de Precificação</Label>
@@ -330,6 +366,8 @@ export function TechniquesManager() {
                 <TableHead>Setup</TableHead>
                 <TableHead>Manuseio</TableHead>
                 <TableHead>Cores</TableHead>
+                <TableHead>Qtd. Mín.</TableHead>
+                <TableHead>Prazo</TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead></TableHead>
               </TableRow>
@@ -391,6 +429,22 @@ export function TechniquesManager() {
                     ) : (
                       <span className="text-muted-foreground text-xs">—</span>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <InlineEditField
+                      value={tecnica.quantidadeMinima?.toString() || ""}
+                      onSave={(value) => update({ id: tecnica.id, min_quantity: value ? parseInt(value) : null })}
+                      type="number"
+                      placeholder="—"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <InlineEditField
+                      value={tecnica.prazoEstimado?.toString() || ""}
+                      onSave={(value) => update({ id: tecnica.id, estimated_days: value ? parseInt(value) : null })}
+                      type="number"
+                      placeholder="—"
+                    />
                   </TableCell>
                   <TableCell className="text-center">
                     <Switch

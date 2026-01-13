@@ -42,6 +42,10 @@ export interface PersonalizationTechniqueRaw {
   handling_price: number;
   base_cost_multiplier: number;
   
+  // Produção
+  min_quantity: number | null;
+  estimated_days: number | null;
+  
   // Características
   applies_to_curved: boolean;
   prompt_suffix: string | null;

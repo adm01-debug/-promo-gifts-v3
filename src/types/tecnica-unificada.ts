@@ -52,6 +52,10 @@ export interface TecnicaUnificada {
   custoManuseio: number;
   multiplicadorCusto: number;
   
+  // === Produção ===
+  quantidadeMinima: number | null;
+  prazoEstimado: number | null;
+  
   // === Características ===
   aplicaSuperficieCurva: boolean;
   promptSuffix: string | null;
