@@ -4,6 +4,7 @@
  * - Miniatura de exemplo
  * - Configuração inline
  */
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
