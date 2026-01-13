@@ -8,3 +8,5 @@ export { StepLocation } from './StepLocation';
 export { StepTechnique } from './StepTechnique';
 export { StepOptions } from './StepOptions';
 export { StepResult } from './StepResult';
+export { SmartSuggestion } from './SmartSuggestion';
+export { TechniqueComparator } from './TechniqueComparator';
