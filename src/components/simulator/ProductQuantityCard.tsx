@@ -13,11 +13,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Package, Info, TrendingUp, TrendingDown, Sparkles } from "lucide-react";
+import { Package, Info, TrendingUp, TrendingDown, Sparkles, MapPin, Ruler } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/hooks/useSimulation";
 import { SmartProductSearch } from "./SmartProductSearch";
+import { ProductLocationSelector, type SelectedLocation } from "./ProductLocationSelector";
 import type { Product } from "@/types/simulation";
+
+export type { SelectedLocation };
 
 interface ProductQuantityCardProps {
   products: Product[] | undefined;
@@ -30,6 +33,10 @@ interface ProductQuantityCardProps {
   onCustomPriceChange: (price: string) => void;
   selectedProduct: Product | undefined;
   effectiveProductPrice: number;
+  // Novos props para local de gravação
+  selectedTechniqueIds?: string[];
+  onLocationSelect?: (location: SelectedLocation | null) => void;
+  selectedLocation?: SelectedLocation | null;
 }
 
 // Quantidades populares para sugestão rápida
@@ -46,6 +53,9 @@ export function ProductQuantityCard({
   onCustomPriceChange,
   selectedProduct,
   effectiveProductPrice,
+  selectedTechniqueIds = [],
+  onLocationSelect,
+  selectedLocation,
 }: ProductQuantityCardProps) {
   // Toggle para usar preço negociado
   const [useNegotiatedPrice, setUseNegotiatedPrice] = useState(false);
@@ -108,6 +118,36 @@ export function ProductQuantityCard({
             onSelect={onProductChange}
           />
         </div>
+
+        {/* Local de Gravação - Novo componente */}
+        {selectedProduct && onLocationSelect && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-2"
+          >
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-primary" />
+              Local de Gravação
+            </Label>
+            <div className="flex items-center gap-3 flex-wrap">
+              <ProductLocationSelector
+                productId={selectedProductId}
+                productName={selectedProduct.name}
+                selectedTechniqueIds={selectedTechniqueIds}
+                onLocationSelect={onLocationSelect}
+                currentWidth={10}
+                currentHeight={10}
+              />
+              {selectedLocation && (
+                <Badge variant="secondary" className="gap-1.5 text-xs">
+                  <Ruler className="h-3 w-3" />
+                  Máx: {selectedLocation.maxWidth}×{selectedLocation.maxHeight}cm
+                </Badge>
+              )}
+            </div>
+          </motion.div>
+        )}
 
         {/* Quantity with Quick Selectors */}
         <div className="space-y-2">
