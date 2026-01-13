@@ -357,10 +357,11 @@ serve(async (req) => {
           query = query.eq('id', id);
         }
 
-        // Ordenar
+        // Ordenar (não aplicar default para views que podem não ter created_at)
         if (orderBy) {
           query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false });
-        } else {
+        } else if (resourceGroup !== 'views') {
+          // Só aplicar ordenação padrão para tabelas, não views
           query = query.order('created_at', { ascending: false });
         }
 
