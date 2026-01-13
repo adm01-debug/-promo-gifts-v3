@@ -4,10 +4,8 @@
  * - Miniatura de exemplo
  * - Configuração inline
  */
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -37,8 +35,6 @@ import {
   Sparkles,
   Star,
   TrendingUp,
-  Zap,
-  Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/hooks/useSimulation';
