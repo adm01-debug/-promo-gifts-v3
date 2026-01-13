@@ -331,36 +331,56 @@ export interface PromobrindPriceTable {
 // FUNÇÕES PARA ÁREAS DE IMPRESSÃO
 // ============================================
 
-const PRINT_AREA_SELECT_FIELDS = 
-  'id, product_id, area_code, area_name, component_name, location_name, ' +
-  'max_width_cm, max_height_cm, max_area_cm2, is_curved, technique_id, ' +
-  'technique_code, technique_name, max_colors, is_default, area_image_url';
-
 /**
  * Busca áreas de impressão de um produto do BD Promobrind
+ * Busca todos os campos disponíveis sem especificar select (evita erro de colunas inexistentes)
  */
 export async function fetchPromobrindPrintAreas(
   productId: string
 ): Promise<PromobrindPrintArea[]> {
-  // Tentar buscar da view completa primeiro
+  // Tentar buscar da view completa primeiro (sem especificar colunas para evitar erro)
   try {
     const result = await invokeExternalDb<PromobrindPrintArea>({
       table: 'v_product_print_areas_complete',
       operation: 'select',
       filters: { product_id: productId },
-      select: PRINT_AREA_SELECT_FIELDS,
       limit: 100,
     });
-    return result.records;
+    
+    // Mapear campos que podem ter nomes diferentes na view
+    return result.records.map(record => ({
+      id: record.id,
+      product_id: record.product_id,
+      area_code: record.area_code || '',
+      area_name: record.area_name || record.location_name || '',
+      component_name: record.component_name,
+      location_name: record.location_name,
+      max_width_cm: (record as any).max_width_cm ?? (record as any).largura_max_cm ?? null,
+      max_height_cm: (record as any).max_height_cm ?? (record as any).altura_max_cm ?? null,
+      max_area_cm2: (record as any).max_area_cm2 ?? (record as any).area_max_cm2 ?? null,
+      is_curved: record.is_curved ?? false,
+      technique_id: record.technique_id,
+      technique_code: record.technique_code,
+      technique_name: record.technique_name,
+      max_colors: record.max_colors,
+      is_default: record.is_default ?? false,
+      area_image_url: record.area_image_url,
+    }));
   } catch {
     // Fallback para tabela principal
-    const result = await invokeExternalDb<PromobrindPrintArea>({
-      table: 'product_print_areas',
-      operation: 'select',
-      filters: { product_id: productId },
-      limit: 100,
-    });
-    return result.records;
+    try {
+      const result = await invokeExternalDb<PromobrindPrintArea>({
+        table: 'product_print_areas',
+        operation: 'select',
+        filters: { product_id: productId },
+        limit: 100,
+      });
+      return result.records;
+    } catch {
+      // Último fallback - retorna array vazio
+      console.error('Erro ao buscar áreas de impressão do Promobrind');
+      return [];
+    }
   }
 }
 
