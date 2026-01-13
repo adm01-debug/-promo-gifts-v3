@@ -220,24 +220,24 @@ export function TechniquesPanel() {
                       <div className="flex items-center justify-center gap-1">
                         {tecnica.precoPorCor && (
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Palette className="h-4 w-4 text-primary" />
+                            <TooltipTrigger asChild>
+                              <span><Palette className="h-4 w-4 text-primary" /></span>
                             </TooltipTrigger>
                             <TooltipContent>Por Cor</TooltipContent>
                           </Tooltip>
                         )}
                         {tecnica.precoPorArea && (
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Ruler className="h-4 w-4 text-amber-500" />
+                            <TooltipTrigger asChild>
+                              <span><Ruler className="h-4 w-4 text-amber-500" /></span>
                             </TooltipTrigger>
                             <TooltipContent>Por Área</TooltipContent>
                           </Tooltip>
                         )}
                         {tecnica.precoPorPontos && (
                           <Tooltip>
-                            <TooltipTrigger>
-                              <Hash className="h-4 w-4 text-purple-500" />
+                            <TooltipTrigger asChild>
+                              <span><Hash className="h-4 w-4 text-purple-500" /></span>
                             </TooltipTrigger>
                             <TooltipContent>Por Pontos</TooltipContent>
                           </Tooltip>
@@ -247,10 +247,12 @@ export function TechniquesPanel() {
                     <TableCell className="text-center">
                       {tecnica.permiteCores ? (
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Badge variant="secondary" className="text-xs">
-                              {tecnica.minCores}-{tecnica.maxCores}
-                            </Badge>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Badge variant="secondary" className="text-xs cursor-default">
+                                {tecnica.minCores}-{tecnica.maxCores}
+                              </Badge>
+                            </span>
                           </TooltipTrigger>
                           <TooltipContent>
                             De {tecnica.minCores} a {tecnica.maxCores} cores
