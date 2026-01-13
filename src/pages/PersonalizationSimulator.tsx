@@ -63,7 +63,7 @@ import { ProductQuantityCard } from "@/components/simulator/ProductQuantityCard"
 import { TechniqueSelectionCard } from "@/components/simulator/TechniqueSelectionCard";
 import { SimulationResultsCard } from "@/components/simulator/SimulationResultsCard";
 import { ScenarioComparison } from "@/components/simulator/ScenarioComparison";
-import { UpsellSuggestion } from "@/components/simulator/UpsellSuggestion";
+import { UpsellPlusPlus } from "@/components/simulator/UpsellPlusPlus";
 import { useSimulation, formatCurrency } from "@/hooks/useSimulation";
 
 export default function PersonalizationSimulator() {
@@ -172,15 +172,19 @@ export default function PersonalizationSimulator() {
                   onSave={() => sim.setSaveDialogOpen(true)}
                 />
 
-                {/* Upsell Suggestion - Contextual */}
+                {/* Upsell++ - Sugestões Inteligentes Avançadas */}
                 {sim.simulationOptions.length > 0 && (
-                  <UpsellSuggestion
+                  <UpsellPlusPlus
                     currentQuantity={sim.quantity}
                     productPrice={sim.effectiveProductPrice}
                     bestOption={sim.bestOption}
+                    allOptions={sim.simulationOptions}
                     techniques={sim.techniques}
                     selectedTechniques={sim.selectedTechniques}
                     onQuantityChange={sim.setQuantity}
+                    onTechniqueChange={sim.handleTechniqueToggle}
+                    clientRamo={sim.clients?.find(c => c.id === sim.selectedClientId)?.ramo}
+                    clientNicho={sim.clients?.find(c => c.id === sim.selectedClientId)?.nicho}
                   />
                 )}
 
