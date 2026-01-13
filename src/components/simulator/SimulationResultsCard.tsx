@@ -71,7 +71,6 @@ export function SimulationResultsCard({
   onViewChange,
 }: SimulationResultsCardProps) {
   const [showMarginCalculator, setShowMarginCalculator] = useState(true);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>(preferredView);
 
   // Sync with external preference
@@ -88,18 +87,6 @@ export function SimulationResultsCard({
   const savings = sortedOptions.length > 1 
     ? sortedOptions[sortedOptions.length - 1].grandTotal - sortedOptions[0].grandTotal
     : 0;
-
-  const toggleRowExpand = (id: string) => {
-    setExpandedRows(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
 
   return (
     <motion.div
