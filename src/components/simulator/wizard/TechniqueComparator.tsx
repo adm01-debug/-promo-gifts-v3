@@ -167,7 +167,9 @@ export function TechniqueComparator({ techniques, quantity, onSelect }: Techniqu
                       {/* Header */}
                       <div className="mb-4">
                         <h5 className="font-bold text-lg">{tech.name}</h5>
-                        <Badge variant="outline" className="text-xs mt-1">{tech.code}</Badge>
+                        {tech.code && (
+                          <Badge variant="outline" className="text-xs mt-1">{tech.code}</Badge>
+                        )}
                       </div>
 
                       {/* Stats */}
@@ -228,17 +230,17 @@ export function TechniqueComparator({ techniques, quantity, onSelect }: Techniqu
                             <span className="text-xs text-muted-foreground">Recursos</span>
                           </div>
                           <div className="flex flex-wrap gap-1">
-                            {tech.maxColors && (
+                            {tech.maxColors && tech.maxColors > 0 && (
                               <Badge variant="outline" className="text-xs">
                                 Máx {tech.maxColors} cores
                               </Badge>
                             )}
-                            {tech.setupCost > 0 && (
+                            {tech.setupCost && tech.setupCost > 0 && (
                               <Badge variant="outline" className="text-xs">
                                 Setup {formatCurrency(tech.setupCost)}
                               </Badge>
                             )}
-                            {tech.minQuantity > 1 && (
+                            {tech.minQuantity && tech.minQuantity > 1 && (
                               <Badge variant="outline" className="text-xs">
                                 Mín {tech.minQuantity} un
                               </Badge>
