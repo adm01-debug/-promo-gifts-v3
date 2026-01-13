@@ -36,6 +36,8 @@ export {
   calculatePriceForQuantity,
   usePrecoCalculation,
   usePriceSimulator,
+  // Tipos
   type PriceTier,
   type PriceCalculation,
+  type LegacyPriceTable,
 } from './tecnicas';
