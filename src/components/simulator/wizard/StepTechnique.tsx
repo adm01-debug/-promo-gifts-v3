@@ -132,7 +132,7 @@ export function StepTechnique({ wizard }: StepTechniqueProps) {
               const isSelected = selectedTechnique?.id === technique.id;
               const isBest = technique.id === bestOption?.id;
               const isFastest = technique.id === fastestOption?.id && technique.id !== bestOption?.id;
-              const estimatedTotal = technique.unitCost * wizard.quantity + technique.setupCost;
+              const estimatedTotal = (technique.unitCost || 0) * wizard.quantity + (technique.setupCost || 0);
               
               return (
                 <motion.button

@@ -47,8 +47,8 @@ export function SmartSuggestion({ techniques, quantity, onSelect }: SmartSuggest
 
     // Encontrar melhor preço (usando técnicas elegíveis)
     const sortedByPrice = [...eligibleTechniques].sort((a, b) => {
-      const totalA = a.unitCost * quantity + a.setupCost;
-      const totalB = b.unitCost * quantity + b.setupCost;
+      const totalA = (a.unitCost || 0) * quantity + (a.setupCost || 0);
+      const totalB = (b.unitCost || 0) * quantity + (b.setupCost || 0);
       return totalA - totalB;
     });
 
@@ -59,8 +59,8 @@ export function SmartSuggestion({ techniques, quantity, onSelect }: SmartSuggest
 
     // Melhor custo-benefício (preço × tempo)
     const sortedByValue = [...eligibleTechniques].sort((a, b) => {
-      const valueA = (a.unitCost * quantity + a.setupCost) * a.estimatedDays;
-      const valueB = (b.unitCost * quantity + b.setupCost) * b.estimatedDays;
+      const valueA = ((a.unitCost || 0) * quantity + (a.setupCost || 0)) * (a.estimatedDays || 5);
+      const valueB = ((b.unitCost || 0) * quantity + (b.setupCost || 0)) * (b.estimatedDays || 5);
       return valueA - valueB;
     });
 
@@ -151,7 +151,7 @@ export function SmartSuggestion({ techniques, quantity, onSelect }: SmartSuggest
       {/* Recommendations */}
       <div className="space-y-3">
         {recommendations.map((rec, idx) => {
-          const total = rec.technique.unitCost * quantity + rec.technique.setupCost;
+          const total = (rec.technique.unitCost || 0) * quantity + (rec.technique.setupCost || 0);
           
           return (
             <motion.div

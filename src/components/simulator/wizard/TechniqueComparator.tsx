@@ -54,13 +54,13 @@ export function TechniqueComparator({ techniques, quantity, onSelect }: Techniqu
   const getBestValues = () => {
     if (selectedTechniques.length < 2) return null;
     
-    const totals = selectedTechniques.map(t => t.unitCost * quantity + t.setupCost);
+    const totals = selectedTechniques.map(t => (t.unitCost || 0) * quantity + (t.setupCost || 0));
     const bestPrice = Math.min(...totals);
-    const fastestDays = Math.min(...selectedTechniques.map(t => t.estimatedDays));
+    const fastestDays = Math.min(...selectedTechniques.map(t => t.estimatedDays || 5));
     
     return {
-      bestPriceId: selectedTechniques.find(t => (t.unitCost * quantity + t.setupCost) === bestPrice)?.id,
-      fastestId: selectedTechniques.find(t => t.estimatedDays === fastestDays)?.id,
+      bestPriceId: selectedTechniques.find(t => ((t.unitCost || 0) * quantity + (t.setupCost || 0)) === bestPrice)?.id,
+      fastestId: selectedTechniques.find(t => (t.estimatedDays || 5) === fastestDays)?.id,
     };
   };
 
@@ -148,7 +148,7 @@ export function TechniqueComparator({ techniques, quantity, onSelect }: Techniqu
               {/* Comparison Grid */}
               <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${selectedTechniques.length}, 1fr)` }}>
                 {selectedTechniques.map(tech => {
-                  const total = tech.unitCost * quantity + tech.setupCost;
+                  const total = (tech.unitCost || 0) * quantity + (tech.setupCost || 0);
                   const isBestPrice = tech.id === bestValues?.bestPriceId;
                   const isFastest = tech.id === bestValues?.fastestId;
 

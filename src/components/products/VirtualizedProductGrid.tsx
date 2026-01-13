@@ -184,7 +184,7 @@ export function VirtualizedProductGrid({
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed bottom-20 right-6 p-3 rounded-full bg-orange text-white shadow-lg hover:bg-orange-hover transition-colors z-40"
+            className="fixed bottom-20 right-6 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-40"
             onClick={scrollToTop}
           >
             <ArrowUp className="h-5 w-5" />
