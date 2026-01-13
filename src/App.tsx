@@ -58,7 +58,7 @@ const ProductRegistrationPage = lazy(() => import("./pages/ProductRegistrationPa
 const EngravingRegistrationPage = lazy(() => import("./pages/EngravingRegistrationPage"));
 
 // Tools Pages
-const PersonalizationSimulator = lazy(() => import("./pages/PersonalizationSimulator"));
+const SimuladorWizard = lazy(() => import("./pages/SimuladorWizard"));
 const MockupGenerator = lazy(() => import("./pages/MockupGenerator"));
 const MagicUp = lazy(() => import("./pages/MagicUp"));
 const PriceSimulatorPage = lazy(() => import("./pages/PriceSimulatorPage"));
@@ -183,7 +183,7 @@ const App = () => {
                                     <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
 
                                     {/* Tools Routes */}
-                                    <Route path="/simulador" element={<PersonalizationSimulator />} />
+                                    <Route path="/simulador" element={<SimuladorWizard />} />
                                     <Route path="/simulador-precos" element={<PriceSimulatorPage />} />
                                     <Route path="/estoque" element={<StockDashboardPage />} />
                                     <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
