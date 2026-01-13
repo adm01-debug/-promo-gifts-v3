@@ -54,7 +54,6 @@ const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 
 // Admin Pages
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
-const AdminPersonalizationPage = lazy(() => import("./pages/AdminPersonalizationPage"));
 const ProductRegistrationPage = lazy(() => import("./pages/ProductRegistrationPage"));
 const EngravingRegistrationPage = lazy(() => import("./pages/EngravingRegistrationPage"));
 
@@ -175,7 +174,7 @@ const App = () => {
                                     {/* Admin */}
                                     <Route path="/configuracoes" element={<Navigate to="/admin" replace />} />
                                     <Route path="/admin" element={<AdminPanel />} />
-                                    <Route path="/admin/personalizacao" element={<AdminPersonalizationPage />} />
+                                    <Route path="/admin/personalizacao" element={<Navigate to="/cadastro-gravacao" replace />} />
                                     <Route path="/cadastro-produtos" element={<ProductRegistrationPage />} />
                                     <Route path="/cadastro-gravacao" element={<EngravingRegistrationPage />} />
                                     <Route path="/admin/permissoes" element={<PermissionsPage />} />

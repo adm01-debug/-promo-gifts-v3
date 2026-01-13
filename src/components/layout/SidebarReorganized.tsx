@@ -69,7 +69,7 @@ const navGroups: NavGroup[] = [
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
       { icon: PackagePlus, label: "Cadastrar Produtos", href: "/cadastro-produtos", requiredPermission: { action: 'create', resource: 'products' }, badge: "Novo" },
-      { icon: Palette, label: "Cadastrar Gravação", href: "/cadastro-gravacao", requiredPermission: { action: 'create', resource: 'products' } },
+      { icon: Palette, label: "Gestão de Personalização", href: "/cadastro-gravacao", requiredPermission: { action: 'create', resource: 'products' } },
     ],
   },
   {
@@ -113,7 +113,6 @@ const bottomNavItems: NavItem[] = [
   { icon: User, label: "Meu Perfil", href: "/perfil" },
   { icon: Lock, label: "Segurança", href: "/seguranca" },
   { icon: ShieldCheck, label: "Admin", href: "/admin", adminOnly: true },
-  { icon: Palette, label: "Personalização", href: "/admin/personalizacao", adminOnly: true },
   { icon: Settings, label: "Configurações", href: "/configuracoes" },
 ];
 

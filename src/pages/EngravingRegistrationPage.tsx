@@ -2,9 +2,13 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, Settings, DollarSign } from "lucide-react";
+import { Palette, Settings, DollarSign, FolderOpen, Layers, Package } from "lucide-react";
 import { TechniquesPanel } from "@/components/engraving/TechniquesPanel";
 import { PricingPanel } from "@/components/engraving/PricingPanel";
+import { ProductGroupsManager } from "@/components/admin/ProductGroupsManager";
+import { GroupPersonalizationManager } from "@/components/admin/GroupPersonalizationManager";
+import { ProductPersonalizationManager } from "@/components/admin/ProductPersonalizationManager";
+import { TechniquesManager } from "@/components/admin/TechniquesManager";
 
 export default function EngravingRegistrationPage() {
   const [activeTab, setActiveTab] = useState("techniques");
@@ -13,13 +17,13 @@ export default function EngravingRegistrationPage() {
     <MainLayout>
       <div className="container mx-auto py-6 space-y-6">
         <PageHeader
-          title="Cadastrar Gravação"
-          description="Gerencie técnicas de gravação e configure preços"
+          title="Gestão de Personalização"
+          description="Configure técnicas, preços, grupos e regras de personalização"
           icon={<Palette className="h-8 w-8" />}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-4xl grid-cols-6">
             <TabsTrigger value="techniques" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline">Técnicas</span>
@@ -27,6 +31,22 @@ export default function EngravingRegistrationPage() {
             <TabsTrigger value="pricing" className="flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
               <span className="hidden sm:inline">Preços</span>
+            </TabsTrigger>
+            <TabsTrigger value="groups" className="flex items-center gap-2">
+              <FolderOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Grupos</span>
+            </TabsTrigger>
+            <TabsTrigger value="group-rules" className="flex items-center gap-2">
+              <Layers className="h-4 w-4" />
+              <span className="hidden sm:inline">Regras</span>
+            </TabsTrigger>
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              <span className="hidden sm:inline">Por Produto</span>
+            </TabsTrigger>
+            <TabsTrigger value="manage" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              <span className="hidden sm:inline">Cadastro</span>
             </TabsTrigger>
           </TabsList>
 
@@ -36,6 +56,22 @@ export default function EngravingRegistrationPage() {
 
           <TabsContent value="pricing">
             <PricingPanel />
+          </TabsContent>
+
+          <TabsContent value="groups">
+            <ProductGroupsManager />
+          </TabsContent>
+
+          <TabsContent value="group-rules">
+            <GroupPersonalizationManager />
+          </TabsContent>
+
+          <TabsContent value="products">
+            <ProductPersonalizationManager />
+          </TabsContent>
+
+          <TabsContent value="manage">
+            <TechniquesManager />
           </TabsContent>
         </Tabs>
       </div>
