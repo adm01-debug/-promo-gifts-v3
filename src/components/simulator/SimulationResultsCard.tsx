@@ -33,6 +33,8 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
 import { MarginCalculatorCard } from "./MarginCalculatorCard";
 import { ExportActions } from "./ExportActions";
+import { ResultsComparisonCards } from "./ResultsComparisonCards";
+import { DecisionMatrixChart } from "./DecisionMatrixChart";
 import type { SimulationOption, Product } from "@/types/simulation";
 
 interface SimulationResultsCardProps {
@@ -64,6 +66,7 @@ export function SimulationResultsCard({
 }: SimulationResultsCardProps) {
   const [showMarginCalculator, setShowMarginCalculator] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'matrix'>('cards');
 
   if (simulationOptions.length === 0) return null;
 
@@ -112,7 +115,34 @@ export function SimulationResultsCard({
                 </CardDescription>
               </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2 flex-wrap items-center">
+              {/* View Toggle */}
+              <div className="flex rounded-lg border p-1 gap-1">
+                <Button
+                  variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('cards')}
+                  className="h-7 px-2 text-xs"
+                >
+                  Cards
+                </Button>
+                <Button
+                  variant={viewMode === 'matrix' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('matrix')}
+                  className="h-7 px-2 text-xs"
+                >
+                  Matriz
+                </Button>
+                <Button
+                  variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className="h-7 px-2 text-xs"
+                >
+                  Tabela
+                </Button>
+              </div>
               <ExportActions
                 simulationOptions={simulationOptions}
                 selectedProduct={selectedProduct}
