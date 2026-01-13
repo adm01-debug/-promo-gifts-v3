@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import Fuse from "fuse.js";
 import {
   Search,
   Package,
@@ -208,7 +209,23 @@ export function EnhancedSpotlight() {
     [navigate]
   );
 
-  // Filter items based on query
+  // Fuse.js para busca fuzzy
+  const fuse = useMemo(() => {
+    return new Fuse(items, {
+      keys: [
+        { name: 'title', weight: 0.5 },
+        { name: 'description', weight: 0.3 },
+        { name: 'category', weight: 0.2 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+    });
+  }, [items]);
+
+  // Filter items based on query using fuzzy search
   const filteredItems = useMemo(() => {
     if (!query) {
       // Show recent items first, then quick actions
@@ -224,14 +241,10 @@ export function EnhancedSpotlight() {
       return [...recentItems, ...quickActions, ...others];
     }
 
-    const lowerQuery = query.toLowerCase();
-    return items.filter(
-      (item) =>
-        item.title.toLowerCase().includes(lowerQuery) ||
-        item.description?.toLowerCase().includes(lowerQuery) ||
-        item.category.toLowerCase().includes(lowerQuery)
-    );
-  }, [query, items, recentActions]);
+    // Use Fuse.js for fuzzy search
+    const results = fuse.search(query);
+    return results.map((r) => r.item);
+  }, [query, items, recentActions, fuse]);
 
   // Group items by category
   const groupedItems = useMemo(() => {

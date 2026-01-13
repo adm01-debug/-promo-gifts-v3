@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +48,7 @@ import {
   List,
 } from "lucide-react";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
+import Fuse from "fuse.js";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -78,13 +79,38 @@ export default function QuotesListPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const filteredQuotes = quotes.filter((quote) => {
-    const matchesSearch =
-      quote.quote_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quote.client_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || quote.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Fuse.js para busca fuzzy de orçamentos
+  const quoteFuse = useMemo(() => {
+    return new Fuse(quotes, {
+      keys: [
+        { name: 'quote_number', weight: 0.4 },
+        { name: 'client_name', weight: 0.4 },
+        { name: 'notes', weight: 0.2 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+    });
+  }, [quotes]);
+
+  const filteredQuotes = useMemo(() => {
+    let results = quotes;
+    
+    // Aplicar busca fuzzy se houver termo
+    if (searchTerm && searchTerm.length >= 2) {
+      const fuseResults = quoteFuse.search(searchTerm);
+      results = fuseResults.map((r) => r.item);
+    }
+    
+    // Aplicar filtro de status
+    if (statusFilter !== "all") {
+      results = results.filter((quote) => quote.status === statusFilter);
+    }
+    
+    return results;
+  }, [quotes, searchTerm, statusFilter, quoteFuse]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
