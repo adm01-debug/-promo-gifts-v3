@@ -170,6 +170,8 @@ export default function PersonalizationSimulator() {
                   onCopy={sim.copyToClipboard}
                   onCopyAll={sim.copyAllOptions}
                   onSave={() => sim.setSaveDialogOpen(true)}
+                  preferredView={sim.preferredView}
+                  onViewChange={sim.setPreferredView}
                 />
 
                 {/* Upsell++ - Sugestões Inteligentes Avançadas */}
