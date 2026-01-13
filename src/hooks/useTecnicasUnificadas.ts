@@ -162,6 +162,7 @@ export function useTecnicasUnificadas(filtros?: TecnicaFiltros) {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Toggle status mutation
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
       await invokeExternalDbSingle({
@@ -180,14 +181,76 @@ export function useTecnicasUnificadas(filtros?: TecnicaFiltros) {
     },
   });
 
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: Partial<PersonalizationTechniqueRaw>) => {
+      await invokeExternalDbSingle({
+        table: 'personalization_techniques',
+        operation: 'insert',
+        data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TECNICAS_QUERY_KEYS.all });
+      toast.success('Técnica criada!');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao criar: ${error.message}`);
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string } & Partial<PersonalizationTechniqueRaw>) => {
+      await invokeExternalDbSingle({
+        table: 'personalization_techniques',
+        operation: 'update',
+        id,
+        data,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TECNICAS_QUERY_KEYS.all });
+      toast.success('Técnica atualizada!');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao atualizar: ${error.message}`);
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await invokeExternalDbSingle({
+        table: 'personalization_techniques',
+        operation: 'delete',
+        id,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TECNICAS_QUERY_KEYS.all });
+      toast.success('Técnica removida!');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erro ao remover: ${error.message}`);
+    },
+  });
+
   return {
     tecnicas: tecnicasQuery.data ?? [],
     isLoading: tecnicasQuery.isLoading,
     isError: tecnicasQuery.isError,
     error: tecnicasQuery.error,
     refetch: tecnicasQuery.refetch,
+    // Mutations
     toggleStatus: toggleStatusMutation.mutate,
     isToggling: toggleStatusMutation.isPending,
+    create: createMutation.mutate,
+    isCreating: createMutation.isPending,
+    update: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
+    remove: deleteMutation.mutate,
+    isRemoving: deleteMutation.isPending,
   };
 }
 
