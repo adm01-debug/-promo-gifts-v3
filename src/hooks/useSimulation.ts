@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from "@/lib/external-db";
 import { useMultipleTechniquePricing } from "./useTechniquePricingOptions";
+import { useSimulatorPreferences } from "./useSimulatorPreferences";
 import type { 
   Product, 
   Client, 
@@ -22,17 +23,62 @@ import type { SimulationScenario } from "@/components/simulator/ScenarioComparis
 export function useSimulation() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  
+  // Preferences hook for persistence
+  const { 
+    preferences, 
+    isLoaded: preferencesLoaded,
+    setLastQuantity,
+    setLastProductId,
+    setLastTechniques,
+    setLastTechniqueSettings,
+    setPreferredView,
+    saveCurrentSession,
+  } = useSimulatorPreferences();
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState<SimulatorStep>('product');
   
-  // Core simulation state
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState<number>(100);
+  // Core simulation state - initialized from preferences
+  const [selectedProductId, setSelectedProductIdState] = useState<string | null>(null);
+  const [quantity, setQuantityState] = useState<number>(100);
   const [customProductPrice, setCustomProductPrice] = useState<string>("");
-  const [selectedTechniques, setSelectedTechniques] = useState<string[]>([]);
-  const [techniqueSettings, setTechniqueSettings] = useState<Record<string, TechniqueSettings>>({});
+  const [selectedTechniques, setSelectedTechniquesState] = useState<string[]>([]);
+  const [techniqueSettings, setTechniqueSettingsState] = useState<Record<string, TechniqueSettings>>({});
   const [simulationOptions, setSimulationOptions] = useState<SimulationOption[]>([]);
+
+  // Load preferences on mount
+  useEffect(() => {
+    if (preferencesLoaded) {
+      if (preferences.lastQuantity) setQuantityState(preferences.lastQuantity);
+      if (preferences.lastProductId) setSelectedProductIdState(preferences.lastProductId);
+      if (preferences.lastTechniques?.length) setSelectedTechniquesState(preferences.lastTechniques);
+      if (preferences.lastTechniqueSettings && Object.keys(preferences.lastTechniqueSettings).length > 0) {
+        setTechniqueSettingsState(preferences.lastTechniqueSettings);
+      }
+    }
+  }, [preferencesLoaded]);
+
+  // Wrapped setters that also persist to preferences
+  const setSelectedProductId = useCallback((id: string | null) => {
+    setSelectedProductIdState(id);
+    setLastProductId(id);
+  }, [setLastProductId]);
+
+  const setQuantity = useCallback((qty: number) => {
+    setQuantityState(qty);
+    setLastQuantity(qty);
+  }, [setLastQuantity]);
+
+  const setSelectedTechniques = useCallback((techniques: string[]) => {
+    setSelectedTechniquesState(techniques);
+    setLastTechniques(techniques);
+  }, [setLastTechniques]);
+
+  const setTechniqueSettings = useCallback((settings: Record<string, TechniqueSettings>) => {
+    setTechniqueSettingsState(settings);
+    setLastTechniqueSettings(settings);
+  }, [setLastTechniqueSettings]);
 
   // Scenario comparison state
   const [scenarioA, setScenarioA] = useState<SimulationScenario | null>(null);
@@ -183,33 +229,42 @@ export function useSimulation() {
 
   // Actions
   const handleTechniqueToggle = useCallback((techniqueId: string) => {
-    setSelectedTechniques(prev => {
+    setSelectedTechniquesState(prev => {
+      let newTechniques: string[];
       if (prev.includes(techniqueId)) {
-        return prev.filter(id => id !== techniqueId);
+        newTechniques = prev.filter(id => id !== techniqueId);
+      } else {
+        if (!techniqueSettings[techniqueId]) {
+          setTechniqueSettingsState(s => {
+            const updated = { ...s, [techniqueId]: { colors: 1, width: 10, height: 10, positions: 1 } };
+            setLastTechniqueSettings(updated);
+            return updated;
+          });
+        }
+        newTechniques = [...prev, techniqueId];
       }
-      if (!techniqueSettings[techniqueId]) {
-        setTechniqueSettings(s => ({
-          ...s,
-          [techniqueId]: { colors: 1, width: 10, height: 10, positions: 1 }
-        }));
-      }
-      return [...prev, techniqueId];
+      setLastTechniques(newTechniques);
+      return newTechniques;
     });
-  }, [techniqueSettings]);
+  }, [techniqueSettings, setLastTechniques, setLastTechniqueSettings]);
 
   const updateTechniqueSetting = useCallback((
     techniqueId: string, 
     field: keyof TechniqueSettings, 
     value: number
   ) => {
-    setTechniqueSettings(prev => ({
-      ...prev,
-      [techniqueId]: {
-        ...prev[techniqueId],
-        [field]: value
-      }
-    }));
-  }, []);
+    setTechniqueSettingsState(prev => {
+      const updated = {
+        ...prev,
+        [techniqueId]: {
+          ...prev[techniqueId],
+          [field]: value
+        }
+      };
+      setLastTechniqueSettings(updated);
+      return updated;
+    });
+  }, [setLastTechniqueSettings]);
 
   const calculateSimulation = useCallback(() => {
     if (!selectedProduct || selectedTechniques.length === 0) {
@@ -340,10 +395,12 @@ export function useSimulation() {
 
   const clearSimulation = useCallback(() => {
     setSimulationOptions([]);
-    setSelectedTechniques([]);
-    setTechniqueSettings({});
+    setSelectedTechniquesState([]);
+    setTechniqueSettingsState({});
+    setLastTechniques([]);
+    setLastTechniqueSettings({});
     setCurrentStep('product');
-  }, []);
+  }, [setLastTechniques, setLastTechniqueSettings]);
 
   const copyToClipboard = useCallback(async (option: SimulationOption) => {
     const text = `
@@ -542,6 +599,10 @@ Opção ${idx + 1}: ${opt.techniqueName}
     setCustomProductPrice,
     selectedTechniques,
     techniqueSettings,
+
+    // Preferences
+    preferredView: preferences.preferredView,
+    setPreferredView,
 
     // Scenario comparison
     scenarioA,

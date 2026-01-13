@@ -37,6 +37,8 @@ import { ResultsComparisonCards } from "./ResultsComparisonCards";
 import { DecisionMatrixChart } from "./DecisionMatrixChart";
 import type { SimulationOption, Product } from "@/types/simulation";
 
+type ViewMode = 'cards' | 'table' | 'matrix';
+
 interface SimulationResultsCardProps {
   simulationOptions: SimulationOption[];
   selectedProduct: Product | undefined;
@@ -49,6 +51,8 @@ interface SimulationResultsCardProps {
   onCopyAll: () => void;
   onSave: () => void;
   isCalculating?: boolean;
+  preferredView?: ViewMode;
+  onViewChange?: (view: ViewMode) => void;
 }
 
 export function SimulationResultsCard({
@@ -63,10 +67,18 @@ export function SimulationResultsCard({
   onCopyAll,
   onSave,
   isCalculating = false,
+  preferredView = 'cards',
+  onViewChange,
 }: SimulationResultsCardProps) {
   const [showMarginCalculator, setShowMarginCalculator] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<'cards' | 'table' | 'matrix'>('cards');
+  const [viewMode, setViewMode] = useState<ViewMode>(preferredView);
+
+  // Sync with external preference
+  const handleViewChange = (view: ViewMode) => {
+    setViewMode(view);
+    onViewChange?.(view);
+  };
 
   if (simulationOptions.length === 0) return null;
 
@@ -121,7 +133,7 @@ export function SimulationResultsCard({
                 <Button
                   variant={viewMode === 'cards' ? 'secondary' : 'ghost'}
                   size="sm"
-                  onClick={() => setViewMode('cards')}
+                  onClick={() => handleViewChange('cards')}
                   className="h-7 px-2 text-xs"
                 >
                   Cards
@@ -129,7 +141,7 @@ export function SimulationResultsCard({
                 <Button
                   variant={viewMode === 'matrix' ? 'secondary' : 'ghost'}
                   size="sm"
-                  onClick={() => setViewMode('matrix')}
+                  onClick={() => handleViewChange('matrix')}
                   className="h-7 px-2 text-xs"
                 >
                   Matriz
@@ -137,7 +149,7 @@ export function SimulationResultsCard({
                 <Button
                   variant={viewMode === 'table' ? 'secondary' : 'ghost'}
                   size="sm"
-                  onClick={() => setViewMode('table')}
+                  onClick={() => handleViewChange('table')}
                   className="h-7 px-2 text-xs"
                 >
                   Tabela
@@ -246,125 +258,147 @@ export function SimulationResultsCard({
             </motion.div>
           </div>
 
-          {/* Results Table */}
-          <div className="rounded-xl border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Técnica</TableHead>
-                  <TableHead className="text-center font-semibold">Config</TableHead>
-                  <TableHead className="text-right font-semibold">Produto</TableHead>
-                  <TableHead className="text-right font-semibold">Pers./Un</TableHead>
-                  <TableHead className="text-right font-semibold">Setup</TableHead>
-                  <TableHead className="text-right font-semibold">Total</TableHead>
-                  <TableHead className="text-right font-semibold">Final/Un</TableHead>
-                  <TableHead className="text-center font-semibold">Prazo</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <AnimatePresence mode="popLayout">
-                  {sortedOptions.map((option, idx) => {
-                    const isBest = option.id === bestOption?.id;
-                    const isFastest = option.id === fastestOption?.id;
+          {/* Conditional View Rendering */}
+          {viewMode === 'cards' && (
+            <ResultsComparisonCards
+              options={sortedOptions}
+              bestOption={bestOption}
+              fastestOption={fastestOption}
+              quantity={quantity}
+            />
+          )}
 
-                    return (
-                      <motion.tr
-                        key={option.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className={cn(
-                          "group",
-                          isBest && "bg-success/5 hover:bg-success/10",
-                          !isBest && "hover:bg-muted/50"
-                        )}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="space-y-0.5">
-                              {isBest && (
-                                <Badge className="bg-success text-success-foreground text-[10px] gap-1">
-                                  <Trophy className="h-3 w-3" />
-                                  Menor custo
-                                </Badge>
-                              )}
-                              {isFastest && !isBest && (
-                                <Badge className="bg-blue-500 text-white text-[10px] gap-1">
-                                  <Zap className="h-3 w-3" />
-                                  Mais rápido
-                                </Badge>
-                              )}
-                              <p className="font-medium">{option.techniqueName}</p>
-                              <p className="text-xs text-muted-foreground font-mono">{option.techniqueCode}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="text-xs text-muted-foreground space-y-0.5">
-                            {option.colors > 0 && <p>{option.colors} cor(es)</p>}
-                            <p>{option.width}×{option.height}cm</p>
-                            <p>{option.positions} pos.</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
-                          {formatCurrency(option.productUnitPrice)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm">
-                          {formatCurrency(option.costPerUnit)}
-                        </TableCell>
-                        <TableCell className="text-right font-mono text-sm text-muted-foreground">
-                          {formatCurrency(option.setupCost)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className={cn(
-                            "font-bold text-lg",
-                            isBest && "text-success"
-                          )}>
-                            {formatCurrency(option.grandTotal)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className={cn(
-                            "font-semibold",
-                            isBest ? "text-success" : "text-primary"
-                          )}>
-                            {formatCurrency(option.grandTotalPerUnit)}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className={cn(
-                            "inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm",
-                            option.estimatedDays <= 3 && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-                            option.estimatedDays > 3 && option.estimatedDays <= 7 && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-                            option.estimatedDays > 7 && "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
-                          )}>
-                            <Clock className="h-3.5 w-3.5" />
-                            {option.estimatedDays}d
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => onCopy(option)}
-                          >
-                            {copiedId === option.id ? (
-                              <Check className="h-4 w-4 text-success" />
-                            ) : (
-                              <Copy className="h-4 w-4" />
+          {viewMode === 'matrix' && (
+            <DecisionMatrixChart
+              options={sortedOptions}
+              bestOption={bestOption}
+              fastestOption={fastestOption}
+            />
+          )}
+
+          {viewMode === 'table' && (
+            <>
+              {/* Results Table */}
+              <div className="rounded-xl border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50">
+                      <TableHead className="font-semibold">Técnica</TableHead>
+                      <TableHead className="text-center font-semibold">Config</TableHead>
+                      <TableHead className="text-right font-semibold">Produto</TableHead>
+                      <TableHead className="text-right font-semibold">Pers./Un</TableHead>
+                      <TableHead className="text-right font-semibold">Setup</TableHead>
+                      <TableHead className="text-right font-semibold">Total</TableHead>
+                      <TableHead className="text-right font-semibold">Final/Un</TableHead>
+                      <TableHead className="text-center font-semibold">Prazo</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <AnimatePresence mode="popLayout">
+                      {sortedOptions.map((option, idx) => {
+                        const isBest = option.id === bestOption?.id;
+                        const isFastest = option.id === fastestOption?.id;
+
+                        return (
+                          <motion.tr
+                            key={option.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className={cn(
+                              "group",
+                              isBest && "bg-success/5 hover:bg-success/10",
+                              !isBest && "hover:bg-muted/50"
                             )}
-                          </Button>
-                        </TableCell>
-                      </motion.tr>
-                    );
-                  })}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
-          </div>
+                          >
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="space-y-0.5">
+                                  {isBest && (
+                                    <Badge className="bg-success text-success-foreground text-[10px] gap-1">
+                                      <Trophy className="h-3 w-3" />
+                                      Menor custo
+                                    </Badge>
+                                  )}
+                                  {isFastest && !isBest && (
+                                    <Badge className="bg-blue-500 text-white text-[10px] gap-1">
+                                      <Zap className="h-3 w-3" />
+                                      Mais rápido
+                                    </Badge>
+                                  )}
+                                  <p className="font-medium">{option.techniqueName}</p>
+                                  <p className="text-xs text-muted-foreground font-mono">{option.techniqueCode}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="text-xs text-muted-foreground space-y-0.5">
+                                {option.colors > 0 && <p>{option.colors} cor(es)</p>}
+                                <p>{option.width}×{option.height}cm</p>
+                                <p>{option.positions} pos.</p>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-sm">
+                              {formatCurrency(option.productUnitPrice)}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-sm">
+                              {formatCurrency(option.costPerUnit)}
+                            </TableCell>
+                            <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                              {formatCurrency(option.setupCost)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <span className={cn(
+                                "font-bold text-lg",
+                                isBest && "text-success"
+                              )}>
+                                {formatCurrency(option.grandTotal)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <span className={cn(
+                                "font-semibold",
+                                isBest ? "text-success" : "text-primary"
+                              )}>
+                                {formatCurrency(option.grandTotalPerUnit)}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className={cn(
+                                "inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm",
+                                option.estimatedDays <= 3 && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                                option.estimatedDays > 3 && option.estimatedDays <= 7 && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                                option.estimatedDays > 7 && "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                              )}>
+                                <Clock className="h-3.5 w-3.5" />
+                                {option.estimatedDays}d
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => onCopy(option)}
+                              >
+                                {copiedId === option.id ? (
+                                  <Check className="h-4 w-4 text-success" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </TableCell>
+                          </motion.tr>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
 
           {/* Bottom summary */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border flex-wrap gap-4">
