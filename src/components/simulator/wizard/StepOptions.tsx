@@ -1,10 +1,9 @@
 /**
- * StepOptions - Passo 4: Configuração de Opções (Cores, Tamanho, Posições)
+ * StepOptions - Passo 4: Configuração de Opções
  * 
- * Design: Formulário limpo com sliders e feedback visual
+ * Design: Formulário elegante com sliders e feedback visual premium
  */
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +18,8 @@ import {
   AlertTriangle,
   Calculator,
   Loader2,
+  Package,
+  Sparkles,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -42,61 +43,84 @@ export function StepOptions({ wizard }: StepOptionsProps) {
   const maxArea = selectedLocation.maxAreaCm2 || maxWidth * maxHeight;
   const areaExceeded = currentArea > maxArea;
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8">
       {/* Context Summary */}
-      <div className="grid grid-cols-3 gap-4 p-4 rounded-xl bg-muted/50 text-center">
-        <div>
-          <p className="text-xs text-muted-foreground">Produto</p>
-          <p className="font-medium text-sm truncate">{wizard.selectedProduct?.name}</p>
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-muted/60 to-muted/30 border"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Package className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex gap-6 text-sm">
+            <div>
+              <p className="text-muted-foreground text-xs uppercase">Produto</p>
+              <p className="font-semibold truncate max-w-[150px]">{wizard.selectedProduct?.name}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs uppercase">Local</p>
+              <p className="font-semibold">{selectedLocation.locationName}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground text-xs uppercase">Técnica</p>
+              <p className="font-semibold">{selectedTechnique.name}</p>
+            </div>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Local</p>
-          <p className="font-medium text-sm">{selectedLocation.locationName}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground">Técnica</p>
-          <p className="font-medium text-sm">{selectedTechnique.name}</p>
-        </div>
-      </div>
+        <Badge variant="secondary" className="text-sm px-3 py-1">
+          {wizard.quantity} un.
+        </Badge>
+      </motion.div>
 
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Settings className="h-5 w-5 text-primary" />
+      <div className="flex items-center gap-4">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
+          <Settings className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold">Configurar opções</h3>
-          <p className="text-sm text-muted-foreground">Ajuste as especificações da gravação</p>
+          <h3 className="text-xl font-bold">Configurações</h3>
+          <p className="text-muted-foreground">Ajuste as especificações da gravação</p>
         </div>
       </div>
 
-      {/* Options */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Options Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Colors */}
         {selectedTechnique.requiresColorSelection && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-2xl bg-muted/30"
+            className="p-6 rounded-3xl bg-card border shadow-sm"
           >
-            <div className="flex items-center gap-2 mb-4">
-              <Palette className="h-4 w-4 text-primary" />
-              <h4 className="font-medium">Cores</h4>
-              <Badge variant="outline" className="ml-auto text-xs">
-                Máx {maxColors}
-              </Badge>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Palette className="h-5 w-5 text-primary" />
+                </div>
+                <h4 className="font-bold text-lg">Cores</h4>
+              </div>
+              <Badge variant="outline">Máx {maxColors}</Badge>
             </div>
             
             {/* Quick Select */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-5">
               {Array.from({ length: Math.min(6, maxColors) }, (_, i) => i + 1).map(num => (
                 <Button
                   key={num}
                   variant={engravingOptions.colors === num ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => wizard.updateOptions({ colors: num })}
-                  className="w-10 h-10"
+                  className={cn(
+                    'w-11 h-11 rounded-xl text-base',
+                    engravingOptions.colors === num && 'shadow-lg shadow-primary/20'
+                  )}
                 >
                   {num}
                 </Button>
@@ -104,7 +128,7 @@ export function StepOptions({ wizard }: StepOptionsProps) {
             </div>
             
             {/* Slider */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Slider
                 value={[engravingOptions.colors]}
                 min={1}
@@ -113,12 +137,12 @@ export function StepOptions({ wizard }: StepOptionsProps) {
                 onValueChange={([value]) => wizard.updateOptions({ colors: value })}
                 className="py-2"
               />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>1</span>
-                <span className="font-medium text-foreground text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-muted-foreground">1</span>
+                <span className="font-bold text-lg text-primary">
                   {engravingOptions.colors} {engravingOptions.colors === 1 ? 'cor' : 'cores'}
                 </span>
-                <span>{maxColors}</span>
+                <span className="text-xs text-muted-foreground">{maxColors}</span>
               </div>
             </div>
           </motion.div>
@@ -127,27 +151,29 @@ export function StepOptions({ wizard }: StepOptionsProps) {
         {/* Size */}
         {selectedTechnique.requiresSizeSelection && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className={cn(
-              'p-6 rounded-2xl',
-              areaExceeded ? 'bg-warning/10' : 'bg-muted/30'
+              'p-6 rounded-3xl border shadow-sm',
+              areaExceeded ? 'bg-warning/5 border-warning/30' : 'bg-card'
             )}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <Ruler className="h-4 w-4 text-primary" />
-              <h4 className="font-medium">Tamanho</h4>
-              <Badge variant="outline" className="ml-auto text-xs">
-                Máx {maxWidth}×{maxHeight}cm
-              </Badge>
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Ruler className="h-5 w-5 text-primary" />
+                </div>
+                <h4 className="font-bold text-lg">Tamanho</h4>
+              </div>
+              <Badge variant="outline">Máx {maxWidth}×{maxHeight}cm</Badge>
             </div>
 
             {/* Width */}
-            <div className="space-y-2 mb-4">
+            <div className="space-y-3 mb-5">
               <div className="flex justify-between text-sm">
-                <Label>Largura</Label>
-                <span className="font-medium">{engravingOptions.width}cm</span>
+                <Label className="font-medium">Largura</Label>
+                <span className="font-bold text-primary">{engravingOptions.width}cm</span>
               </div>
               <Slider
                 value={[engravingOptions.width]}
@@ -159,10 +185,10 @@ export function StepOptions({ wizard }: StepOptionsProps) {
             </div>
 
             {/* Height */}
-            <div className="space-y-2 mb-4">
+            <div className="space-y-3 mb-5">
               <div className="flex justify-between text-sm">
-                <Label>Altura</Label>
-                <span className="font-medium">{engravingOptions.height}cm</span>
+                <Label className="font-medium">Altura</Label>
+                <span className="font-bold text-primary">{engravingOptions.height}cm</span>
               </div>
               <Slider
                 value={[engravingOptions.height]}
@@ -175,21 +201,21 @@ export function StepOptions({ wizard }: StepOptionsProps) {
 
             {/* Area */}
             <div className={cn(
-              'p-3 rounded-lg border',
-              areaExceeded ? 'bg-warning/10 border-warning' : 'bg-background/50'
+              'p-4 rounded-2xl border transition-colors',
+              areaExceeded ? 'bg-warning/10 border-warning' : 'bg-muted/50'
             )}>
-              <div className="flex items-center justify-between text-sm">
-                <span>Área total</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Área total</span>
                 <div className="flex items-center gap-2">
                   {areaExceeded && <AlertTriangle className="h-4 w-4 text-warning" />}
-                  <span className={cn('font-semibold', areaExceeded && 'text-warning')}>
+                  <span className={cn('font-bold text-lg', areaExceeded && 'text-warning')}>
                     {currentArea.toFixed(1)}cm²
                   </span>
                 </div>
               </div>
               {areaExceeded && (
-                <p className="text-xs text-warning mt-1">
-                  Excede o máximo de {maxArea}cm²
+                <p className="text-xs text-warning mt-2">
+                  ⚠️ Excede o máximo permitido de {maxArea}cm²
                 </p>
               )}
             </div>
@@ -198,22 +224,26 @@ export function StepOptions({ wizard }: StepOptionsProps) {
 
         {/* Positions */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="p-6 rounded-2xl bg-muted/30"
+          className="p-6 rounded-3xl bg-card border shadow-sm"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Layers className="h-4 w-4 text-primary" />
-            <h4 className="font-medium">Posições</h4>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2 rounded-xl bg-primary/10">
+              <Layers className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h4 className="font-bold text-lg">Posições</h4>
+              <p className="text-sm text-muted-foreground">Locais com gravação</p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            Quantidade de locais com gravação
-          </p>
-          <div className="flex items-center gap-3">
+          
+          <div className="flex items-center justify-center gap-4">
             <Button
               variant="outline"
               size="icon"
+              className="h-12 w-12 rounded-xl"
               onClick={() => wizard.updateOptions({ 
                 positions: Math.max(1, engravingOptions.positions - 1) 
               })}
@@ -229,11 +259,12 @@ export function StepOptions({ wizard }: StepOptionsProps) {
               })}
               min={1}
               max={10}
-              className="text-center text-xl font-bold w-20 h-12"
+              className="text-center text-3xl font-bold w-24 h-16 rounded-xl"
             />
             <Button
               variant="outline"
               size="icon"
+              className="h-12 w-12 rounded-xl"
               onClick={() => wizard.updateOptions({ 
                 positions: Math.min(10, engravingOptions.positions + 1) 
               })}
@@ -246,69 +277,77 @@ export function StepOptions({ wizard }: StepOptionsProps) {
 
         {/* Summary Preview */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="p-6 rounded-2xl bg-primary/5 border border-primary/20"
+          className="p-6 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Settings className="h-4 w-4 text-primary" />
-            <h4 className="font-medium">Resumo</h4>
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2 rounded-xl bg-primary text-primary-foreground">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <h4 className="font-bold text-lg">Resumo</h4>
           </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
+          
+          <div className="space-y-3">
+            <div className="flex justify-between py-2 border-b border-primary/10">
               <span className="text-muted-foreground">Técnica</span>
-              <span className="font-medium">{selectedTechnique.name}</span>
+              <span className="font-semibold">{selectedTechnique.name}</span>
             </div>
             {selectedTechnique.requiresColorSelection && (
-              <div className="flex justify-between">
+              <div className="flex justify-between py-2 border-b border-primary/10">
                 <span className="text-muted-foreground">Cores</span>
-                <span className="font-medium">{engravingOptions.colors}</span>
+                <span className="font-semibold">{engravingOptions.colors}</span>
               </div>
             )}
             {selectedTechnique.requiresSizeSelection && (
-              <div className="flex justify-between">
+              <div className="flex justify-between py-2 border-b border-primary/10">
                 <span className="text-muted-foreground">Dimensões</span>
-                <span className="font-medium">{engravingOptions.width}×{engravingOptions.height}cm</span>
+                <span className="font-semibold">{engravingOptions.width}×{engravingOptions.height}cm</span>
               </div>
             )}
-            <div className="flex justify-between">
+            <div className="flex justify-between py-2 border-b border-primary/10">
               <span className="text-muted-foreground">Posições</span>
-              <span className="font-medium">{engravingOptions.positions}</span>
+              <span className="font-semibold">{engravingOptions.positions}</span>
             </div>
-            <div className="flex justify-between pt-2 border-t">
+            <div className="flex justify-between py-2">
               <span className="text-muted-foreground">Quantidade</span>
-              <span className="font-medium">{wizard.quantity} unidades</span>
+              <span className="font-bold text-primary">{wizard.quantity} unidades</span>
             </div>
           </div>
         </motion.div>
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between pt-4">
-        <Button variant="ghost" onClick={wizard.previousStep}>
-          <ChevronLeft className="h-4 w-4 mr-2" />
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="flex justify-between pt-6"
+      >
+        <Button variant="ghost" size="lg" onClick={wizard.previousStep} className="gap-2">
+          <ChevronLeft className="h-5 w-5" />
           Voltar
         </Button>
         <Button
           onClick={wizard.calculateResult}
           disabled={wizard.isCalculating || areaExceeded}
-          className="gap-2 min-w-[180px]"
           size="lg"
+          className="gap-3 min-w-[200px] h-14 rounded-xl shadow-lg shadow-primary/25 text-base"
         >
           {wizard.isCalculating ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-5 w-5 animate-spin" />
               Calculando...
             </>
           ) : (
             <>
-              <Calculator className="h-4 w-4" />
+              <Calculator className="h-5 w-5" />
               Ver Resultado
             </>
           )}
         </Button>
-      </div>
+      </motion.div>
     </div>
   );
 }
