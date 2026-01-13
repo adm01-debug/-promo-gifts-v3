@@ -34,24 +34,31 @@ interface Recommendation {
 export function SmartSuggestion({ techniques, quantity, onSelect }: SmartSuggestionProps) {
   if (techniques.length === 0) return null;
 
+  // Filtrar técnicas que atendem ao minQuantity
+  const eligibleTechniques = techniques.filter(t => 
+    !t.minQuantity || t.minQuantity <= quantity
+  );
+
+  if (eligibleTechniques.length === 0) return null;
+
   // Calcular recomendações baseadas em lógica de negócio
   const getRecommendations = (): Recommendation[] => {
     const recommendations: Recommendation[] = [];
 
-    // Encontrar melhor preço
-    const sortedByPrice = [...techniques].sort((a, b) => {
+    // Encontrar melhor preço (usando técnicas elegíveis)
+    const sortedByPrice = [...eligibleTechniques].sort((a, b) => {
       const totalA = a.unitCost * quantity + a.setupCost;
       const totalB = b.unitCost * quantity + b.setupCost;
       return totalA - totalB;
     });
 
     // Encontrar mais rápido
-    const sortedBySpeed = [...techniques].sort((a, b) => 
+    const sortedBySpeed = [...eligibleTechniques].sort((a, b) => 
       a.estimatedDays - b.estimatedDays
     );
 
     // Melhor custo-benefício (preço × tempo)
-    const sortedByValue = [...techniques].sort((a, b) => {
+    const sortedByValue = [...eligibleTechniques].sort((a, b) => {
       const valueA = (a.unitCost * quantity + a.setupCost) * a.estimatedDays;
       const valueB = (b.unitCost * quantity + b.setupCost) * b.estimatedDays;
       return valueA - valueB;

@@ -206,9 +206,13 @@ export function StepTechnique({ wizard }: StepTechniqueProps) {
                             <span className="text-muted-foreground text-sm"> dias</span>
                           </div>
                         </div>
-                        {technique.minQuantity > 1 && (
-                          <Badge variant="outline" className="text-xs">
+                        {technique.minQuantity && technique.minQuantity > 1 && (
+                          <Badge 
+                            variant={technique.minQuantity > wizard.quantity ? "destructive" : "outline"} 
+                            className="text-xs"
+                          >
                             Mín: {technique.minQuantity} un.
+                            {technique.minQuantity > wizard.quantity && " ⚠️"}
                           </Badge>
                         )}
                       </div>

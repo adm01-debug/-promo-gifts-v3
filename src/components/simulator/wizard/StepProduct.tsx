@@ -48,7 +48,7 @@ export function StepProduct({ wizard }: StepProductProps) {
           sku: p.sku,
           price: getProductPrice(p),
           imageUrl: getProductImageUrl(p),
-          categoryName: p.category_name,
+          categoryName: p.category_id || null, // category_id é o campo correto do Promobrind
           brand: p.brand || null,
         }));
     },
