@@ -1,28 +1,22 @@
 // src/components/simulator/ProductQuantityCard.tsx
-// Card compacto para seleção de produto e quantidade
+// Card inteligente para seleção de produto e quantidade com busca avançada
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Package, Info, Loader2, TrendingUp } from "lucide-react";
+import { Package, Info, TrendingUp, TrendingDown, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatCurrency } from "@/hooks/useSimulation";
+import { SmartProductSearch } from "./SmartProductSearch";
 import type { Product } from "@/types/simulation";
 
 interface ProductQuantityCardProps {
@@ -53,12 +47,42 @@ export function ProductQuantityCard({
   selectedProduct,
   effectiveProductPrice,
 }: ProductQuantityCardProps) {
-  const showPriceOverride = useMemo(() => {
-    return selectedProduct && effectiveProductPrice !== selectedProduct.price;
-  }, [selectedProduct, effectiveProductPrice]);
+  // Toggle para usar preço negociado
+  const [useNegotiatedPrice, setUseNegotiatedPrice] = useState(false);
+
+  // Controlar quando mostrar o input de preço customizado
+  const showPriceInput = useNegotiatedPrice && selectedProduct;
+  
+  // Verificar se está usando preço diferente do base
+  const hasCustomPrice = useMemo(() => {
+    if (!selectedProduct) return false;
+    const custom = parseFloat(customProductPrice);
+    return !isNaN(custom) && custom > 0 && custom !== selectedProduct.price;
+  }, [customProductPrice, selectedProduct]);
+
+  // Calcular diferença de preço
+  const priceDifference = useMemo(() => {
+    if (!selectedProduct || !hasCustomPrice) return null;
+    const custom = parseFloat(customProductPrice);
+    const diff = custom - selectedProduct.price;
+    const percent = ((diff / selectedProduct.price) * 100).toFixed(1);
+    return {
+      value: diff,
+      percent,
+      isHigher: diff > 0,
+    };
+  }, [customProductPrice, selectedProduct, hasCustomPrice]);
+
+  // Quando toggle muda, resetar preço se desligar
+  const handleToggleChange = (checked: boolean) => {
+    setUseNegotiatedPrice(checked);
+    if (!checked) {
+      onCustomPriceChange("");
+    }
+  };
 
   return (
-    <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+    <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent overflow-hidden">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg flex items-center gap-2">
           <div className="p-2 rounded-lg bg-primary/10">
@@ -68,37 +92,21 @@ export function ProductQuantityCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
-        {/* Product Selection */}
+        {/* Smart Product Search */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Produto</Label>
-          <Select value={selectedProductId || ""} onValueChange={onProductChange}>
-            <SelectTrigger className="h-12 text-base">
-              <SelectValue placeholder="Escolher produto..." />
-            </SelectTrigger>
-            <SelectContent className="max-h-80">
-              {productsLoading ? (
-                <div className="p-4 flex justify-center">
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                </div>
-              ) : (
-                products?.map(product => (
-                  <SelectItem key={product.id} value={product.id} className="py-3">
-                    <div className="flex items-center justify-between gap-4 w-full">
-                      <div>
-                        <span className="font-medium">{product.name}</span>
-                        <span className="text-xs text-muted-foreground ml-2">
-                          ({product.sku})
-                        </span>
-                      </div>
-                      <Badge variant="secondary" className="font-mono">
-                        {formatCurrency(product.price)}
-                      </Badge>
-                    </div>
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
+          <Label className="text-sm font-medium flex items-center gap-2">
+            Produto
+            <Badge variant="outline" className="text-xs font-normal gap-1">
+              <Sparkles className="h-3 w-3" />
+              Busca inteligente
+            </Badge>
+          </Label>
+          <SmartProductSearch
+            products={products}
+            productsLoading={productsLoading}
+            selectedProduct={selectedProduct}
+            onSelect={onProductChange}
+          />
         </div>
 
         {/* Quantity with Quick Selectors */}
@@ -143,38 +151,97 @@ export function ProductQuantityCard({
           </motion.div>
         </div>
 
-        {/* Custom Price Override */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2 text-sm font-medium">
-            Preço unitário
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-xs">
-                  <p className="text-xs">
-                    Use o preço base do produto ou informe um valor negociado especial
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </Label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
-              R$
-            </span>
-            <Input
-              type="number"
-              min={0}
-              step="0.01"
-              value={customProductPrice}
-              onChange={(e) => onCustomPriceChange(e.target.value)}
-              placeholder={selectedProduct?.price?.toFixed(2) || "0.00"}
-              className="pl-10 h-12 text-lg font-mono"
-            />
-          </div>
-        </div>
+        {/* Negotiated Price Toggle */}
+        <AnimatePresence mode="wait">
+          {selectedProduct && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-3"
+            >
+              {/* Toggle */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/50">
+                <div className="flex items-center gap-2">
+                  <Label 
+                    htmlFor="negotiated-price" 
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Usar preço negociado
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-xs">
+                        <p className="text-xs">
+                          Ative para informar um preço especial acordado com o fornecedor, 
+                          diferente do preço de tabela
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Switch
+                  id="negotiated-price"
+                  checked={useNegotiatedPrice}
+                  onCheckedChange={handleToggleChange}
+                />
+              </div>
+
+              {/* Custom Price Input - Conditional */}
+              <AnimatePresence mode="wait">
+                {showPriceInput && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, y: -10, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-2"
+                  >
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      Preço negociado
+                      {priceDifference && (
+                        <Badge 
+                          variant={priceDifference.isHigher ? "destructive" : "default"}
+                          className="text-xs gap-1"
+                        >
+                          {priceDifference.isHigher ? (
+                            <TrendingUp className="h-3 w-3" />
+                          ) : (
+                            <TrendingDown className="h-3 w-3" />
+                          )}
+                          {priceDifference.isHigher ? '+' : ''}{priceDifference.percent}%
+                        </Badge>
+                      )}
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
+                        R$
+                      </span>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={customProductPrice}
+                        onChange={(e) => onCustomPriceChange(e.target.value)}
+                        placeholder={selectedProduct.price.toFixed(2)}
+                        className="pl-10 h-12 text-lg font-mono"
+                        autoFocus
+                      />
+                    </div>
+                    {selectedProduct && (
+                      <p className="text-xs text-muted-foreground">
+                        Preço base: {formatCurrency(selectedProduct.price)}/un
+                      </p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Product Summary */}
         <AnimatePresence mode="wait">
@@ -186,11 +253,27 @@ export function ProductQuantityCard({
               className="p-4 rounded-xl bg-card border-2 border-dashed border-primary/30"
             >
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-semibold text-lg">{selectedProduct.name}</p>
-                  <p className="text-sm text-muted-foreground">SKU: {selectedProduct.sku}</p>
+                <div className="flex items-center gap-3">
+                  {/* Product Image Thumbnail */}
+                  <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
+                    {selectedProduct.image_url ? (
+                      <img 
+                        src={selectedProduct.image_url} 
+                        alt={selectedProduct.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm line-clamp-1">{selectedProduct.name}</p>
+                    <p className="text-xs text-muted-foreground">SKU: {selectedProduct.sku}</p>
+                  </div>
                 </div>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs shrink-0">
                   {quantity} un
                 </Badge>
               </div>
@@ -198,11 +281,11 @@ export function ProductQuantityCard({
               <div className="mt-3 pt-3 border-t border-border/50 grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Preço base</p>
-                  <p className="font-mono font-medium">
+                  <p className={`font-mono font-medium ${hasCustomPrice ? 'line-through text-muted-foreground text-sm' : ''}`}>
                     {formatCurrency(selectedProduct.price)}/un
                   </p>
                 </div>
-                {showPriceOverride && (
+                {hasCustomPrice && (
                   <div>
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <TrendingUp className="h-3 w-3" />
