@@ -1,7 +1,7 @@
 /**
- * WizardStepIndicator - Indicador visual dos passos do wizard
+ * WizardStepIndicator - Indicador visual minimalista dos passos
  * 
- * Mostra progresso e permite navegação entre passos completados
+ * Design: Clean, compacto, com feedback visual sutil
  */
 
 import { motion } from 'framer-motion';
@@ -11,7 +11,6 @@ import {
   WIZARD_STEPS, 
   WIZARD_STEP_CONFIG,
   type WizardStep,
-  getStepIndex,
 } from '@/types/domain/simulator-wizard';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 
@@ -28,27 +27,32 @@ const STEP_ICONS: Record<WizardStep, React.ElementType> = {
 };
 
 export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
-  const currentIndex = getStepIndex(wizard.currentStep);
+  const currentIndex = WIZARD_STEPS.indexOf(wizard.currentStep);
   
   return (
-    <div className="w-full">
-      {/* Progress bar */}
-      <div className="relative mb-2">
-        <div className="h-1 bg-muted rounded-full overflow-hidden">
+    <div className="w-full max-w-3xl mx-auto">
+      {/* Mobile: Compact pills */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-medium">
+            Passo {currentIndex + 1} de {WIZARD_STEPS.length}
+          </span>
+          <span className="text-sm text-muted-foreground">
+            {WIZARD_STEP_CONFIG[wizard.currentStep].shortLabel}
+          </span>
+        </div>
+        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-primary to-primary/80"
+            className="h-full bg-primary rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${wizard.stepProgress}%` }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
           />
         </div>
-        <span className="absolute right-0 top-2 text-xs text-muted-foreground">
-          {Math.round(wizard.stepProgress)}%
-        </span>
       </div>
 
-      {/* Steps */}
-      <div className="flex items-stretch gap-2 mt-4">
+      {/* Desktop: Horizontal steps */}
+      <div className="hidden sm:flex items-center justify-between">
         {WIZARD_STEPS.map((step, idx) => {
           const config = WIZARD_STEP_CONFIG[step];
           const Icon = STEP_ICONS[step];
@@ -58,60 +62,60 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
           const isPast = idx < currentIndex;
 
           return (
-            <motion.button
-              key={step}
-              onClick={() => isClickable && wizard.setStep(step)}
-              disabled={!isClickable}
-              className={cn(
-                'flex-1 relative rounded-xl p-3 transition-all',
-                'border-2 flex flex-col items-start gap-2',
-                isCurrent && 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20',
-                isCompleted && !isCurrent && 'border-success/50 bg-success/5',
-                !isCurrent && !isCompleted && 'border-border bg-card',
-                isClickable && !isCurrent && 'hover:border-primary/50 hover:bg-muted/50 cursor-pointer',
-                !isClickable && 'opacity-50 cursor-not-allowed'
-              )}
-              whileHover={isClickable && !isCurrent ? { scale: 1.02 } : undefined}
-              whileTap={isClickable && !isCurrent ? { scale: 0.98 } : undefined}
-            >
-              {/* Icon */}
-              <div className={cn(
-                'w-10 h-10 rounded-lg flex items-center justify-center',
-                isCurrent && 'bg-primary text-primary-foreground',
-                isCompleted && !isCurrent && 'bg-success text-success-foreground',
-                !isCurrent && !isCompleted && 'bg-muted text-muted-foreground'
-              )}>
-                {isCompleted && !isCurrent ? (
-                  <Check className="h-5 w-5" />
-                ) : (
-                  <Icon className="h-5 w-5" />
+            <div key={step} className="flex items-center flex-1">
+              <motion.button
+                onClick={() => isClickable && wizard.setStep(step)}
+                disabled={!isClickable}
+                className={cn(
+                  'flex items-center gap-3 rounded-xl px-4 py-3 transition-all w-full',
+                  isCurrent && 'bg-primary/10',
+                  isClickable && !isCurrent && 'hover:bg-muted/80 cursor-pointer',
+                  !isClickable && 'cursor-not-allowed opacity-50'
                 )}
-              </div>
-
-              {/* Text */}
-              <div className="text-left">
-                <p className={cn(
-                  'text-[10px] font-medium uppercase tracking-wider',
-                  isCurrent ? 'text-primary' : 'text-muted-foreground'
-                )}>
-                  Passo {idx + 1}
-                </p>
-                <p className={cn(
-                  'text-sm font-semibold line-clamp-1',
-                  isCurrent ? 'text-foreground' : 'text-muted-foreground'
-                )}>
-                  {config.shortLabel}
-                </p>
-              </div>
-
-              {/* Connector line */}
-              {idx < WIZARD_STEPS.length - 1 && (
+                whileHover={isClickable && !isCurrent ? { scale: 1.02 } : undefined}
+                whileTap={isClickable && !isCurrent ? { scale: 0.98 } : undefined}
+              >
+                {/* Icon Circle */}
                 <div className={cn(
-                  'absolute -right-3 top-1/2 w-4 h-0.5 z-10',
-                  isPast ? 'bg-success' : 'bg-border'
-                )} />
+                  'w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0',
+                  isCurrent && 'bg-primary text-primary-foreground shadow-lg shadow-primary/25',
+                  isCompleted && !isCurrent && 'bg-success/15 text-success',
+                  !isCurrent && !isCompleted && 'bg-muted text-muted-foreground'
+                )}>
+                  {isCompleted && !isCurrent ? (
+                    <Check className="h-5 w-5" />
+                  ) : (
+                    <Icon className="h-5 w-5" />
+                  )}
+                </div>
+
+                {/* Label */}
+                <div className="text-left min-w-0">
+                  <p className={cn(
+                    'text-xs uppercase tracking-wide',
+                    isCurrent ? 'text-primary font-medium' : 'text-muted-foreground'
+                  )}>
+                    Passo {idx + 1}
+                  </p>
+                  <p className={cn(
+                    'text-sm font-semibold truncate',
+                    isCurrent ? 'text-foreground' : 'text-muted-foreground'
+                  )}>
+                    {config.shortLabel}
+                  </p>
+                </div>
+              </motion.button>
+
+              {/* Connector Line */}
+              {idx < WIZARD_STEPS.length - 1 && (
+                <div className="flex-1 px-2 hidden lg:block">
+                  <div className={cn(
+                    'h-0.5 rounded-full transition-colors',
+                    isPast ? 'bg-success' : 'bg-border'
+                  )} />
+                </div>
               )}
-            </motion.button>
+            </div>
           );
         })}
       </div>
