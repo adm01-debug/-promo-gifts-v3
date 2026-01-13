@@ -3,6 +3,7 @@ export * from './types';
 export * from './utils';
 export { StepIndicator } from './StepIndicator';
 export { ProductSearch } from './ProductSearch';
+export { ProductVariantSelector, type ProductVariant } from './ProductVariantSelector';
 export { TechniqueSelector } from './TechniqueSelector';
 export { CustomizationOptions } from './CustomizationOptions';
 export { QuantityAndResult } from './QuantityAndResult';

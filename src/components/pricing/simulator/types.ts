@@ -1,5 +1,12 @@
 // Tipos compartilhados para o Simulador de Preços
 
+export interface ProductColor {
+  code: string;
+  name: string;
+  hex?: string;
+  stock?: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -9,6 +16,7 @@ export interface Product {
   category_name: string | null;
   supplier_reference?: string | null;
   brand?: string | null;
+  colors?: ProductColor[];
 }
 
 export interface ProductTechnique {
