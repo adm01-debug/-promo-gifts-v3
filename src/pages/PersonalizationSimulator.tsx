@@ -113,8 +113,8 @@ export default function PersonalizationSimulator() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="simulator">
-            {/* Step Indicator */}
+          <TabsContent value="simulator" className="space-y-6">
+            {/* Step Indicator - Mais proeminente */}
             <SimulatorStepIndicator
               currentStep={sim.currentStep}
               onStepClick={sim.setCurrentStep}
@@ -123,9 +123,10 @@ export default function PersonalizationSimulator() {
               hasResults={sim.simulationOptions.length > 0}
             />
 
-            <div className="grid lg:grid-cols-3 gap-6">
-              {/* Left Panel - Product & Quantity */}
-              <div className="lg:col-span-1 space-y-6">
+            {/* Layout Responsivo Adaptativo */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+              {/* Left Panel - Product & Quantity (full width on mobile) */}
+              <div className="lg:col-span-1 space-y-4 lg:space-y-6 order-1">
                 <ProductQuantityCard
                   products={sim.products}
                   productsLoading={sim.productsLoading}
@@ -140,8 +141,9 @@ export default function PersonalizationSimulator() {
                 />
               </div>
 
-              {/* Right Panel - Techniques & Results */}
-              <div className="lg:col-span-2 space-y-6">
+              {/* Right Panel - Techniques & Results (stack on mobile) */}
+              <div className="lg:col-span-2 space-y-4 lg:space-y-6 order-2">
+                {/* Techniques - Collapsible summary on mobile when has results */}
                 <TechniqueSelectionCard
                   techniques={sim.techniques}
                   techniquesLoading={sim.techniquesLoading}
@@ -155,7 +157,7 @@ export default function PersonalizationSimulator() {
                   getPricingInfo={sim.getPricingInfo}
                 />
 
-                {/* Results */}
+                {/* Results - Full width and prominent */}
                 <SimulationResultsCard
                   simulationOptions={sim.simulationOptions}
                   selectedProduct={sim.selectedProduct}
@@ -169,7 +171,7 @@ export default function PersonalizationSimulator() {
                   onSave={() => sim.setSaveDialogOpen(true)}
                 />
 
-                {/* Upsell Suggestion */}
+                {/* Upsell Suggestion - Contextual */}
                 {sim.simulationOptions.length > 0 && (
                   <UpsellSuggestion
                     currentQuantity={sim.quantity}
@@ -181,7 +183,7 @@ export default function PersonalizationSimulator() {
                   />
                 )}
 
-                {/* Scenario Comparison */}
+                {/* Scenario Comparison - Advanced feature */}
                 <ScenarioComparison
                   scenarioA={sim.scenarioA}
                   scenarioB={sim.scenarioB}
@@ -195,18 +197,18 @@ export default function PersonalizationSimulator() {
                   onClearScenario={sim.clearScenario}
                 />
 
-                {/* Empty State */}
+                {/* Empty State - More engaging */}
                 {sim.selectedTechniques.length === 0 && (
-                  <Card className="border-dashed">
-                    <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
-                        <Calculator className="h-8 w-8 text-muted-foreground" />
+                  <Card className="border-dashed border-2 border-muted-foreground/20">
+                    <CardContent className="flex flex-col items-center justify-center py-12 md:py-16 text-center px-4">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mb-4">
+                        <Calculator className="h-8 w-8 text-primary" />
                       </div>
                       <h3 className="font-display text-lg font-semibold mb-2">
                         Selecione técnicas para simular
                       </h3>
                       <p className="text-muted-foreground text-sm max-w-sm">
-                        Escolha um produto e as técnicas de personalização que deseja comparar para ver os custos em tempo real.
+                        Escolha um produto acima e as técnicas de personalização que deseja comparar.
                       </p>
                     </CardContent>
                   </Card>
