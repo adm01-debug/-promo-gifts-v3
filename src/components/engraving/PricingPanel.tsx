@@ -3,7 +3,6 @@ import Fuse from "fuse.js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Select,
@@ -21,142 +20,55 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
-import { DollarSign, Plus, Pencil, Trash2, Loader2, Search, Info } from "lucide-react";
-import { toast } from "sonner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-
-// Mock data
-const mockTechniques = [
-  { id: "1", code: "SERI", name: "Serigrafia" },
-  { id: "2", code: "LASER", name: "Gravação a Laser" },
-  { id: "3", code: "TAMP", name: "Tampografia" },
-  { id: "4", code: "BORDO", name: "Bordado" },
-  { id: "5", code: "SUBLI", name: "Sublimação" },
-];
-
-const mockPricingRules = [
-  {
-    id: "1",
-    techniqueId: "1",
-    techniqueName: "Serigrafia",
-    techniqueCode: "SERI",
-    colorCount: 1,
-    minQuantity: 50,
-    maxQuantity: 100,
-    setupCost: 80.00,
-    unitCost: 1.50,
-  },
-  {
-    id: "2",
-    techniqueId: "1",
-    techniqueName: "Serigrafia",
-    techniqueCode: "SERI",
-    colorCount: 1,
-    minQuantity: 101,
-    maxQuantity: 500,
-    setupCost: 80.00,
-    unitCost: 1.00,
-  },
-  {
-    id: "3",
-    techniqueId: "1",
-    techniqueName: "Serigrafia",
-    techniqueCode: "SERI",
-    colorCount: 2,
-    minQuantity: 50,
-    maxQuantity: 100,
-    setupCost: 140.00,
-    unitCost: 2.20,
-  },
-  {
-    id: "4",
-    techniqueId: "2",
-    techniqueName: "Gravação a Laser",
-    techniqueCode: "LASER",
-    colorCount: 1,
-    minQuantity: 10,
-    maxQuantity: 50,
-    setupCost: 50.00,
-    unitCost: 3.00,
-  },
-  {
-    id: "5",
-    techniqueId: "2",
-    techniqueName: "Gravação a Laser",
-    techniqueCode: "LASER",
-    colorCount: 1,
-    minQuantity: 51,
-    maxQuantity: 200,
-    setupCost: 50.00,
-    unitCost: 2.00,
-  },
-  {
-    id: "6",
-    techniqueId: "3",
-    techniqueName: "Tampografia",
-    techniqueCode: "TAMP",
-    colorCount: 1,
-    minQuantity: 100,
-    maxQuantity: 500,
-    setupCost: 60.00,
-    unitCost: 0.80,
-  },
-];
-
-interface PricingRule {
-  id: string;
-  techniqueId: string;
-  techniqueName: string;
-  techniqueCode: string;
-  colorCount: number;
-  minQuantity: number;
-  maxQuantity: number;
-  setupCost: number;
-  unitCost: number;
-}
-
-interface PricingFormData {
-  techniqueId: string;
-  colorCount: string;
-  minQuantity: string;
-  maxQuantity: string;
-  setupCost: string;
-  unitCost: string;
-}
-
-const initialFormData: PricingFormData = {
-  techniqueId: "",
-  colorCount: "1",
-  minQuantity: "1",
-  maxQuantity: "100",
-  setupCost: "0",
-  unitCost: "0",
-};
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { 
+  DollarSign, 
+  Loader2, 
+  Search, 
+  RotateCcw,
+  AlertCircle,
+  ChevronDown,
+  ChevronRight,
+  Palette,
+  Ruler,
+  Hash,
+  Clock,
+  Info
+} from "lucide-react";
+import { useTabelasPreco, useNomesTecnicasPreco, calcularPreco } from "@/hooks/useTecnicasUnificadas";
+import type { TabelaPrecoTecnica, TabelaPrecoFiltros } from "@/types/tecnica-unificada";
 
 export function PricingPanel() {
-  const [pricingRules, setPricingRules] = useState<PricingRule[]>(mockPricingRules);
-  const [techniques] = useState(mockTechniques);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterTechnique, setFilterTechnique] = useState<string>("all");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
-  const [formData, setFormData] = useState<PricingFormData>(initialFormData);
+  const [filterTecnica, setFilterTecnica] = useState<string>("all");
+  const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
+  const [simuladorQtd, setSimuladorQtd] = useState<Record<string, number>>({});
+
+  // Construir filtros
+  const filtros: TabelaPrecoFiltros = useMemo(() => {
+    const f: TabelaPrecoFiltros = { apenasAtivas: true };
+    if (filterTecnica !== "all") f.nomeTecnica = filterTecnica;
+    return f;
+  }, [filterTecnica]);
+
+  const { data: tabelas = [], isLoading, isError, error, refetch } = useTabelasPreco(filtros);
+  const { data: nomesTecnicas = [] } = useNomesTecnicasPreco();
 
   // Fuse.js para busca fuzzy
-  const pricingFuse = useMemo(() => {
-    return new Fuse(pricingRules, {
+  const tabelasFuse = useMemo(() => {
+    return new Fuse(tabelas, {
       keys: [
-        { name: 'techniqueName', weight: 0.5 },
-        { name: 'techniqueCode', weight: 0.5 },
+        { name: 'nomeTecnica', weight: 0.5 },
+        { name: 'codigoTabela', weight: 0.3 },
+        { name: 'codigoTabelaOpcao', weight: 0.2 },
       ],
       threshold: 0.4,
       distance: 100,
@@ -164,88 +76,43 @@ export function PricingPanel() {
       minMatchCharLength: 2,
       ignoreLocation: true,
     });
-  }, [pricingRules]);
+  }, [tabelas]);
 
-  const filteredRules = useMemo(() => {
-    let results = pricingRules;
+  // Agrupar tabelas por técnica
+  const tabelasAgrupadas = useMemo(() => {
+    let results = tabelas;
     
-    // Aplicar busca fuzzy se houver query
+    // Aplicar busca fuzzy
     if (searchQuery && searchQuery.length >= 2) {
-      const fuseResults = pricingFuse.search(searchQuery);
+      const fuseResults = tabelasFuse.search(searchQuery);
       results = fuseResults.map((r) => r.item);
     }
     
-    // Aplicar filtro de técnica
-    if (filterTechnique !== "all") {
-      results = results.filter((rule) => rule.techniqueId === filterTechnique);
-    }
+    // Agrupar por nome da técnica
+    const grupos: Record<string, TabelaPrecoTecnica[]> = {};
+    results.forEach((tabela) => {
+      if (!grupos[tabela.nomeTecnica]) {
+        grupos[tabela.nomeTecnica] = [];
+      }
+      grupos[tabela.nomeTecnica].push(tabela);
+    });
     
-    return results;
-  }, [pricingRules, searchQuery, filterTechnique, pricingFuse]);
-
-  const handleOpenDialog = (rule?: PricingRule) => {
-    if (rule) {
-      setEditingRule(rule);
-      setFormData({
-        techniqueId: rule.techniqueId,
-        colorCount: rule.colorCount.toString(),
-        minQuantity: rule.minQuantity.toString(),
-        maxQuantity: rule.maxQuantity.toString(),
-        setupCost: rule.setupCost.toString(),
-        unitCost: rule.unitCost.toString(),
-      });
-    } else {
-      setEditingRule(null);
-      setFormData(initialFormData);
-    }
-    setIsDialogOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!formData.techniqueId) {
-      toast.error("Selecione uma técnica");
-      return;
-    }
-
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const technique = techniques.find((t) => t.id === formData.techniqueId);
+    // Ordenar cada grupo por maxCores
+    Object.keys(grupos).forEach((key) => {
+      grupos[key].sort((a, b) => (a.maxCores ?? 0) - (b.maxCores ?? 0));
+    });
     
-    const newRule: PricingRule = {
-      id: editingRule?.id || Date.now().toString(),
-      techniqueId: formData.techniqueId,
-      techniqueName: technique?.name || "",
-      techniqueCode: technique?.code || "",
-      colorCount: parseInt(formData.colorCount) || 1,
-      minQuantity: parseInt(formData.minQuantity) || 1,
-      maxQuantity: parseInt(formData.maxQuantity) || 100,
-      setupCost: parseFloat(formData.setupCost) || 0,
-      unitCost: parseFloat(formData.unitCost) || 0,
-    };
+    return grupos;
+  }, [tabelas, searchQuery, tabelasFuse]);
 
-    if (editingRule) {
-      setPricingRules((prev) =>
-        prev.map((r) => (r.id === editingRule.id ? newRule : r))
-      );
-      toast.success("Regra de preço atualizada!");
+  const toggleExpand = (tecnicaNome: string) => {
+    const newExpanded = new Set(expandedTables);
+    if (newExpanded.has(tecnicaNome)) {
+      newExpanded.delete(tecnicaNome);
     } else {
-      setPricingRules((prev) => [...prev, newRule]);
-      toast.success("Regra de preço cadastrada!");
+      newExpanded.add(tecnicaNome);
     }
-
-    setIsLoading(false);
-    setIsDialogOpen(false);
-    setFormData(initialFormData);
-    setEditingRule(null);
-  };
-
-  const handleDelete = async (id: string) => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setPricingRules((prev) => prev.filter((r) => r.id !== id));
-    toast.success("Regra de preço removida!");
-    setIsLoading(false);
+    setExpandedTables(newExpanded);
   };
 
   const formatCurrency = (value: number) => {
@@ -255,6 +122,29 @@ export function PricingPanel() {
     }).format(value);
   };
 
+  const getSimulacao = (tabela: TabelaPrecoTecnica) => {
+    const qtd = simuladorQtd[tabela.id] || 100;
+    return calcularPreco(tabela, qtd);
+  };
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <AlertCircle className="h-12 w-12 text-destructive mb-4" />
+          <p className="text-lg font-medium text-destructive mb-2">Erro ao carregar tabelas</p>
+          <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
+            {error?.message || 'Não foi possível conectar ao banco de dados.'}
+          </p>
+          <Button onClick={() => refetch()} variant="outline">
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -262,254 +152,228 @@ export function PricingPanel() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-primary" />
-              Tabela de Preços
+              Tabelas de Preços
             </CardTitle>
             <CardDescription>
-              Configure os valores de gravação por técnica, cores e quantidade
+              {isLoading ? "Carregando..." : `${tabelas.length} tabelas de preço do banco externo`}
             </CardDescription>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Regra
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingRule ? "Editar Regra de Preço" : "Nova Regra de Preço"}
-                </DialogTitle>
-                <DialogDescription>
-                  Defina os valores para uma faixa de quantidade
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Técnica *</Label>
-                  <Select
-                    value={formData.techniqueId}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, techniqueId: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a técnica" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {techniques
-                        .filter((technique) => technique.id && technique.id.trim() !== '')
-                        .map((technique) => (
-                          <SelectItem key={technique.id} value={technique.id}>
-                            {technique.name} ({technique.code})
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="colorCount">Número de Cores</Label>
-                  <Input
-                    id="colorCount"
-                    type="number"
-                    min="1"
-                    value={formData.colorCount}
-                    onChange={(e) =>
-                      setFormData({ ...formData, colorCount: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="minQuantity">Qtd. Mínima</Label>
-                    <Input
-                      id="minQuantity"
-                      type="number"
-                      min="1"
-                      value={formData.minQuantity}
-                      onChange={(e) =>
-                        setFormData({ ...formData, minQuantity: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="maxQuantity">Qtd. Máxima</Label>
-                    <Input
-                      id="maxQuantity"
-                      type="number"
-                      min="1"
-                      value={formData.maxQuantity}
-                      onChange={(e) =>
-                        setFormData({ ...formData, maxQuantity: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="setupCost">Custo de Setup</Label>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Valor cobrado uma vez por pedido para preparação
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <Input
-                      id="setupCost"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="R$ 0,00"
-                      value={formData.setupCost}
-                      onChange={(e) =>
-                        setFormData({ ...formData, setupCost: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="unitCost">Custo Unitário</Label>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-3 w-3 text-muted-foreground" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Valor cobrado por unidade gravada
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <Input
-                      id="unitCost"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="R$ 0,00"
-                      value={formData.unitCost}
-                      onChange={(e) =>
-                        setFormData({ ...formData, unitCost: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  disabled={isLoading}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={handleSave} disabled={isLoading}>
-                  {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {editingRule ? "Salvar Alterações" : "Cadastrar"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => refetch()} variant="outline" size="sm" disabled={isLoading}>
+            <RotateCcw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+            Atualizar
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        {/* Filtros */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar..."
+              placeholder="Buscar tabelas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
             />
           </div>
-          <Select value={filterTechnique} onValueChange={setFilterTechnique}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+          <Select value={filterTecnica} onValueChange={setFilterTecnica}>
+            <SelectTrigger className="w-full sm:w-[220px]">
               <SelectValue placeholder="Filtrar por técnica" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as técnicas</SelectItem>
-              {techniques
-                .filter((technique) => technique.id && technique.id.trim() !== '')
-                .map((technique) => (
-                  <SelectItem key={technique.id} value={technique.id}>
-                    {technique.name}
-                  </SelectItem>
-                ))}
+              {nomesTecnicas.map((nome) => (
+                <SelectItem key={nome} value={nome}>
+                  {nome}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Técnica</TableHead>
-                <TableHead className="text-center">Cores</TableHead>
-                <TableHead className="text-center">Faixa Qtd.</TableHead>
-                <TableHead className="text-right">Setup</TableHead>
-                <TableHead className="text-right">Unitário</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRules.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                    Nenhuma regra de preço encontrada
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredRules.map((rule) => (
-                  <TableRow key={rule.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-mono">
-                          {rule.techniqueCode}
-                        </Badge>
-                        <span className="font-medium">{rule.techniqueName}</span>
+        {/* Lista de Tabelas Agrupadas */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground mt-2">Carregando tabelas de preço...</p>
+          </div>
+        ) : Object.keys(tabelasAgrupadas).length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            Nenhuma tabela de preço encontrada
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {Object.entries(tabelasAgrupadas).map(([tecnicaNome, tabelasGrupo]) => (
+              <Collapsible
+                key={tecnicaNome}
+                open={expandedTables.has(tecnicaNome)}
+                onOpenChange={() => toggleExpand(tecnicaNome)}
+              >
+                <CollapsibleTrigger asChild>
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-3">
+                      {expandedTables.has(tecnicaNome) ? (
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                      )}
+                      <div>
+                        <h3 className="font-semibold">{tecnicaNome}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {tabelasGrupo.length} tabela{tabelasGrupo.length > 1 ? 's' : ''} de preço
+                        </p>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="secondary">{rule.colorCount}</Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {rule.minQuantity} - {rule.maxQuantity}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {formatCurrency(rule.setupCost)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {formatCurrency(rule.unitCost)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenDialog(rule)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(rule.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {tabelasGrupo[0]?.precoPorCor && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Palette className="h-4 w-4 text-primary" />
+                          </TooltipTrigger>
+                          <TooltipContent>Cobra por cor</TooltipContent>
+                        </Tooltip>
+                      )}
+                      {tabelasGrupo[0]?.precoPorArea && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Ruler className="h-4 w-4 text-amber-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>Cobra por área</TooltipContent>
+                        </Tooltip>
+                      )}
+                      {tabelasGrupo[0]?.precoPorPontos && (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Hash className="h-4 w-4 text-purple-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>Cobra por pontos</TooltipContent>
+                        </Tooltip>
+                      )}
+                      <Badge variant="secondary">
+                        {tabelasGrupo.length} {tabelasGrupo.length > 1 ? 'variações' : 'variação'}
+                      </Badge>
+                    </div>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 rounded-md border overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-muted/50">
+                          <TableHead className="w-[140px]">Código</TableHead>
+                          <TableHead className="text-center">Cores</TableHead>
+                          <TableHead className="text-center">Dimensões</TableHead>
+                          <TableHead className="text-right">Setup</TableHead>
+                          <TableHead className="text-center">Faixas Qty</TableHead>
+                          <TableHead className="text-right">Preço (100 un)</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {tabelasGrupo.map((tabela) => {
+                          const simulacao = getSimulacao(tabela);
+                          return (
+                            <TableRow key={tabela.id}>
+                              <TableCell>
+                                <div className="flex flex-col">
+                                  <Badge variant="outline" className="font-mono text-xs w-fit">
+                                    {tabela.codigoTabelaOpcao}
+                                  </Badge>
+                                  {tabela.codigoServico && (
+                                    <span className="text-xs text-muted-foreground mt-1">
+                                      Serv: {tabela.codigoServico}
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {tabela.maxCores ? (
+                                  <Badge variant="secondary">{tabela.maxCores}</Badge>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                {tabela.larguraMaxCm && tabela.alturaMaxCm ? (
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <span className="text-sm">
+                                        {tabela.larguraMaxCm}×{tabela.alturaMaxCm}cm
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      Área máxima: {tabela.larguraMaxCm}cm × {tabela.alturaMaxCm}cm
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right font-mono">
+                                {tabela.precoSetup > 0 ? formatCurrency(tabela.precoSetup) : "-"}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <Badge variant="outline" className="text-xs">
+                                      {tabela.faixas.length} faixas
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="max-w-xs">
+                                    <div className="text-xs space-y-1">
+                                      {tabela.faixas.slice(0, 5).map((f) => (
+                                        <div key={f.faixa} className="flex justify-between gap-4">
+                                          <span>≥ {f.quantidadeMinima} un:</span>
+                                          <span className="font-mono">{formatCurrency(f.precoUnitario)}</span>
+                                        </div>
+                                      ))}
+                                      {tabela.faixas.length > 5 && (
+                                        <div className="text-muted-foreground">
+                                          +{tabela.faixas.length - 5} faixas...
+                                        </div>
+                                      )}
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex flex-col items-end">
+                                  <span className="font-mono font-semibold text-primary">
+                                    {formatCurrency(simulacao.precoUnitario)}/un
+                                  </span>
+                                  {simulacao.slaDias && (
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      <Clock className="h-3 w-3" />
+                                      {simulacao.slaDias}d
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </div>
+        )}
+
+        {/* Legenda e Info */}
+        <div className="mt-6 p-4 rounded-lg bg-muted/50 border">
+          <div className="flex items-start gap-2">
+            <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">Sobre as tabelas de preço</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Os preços são importados da API do fornecedor (Stricker/Spot)</li>
+                <li>Cada tabela possui 15 faixas de quantidade com preços escalonados</li>
+                <li>O preço exibido é para 100 unidades como referência</li>
+                <li>Setup é cobrado uma vez por pedido, independente da quantidade</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
