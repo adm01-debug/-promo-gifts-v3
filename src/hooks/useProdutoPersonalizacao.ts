@@ -8,12 +8,15 @@
  * - products: dados do produto
  * - product_print_areas: áreas de gravação por produto
  * - customization_price_tables: tabelas de preço por técnica
+ * 
+ * Transformadores: Importados de @/lib/personalization (Domain Layer)
  */
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { PRODUTOS_QUERY_OPTIONS, TABELAS_PRECO_QUERY_OPTIONS } from '@/lib/query-config';
 import { invokeExternalDb } from '@/lib/external-db';
-import type { TabelaPrecoTecnica } from '@/types/tecnica-unificada';
+import { rawToTabelaPrecoTecnica } from '@/lib/personalization';
+import type { TabelaPrecoTecnica, CustomizationPriceTableRaw } from '@/types/tecnica-unificada';
 import type { ProductTechnique, SizeOption, Product as SimulatorProduct, ProductColor } from '@/components/pricing/simulator/types';
 
 // ============================================
@@ -191,86 +194,8 @@ export function useProdutoPersonalizacao(productId: string | null): ProdutoPerso
 // HOOK COMPLETO: Com Opções de Preço
 // ============================================
 
-interface CustomizationPriceTableRaw {
-  id: string;
-  table_code: string;
-  table_code_option: string;
-  table_fullcode: string;
-  customization_type_name: string;
-  max_colors: number;
-  max_area_width_cm: number;
-  max_area_height_cm: number;
-  area_min_cm2: number | null;
-  area_max_cm2: number | null;
-  price_by_color: boolean;
-  price_by_area: boolean;
-  price_by_stitches: boolean;
-  setup_price: number;
-  handling_price: number;
-  serv_code: string | null;
-  technique_id: string | null;
-  supplier_id: string | null;
-  organization_id: string | null;
-  source: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  // Faixas de preço
-  min_qty_1?: number; min_qty_2?: number; min_qty_3?: number; min_qty_4?: number; min_qty_5?: number;
-  min_qty_6?: number; min_qty_7?: number; min_qty_8?: number; min_qty_9?: number; min_qty_10?: number;
-  min_qty_11?: number; min_qty_12?: number; min_qty_13?: number; min_qty_14?: number; min_qty_15?: number;
-  price_1?: number; price_2?: number; price_3?: number; price_4?: number; price_5?: number;
-  price_6?: number; price_7?: number; price_8?: number; price_9?: number; price_10?: number;
-  price_11?: number; price_12?: number; price_13?: number; price_14?: number; price_15?: number;
-  sla_1?: number; sla_2?: number; sla_3?: number; sla_4?: number; sla_5?: number;
-  sla_6?: number; sla_7?: number; sla_8?: number; sla_9?: number; sla_10?: number;
-  sla_11?: number; sla_12?: number; sla_13?: number; sla_14?: number; sla_15?: number;
-}
-
-function transformToTabelaPreco(raw: CustomizationPriceTableRaw): TabelaPrecoTecnica {
-  const faixas: TabelaPrecoTecnica['faixas'] = [];
-  
-  for (let i = 1; i <= 15; i++) {
-    const minQty = raw[`min_qty_${i}` as keyof CustomizationPriceTableRaw] as number;
-    const price = raw[`price_${i}` as keyof CustomizationPriceTableRaw] as number;
-    const sla = raw[`sla_${i}` as keyof CustomizationPriceTableRaw] as number | null;
-    
-    if (minQty != null && price != null) {
-      faixas.push({
-        faixa: i,
-        quantidadeMinima: minQty,
-        precoUnitario: price,
-        slaDias: sla,
-      });
-    }
-  }
-
-  return {
-    id: raw.id,
-    codigoTabela: raw.table_code,
-    codigoTabelaOpcao: raw.table_code_option,
-    codigoServico: raw.serv_code,
-    nomeTecnica: raw.customization_type_name,
-    tecnicaId: raw.technique_id,
-    maxCores: raw.max_colors,
-    larguraMaxCm: raw.max_area_width_cm,
-    alturaMaxCm: raw.max_area_height_cm,
-    areaMinCm2: raw.area_min_cm2,
-    areaMaxCm2: raw.area_max_cm2,
-    precoPorCor: raw.price_by_color,
-    precoPorArea: raw.price_by_area,
-    precoPorPontos: raw.price_by_stitches,
-    precoSetup: raw.setup_price,
-    precoManuseio: raw.handling_price,
-    faixas,
-    fornecedorId: raw.supplier_id,
-    organizacaoId: raw.organization_id,
-    fonte: raw.source,
-    ativo: raw.is_active,
-    criadoEm: raw.created_at,
-    atualizadoEm: raw.updated_at,
-  };
-}
+// Nota: CustomizationPriceTableRaw é importado de @/types/tecnica-unificada
+// Transformador rawToTabelaPrecoTecnica é importado de @/lib/personalization
 
 /**
  * Busca produto + técnicas + opções de preço completas
@@ -301,7 +226,7 @@ export function useProdutoPersonalizacaoCompleto(productId: string | null): Prod
       const tabelasPorCodigo = new Map<string, TabelaPrecoTecnica[]>();
 
       for (const raw of result.records) {
-        const tabela = transformToTabelaPreco(raw);
+        const tabela = rawToTabelaPrecoTecnica(raw);
         const tableCode = raw.table_code?.toLowerCase() || '';
         
         // Encontrar técnicas que correspondem a esta tabela
@@ -415,7 +340,7 @@ export function useTecnicaTabela(techniqueCode: string | null, numCores?: number
           const tableCode = (raw.table_code || '').toLowerCase();
           return tableCode.includes(code) || code.includes(tableCode);
         })
-        .map(transformToTabelaPreco);
+        .map(rawToTabelaPrecoTecnica);
 
       if (tabelasFiltradas.length === 0) return null;
 

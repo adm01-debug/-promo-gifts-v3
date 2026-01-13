@@ -5,18 +5,25 @@
  * Tabelas reais: personalization_techniques + customization_price_tables
  * 
  * CONSOLIDADO: Inclui funcionalidades de useCustomizationPricing (deprecado)
+ * 
+ * Transformadores: Importados de @/lib/personalization (Domain Layer)
  */
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { TECNICAS_QUERY_OPTIONS, TABELAS_PRECO_QUERY_OPTIONS } from '@/lib/query-config';
 import { invokeExternalDb, invokeExternalDbSingle } from '@/lib/external-db';
+import { 
+  rawToTecnicaUnificada, 
+  rawToTabelaPrecoTecnica,
+  transformRawToTecnicas,
+  transformRawToTabelas,
+} from '@/lib/personalization';
 import type { 
   TecnicaUnificada, 
   TabelaPrecoTecnica,
   TecnicaResumo,
   TecnicaFiltros,
   TabelaPrecoFiltros,
-  FaixaQuantidade,
   PersonalizationTechniqueRaw,
   CustomizationPriceTableRaw,
   ResultadoCalculoPreco,
@@ -35,86 +42,6 @@ export const TECNICAS_QUERY_KEYS = {
   tabelasPorTecnica: (nomeTecnica: string) => [...TECNICAS_QUERY_KEYS.all, 'tabelas-tecnica', nomeTecnica] as const,
 };
 
-// === Transformadores ===
-
-function transformToUnificada(raw: PersonalizationTechniqueRaw): TecnicaUnificada {
-  return {
-    id: raw.id,
-    codigo: raw.code,
-    codigoFornecedor: raw.supplier_code,
-    codigoStricker: raw.stricker_code,
-    nome: raw.name,
-    descricao: raw.description,
-    categoria: raw.category,
-    icone: raw.icon,
-    permiteCores: raw.requires_color_count,
-    minCores: raw.min_colors,
-    maxCores: raw.max_colors,
-    precoPorCor: raw.price_by_color,
-    precoCorExtra: raw.extra_color_price,
-    precoPorArea: raw.price_by_area,
-    precoPorPontos: raw.price_by_stitches,
-    areaMinimaCm2: raw.min_area_cm2,
-    areaMaximaCm2: raw.max_area_cm2,
-    pontosMaximos: raw.max_stitches,
-    custoSetup: raw.setup_price,
-    custoManuseio: raw.handling_price,
-    multiplicadorCusto: raw.base_cost_multiplier,
-    aplicaSuperficieCurva: raw.applies_to_curved,
-    promptSuffix: raw.prompt_suffix,
-    ativo: raw.is_active,
-    ordemExibicao: raw.display_order,
-    fonte: 'externo',
-    criadoEm: raw.created_at,
-    atualizadoEm: raw.updated_at,
-  };
-}
-
-function transformToTabelaPreco(raw: CustomizationPriceTableRaw): TabelaPrecoTecnica {
-  // Extrair as 15 faixas
-  const faixas: FaixaQuantidade[] = [];
-  for (let i = 1; i <= 15; i++) {
-    const minQty = raw[`min_qty_${i}` as keyof CustomizationPriceTableRaw] as number;
-    const price = raw[`price_${i}` as keyof CustomizationPriceTableRaw] as number;
-    const sla = raw[`sla_${i}` as keyof CustomizationPriceTableRaw] as number | null;
-    
-    if (minQty != null && price != null) {
-      faixas.push({
-        faixa: i,
-        quantidadeMinima: minQty,
-        precoUnitario: price,
-        slaDias: sla,
-      });
-    }
-  }
-
-  return {
-    id: raw.id,
-    codigoTabela: raw.table_code,
-    codigoTabelaOpcao: raw.table_code_option,
-    codigoServico: raw.serv_code,
-    nomeTecnica: raw.customization_type_name,
-    tecnicaId: raw.technique_id,
-    maxCores: raw.max_colors,
-    larguraMaxCm: raw.max_area_width_cm,
-    alturaMaxCm: raw.max_area_height_cm,
-    areaMinCm2: raw.area_min_cm2,
-    areaMaxCm2: raw.area_max_cm2,
-    precoPorCor: raw.price_by_color,
-    precoPorArea: raw.price_by_area,
-    precoPorPontos: raw.price_by_stitches,
-    precoSetup: raw.setup_price,
-    precoManuseio: raw.handling_price,
-    faixas,
-    fornecedorId: raw.supplier_id,
-    organizacaoId: raw.organization_id,
-    fonte: raw.source,
-    ativo: raw.is_active,
-    criadoEm: raw.created_at,
-    atualizadoEm: raw.updated_at,
-  };
-}
-
 // === Hook Principal: Técnicas ===
 
 export function useTecnicasUnificadas(filtros?: TecnicaFiltros) {
@@ -129,7 +56,8 @@ export function useTecnicasUnificadas(filtros?: TecnicaFiltros) {
         orderBy: { column: 'display_order', ascending: true },
       });
 
-      let tecnicas = result.records.map(transformToUnificada);
+      // Usar transformador do Domain Layer
+      let tecnicas = transformRawToTecnicas(result.records);
 
       // Aplicar filtros
       if (filtros) {
@@ -304,7 +232,7 @@ export function useTecnicaUnificada(id: string | undefined) {
       });
 
       const tecnica = result.records[0];
-      return tecnica ? transformToUnificada(tecnica) : null;
+      return tecnica ? rawToTecnicaUnificada(tecnica) : null;
     },
     enabled: !!id,
     ...TECNICAS_QUERY_OPTIONS,
@@ -327,7 +255,7 @@ export function useTecnicaPorCodigo(codigo: string | undefined) {
       });
 
       const tecnica = result.records[0];
-      return tecnica ? transformToUnificada(tecnica) : null;
+      return tecnica ? rawToTecnicaUnificada(tecnica) : null;
     },
     enabled: !!codigo,
     ...TECNICAS_QUERY_OPTIONS,
@@ -363,7 +291,7 @@ export function useTabelasPreco(filtros?: TabelaPrecoFiltros) {
         limit: 500,
       });
 
-      let tabelas = result.records.map(transformToTabelaPreco);
+      let tabelas = transformRawToTabelas(result.records);
 
       // Filtro de max_colors pós-query (não suportado diretamente)
       if (filtros?.maxCores !== undefined) {
@@ -391,7 +319,7 @@ export function useTabelasPorTecnica(nomeTecnica: string | undefined) {
         orderBy: { column: 'max_colors', ascending: true },
       });
 
-      return result.records.map(transformToTabelaPreco);
+      return transformRawToTabelas(result.records);
     },
     enabled: !!nomeTecnica,
     ...TABELAS_PRECO_QUERY_OPTIONS,
@@ -414,7 +342,7 @@ export function useTabelaPorCodigo(codigoOpcao: string | undefined) {
       });
 
       const tabela = result.records[0];
-      return tabela ? transformToTabelaPreco(tabela) : null;
+      return tabela ? rawToTabelaPrecoTecnica(tabela) : null;
     },
     enabled: !!codigoOpcao,
     ...TABELAS_PRECO_QUERY_OPTIONS,
@@ -483,7 +411,7 @@ export async function buscarTabelaAdequada(
     orderBy: { column: 'max_colors', ascending: true },
   });
 
-  const tabelas = result.records.map(transformToTabelaPreco);
+  const tabelas = transformRawToTabelas(result.records);
 
   // Encontrar tabela que comporta o número de cores
   let tabelaAdequada = tabelas.find(t => 

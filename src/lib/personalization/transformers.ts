@@ -3,6 +3,9 @@
  * 
  * Funções puras para transformação entre formatos de dados.
  * Converte entre tipos de infraestrutura (API/DB) e tipos de domínio.
+ * 
+ * SSOT: Este módulo é a única fonte de transformadores de dados.
+ * Hooks devem importar daqui, não definir transformadores próprios.
  */
 
 import type {
@@ -18,6 +21,110 @@ import type {
   CustomizationPriceTableRaw,
   PersonalizationTechniqueRaw,
 } from '@/types/tecnica-unificada';
+
+// ============================================
+// RAW DB → PORTUGUESE DOMAIN TYPES (para hooks)
+// ============================================
+
+/**
+ * Transforma PersonalizationTechniqueRaw (DB) para TecnicaUnificada
+ * Usado pelos hooks para transformar dados vindos do BD externo
+ */
+export function rawToTecnicaUnificada(raw: PersonalizationTechniqueRaw): TecnicaUnificada {
+  return {
+    id: raw.id,
+    codigo: raw.code,
+    codigoFornecedor: raw.supplier_code,
+    codigoStricker: raw.stricker_code,
+    nome: raw.name,
+    descricao: raw.description,
+    categoria: raw.category,
+    icone: raw.icon,
+    permiteCores: raw.requires_color_count,
+    minCores: raw.min_colors,
+    maxCores: raw.max_colors,
+    precoPorCor: raw.price_by_color,
+    precoCorExtra: raw.extra_color_price,
+    precoPorArea: raw.price_by_area,
+    precoPorPontos: raw.price_by_stitches,
+    areaMinimaCm2: raw.min_area_cm2,
+    areaMaximaCm2: raw.max_area_cm2,
+    pontosMaximos: raw.max_stitches,
+    custoSetup: raw.setup_price,
+    custoManuseio: raw.handling_price,
+    multiplicadorCusto: raw.base_cost_multiplier,
+    aplicaSuperficieCurva: raw.applies_to_curved,
+    promptSuffix: raw.prompt_suffix,
+    ativo: raw.is_active,
+    ordemExibicao: raw.display_order,
+    fonte: 'externo',
+    criadoEm: raw.created_at,
+    atualizadoEm: raw.updated_at,
+  };
+}
+
+/**
+ * Transforma CustomizationPriceTableRaw (DB) para TabelaPrecoTecnica
+ * Usado pelos hooks para transformar dados vindos do BD externo
+ */
+export function rawToTabelaPrecoTecnica(raw: CustomizationPriceTableRaw): TabelaPrecoTecnica {
+  // Extrair as 15 faixas
+  const faixas: FaixaQuantidade[] = [];
+  for (let i = 1; i <= 15; i++) {
+    const minQty = raw[`min_qty_${i}` as keyof CustomizationPriceTableRaw] as number;
+    const price = raw[`price_${i}` as keyof CustomizationPriceTableRaw] as number;
+    const sla = raw[`sla_${i}` as keyof CustomizationPriceTableRaw] as number | null;
+    
+    if (minQty != null && price != null) {
+      faixas.push({
+        faixa: i,
+        quantidadeMinima: minQty,
+        precoUnitario: price,
+        slaDias: sla,
+      });
+    }
+  }
+
+  return {
+    id: raw.id,
+    codigoTabela: raw.table_code,
+    codigoTabelaOpcao: raw.table_code_option,
+    codigoServico: raw.serv_code,
+    nomeTecnica: raw.customization_type_name,
+    tecnicaId: raw.technique_id,
+    maxCores: raw.max_colors,
+    larguraMaxCm: raw.max_area_width_cm,
+    alturaMaxCm: raw.max_area_height_cm,
+    areaMinCm2: raw.area_min_cm2,
+    areaMaxCm2: raw.area_max_cm2,
+    precoPorCor: raw.price_by_color,
+    precoPorArea: raw.price_by_area,
+    precoPorPontos: raw.price_by_stitches,
+    precoSetup: raw.setup_price,
+    precoManuseio: raw.handling_price,
+    faixas,
+    fornecedorId: raw.supplier_id,
+    organizacaoId: raw.organization_id,
+    fonte: raw.source,
+    ativo: raw.is_active,
+    criadoEm: raw.created_at,
+    atualizadoEm: raw.updated_at,
+  };
+}
+
+/**
+ * Batch: Transforma array de técnicas raw
+ */
+export function transformRawToTecnicas(raws: PersonalizationTechniqueRaw[]): TecnicaUnificada[] {
+  return raws.map(rawToTecnicaUnificada);
+}
+
+/**
+ * Batch: Transforma array de tabelas raw
+ */
+export function transformRawToTabelas(raws: CustomizationPriceTableRaw[]): TabelaPrecoTecnica[] {
+  return raws.map(rawToTabelaPrecoTecnica);
+}
 
 // ============================================
 // FROM INFRASTRUCTURE TO DOMAIN
