@@ -93,7 +93,9 @@ export function VirtualizedProductGrid({
     <div className="relative">
       <div
         ref={parentRef}
-        className="h-[calc(100vh-200px)] overflow-auto scrollbar-thin"
+        className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 
+          bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
+          scrollbar-products shadow-inner"
         style={{ contain: "strict" }}
       >
         <div
@@ -101,6 +103,7 @@ export function VirtualizedProductGrid({
             height: `${virtualizer.getTotalSize()}px`,
             width: "100%",
             position: "relative",
+            padding: "1rem",
           }}
         >
           {virtualItems.map((virtualRow) => {
@@ -144,8 +147,8 @@ export function VirtualizedProductGrid({
                   display: "grid",
                   gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
                   gap: "1rem",
-                  paddingLeft: "0.25rem",
-                  paddingRight: "0.25rem",
+                  paddingLeft: "0.5rem",
+                  paddingRight: "1.5rem",
                   paddingBottom: "1rem",
                 }}
               >
