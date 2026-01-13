@@ -155,6 +155,7 @@ export default function PersonalizationSimulator() {
                   needsSizeInput={sim.needsSizeInput}
                   quantity={sim.quantity}
                   getPricingInfo={sim.getPricingInfo}
+                  selectedProduct={sim.selectedProduct}
                 />
 
                 {/* Results - Full width and prominent */}
