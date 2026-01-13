@@ -34,8 +34,6 @@ interface ResultsComparisonCardsProps {
   onSelectForQuote?: (option: SimulationOption) => void;
 }
 
-type ViewMode = 'cards' | 'ranking';
-
 export function ResultsComparisonCards({
   options,
   bestOption,
@@ -43,7 +41,6 @@ export function ResultsComparisonCards({
   quantity,
   onSelectForQuote,
 }: ResultsComparisonCardsProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [showAll, setShowAll] = useState(false);
   
   if (options.length === 0) return null;
