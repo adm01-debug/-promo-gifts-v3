@@ -96,6 +96,19 @@ export function useSimulation() {
   const [sellingPrice, setSellingPrice] = useState<string>("");
   const [targetMargin, setTargetMargin] = useState<string>("30");
 
+  // Selected location for engraving
+  const [selectedLocation, setSelectedLocation] = useState<{
+    locationId: string;
+    componentName: string;
+    locationName: string;
+    maxWidth: number;
+    maxHeight: number;
+    maxArea: number;
+    techniqueId: string | null;
+    techniqueName: string | null;
+    maxColors: number | null;
+  } | null>(null);
+
   // Filters
   const [filterClientId, setFilterClientId] = useState<string | null>(null);
   const [filterProductSearch, setFilterProductSearch] = useState("");
@@ -696,7 +709,9 @@ Opção ${idx + 1}: ${opt.techniqueName}
     targetMargin,
     setTargetMargin,
 
-    // Filters
+    // Selected location
+    selectedLocation,
+    setSelectedLocation,
     filterClientId,
     setFilterClientId,
     filterProductSearch,

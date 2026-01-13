@@ -146,6 +146,10 @@ export default function PersonalizationSimulator() {
                   onCustomPriceChange={sim.setCustomProductPrice}
                   selectedProduct={sim.selectedProduct}
                   effectiveProductPrice={sim.effectiveProductPrice}
+                  // Local de gravação
+                  selectedTechniqueIds={sim.selectedTechniques}
+                  onLocationSelect={sim.setSelectedLocation}
+                  selectedLocation={sim.selectedLocation}
                 />
                 {/* Melhoria #7: Alerta de Estoque */}
                 <StockAlert
