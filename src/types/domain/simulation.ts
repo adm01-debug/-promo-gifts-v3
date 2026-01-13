@@ -18,6 +18,7 @@ export interface SimulationProduct {
   name: string;
   sku: string;
   price: number;
+  image_url?: string | null; // URL da imagem principal
   images?: string[];
   categoryName?: string | null;
   brand?: string | null;
