@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import Fuse from "fuse.js";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -150,14 +151,37 @@ export function PricingPanel() {
   const [editingRule, setEditingRule] = useState<PricingRule | null>(null);
   const [formData, setFormData] = useState<PricingFormData>(initialFormData);
 
-  const filteredRules = pricingRules.filter((rule) => {
-    const matchesSearch =
-      rule.techniqueName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      rule.techniqueCode.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTechnique =
-      filterTechnique === "all" || rule.techniqueId === filterTechnique;
-    return matchesSearch && matchesTechnique;
-  });
+  // Fuse.js para busca fuzzy
+  const pricingFuse = useMemo(() => {
+    return new Fuse(pricingRules, {
+      keys: [
+        { name: 'techniqueName', weight: 0.5 },
+        { name: 'techniqueCode', weight: 0.5 },
+      ],
+      threshold: 0.4,
+      distance: 100,
+      includeScore: true,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+    });
+  }, [pricingRules]);
+
+  const filteredRules = useMemo(() => {
+    let results = pricingRules;
+    
+    // Aplicar busca fuzzy se houver query
+    if (searchQuery && searchQuery.length >= 2) {
+      const fuseResults = pricingFuse.search(searchQuery);
+      results = fuseResults.map((r) => r.item);
+    }
+    
+    // Aplicar filtro de técnica
+    if (filterTechnique !== "all") {
+      results = results.filter((rule) => rule.techniqueId === filterTechnique);
+    }
+    
+    return results;
+  }, [pricingRules, searchQuery, filterTechnique, pricingFuse]);
 
   const handleOpenDialog = (rule?: PricingRule) => {
     if (rule) {

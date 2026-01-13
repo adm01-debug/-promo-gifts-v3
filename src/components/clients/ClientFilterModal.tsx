@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import Fuse from "fuse.js";
 import { User, Search, X, Palette, CheckCircle } from "lucide-react";
 import {
   Dialog,
@@ -22,6 +23,20 @@ interface ClientFilterModalProps {
   selectedClientId?: string;
 }
 
+// Fuse.js config para busca fuzzy de clientes
+const clientFuse = new Fuse(CLIENTS, {
+  keys: [
+    { name: 'name', weight: 0.5 },
+    { name: 'ramo', weight: 0.3 },
+    { name: 'nicho', weight: 0.2 },
+  ],
+  threshold: 0.4,
+  distance: 100,
+  includeScore: true,
+  minMatchCharLength: 2,
+  ignoreLocation: true,
+});
+
 export function ClientFilterModal({
   open,
   onOpenChange,
@@ -31,15 +46,10 @@ export function ClientFilterModal({
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredClients = useMemo(() => {
-    if (!searchQuery.trim()) return CLIENTS;
+    if (!searchQuery.trim() || searchQuery.length < 2) return CLIENTS;
     
-    const query = searchQuery.toLowerCase();
-    return CLIENTS.filter(
-      (client) =>
-        client.name.toLowerCase().includes(query) ||
-        client.ramo.toLowerCase().includes(query) ||
-        client.nicho.toLowerCase().includes(query)
-    );
+    const results = clientFuse.search(searchQuery);
+    return results.map((r) => r.item);
   }, [searchQuery]);
 
   return (

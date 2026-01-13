@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import Fuse from "fuse.js";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
@@ -232,9 +233,16 @@ export function InlineSuggestions({ query, onSelect, className }: InlineSuggesti
       "garrafa squeeze",
     ];
 
-    return allSuggestions
-      .filter(s => s.toLowerCase().includes(query.toLowerCase()))
-      .slice(0, 5);
+    // Usar Fuse.js para busca fuzzy
+    const fuse = new Fuse(allSuggestions, {
+      threshold: 0.4,
+      distance: 100,
+      minMatchCharLength: 2,
+      ignoreLocation: true,
+    });
+
+    const results = fuse.search(query);
+    return results.map((r) => r.item).slice(0, 5);
   }, [query]);
 
   if (suggestions.length === 0) return null;
