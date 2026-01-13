@@ -1,12 +1,11 @@
 /**
- * StepResult - Passo 5: Resultado Final
+ * StepResult - Passo 5: Resultado Final Premium
  * 
- * Design: Destaque para o resultado, ações claras
+ * Design: Destaque hero para resultados com visual impactante
  */
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { 
   Calculator, 
   Copy,
@@ -21,6 +20,8 @@ import {
   CheckCircle2,
   ArrowRight,
   Sparkles,
+  Receipt,
+  TrendingUp,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -36,10 +37,12 @@ export function StepResult({ wizard, onSave }: StepResultProps) {
 
   if (!result) {
     return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <Calculator className="h-12 w-12 text-muted-foreground/30 mb-4" />
-        <p className="text-muted-foreground">Nenhum resultado calculado</p>
-        <Button className="mt-4" onClick={() => wizard.setStep('options')}>
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="p-4 rounded-full bg-muted mb-4">
+          <Calculator className="h-10 w-10 text-muted-foreground/30" />
+        </div>
+        <p className="text-muted-foreground text-lg">Nenhum resultado calculado</p>
+        <Button className="mt-6" onClick={() => wizard.setStep('options')}>
           Voltar para configuração
         </Button>
       </div>
@@ -85,42 +88,70 @@ export function StepResult({ wizard, onSave }: StepResultProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Success Animation */}
+    <div className="max-w-5xl mx-auto space-y-10">
+      {/* Success Hero */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center py-6"
+        className="text-center py-8"
       >
         <motion.div 
-          className="w-16 h-16 rounded-full bg-success/15 flex items-center justify-center mx-auto mb-4"
+          className="relative w-20 h-20 mx-auto mb-6"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", delay: 0.2 }}
+          transition={{ type: "spring", delay: 0.2, stiffness: 200 }}
         >
-          <CheckCircle2 className="h-8 w-8 text-success" />
+          <div className="absolute inset-0 bg-success/20 rounded-full blur-xl" />
+          <div className="relative w-full h-full rounded-full bg-gradient-to-br from-success to-success/80 flex items-center justify-center shadow-lg shadow-success/30">
+            <CheckCircle2 className="h-10 w-10 text-white" />
+          </div>
         </motion.div>
-        <h2 className="text-2xl font-bold">Simulação pronta!</h2>
-        <p className="text-muted-foreground mt-1">
-          Confira o detalhamento abaixo
+        <h2 className="text-3xl font-bold mb-2">Simulação Concluída!</h2>
+        <p className="text-muted-foreground text-lg">
+          Confira os detalhes abaixo
         </p>
       </motion.div>
 
       {/* Main Result Card */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-primary/10 border border-primary/20 overflow-hidden"
+        transition={{ delay: 0.15 }}
+        className="rounded-3xl overflow-hidden shadow-2xl shadow-primary/10"
       >
-        {/* Product Info */}
-        <div className="p-6 border-b border-primary/10">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center">
-              <Package className="h-6 w-6 text-muted-foreground" />
+        {/* Hero Totals */}
+        <div className="bg-gradient-to-br from-primary via-primary to-primary/90 p-8 text-primary-foreground">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 rounded-2xl bg-white/10 backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <DollarSign className="h-5 w-5 opacity-80" />
+                <span className="text-sm font-medium opacity-80 uppercase tracking-wider">Total Geral</span>
+              </div>
+              <p className="text-5xl font-bold tracking-tight">
+                {formatCurrency(result.totals.grandTotal)}
+              </p>
+            </div>
+            <div className="p-6 rounded-2xl bg-white/20 backdrop-blur-sm border border-white/20">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-5 w-5 opacity-80" />
+                <span className="text-sm font-medium opacity-80 uppercase tracking-wider">Por Unidade</span>
+              </div>
+              <p className="text-5xl font-bold tracking-tight">
+                {formatCurrency(result.totals.grandTotalPerUnit)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="bg-card">
+          {/* Product */}
+          <div className="p-6 border-b flex items-center gap-5">
+            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+              <Package className="h-7 w-7 text-muted-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-lg">{result.product.name}</p>
+              <p className="font-bold text-lg">{result.product.name}</p>
               <div className="flex items-center gap-3 mt-1">
                 <Badge variant="outline">{result.product.sku}</Badge>
                 <span className="text-sm text-muted-foreground">
@@ -129,74 +160,48 @@ export function StepResult({ wizard, onSave }: StepResultProps) {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Subtotal</p>
-              <p className="font-semibold text-lg">{formatCurrency(result.totals.productTotal)}</p>
+              <p className="text-xs text-muted-foreground uppercase">Subtotal</p>
+              <p className="font-bold text-xl">{formatCurrency(result.totals.productTotal)}</p>
             </div>
           </div>
-        </div>
 
-        {/* Personalization Info */}
-        <div className="p-6 border-b border-primary/10">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Palette className="h-6 w-6 text-primary" />
+          {/* Personalization */}
+          <div className="p-6 flex items-center gap-5">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Palette className="h-7 w-7 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-lg">{result.technique.name}</p>
+              <p className="font-bold text-lg">{result.technique.name}</p>
               <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" />
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4" />
                   {result.location.componentName}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" />
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-4 w-4" />
                   ~{result.technique.estimatedDays} dias
                 </span>
               </div>
               <div className="flex gap-2 mt-3">
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary">
                   {result.options.colors} {result.options.colors === 1 ? 'cor' : 'cores'}
                 </Badge>
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary">
                   {result.options.width}×{result.options.height}cm
                 </Badge>
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary">
                   {result.options.positions} {result.options.positions === 1 ? 'posição' : 'posições'}
                 </Badge>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-xs text-muted-foreground">Personalização</p>
-              <p className="font-semibold text-lg">{formatCurrency(result.totals.customizationTotal)}</p>
+              <p className="text-xs text-muted-foreground uppercase">Personalização</p>
+              <p className="font-bold text-xl text-primary">{formatCurrency(result.totals.customizationTotal)}</p>
               {result.customization.setupCost > 0 && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   (setup: {formatCurrency(result.customization.setupCost)})
                 </p>
               )}
-            </div>
-          </div>
-        </div>
-
-        {/* Totals */}
-        <div className="p-6 bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="p-5 rounded-2xl bg-background/80">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <DollarSign className="h-4 w-4" />
-                Total Geral
-              </div>
-              <p className="text-4xl font-bold text-primary">
-                {formatCurrency(result.totals.grandTotal)}
-              </p>
-            </div>
-            <div className="p-5 rounded-2xl bg-background/80 border border-primary/20">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Sparkles className="h-4 w-4" />
-                Por Unidade
-              </div>
-              <p className="text-4xl font-bold">
-                {formatCurrency(result.totals.grandTotalPerUnit)}
-              </p>
             </div>
           </div>
         </div>
@@ -206,16 +211,16 @@ export function StepResult({ wizard, onSave }: StepResultProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="flex flex-wrap gap-3 justify-center"
+        transition={{ delay: 0.25 }}
+        className="flex flex-wrap gap-4 justify-center"
       >
-        <Button size="lg" className="gap-2" onClick={handleCopy}>
+        <Button size="lg" className="gap-2 h-12 px-6 rounded-xl shadow-lg" onClick={handleCopy}>
           <Copy className="h-4 w-4" />
           Copiar
         </Button>
         
         {onSave && (
-          <Button size="lg" variant="outline" className="gap-2" onClick={onSave}>
+          <Button size="lg" variant="outline" className="gap-2 h-12 px-6 rounded-xl" onClick={onSave}>
             <Save className="h-4 w-4" />
             Salvar
           </Button>
@@ -224,7 +229,7 @@ export function StepResult({ wizard, onSave }: StepResultProps) {
         <Button 
           size="lg"
           variant="ghost" 
-          className="gap-2"
+          className="gap-2 h-12 px-6"
           onClick={() => wizard.setStep('options')}
         >
           <RefreshCw className="h-4 w-4" />
@@ -234,7 +239,7 @@ export function StepResult({ wizard, onSave }: StepResultProps) {
         <Button 
           size="lg"
           variant="ghost" 
-          className="gap-2"
+          className="gap-2 h-12 px-6"
           onClick={wizard.resetWizard}
         >
           Nova Simulação
@@ -246,40 +251,45 @@ export function StepResult({ wizard, onSave }: StepResultProps) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="p-5 rounded-2xl bg-muted/30"
+        transition={{ delay: 0.35 }}
+        className="p-6 rounded-2xl bg-muted/30 border"
       >
-        <h4 className="font-medium text-sm mb-4 flex items-center gap-2">
-          <Calculator className="h-4 w-4 text-primary" />
+        <h4 className="font-bold mb-5 flex items-center gap-2">
+          <Receipt className="h-5 w-5 text-primary" />
           Detalhamento de Custos
         </h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <p className="text-muted-foreground">Produto/un</p>
-            <p className="font-semibold">{formatCurrency(result.product.unitPrice)}</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="p-4 rounded-xl bg-card border">
+            <p className="text-sm text-muted-foreground mb-1">Produto/un</p>
+            <p className="font-bold text-xl">{formatCurrency(result.product.unitPrice)}</p>
           </div>
-          <div>
-            <p className="text-muted-foreground">Pers./un</p>
-            <p className="font-semibold">{formatCurrency(result.customization.costPerUnit)}</p>
+          <div className="p-4 rounded-xl bg-card border">
+            <p className="text-sm text-muted-foreground mb-1">Pers./un</p>
+            <p className="font-bold text-xl">{formatCurrency(result.customization.costPerUnit)}</p>
           </div>
-          <div>
-            <p className="text-muted-foreground">Setup</p>
-            <p className="font-semibold">{formatCurrency(result.customization.setupCost)}</p>
+          <div className="p-4 rounded-xl bg-card border">
+            <p className="text-sm text-muted-foreground mb-1">Setup</p>
+            <p className="font-bold text-xl">{formatCurrency(result.customization.setupCost)}</p>
           </div>
-          <div>
-            <p className="text-muted-foreground">Custo/un total</p>
-            <p className="font-bold text-primary">{formatCurrency(result.totals.grandTotalPerUnit)}</p>
+          <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+            <p className="text-sm text-muted-foreground mb-1">Custo/un total</p>
+            <p className="font-bold text-xl text-primary">{formatCurrency(result.totals.grandTotalPerUnit)}</p>
           </div>
         </div>
       </motion.div>
 
       {/* Back Navigation */}
-      <div className="flex justify-start pt-4">
-        <Button variant="ghost" onClick={() => wizard.setStep('options')}>
-          <ChevronLeft className="h-4 w-4 mr-2" />
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="flex justify-start pt-4"
+      >
+        <Button variant="ghost" size="lg" className="gap-2" onClick={() => wizard.setStep('options')}>
+          <ChevronLeft className="h-5 w-5" />
           Voltar
         </Button>
-      </div>
+      </motion.div>
     </div>
   );
 }

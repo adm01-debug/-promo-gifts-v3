@@ -1,5 +1,5 @@
 /**
- * SimuladorWizard - Nova página do Simulador com layout arejado
+ * SimuladorWizard - Página do Simulador com layout premium e arejado
  */
 
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -12,40 +12,88 @@ import {
   StepOptions, 
   StepResult 
 } from "@/components/simulator/wizard";
-import { Calculator } from "lucide-react";
+import { Calculator, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function SimuladorWizard() {
   const wizard = useSimulatorWizard();
 
   return (
     <MainLayout>
-      <div className="min-h-[calc(100vh-8rem)] animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-3 mb-2">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
-              <Calculator className="h-6 w-6 text-primary" />
-            </div>
-            <h1 className="font-display text-2xl font-bold">Simulador de Personalização</h1>
+      <div className="min-h-[calc(100vh-8rem)]">
+        {/* Hero Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative mb-10"
+        >
+          {/* Background gradient */}
+          <div className="absolute inset-0 -z-10 overflow-hidden">
+            <div className="absolute -top-40 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
+            <div className="absolute -top-20 right-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
           </div>
-          <p className="text-muted-foreground text-sm">
-            Configure e compare custos de gravação em poucos passos
-          </p>
-        </div>
+
+          <div className="text-center py-8">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.1, type: "spring" }}
+              className="inline-flex items-center gap-3 mb-4"
+            >
+              <div className="relative">
+                <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl" />
+                <div className="relative p-3 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
+                  <Calculator className="h-7 w-7 text-primary-foreground" />
+                </div>
+              </div>
+              <div className="text-left">
+                <h1 className="font-display text-3xl font-bold tracking-tight">
+                  Simulador
+                </h1>
+                <p className="text-primary font-medium text-sm flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Personalização
+                </p>
+              </div>
+            </motion.div>
+            
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-muted-foreground max-w-md mx-auto"
+            >
+              Configure e compare custos de gravação em poucos passos simples
+            </motion.p>
+          </div>
+        </motion.div>
 
         {/* Step Indicator */}
-        <div className="mb-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-12"
+        >
           <WizardStepIndicator wizard={wizard} />
-        </div>
+        </motion.div>
 
         {/* Step Content */}
-        <div className="pb-12">
+        <motion.div 
+          key={wizard.currentStep}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          className="pb-16"
+        >
           {wizard.currentStep === 'product' && <StepProduct wizard={wizard} />}
           {wizard.currentStep === 'location' && <StepLocation wizard={wizard} />}
           {wizard.currentStep === 'technique' && <StepTechnique wizard={wizard} />}
           {wizard.currentStep === 'options' && <StepOptions wizard={wizard} />}
           {wizard.currentStep === 'result' && <StepResult wizard={wizard} />}
-        </div>
+        </motion.div>
       </div>
     </MainLayout>
   );

@@ -1,12 +1,12 @@
 /**
- * WizardStepIndicator - Indicador visual minimalista dos passos
+ * WizardStepIndicator - Indicador visual premium dos passos
  * 
- * Design: Clean, compacto, com feedback visual sutil
+ * Design: Elegante, compacto, com feedback visual rico
  */
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Package, MapPin, Palette, Settings, Calculator, Check } from 'lucide-react';
+import { Package, MapPin, Palette, Settings, Calculator, Check, ChevronRight } from 'lucide-react';
 import { 
   WIZARD_STEPS, 
   WIZARD_STEP_CONFIG,
@@ -30,94 +30,127 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
   const currentIndex = WIZARD_STEPS.indexOf(wizard.currentStep);
   
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      {/* Mobile: Compact pills */}
+    <div className="w-full">
+      {/* Mobile: Enhanced progress */}
       <div className="sm:hidden">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium">
-            Passo {currentIndex + 1} de {WIZARD_STEPS.length}
-          </span>
-          <span className="text-sm text-muted-foreground">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold text-primary">{currentIndex + 1}</span>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-muted-foreground">{WIZARD_STEPS.length}</span>
+          </div>
+          <span className="font-semibold">
             {WIZARD_STEP_CONFIG[wizard.currentStep].shortLabel}
           </span>
         </div>
-        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
           <motion.div
-            className="h-full bg-primary rounded-full"
+            className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${wizard.stepProgress}%` }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           />
         </div>
+        {/* Step dots */}
+        <div className="flex justify-between mt-2 px-1">
+          {WIZARD_STEPS.map((step, idx) => (
+            <div
+              key={step}
+              className={cn(
+                'w-2 h-2 rounded-full transition-colors',
+                idx <= currentIndex ? 'bg-primary' : 'bg-muted-foreground/30'
+              )}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Desktop: Horizontal steps */}
-      <div className="hidden sm:flex items-center justify-between">
-        {WIZARD_STEPS.map((step, idx) => {
-          const config = WIZARD_STEP_CONFIG[step];
-          const Icon = STEP_ICONS[step];
-          const isCompleted = wizard.isStepComplete(step) && idx < currentIndex;
-          const isCurrent = step === wizard.currentStep;
-          const isClickable = wizard.canNavigateToStep(step);
-          const isPast = idx < currentIndex;
+      {/* Desktop: Premium horizontal steps */}
+      <div className="hidden sm:block">
+        <div className="max-w-4xl mx-auto">
+          {/* Progress bar background */}
+          <div className="relative mb-8">
+            <div className="absolute top-6 left-12 right-12 h-1 bg-muted rounded-full" />
+            <motion.div
+              className="absolute top-6 left-12 h-1 bg-gradient-to-r from-primary via-primary to-primary/60 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ 
+                width: `calc(${(currentIndex / (WIZARD_STEPS.length - 1)) * 100}% - 6rem)` 
+              }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+            />
+          </div>
 
-          return (
-            <div key={step} className="flex items-center flex-1">
-              <motion.button
-                onClick={() => isClickable && wizard.setStep(step)}
-                disabled={!isClickable}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl px-4 py-3 transition-all w-full',
-                  isCurrent && 'bg-primary/10',
-                  isClickable && !isCurrent && 'hover:bg-muted/80 cursor-pointer',
-                  !isClickable && 'cursor-not-allowed opacity-50'
-                )}
-                whileHover={isClickable && !isCurrent ? { scale: 1.02 } : undefined}
-                whileTap={isClickable && !isCurrent ? { scale: 0.98 } : undefined}
-              >
-                {/* Icon Circle */}
-                <div className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0',
-                  isCurrent && 'bg-primary text-primary-foreground shadow-lg shadow-primary/25',
-                  isCompleted && !isCurrent && 'bg-success/15 text-success',
-                  !isCurrent && !isCompleted && 'bg-muted text-muted-foreground'
-                )}>
-                  {isCompleted && !isCurrent ? (
-                    <Check className="h-5 w-5" />
-                  ) : (
-                    <Icon className="h-5 w-5" />
+          <div className="flex justify-between relative -mt-6">
+            {WIZARD_STEPS.map((step, idx) => {
+              const config = WIZARD_STEP_CONFIG[step];
+              const Icon = STEP_ICONS[step];
+              const isCompleted = idx < currentIndex;
+              const isCurrent = step === wizard.currentStep;
+              const isClickable = wizard.canNavigateToStep(step);
+
+              return (
+                <motion.button
+                  key={step}
+                  onClick={() => isClickable && wizard.setStep(step)}
+                  disabled={!isClickable}
+                  className={cn(
+                    'flex flex-col items-center gap-3 group transition-all',
+                    isClickable ? 'cursor-pointer' : 'cursor-not-allowed'
                   )}
-                </div>
+                  whileHover={isClickable ? { y: -2 } : undefined}
+                  whileTap={isClickable ? { scale: 0.98 } : undefined}
+                >
+                  {/* Circle */}
+                  <motion.div 
+                    className={cn(
+                      'w-12 h-12 rounded-full flex items-center justify-center transition-all relative',
+                      isCurrent && 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-primary/20',
+                      isCompleted && 'bg-primary/15 text-primary',
+                      !isCurrent && !isCompleted && 'bg-muted text-muted-foreground'
+                    )}
+                    initial={false}
+                    animate={isCurrent ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {isCompleted ? (
+                      <Check className="h-5 w-5" strokeWidth={3} />
+                    ) : (
+                      <Icon className="h-5 w-5" />
+                    )}
+                    
+                    {/* Pulse effect for current */}
+                    {isCurrent && (
+                      <motion.div
+                        className="absolute inset-0 rounded-full bg-primary/20"
+                        initial={{ scale: 1, opacity: 0.5 }}
+                        animate={{ scale: 1.5, opacity: 0 }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      />
+                    )}
+                  </motion.div>
 
-                {/* Label */}
-                <div className="text-left min-w-0">
-                  <p className={cn(
-                    'text-xs uppercase tracking-wide',
-                    isCurrent ? 'text-primary font-medium' : 'text-muted-foreground'
-                  )}>
-                    Passo {idx + 1}
-                  </p>
-                  <p className={cn(
-                    'text-sm font-semibold truncate',
-                    isCurrent ? 'text-foreground' : 'text-muted-foreground'
-                  )}>
-                    {config.shortLabel}
-                  </p>
-                </div>
-              </motion.button>
-
-              {/* Connector Line */}
-              {idx < WIZARD_STEPS.length - 1 && (
-                <div className="flex-1 px-2 hidden lg:block">
-                  <div className={cn(
-                    'h-0.5 rounded-full transition-colors',
-                    isPast ? 'bg-success' : 'bg-border'
-                  )} />
-                </div>
-              )}
-            </div>
-          );
-        })}
+                  {/* Label */}
+                  <div className="text-center">
+                    <p className={cn(
+                      'text-xs font-medium uppercase tracking-wider mb-0.5',
+                      isCurrent ? 'text-primary' : 'text-muted-foreground'
+                    )}>
+                      Passo {idx + 1}
+                    </p>
+                    <p className={cn(
+                      'text-sm font-semibold transition-colors',
+                      isCurrent ? 'text-foreground' : 'text-muted-foreground',
+                      isClickable && !isCurrent && 'group-hover:text-foreground'
+                    )}>
+                      {config.shortLabel}
+                    </p>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

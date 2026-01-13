@@ -1,7 +1,7 @@
 /**
  * StepLocation - Passo 2: Seleção do Local de Gravação
  * 
- * Design: Cards limpos, visual hierárquico
+ * Design: Cards elegantes com visual hierárquico premium
  */
 
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,7 @@ import {
   Layers,
   AlertTriangle,
   Package,
+  ArrowLeft,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -30,12 +31,20 @@ interface StepLocationProps {
 export function StepLocation({ wizard }: StepLocationProps) {
   const { availableLocations, selectedLocation, locationsLoading } = wizard;
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* Context Bar */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg bg-background overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-muted/80 to-muted/40 border"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-xl bg-background overflow-hidden shadow-sm">
             {wizard.selectedProduct?.imageUrl ? (
               <img 
                 src={wizard.selectedProduct.imageUrl} 
@@ -44,55 +53,66 @@ export function StepLocation({ wizard }: StepLocationProps) {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-5 w-5 text-muted-foreground" />
+                <Package className="h-6 w-6 text-muted-foreground" />
               </div>
             )}
           </div>
           <div>
-            <p className="font-semibold text-sm">{wizard.selectedProduct?.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {wizard.quantity} unidades
-            </p>
+            <p className="font-bold">{wizard.selectedProduct?.name}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="text-xs">
+                {wizard.quantity} unidades
+              </Badge>
+              <span className="text-sm text-primary font-semibold">
+                {formatCurrency(wizard.effectivePrice * wizard.quantity)}
+              </span>
+            </div>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={wizard.previousStep}>
-          <ChevronLeft className="h-4 w-4 mr-1" />
+        <Button variant="ghost" size="sm" onClick={wizard.previousStep} className="gap-2">
+          <ArrowLeft className="h-4 w-4" />
           Alterar
         </Button>
-      </div>
+      </motion.div>
 
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-lg bg-primary/10">
-          <MapPin className="h-5 w-5 text-primary" />
+      <div className="flex items-center gap-4">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
+          <MapPin className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h3 className="font-semibold">Onde gravar?</h3>
-          <p className="text-sm text-muted-foreground">Escolha o local de personalização</p>
+          <h3 className="text-xl font-bold">Onde personalizar?</h3>
+          <p className="text-muted-foreground">Escolha a área de aplicação</p>
         </div>
       </div>
 
       {/* Locations Grid */}
       {locationsLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-36 w-full rounded-2xl" />
+            <Skeleton key={i} className="h-44 w-full rounded-2xl" />
           ))}
         </div>
       ) : availableLocations.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <AlertTriangle className="h-12 w-12 mb-4 text-warning/60" />
-          <p className="font-medium text-lg">Nenhum local configurado</p>
-          <p className="text-sm mt-1 text-center max-w-md">
-            Este produto não possui áreas de personalização cadastradas.
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center justify-center py-20 text-center"
+        >
+          <div className="p-5 rounded-full bg-warning/10 mb-5">
+            <AlertTriangle className="h-10 w-10 text-warning" />
+          </div>
+          <p className="font-bold text-xl mb-2">Nenhum local configurado</p>
+          <p className="text-muted-foreground max-w-md">
+            Este produto não possui áreas de personalização cadastradas no sistema.
           </p>
-          <Button variant="outline" className="mt-6" onClick={wizard.previousStep}>
-            <ChevronLeft className="h-4 w-4 mr-1" />
+          <Button variant="outline" className="mt-6 gap-2" onClick={wizard.previousStep}>
+            <ChevronLeft className="h-4 w-4" />
             Escolher outro produto
           </Button>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <AnimatePresence mode="popLayout">
             {availableLocations.map((location, idx) => {
               const isSelected = selectedLocation?.id === location.id;
@@ -100,84 +120,91 @@ export function StepLocation({ wizard }: StepLocationProps) {
               return (
                 <motion.button
                   key={location.id}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
+                  exit={{ opacity: 0, y: -16 }}
                   transition={{ delay: idx * 0.05 }}
                   onClick={() => wizard.selectLocation(location)}
                   className={cn(
-                    'w-full p-5 rounded-2xl text-left transition-all duration-200',
-                    'border-2',
+                    'w-full p-6 rounded-2xl text-left transition-all duration-300 group',
                     isSelected
-                      ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                      : 'border-transparent bg-muted/40 hover:bg-muted/70 hover:border-muted'
+                      ? 'bg-primary/5 ring-2 ring-primary shadow-xl shadow-primary/10'
+                      : 'bg-card border hover:border-primary/30 hover:shadow-lg'
                   )}
                 >
-                  <div className="flex items-start gap-4">
-                    {/* Icon */}
+                  <div className="flex items-start gap-5">
+                    {/* Icon / Image */}
                     <div className={cn(
-                      'w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-                      isSelected ? 'bg-primary text-primary-foreground' : 'bg-background'
+                      'w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all',
+                      isSelected 
+                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' 
+                        : 'bg-muted group-hover:bg-primary/10'
                     )}>
                       {location.areaImageUrl ? (
                         <img
                           src={location.areaImageUrl}
                           alt={location.locationName}
-                          className="w-full h-full object-cover rounded-xl"
+                          className="w-full h-full object-cover rounded-2xl"
                         />
                       ) : (
-                        <MapPin className="h-5 w-5" />
+                        <MapPin className="h-6 w-6" />
                       )}
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-semibold">{location.componentName}</h4>
-                        <Badge variant="outline" className="text-xs font-normal">
-                          {location.locationName}
-                        </Badge>
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <h4 className="font-bold text-lg">{location.componentName}</h4>
                         {isSelected && (
-                          <CheckCircle2 className="h-4 w-4 text-primary ml-auto shrink-0" />
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                          >
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                          </motion.div>
                         )}
                       </div>
+                      
+                      <Badge variant="secondary" className="text-xs font-normal mb-3">
+                        {location.locationName}
+                      </Badge>
 
                       {/* Dimensions */}
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Ruler className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                        <span className="flex items-center gap-1.5">
+                          <Ruler className="h-4 w-4" />
                           {location.maxWidthCm || '–'}×{location.maxHeightCm || '–'}cm
                         </span>
                         {location.maxAreaCm2 && (
-                          <span className="flex items-center gap-1">
-                            <Maximize2 className="h-3.5 w-3.5" />
+                          <span className="flex items-center gap-1.5">
+                            <Maximize2 className="h-4 w-4" />
                             {location.maxAreaCm2}cm²
                           </span>
                         )}
                       </div>
 
                       {/* Techniques */}
-                      <div className="flex flex-wrap gap-1 mt-3">
+                      <div className="flex flex-wrap gap-1.5">
                         {location.availableTechniques.slice(0, 3).map(tech => (
                           <Badge
                             key={tech.id}
-                            variant="secondary"
-                            className="text-[10px] h-5 gap-1 font-normal"
+                            variant="outline"
+                            className="text-[10px] h-6 gap-1 font-normal"
                           >
-                            <Palette className="h-2.5 w-2.5" />
+                            <Palette className="h-3 w-3" />
                             {tech.techniqueName}
                           </Badge>
                         ))}
                         {location.availableTechniques.length > 3 && (
-                          <Badge variant="outline" className="text-[10px] h-5">
+                          <Badge variant="outline" className="text-[10px] h-6">
                             +{location.availableTechniques.length - 3}
                           </Badge>
                         )}
                       </div>
 
                       {location.isFromGroup && (
-                        <Badge variant="outline" className="mt-2 text-[10px] gap-1">
-                          <Layers className="h-2.5 w-2.5" />
+                        <Badge variant="secondary" className="mt-3 text-[10px] gap-1">
+                          <Layers className="h-3 w-3" />
                           Regra de Grupo
                         </Badge>
                       )}
@@ -191,20 +218,26 @@ export function StepLocation({ wizard }: StepLocationProps) {
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between pt-4">
-        <Button variant="ghost" onClick={wizard.previousStep}>
-          <ChevronLeft className="h-4 w-4 mr-2" />
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="flex justify-between pt-6"
+      >
+        <Button variant="ghost" size="lg" onClick={wizard.previousStep} className="gap-2">
+          <ChevronLeft className="h-5 w-5" />
           Voltar
         </Button>
         <Button
           disabled={!wizard.canProceed}
           onClick={wizard.nextStep}
-          className="gap-2"
+          size="lg"
+          className="gap-2 min-w-[180px] rounded-xl shadow-lg shadow-primary/20"
         >
           Escolher Técnica
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-5 w-5" />
         </Button>
-      </div>
+      </motion.div>
     </div>
   );
 }
