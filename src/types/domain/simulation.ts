@@ -44,6 +44,7 @@ export interface SimulationClient {
   name: string;
   ramo: string | null;
   nicho: string | null;
+  logo_url?: string | null;
 }
 
 // ============================================

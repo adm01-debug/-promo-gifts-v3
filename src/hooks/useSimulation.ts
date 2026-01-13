@@ -124,7 +124,7 @@ export function useSimulation() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("bitrix_clients")
-        .select("id, name, ramo, nicho")
+        .select("id, name, ramo, nicho, logo_url")
         .order("name");
       if (error) throw error;
       return data as Client[];
@@ -573,6 +573,69 @@ Opção ${idx + 1}: ${opt.techniqueName}
     toast.success(`Cenário ${name} removido`);
   }, []);
 
+  // Melhoria #8: Calcular simulação para outro produto (multi-product comparison)
+  const calculateForProduct = useCallback((product: Product): SimulationOption[] => {
+    if (!product || selectedTechniques.length === 0) return [];
+
+    return selectedTechniques.map(techId => {
+      const technique = techniques?.find(t => t.id === techId);
+      if (!technique) return null;
+
+      const settings = techniqueSettings[techId] || { colors: 1, width: 10, height: 10, positions: 1 };
+      const area = settings.width * settings.height;
+      let unitCostMultiplier = 1;
+      
+      const codeUpper = technique.code?.toUpperCase() || "";
+      
+      if (codeUpper.includes("SILK") || codeUpper.includes("SERIGRAFIA")) {
+        unitCostMultiplier = settings.colors;
+      } else if (codeUpper.includes("DTF") || codeUpper.includes("SUB") || codeUpper.includes("TRANSFER")) {
+        unitCostMultiplier = Math.max(1, area / 100);
+      } else if (codeUpper.includes("BORD") || codeUpper.includes("EMBROID")) {
+        unitCostMultiplier = Math.max(1, (area / 50) * Math.max(1, settings.colors * 0.5));
+      } else if (codeUpper.includes("LASER")) {
+        unitCostMultiplier = Math.max(1, area / 100);
+      }
+
+      const unitCost = technique.unit_cost * unitCostMultiplier * settings.positions;
+      const setupCost = technique.setup_cost * settings.positions * (codeUpper.includes("SILK") ? settings.colors : 1);
+      const totalPersonalizationCost = (unitCost * quantity) + setupCost;
+      const costPerUnit = totalPersonalizationCost / quantity;
+
+      const productUnitPrice = product.price;
+      const totalProductCost = productUnitPrice * quantity;
+      const grandTotal = totalProductCost + totalPersonalizationCost;
+      const grandTotalPerUnit = grandTotal / quantity;
+
+      return {
+        id: `${techId}-${product.id}-${Date.now()}`,
+        techniqueId: techId,
+        techniqueName: technique.name,
+        techniqueCode: technique.code || "",
+        colors: settings.colors,
+        width: settings.width,
+        height: settings.height,
+        positions: settings.positions,
+        unitCost,
+        setupCost,
+        totalPersonalizationCost,
+        costPerUnit,
+        estimatedDays: technique.estimated_days,
+        productUnitPrice,
+        totalProductCost,
+        grandTotal,
+        grandTotalPerUnit,
+      };
+    }).filter(Boolean) as SimulationOption[];
+  }, [techniques, techniqueSettings, selectedTechniques, quantity]);
+
+  // Melhoria #2: Handler para adicionar múltiplas técnicas ao orçamento
+  const handleAddToQuote = useCallback((selectedOptions: SimulationOption[]) => {
+    // TODO: Integrar com sistema de orçamentos quando implementado
+    toast.success(`${selectedOptions.length} técnica(s) adicionadas ao orçamento!`);
+    console.log("Opções selecionadas para orçamento:", selectedOptions);
+  }, []);
+
   return {
     // Data
     products,
@@ -652,6 +715,8 @@ Opção ${idx + 1}: ${opt.techniqueName}
     copyToClipboard,
     copyAllOptions,
     loadSavedSimulation,
+    calculateForProduct,
+    handleAddToQuote,
 
     // Mutations
     saveSimulationMutation,

@@ -35,6 +35,9 @@ import { MarginCalculatorCard } from "./MarginCalculatorCard";
 import { ExportActions } from "./ExportActions";
 import { ResultsComparisonCards } from "./ResultsComparisonCards";
 import { DecisionMatrixChart } from "./DecisionMatrixChart";
+import { MultiTechniqueSelector } from "./MultiTechniqueSelector";
+import { MultiProductComparison } from "./MultiProductComparison";
+import { MockupPreview } from "./MockupPreview";
 import type { SimulationOption, Product } from "@/types/simulation";
 
 type ViewMode = 'cards' | 'table' | 'matrix';
@@ -53,6 +56,13 @@ interface SimulationResultsCardProps {
   isCalculating?: boolean;
   preferredView?: ViewMode;
   onViewChange?: (view: ViewMode) => void;
+  // Novos props para integrações
+  products?: Product[];
+  onAddToQuote?: (options: SimulationOption[]) => void;
+  onCalculateForProduct?: (product: Product) => SimulationOption[];
+  clientLogoUrl?: string | null;
+  clientRamo?: string | null;
+  clientNicho?: string | null;
 }
 
 export function SimulationResultsCard({
@@ -69,6 +79,12 @@ export function SimulationResultsCard({
   isCalculating = false,
   preferredView = 'cards',
   onViewChange,
+  products,
+  onAddToQuote,
+  onCalculateForProduct,
+  clientLogoUrl,
+  clientRamo,
+  clientNicho,
 }: SimulationResultsCardProps) {
   const [showMarginCalculator, setShowMarginCalculator] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>(preferredView);
@@ -142,6 +158,26 @@ export function SimulationResultsCard({
                   Tabela
                 </Button>
               </div>
+              
+              {/* Melhoria #2: Seleção múltipla para orçamento */}
+              {onAddToQuote && (
+                <MultiTechniqueSelector
+                  options={simulationOptions}
+                  onAddToQuote={onAddToQuote}
+                />
+              )}
+              
+              {/* Melhoria #8: Comparação multi-produto */}
+              {products && onCalculateForProduct && (
+                <MultiProductComparison
+                  currentProduct={selectedProduct}
+                  currentOptions={simulationOptions}
+                  products={products}
+                  quantity={quantity}
+                  onCalculateForProduct={onCalculateForProduct}
+                />
+              )}
+              
               <ExportActions
                 simulationOptions={simulationOptions}
                 selectedProduct={selectedProduct}
@@ -252,6 +288,10 @@ export function SimulationResultsCard({
               bestOption={bestOption}
               fastestOption={fastestOption}
               quantity={quantity}
+              selectedProduct={selectedProduct}
+              clientRamo={clientRamo}
+              clientNicho={clientNicho}
+              clientLogoUrl={clientLogoUrl}
             />
           )}
 

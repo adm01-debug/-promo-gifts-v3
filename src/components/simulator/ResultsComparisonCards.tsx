@@ -21,10 +21,13 @@ import {
   ChevronUp,
   ArrowRight,
   Sparkles,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
-import type { SimulationOption } from "@/types/simulation";
+import { NicheRecommendationBadge } from "./NicheRecommendationBadge";
+import { MockupPreview } from "./MockupPreview";
+import type { SimulationOption, Product } from "@/types/simulation";
 
 interface ResultsComparisonCardsProps {
   options: SimulationOption[];
@@ -32,6 +35,11 @@ interface ResultsComparisonCardsProps {
   fastestOption: SimulationOption | null;
   quantity: number;
   onSelectForQuote?: (option: SimulationOption) => void;
+  // Novos props para integrações
+  selectedProduct?: Product;
+  clientRamo?: string | null;
+  clientNicho?: string | null;
+  clientLogoUrl?: string | null;
 }
 
 export function ResultsComparisonCards({
@@ -40,6 +48,10 @@ export function ResultsComparisonCards({
   fastestOption,
   quantity,
   onSelectForQuote,
+  selectedProduct,
+  clientRamo,
+  clientNicho,
+  clientLogoUrl,
 }: ResultsComparisonCardsProps) {
   const [showAll, setShowAll] = useState(false);
   
@@ -118,7 +130,15 @@ export function ResultsComparisonCards({
             <div className="flex flex-col md:flex-row md:items-center gap-6">
               {/* Left: Technique Info */}
               <div className="flex-1">
-                <h3 className="text-xl font-bold mb-1">{option.techniqueName}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-xl font-bold">{option.techniqueName}</h3>
+                  {/* Melhoria #3: Recomendação por nicho */}
+                  <NicheRecommendationBadge
+                    techniqueCode={option.techniqueCode}
+                    clientRamo={clientRamo}
+                    clientNicho={clientNicho}
+                  />
+                </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {isFastest && (
                     <Badge variant="outline" className="text-blue-500 border-blue-500/50 gap-1">
@@ -132,6 +152,14 @@ export function ResultsComparisonCards({
                     <Badge variant="outline" className="text-success border-success/50 gap-1">
                       <TrendingDown className="h-3 w-3" /> Economia: {formatCurrency(savingsVsMax)}
                     </Badge>
+                  )}
+                  {/* Melhoria #4: Preview de mockup */}
+                  {selectedProduct && (
+                    <MockupPreview
+                      option={option}
+                      product={selectedProduct}
+                      clientLogoUrl={clientLogoUrl}
+                    />
                   )}
                 </div>
                 
