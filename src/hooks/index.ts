@@ -11,3 +11,31 @@ export { useDebouncedSearch } from './useDebouncedSearch';
 export { useConfirmDialog, useDeleteConfirm, useGlobalConfirm, ConfirmDialogProvider } from './useConfirmDialog.tsx';
 export { useBulkSelection } from './useBulkSelection';
 export { useAutoSave, AutoSaveIndicator, DraftRecovery, useFormDraft } from './useAutoSave.tsx';
+
+// Técnicas - Hooks Modulares
+export {
+  TECNICAS_QUERY_KEYS,
+  // Lista e Busca
+  useTecnicasList,
+  useTecnicasResumo,
+  useTecnicaById,
+  useTecnicaByCodigo,
+  useCategoriasTecnicas,
+  useInvalidateTecnicas,
+  // Mutations
+  useTecnicaMutations,
+  // Tabelas de Preço
+  useTabelasPreco,
+  useTabelasPorTecnica,
+  useTabelaPorCodigo,
+  useNomesTecnicasPreco,
+  buscarTabelaAdequada,
+  // Cálculos
+  calcularPreco,
+  extractPriceTiersFromTabela,
+  calculatePriceForQuantity,
+  usePrecoCalculation,
+  usePriceSimulator,
+  type PriceTier,
+  type PriceCalculation,
+} from './tecnicas';
