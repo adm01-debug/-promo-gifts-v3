@@ -186,60 +186,70 @@ serve(async (req) => {
   }
 
   try {
-    // Verificar autenticação
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      console.error('Missing or invalid Authorization header');
-      return new Response(
-        JSON.stringify({ error: 'Não autorizado' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Criar cliente local com SERVICE_ROLE para evitar recursão de RLS
-    // ao buscar user_roles (a policy de user_roles usa has_role() que acessa user_roles)
-    const localServiceSupabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-
-    // Criar cliente com token do usuário para validação
-    const localSupabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    // Validar token e obter usuário
-    const { data: { user }, error: userError } = await localSupabase.auth.getUser();
-    
-    if (userError || !user) {
-      console.error('User validation failed:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Token inválido' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const userId = user.id;
-    console.log(`Request from user: ${userId}`);
-
-    // Buscar role do usuário usando SERVICE_ROLE (bypassa RLS)
-    const { data: userRoles, error: roleError } = await localServiceSupabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-
-    if (roleError) {
-      console.error('Error fetching user roles:', roleError);
-    }
-
-    const userRole = userRoles?.[0]?.role || 'vendedor';
-    console.log(`User role: ${userRole}`);
-
-    // Parse body
+    // Parse body primeiro para verificar operação
     const body = await req.json();
-    const { table, operation, data, filters, id, select, orderBy, limit: queryLimit } = body as {
+    const { table, operation } = body as { table: string; operation: Operation };
+    
+    // Operações de leitura podem ser públicas (para busca de produtos no login/público)
+    const isReadOperation = operation === 'select';
+    const isPublicTable = PRODUCT_TABLES.includes(table as ProductTable) || 
+                          PRODUCT_VIEWS.includes(table as ProductView);
+    const allowPublicAccess = isReadOperation && isPublicTable;
+
+    // Verificar autenticação (opcional para leitura de produtos)
+    const authHeader = req.headers.get('Authorization');
+    let userId: string | null = null;
+    let userRole = 'public';
+
+    if (authHeader?.startsWith('Bearer ')) {
+      // Criar cliente local com SERVICE_ROLE para evitar recursão de RLS
+      const localServiceSupabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+
+      // Criar cliente com token do usuário para validação
+      const localSupabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      // Validar token e obter usuário
+      const { data: { user }, error: userError } = await localSupabase.auth.getUser();
+      
+      if (user && !userError) {
+        userId = user.id;
+        console.log(`Request from user: ${userId}`);
+
+        // Buscar role do usuário usando SERVICE_ROLE (bypassa RLS)
+        const { data: userRoles, error: roleError } = await localServiceSupabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId);
+
+        if (roleError) {
+          console.error('Error fetching user roles:', roleError);
+        }
+
+        userRole = userRoles?.[0]?.role || 'vendedor';
+        console.log(`User role: ${userRole}`);
+      }
+    }
+
+    // Se não é acesso público permitido e não está autenticado, bloquear
+    if (!allowPublicAccess && !userId) {
+      console.error('Authentication required for this operation');
+      return new Response(
+        JSON.stringify({ error: 'Autenticação necessária' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Operation: ${operation} on table: ${table} (public: ${allowPublicAccess})`);
+
+    // Extrair dados adicionais do body já parseado
+    const { data, filters, id, select, orderBy, limit: queryLimit } = body as {
       table: string;
       operation: Operation;
       data?: Record<string, unknown>;
@@ -249,8 +259,6 @@ serve(async (req) => {
       orderBy?: { column: string; ascending?: boolean };
       limit?: number;
     };
-
-    console.log(`Operation: ${operation} on table: ${table}`);
 
     // Identificar grupo do recurso
     const resourceGroup = getResourceGroup(table);
