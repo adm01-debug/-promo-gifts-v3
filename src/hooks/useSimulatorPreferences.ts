@@ -1,11 +1,12 @@
 /**
  * useSimulatorPreferences - Hook para persistir preferências do usuário
- * Salva última configuração usada no localStorage + Supabase
+ * Melhoria #6: Salva última configuração usada no localStorage + Supabase
  */
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TechniqueSettings } from "@/types/simulation";
 
 interface SimulatorPreferences {
@@ -36,17 +37,62 @@ const STORAGE_KEY = "simulator_preferences";
 
 export function useSimulatorPreferences() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [preferences, setPreferencesState] = useState<SimulatorPreferences>(DEFAULT_PREFERENCES);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Carregar preferências do localStorage ao montar
+  // Fetch preferences from Supabase (if user is logged in)
+  const { data: cloudPreferences } = useQuery({
+    queryKey: ["simulator-preferences", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("simulator_preferences")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (error || !data?.simulator_preferences) return null;
+      return data.simulator_preferences as SimulatorPreferences;
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Mutation to save preferences to Supabase
+  const saveToCloudMutation = useMutation({
+    mutationFn: async (prefs: SimulatorPreferences) => {
+      if (!user) return;
+      
+      const { error } = await supabase
+        .from("profiles")
+        .update({ simulator_preferences: prefs as any })
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
+    },
+    onError: (error) => {
+      console.error("Error saving preferences to cloud:", error);
+    },
+  });
+
+  // Load preferences: Cloud first, then localStorage fallback
   useEffect(() => {
     const loadPreferences = () => {
       try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          setPreferencesState({ ...DEFAULT_PREFERENCES, ...parsed });
+        // If cloud preferences are available, use them
+        if (cloudPreferences) {
+          setPreferencesState({ ...DEFAULT_PREFERENCES, ...cloudPreferences });
+          // Also update localStorage
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudPreferences));
+        } else {
+          // Fallback to localStorage
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            setPreferencesState({ ...DEFAULT_PREFERENCES, ...parsed });
+          }
         }
       } catch (error) {
         console.error("Error loading preferences:", error);
@@ -55,47 +101,57 @@ export function useSimulatorPreferences() {
     };
 
     loadPreferences();
-  }, []);
+  }, [cloudPreferences]);
 
-  // Salvar preferências no localStorage
+  // Save preferences to localStorage AND Supabase (debounced)
   const savePreferences = useCallback((newPrefs: Partial<SimulatorPreferences>) => {
     setPreferencesState(prev => {
       const updated = { ...prev, ...newPrefs };
+      
+      // Save to localStorage immediately
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       } catch (error) {
-        console.error("Error saving preferences:", error);
+        console.error("Error saving preferences to localStorage:", error);
       }
+      
+      // Save to cloud (debounced via mutation)
+      if (user) {
+        // Debounce cloud saves by 2 seconds
+        const timeoutKey = 'simulator_prefs_save_timeout';
+        if ((window as any)[timeoutKey]) {
+          clearTimeout((window as any)[timeoutKey]);
+        }
+        (window as any)[timeoutKey] = setTimeout(() => {
+          saveToCloudMutation.mutate(updated);
+        }, 2000);
+      }
+      
       return updated;
     });
-  }, []);
+  }, [user, saveToCloudMutation]);
 
-  // Atualizar quantidade usada
+  // Individual setters
   const setLastQuantity = useCallback((quantity: number) => {
     savePreferences({ lastQuantity: quantity });
   }, [savePreferences]);
 
-  // Atualizar produto usado
   const setLastProductId = useCallback((productId: string | null) => {
     savePreferences({ lastProductId: productId });
   }, [savePreferences]);
 
-  // Atualizar técnicas usadas
   const setLastTechniques = useCallback((techniques: string[]) => {
     savePreferences({ lastTechniques: techniques });
   }, [savePreferences]);
 
-  // Atualizar configurações de técnicas
   const setLastTechniqueSettings = useCallback((settings: Record<string, TechniqueSettings>) => {
     savePreferences({ lastTechniqueSettings: settings });
   }, [savePreferences]);
 
-  // Atualizar view preferida
   const setPreferredView = useCallback((view: 'cards' | 'table' | 'matrix') => {
     savePreferences({ preferredView: view });
   }, [savePreferences]);
 
-  // Atualizar defaults
   const setDefaultColors = useCallback((colors: number) => {
     savePreferences({ defaultColors: colors });
   }, [savePreferences]);
@@ -104,7 +160,6 @@ export function useSimulatorPreferences() {
     savePreferences({ defaultAreaCm2: area });
   }, [savePreferences]);
 
-  // Toggle opções
   const toggleAutoExpandResults = useCallback(() => {
     savePreferences({ autoExpandResults: !preferences.autoExpandResults });
   }, [preferences.autoExpandResults, savePreferences]);
@@ -113,7 +168,7 @@ export function useSimulatorPreferences() {
     savePreferences({ showUpsellSuggestions: !preferences.showUpsellSuggestions });
   }, [preferences.showUpsellSuggestions, savePreferences]);
 
-  // Salvar toda a sessão atual
+  // Save entire session at once
   const saveCurrentSession = useCallback((session: {
     quantity: number;
     productId: string | null;
@@ -128,15 +183,26 @@ export function useSimulatorPreferences() {
     });
   }, [savePreferences]);
 
-  // Resetar para defaults
+  // Reset to defaults
   const resetToDefaults = useCallback(() => {
     setPreferencesState(DEFAULT_PREFERENCES);
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+    if (user) {
+      saveToCloudMutation.mutate(DEFAULT_PREFERENCES);
+    }
+  }, [user, saveToCloudMutation]);
+
+  // Force sync to cloud
+  const syncToCloud = useCallback(() => {
+    if (user) {
+      saveToCloudMutation.mutate(preferences);
+    }
+  }, [user, preferences, saveToCloudMutation]);
 
   return {
     preferences,
     isLoaded,
+    isSyncing: saveToCloudMutation.isPending,
     setLastQuantity,
     setLastProductId,
     setLastTechniques,
@@ -149,5 +215,6 @@ export function useSimulatorPreferences() {
     saveCurrentSession,
     resetToDefaults,
     savePreferences,
+    syncToCloud,
   };
 }
