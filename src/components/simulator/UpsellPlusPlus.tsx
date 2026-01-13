@@ -22,10 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { 
-  Lightbulb, 
-  TrendingDown, 
   TrendingUp,
-  Package, 
   ArrowRight,
   Sparkles,
   CheckCircle,
@@ -36,9 +33,6 @@ import {
   Target,
   BarChart3,
   Tag,
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
   Flame,
   Percent,
 } from "lucide-react";
@@ -188,7 +182,6 @@ export function UpsellPlusPlus({
   clientRamo,
   clientNicho,
 }: UpsellPlusPlusProps) {
-  const [expandedSection, setExpandedSection] = useState<string | null>('quantity');
   const [activeTab, setActiveTab] = useState('all');
 
   // ========================
