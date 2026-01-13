@@ -64,6 +64,8 @@ import { TechniqueSelectionCard } from "@/components/simulator/TechniqueSelectio
 import { SimulationResultsCard } from "@/components/simulator/SimulationResultsCard";
 import { ScenarioComparison } from "@/components/simulator/ScenarioComparison";
 import { UpsellPlusPlus } from "@/components/simulator/UpsellPlusPlus";
+import { RecentSimulationsQuickAccess } from "@/components/simulator/RecentSimulationsQuickAccess";
+import { StockAlert } from "@/components/simulator/StockAlert";
 import { useSimulation, formatCurrency } from "@/hooks/useSimulation";
 
 export default function PersonalizationSimulator() {
@@ -82,7 +84,7 @@ export default function PersonalizationSimulator() {
     <MainLayout>
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="font-display text-3xl font-bold text-foreground flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
@@ -94,6 +96,12 @@ export default function PersonalizationSimulator() {
               Compare custos de diferentes técnicas em tempo real
             </p>
           </div>
+          {/* Melhoria #5: Quick Access Recentes */}
+          <RecentSimulationsQuickAccess
+            simulations={sim.savedSimulations}
+            isLoading={sim.savedSimulationsLoading}
+            onLoadSimulation={sim.loadSavedSimulation}
+          />
         </div>
 
         <Tabs defaultValue="simulator" className="space-y-6">
@@ -138,6 +146,11 @@ export default function PersonalizationSimulator() {
                   onCustomPriceChange={sim.setCustomProductPrice}
                   selectedProduct={sim.selectedProduct}
                   effectiveProductPrice={sim.effectiveProductPrice}
+                />
+                {/* Melhoria #7: Alerta de Estoque */}
+                <StockAlert
+                  product={sim.selectedProduct}
+                  quantity={sim.quantity}
                 />
               </div>
 

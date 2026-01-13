@@ -1,7 +1,7 @@
 // src/components/simulator/ExportActions.tsx
-// Exportação para PDF e compartilhamento via WhatsApp
+// Melhoria #1: Exportação para PDF/Imagem e compartilhamento
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,6 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Share2, 
   FileText, 
@@ -20,7 +27,12 @@ import {
   Check,
   Loader2,
   Mail,
-  Printer
+  Printer,
+  Image as ImageIcon,
+  FileImage,
+  Trophy,
+  Clock,
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatCurrency } from "@/hooks/useSimulation";
@@ -44,7 +56,10 @@ export function ExportActions({
   clientName,
 }: ExportActionsProps) {
   const [isExporting, setIsExporting] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   if (simulationOptions.length === 0) return null;
 
@@ -116,7 +131,6 @@ export function ExportActions({
   const handlePDF = async () => {
     setIsExporting(true);
     try {
-      // Dynamic import of jspdf and autotable
       const [jsPDFModule, autoTableModule] = await Promise.all([
         import('jspdf'),
         import('jspdf-autotable'),
@@ -130,18 +144,23 @@ export function ExportActions({
 
       // Header
       doc.setFontSize(20);
-      doc.setTextColor(30, 64, 175); // Primary blue
+      doc.setTextColor(30, 64, 175);
       doc.text('Simulação de Personalização', pageWidth / 2, 20, { align: 'center' });
+
+      // Date
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, pageWidth / 2, 28, { align: 'center' });
 
       // Product info
       doc.setFontSize(12);
       doc.setTextColor(60, 60, 60);
-      doc.text(`Produto: ${selectedProduct?.name} (${selectedProduct?.sku})`, 14, 35);
-      doc.text(`Quantidade: ${quantity} unidades`, 14, 42);
-      doc.text(`Preço unitário: ${formatCurrency(effectiveProductPrice)}`, 14, 49);
+      doc.text(`Produto: ${selectedProduct?.name} (${selectedProduct?.sku})`, 14, 40);
+      doc.text(`Quantidade: ${quantity} unidades`, 14, 47);
+      doc.text(`Preço unitário: ${formatCurrency(effectiveProductPrice)}`, 14, 54);
       
       if (clientName) {
-        doc.text(`Cliente: ${clientName}`, 14, 56);
+        doc.text(`Cliente: ${clientName}`, 14, 61);
       }
 
       // Table
@@ -156,7 +175,7 @@ export function ExportActions({
       ]);
 
       autoTable(doc, {
-        startY: clientName ? 65 : 58,
+        startY: clientName ? 70 : 63,
         head: [['Técnica', 'Configuração', 'Pers./Un', 'Setup', 'Total', 'Final/Un', 'Prazo']],
         body: tableData,
         theme: 'striped',
@@ -199,7 +218,7 @@ export function ExportActions({
       // Footer
       doc.setFontSize(8);
       doc.setTextColor(150, 150, 150);
-      doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`, 14, doc.internal.pageSize.getHeight() - 10);
+      doc.text('Documento gerado pelo Simulador de Personalização', 14, doc.internal.pageSize.getHeight() - 10);
 
       // Save
       const filename = `simulacao-${selectedProduct?.sku || 'personalização'}-${quantity}un.pdf`;
@@ -214,48 +233,187 @@ export function ExportActions({
     }
   };
 
+  // Generate Image (HTML to Canvas)
+  const handleImage = async () => {
+    setIsGeneratingImage(true);
+    setShowPreview(true);
+    
+    // Wait for preview to render
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      
+      if (!previewRef.current) throw new Error('Preview not found');
+      
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `simulacao-${selectedProduct?.sku || 'personalização'}-${quantity}un.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast.success("Imagem gerada com sucesso!");
+      setShowPreview(false);
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast.error("Erro ao gerar imagem. Tente o PDF.");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   // Print
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Share2 className="h-4 w-4" />
-            Compartilhar
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={handleCopy} className="gap-2 cursor-pointer">
-            {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
-            Copiar texto
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleWhatsApp} className="gap-2 cursor-pointer">
-            <MessageCircle className="h-4 w-4 text-green-500" />
-            WhatsApp
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleEmail} className="gap-2 cursor-pointer">
-            <Mail className="h-4 w-4 text-blue-500" />
-            E-mail
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handlePDF} disabled={isExporting} className="gap-2 cursor-pointer">
-            {isExporting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="h-4 w-4 text-red-500" />
-            )}
-            Baixar PDF
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handlePrint} className="gap-2 cursor-pointer">
-            <Printer className="h-4 w-4" />
-            Imprimir
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <>
+      <div className="flex items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Compartilhar
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={handleCopy} className="gap-2 cursor-pointer">
+              {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+              Copiar texto
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleWhatsApp} className="gap-2 cursor-pointer">
+              <MessageCircle className="h-4 w-4 text-green-500" />
+              WhatsApp
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleEmail} className="gap-2 cursor-pointer">
+              <Mail className="h-4 w-4 text-blue-500" />
+              E-mail
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handlePDF} disabled={isExporting} className="gap-2 cursor-pointer">
+              {isExporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileText className="h-4 w-4 text-red-500" />
+              )}
+              Baixar PDF
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleImage} disabled={isGeneratingImage} className="gap-2 cursor-pointer">
+              {isGeneratingImage ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileImage className="h-4 w-4 text-purple-500" />
+              )}
+              Baixar Imagem
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handlePrint} className="gap-2 cursor-pointer">
+              <Printer className="h-4 w-4" />
+              Imprimir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Hidden Preview for Image Generation */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Gerando imagem...</DialogTitle>
+            <DialogDescription>Aguarde enquanto a imagem é processada</DialogDescription>
+          </DialogHeader>
+          <div 
+            ref={previewRef}
+            className="p-6 bg-white rounded-lg"
+            style={{ minWidth: 600 }}
+          >
+            {/* Image Preview Content */}
+            <div className="space-y-4">
+              {/* Header */}
+              <div className="text-center pb-4 border-b">
+                <h2 className="text-xl font-bold text-primary">Simulação de Personalização</h2>
+                <p className="text-sm text-muted-foreground">
+                  Gerado em {new Date().toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+
+              {/* Product Info */}
+              <div className="p-4 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-4">
+                  {selectedProduct?.image_url && (
+                    <img 
+                      src={selectedProduct.image_url} 
+                      alt={selectedProduct.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
+                  )}
+                  <div>
+                    <h3 className="font-semibold">{selectedProduct?.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      SKU: {selectedProduct?.sku} • {quantity} un • {formatCurrency(effectiveProductPrice)}/un
+                    </p>
+                    {clientName && (
+                      <p className="text-sm text-primary">Cliente: {clientName}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Options */}
+              <div className="space-y-2">
+                {sortedOptions.map((opt, idx) => {
+                  const isBest = idx === 0;
+                  return (
+                    <div 
+                      key={opt.id}
+                      className={`p-3 rounded-lg border ${isBest ? 'bg-success/10 border-success/30' : 'bg-muted/20'}`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {isBest && <Trophy className="h-4 w-4 text-success" />}
+                          <span className="font-medium">{opt.techniqueName}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className={`font-bold ${isBest ? 'text-success' : ''}`}>
+                            {formatCurrency(opt.grandTotal)}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({formatCurrency(opt.grandTotalPerUnit)}/un)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-4 mt-1 text-xs text-muted-foreground">
+                        <span>{opt.colors} cor(es)</span>
+                        <span>{opt.width}×{opt.height}cm</span>
+                        <span>~{opt.estimatedDays} dias</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Best Option Highlight */}
+              {bestOption && (
+                <div className="p-4 bg-success/10 rounded-lg border border-success/30 text-center">
+                  <p className="text-sm text-success font-medium">Melhor Opção</p>
+                  <p className="text-2xl font-bold text-success">
+                    {bestOption.techniqueName}: {formatCurrency(bestOption.grandTotal)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatCurrency(bestOption.grandTotalPerUnit)}/un • ~{bestOption.estimatedDays} dias
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
