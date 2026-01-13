@@ -64,4 +64,6 @@ export {
   calculateUnitPrice,
   calculateTotalPrice,
   findBestPrice,
+  toCalculationResult,
+  type CalculatorResult,
 } from './personalization/calculator-result';

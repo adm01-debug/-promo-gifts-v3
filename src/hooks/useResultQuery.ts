@@ -4,11 +4,10 @@
  * Converte queries do TanStack Query para usar Result<T, E>
  */
 
+import React from 'react';
 import { useQuery, useMutation, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
 import { 
   Result, 
-  ok, 
-  fail, 
   isOk, 
   isFail, 
   DomainError,
