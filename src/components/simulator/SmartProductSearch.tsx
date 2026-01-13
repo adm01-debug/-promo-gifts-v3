@@ -1,8 +1,7 @@
 // Smart Product Search with autocomplete, images, recent products, and hover preview
-import { useState, useMemo, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
 import Fuse from 'fuse.js';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Command,
   CommandEmpty,
@@ -32,12 +31,10 @@ import {
   X,
   Clock,
   ChevronDown,
-  ImageOff,
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from '@/lib/external-db';
-import { useRecentProducts, type RecentProduct } from '@/hooks/useRecentProducts';
+import { useRecentProducts } from '@/hooks/useRecentProducts';
 import { formatCurrency } from '@/hooks/useSimulation';
 import type { Product } from '@/types/simulation';
 
