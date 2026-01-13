@@ -437,7 +437,7 @@ export default function FiltersPage() {
         <div className="flex gap-6">
           {/* Sidebar - Desktop */}
           <aside className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-20 space-y-4 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin pr-2">
+            <div className="sticky top-20 space-y-4 max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-thin pr-2">
               <FilterPanel
                 filters={filters}
                 onFilterChange={handleFilterChange}
@@ -447,8 +447,8 @@ export default function FiltersPage() {
             </div>
           </aside>
 
-          {/* Products area */}
-          <div className="flex-1 min-h-[600px] space-y-4">
+          {/* Products area - alinhado com a sidebar */}
+          <div className="flex-1 min-h-[calc(100vh-10rem)] space-y-3">
             {/* Presets Bar - Above products */}
             <PresetsBar
               currentFilters={filters}

@@ -115,10 +115,10 @@ export function VirtualizedProductGrid({
   }
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <div
         ref={parentRef}
-        className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 
+        className="h-[calc(100vh-200px)] min-h-[600px] overflow-y-auto rounded-xl border border-border/40 
           bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
           scrollbar-products shadow-inner"
         style={{ contain: "strict" }}
