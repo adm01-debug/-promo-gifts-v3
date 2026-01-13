@@ -1,4 +1,15 @@
-// Tipos compartilhados para o Simulador de Preços
+/**
+ * Pricing Simulator Types
+ * 
+ * Tipos específicos para o componente de simulador de preços.
+ * Utiliza tipos de domínio como base.
+ */
+
+import type { PriceCalculationResult } from '@/types/domain';
+
+// ============================================
+// PRODUCT (contexto do simulador)
+// ============================================
 
 export interface ProductColor {
   code: string;
@@ -19,6 +30,10 @@ export interface Product {
   colors?: ProductColor[];
 }
 
+// ============================================
+// TÉCNICA DO PRODUTO
+// ============================================
+
 export interface ProductTechnique {
   id: string;
   techniqueCode: string;
@@ -35,25 +50,35 @@ export interface ProductTechnique {
   isPrimary: boolean;
 }
 
-// Gravação configurada (com opções selecionadas)
+// ============================================
+// GRAVAÇÃO CONFIGURADA
+// ============================================
+
 export interface ConfiguredEngraving {
-  id: string; // ID único para esta gravação
+  id: string;
   technique: ProductTechnique;
   colors: number;
-  sizeOption: string | null; // "WxH" ou null se não usa tamanho
-  tableCode: string | null; // Código da tabela de preços correspondente
+  sizeOption: string | null;
+  tableCode: string | null;
 }
+
+// ============================================
+// RESULTADO DE SIMULAÇÃO
+// ============================================
 
 export interface SimulationResult {
   technique: ProductTechnique;
-  priceCalculation: unknown; // PriceCalculation from useCustomizationPricing
+  priceCalculation: PriceCalculationResult;
   productTotal: number;
   customizationTotal: number;
   grandTotal: number;
   unitTotal: number;
 }
 
-// Dados internos do TechniqueSelector
+// ============================================
+// DADOS INTERNOS DO SELETOR
+// ============================================
+
 export interface ComponentData {
   name: string;
   code: string;
@@ -78,6 +103,10 @@ export interface TechniqueData {
   isPrimary: boolean;
   servCode: string | null;
 }
+
+// ============================================
+// OPÇÕES DE TAMANHO
+// ============================================
 
 export interface SizeOption {
   label: string;
