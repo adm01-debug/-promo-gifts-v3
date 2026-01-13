@@ -1,7 +1,7 @@
 /**
  * StepTechnique - Passo 3: Seleção da Técnica de Gravação
  * 
- * Design: Cards premium com destaque visual para melhores opções
+ * Design: Cards premium com Smart Suggestions e Comparador lado-a-lado
  */
 
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
+import { SmartSuggestion } from './SmartSuggestion';
+import { TechniqueComparator } from './TechniqueComparator';
 
 interface StepTechniqueProps {
   wizard: UseSimulatorWizardReturn;
@@ -104,7 +106,27 @@ export function StepTechnique({ wizard }: StepTechniqueProps) {
           <p className="text-muted-foreground">Este local não possui técnicas configuradas.</p>
         </motion.div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* Smart Suggestion - IA Recommendation */}
+          <SmartSuggestion
+            techniques={availableTechniques}
+            quantity={wizard.quantity}
+            onSelect={wizard.selectTechnique}
+          />
+
+          {/* Technique Comparator */}
+          <TechniqueComparator
+            techniques={availableTechniques}
+            quantity={wizard.quantity}
+            onSelect={wizard.selectTechnique}
+          />
+
+          {/* Divider */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-sm text-muted-foreground">Todas as técnicas</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
           <AnimatePresence mode="popLayout">
             {availableTechniques.map((technique, idx) => {
               const isSelected = selectedTechnique?.id === technique.id;
