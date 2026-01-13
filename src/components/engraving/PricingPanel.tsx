@@ -227,24 +227,24 @@ export function PricingPanel() {
                     <div className="flex items-center gap-2">
                       {tabelasGrupo[0]?.precoPorCor && (
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Palette className="h-4 w-4 text-primary" />
+                          <TooltipTrigger asChild>
+                            <span><Palette className="h-4 w-4 text-primary" /></span>
                           </TooltipTrigger>
                           <TooltipContent>Cobra por cor</TooltipContent>
                         </Tooltip>
                       )}
                       {tabelasGrupo[0]?.precoPorArea && (
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Ruler className="h-4 w-4 text-amber-500" />
+                          <TooltipTrigger asChild>
+                            <span><Ruler className="h-4 w-4 text-amber-500" /></span>
                           </TooltipTrigger>
                           <TooltipContent>Cobra por área</TooltipContent>
                         </Tooltip>
                       )}
                       {tabelasGrupo[0]?.precoPorPontos && (
                         <Tooltip>
-                          <TooltipTrigger>
-                            <Hash className="h-4 w-4 text-purple-500" />
+                          <TooltipTrigger asChild>
+                            <span><Hash className="h-4 w-4 text-purple-500" /></span>
                           </TooltipTrigger>
                           <TooltipContent>Cobra por pontos</TooltipContent>
                         </Tooltip>
@@ -295,8 +295,8 @@ export function PricingPanel() {
                               <TableCell className="text-center">
                                 {tabela.larguraMaxCm && tabela.alturaMaxCm ? (
                                   <Tooltip>
-                                    <TooltipTrigger>
-                                      <span className="text-sm">
+                                    <TooltipTrigger asChild>
+                                      <span className="text-sm cursor-default">
                                         {tabela.larguraMaxCm}×{tabela.alturaMaxCm}cm
                                       </span>
                                     </TooltipTrigger>
@@ -313,10 +313,12 @@ export function PricingPanel() {
                               </TableCell>
                               <TableCell className="text-center">
                                 <Tooltip>
-                                  <TooltipTrigger>
-                                    <Badge variant="outline" className="text-xs">
-                                      {tabela.faixas.length} faixas
-                                    </Badge>
+                                  <TooltipTrigger asChild>
+                                    <span>
+                                      <Badge variant="outline" className="text-xs cursor-default">
+                                        {tabela.faixas.length} faixas
+                                      </Badge>
+                                    </span>
                                   </TooltipTrigger>
                                   <TooltipContent className="max-w-xs">
                                     <div className="text-xs space-y-1">
