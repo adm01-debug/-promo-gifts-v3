@@ -43,7 +43,7 @@ export default function ProductRegistrationPage() {
     <MainLayout>
       <div className="container max-w-6xl mx-auto py-6 space-y-6">
         <PageHeader
-          title="Cadastro de Produtos"
+          title="Gestão de Produtos"
           description="Cadastre novos produtos no catálogo ou importe em massa via planilha"
         />
 
