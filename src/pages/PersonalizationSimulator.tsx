@@ -185,6 +185,13 @@ export default function PersonalizationSimulator() {
                   onSave={() => sim.setSaveDialogOpen(true)}
                   preferredView={sim.preferredView}
                   onViewChange={sim.setPreferredView}
+                  // Melhorias integradas
+                  products={sim.products}
+                  onAddToQuote={sim.handleAddToQuote}
+                  onCalculateForProduct={sim.calculateForProduct}
+                  clientLogoUrl={sim.clients?.find(c => c.id === sim.selectedClientId)?.logo_url}
+                  clientRamo={sim.clients?.find(c => c.id === sim.selectedClientId)?.ramo}
+                  clientNicho={sim.clients?.find(c => c.id === sim.selectedClientId)?.nicho}
                 />
 
                 {/* Upsell++ - Sugestões Inteligentes Avançadas */}
