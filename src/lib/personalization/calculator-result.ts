@@ -11,12 +11,10 @@ import {
   fail,
   DomainError,
   DomainErrors,
-  combine,
   flatMap,
-  map,
 } from '../result';
 import type { PriceTier, PriceCalculationResult } from '@/types/domain';
-import type { PriceTableInput, TechniqueInput } from './types';
+import type { PriceTableInput } from './types';
 
 // ============================================
 // ERROS ESPECÍFICOS DE CÁLCULO
@@ -44,6 +42,35 @@ export const CalculatorErrors = {
   colorsExceedLimit: (colors: number, maxColors: number) =>
     DomainErrors.invalidInput('colors', `${colors} cores excede limite de ${maxColors}`),
 };
+
+// ============================================
+// RESULTADO INTERNO DO CALCULADOR
+// ============================================
+
+/**
+ * Resultado de cálculo interno (simplificado)
+ * Compatível com PriceCalculationResult do domínio
+ */
+export interface CalculatorResult {
+  tableId: string;
+  tableCode: string;
+  techniqueName: string;
+  quantity: number;
+  tierUsed: number;
+  unitPrice: number;
+  subtotal: number;
+  setupPrice: number;
+  handlingPrice: number;
+  grandTotal: number;
+  slaDays: number | null;
+  maxColors: number | null;
+  maxArea: { widthCm: number; heightCm: number; areaCm2: number } | null;
+  savings?: {
+    perUnit: number;
+    total: number;
+    percentOff: number;
+  };
+}
 
 // ============================================
 // FUNÇÕES DE CÁLCULO COM RESULT
@@ -159,7 +186,7 @@ export function calculateTotalPrice(input: {
   colors?: number;
   area?: number;
   table: PriceTableInput;
-}): Result<PriceCalculationResult, DomainError> {
+}): Result<CalculatorResult, DomainError> {
   // Pipeline de validação e cálculo
   return flatMap(
     validateCalculationInput(input),
@@ -178,26 +205,28 @@ export function calculateTotalPrice(input: {
             }),
             (unitPrice) => {
               const subtotal = unitPrice * quantity;
-              const setupCost = table.setupPrice || 0;
-              const handlingCost = table.handlingPrice || 0;
-              const total = subtotal + setupCost + handlingCost;
+              const setupPrice = table.setupPrice || 0;
+              const handlingPrice = table.handlingPrice || 0;
+              const grandTotal = subtotal + setupPrice + handlingPrice;
 
-              const result: PriceCalculationResult = {
+              const result: CalculatorResult = {
+                tableId: table.id,
+                tableCode: table.tableCode,
+                techniqueName: table.techniqueName,
+                quantity,
+                tierUsed: tier.tier,
                 unitPrice,
                 subtotal,
-                setupCost,
-                handlingCost,
-                total,
-                breakdown: {
-                  basePrice: tier.unitPrice,
-                  colorAdjustment: colors && colors > 1 
-                    ? unitPrice - tier.unitPrice 
-                    : 0,
-                  areaAdjustment: 0,
-                  quantityDiscount: 0,
-                },
-                appliedTier: tier,
-                warnings: [],
+                setupPrice,
+                handlingPrice,
+                grandTotal,
+                slaDays: tier.slaDays,
+                maxColors: table.maxColors,
+                maxArea: table.maxWidthCm && table.maxHeightCm ? {
+                  widthCm: table.maxWidthCm,
+                  heightCm: table.maxHeightCm,
+                  areaCm2: table.maxAreaCm2 || (table.maxWidthCm * table.maxHeightCm),
+                } : null,
               };
 
               return ok(result);
@@ -210,6 +239,28 @@ export function calculateTotalPrice(input: {
 }
 
 /**
+ * Converte CalculatorResult para PriceCalculationResult do domínio
+ */
+export function toCalculationResult(calc: CalculatorResult): PriceCalculationResult {
+  return {
+    tableId: calc.tableId,
+    tableCode: calc.tableCode,
+    techniqueName: calc.techniqueName,
+    quantity: calc.quantity,
+    tierUsed: calc.tierUsed,
+    unitPrice: calc.unitPrice,
+    subtotal: calc.subtotal,
+    setupPrice: calc.setupPrice,
+    handlingPrice: calc.handlingPrice,
+    grandTotal: calc.grandTotal,
+    slaDays: calc.slaDays,
+    maxColors: calc.maxColors,
+    maxArea: calc.maxArea,
+    savings: calc.savings,
+  };
+}
+
+/**
  * Calcula múltiplas tabelas e retorna a melhor
  */
 export function findBestPrice(
@@ -219,7 +270,7 @@ export function findBestPrice(
     colors?: number;
     area?: number;
   }
-): Result<{ table: PriceTableInput; result: PriceCalculationResult }, DomainError> {
+): Result<{ table: PriceTableInput; result: CalculatorResult }, DomainError> {
   const results = tables
     .map(table => ({
       table,
@@ -228,7 +279,7 @@ export function findBestPrice(
     .filter(({ result }) => result.ok)
     .map(({ table, result }) => ({
       table,
-      result: (result as { ok: true; value: PriceCalculationResult }).value,
+      result: (result as { ok: true; value: CalculatorResult }).value,
     }));
 
   if (results.length === 0) {
@@ -237,7 +288,7 @@ export function findBestPrice(
 
   // Encontrar menor preço total
   const best = results.reduce((prev, curr) => 
-    curr.result.total < prev.result.total ? curr : prev
+    curr.result.grandTotal < prev.result.grandTotal ? curr : prev
   );
 
   return ok(best);
