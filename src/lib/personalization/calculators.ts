@@ -56,7 +56,7 @@ export function calculatePrice(
   const grandTotal = subtotal + table.setupPrice + table.handlingPrice;
   
   // 6. Calcular economia vs primeira faixa
-  const savings = calculateSavings(table.tiers, tier, unitPrice, quantity);
+  const savings = calculateTierSavings(table.tiers, tier, unitPrice, quantity);
   
   // 7. Montar área máxima
   const maxArea: PrintArea | null = table.maxWidthCm && table.maxHeightCm
@@ -152,9 +152,9 @@ export function adjustPriceByArea(
 }
 
 /**
- * Calcula economia comparado à primeira faixa
+ * Calcula economia comparado à primeira faixa (interno)
  */
-function calculateSavings(
+function calculateTierSavings(
   tiers: PriceTier[],
   currentTier: PriceTier,
   currentUnitPrice: number,
@@ -177,6 +177,23 @@ function calculateSavings(
     total: totalSavings,
     percentOff: Math.round(percentOff),
   };
+}
+
+/**
+ * Calcula economia entre dois preços unitários (exportada)
+ */
+export function calculateSavings(
+  originalUnitPrice: number,
+  discountedUnitPrice: number,
+  quantity: number
+): { perUnit: number; total: number; percentOff: number } {
+  const perUnit = originalUnitPrice - discountedUnitPrice;
+  const total = perUnit * quantity;
+  const percentOff = originalUnitPrice > 0 
+    ? Math.round((perUnit / originalUnitPrice) * 100)
+    : 0;
+  
+  return { perUnit, total, percentOff };
 }
 
 // ============================================

@@ -216,7 +216,7 @@ export function validateTechniqueForParams(
 /**
  * Valida se quantidade é válida para um conjunto de faixas
  */
-export function validateQuantity(
+export function validateQuantityRange(
   quantity: number,
   minQuantity: number,
   maxQuantity?: number | null
@@ -245,6 +245,94 @@ export function validateQuantity(
       code: 'EXCEEDS_MAX_QUANTITY',
       field: 'quantity',
       message: `Quantidade (${quantity}) excede máximo usual (${maxQuantity})`,
+    });
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  };
+}
+
+/**
+ * Valida quantidade simples (para serviços)
+ */
+export function validateQuantity(quantity: number): ValidationResult {
+  return validateQuantityRange(quantity, 1);
+}
+
+/**
+ * Valida número de cores
+ */
+export function validateColors(colors: number, maxColors?: number): ValidationResult {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  if (colors <= 0) {
+    errors.push({
+      code: 'INVALID_COLORS',
+      field: 'colors',
+      message: 'Número de cores deve ser maior que zero',
+    });
+  }
+  
+  if (maxColors && colors > maxColors) {
+    warnings.push({
+      code: 'EXCEEDS_MAX_COLORS',
+      field: 'colors',
+      message: `Número de cores (${colors}) excede máximo (${maxColors})`,
+    });
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+  };
+}
+
+/**
+ * Valida dimensões de área
+ */
+export function validateArea(
+  widthCm: number,
+  heightCm: number,
+  maxWidthCm?: number,
+  maxHeightCm?: number
+): ValidationResult {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  if (widthCm <= 0) {
+    errors.push({
+      code: 'INVALID_WIDTH',
+      field: 'widthCm',
+      message: 'Largura deve ser maior que zero',
+    });
+  }
+  
+  if (heightCm <= 0) {
+    errors.push({
+      code: 'INVALID_HEIGHT',
+      field: 'heightCm',
+      message: 'Altura deve ser maior que zero',
+    });
+  }
+  
+  if (maxWidthCm && widthCm > maxWidthCm) {
+    warnings.push({
+      code: 'EXCEEDS_MAX_WIDTH',
+      field: 'widthCm',
+      message: `Largura (${widthCm}cm) excede máximo (${maxWidthCm}cm)`,
+    });
+  }
+  
+  if (maxHeightCm && heightCm > maxHeightCm) {
+    warnings.push({
+      code: 'EXCEEDS_MAX_HEIGHT',
+      field: 'heightCm',
+      message: `Altura (${heightCm}cm) excede máximo (${maxHeightCm}cm)`,
     });
   }
   
