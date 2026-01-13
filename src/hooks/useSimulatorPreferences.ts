@@ -42,6 +42,7 @@ export function useSimulatorPreferences() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Fetch preferences from Supabase (if user is logged in)
+  // Uses the 'preferences' JSONB column with a 'simulator' key
   const { data: cloudPreferences } = useQuery({
     queryKey: ["simulator-preferences", user?.id],
     queryFn: async () => {
@@ -49,25 +50,43 @@ export function useSimulatorPreferences() {
       
       const { data, error } = await supabase
         .from("profiles")
-        .select("simulator_preferences")
+        .select("preferences")
         .eq("user_id", user.id)
         .single();
       
-      if (error || !data?.simulator_preferences) return null;
-      return data.simulator_preferences as SimulatorPreferences;
+      if (error || !data?.preferences) return null;
+      
+      // Extract simulator preferences from nested key
+      const prefs = data.preferences as Record<string, unknown>;
+      if (!prefs?.simulator) return null;
+      return prefs.simulator as SimulatorPreferences;
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Mutation to save preferences to Supabase
+  // Mutation to save preferences to Supabase (merged into 'preferences.simulator')
   const saveToCloudMutation = useMutation({
     mutationFn: async (prefs: SimulatorPreferences) => {
       if (!user) return;
       
+      // First, fetch existing preferences to merge
+      const { data: existingData } = await supabase
+        .from("profiles")
+        .select("preferences")
+        .eq("user_id", user.id)
+        .single();
+      
+      const existingPrefs = (existingData?.preferences as Record<string, unknown>) || {};
+      
       const { error } = await supabase
         .from("profiles")
-        .update({ simulator_preferences: prefs as any })
+        .update({ 
+          preferences: { 
+            ...existingPrefs,
+            simulator: prefs 
+          } as any 
+        })
         .eq("user_id", user.id);
       
       if (error) throw error;
