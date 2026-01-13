@@ -12,9 +12,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { invokeExternalDb } from '@/lib/external-db';
-import type { Product } from './useProducts';
 import type { TabelaPrecoTecnica } from '@/types/tecnica-unificada';
-import type { ProductTechnique, SizeOption } from '@/components/pricing/simulator/types';
+import type { ProductTechnique, SizeOption, Product as SimulatorProduct, ProductColor } from '@/components/pricing/simulator/types';
 
 // ============================================
 // TIPOS
@@ -42,7 +41,7 @@ export interface ExternalPrintArea {
 }
 
 export interface ProdutoPersonalizacao {
-  produto: Product | null;
+  produto: SimulatorProduct | null;
   tecnicas: ProductTechnique[];
   tecnicasPorComponente: Record<string, ProductTechnique[]>;
   isLoading: boolean;
@@ -141,7 +140,7 @@ export function useProdutoPersonalizacao(productId: string | null): ProdutoPerso
   // Query para buscar dados do produto
   const produtoQuery = useQuery({
     queryKey: PRODUTO_PERSONALIZACAO_KEYS.produto(productId ?? ''),
-    queryFn: async (): Promise<Product | null> => {
+    queryFn: async (): Promise<SimulatorProduct | null> => {
       if (!productId) return null;
 
       const result = await invokeExternalDb<any>({
@@ -155,7 +154,9 @@ export function useProdutoPersonalizacao(productId: string | null): ProdutoPerso
       const p = result.records[0];
       if (!p) return null;
 
-      // Normalizar para o formato Product
+      // Normalizar para o formato SimulatorProduct
+      const colors: ProductColor[] = normalizeColors(p.colors);
+      
       return {
         id: p.id,
         name: p.name,
@@ -165,8 +166,8 @@ export function useProdutoPersonalizacao(productId: string | null): ProdutoPerso
         category_name: null,
         supplier_reference: p.supplier_reference,
         brand: p.brand,
-        colors: normalizeColors(p.colors),
-      } as Product;
+        colors,
+      };
     },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
@@ -471,13 +472,14 @@ function extractImages(p: any): string[] {
   return images;
 }
 
-function normalizeColors(colors: any[] | undefined): { name: string; hex: string; group: string }[] {
+function normalizeColors(colors: any[] | undefined): ProductColor[] {
   if (!colors || !Array.isArray(colors)) return [];
   
   return colors.map((c: any) => ({
+    code: c.code || c.color_code || c.name || 'unknown',
     name: c.name || c.color_name || 'Sem cor',
     hex: c.hex || c.hex_code || c.color_hex || '#CCCCCC',
-    group: c.group || c.color_group || c.name || 'Outros',
+    stock: c.stock || c.stock_quantity || undefined,
   }));
 }
 
@@ -538,3 +540,4 @@ function extractSizeOptions(tabelas: TabelaPrecoTecnica[]): SizeOption[] {
 // ============================================
 
 export type { ProductTechnique, SizeOption };
+export type { SimulatorProduct as Product };
