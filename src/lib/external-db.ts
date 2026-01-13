@@ -268,3 +268,236 @@ export function getProductPrice(product: PromobrindProduct): number {
 export function getProductStock(product: PromobrindProduct): number {
   return product.stock_quantity || 0;
 }
+
+// ============================================
+// TIPOS PARA ÁREAS DE IMPRESSÃO PROMOBRIND
+// ============================================
+
+export interface PromobrindPrintArea {
+  id: string;
+  product_id: string;
+  area_code: string;
+  area_name: string;
+  component_name: string | null;
+  location_name: string | null;
+  max_width_cm: number | null;
+  max_height_cm: number | null;
+  max_area_cm2: number | null;
+  is_curved: boolean;
+  technique_id: string | null;
+  technique_code: string | null;
+  technique_name: string | null;
+  max_colors: number | null;
+  is_default: boolean;
+  area_image_url: string | null;
+}
+
+export interface PromobrindTechnique {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  unit_cost: number | null;
+  setup_cost: number | null;
+  min_quantity: number | null;
+  estimated_days: number | null;
+  max_colors: number | null;
+  max_width_cm: number | null;
+  max_height_cm: number | null;
+  is_active: boolean;
+}
+
+export interface PromobrindPriceTable {
+  id: string;
+  code_option: string;
+  technique_name: string;
+  technique_code: string | null;
+  min_quantity: number;
+  max_quantity: number | null;
+  min_colors: number | null;
+  max_colors: number | null;
+  min_width_cm: number | null;
+  max_width_cm: number | null;
+  min_height_cm: number | null;
+  max_height_cm: number | null;
+  unit_price: number;
+  setup_price: number | null;
+  sla_days: number | null;
+  is_active: boolean;
+}
+
+// ============================================
+// FUNÇÕES PARA ÁREAS DE IMPRESSÃO
+// ============================================
+
+const PRINT_AREA_SELECT_FIELDS = 
+  'id, product_id, area_code, area_name, component_name, location_name, ' +
+  'max_width_cm, max_height_cm, max_area_cm2, is_curved, technique_id, ' +
+  'technique_code, technique_name, max_colors, is_default, area_image_url';
+
+/**
+ * Busca áreas de impressão de um produto do BD Promobrind
+ */
+export async function fetchPromobrindPrintAreas(
+  productId: string
+): Promise<PromobrindPrintArea[]> {
+  // Tentar buscar da view completa primeiro
+  try {
+    const result = await invokeExternalDb<PromobrindPrintArea>({
+      table: 'v_product_print_areas_complete',
+      operation: 'select',
+      filters: { product_id: productId },
+      select: PRINT_AREA_SELECT_FIELDS,
+      limit: 100,
+    });
+    return result.records;
+  } catch {
+    // Fallback para tabela principal
+    const result = await invokeExternalDb<PromobrindPrintArea>({
+      table: 'product_print_areas',
+      operation: 'select',
+      filters: { product_id: productId },
+      limit: 100,
+    });
+    return result.records;
+  }
+}
+
+// ============================================
+// FUNÇÕES PARA TÉCNICAS DE PERSONALIZAÇÃO
+// ============================================
+
+const TECHNIQUE_SELECT_FIELDS = 
+  'id, code, name, description, category, unit_cost, setup_cost, ' +
+  'min_quantity, estimated_days, max_colors, max_width_cm, max_height_cm, is_active';
+
+/**
+ * Busca técnicas de personalização ativas do BD Promobrind
+ */
+export async function fetchPromobrindTechniques(options?: {
+  ids?: string[];
+  codes?: string[];
+  limit?: number;
+}): Promise<PromobrindTechnique[]> {
+  const filters: Record<string, unknown> = { is_active: true };
+  
+  if (options?.ids?.length) {
+    filters.id = options.ids;
+  }
+  if (options?.codes?.length) {
+    filters.code = options.codes;
+  }
+
+  const result = await invokeExternalDb<PromobrindTechnique>({
+    table: 'personalization_techniques',
+    operation: 'select',
+    filters,
+    select: TECHNIQUE_SELECT_FIELDS,
+    limit: options?.limit || 100,
+    orderBy: { column: 'name', ascending: true },
+  });
+  return result.records;
+}
+
+/**
+ * Busca uma técnica específica pelo ID
+ */
+export async function fetchPromobrindTechniqueById(
+  techniqueId: string
+): Promise<PromobrindTechnique | null> {
+  const result = await invokeExternalDb<PromobrindTechnique>({
+    table: 'personalization_techniques',
+    operation: 'select',
+    filters: { id: techniqueId },
+    select: TECHNIQUE_SELECT_FIELDS,
+    limit: 1,
+  });
+  return result.records[0] || null;
+}
+
+// ============================================
+// FUNÇÕES PARA TABELAS DE PREÇO
+// ============================================
+
+const PRICE_TABLE_SELECT_FIELDS = 
+  'id, code_option, technique_name, technique_code, min_quantity, max_quantity, ' +
+  'min_colors, max_colors, min_width_cm, max_width_cm, min_height_cm, max_height_cm, ' +
+  'unit_price, setup_price, sla_days, is_active';
+
+/**
+ * Busca tabelas de preço para uma técnica
+ */
+export async function fetchPromobrindPriceTables(options?: {
+  techniqueName?: string;
+  techniqueCode?: string;
+  quantity?: number;
+  colors?: number;
+  width?: number;
+  height?: number;
+}): Promise<PromobrindPriceTable[]> {
+  const filters: Record<string, unknown> = { is_active: true };
+  
+  if (options?.techniqueName) {
+    filters.technique_name = options.techniqueName;
+  }
+  if (options?.techniqueCode) {
+    filters.technique_code = options.techniqueCode;
+  }
+
+  const result = await invokeExternalDb<PromobrindPriceTable>({
+    table: 'customization_price_tables',
+    operation: 'select',
+    filters,
+    select: PRICE_TABLE_SELECT_FIELDS,
+    limit: 500,
+    orderBy: { column: 'min_quantity', ascending: true },
+  });
+
+  // Filtrar por parâmetros opcionais
+  let tables = result.records;
+  
+  if (options?.quantity) {
+    tables = tables.filter(t => 
+      t.min_quantity <= options.quantity! && 
+      (t.max_quantity === null || t.max_quantity >= options.quantity!)
+    );
+  }
+  if (options?.colors) {
+    tables = tables.filter(t => 
+      (t.min_colors === null || t.min_colors <= options.colors!) && 
+      (t.max_colors === null || t.max_colors >= options.colors!)
+    );
+  }
+  if (options?.width) {
+    tables = tables.filter(t => 
+      (t.min_width_cm === null || t.min_width_cm <= options.width!) && 
+      (t.max_width_cm === null || t.max_width_cm >= options.width!)
+    );
+  }
+  if (options?.height) {
+    tables = tables.filter(t => 
+      (t.min_height_cm === null || t.min_height_cm <= options.height!) && 
+      (t.max_height_cm === null || t.max_height_cm >= options.height!)
+    );
+  }
+
+  return tables;
+}
+
+/**
+ * Encontra a melhor tabela de preço para os parâmetros dados
+ */
+export async function findBestPriceTable(options: {
+  techniqueName?: string;
+  techniqueCode?: string;
+  quantity: number;
+  colors?: number;
+  width?: number;
+  height?: number;
+}): Promise<PromobrindPriceTable | null> {
+  const tables = await fetchPromobrindPriceTables(options);
+  
+  // Retorna a primeira tabela que corresponde (já ordenada por min_quantity)
+  return tables[0] || null;
+}
