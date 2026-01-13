@@ -41,7 +41,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
-import type { SimulationOption, Product, Technique } from "@/types/simulation";
+import type { SimulationOption, Product } from "@/types/simulation";
 
 interface ProductComparison {
   product: Product;

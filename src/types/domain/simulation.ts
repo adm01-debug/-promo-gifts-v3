@@ -106,19 +106,22 @@ export interface SimulationOption {
 
 /**
  * Simulação salva no banco
+ * Nota: Usa snake_case para corresponder ao formato do banco de dados
  */
 export interface SavedSimulation {
   id: string;
-  productId: string | null;
-  productName: string;
-  productSku: string | null;
+  seller_id: string;
+  product_id: string | null;
+  product_name: string;
+  product_sku: string | null;
   quantity: number;
-  productUnitPrice: number;
-  options: SimulationOption[];
+  product_unit_price: number;
+  simulation_data: SimulationOption[];
   notes: string | null;
-  createdAt: Date;
-  clientId: string | null;
-  client?: {
+  created_at: string;
+  updated_at: string;
+  client_id: string | null;
+  bitrix_clients?: {
     id: string;
     name: string;
     ramo: string | null;
