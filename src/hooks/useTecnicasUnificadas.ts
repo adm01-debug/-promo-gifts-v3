@@ -8,6 +8,7 @@
  */
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { TECNICAS_QUERY_OPTIONS, TABELAS_PRECO_QUERY_OPTIONS } from '@/lib/query-config';
 import { invokeExternalDb, invokeExternalDbSingle } from '@/lib/external-db';
 import type { 
   TecnicaUnificada, 
@@ -162,7 +163,7 @@ export function useTecnicasUnificadas(filtros?: TecnicaFiltros) {
 
       return tecnicas;
     },
-    staleTime: 5 * 60 * 1000,
+    ...TECNICAS_QUERY_OPTIONS,
   });
 
   // Toggle status mutation
@@ -283,7 +284,7 @@ export function useTecnicasResumo(apenasAtivas = true) {
         ativo: t.is_active,
       }));
     },
-    staleTime: 10 * 60 * 1000,
+    ...TECNICAS_QUERY_OPTIONS,
   });
 }
 
@@ -306,7 +307,7 @@ export function useTecnicaUnificada(id: string | undefined) {
       return tecnica ? transformToUnificada(tecnica) : null;
     },
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    ...TECNICAS_QUERY_OPTIONS,
   });
 }
 
@@ -329,7 +330,7 @@ export function useTecnicaPorCodigo(codigo: string | undefined) {
       return tecnica ? transformToUnificada(tecnica) : null;
     },
     enabled: !!codigo,
-    staleTime: 5 * 60 * 1000,
+    ...TECNICAS_QUERY_OPTIONS,
   });
 }
 
@@ -371,7 +372,7 @@ export function useTabelasPreco(filtros?: TabelaPrecoFiltros) {
 
       return tabelas;
     },
-    staleTime: 5 * 60 * 1000,
+    ...TABELAS_PRECO_QUERY_OPTIONS,
   });
 }
 
@@ -393,7 +394,7 @@ export function useTabelasPorTecnica(nomeTecnica: string | undefined) {
       return result.records.map(transformToTabelaPreco);
     },
     enabled: !!nomeTecnica,
-    staleTime: 5 * 60 * 1000,
+    ...TABELAS_PRECO_QUERY_OPTIONS,
   });
 }
 
@@ -416,7 +417,7 @@ export function useTabelaPorCodigo(codigoOpcao: string | undefined) {
       return tabela ? transformToTabelaPreco(tabela) : null;
     },
     enabled: !!codigoOpcao,
-    staleTime: 5 * 60 * 1000,
+    ...TABELAS_PRECO_QUERY_OPTIONS,
   });
 }
 

@@ -11,6 +11,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { PRODUTOS_QUERY_OPTIONS, TABELAS_PRECO_QUERY_OPTIONS } from '@/lib/query-config';
 import { invokeExternalDb } from '@/lib/external-db';
 import type { TabelaPrecoTecnica } from '@/types/tecnica-unificada';
 import type { ProductTechnique, SizeOption, Product as SimulatorProduct, ProductColor } from '@/components/pricing/simulator/types';
@@ -134,7 +135,7 @@ export function useProdutoPersonalizacao(productId: string | null): ProdutoPerso
       return result.records.map(transformPrintAreaToTechnique);
     },
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    ...PRODUTOS_QUERY_OPTIONS,
   });
 
   // Query para buscar dados do produto
@@ -170,7 +171,7 @@ export function useProdutoPersonalizacao(productId: string | null): ProdutoPerso
       };
     },
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000,
+    ...PRODUTOS_QUERY_OPTIONS,
   });
 
   const tecnicas = tecnicasQuery.data ?? [];
@@ -319,7 +320,7 @@ export function useProdutoPersonalizacaoCompleto(productId: string | null): Prod
       return tabelasPorCodigo;
     },
     enabled: techniqueCodes.length > 0,
-    staleTime: 5 * 60 * 1000,
+    ...TABELAS_PRECO_QUERY_OPTIONS,
   });
 
   // Combinar técnicas com opções de tabela
@@ -386,7 +387,7 @@ export function useProdutoTecnicas(productId: string | null) {
       return result.records.map(transformPrintAreaToTechnique);
     },
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000,
+    ...PRODUTOS_QUERY_OPTIONS,
   });
 }
 
@@ -439,7 +440,7 @@ export function useTecnicaTabela(techniqueCode: string | null, numCores?: number
       return tabelaAdequada;
     },
     enabled: !!techniqueCode,
-    staleTime: 5 * 60 * 1000,
+    ...TABELAS_PRECO_QUERY_OPTIONS,
   });
 }
 
