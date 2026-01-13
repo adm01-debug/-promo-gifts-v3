@@ -10,12 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { 
   Trophy, 
   Medal,
   Zap, 
@@ -27,8 +21,6 @@ import {
   ChevronUp,
   ArrowRight,
   Sparkles,
-  Star,
-  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/hooks/useSimulation";
@@ -201,19 +193,19 @@ export function ResultsComparisonCards({
             <div className="mt-4 pt-4 border-t grid grid-cols-4 gap-4 text-center text-sm">
               <div>
                 <span className="text-muted-foreground block text-xs">Produto</span>
-                <span className="font-medium">{formatCurrency(option.productTotal)}</span>
+                <span className="font-medium">{formatCurrency(option.totalProductCost)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-xs">Personalização</span>
-                <span className="font-medium">{formatCurrency(option.personalizationTotal)}</span>
+                <span className="font-medium">{formatCurrency(option.totalPersonalizationCost)}</span>
               </div>
               <div>
                 <span className="text-muted-foreground block text-xs">Setup</span>
                 <span className="font-medium">{formatCurrency(option.setupCost)}</span>
               </div>
               <div>
-                <span className="text-muted-foreground block text-xs">Por Un.</span>
-                <span className="font-medium">{formatCurrency(option.personalizationPerUnit)}</span>
+                <span className="text-muted-foreground block text-xs">Pers./Un</span>
+                <span className="font-medium">{formatCurrency(option.costPerUnit)}</span>
               </div>
             </div>
           </CardContent>

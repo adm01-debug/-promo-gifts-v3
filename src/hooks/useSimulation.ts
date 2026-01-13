@@ -456,13 +456,18 @@ Opção ${idx + 1}: ${opt.techniqueName}
   }, [simulationOptions, selectedProduct, effectiveProductPrice, quantity]);
 
   const loadSavedSimulation = useCallback((simulation: SavedSimulation) => {
-    setSelectedProductId(simulation.product_id);
-    setQuantity(simulation.quantity);
+    setSelectedProductIdState(simulation.product_id);
+    setLastProductId(simulation.product_id);
+    
+    setQuantityState(simulation.quantity);
+    setLastQuantity(simulation.quantity);
+    
     setCustomProductPrice(simulation.product_unit_price.toString());
     setSimulationOptions(simulation.simulation_data);
     
     const techIds = simulation.simulation_data.map(s => s.techniqueId);
-    setSelectedTechniques(techIds);
+    setSelectedTechniquesState(techIds);
+    setLastTechniques(techIds);
     
     const settings: Record<string, TechniqueSettings> = {};
     simulation.simulation_data.forEach(opt => {
@@ -473,12 +478,13 @@ Opção ${idx + 1}: ${opt.techniqueName}
         positions: opt.positions,
       };
     });
-    setTechniqueSettings(settings);
-    setCurrentStep('results');
+    setTechniqueSettingsState(settings);
+    setLastTechniqueSettings(settings);
     
+    setCurrentStep('results');
     setViewSimulation(null);
     toast.success("Simulação carregada!");
-  }, []);
+  }, [setLastProductId, setLastQuantity, setLastTechniques, setLastTechniqueSettings]);
 
   // Mutations
   const saveSimulationMutation = useMutation({
