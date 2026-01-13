@@ -53,6 +53,8 @@ export function rawToTecnicaUnificada(raw: PersonalizationTechniqueRaw): Tecnica
     custoSetup: raw.setup_price,
     custoManuseio: raw.handling_price,
     multiplicadorCusto: raw.base_cost_multiplier,
+    quantidadeMinima: raw.min_quantity,
+    prazoEstimado: raw.estimated_days,
     aplicaSuperficieCurva: raw.applies_to_curved,
     promptSuffix: raw.prompt_suffix,
     ativo: raw.is_active,
