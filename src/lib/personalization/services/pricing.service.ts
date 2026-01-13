@@ -6,9 +6,8 @@
  */
 
 import { PriceTableRepository } from '../repositories/priceTable.repository';
-import { calculatePrice, calculateSavings } from '../calculators';
+import { calculateSavings } from '../calculators';
 import { validateQuantity, validateColors, validateArea } from '../validators';
-import { selectBestTable } from '../selectors';
 import type { TabelaPrecoTecnica } from '@/types/tecnica-unificada';
 import type { PriceCalculationResult, PriceCalculationParams, ValidationResult } from '../types';
 
