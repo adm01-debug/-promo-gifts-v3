@@ -1,7 +1,37 @@
-// src/types/personalization.ts
-// Técnicas de personalização
+/**
+ * Types: Personalization
+ * 
+ * @deprecated Use tipos de src/types/domain
+ * Este arquivo mantém compatibilidade com código legado.
+ */
 
-export interface PersonalizationTechnique {
+// Re-export dos tipos de domínio
+export type {
+  Technique as PersonalizationTechnique,
+  TechniqueSummary,
+  PriceTable,
+  PriceTier,
+  PriceCalculationParams,
+  PriceCalculationResult,
+  PrintArea,
+  ColorOption,
+  SizeOption,
+  ValidationResult,
+  ValidationError,
+  ValidationWarning,
+  TableSelectionCriteria,
+  TechniqueFilters,
+  PriceTableFilters,
+} from './domain';
+
+// ============================================
+// TIPOS LEGADOS (para compatibilidade)
+// ============================================
+
+/**
+ * @deprecated Use Technique de src/types/domain
+ */
+export interface PersonalizationTechniqueLegacy {
   id: string;
   name: string;
   code: string | null;
@@ -15,6 +45,9 @@ export interface PersonalizationTechnique {
   updated_at: string;
 }
 
+/**
+ * Localização de personalização
+ */
 export interface PersonalizationLocation {
   id: string;
   product_type: string;
@@ -24,6 +57,9 @@ export interface PersonalizationLocation {
   created_at: string;
 }
 
+/**
+ * Tamanho de personalização
+ */
 export interface PersonalizationSize {
   id: string;
   technique_id: string | null;
@@ -37,7 +73,13 @@ export interface PersonalizationSize {
   created_at: string;
 }
 
-// Simulação de personalização
+// ============================================
+// SIMULAÇÃO (legado)
+// ============================================
+
+/**
+ * @deprecated Use SavedSimulation de src/types/domain
+ */
 export interface PersonalizationSimulation {
   id: string;
   seller_id: string;
@@ -47,13 +89,13 @@ export interface PersonalizationSimulation {
   product_sku: string | null;
   product_unit_price: number;
   quantity: number;
-  simulation_data: SimulationData[];
+  simulation_data: SimulationDataLegacy[];
   notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export interface SimulationData {
+export interface SimulationDataLegacy {
   technique_id: string;
   technique_name: string;
   location: string;
