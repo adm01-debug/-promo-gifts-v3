@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
@@ -6,7 +6,7 @@ import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
-import { useProducts, type Product } from "@/hooks/useProducts";
+import { useProducts } from "@/hooks/useProducts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -20,20 +20,9 @@ import {
 import { 
   Filter, 
   SlidersHorizontal, 
-  LayoutGrid, 
-  List,
-  ArrowUpDown,
   X,
   Mic
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -371,40 +360,6 @@ export default function FiltersPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* View mode toggle */}
-              <div className="flex border border-border rounded-lg p-1">
-                <Button
-                  variant={viewMode === "grid" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setViewMode("grid")}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "secondary" : "ghost"}
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Sort */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[180px]">
-                  <ArrowUpDown className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Ordenar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Nome</SelectItem>
-                  <SelectItem value="price-asc">Menor preço</SelectItem>
-                  <SelectItem value="price-desc">Maior preço</SelectItem>
-                  <SelectItem value="stock">Maior estoque</SelectItem>
-                </SelectContent>
-              </Select>
-
               {/* Voice search button */}
               {isSupported && (
                 <Button
@@ -421,7 +376,7 @@ export default function FiltersPage() {
                 </Button>
               )}
 
-              {/* Mobile filter button */}
+              {/* Mobile filter button - abre sheet */}
               <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" className="lg:hidden">
@@ -521,15 +476,74 @@ export default function FiltersPage() {
                   showFilterBar={true}
                 />
               ) : (
-                <ProductList
-                  products={filteredProducts}
-                  onProductClick={(productId) => navigate(`/produto/${productId}`)}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={toggleFavorite}
-                  isInCompare={isInCompare}
-                  onToggleCompare={toggleCompare}
-                  canAddToCompare={canAddMore}
-                />
+                <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 
+                  bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
+                  scrollbar-products shadow-inner p-4">
+                  {/* Barra de filtros inline para modo lista */}
+                  <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-2.5 mb-4 -mt-4 -mx-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setMobileFiltersOpen(true)}
+                          className="gap-2 h-8"
+                        >
+                          <SlidersHorizontal className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline text-xs">Filtros</span>
+                          {activeFiltersCount > 0 && (
+                            <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
+                              {activeFiltersCount}
+                            </Badge>
+                          )}
+                        </Button>
+                        {activeFiltersCount > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleReset}
+                            className="gap-1 text-muted-foreground hover:text-foreground h-8 px-2"
+                          >
+                            <X className="h-3 w-3" />
+                            <span className="hidden sm:inline text-xs">Limpar</span>
+                          </Button>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          <strong className="text-foreground">{filteredProducts.length}</strong> produtos
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <select 
+                          value={sortBy} 
+                          onChange={(e) => setSortBy(e.target.value)}
+                          className="h-8 text-xs border border-border rounded-md px-2 bg-background"
+                        >
+                          <option value="name">Nome A-Z</option>
+                          <option value="price-asc">Menor preço</option>
+                          <option value="price-desc">Maior preço</option>
+                          <option value="stock">Maior estoque</option>
+                        </select>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => setViewMode("grid")}
+                          className="h-8 px-3 text-xs"
+                        >
+                          Grade
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <ProductList
+                    products={filteredProducts}
+                    onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={toggleFavorite}
+                    isInCompare={isInCompare}
+                    onToggleCompare={toggleCompare}
+                    canAddToCompare={canAddMore}
+                  />
+                </div>
               )
             ) : (
               <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
