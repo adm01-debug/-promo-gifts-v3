@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowUp } from "lucide-react";
 import { ProductCard } from "./ProductCard";
 import { ProductCardSkeleton } from "./ProductCardSkeleton";
+import { InlineFilterBar } from "@/components/filters/StickyFilterBar";
 import type { Product } from "@/hooks/useProducts";
 
 interface VirtualizedProductGridProps {
@@ -18,6 +19,15 @@ interface VirtualizedProductGridProps {
   isInCompare?: (productId: string) => boolean;
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
+  // Filter controls
+  activeFiltersCount?: number;
+  sortBy?: string;
+  onSortChange?: (value: string) => void;
+  onOpenFilters?: () => void;
+  onClearFilters?: () => void;
+  viewMode?: "grid" | "list";
+  onViewModeChange?: (mode: "grid" | "list") => void;
+  showFilterBar?: boolean;
 }
 
 export function VirtualizedProductGrid({
@@ -32,9 +42,18 @@ export function VirtualizedProductGrid({
   isInCompare,
   onToggleCompare,
   canAddToCompare = true,
+  activeFiltersCount = 0,
+  sortBy = "name",
+  onSortChange,
+  onOpenFilters,
+  onClearFilters,
+  viewMode = "grid",
+  onViewModeChange,
+  showFilterBar = true,
 }: VirtualizedProductGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Calculate rows based on columns
   const rowCount = Math.ceil(products.length / columns);
@@ -51,10 +70,16 @@ export function VirtualizedProductGrid({
 
   // Infinite scroll: load more when reaching the bottom
   const handleScroll = useCallback(() => {
-    if (!parentRef.current || !hasMore || loadingMore || isLoading) return;
+    if (!parentRef.current) return;
 
     const { scrollTop, scrollHeight, clientHeight } = parentRef.current;
-    const scrollThreshold = 500; // Load more when 500px from bottom
+    
+    // Show scroll-to-top button after scrolling 300px
+    setShowScrollTop(scrollTop > 300);
+    
+    // Load more when 500px from bottom
+    if (!hasMore || loadingMore || isLoading) return;
+    const scrollThreshold = 500;
 
     if (scrollHeight - scrollTop - clientHeight < scrollThreshold) {
       setLoadingMore(true);
@@ -98,6 +123,22 @@ export function VirtualizedProductGrid({
           scrollbar-products shadow-inner"
         style={{ contain: "strict" }}
       >
+        {/* Barra de filtros sticky DENTRO do container de scroll */}
+        {showFilterBar && onSortChange && onOpenFilters && onClearFilters && onViewModeChange && (
+          <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-2.5 mb-2">
+            <InlineFilterBar
+              activeFiltersCount={activeFiltersCount}
+              totalProducts={products.length}
+              sortBy={sortBy}
+              onSortChange={onSortChange}
+              onOpenFilters={onOpenFilters}
+              onClearFilters={onClearFilters}
+              viewMode={viewMode}
+              onViewModeChange={onViewModeChange}
+            />
+          </div>
+        )}
+        
         <div
           style={{
             height: `${virtualizer.getTotalSize()}px`,
@@ -177,15 +218,16 @@ export function VirtualizedProductGrid({
         </div>
       </div>
 
-      {/* Scroll to top button */}
+      {/* Scroll to top button - posicionado dentro do container */}
       <AnimatePresence>
-        {virtualizer.scrollOffset > 1000 && (
+        {showScrollTop && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed bottom-20 right-6 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-40"
+            className="absolute bottom-4 right-4 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-30"
             onClick={scrollToTop}
+            title="Voltar ao topo"
           >
             <ArrowUp className="h-5 w-5" />
           </motion.button>

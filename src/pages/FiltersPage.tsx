@@ -1,9 +1,8 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { PresetsBar } from "@/components/filters/PresetsBar";
-import { StickyFilterBar } from "@/components/filters/StickyFilterBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
@@ -40,7 +39,6 @@ import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
 import { toast } from "sonner";
-import { useStickyHeader } from "@/hooks/useInfiniteScroll";
 
 export default function FiltersPage() {
   const navigate = useNavigate();
@@ -58,14 +56,6 @@ export default function FiltersPage() {
   const [commandAction, setCommandAction] = useState<string | null>(null);
   const [appliedFilters, setAppliedFilters] = useState<Array<{ type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit"; label: string }>>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
-  // Hook para detectar scroll e mostrar barra sticky
-  const { isSticky } = useStickyHeader(300); // Aparece após 300px de scroll
-
-  // Função para voltar ao topo
-  const scrollToTop = useCallback(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
 
   const { parseCommand } = useVoiceCommands();
 
@@ -367,20 +357,6 @@ export default function FiltersPage() {
 
   return (
     <MainLayout>
-      {/* Barra de Filtros Sticky - aparece quando rola para baixo */}
-      <StickyFilterBar
-        isVisible={isSticky}
-        activeFiltersCount={activeFiltersCount}
-        totalProducts={filteredProducts.length}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        onOpenFilters={() => setMobileFiltersOpen(true)}
-        onClearFilters={handleReset}
-        onScrollToTop={scrollToTop}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-      />
-
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col gap-4">
@@ -534,6 +510,15 @@ export default function FiltersPage() {
                   isInCompare={isInCompare}
                   onToggleCompare={toggleCompare}
                   canAddToCompare={canAddMore}
+                  // Props para barra de filtros interna
+                  activeFiltersCount={activeFiltersCount}
+                  sortBy={sortBy}
+                  onSortChange={setSortBy}
+                  onOpenFilters={() => setMobileFiltersOpen(true)}
+                  onClearFilters={handleReset}
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                  showFilterBar={true}
                 />
               ) : (
                 <ProductList
