@@ -46,6 +46,8 @@ import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { EmptyState } from "@/components/common/EmptyState";
 import { HoverCard, FadeInView, AnimatedCounter, StaggerList } from "@/components/common/MicroInteractions";
 import { GlassCard, GlassPanel } from "@/components/common/GlassElements";
+import { StickyFilterBar } from "@/components/common/StickyFilterBar";
+import { EnhancedStatsCard } from "@/components/common/EnhancedStatsCard";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { RecentlyViewedBar } from "@/components/products/RecentlyViewedBar";
 import { InfoTooltip } from "@/components/common/ContextualTooltips";

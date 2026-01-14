@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
+import { ZoomableGallery } from "@/components/products/ZoomableGallery";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { ShareActions } from "@/components/products/ShareActions";
@@ -24,6 +25,7 @@ import { ProductCustomizationOptions } from "@/components/products/ProductCustom
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
+import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -363,6 +365,14 @@ export default function ProductDetail() {
                 ))}
               </div>
             </div>
+
+            {/* Inline Price Calculator */}
+            <InlinePriceCalculator
+              productId={product.id}
+              productName={product.name}
+              basePrice={product.price}
+              minQuantity={product.minQuantity || 1}
+            />
 
             {/* Variações removidas daqui - agora estão na galeria */}
 
