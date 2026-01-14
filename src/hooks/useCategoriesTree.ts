@@ -180,22 +180,6 @@ export function useCategoriesTree() {
     
     sortChildren(roots);
 
-    // Debug: verificar estrutura da árvore
-    console.log('[useCategoriesTree] Tree built:', {
-      totalCategories: categories.length,
-      rootsCount: roots.length,
-      sampleRoot: roots[0] ? {
-        id: roots[0].id,
-        name: roots[0].name,
-        childrenCount: roots[0].children?.length || 0,
-        sampleChild: roots[0].children?.[0] ? {
-          id: roots[0].children[0].id,
-          name: roots[0].children[0].name,
-          childrenCount: roots[0].children[0].children?.length || 0,
-        } : null,
-      } : null,
-    });
-
     return roots;
   }, [categories, categoryIcons]);
 

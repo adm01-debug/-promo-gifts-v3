@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type MouseEvent } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen, X, ChevronLeft, Layers } from 'lucide-react';
 import { useCategoriesTree, CategoryNode, CategoryTreeItem } from '@/hooks/useCategoriesTree';
 import { Input } from '@/components/ui/input';
@@ -33,7 +33,7 @@ function TreeNode({
   expandedIds: Set<string>;
   onToggle: (id: string) => void;
   onSelect: (node: CategoryNode) => void;
-) {
+}) {
   const hasChildren = node.children && node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
   const isSelected = selectedId === node.id;
@@ -44,7 +44,7 @@ function TreeNode({
   };
 
   // Handler de clique com propagação correta
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     
     // Sempre seleciona
@@ -176,13 +176,15 @@ export function CategorySidebarPanel({
   // Selecionar categoria
   const handleSelect = useCallback((category: CategoryNode | CategoryTreeItem) => {
     onSelectCategory?.(category.id, category.name);
-    
-    // Auto-expandir pais
+
+    // Auto-expandir apenas os PAIS (não o nó selecionado)
+    // Motivo: quando o usuário clica no próprio nó, o TreeNode também chama toggle;
+    // se adicionarmos o nó aqui, o toggle seguinte acaba "desfazendo" a expansão.
     if ('parent_id' in category && category.parent_id) {
       const path = getPath(category.id);
       setExpandedIds(prev => {
         const next = new Set(prev);
-        path.forEach(p => next.add(p.id));
+        path.slice(0, -1).forEach(p => next.add(p.id));
         return next;
       });
     }
