@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Heart,
   Package,
   Truck,
   Shield,
   Tag,
   Layers,
-  Star,
   Sparkles,
-  Check,
-  Share2,
   Building2,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
