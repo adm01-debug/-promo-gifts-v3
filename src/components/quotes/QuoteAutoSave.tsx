@@ -198,13 +198,6 @@ export function QuoteAutoSave({
     setShowRestorePrompt(false);
   };
 
-  const clearDraft = () => {
-    localStorage.removeItem(storageKey);
-    setAvailableDraft(null);
-    setHasUnsavedChanges(false);
-    initialDataRef.current = JSON.stringify(data);
-  };
-
   const getStatusIcon = () => {
     switch (status) {
       case "saving":
