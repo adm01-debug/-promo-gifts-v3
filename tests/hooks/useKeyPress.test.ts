@@ -18,4 +18,3 @@ describe('useKeyState', () => {
     expect(result.current).toBe(false);
   });
 });
-});

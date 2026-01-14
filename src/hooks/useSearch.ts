@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Product } from "@/hooks/useProducts";
-import { PRODUCTS, CATEGORIES, SUPPLIERS } from "@/data/mockData";
+import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
 
 const HISTORY_KEY = "search-history";
 const MAX_HISTORY = 10;
+
+// This hook now relies on ProductsContext for product data
+// Products are passed externally or fetched via context
 
 export interface SearchResult {
   type: "product" | "category" | "supplier" | "history";
@@ -14,7 +17,7 @@ export interface SearchResult {
   data?: Product;
 }
 
-export function useSearch() {
+export function useSearch(products: Product[] = []) {
   const [query, setQuery] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -74,13 +77,13 @@ export function useSearch() {
       return results;
     }
 
-    // Search products
-    const matchingProducts = PRODUCTS.filter(
+    // Search products (using products passed from context)
+    const matchingProducts = products.filter(
       (p) =>
         p.name.toLowerCase().includes(searchTerm) ||
-        p.sku.toLowerCase().includes(searchTerm) ||
-        p.description.toLowerCase().includes(searchTerm) ||
-        p.materials.some((m) => m.toLowerCase().includes(searchTerm))
+        (p.sku || '').toLowerCase().includes(searchTerm) ||
+        (p.description || '').toLowerCase().includes(searchTerm) ||
+        (p.materials || '').toLowerCase().includes(searchTerm)
     ).slice(0, 5);
 
     matchingProducts.forEach((product) => {
@@ -88,7 +91,7 @@ export function useSearch() {
         type: "product",
         id: product.id,
         label: product.name,
-        sublabel: `${product.sku} • ${product.category.name}`,
+        sublabel: `${product.sku || ''} • ${product.category_name || ''}`,
         icon: "📦",
         data: product,
       });
@@ -100,11 +103,15 @@ export function useSearch() {
     ).slice(0, 3);
 
     matchingCategories.forEach((category) => {
+      const productCount = products.filter((p) => 
+        p.category_id === String(category.id) || 
+        parseInt(p.category_id || '0') === category.id
+      ).length;
       results.push({
         type: "category",
         id: String(category.id),
         label: category.name,
-        sublabel: `${PRODUCTS.filter((p) => p.category.id === category.id).length} produtos`,
+        sublabel: `${productCount} produtos`,
         icon: category.icon || "📁",
       });
     });
@@ -115,17 +122,20 @@ export function useSearch() {
     ).slice(0, 3);
 
     matchingSuppliers.forEach((supplier) => {
+      const productCount = products.filter((p) => 
+        p.brand === supplier.id || p.supplier_reference === supplier.id
+      ).length;
       results.push({
         type: "supplier",
         id: supplier.id,
         label: supplier.name,
-        sublabel: `${PRODUCTS.filter((p) => p.supplier.id === supplier.id).length} produtos`,
+        sublabel: `${productCount} produtos`,
         icon: "🏭",
       });
     });
 
     return results;
-  }, [query, history]);
+  }, [query, history, products]);
 
   // Quick suggestions (popular/trending)
   const quickSuggestions = useMemo(() => {
