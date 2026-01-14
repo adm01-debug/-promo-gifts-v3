@@ -1,12 +1,21 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useCallback } from "react";
 import { useCollections, Collection } from "@/hooks/useCollections";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product } from "@/hooks/useProducts";
 
 interface CollectionsContextType {
   collections: Collection[];
   isLoaded: boolean;
-  createCollection: (name: string, description?: string, color?: string, icon?: string) => Collection;
-  updateCollection: (id: string, updates: Partial<Omit<Collection, "id" | "createdAt">>) => void;
+  createCollection: (
+    name: string,
+    description?: string,
+    color?: string,
+    icon?: string
+  ) => Collection;
+  updateCollection: (
+    id: string,
+    updates: Partial<Omit<Collection, "id" | "createdAt">>
+  ) => void;
   deleteCollection: (id: string) => void;
   addProductToCollection: (collectionId: string, productId: string) => void;
   removeProductFromCollection: (collectionId: string, productId: string) => void;
@@ -22,9 +31,18 @@ const CollectionsContext = createContext<CollectionsContextType | undefined>(und
 
 export function CollectionsProvider({ children }: { children: ReactNode }) {
   const collectionsHook = useCollections();
+  const { getProductsByIds } = useProductsContext();
+
+  const getCollectionProducts = useCallback(
+    (collectionId: string): Product[] =>
+      collectionsHook.getCollectionProductsFromMap(collectionId, getProductsByIds),
+    [collectionsHook.getCollectionProductsFromMap, getProductsByIds]
+  );
 
   return (
-    <CollectionsContext.Provider value={collectionsHook}>
+    <CollectionsContext.Provider
+      value={{ ...collectionsHook, getCollectionProducts }}
+    >
       {children}
     </CollectionsContext.Provider>
   );

@@ -36,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { CATEGORIES, SUPPLIERS, type Client } from "@/data/mockData";
 import { useProducts, type Product } from "@/hooks/useProducts";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
@@ -56,6 +57,7 @@ export default function Index() {
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { getProductById } = useProductsContext();
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch();
   
   // Buscar produtos reais do banco de dados
@@ -364,7 +366,7 @@ export default function Index() {
   };
 
   const handleShareProduct = (productId: string) => {
-    const product = PRODUCTS.find((p) => p.id === productId);
+    const product = getProductById(productId);
     if (!product) return;
 
     const shareUrl = `${window.location.origin}/produto/${productId}`;

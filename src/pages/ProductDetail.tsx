@@ -42,6 +42,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { PopularityBadge, LowStockAlert, TrustBadgesRow } from "@/components/common/SocialProof";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
+import { useProductsContext } from "@/contexts/ProductsContext";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -54,6 +55,7 @@ export default function ProductDetail() {
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedContext();
+  const { products: allProducts } = useProductsContext();
 
   // Buscar produto no banco (mesma fonte da vitrine)
   const { data: product, isLoading } = useProduct(id || "");
@@ -459,13 +461,13 @@ export default function ProductDetail() {
         <div className="space-y-12 pt-8 border-t border-border">
           <RelatedProducts 
             currentProduct={product} 
-            allProducts={PRODUCTS} 
+            allProducts={allProducts} 
             maxItems={4} 
           />
           
           <RecommendedProducts 
             currentProduct={product} 
-            allProducts={PRODUCTS} 
+            allProducts={allProducts} 
             maxItems={4} 
           />
         </div>

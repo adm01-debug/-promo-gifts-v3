@@ -1,5 +1,6 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useCallback } from "react";
 import { useFavorites, FavoriteItem } from "@/hooks/useFavorites";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product } from "@/hooks/useProducts";
 
 interface FavoritesContextType {
@@ -18,9 +19,15 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const favoritesHook = useFavorites();
+  const { getProductsByIds } = useProductsContext();
+
+  const getFavoriteProducts = useCallback(
+    (): Product[] => getProductsByIds(favoritesHook.favorites.map((f) => f.productId)),
+    [getProductsByIds, favoritesHook.favorites]
+  );
 
   return (
-    <FavoritesContext.Provider value={favoritesHook}>
+    <FavoritesContext.Provider value={{ ...favoritesHook, getFavoriteProducts }}>
       {children}
     </FavoritesContext.Provider>
   );

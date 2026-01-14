@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { Product } from "@/hooks/useProducts";
-import { PRODUCTS } from "@/data/mockData";
 
 const STORAGE_KEY = "product-collections";
 
@@ -32,7 +31,6 @@ export function useCollections() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from localStorage
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -45,114 +43,126 @@ export function useCollections() {
     setIsLoaded(true);
   }, []);
 
-  // Save to localStorage
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(collections));
     }
   }, [collections, isLoaded]);
 
-  const createCollection = useCallback((
-    name: string,
-    description?: string,
-    color?: string,
-    icon?: string
-  ): Collection => {
-    const newCollection: Collection = {
-      id: `col-${Date.now()}`,
-      name,
-      description,
-      color: color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
-      icon: icon || DEFAULT_ICONS[0],
-      productIds: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  const createCollection = useCallback(
+    (name: string, description?: string, color?: string, icon?: string): Collection => {
+      const newCollection: Collection = {
+        id: `col-${Date.now()}`,
+        name,
+        description,
+        color:
+          color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
+        icon: icon || DEFAULT_ICONS[0],
+        productIds: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setCollections((prev) => [...prev, newCollection]);
+      return newCollection;
+    },
+    []
+  );
 
-    setCollections((prev) => [...prev, newCollection]);
-    return newCollection;
-  }, []);
-
-  const updateCollection = useCallback((
-    id: string,
-    updates: Partial<Omit<Collection, "id" | "createdAt">>
-  ) => {
-    setCollections((prev) =>
-      prev.map((col) =>
-        col.id === id
-          ? { ...col, ...updates, updatedAt: new Date().toISOString() }
-          : col
-      )
-    );
-  }, []);
+  const updateCollection = useCallback(
+    (id: string, updates: Partial<Omit<Collection, "id" | "createdAt">>) => {
+      setCollections((prev) =>
+        prev.map((col) =>
+          col.id === id
+            ? { ...col, ...updates, updatedAt: new Date().toISOString() }
+            : col
+        )
+      );
+    },
+    []
+  );
 
   const deleteCollection = useCallback((id: string) => {
     setCollections((prev) => prev.filter((col) => col.id !== id));
   }, []);
 
-  const addProductToCollection = useCallback((collectionId: string, productId: string) => {
-    setCollections((prev) =>
-      prev.map((col) =>
-        col.id === collectionId && !col.productIds.includes(productId)
-          ? {
+  const addProductToCollection = useCallback(
+    (collectionId: string, productId: string) => {
+      setCollections((prev) =>
+        prev.map((col) =>
+          col.id === collectionId && !col.productIds.includes(productId)
+            ? {
+                ...col,
+                productIds: [...col.productIds, productId],
+                updatedAt: new Date().toISOString(),
+              }
+            : col
+        )
+      );
+    },
+    []
+  );
+
+  const removeProductFromCollection = useCallback(
+    (collectionId: string, productId: string) => {
+      setCollections((prev) =>
+        prev.map((col) =>
+          col.id === collectionId
+            ? {
+                ...col,
+                productIds: col.productIds.filter((id) => id !== productId),
+                updatedAt: new Date().toISOString(),
+              }
+            : col
+        )
+      );
+    },
+    []
+  );
+
+  const addProductToMultipleCollections = useCallback(
+    (productId: string, collectionIds: string[]) => {
+      setCollections((prev) =>
+        prev.map((col) => {
+          if (collectionIds.includes(col.id) && !col.productIds.includes(productId)) {
+            return {
               ...col,
               productIds: [...col.productIds, productId],
               updatedAt: new Date().toISOString(),
-            }
-          : col
-      )
-    );
-  }, []);
+            };
+          }
+          return col;
+        })
+      );
+    },
+    []
+  );
 
-  const removeProductFromCollection = useCallback((collectionId: string, productId: string) => {
-    setCollections((prev) =>
-      prev.map((col) =>
-        col.id === collectionId
-          ? {
-              ...col,
-              productIds: col.productIds.filter((id) => id !== productId),
-              updatedAt: new Date().toISOString(),
-            }
-          : col
-      )
-    );
-  }, []);
+  /** Resolver produtos usando a função do ProductsContext */
+  const getCollectionProductsFromMap = useCallback(
+    (
+      collectionId: string,
+      getProductsByIds: (ids: string[]) => Product[]
+    ): Product[] => {
+      const collection = collections.find((col) => col.id === collectionId);
+      if (!collection) return [];
+      return getProductsByIds(collection.productIds);
+    },
+    [collections]
+  );
 
-  const addProductToMultipleCollections = useCallback((
-    productId: string,
-    collectionIds: string[]
-  ) => {
-    setCollections((prev) =>
-      prev.map((col) => {
-        if (collectionIds.includes(col.id) && !col.productIds.includes(productId)) {
-          return {
-            ...col,
-            productIds: [...col.productIds, productId],
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return col;
-      })
-    );
-  }, []);
+  const getProductCollections = useCallback(
+    (productId: string): Collection[] =>
+      collections.filter((col) => col.productIds.includes(productId)),
+    [collections]
+  );
 
-  const getCollectionProducts = useCallback((collectionId: string): Product[] => {
-    const collection = collections.find((col) => col.id === collectionId);
-    if (!collection) return [];
-
-    return collection.productIds
-      .map((id) => PRODUCTS.find((p) => p.id === id))
-      .filter((p): p is Product => p !== undefined);
-  }, [collections]);
-
-  const getProductCollections = useCallback((productId: string): Collection[] => {
-    return collections.filter((col) => col.productIds.includes(productId));
-  }, [collections]);
-
-  const isProductInCollection = useCallback((productId: string, collectionId: string): boolean => {
-    const collection = collections.find((col) => col.id === collectionId);
-    return collection?.productIds.includes(productId) ?? false;
-  }, [collections]);
+  const isProductInCollection = useCallback(
+    (productId: string, collectionId: string): boolean => {
+      const collection = collections.find((col) => col.id === collectionId);
+      return collection?.productIds.includes(productId) ?? false;
+    },
+    [collections]
+  );
 
   return {
     collections,
@@ -163,7 +173,7 @@ export function useCollections() {
     addProductToCollection,
     removeProductFromCollection,
     addProductToMultipleCollections,
-    getCollectionProducts,
+    getCollectionProductsFromMap,
     getProductCollections,
     isProductInCollection,
     defaultColors: DEFAULT_COLORS,
