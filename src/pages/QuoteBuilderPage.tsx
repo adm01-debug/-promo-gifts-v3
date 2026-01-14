@@ -51,6 +51,8 @@ import { useQuoteTemplates, type QuoteTemplate, type QuoteTemplateItem } from "@
 import { QuoteTemplateSelector } from "@/components/quotes/QuoteTemplateSelector";
 import { SaveAsTemplateButton } from "@/components/quotes/SaveAsTemplateButton";
 import { QuotePersonalizationSelector } from "@/components/quotes/QuotePersonalizationSelector";
+import { QuoteAutoSave } from "@/components/quotes/QuoteAutoSave";
+import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Collapsible,
@@ -416,6 +418,23 @@ export default function QuoteBuilderPage() {
 
   return (
     <MainLayout>
+      {/* Auto-save component */}
+      <QuoteAutoSave
+        quoteId={quoteId}
+        data={{ clientId, validUntil, discountType, discountValue, notes, internalNotes, items }}
+        onRestore={(data) => {
+          setClientId(data.clientId || "");
+          setValidUntil(data.validUntil || format(addDays(new Date(), 30), "yyyy-MM-dd"));
+          setDiscountType(data.discountType || "percent");
+          setDiscountValue(data.discountValue || 0);
+          setNotes(data.notes || "");
+          setInternalNotes(data.internalNotes || "");
+          setItems(data.items || []);
+          toast.success("Rascunho restaurado!");
+        }}
+        className="fixed top-20 right-4 z-40"
+      />
+      
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -574,137 +593,23 @@ export default function QuoteBuilderPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                {items.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Nenhum item adicionado</p>
-                    <p className="text-sm">Clique em "Adicionar Produto" ou use um template</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {items.map((item, index) => (
-                      <Card key={`${item.product_id}-${index}`} className="overflow-hidden">
-                        <div className="flex items-start gap-4 p-4">
-                          {/* Product Image */}
-                          {item.product_image_url ? (
-                            <img
-                              src={item.product_image_url}
-                              alt={item.product_name}
-                              className="h-16 w-16 object-cover rounded-lg shrink-0"
-                            />
-                          ) : (
-                            <div className="h-16 w-16 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                              <Package className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <p className="font-medium truncate">{item.product_name}</p>
-                                <p className="text-sm text-muted-foreground">{item.product_sku}</p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-destructive hover:text-destructive shrink-0"
-                                onClick={() => removeItem(index)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-
-                            {/* Personalization badges */}
-                            {item.personalizations && item.personalizations.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {item.personalizations.map((p, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    {p.technique_name || `Técnica ${idx + 1}`}
-                                    <button
-                                      onClick={() => handlePersonalizationRemove(index, idx)}
-                                      className="ml-1 hover:text-destructive"
-                                    >
-                                      ×
-                                    </button>
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Quantity, Price, Total */}
-                            <div className="flex items-center gap-3 mt-3 flex-wrap">
-                              <div className="w-20">
-                                <Label className="text-xs text-muted-foreground">Qtd</Label>
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  value={item.quantity}
-                                  onChange={(e) =>
-                                    updateItemQuantity(index, parseInt(e.target.value) || 1)
-                                  }
-                                  className="h-8 text-center"
-                                />
-                              </div>
-                              <div className="w-28">
-                                <Label className="text-xs text-muted-foreground">Preço Un.</Label>
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  step={0.01}
-                                  value={item.unit_price}
-                                  onChange={(e) =>
-                                    updateItemPrice(index, parseFloat(e.target.value) || 0)
-                                  }
-                                  className="h-8"
-                                />
-                              </div>
-                              <div className="text-right">
-                                <Label className="text-xs text-muted-foreground">Subtotal</Label>
-                                <p className="font-medium text-primary">
-                                  {formatCurrency(calculateItemTotal(item))}
-                                </p>
-                                {calculateItemPersonalizationTotal(item) > 0 && (
-                                  <p className="text-xs text-muted-foreground">
-                                    (+ {formatCurrency(calculateItemPersonalizationTotal(item))} pers.)
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Expandable Personalization Section */}
-                        <Collapsible open={expandedItems.has(index)}>
-                          <CollapsibleTrigger asChild>
-                            <button
-                              onClick={() => toggleExpanded(index)}
-                              className="w-full flex items-center justify-center gap-2 py-2 bg-muted/50 text-sm text-muted-foreground hover:bg-muted transition-colors"
-                            >
-                              <Palette className="h-4 w-4" />
-                              Técnicas de Personalização
-                              {expandedItems.has(index) ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            <div className="p-4 bg-muted/30 border-t">
-                              <QuotePersonalizationSelector
-                                techniques={techniques}
-                                quantity={item.quantity}
-                                onAdd={(personalization) =>
-                                  handlePersonalizationAdd(index, personalization)
-                                }
-                              />
-                            </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                <DraggableQuoteItems
+                  items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
+                  onReorder={(reorderedItems) => setItems(reorderedItems)}
+                  onUpdateQuantity={updateItemQuantity}
+                  onUpdatePrice={updateItemPrice}
+                  onRemove={removeItem}
+                  onTogglePersonalization={toggleExpanded}
+                  expandedItems={expandedItems}
+                  renderPersonalization={(item, index) => (
+                    <QuotePersonalizationSelector
+                      techniques={techniques}
+                      quantity={item.quantity}
+                      onAdd={(personalization) => handlePersonalizationAdd(index, personalization)}
+                    />
+                  )}
+                  formatCurrency={formatCurrency}
+                />
               </CardContent>
             </Card>
 

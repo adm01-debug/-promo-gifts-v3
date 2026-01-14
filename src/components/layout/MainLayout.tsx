@@ -12,6 +12,7 @@ import { QuickQuoteFAB } from "@/components/quote/QuickQuoteFAB";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { GlobalCommandBar } from "@/components/command/GlobalCommandBar";
 import { ScrollToTopButton, ScrollProgressIndicator } from "@/components/common/ScrollProgress";
+import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -55,6 +56,9 @@ export function MainLayout({ children }: MainLayoutProps) {
               role="main"
               aria-label="Conteúdo principal"
             >
+              {/* Persistent Breadcrumbs */}
+              <PersistentBreadcrumbs className="mb-4" />
+              
               <PageTransition variant="fade-slide" duration={0.25}>
                 {children}
               </PageTransition>
