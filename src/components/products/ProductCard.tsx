@@ -259,7 +259,11 @@ export function ProductCard({
                   "min-h-[44px] min-w-[44px]",
                   isInCompare && "bg-primary/10 border-primary/30"
                 )}
-                onClick={handleCompare}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleCompare(e);
+                }}
                 disabled={!isInCompare && !canAddToCompare}
                 aria-label={isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
               >
