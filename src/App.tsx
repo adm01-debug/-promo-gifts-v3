@@ -147,6 +147,7 @@ const App = () => {
 
                                         {/* Products */}
                                         <Route path="/produtos" element={<FiltersPage />} />
+                                        <Route path="/produto" element={<Navigate to="/produtos" replace />} />
                                         <Route path="/produto/:id" element={<ProductDetail />} />
                                         <Route path="/filtros" element={<FiltersPage />} />
                                         <Route path="/novidades" element={<NoveltiesPage />} />
