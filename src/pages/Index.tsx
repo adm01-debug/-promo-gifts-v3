@@ -59,11 +59,13 @@ export default function Index() {
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   const { getProductById } = useProductsContext();
-  const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
-  
+
   // Buscar produtos reais do banco de dados
   const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
+
+  const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
   
+
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("name");
