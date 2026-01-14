@@ -4,18 +4,14 @@ import { GitCompare, X, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
-import { PRODUCTS } from "@/data/mockData";
-import { Product } from "@/hooks/useProducts";
 import { cn } from "@/lib/utils";
 
 export function FloatingCompareBar() {
   const navigate = useNavigate();
-  const { compareIds, removeFromCompare, clearCompare, compareCount } = useComparisonContext();
+  const { getCompareProducts, removeFromCompare, clearCompare, compareCount } =
+    useComparisonContext();
 
-  // Get product details for comparison items - use compareIds instead of compareItems
-  const compareProducts = (compareIds || [])
-    .map((id) => PRODUCTS.find((p) => p.id === id))
-    .filter(Boolean);
+  const compareProducts = getCompareProducts();
 
   if (compareCount === 0) return null;
 
@@ -42,7 +38,7 @@ export function FloatingCompareBar() {
         <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-none">
           {compareProducts.map((product, idx) => (
             <motion.div
-              key={product?.id}
+              key={product.id}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
@@ -53,20 +49,20 @@ export function FloatingCompareBar() {
                 <TooltipTrigger asChild>
                   <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-border/50 bg-muted cursor-pointer hover:border-primary/50 transition-colors">
                     <img
-                      src={product?.images[0]}
-                      alt={product?.name}
+                      src={product.images[0]}
+                      alt={product.name}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[200px]">
-                  <p className="font-medium truncate">{product?.name}</p>
+                  <p className="font-medium truncate">{product.name}</p>
                 </TooltipContent>
               </Tooltip>
-              
+
               {/* Remove button */}
               <button
-                onClick={() => product && removeFromCompare(product.id)}
+                onClick={() => removeFromCompare(product.id)}
                 className={cn(
                   "absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full",
                   "bg-destructive text-destructive-foreground",

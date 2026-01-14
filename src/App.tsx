@@ -17,6 +17,7 @@ import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
+import { ProductsProvider } from "@/contexts/ProductsContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import "./App.css";
 
@@ -118,6 +119,7 @@ const App = () => {
           <AriaLiveProvider>
             <TooltipProvider>
               <AuthProvider>
+                <ProductsProvider>
                 <CollectionsProvider>
                         <ComparisonProvider>
                           <FavoritesProvider>
@@ -125,7 +127,6 @@ const App = () => {
                               <Toaster />
                               <Sonner />
                           <BrowserRouter>
-                            <Suspense fallback={<LoadingScreen />}>
                           <Routes>
                             {/* Public Routes */}
                             <Route path="/login" element={<Auth />} errorElement={<RouteErrorBoundary />} />
@@ -218,6 +219,7 @@ const App = () => {
                   </FavoritesProvider>
                 </ComparisonProvider>
               </CollectionsProvider>
+              </ProductsProvider>
           </AuthProvider>
         </TooltipProvider>
           </AriaLiveProvider>

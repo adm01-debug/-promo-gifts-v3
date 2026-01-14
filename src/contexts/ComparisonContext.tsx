@@ -1,5 +1,6 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useCallback } from "react";
 import { useComparison } from "@/hooks/useComparison";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product } from "@/hooks/useProducts";
 
 interface ComparisonContextType {
@@ -20,9 +21,15 @@ const ComparisonContext = createContext<ComparisonContextType | undefined>(undef
 
 export function ComparisonProvider({ children }: { children: ReactNode }) {
   const comparisonHook = useComparison();
+  const { getProductsByIds } = useProductsContext();
+
+  const getCompareProducts = useCallback(
+    (): Product[] => getProductsByIds(comparisonHook.compareIds),
+    [getProductsByIds, comparisonHook.compareIds]
+  );
 
   return (
-    <ComparisonContext.Provider value={comparisonHook}>
+    <ComparisonContext.Provider value={{ ...comparisonHook, getCompareProducts }}>
       {children}
     </ComparisonContext.Provider>
   );

@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Product } from "@/hooks/useProducts";
-import { PRODUCTS } from "@/data/mockData";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
 const STORAGE_KEY = "product-comparison";
@@ -10,6 +9,11 @@ interface UseComparisonOptions {
   onProductAdded?: () => void;
 }
 
+/**
+ * Hook para gerenciar lista de comparação de produtos.
+ * Armazena apenas IDs no localStorage; resolução para objetos Product é
+ * feita via `getProductsByIds` do ProductsContext.
+ */
 export function useComparison(options?: UseComparisonOptions) {
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -53,18 +57,14 @@ export function useComparison(options?: UseComparisonOptions) {
         return prev;
       }
       added = true;
-      // Call the callback
       onProductAddedRef.current?.();
-      // Track analytics
-      const product = PRODUCTS.find((p) => p.id === productId);
-      if (product) {
-        trackProductViewRef.current({
-          productId: product.id,
-          productSku: product.sku,
-          productName: product.name,
-          viewType: "compare",
-        });
-      }
+      // Analytics (sem lookup – apenas ID)
+      trackProductViewRef.current({
+        productId,
+        productSku: productId,
+        productName: productId,
+        viewType: "compare",
+      });
       return [...prev, productId];
     });
     return added;
@@ -74,49 +74,49 @@ export function useComparison(options?: UseComparisonOptions) {
     setCompareIds((prev) => prev.filter((id) => id !== productId));
   }, []);
 
-  const toggleCompare = useCallback((productId: string): { added: boolean; isFull: boolean } => {
-    let result = { added: false, isFull: false };
-    
-    setCompareIds((prev) => {
-      if (prev.includes(productId)) {
-        result = { added: false, isFull: false };
-        return prev.filter((id) => id !== productId);
-      }
-      if (prev.length >= MAX_COMPARE_ITEMS) {
-        result = { added: false, isFull: true };
-        return prev;
-      }
-      result = { added: true, isFull: false };
-      // Call the callback when adding
-      onProductAddedRef.current?.();
-      // Track analytics when adding
-      const product = PRODUCTS.find((p) => p.id === productId);
-      if (product) {
+  const toggleCompare = useCallback(
+    (productId: string): { added: boolean; isFull: boolean } => {
+      let result = { added: false, isFull: false };
+
+      setCompareIds((prev) => {
+        if (prev.includes(productId)) {
+          result = { added: false, isFull: false };
+          return prev.filter((id) => id !== productId);
+        }
+        if (prev.length >= MAX_COMPARE_ITEMS) {
+          result = { added: false, isFull: true };
+          return prev;
+        }
+        result = { added: true, isFull: false };
+        onProductAddedRef.current?.();
         trackProductViewRef.current({
-          productId: product.id,
-          productSku: product.sku,
-          productName: product.name,
+          productId,
+          productSku: productId,
+          productName: productId,
           viewType: "compare",
         });
-      }
-      return [...prev, productId];
-    });
-    
-    return result;
-  }, []);
+        return [...prev, productId];
+      });
+
+      return result;
+    },
+    []
+  );
 
   const isInCompare = useCallback(
-    (productId: string) => {
-      return compareIds.includes(productId);
-    },
+    (productId: string) => compareIds.includes(productId),
     [compareIds]
   );
 
-  const getCompareProducts = useCallback((): Product[] => {
-    return compareIds
-      .map((id) => PRODUCTS.find((p) => p.id === id))
-      .filter((p): p is Product => p !== undefined);
-  }, [compareIds]);
+  /**
+   * Retorna produtos resolvidos a partir de um mapa externo (do ProductsContext).
+   * Deve ser chamado pelo contexto/provider que tem acesso a `getProductsByIds`.
+   */
+  const getCompareProductsFromMap = useCallback(
+    (getProductsByIds: (ids: string[]) => Product[]): Product[] =>
+      getProductsByIds(compareIds),
+    [compareIds]
+  );
 
   const clearCompare = useCallback(() => {
     setCompareIds([]);
@@ -132,7 +132,8 @@ export function useComparison(options?: UseComparisonOptions) {
     removeFromCompare,
     toggleCompare,
     isInCompare,
-    getCompareProducts,
+    /** @deprecated Use getCompareProducts from ComparisonContext instead */
+    getCompareProductsFromMap,
     clearCompare,
     canAddMore,
     isLoaded,
