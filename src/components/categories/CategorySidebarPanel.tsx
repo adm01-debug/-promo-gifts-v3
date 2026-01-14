@@ -33,14 +33,27 @@ function TreeNode({
   expandedIds: Set<string>;
   onToggle: (id: string) => void;
   onSelect: (node: CategoryNode) => void;
-}) {
-  const hasChildren = node.children.length > 0;
+) {
+  const hasChildren = node.children && node.children.length > 0;
   const isExpanded = expandedIds.has(node.id);
   const isSelected = selectedId === node.id;
 
   // Função para converter para Title Case
   const toTitleCase = (str: string) => {
     return str.toLowerCase().replace(/(?:^|\s|[|])\S/g, (char) => char.toUpperCase());
+  };
+
+  // Handler de clique com propagação correta
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Sempre seleciona
+    onSelect(node);
+    
+    // Se tem filhos, expande/colapsa
+    if (hasChildren) {
+      onToggle(node.id);
+    }
   };
 
   return (
@@ -56,13 +69,7 @@ function TreeNode({
           isSelected && "bg-primary/15 text-primary font-semibold border-l-2 border-primary"
         )}
         style={{ paddingLeft: `${level * 16 + 12}px` }}
-        onClick={() => {
-          onSelect(node);
-          // Se tem filhos, também expande/colapsa ao clicar
-          if (hasChildren) {
-            onToggle(node.id);
-          }
-        }}
+        onClick={handleClick}
       >
         {/* Indicador de expansão integrado (seta) - apenas para itens com filhos */}
         {hasChildren ? (
