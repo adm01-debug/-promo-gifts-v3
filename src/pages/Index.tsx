@@ -463,7 +463,7 @@ export default function Index() {
           {/* Recently Viewed Bar */}
           <RecentlyViewedBar maxVisible={6} className="mb-4" />
 
-          {/* Stats with Micro-interactions - Compact size, larger fonts */}
+          {/* Stats with Micro-interactions - Compact size, BIG fonts */}
           <div className="grid grid-cols-4 gap-2">
             {stats.map((stat, index) => (
               <FadeInView key={index} delay={index * 0.1}>
@@ -472,10 +472,12 @@ export default function Index() {
                     <CardContent className="py-1.5 px-3 flex items-center gap-2">
                       <div className="p-1.5 rounded-md bg-primary/10 text-primary shrink-0">{stat.icon}</div>
                       <div className="min-w-0 flex items-center gap-2">
-                        <p className="text-lg sm:text-xl font-bold truncate leading-none">
+                        <p className="text-2xl lg:text-3xl font-bold truncate leading-none">
                           <AnimatedCounter value={stat.value} />
                         </p>
-                        <p className="text-xs text-muted-foreground truncate leading-none">{stat.label}</p>
+                        <p className="text-sm lg:text-base text-muted-foreground truncate leading-none">
+                          {stat.label}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
