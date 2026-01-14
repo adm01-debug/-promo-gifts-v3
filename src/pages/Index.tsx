@@ -476,7 +476,7 @@ export default function Index() {
                 size="sm"
                 onClick={() => handleQuickFilter(filter)}
                 className={cn(
-                  "h-8 gap-1.5 text-sm font-medium",
+                  "h-8 gap-1.5 text-xs font-semibold tracking-wide",
                   activeQuickFilterId === filter.id && "bg-primary text-primary-foreground"
                 )}
               >
@@ -486,39 +486,39 @@ export default function Index() {
             ))}
 
             {/* Separator */}
-            <div className="h-6 w-px bg-border mx-1" />
+            <div className="h-6 w-px bg-border/50 mx-1" />
 
             {/* Stat Badges */}
             {statBadges.map((stat) => (
               <div
                 key={stat.id}
-                className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-sm font-medium"
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide"
               >
                 <span className="text-orange">{stat.icon}</span>
                 <span className="font-bold text-foreground">{stat.value}</span>
-                <span className="text-muted-foreground">{stat.label}</span>
+                <span className="text-foreground/70">{stat.label}</span>
               </div>
             ))}
 
             {/* Separator */}
-            <div className="h-6 w-px bg-border mx-1" />
+            <div className="h-6 w-px bg-border/50 mx-1" />
 
             {/* Client Filter Button */}
             <div
               onClick={() => setClientModalOpen(true)}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
             >
               <span className="text-orange"><User className="h-4 w-4" /></span>
-              <span className="text-muted-foreground">Filtrar por Cliente</span>
+              <span className="text-foreground/70">Filtrar por Cliente</span>
             </div>
 
             {/* Mobile category toggle */}
             {!isDesktop && (
               <Sheet>
                 <SheetTrigger asChild>
-                  <div className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide cursor-pointer hover:bg-muted/50 transition-colors">
                     <span className="text-orange"><Layers className="h-4 w-4" /></span>
-                    <span className="text-muted-foreground">Categorias</span>
+                    <span className="text-foreground/70">Categorias</span>
                   </div>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-80 p-0">
