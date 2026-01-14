@@ -30,7 +30,12 @@ interface StockAlertsIndicatorProps {
 }
 
 // Componente interno com ref para o PopoverTrigger
-const StockAlertTrigger = forwardRef<HTMLButtonElement, { totalCount: number; criticalCount: number }>(
+interface StockAlertTriggerProps extends React.ComponentPropsWithoutRef<typeof Button> {
+  totalCount: number;
+  criticalCount: number;
+}
+
+const StockAlertTrigger = forwardRef<HTMLButtonElement, StockAlertTriggerProps>(
   ({ totalCount, criticalCount, ...props }, ref) => (
     <Button
       ref={ref}
