@@ -704,70 +704,76 @@ export default function Index() {
               </div>
             )}
 
-            {/* Product grid or list */}
-            {isLoading ? (
-              viewMode === "grid" ? (
-                <ProductGridSkeleton count={8} />
+            {/* Product grid or list with scroll container */}
+            <div 
+              className="h-[calc(100vh-320px)] min-h-[400px] overflow-y-auto rounded-xl border border-border/40 
+                bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
+                scrollbar-products shadow-inner p-4"
+            >
+              {isLoading ? (
+                viewMode === "grid" ? (
+                  <ProductGridSkeleton count={8} />
+                ) : (
+                  <ProductListSkeleton count={6} />
+                )
+              ) : viewMode === "grid" ? (
+                <ProductGrid
+                  products={paginatedProducts}
+                  onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                  onViewProduct={handleViewProduct}
+                  onShareProduct={handleShareProduct}
+                  onFavoriteProduct={handleFavoriteProduct}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  isInCompare={isInCompare}
+                  onToggleCompare={toggleCompare}
+                  canAddToCompare={canAddMore}
+                  highlightColors={clientColorGroups}
+                />
               ) : (
-                <ProductListSkeleton count={6} />
-              )
-            ) : viewMode === "grid" ? (
-              <ProductGrid
-                products={paginatedProducts}
-                onProductClick={(productId) => navigate(`/produto/${productId}`)}
-                onViewProduct={handleViewProduct}
-                onShareProduct={handleShareProduct}
-                onFavoriteProduct={handleFavoriteProduct}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-                isInCompare={isInCompare}
-                onToggleCompare={toggleCompare}
-                canAddToCompare={canAddMore}
-                highlightColors={clientColorGroups}
-              />
-            ) : (
-              <ProductList
-                products={paginatedProducts}
-                onProductClick={(productId) => navigate(`/produto/${productId}`)}
-                onViewProduct={handleViewProduct}
-                onShareProduct={handleShareProduct}
-                onFavoriteProduct={handleFavoriteProduct}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-                isInCompare={isInCompare}
-                onToggleCompare={toggleCompare}
-                canAddToCompare={canAddMore}
-                highlightColors={clientColorGroups}
-              />
-            )}
+                <ProductList
+                  products={paginatedProducts}
+                  onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                  onViewProduct={handleViewProduct}
+                  onShareProduct={handleShareProduct}
+                  onFavoriteProduct={handleFavoriteProduct}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  isInCompare={isInCompare}
+                  onToggleCompare={toggleCompare}
+                  canAddToCompare={canAddMore}
+                  highlightColors={clientColorGroups}
+                />
+              )}
 
-            {/* Infinite scroll trigger - elemento observado */}
-            {!isLoading && hasMoreProducts && (
-              <div 
-                ref={loadMoreRef}
-                className="flex flex-col items-center gap-3 pt-8 pb-4"
-                style={{ minHeight: '60px' }}
-              >
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
-                </p>
-                {isLoadingMore && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm">Carregando mais produtos...</span>
-                  </div>
-                )}
-              </div>
-            )}
+              {/* Infinite scroll trigger - elemento observado */}
+              {!isLoading && hasMoreProducts && (
+                <div 
+                  ref={loadMoreRef}
+                  className="flex flex-col items-center gap-3 pt-8 pb-4"
+                  style={{ minHeight: '60px' }}
+                >
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
+                  </p>
+                  {isLoadingMore && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="text-sm">Carregando mais produtos...</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
-            {/* All products loaded message */}
-            {!isLoading && !hasMoreProducts && filteredProducts.length > ITEMS_PER_PAGE && (
-              <div className="flex justify-center pt-8">
-                <p className="text-sm text-muted-foreground">
-                  Todos os {filteredProducts.length} produtos foram carregados ✓
-                </p>
-              </div>
-            )}
+              {/* All products loaded message */}
+              {!isLoading && !hasMoreProducts && filteredProducts.length > ITEMS_PER_PAGE && (
+                <div className="flex justify-center pt-8">
+                  <p className="text-sm text-muted-foreground">
+                    Todos os {filteredProducts.length} produtos foram carregados ✓
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         </div>
