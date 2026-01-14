@@ -192,7 +192,7 @@ export function EnhancedProductCard({
                   "hover:scale-110 transition-all",
                   isFavorited && "bg-destructive/10 border-destructive/30"
                 )}
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onToggleFavorite?.(product.id);
                 }}
@@ -220,7 +220,7 @@ export function EnhancedProductCard({
                   "hover:scale-110 transition-all",
                   isInCompare && "bg-primary/10 border-primary/30"
                 )}
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onToggleCompare?.(product.id);
                 }}
@@ -242,7 +242,7 @@ export function EnhancedProductCard({
                 variant="secondary"
                 size="icon"
                 className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg hover:scale-110 transition-all"
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onQuickView?.(product);
                 }}
@@ -259,7 +259,7 @@ export function EnhancedProductCard({
                 variant="secondary"
                 size="icon"
                 className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg hover:scale-110 transition-all"
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onShare?.(product);
                 }}
@@ -325,7 +325,7 @@ export function EnhancedProductCard({
             )}
           >
             <div className="flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
-              {product.colors.slice(0, 4).map((color, idx) => (
+              {product.colors.slice(0, 4).map((color: { hex: string }, idx: number) => (
                 <div
                   key={idx}
                   className="w-4 h-4 rounded-full border-2 border-card shadow-sm"
@@ -403,7 +403,7 @@ export function EnhancedProductCard({
 
               {product.materials?.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {product.materials.slice(0, 3).map((material, idx) => (
+                  {product.materials.slice(0, 3).map((material: string, idx: number) => (
                     <Badge key={idx} variant="outline" className="text-[10px]">
                       {material}
                     </Badge>

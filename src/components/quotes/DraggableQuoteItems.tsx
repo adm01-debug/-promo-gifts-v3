@@ -201,7 +201,7 @@ function SortableItem({
                     type="number"
                     min={1}
                     value={item.quantity}
-                    onChange={(e) => onUpdateQuantity(parseInt(e.target.value) || 1)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdateQuantity(parseInt(e.target.value) || 1)}
                     className="w-20 h-8 text-sm"
                   />
                 </div>
@@ -212,7 +212,7 @@ function SortableItem({
                     step="0.01"
                     min={0}
                     value={item.unit_price}
-                    onChange={(e) => onUpdatePrice(parseFloat(e.target.value) || 0)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdatePrice(parseFloat(e.target.value) || 0)}
                     className="w-28 h-8 text-sm"
                   />
                 </div>
