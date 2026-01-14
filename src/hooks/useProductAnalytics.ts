@@ -24,15 +24,21 @@ export function useProductAnalytics() {
 
       try {
         // Using type assertion since table was just created
-        await (supabase.from("product_views") as any).insert({
+        const { error } = await (supabase.from("product_views") as any).insert({
           product_id: productId,
           product_sku: productSku,
           product_name: productName,
           seller_id: user.id,
           view_type: viewType,
         });
+        
+        // Ignore conflict errors (409) - this is expected behavior for analytics
+        if (error && error.code !== '23505' && error.message?.indexOf('409') === -1) {
+          console.error("Error tracking product view:", error);
+        }
       } catch (error) {
-        console.error("Error tracking product view:", error);
+        // Silently ignore tracking errors to not affect UX
+        console.warn("Analytics tracking failed:", error);
       }
     },
     [user?.id]

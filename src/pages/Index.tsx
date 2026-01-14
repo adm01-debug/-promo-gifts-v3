@@ -364,15 +364,12 @@ export default function Index() {
     setSortBy("name");
   };
 
-  const handleViewProduct = (productId: string) => {
-    navigate(`/produto/${productId}`);
+  const handleViewProduct = (product: Product) => {
+    navigate(`/produto/${product.id}`);
   };
 
-  const handleShareProduct = (productId: string) => {
-    const product = getProductById(productId);
-    if (!product) return;
-
-    const shareUrl = `${window.location.origin}/produto/${productId}`;
+  const handleShareProduct = (product: Product) => {
+    const shareUrl = `${window.location.origin}/produto/${product.id}`;
     const shareText = `Confira ${product.name} por R$ ${product.price.toFixed(2)}`;
 
     if (navigator.share) {
@@ -398,8 +395,8 @@ export default function Index() {
     }
   };
 
-  const handleFavoriteProduct = (productId: string) => {
-    toggleFavorite(productId);
+  const handleFavoriteProduct = (product: Product) => {
+    toggleFavorite(product.id);
   };
 
   // Stable search handler to prevent re-render loops
