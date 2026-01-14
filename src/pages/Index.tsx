@@ -463,19 +463,19 @@ export default function Index() {
           {/* Recently Viewed Bar */}
           <RecentlyViewedBar maxVisible={6} className="mb-4" />
 
-          {/* Stats with Micro-interactions */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+          {/* Stats with Micro-interactions - Compact */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             {stats.map((stat, index) => (
               <FadeInView key={index} delay={index * 0.1}>
-                <HoverCard liftAmount={6}>
+                <HoverCard liftAmount={4}>
                   <Card className="card-interactive overflow-hidden">
-                    <CardContent className="p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 text-primary">{stat.icon}</div>
+                    <CardContent className="p-2 flex items-center gap-2">
+                      <div className="p-1 rounded-md bg-primary/10 text-primary">{stat.icon}</div>
                       <div className="min-w-0">
-                        <p className="text-lg sm:text-2xl font-bold truncate">
+                        <p className="text-base sm:text-lg font-bold truncate leading-tight">
                           <AnimatedCounter value={stat.value} />
                         </p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{stat.label}</p>
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground truncate leading-tight">{stat.label}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -706,7 +706,7 @@ export default function Index() {
 
             {/* Product grid or list with scroll container */}
             <div 
-              className="h-[calc(100vh-320px)] min-h-[400px] overflow-y-auto rounded-xl border border-border/40 
+              className="h-[calc(100vh-260px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 
                 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
                 scrollbar-products shadow-inner p-4"
             >
