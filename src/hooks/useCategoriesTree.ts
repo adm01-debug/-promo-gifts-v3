@@ -163,8 +163,11 @@ export function useCategoriesTree() {
     // Ordenar filhos por sort_path ou nome
     const sortChildren = (nodes: CategoryNode[]) => {
       nodes.sort((a, b) => {
+        // sort_path pode ser array ou string
         if (a.sort_path && b.sort_path) {
-          return a.sort_path.localeCompare(b.sort_path);
+          const aPath = Array.isArray(a.sort_path) ? a.sort_path.join('-') : String(a.sort_path);
+          const bPath = Array.isArray(b.sort_path) ? b.sort_path.join('-') : String(b.sort_path);
+          return aPath.localeCompare(bPath);
         }
         return a.name.localeCompare(b.name);
       });
