@@ -124,7 +124,7 @@ export function useCategoriesTree() {
     const nodeMap = new Map<string, CategoryNode>();
     const roots: CategoryNode[] = [];
 
-    // Criar nós com ícones para categorias raiz
+    // Primeiro passo: Criar todos os nós
     categories.forEach(cat => {
       const isRoot = cat.level === 1 || !cat.parent_id;
       const normalizedName = cat.name.toUpperCase();
@@ -132,22 +132,50 @@ export function useCategoriesTree() {
       
       nodeMap.set(cat.id, {
         ...cat,
-        // Manter nome original (Title Case será aplicado no componente)
         icon,
         children: [],
         isExpanded: false,
       });
     });
 
-    // Construir hierarquia
+    // Segundo passo: Construir hierarquia vinculando filhos aos pais
     categories.forEach(cat => {
-      const node = nodeMap.get(cat.id)!;
-      if (cat.parent_id && nodeMap.has(cat.parent_id)) {
-        nodeMap.get(cat.parent_id)!.children.push(node);
+      const node = nodeMap.get(cat.id);
+      if (!node) return;
+      
+      if (cat.parent_id) {
+        const parentNode = nodeMap.get(cat.parent_id);
+        if (parentNode) {
+          // Verificar se o filho já não está na lista (evitar duplicatas)
+          if (!parentNode.children.find(c => c.id === node.id)) {
+            parentNode.children.push(node);
+          }
+        } else {
+          // Se não encontrar o pai, adicionar como raiz
+          roots.push(node);
+        }
       } else {
+        // Sem parent_id = categoria raiz
         roots.push(node);
       }
     });
+
+    // Ordenar filhos por sort_path ou nome
+    const sortChildren = (nodes: CategoryNode[]) => {
+      nodes.sort((a, b) => {
+        if (a.sort_path && b.sort_path) {
+          return a.sort_path.localeCompare(b.sort_path);
+        }
+        return a.name.localeCompare(b.name);
+      });
+      nodes.forEach(node => {
+        if (node.children.length > 0) {
+          sortChildren(node.children);
+        }
+      });
+    };
+    
+    sortChildren(roots);
 
     return roots;
   }, [categories, categoryIcons]);
