@@ -23,7 +23,7 @@ import { ProductList } from "@/components/products/ProductList";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
-import { QuickFiltersBar, QuickFilter } from "@/components/filters/QuickFiltersBar";
+import { QuickFilter } from "@/components/filters/QuickFiltersBar";
 import { ClientFilterModal } from "@/components/clients/ClientFilterModal";
 import { CategorySidebarPanel } from "@/components/categories";
 import { SmartSearchInput } from "@/components/search";
@@ -42,12 +42,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { EmptyState } from "@/components/common/EmptyState";
-import { HoverCard, FadeInView, AnimatedCounter, StaggerList } from "@/components/common/MicroInteractions";
-import { GlassCard, GlassPanel } from "@/components/common/GlassElements";
-import { StickyFilterBar } from "@/components/common/StickyFilterBar";
-import { EnhancedStatsCard } from "@/components/common/EnhancedStatsCard";
+import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { RecentlyViewedBar } from "@/components/products/RecentlyViewedBar";
 import { InfoTooltip } from "@/components/common/ContextualTooltips";
@@ -312,25 +308,29 @@ export default function Index() {
     [],
   );
 
-  // Stats
-  const stats = useMemo(
+  // Stats as compact badges
+  const statBadges = useMemo(
     () => [
       {
-        label: "Total de Produtos",
+        id: "products",
+        label: "Produtos",
         value: filteredProducts.length,
         icon: <Package className="h-4 w-4" />,
       },
       {
+        id: "categories",
         label: "Categorias",
         value: CATEGORIES.length,
         icon: <Layers className="h-4 w-4" />,
       },
       {
+        id: "suppliers",
         label: "Fornecedores",
         value: SUPPLIERS.length,
         icon: <Users className="h-4 w-4" />,
       },
       {
+        id: "favorites",
         label: "Favoritos",
         value: favoriteCount,
         icon: <TrendingUp className="h-4 w-4" />,
@@ -465,28 +465,40 @@ export default function Index() {
             </div>
 
           {/* Recently Viewed Bar */}
-          <RecentlyViewedBar maxVisible={6} className="mb-4" />
+          <RecentlyViewedBar maxVisible={6} className="mb-2" />
 
-          {/* Stats with Micro-interactions - Compact size, BIG fonts */}
-          <div className="grid grid-cols-4 gap-2">
-            {stats.map((stat, index) => (
-              <FadeInView key={index} delay={index * 0.1}>
-                <HoverCard liftAmount={2}>
-                  <Card className="card-interactive overflow-hidden">
-                    <CardContent className="py-1.5 px-3 flex items-center gap-2">
-                      <div className="p-1.5 rounded-md bg-primary/10 text-primary shrink-0">{stat.icon}</div>
-                      <div className="min-w-0 flex items-center gap-2">
-                        <p className="text-2xl lg:text-3xl font-bold truncate leading-none">
-                          <AnimatedCounter value={stat.value} />
-                        </p>
-                        <p className="text-sm lg:text-base text-muted-foreground truncate leading-none">
-                          {stat.label}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </FadeInView>
+          {/* Quick Filters + Stats - All in one line */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Quick Filters */}
+            {quickFilters.map((filter) => (
+              <Button
+                key={filter.id}
+                variant={activeQuickFilterId === filter.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleQuickFilter(filter)}
+                className={cn(
+                  "h-8 gap-1.5 text-sm font-medium",
+                  activeQuickFilterId === filter.id && "bg-primary text-primary-foreground"
+                )}
+              >
+                {filter.icon}
+                {filter.label}
+              </Button>
+            ))}
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-border mx-1" />
+
+            {/* Stat Badges */}
+            {statBadges.map((stat) => (
+              <div
+                key={stat.id}
+                className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-sm font-medium"
+              >
+                <span className="text-primary">{stat.icon}</span>
+                <span className="font-bold text-foreground">{stat.value}</span>
+                <span className="text-muted-foreground">{stat.label}</span>
+              </div>
             ))}
           </div>
 
@@ -549,36 +561,29 @@ export default function Index() {
           </Card>
         )}
 
-        {/* Quick Filters and Client Selector */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1 flex items-center gap-2">
-            {/* Mobile category toggle */}
-            {!isDesktop && (
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Layers className="h-4 w-4 mr-2" />
-                    Categorias
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80 p-0">
-                  <CategorySidebarPanel
-                    selectedCategoryId={selectedExternalCategory?.id}
-                    onSelectCategory={handleExternalCategorySelect}
-                    className="h-full border-none"
-                  />
-                </SheetContent>
-              </Sheet>
-            )}
-            <QuickFiltersBar
-              filters={quickFilters}
-              activeFilterId={activeQuickFilterId}
-              onFilterClick={handleQuickFilter}
-            />
-          </div>
-          <Button variant="outline" onClick={() => setClientModalOpen(true)} className="lg:w-auto">
+        {/* Client Filter Button + Mobile Category */}
+        <div className="flex items-center gap-2">
+          {/* Mobile category toggle */}
+          {!isDesktop && (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Layers className="h-4 w-4 mr-2" />
+                  Categorias
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80 p-0">
+                <CategorySidebarPanel
+                  selectedCategoryId={selectedExternalCategory?.id}
+                  onSelectCategory={handleExternalCategorySelect}
+                  className="h-full border-none"
+                />
+              </SheetContent>
+            </Sheet>
+          )}
+          <Button variant="outline" size="sm" onClick={() => setClientModalOpen(true)}>
             <User className="h-4 w-4 mr-2" />
-            {selectedClient ? "Trocar Cliente" : "Filtrar por Cliente"}
+            Filtrar por Cliente
           </Button>
         </div>
 
