@@ -86,7 +86,7 @@ export default function Index() {
   // Reset pagination when filters change
   useEffect(() => {
     setDisplayCount(ITEMS_PER_PAGE);
-  }, [filters, sortBy, searchQuery, selectedClient]);
+  }, [filters, sortBy, searchQuery, selectedClient, selectedExternalCategory]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -135,6 +135,14 @@ export default function Index() {
           (p.category_name || '').toLowerCase().includes(query) ||
           (p.materials || '').toLowerCase().includes(query) ||
           (p.description || '').toLowerCase().includes(query),
+      );
+    }
+
+    // External category filter (from sidebar)
+    if (selectedExternalCategory) {
+      result = result.filter((p) => 
+        p.category_id === selectedExternalCategory.id ||
+        p.category_name?.toLowerCase() === selectedExternalCategory.name.toLowerCase()
       );
     }
 
@@ -203,7 +211,7 @@ export default function Index() {
     }
 
     return result;
-  }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore]);
+  }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore, selectedExternalCategory]);
 
   // Paginated products
   const paginatedProducts = useMemo(() => {
