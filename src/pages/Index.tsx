@@ -463,19 +463,19 @@ export default function Index() {
           {/* Recently Viewed Bar */}
           <RecentlyViewedBar maxVisible={6} className="mb-4" />
 
-          {/* Stats with Micro-interactions - Ultra Compact */}
+          {/* Stats with Micro-interactions - Compact size, larger fonts */}
           <div className="grid grid-cols-4 gap-2">
             {stats.map((stat, index) => (
               <FadeInView key={index} delay={index * 0.1}>
                 <HoverCard liftAmount={2}>
                   <Card className="card-interactive overflow-hidden">
-                    <CardContent className="py-1.5 px-2 flex items-center gap-1.5">
-                      <div className="p-1 rounded-md bg-primary/10 text-primary shrink-0">{stat.icon}</div>
-                      <div className="min-w-0 flex items-center gap-1.5">
-                        <p className="text-sm font-bold truncate leading-none">
+                    <CardContent className="py-1.5 px-3 flex items-center gap-2">
+                      <div className="p-1.5 rounded-md bg-primary/10 text-primary shrink-0">{stat.icon}</div>
+                      <div className="min-w-0 flex items-center gap-2">
+                        <p className="text-lg sm:text-xl font-bold truncate leading-none">
                           <AnimatedCounter value={stat.value} />
                         </p>
-                        <p className="text-[9px] text-muted-foreground truncate leading-none hidden sm:block">{stat.label}</p>
+                        <p className="text-xs text-muted-foreground truncate leading-none">{stat.label}</p>
                       </div>
                     </CardContent>
                   </Card>
