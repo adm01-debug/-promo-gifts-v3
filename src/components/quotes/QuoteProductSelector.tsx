@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { PRODUCTS } from "@/data/mockData";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product, ProductColor } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
 
@@ -21,17 +21,18 @@ interface QuoteProductSelectorProps {
 }
 
 export function QuoteProductSelector({ onProductAdd, existingProductIds }: QuoteProductSelectorProps) {
+  const { products } = useProductsContext();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<ProductColor | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  const filteredProducts = PRODUCTS.filter(product =>
+  const filteredProducts = products.filter(product =>
     !existingProductIds.includes(product.id) &&
     (product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     product.category.name.toLowerCase().includes(searchQuery.toLowerCase()))
+     (product.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+     (product.category_name || '').toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleAddProduct = () => {
@@ -40,9 +41,9 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     const item: QuoteItem = {
       product_id: selectedProduct.id,
       product_name: selectedProduct.name,
-      product_sku: selectedProduct.sku,
-      product_image_url: selectedProduct.images[0],
-      quantity: Math.max(quantity, selectedProduct.minQuantity),
+      product_sku: selectedProduct.sku || '',
+      product_image_url: selectedProduct.images?.[0] || '',
+      quantity: Math.max(quantity, selectedProduct.minQuantity || 1),
       unit_price: selectedProduct.price,
       color_name: selectedColor?.name,
       color_hex: selectedColor?.hex,
@@ -110,23 +111,23 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                       className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
                     >
                       <img
-                        src={product.images[0]}
+                        src={product.images?.[0] || '/placeholder.svg'}
                         alt={product.name}
                         className="w-16 h-16 object-cover rounded-md"
                       />
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium truncate">{product.name}</h4>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>{product.sku}</span>
+                          <span>{product.sku || 'N/A'}</span>
                           <span>•</span>
-                          <span>{product.category.name}</span>
+                          <span>{product.category_name || 'Sem categoria'}</span>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-primary font-semibold">
                             {formatCurrency(product.price)}
                           </span>
                           <Badge variant="secondary" className="text-xs">
-                            Mín. {product.minQuantity} un.
+                            Mín. {product.minQuantity || 1} un.
                           </Badge>
                         </div>
                       </div>
@@ -156,13 +157,13 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             {/* Selected Product Info */}
             <div className="flex gap-4 p-4 bg-muted/50 rounded-lg">
               <img
-                src={selectedProduct.images[0]}
+                src={selectedProduct.images?.[0] || '/placeholder.svg'}
                 alt={selectedProduct.name}
                 className="w-24 h-24 object-cover rounded-md"
               />
               <div className="flex-1">
                 <h3 className="font-semibold text-lg">{selectedProduct.name}</h3>
-                <p className="text-sm text-muted-foreground">{selectedProduct.sku}</p>
+                <p className="text-sm text-muted-foreground">{selectedProduct.sku || 'N/A'}</p>
                 <p className="text-primary font-bold text-xl mt-2">
                   {formatCurrency(selectedProduct.price)}
                 </p>
@@ -173,7 +174,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             <div>
               <label className="text-sm font-medium mb-2 block">Cor</label>
               <div className="flex flex-wrap gap-2">
-                {selectedProduct.colors.map((color) => (
+                {(selectedProduct.colors || []).map((color) => (
                   <button
                     key={color.name}
                     onClick={() => setSelectedColor(color)}
@@ -196,13 +197,13 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             {/* Quantity */}
             <div>
               <label className="text-sm font-medium mb-2 block">
-                Quantidade (mínimo: {selectedProduct.minQuantity})
+                Quantidade (mínimo: {selectedProduct.minQuantity || 1})
               </label>
               <Input
                 type="number"
-                min={selectedProduct.minQuantity}
+                min={selectedProduct.minQuantity || 1}
                 value={quantity}
-                onChange={(e) => setQuantity(Math.max(selectedProduct.minQuantity, parseInt(e.target.value) || 0))}
+                onChange={(e) => setQuantity(Math.max(selectedProduct.minQuantity || 1, parseInt(e.target.value) || 0))}
                 className="w-32"
               />
             </div>
@@ -212,7 +213,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
               <div>
                 <span className="text-sm text-muted-foreground">Subtotal do item:</span>
                 <p className="text-2xl font-bold text-primary">
-                  {formatCurrency(selectedProduct.price * Math.max(quantity, selectedProduct.minQuantity))}
+                  {formatCurrency(selectedProduct.price * Math.max(quantity, selectedProduct.minQuantity || 1))}
                 </p>
               </div>
               <div className="flex gap-2">

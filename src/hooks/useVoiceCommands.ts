@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { COLORS, CATEGORIES, SUPPLIERS, MATERIAIS } from "@/data/mockData";
 import { FilterState } from "@/components/filters/FilterPanel";
-
 export interface VoiceCommandFilter {
   filterKey: keyof FilterState;
   value: string | string[] | number[];

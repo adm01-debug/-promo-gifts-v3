@@ -34,7 +34,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, SUPPLIERS, type Client } from "@/data/mockData";
+import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
+import { ClientWithColors } from "@/components/clients/ClientFilterModal";
 import { useProducts, type Product } from "@/hooks/useProducts";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useToast } from "@/hooks/use-toast";
@@ -58,7 +59,7 @@ export default function Index() {
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   const { getProductById } = useProductsContext();
-  const { suggestions, quickSuggestions, history, addToHistory } = useSearch();
+  const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
   
   // Buscar produtos reais do banco de dados
   const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
@@ -67,7 +68,7 @@ export default function Index() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ClientWithColors | null>(null);
   const [clientModalOpen, setClientModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeQuickFilterId, setActiveQuickFilterId] = useState<string | undefined>();
