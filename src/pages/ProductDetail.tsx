@@ -1,18 +1,18 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { 
-  ArrowLeft, 
-  Heart, 
-  Package, 
-  Truck, 
-  Shield, 
+import {
+  ArrowLeft,
+  Heart,
+  Package,
+  Truck,
+  Shield,
   Tag,
   Layers,
   Star,
   Sparkles,
   Check,
   Share2,
-  Building2
+  Building2,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
@@ -31,8 +31,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
-import { PRODUCTS } from "@/data/mockData";
-import type { Product } from "@/hooks/useProducts";
+import { useProduct, type Product } from "@/hooks/useProducts";
+
 type ProductVariation = any;
 type KitItem = any;
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
@@ -55,10 +55,8 @@ export default function ProductDetail() {
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedContext();
 
-  // Encontrar produto
-  const product = useMemo(() => {
-    return PRODUCTS.find((p) => p.id === id);
-  }, [id]);
+  // Buscar produto no banco (mesma fonte da vitrine)
+  const { data: product, isLoading } = useProduct(id || "");
 
   // Track product view and add to recently viewed
   useEffect(() => {
@@ -71,7 +69,17 @@ export default function ProductDetail() {
       });
       addToRecentlyViewed(product.id);
     }
-  }, [product?.id]);
+  }, [product, trackProductView, addToRecentlyViewed]);
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-muted-foreground">Carregando produto…</div>
+        </div>
+      </MainLayout>
+    );
+  }
 
   if (!product) {
     return (
@@ -82,7 +90,7 @@ export default function ProductDetail() {
           description="O produto que você está procurando não existe ou foi removido do catálogo."
           action={{
             label: "Voltar para Vitrine",
-            onClick: () => navigate("/")
+            onClick: () => navigate("/"),
           }}
         />
       </MainLayout>
@@ -109,6 +117,7 @@ export default function ProductDetail() {
     }
   };
 
+  const minQuantity = product.minQuantity || 1;
   const stockInfo = getStockStatusInfo(product.stockStatus);
 
   const handleFavorite = () => {
@@ -307,7 +316,7 @@ export default function ProductDetail() {
                     <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                       <Tag className="h-4 w-4 text-primary" />
                     </div>
-                    <span>Mín. {product.minQuantity} un.</span>
+                    <span>Mín. {minQuantity} un.</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center">

@@ -27,8 +27,12 @@ export interface Product {
   supplier_reference?: string | null;
   brand?: string | null;
   is_active?: boolean;
+
+  /** Quantidade mínima (compatibilidade com telas antigas/mock). */
+  minQuantity: number;
+
   // Campos adicionais para compatibilidade com componentes mock
-  stockStatus: 'in-stock' | 'low-stock' | 'out-of-stock';
+  stockStatus: "in-stock" | "low-stock" | "out-of-stock";
   featured: boolean;
   newArrival: boolean;
   onSale: boolean;
@@ -39,7 +43,16 @@ export interface Product {
     publicoAlvo: string[];
     datasComemorativas: string[];
     endomarketing: string[];
+    ramo: string[];
+    nicho: string[];
   };
+
+  // Campos opcionais (disponíveis apenas no dataset mock)
+  subcategory?: string;
+  groups?: Array<{ id: number; name: string }>;
+  variations?: any[];
+  kitItems?: any[];
+  video?: string;
 }
 
 export interface ProductFilters {
@@ -115,24 +128,28 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
     supplier_reference: p.supplier_reference,
     brand: p.brand,
     is_active: p.is_active || p.active,
-    // Campos mock para compatibilidade
+
+    // Compat
+    minQuantity: p.min_quantity || 1,
     stockStatus: getStockStatus(stock),
     featured: false,
     newArrival: false,
     onSale: false,
     isKit: false,
-    category: { 
-      id: parseInt(p.category_id || p.main_category_id || '0') || 0, 
-      name: p.category_name || 'Sem categoria' 
+    category: {
+      id: parseInt(p.category_id || p.main_category_id || "0") || 0,
+      name: p.category_name || "Sem categoria",
     },
-    supplier: { 
-      id: p.supplier_reference || p.brand || 'unknown', 
-      name: p.brand || 'Fornecedor' 
+    supplier: {
+      id: p.supplier_reference || p.brand || "unknown",
+      name: p.brand || "Fornecedor",
     },
     tags: {
       publicoAlvo: [],
       datasComemorativas: [],
       endomarketing: [],
+      ramo: [],
+      nicho: [],
     },
   };
 }
