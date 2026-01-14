@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { TagManager } from "@/components/quotes/TagManager";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,6 @@ import {
 import {
   FileText,
   Plus,
-  Trash2,
   Search,
   User,
   Calendar,
@@ -39,13 +38,9 @@ import {
   BookTemplate,
   ArrowLeft,
   Edit,
-  Palette,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
-import { format, addDays, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format, addDays } from "date-fns";
 import { useQuotes, type QuoteItem, type QuoteItemPersonalization } from "@/hooks/useQuotes";
 import { useQuoteTemplates, type QuoteTemplate, type QuoteTemplateItem } from "@/hooks/useQuoteTemplates";
 import { QuoteTemplateSelector } from "@/components/quotes/QuoteTemplateSelector";

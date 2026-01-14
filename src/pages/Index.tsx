@@ -44,7 +44,6 @@ import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
-import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { RecentlyViewedBar } from "@/components/products/RecentlyViewedBar";
 import { InfoTooltip } from "@/components/common/ContextualTooltips";
 
