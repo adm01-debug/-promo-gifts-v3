@@ -53,6 +53,9 @@ export function ProductQuickView({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
+
+  // Early return if product is null
+  if (!product) return null;
   
   // Mapear cores do produto para o formato do seletor
   const productColors: ProductColor[] = product.colors.map((color, idx) => ({
@@ -61,8 +64,6 @@ export function ProductQuickView({
     hex: color.hex,
     variationName: color.name,
   }));
-
-  if (!product) return null;
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("pt-BR", {
