@@ -24,6 +24,7 @@ interface PriceTableRow {
 }
 
 interface InlinePriceCalculatorProps {
+  productId?: string;
   basePrice: number;
   minQuantity?: number;
   productName: string;
@@ -53,9 +54,10 @@ const calculatePriceTiers = (basePrice: number, minQty: number): PriceTableRow[]
 };
 
 export function InlinePriceCalculator({
+  productId: _productId,
   basePrice,
   minQuantity = 1,
-  productName,
+  productName: _productName,
   className,
 }: InlinePriceCalculatorProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -186,7 +188,7 @@ export function InlinePriceCalculator({
                     type="number"
                     min={minQuantity}
                     value={customQuantity}
-                    onChange={(e) => setCustomQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
                     className="h-12"
                   />
                 </div>

@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
-import { ZoomableGallery } from "@/components/products/ZoomableGallery";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { ShareActions } from "@/components/products/ShareActions";

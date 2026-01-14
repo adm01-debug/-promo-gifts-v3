@@ -4,7 +4,7 @@
  */
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence, PanInfo, useMotionValue } from "framer-motion";
 import {
   ZoomIn,
   ZoomOut,
@@ -39,7 +39,7 @@ export function ZoomableGallery({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [isZooming, setIsZooming] = useState(false);
+  const [, setIsZooming] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(true);
   const [rotation, setRotation] = useState(0);
   
@@ -51,7 +51,7 @@ export function ZoomableGallery({
   
   // Transformações baseadas no zoom
   const scale = useMotionValue(1);
-  const constraintsRef = useRef(null);
+  // constraintsRef reservado para uso futuro em drag constraints
 
   // Reset zoom e posição ao mudar de imagem
   useEffect(() => {
@@ -156,7 +156,7 @@ export function ZoomableGallery({
   }, [isFullscreen, goToPrevious, goToNext, handleZoomIn, handleZoomOut, handleRotate, resetView]);
 
   // Handle pan/drag when zoomed
-  const handlePan = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handlePan = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (zoom > 1) {
       const maxOffset = (zoom - 1) * 100;
       const newX = Math.max(-maxOffset, Math.min(maxOffset, x.get() + info.delta.x));
