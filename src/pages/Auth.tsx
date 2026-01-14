@@ -449,6 +449,16 @@ export default function Auth() {
                     )}
 
                     <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="remember-me"
+                          className="h-4 w-4 rounded border-border text-orange focus:ring-orange"
+                        />
+                        <label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer">
+                          Lembrar de mim
+                        </label>
+                      </div>
                       <Button
                         type="button"
                         variant="link"
