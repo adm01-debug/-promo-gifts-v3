@@ -499,6 +499,37 @@ export default function Index() {
                 <span className="text-muted-foreground">{stat.label}</span>
               </div>
             ))}
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-border mx-1" />
+
+            {/* Client Filter Button */}
+            <div
+              onClick={() => setClientModalOpen(true)}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors"
+            >
+              <span className="text-orange"><User className="h-4 w-4" /></span>
+              <span className="text-muted-foreground">Filtrar por Cliente</span>
+            </div>
+
+            {/* Mobile category toggle */}
+            {!isDesktop && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <div className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-sm font-medium cursor-pointer hover:bg-muted/50 transition-colors">
+                    <span className="text-orange"><Layers className="h-4 w-4" /></span>
+                    <span className="text-muted-foreground">Categorias</span>
+                  </div>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0">
+                  <CategorySidebarPanel
+                    selectedCategoryId={selectedExternalCategory?.id}
+                    onSelectCategory={handleExternalCategorySelect}
+                    className="h-full border-none"
+                  />
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
 
         {/* Client Filter Section */}
@@ -560,31 +591,6 @@ export default function Index() {
           </Card>
         )}
 
-        {/* Client Filter Button + Mobile Category */}
-        <div className="flex items-center gap-2">
-          {/* Mobile category toggle */}
-          {!isDesktop && (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Layers className="h-4 w-4 mr-2" />
-                  Categorias
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-80 p-0">
-                <CategorySidebarPanel
-                  selectedCategoryId={selectedExternalCategory?.id}
-                  onSelectCategory={handleExternalCategorySelect}
-                  className="h-full border-none"
-                />
-              </SheetContent>
-            </Sheet>
-          )}
-          <Button variant="outline" size="sm" onClick={() => setClientModalOpen(true)}>
-            <User className="h-4 w-4 mr-2" />
-            Filtrar por Cliente
-          </Button>
-        </div>
 
         {/* Main Content */}
         <div className="space-y-6">
