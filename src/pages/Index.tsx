@@ -463,19 +463,19 @@ export default function Index() {
           {/* Recently Viewed Bar */}
           <RecentlyViewedBar maxVisible={6} className="mb-4" />
 
-          {/* Stats with Micro-interactions - Compact */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+          {/* Stats with Micro-interactions - Ultra Compact */}
+          <div className="grid grid-cols-4 gap-2">
             {stats.map((stat, index) => (
               <FadeInView key={index} delay={index * 0.1}>
-                <HoverCard liftAmount={4}>
+                <HoverCard liftAmount={2}>
                   <Card className="card-interactive overflow-hidden">
-                    <CardContent className="p-2 flex items-center gap-2">
-                      <div className="p-1 rounded-md bg-primary/10 text-primary">{stat.icon}</div>
-                      <div className="min-w-0">
-                        <p className="text-base sm:text-lg font-bold truncate leading-tight">
+                    <CardContent className="py-1.5 px-2 flex items-center gap-1.5">
+                      <div className="p-1 rounded-md bg-primary/10 text-primary shrink-0">{stat.icon}</div>
+                      <div className="min-w-0 flex items-center gap-1.5">
+                        <p className="text-sm font-bold truncate leading-none">
                           <AnimatedCounter value={stat.value} />
                         </p>
-                        <p className="text-[9px] sm:text-[10px] text-muted-foreground truncate leading-tight">{stat.label}</p>
+                        <p className="text-[9px] text-muted-foreground truncate leading-none hidden sm:block">{stat.label}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -706,7 +706,7 @@ export default function Index() {
 
             {/* Product grid or list with scroll container */}
             <div 
-              className="h-[calc(100vh-260px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 
+              className="h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 
                 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
                 scrollbar-products shadow-inner p-4"
             >
