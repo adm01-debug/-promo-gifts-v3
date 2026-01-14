@@ -494,7 +494,7 @@ export default function Index() {
                 key={stat.id}
                 className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-card text-sm font-medium"
               >
-                <span className="text-primary">{stat.icon}</span>
+                <span className="text-orange">{stat.icon}</span>
                 <span className="font-bold text-foreground">{stat.value}</span>
                 <span className="text-muted-foreground">{stat.label}</span>
               </div>
