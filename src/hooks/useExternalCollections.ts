@@ -42,14 +42,15 @@ export function useExternalCollections() {
   return useQuery({
     queryKey: [QUERY_KEY],
     queryFn: async () => {
+      // Buscar todas as coleções sem filtrar por is_active (coluna pode não existir)
       const result = await invokeExternalDb<ExternalCollection>({
         table: 'collections',
         operation: 'select',
-        filters: { is_active: true },
-        orderBy: { column: 'display_order', ascending: true },
+        select: '*', // Buscar todos os campos disponíveis
         limit: 100,
       });
-      return result.records;
+      // Filtrar no cliente se o campo existir
+      return result.records.filter(c => c.is_active !== false);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
