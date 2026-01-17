@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package } from "lucide-react";
+import { Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package, RefreshCw, Cloud, CloudOff } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -29,12 +31,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
+import { useExternalCollectionsManager } from "@/hooks/useExternalCollections";
 import { toast } from "sonner";
 
 export default function CollectionsPage() {
   const navigate = useNavigate();
+  
+  // Coleções locais (localStorage)
   const {
-    collections,
+    collections: localCollections,
     createCollection,
     updateCollection,
     deleteCollection,
@@ -42,6 +47,13 @@ export default function CollectionsPage() {
     defaultColors,
     defaultIcons,
   } = useCollectionsContext();
+
+  // Coleções do BD externo (Promobrind)
+  const {
+    collections: externalCollections,
+    isLoading: isLoadingExternal,
+    refetch: refetchExternal,
+  } = useExternalCollectionsManager();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<string | null>(null);
@@ -115,138 +127,242 @@ export default function CollectionsPage() {
             </p>
           </div>
 
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Coleção
-          </Button>
-        </div>
-
-        {/* Collections grid */}
-        {collections.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {collections.map((collection) => {
-              const products = getCollectionProducts(collection.id);
-              const previewImages = products.slice(0, 4).map((p) => p.images[0]);
-
-              return (
-                <div
-                  key={collection.id}
-                  className="group relative card-interactive p-4 cursor-pointer"
-                  onClick={() => navigate(`/colecao/${collection.id}`)}
-                >
-                  {/* Menu */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEdit(collection);
-                          }}
-                        >
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeleteConfirm(collection.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* Preview images grid */}
-                  <div
-                    className="aspect-square rounded-xl overflow-hidden mb-4"
-                    style={{ backgroundColor: `${collection.color}15` }}
-                  >
-                    {previewImages.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-1 p-2 h-full">
-                        {previewImages.map((img, idx) => (
-                          <div
-                            key={idx}
-                            className="rounded-lg overflow-hidden bg-background/50"
-                          >
-                            <img
-                              src={img}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                        {previewImages.length < 4 &&
-                          Array(4 - previewImages.length)
-                            .fill(0)
-                            .map((_, idx) => (
-                              <div
-                                key={`empty-${idx}`}
-                                className="rounded-lg bg-background/30"
-                              />
-                            ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <FolderOpen
-                          className="h-16 w-16"
-                          style={{ color: collection.color }}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-                      style={{ backgroundColor: `${collection.color}20` }}
-                    >
-                      {collection.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="font-semibold text-foreground truncate">
-                        {collection.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Package className="h-3 w-3" />
-                        {collection.productIds.length} produtos
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed border-border">
-            <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Nenhuma coleção criada
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Crie coleções para organizar seus produtos favoritos em pastas personalizadas
-            </p>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => refetchExternal()}
+              disabled={isLoadingExternal}
+            >
+              <RefreshCw className={cn("h-4 w-4 mr-2", isLoadingExternal && "animate-spin")} />
+              Sincronizar
+            </Button>
             <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Criar primeira coleção
+              Nova Coleção
             </Button>
           </div>
+        </div>
+
+        {/* External Collections (BD Promobrind) */}
+        {(externalCollections.length > 0 || isLoadingExternal) && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Cloud className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-semibold">Coleções Sincronizadas</h2>
+              <Badge variant="secondary" className="text-xs">
+                BD Externo
+              </Badge>
+            </div>
+            
+            {isLoadingExternal ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {[1,2,3,4].map((i) => (
+                  <Skeleton key={i} className="h-64 rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {externalCollections.map((collection) => (
+                  <div
+                    key={collection.id}
+                    className="group relative card-interactive p-4 cursor-pointer border-primary/20"
+                    onClick={() => navigate(`/colecao-externa/${collection.id}`)}
+                  >
+                    {/* Badge sync */}
+                    <div className="absolute top-2 left-2 z-10">
+                      <Badge variant="outline" className="text-xs bg-background/80">
+                        <Cloud className="h-3 w-3 mr-1" />
+                        Sync
+                      </Badge>
+                    </div>
+
+                    {/* Preview */}
+                    <div
+                      className="aspect-square rounded-xl overflow-hidden mb-4 flex items-center justify-center"
+                      style={{ backgroundColor: collection.color ? `${collection.color}15` : 'hsl(var(--muted))' }}
+                    >
+                      {collection.image_url ? (
+                        <img
+                          src={collection.image_url}
+                          alt={collection.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <FolderOpen
+                          className="h-16 w-16"
+                          style={{ color: collection.color || 'hsl(var(--primary))' }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
+                        style={{ backgroundColor: collection.color ? `${collection.color}20` : 'hsl(var(--muted))' }}
+                      >
+                        {collection.icon || "📁"}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {collection.name}
+                        </h3>
+                        {collection.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-1">
+                            {collection.description}
+                          </p>
+                        )}
+                        {collection.is_featured && (
+                          <Badge variant="secondary" className="mt-1 text-xs">
+                            Destaque
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
+
+        {/* Local Collections (localStorage) */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <CloudOff className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-lg font-semibold">Coleções Locais</h2>
+            <Badge variant="outline" className="text-xs">
+              Apenas neste dispositivo
+            </Badge>
+          </div>
+
+          {localCollections.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {localCollections.map((collection) => {
+                const products = getCollectionProducts(collection.id);
+                const previewImages = products.slice(0, 4).map((p) => p.images[0]);
+
+                return (
+                  <div
+                    key={collection.id}
+                    className="group relative card-interactive p-4 cursor-pointer"
+                    onClick={() => navigate(`/colecao/${collection.id}`)}
+                  >
+                    {/* Menu */}
+                    <div className="absolute top-2 right-2 z-10">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEdit(collection);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteConfirm(collection.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Preview images grid */}
+                    <div
+                      className="aspect-square rounded-xl overflow-hidden mb-4"
+                      style={{ backgroundColor: `${collection.color}15` }}
+                    >
+                      {previewImages.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-1 p-2 h-full">
+                          {previewImages.map((img, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-lg overflow-hidden bg-background/50"
+                            >
+                              <img
+                                src={img}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ))}
+                          {previewImages.length < 4 &&
+                            Array(4 - previewImages.length)
+                              .fill(0)
+                              .map((_, idx) => (
+                                <div
+                                  key={`empty-${idx}`}
+                                  className="rounded-lg bg-background/30"
+                                />
+                              ))}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <FolderOpen
+                            className="h-16 w-16"
+                            style={{ color: collection.color }}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
+                        style={{ backgroundColor: `${collection.color}20` }}
+                      >
+                        {collection.icon}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">
+                          {collection.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          {collection.productIds.length} produtos
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed border-border">
+              <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Nenhuma coleção local criada
+              </h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                Crie coleções para organizar seus produtos favoritos em pastas personalizadas
+              </p>
+              <Button onClick={() => setIsCreateOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar primeira coleção
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Create/Edit Modal */}
