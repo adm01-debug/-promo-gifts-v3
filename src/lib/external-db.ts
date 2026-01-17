@@ -292,22 +292,31 @@ export interface PromobrindPrintArea {
   area_image_url: string | null;
 }
 
+// Interface flexível para técnicas do BD externo (aceita qualquer estrutura)
 export interface PromobrindTechnique {
   id: string;
-  code: string;
+  code?: string;
   name: string;
-  description: string | null;
-  category: string | null;
-  // Campo real do BD externo: setup_price (mapeado como setup_cost para compatibilidade)
-  setup_price: number | null;
-  handling_price: number | null;
-  min_quantity: number | null;
-  estimated_days: number | null;
-  max_colors: number | null;
-  is_active: boolean;
+  description?: string | null;
+  category?: string | null;
+  // Campos do BD externo (podem variar)
+  setup_price?: number | null;
+  handling_price?: number | null;
+  base_cost_multiplier?: number | null;
+  requires_color_count?: boolean;
+  min_colors?: number;
+  max_colors?: number | null;
+  price_by_color?: boolean;
+  price_by_area?: boolean;
+  is_active?: boolean;
+  display_order?: number;
   // Campos derivados para compatibilidade com código existente
   setup_cost?: number | null;
   unit_cost?: number | null;
+  min_quantity?: number | null;
+  estimated_days?: number | null;
+  // Permitir campos extras
+  [key: string]: unknown;
 }
 
 export interface PromobrindPriceTable {
@@ -390,11 +399,9 @@ export async function fetchPromobrindPrintAreas(
 // FUNÇÕES PARA TÉCNICAS DE PERSONALIZAÇÃO
 // ============================================
 
-// Campos reais da tabela personalization_techniques no BD externo:
-// setup_price, handling_price (não unit_cost)
-const TECHNIQUE_SELECT_FIELDS = 
-  'id, code, name, description, category, setup_price, handling_price, ' +
-  'min_quantity, estimated_days, max_colors, is_active';
+// Buscar todos os campos disponíveis sem especificar select (evita erro de colunas inexistentes)
+// O BD externo personalization_techniques pode ter estrutura diferente
+const TECHNIQUE_SELECT_FIELDS = '*';
 
 /**
  * Busca técnicas de personalização ativas do BD Promobrind
@@ -425,8 +432,10 @@ export async function fetchPromobrindTechniques(options?: {
   // Mapear campos para compatibilidade com código existente
   return result.records.map(t => ({
     ...t,
-    setup_cost: t.setup_price,
-    unit_cost: t.handling_price, // handling_price é o equivalente mais próximo
+    setup_cost: t.setup_price ?? 0,
+    unit_cost: t.handling_price ?? 0,
+    min_quantity: (t as Record<string, unknown>).min_quantity as number | null ?? null,
+    estimated_days: (t as Record<string, unknown>).estimated_days as number | null ?? null,
   }));
 }
 
@@ -450,8 +459,10 @@ export async function fetchPromobrindTechniqueById(
   // Mapear campos para compatibilidade
   return {
     ...tech,
-    setup_cost: tech.setup_price,
-    unit_cost: tech.handling_price,
+    setup_cost: tech.setup_price ?? 0,
+    unit_cost: tech.handling_price ?? 0,
+    min_quantity: (tech as Record<string, unknown>).min_quantity as number | null ?? null,
+    estimated_days: (tech as Record<string, unknown>).estimated_days as number | null ?? null,
   };
 }
 
