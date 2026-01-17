@@ -298,14 +298,16 @@ export interface PromobrindTechnique {
   name: string;
   description: string | null;
   category: string | null;
-  unit_cost: number | null;
-  setup_cost: number | null;
+  // Campo real do BD externo: setup_price (mapeado como setup_cost para compatibilidade)
+  setup_price: number | null;
+  handling_price: number | null;
   min_quantity: number | null;
   estimated_days: number | null;
   max_colors: number | null;
-  max_width_cm: number | null;
-  max_height_cm: number | null;
   is_active: boolean;
+  // Campos derivados para compatibilidade com código existente
+  setup_cost?: number | null;
+  unit_cost?: number | null;
 }
 
 export interface PromobrindPriceTable {
@@ -388,9 +390,11 @@ export async function fetchPromobrindPrintAreas(
 // FUNÇÕES PARA TÉCNICAS DE PERSONALIZAÇÃO
 // ============================================
 
+// Campos reais da tabela personalization_techniques no BD externo:
+// setup_price, handling_price (não unit_cost)
 const TECHNIQUE_SELECT_FIELDS = 
-  'id, code, name, description, category, unit_cost, setup_cost, ' +
-  'min_quantity, estimated_days, max_colors, max_width_cm, max_height_cm, is_active';
+  'id, code, name, description, category, setup_price, handling_price, ' +
+  'min_quantity, estimated_days, max_colors, is_active';
 
 /**
  * Busca técnicas de personalização ativas do BD Promobrind
@@ -417,7 +421,13 @@ export async function fetchPromobrindTechniques(options?: {
     limit: options?.limit || 100,
     orderBy: { column: 'name', ascending: true },
   });
-  return result.records;
+  
+  // Mapear campos para compatibilidade com código existente
+  return result.records.map(t => ({
+    ...t,
+    setup_cost: t.setup_price,
+    unit_cost: t.handling_price, // handling_price é o equivalente mais próximo
+  }));
 }
 
 /**
@@ -433,7 +443,16 @@ export async function fetchPromobrindTechniqueById(
     select: TECHNIQUE_SELECT_FIELDS,
     limit: 1,
   });
-  return result.records[0] || null;
+  
+  const tech = result.records[0];
+  if (!tech) return null;
+  
+  // Mapear campos para compatibilidade
+  return {
+    ...tech,
+    setup_cost: tech.setup_price,
+    unit_cost: tech.handling_price,
+  };
 }
 
 // ============================================
