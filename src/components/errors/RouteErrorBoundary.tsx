@@ -62,6 +62,21 @@ const getErrorDetails = (error: unknown): ErrorDetails => {
     };
   }
 
+  // Dynamic import / chunk loading errors (stale cache)
+  if (
+    error instanceof Error && 
+    (error.message.includes("Failed to fetch dynamically imported module") ||
+     error.message.includes("Loading chunk") ||
+     error.message.includes("ChunkLoadError"))
+  ) {
+    return {
+      icon: <RefreshCw className="h-16 w-16 text-warning" />,
+      title: "Atualização disponível",
+      message: "Uma nova versão está disponível. Clique para atualizar.",
+      action: "reload",
+    };
+  }
+
   // Default error
   return {
     icon: <AlertTriangle className="h-16 w-16 text-destructive" />,

@@ -5,7 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createQueryClient } from "@/lib/query-config";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
@@ -21,72 +22,72 @@ import { ProductsProvider } from "@/contexts/ProductsContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import "./App.css";
 
-// Auth Pages
-const Auth = lazy(() => import("./pages/Auth"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const Index = lazy(() => import("./pages/Index"));
-const PublicQuoteApproval = lazy(() => import("./pages/PublicQuoteApproval"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+// Auth Pages - Using lazyWithRetry for chunk loading resilience
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteApproval"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Product Pages
-const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const FiltersPage = lazy(() => import("./pages/FiltersPage"));
-const NoveltiesPage = lazy(() => import("./pages/NoveltiesPage"));
-const FavoritesPage = lazy(() => import("./pages/FavoritesPage"));
-const ComparePage = lazy(() => import("./pages/ComparePage"));
-const CollectionsPage = lazy(() => import("./pages/CollectionsPage"));
-const CollectionDetailPage = lazy(() => import("./pages/CollectionDetailPage"));
+const ProductDetail = lazyWithRetry(() => import("./pages/ProductDetail"));
+const FiltersPage = lazyWithRetry(() => import("./pages/FiltersPage"));
+const NoveltiesPage = lazyWithRetry(() => import("./pages/NoveltiesPage"));
+const FavoritesPage = lazyWithRetry(() => import("./pages/FavoritesPage"));
+const ComparePage = lazyWithRetry(() => import("./pages/ComparePage"));
+const CollectionsPage = lazyWithRetry(() => import("./pages/CollectionsPage"));
+const CollectionDetailPage = lazyWithRetry(() => import("./pages/CollectionDetailPage"));
 
 // Client Pages
-const ClientDetail = lazy(() => import("./pages/ClientDetail"));
-const ClientList = lazy(() => import("./pages/ClientList"));
+const ClientDetail = lazyWithRetry(() => import("./pages/ClientDetail"));
+const ClientList = lazyWithRetry(() => import("./pages/ClientList"));
 
 // Quote Pages
-const QuoteTemplatesPage = lazy(() => import("./pages/QuoteTemplatesPage"));
-const QuotesListPage = lazy(() => import("./pages/QuotesListPage"));
-const QuotesDashboardPage = lazy(() => import("./pages/QuotesDashboardPage"));
-const QuoteBuilderPage = lazy(() => import("./pages/QuoteBuilderPage"));
-const QuoteViewPage = lazy(() => import("./pages/QuoteViewPage"));
-const QuotesKanbanPage = lazy(() => import("./pages/QuotesKanbanPage"));
+const QuoteTemplatesPage = lazyWithRetry(() => import("./pages/QuoteTemplatesPage"));
+const QuotesListPage = lazyWithRetry(() => import("./pages/QuotesListPage"));
+const QuotesDashboardPage = lazyWithRetry(() => import("./pages/QuotesDashboardPage"));
+const QuoteBuilderPage = lazyWithRetry(() => import("./pages/QuoteBuilderPage"));
+const QuoteViewPage = lazyWithRetry(() => import("./pages/QuoteViewPage"));
+const QuotesKanbanPage = lazyWithRetry(() => import("./pages/QuotesKanbanPage"));
 
 // Order Pages
-const OrdersListPage = lazy(() => import("./pages/OrdersListPage"));
-const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
+const OrdersListPage = lazyWithRetry(() => import("./pages/OrdersListPage"));
+const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
 // Admin Pages
-const AdminPanel = lazy(() => import("./pages/AdminPanel"));
-const ProductRegistrationPage = lazy(() => import("./pages/ProductRegistrationPage"));
-const EngravingRegistrationPage = lazy(() => import("./pages/EngravingRegistrationPage"));
+const AdminPanel = lazyWithRetry(() => import("./pages/AdminPanel"));
+const ProductRegistrationPage = lazyWithRetry(() => import("./pages/ProductRegistrationPage"));
+const EngravingRegistrationPage = lazyWithRetry(() => import("./pages/EngravingRegistrationPage"));
 
 // Tools Pages
-const SimuladorWizard = lazy(() => import("./pages/SimuladorWizard"));
-const MockupGenerator = lazy(() => import("./pages/MockupGenerator"));
-const MagicUp = lazy(() => import("./pages/MagicUp"));
-const PriceSimulatorPage = lazy(() => import("./pages/PriceSimulatorPage"));
-const StockDashboardPage = lazy(() => import("./pages/StockDashboardPage"));
+const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
+const MockupGenerator = lazyWithRetry(() => import("./pages/MockupGenerator"));
+const MagicUp = lazyWithRetry(() => import("./pages/MagicUp"));
+const PriceSimulatorPage = lazyWithRetry(() => import("./pages/PriceSimulatorPage"));
+const StockDashboardPage = lazyWithRetry(() => import("./pages/StockDashboardPage"));
 
 // User Pages
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
 
 // Bitrix Integration
-const BitrixSync = lazy(() => import("./pages/BitrixSyncPage"));
+const BitrixSync = lazyWithRetry(() => import("./pages/BitrixSyncPage"));
 
 // Analytics Pages
-const BIDashboard = lazy(() => import("./pages/BIDashboard"));
-const TrendsPage = lazy(() => import("./pages/TrendsPage"));
+const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
+const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
 
 // System Pages
-const SystemStatusPage = lazy(() => import("./pages/SystemStatusPage"));
-const RateLimitDashboard = lazy(() => import("./pages/RateLimitDashboardPage"));
-const ExternalDatabaseTest = lazy(() => import("./pages/ExternalDatabaseTest"));
+const SystemStatusPage = lazyWithRetry(() => import("./pages/SystemStatusPage"));
+const RateLimitDashboard = lazyWithRetry(() => import("./pages/RateLimitDashboardPage"));
+const ExternalDatabaseTest = lazyWithRetry(() => import("./pages/ExternalDatabaseTest"));
 
 // Security Pages
-const SecurityPage = lazy(() => import("./pages/Security"));
+const SecurityPage = lazyWithRetry(() => import("./pages/Security"));
 
 // Admin - Roles & Permissions
-const PermissionsPage = lazy(() => import("./pages/PermissionsPage"));
-const RolesPage = lazy(() => import("./pages/RolesPage"));
-const RolePermissionsPage = lazy(() => import("./pages/RolePermissionsPage"));
+const PermissionsPage = lazyWithRetry(() => import("./pages/PermissionsPage"));
+const RolesPage = lazyWithRetry(() => import("./pages/RolesPage"));
+const RolePermissionsPage = lazyWithRetry(() => import("./pages/RolePermissionsPage"));
 
 // Dashboard
 const CustomizableDashboard = lazy(() => import("./pages/CustomizableDashboard"));
