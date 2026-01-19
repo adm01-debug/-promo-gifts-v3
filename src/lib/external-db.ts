@@ -321,21 +321,24 @@ export interface PromobrindTechnique {
 
 export interface PromobrindPriceTable {
   id: string;
-  code_option: string;
-  technique_name: string;
+  table_code: string;
+  table_code_option: string;
+  customization_type_name: string;
   technique_code: string | null;
   min_quantity: number;
   max_quantity: number | null;
   min_colors: number | null;
   max_colors: number | null;
-  min_width_cm: number | null;
-  max_width_cm: number | null;
-  min_height_cm: number | null;
-  max_height_cm: number | null;
+  max_area_width_cm: number | null;
+  max_area_height_cm: number | null;
   unit_price: number;
   setup_price: number | null;
+  handling_price: number | null;
   sla_days: number | null;
   is_active: boolean;
+  // Aliases para compatibilidade
+  code_option?: string;
+  technique_name?: string;
 }
 
 // ============================================
@@ -470,10 +473,8 @@ export async function fetchPromobrindTechniqueById(
 // FUNÇÕES PARA TABELAS DE PREÇO
 // ============================================
 
-const PRICE_TABLE_SELECT_FIELDS = 
-  'id, code_option, technique_name, technique_code, min_quantity, max_quantity, ' +
-  'min_colors, max_colors, min_width_cm, max_width_cm, min_height_cm, max_height_cm, ' +
-  'unit_price, setup_price, sla_days, is_active';
+// Buscar todos os campos sem especificar select (evita erro de colunas inexistentes)
+const PRICE_TABLE_SELECT_FIELDS = '*';
 
 /**
  * Busca tabelas de preço para uma técnica
@@ -488,25 +489,47 @@ export async function fetchPromobrindPriceTables(options?: {
 }): Promise<PromobrindPriceTable[]> {
   const filters: Record<string, unknown> = { is_active: true };
   
+  // Usar nomes corretos das colunas do BD
   if (options?.techniqueName) {
-    filters.technique_name = options.techniqueName;
+    filters.customization_type_name = options.techniqueName;
   }
   if (options?.techniqueCode) {
-    filters.technique_code = options.techniqueCode;
+    filters.table_code = options.techniqueCode;
   }
 
-  const result = await invokeExternalDb<PromobrindPriceTable>({
+  const result = await invokeExternalDb<Record<string, unknown>>({
     table: 'customization_price_tables',
     operation: 'select',
     filters,
     select: PRICE_TABLE_SELECT_FIELDS,
     limit: 500,
-    orderBy: { column: 'min_quantity', ascending: true },
+    orderBy: { column: 'tier_1_min_qty', ascending: true },
   });
 
-  // Filtrar por parâmetros opcionais
-  let tables = result.records;
+  // Mapear campos do BD para interface
+  let tables: PromobrindPriceTable[] = result.records.map(r => ({
+    id: r.id as string,
+    table_code: r.table_code as string,
+    table_code_option: r.table_code_option as string,
+    customization_type_name: r.customization_type_name as string,
+    technique_code: (r.serv_code || r.table_code) as string | null,
+    min_quantity: (r.tier_1_min_qty as number) || 1,
+    max_quantity: (r.tier_15_min_qty as number) || null,
+    min_colors: null,
+    max_colors: (r.max_colors as number) || null,
+    max_area_width_cm: (r.max_area_width_cm as number) || null,
+    max_area_height_cm: (r.max_area_height_cm as number) || null,
+    unit_price: (r.tier_1_unit_price as number) || 0,
+    setup_price: (r.setup_price as number) || null,
+    handling_price: (r.handling_price as number) || null,
+    sla_days: (r.tier_1_sla_days as number) || null,
+    is_active: r.is_active as boolean,
+    // Aliases para compatibilidade
+    code_option: r.table_code_option as string,
+    technique_name: r.customization_type_name as string,
+  }));
   
+  // Filtrar por parâmetros opcionais
   if (options?.quantity) {
     tables = tables.filter(t => 
       t.min_quantity <= options.quantity! && 
@@ -521,14 +544,12 @@ export async function fetchPromobrindPriceTables(options?: {
   }
   if (options?.width) {
     tables = tables.filter(t => 
-      (t.min_width_cm === null || t.min_width_cm <= options.width!) && 
-      (t.max_width_cm === null || t.max_width_cm >= options.width!)
+      (t.max_area_width_cm === null || t.max_area_width_cm >= options.width!)
     );
   }
   if (options?.height) {
     tables = tables.filter(t => 
-      (t.min_height_cm === null || t.min_height_cm <= options.height!) && 
-      (t.max_height_cm === null || t.max_height_cm >= options.height!)
+      (t.max_area_height_cm === null || t.max_area_height_cm >= options.height!)
     );
   }
 
