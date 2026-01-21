@@ -108,9 +108,9 @@ export function useVariantStock() {
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Buscar produtos com variações embutidas
+      // 1. Buscar produtos com variações embutidas (removido 'stock' que não existe na tabela)
       const productsResult = await productsDB.fetchAll({
-        select: 'id,name,sku,stock,min_quantity,category_name,supplier_name,lead_time_days,updated_at,colors,variations',
+        select: 'id,name,sku,min_quantity,category_name,supplier_name,lead_time_days,updated_at,colors,variations',
         limit: 500,
       });
       
@@ -176,9 +176,9 @@ export function useVariantStock() {
               });
             });
           } else if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
-            // Fallback: usar cores do produto (JSONB)
+            // Fallback: usar cores do produto (JSONB) - estoque vem da cor individual
             product.colors.forEach((color, idx) => {
-              const currentStock = color.stock ?? Math.floor((product.stock || 0) / product.colors!.length);
+              const currentStock = color.stock ?? 0;
               const minStock = Math.max(1, Math.floor((product.min_quantity || 10) / product.colors!.length));
               const reservedStock = 0;
               const inTransitStock = 0;
@@ -203,9 +203,9 @@ export function useVariantStock() {
               });
             });
           } else if (product.variations && Array.isArray(product.variations) && product.variations.length > 0) {
-            // Fallback: usar variações do produto (JSONB)
+            // Fallback: usar variações do produto (JSONB) - estoque vem da variação individual
             product.variations.forEach((variation, idx) => {
-              const currentStock = variation.stock ?? Math.floor((product.stock || 0) / product.variations!.length);
+              const currentStock = variation.stock ?? 0;
               const minStock = Math.max(1, Math.floor((product.min_quantity || 10) / product.variations!.length));
               const reservedStock = 0;
               const inTransitStock = 0;
@@ -231,8 +231,8 @@ export function useVariantStock() {
               });
             });
           } else {
-            // Produto sem variações - criar uma única variação "padrão"
-            const currentStock = product.stock || 0;
+            // Produto sem variações - criar uma única variação "padrão" com estoque 0
+            const currentStock = 0;
             const minStock = product.min_quantity || 10;
             const reservedStock = 0;
             const inTransitStock = 0;
