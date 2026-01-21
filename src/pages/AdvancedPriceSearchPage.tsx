@@ -427,11 +427,17 @@ export default function AdvancedPriceSearchPage() {
 
   // Get unique categories from products
   const categories = useMemo(() => {
-    const cats = new Set<string>();
+    const cats = new Map<string, string>();
     products.forEach(p => {
-      if (p.category) cats.add(p.category);
+      // category pode ser string ou objeto {id, name}
+      const catName = typeof p.category === 'object' && p.category?.name 
+        ? p.category.name 
+        : (typeof p.category === 'string' ? p.category : null);
+      if (catName && !cats.has(catName)) {
+        cats.set(catName, catName);
+      }
     });
-    return Array.from(cats).sort();
+    return Array.from(cats.values()).sort();
   }, [products]);
 
   // Get unique colors from products
@@ -462,8 +468,13 @@ export default function AdvancedPriceSearchPage() {
       }
 
       // Category
-      if (filters.category !== 'all' && product.category !== filters.category) {
-        return false;
+      if (filters.category !== 'all') {
+        const productCatName = typeof product.category === 'object' && product.category?.name 
+          ? product.category.name 
+          : (typeof product.category === 'string' ? product.category : null);
+        if (productCatName !== filters.category) {
+          return false;
+        }
       }
 
       // Colors
