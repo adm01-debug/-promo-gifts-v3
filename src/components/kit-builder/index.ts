@@ -1,0 +1,11 @@
+/**
+ * Kit Builder Components
+ * Exportações centralizadas
+ */
+
+export { WizardSteps } from './WizardSteps';
+export { BoxSelector } from './BoxSelector';
+export { ItemSelector } from './ItemSelector';
+export { VolumeIndicator } from './VolumeIndicator';
+export { PersonalizationConfig } from './PersonalizationConfig';
+export { KitSummary } from './KitSummary';
