@@ -65,6 +65,7 @@ const MockupGenerator = lazyWithRetry(() => import("./pages/MockupGenerator"));
 const MagicUp = lazyWithRetry(() => import("./pages/MagicUp"));
 const PriceSimulatorPage = lazyWithRetry(() => import("./pages/PriceSimulatorPage"));
 const StockDashboardPage = lazyWithRetry(() => import("./pages/StockDashboardPage"));
+const AdvancedPriceSearchPage = lazyWithRetry(() => import("./pages/AdvancedPriceSearchPage"));
 
 // User Pages
 const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
@@ -190,6 +191,7 @@ const App = () => {
                                         <Route path="/simulador" element={<SimuladorWizard />} />
                                         <Route path="/simulador-precos" element={<PriceSimulatorPage />} />
                                         <Route path="/estoque" element={<StockDashboardPage />} />
+                                        <Route path="/busca-preco" element={<AdvancedPriceSearchPage />} />
                                         <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
                                         <Route path="/mockup-generator" element={<MockupGenerator />} />
                                         <Route path="/magic-up" element={<MagicUp />} />
