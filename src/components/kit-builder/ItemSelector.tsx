@@ -229,11 +229,11 @@ export function ItemSelector({
                       {boxSelected && (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Badge
-                              variant={fits ? "default" : "destructive"}
+                      <Badge
+                              variant={fits ? "secondary" : "destructive"}
                               className={cn(
                                 "text-xs",
-                                fits && "bg-green-500/10 text-green-600 hover:bg-green-500/20"
+                                fits && "bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/20"
                               )}
                             >
                               {fits ? (
