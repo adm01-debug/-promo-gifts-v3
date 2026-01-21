@@ -43,8 +43,15 @@ import { useExternalTechniques } from '@/hooks/useExternalDatabase';
 import { fetchPromobrindPriceTables, PromobrindPriceTable } from '@/lib/external-db';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatCurrency } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+
+// Formatador de moeda BRL
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+};
 
 // ============================================
 // TYPES
