@@ -98,8 +98,7 @@ export function useVariantStock() {
   
   // Hooks para APIs externas
   const productsDB = useExternalDatabase<ExternalProductWithVariants>('products');
-  const variantStocksDB = useExternalDatabase<ExternalVariantStock>('variant_stocks');
-  // const futureStockDB = useExternalDatabase<ExternalFutureStock>('stock_forecasts'); // Se existir
+  // variant_stocks não existe no BD externo - estoque vem embutido no produto
   
   // ============================================
   // BUSCAR DADOS DE ESTOQUE
@@ -108,30 +107,15 @@ export function useVariantStock() {
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Buscar produtos com variações embutidas (removido 'stock' que não existe na tabela)
+      // 1. Buscar produtos com variações embutidas (usando apenas colunas que existem no BD externo)
       const productsResult = await productsDB.fetchAll({
-        select: 'id,name,sku,min_quantity,category_name,supplier_name,lead_time_days,updated_at,colors,variations',
+        select: 'id,name,sku,min_quantity,updated_at,colors,variations',
         limit: 500,
       });
       
-      // 2. Buscar estoque detalhado por variação (se existir dados)
-      let variantStockMap = new Map<string, ExternalVariantStock[]>();
-      try {
-        const variantResult = await variantStocksDB.fetchAll({
-          limit: 1000,
-        });
-        if (variantResult?.records) {
-          variantResult.records.forEach(vs => {
-            const key = vs.product_id;
-            if (!variantStockMap.has(key)) {
-              variantStockMap.set(key, []);
-            }
-            variantStockMap.get(key)!.push(vs);
-          });
-        }
-      } catch {
-        // Tabela variant_stocks não disponível ou vazia
-      }
+      // 2. Estoque por variação - tabela variant_stocks não existe no BD externo
+      // O estoque vem embutido nos campos colors/variations do produto
+      const variantStockMap = new Map<string, ExternalVariantStock[]>();
       
       if (productsResult?.records) {
         const summaries: ProductStockSummary[] = productsResult.records.map(product => {
