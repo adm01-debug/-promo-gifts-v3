@@ -10,64 +10,58 @@ const corsHeaders = {
 type ResourceGroup = 'products' | 'companies' | 'views';
 type Operation = 'select' | 'insert' | 'update' | 'delete';
 
-// Tabelas relacionadas a PRODUTOS (CRUD completo)
+// Tabelas relacionadas a PRODUTOS (CRUD completo) - SINCRONIZADO 2026-01-28
 const PRODUCT_TABLES = [
+  // Principais
   'products',
+  'categories',
+  'suppliers',
+  'tags',
+  // Produto relacionadas
   'product_images',
   'product_videos',
   'product_variants',
   'product_materials',
   'product_tags',
   'product_categories',
-  'product_category_assignments',
+  'product_suppliers',
   'product_print_areas',
   'product_kit_components',
-  'product_suppliers',
   'product_attributes',
-  'product_relationships',
-  'product_reviews',
-  'product_views',
-  'product_comparisons',
-  'product_personalization_options',
-  'product_price_history',
-  'product_technique_pricing_tiers',
-  'categories',
-  'category_attributes',
-  'category_relationships',
-  'suppliers',
-  'supplier_colors',
-  'supplier_materials',
-  'supplier_attribute_definitions',
-  'supplier_product_attributes',
-  'tags',
-  'personalization_techniques',
-  'customization_price_tables',
+  // Cores
   'color_groups',
   'color_nuances',
   'color_equivalences',
   'color_variations',
+  'supplier_colors',
+  // Materiais
   'material_groups',
   'material_types',
   'material_variations',
-  'collections',
-  'collection_products',
+  'supplier_materials',
+  // Atributos e definições
+  'supplier_attribute_definitions',
+  'supplier_product_attributes',
+  'category_attributes',
+  // Preços e variações
   'price_lists',
-  'price_change_history',
-  'variant_stocks',
   'variant_cost_tiers',
   'variant_sale_prices',
   'variation_types',
   'variation_values',
-  'material_equivalences',
   'stock_movements',
-  'mockup_drafts',
-  'mockup_generation_jobs',
-  'mockup_approval_links',
-  'generated_mockups',
-  // Ramos de Atividade (hierarquia de nichos/segmentos)
+  // Coleções
+  'collections',
+  'collection_products',
+  // Público Alvo / Ramos de Atividade
   'ramo_atividade',
   'ramo_atividade_filho',
   'produto_ramo_atividade',
+  // Setores de negócio
+  'business_sectors',
+  // Mockups
+  'mockup_drafts',
+  'generated_mockups',
 ] as const;
 
 // Views e Materialized Views (somente leitura)
