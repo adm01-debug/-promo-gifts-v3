@@ -6,56 +6,57 @@ import { toast } from 'sonner';
 // TABELAS DISPONÍVEIS NO BANCO EXTERNO
 // ============================================
 
-// Tabelas de PRODUTOS (CRUD completo)
+// Tabelas de PRODUTOS (CRUD completo) - SINCRONIZADO COM BD EXTERNO 2026-01-28
 export const PRODUCT_TABLES = [
+  // Principais
   'products',
+  'categories',
+  'suppliers',
+  'tags',
+  // Produto relacionadas
   'product_images',
   'product_videos',
   'product_variants',
   'product_materials',
   'product_tags',
   'product_categories',
-  'product_category_assignments',
+  'product_suppliers',
   'product_print_areas',
   'product_kit_components',
-  'product_suppliers',
   'product_attributes',
-  'product_relationships',
-  'product_reviews',
-  'product_views',
-  'product_comparisons',
-  'product_personalization_options',
-  'product_price_history',
-  'product_technique_pricing_tiers',
-  'categories',
-  'category_attributes',
-  'category_relationships',
-  'suppliers',
-  'supplier_colors',
-  'supplier_materials',
-  'supplier_attribute_definitions',
-  'supplier_product_attributes',
-  'tags',
-  'personalization_techniques',
-  'customization_price_tables',
+  // Cores
   'color_groups',
   'color_nuances',
   'color_equivalences',
   'color_variations',
-  'collections',
-  'collection_products',
+  'supplier_colors',
+  // Materiais
+  'material_groups',
+  'material_types',
+  'material_variations',
+  'supplier_materials',
+  // Atributos e definições
+  'supplier_attribute_definitions',
+  'supplier_product_attributes',
+  'category_attributes',
+  // Preços e variações
   'price_lists',
-  'price_change_history',
-  'variant_stocks',
   'variant_cost_tiers',
   'variant_sale_prices',
   'variation_types',
   'variation_values',
-  'material_equivalences',
   'stock_movements',
+  // Coleções
+  'collections',
+  'collection_products',
+  // Público Alvo / Ramos de Atividade
+  'ramo_atividade',
+  'ramo_atividade_filho',
+  'produto_ramo_atividade',
+  // Setores de negócio
+  'business_sectors',
+  // Mockups
   'mockup_drafts',
-  'mockup_generation_jobs',
-  'mockup_approval_links',
   'generated_mockups',
 ] as const;
 
@@ -77,10 +78,7 @@ export const PRODUCT_VIEWS = [
 export const COMPANY_TABLES = [
   'bitrix_clients',
   'client_contacts',
-  'client_notes',
   'organizations',
-  'user_organizations',
-  'business_sectors',
 ] as const;
 
 export type ProductTable = typeof PRODUCT_TABLES[number];
@@ -295,6 +293,36 @@ export function useExternalClientContacts() {
 
 export function useExternalOrganizations() {
   return useExternalDatabase<ExternalOrganization>('organizations');
+}
+
+// Público Alvo / Ramos de Atividade
+export function useExternalRamosAtividade() {
+  return useExternalDatabase<ExternalRamoAtividade>('ramo_atividade');
+}
+
+export function useExternalRamosAtividadeFilho() {
+  return useExternalDatabase<ExternalRamoAtividadeFilho>('ramo_atividade_filho');
+}
+
+export function useExternalBusinessSectors() {
+  return useExternalDatabase<ExternalBusinessSector>('business_sectors');
+}
+
+// Materiais
+export function useExternalMaterialGroups() {
+  return useExternalDatabase<ExternalMaterialGroup>('material_groups');
+}
+
+export function useExternalMaterialTypes() {
+  return useExternalDatabase<ExternalMaterialType>('material_types');
+}
+
+export function useExternalColorGroups() {
+  return useExternalDatabase<ExternalColorGroup>('color_groups');
+}
+
+export function useExternalColorVariations() {
+  return useExternalDatabase<ExternalColorVariation>('color_variations');
 }
 
 // ============================================
@@ -530,4 +558,109 @@ export interface ExternalOrganization {
   logo_url?: string;
   is_active?: boolean;
   created_at?: string;
+}
+
+// ============================================
+// TIPOS: PÚBLICO ALVO / RAMOS DE ATIVIDADE
+// ============================================
+
+export interface ExternalRamoAtividade {
+  id: string;
+  nome: string;
+  slug?: string;
+  descricao?: string;
+  icone?: string;
+  cor?: string;
+  ativo?: boolean;
+  ordem?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalRamoAtividadeFilho {
+  id: string;
+  ramo_atividade_id: string;
+  nome: string;
+  slug?: string;
+  descricao?: string;
+  icone?: string;
+  ativo?: boolean;
+  ordem?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalBusinessSector {
+  id: string;
+  organization_id?: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  sort_order?: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ============================================
+// TIPOS: MATERIAIS
+// ============================================
+
+export interface ExternalMaterialGroup {
+  id: string;
+  organization_id?: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  sort_order?: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalMaterialType {
+  id: string;
+  organization_id?: string;
+  group_id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  properties?: Record<string, unknown>;
+  display_order?: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalColorGroup {
+  id: string;
+  organization_id?: string;
+  name: string;
+  slug?: string;
+  hex_code?: string;
+  description?: string;
+  internal_code?: string;
+  sort_order?: number;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalColorVariation {
+  id: string;
+  organization_id?: string;
+  group_id: string;
+  color_group_id?: string;
+  nuance_id?: string;
+  name: string;
+  slug?: string;
+  hex_code?: string;
+  image_url?: string;
+  description?: string;
+  internal_code?: string;
+  sort_order?: number;
+  is_active?: boolean;
+  is_available?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }

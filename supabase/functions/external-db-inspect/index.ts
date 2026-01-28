@@ -12,52 +12,10 @@ serve(async (req) => {
   }
 
   try {
-    // Para inspeção inicial, permitir acesso sem auth estrita
-    // Em produção, isso deve ser restrito a admins
     const body = await req.json().catch(() => ({}));
-    const isInitialInspection = body?.initial === true;
+    const { mode = 'tables', tableName } = body;
 
-    if (!isInitialInspection) {
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader?.startsWith('Bearer ')) {
-        return new Response(
-          JSON.stringify({ error: 'Não autorizado' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const localSupabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_ANON_KEY')!,
-        { global: { headers: { Authorization: authHeader } } }
-      );
-
-      const token = authHeader.replace('Bearer ', '');
-      const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
-      
-      if (claimsError || !claimsData?.claims) {
-        return new Response(
-          JSON.stringify({ error: 'Token inválido' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const userId = claimsData.claims.sub;
-      const { data: userRoles } = await localSupabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-
-      const userRole = userRoles?.[0]?.role;
-      if (userRole !== 'admin') {
-        return new Response(
-          JSON.stringify({ error: 'Apenas administradores podem inspecionar o banco externo' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-
-    console.log('Starting external database inspection...');
+    console.log(`[INSPECT] Mode: ${mode}, Table: ${tableName || 'all'}`);
 
     // Conectar ao banco externo
     const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
@@ -70,116 +28,167 @@ serve(async (req) => {
       );
     }
 
-    console.log('Connecting to external Supabase:', externalUrl);
+    const externalSupabase = createClient(externalUrl, externalKey);
 
-    // Usar API REST para listar tabelas
-    // O endpoint /rest/v1/ com OPTIONS retorna as tabelas disponíveis
-    const tablesResponse = await fetch(`${externalUrl}/rest/v1/`, {
-      method: 'GET',
-      headers: {
-        'apikey': externalKey,
-        'Authorization': `Bearer ${externalKey}`,
-      },
-    });
+    // Lista de tabelas para testar (ordenadas por prioridade)
+    const tablesToTest = [
+      // Principais
+      'products', 'categories', 'suppliers', 'tags',
+      'personalization_techniques', 'customization_price_tables',
+      // Produto relacionadas
+      'product_images', 'product_videos', 'product_variants',
+      'product_materials', 'product_tags', 'product_categories',
+      'product_suppliers', 'product_print_areas', 'product_kit_components',
+      // Cores e Materiais
+      'color_groups', 'color_nuances', 'color_equivalences', 'color_variations',
+      'material_groups', 'material_types', 'material_variations',
+      'supplier_colors', 'supplier_materials',
+      // Atributos
+      'supplier_attribute_definitions', 'supplier_product_attributes',
+      'product_attributes', 'category_attributes',
+      // Preços e Estoque
+      'price_lists', 'variant_stocks', 'variant_cost_tiers', 'variant_sale_prices',
+      'variation_types', 'variation_values', 'stock_movements',
+      // Coleções
+      'collections', 'collection_products',
+      // Ramos de atividade (Público Alvo)
+      'ramo_atividade', 'ramo_atividade_filho', 'produto_ramo_atividade',
+      // Empresas
+      'bitrix_clients', 'organizations', 'client_contacts', 'business_sectors',
+      // Mockups
+      'mockup_drafts', 'generated_mockups',
+    ];
 
-    if (!tablesResponse.ok) {
-      // Tentar método alternativo - consultar cada tabela conhecida
-      console.log('Could not list tables directly, trying known tables...');
+    // Modo: verificar uma tabela específica
+    if (mode === 'columns' && tableName) {
+      try {
+        const { data, error } = await externalSupabase
+          .from(tableName)
+          .select('*')
+          .limit(1);
+
+        if (error) {
+          return new Response(
+            JSON.stringify({ 
+              success: false, 
+              table: tableName,
+              error: error.message 
+            }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        const columns = data && data.length > 0 ? Object.keys(data[0]) : [];
+        const sampleRow = data && data.length > 0 ? data[0] : null;
+
+        return new Response(
+          JSON.stringify({ 
+            success: true,
+            table: tableName,
+            columns,
+            sampleRow,
+            columnTypes: columns.map(col => ({
+              name: col,
+              type: sampleRow ? typeof sampleRow[col] : 'unknown',
+              value: sampleRow ? sampleRow[col] : null
+            }))
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            table: tableName,
+            error: err instanceof Error ? err.message : 'Erro desconhecido'
+          }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    // Modo padrão: listar todas as tabelas existentes
+    const results: Array<{
+      name: string;
+      exists: boolean;
+      columns: string[];
+      rowCount: number;
+      error?: string;
+    }> = [];
+
+    // Processar tabelas em lotes para não dar timeout
+    const batchSize = 10;
+    for (let i = 0; i < tablesToTest.length; i += batchSize) {
+      const batch = tablesToTest.slice(i, i + batchSize);
       
-      const externalSupabase = createClient(externalUrl, externalKey);
-      const knownTables = [
-        'products', 'produtos',
-        'companies', 'empresas',
-        'categories', 'categorias',
-        'colors', 'cores',
-        'suppliers', 'fornecedores',
-        'personalization_techniques', 'tecnicas_personalizacao',
-        'personalization_sizes', 'tamanhos_personalizacao',
-        'personalization_locations', 'locais_personalizacao',
-        'product_components', 'componentes_produto',
-        'product_groups', 'grupos_produto',
-        'product_colors', 'cores_produto',
-        'product_images', 'imagens_produto',
-        'clients', 'clientes',
-        'orders', 'pedidos',
-        'quotes', 'orcamentos',
-      ];
-
-      const foundTables: { name: string; columns: string[]; rowCount: number }[] = [];
-
-      for (const tableName of knownTables) {
+      const batchPromises = batch.map(async (tbl) => {
         try {
           const { data, error, count } = await externalSupabase
-            .from(tableName)
+            .from(tbl)
             .select('*', { count: 'exact', head: false })
             .limit(1);
 
-          if (!error && data !== null) {
-            const columns = data.length > 0 ? Object.keys(data[0]) : [];
-            foundTables.push({
-              name: tableName,
-              columns,
-              rowCount: count || 0,
-            });
-            console.log(`Found table: ${tableName} with ${count} rows`);
+          if (error) {
+            return {
+              name: tbl,
+              exists: false,
+              columns: [],
+              rowCount: 0,
+              error: error.message
+            };
           }
-        } catch {
-          // Tabela não existe, ignorar
-        }
-      }
 
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          tables: foundTables,
-          message: `Encontradas ${foundTables.length} tabelas no banco externo`
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+          return {
+            name: tbl,
+            exists: true,
+            columns: data && data.length > 0 ? Object.keys(data[0]) : [],
+            rowCount: count || 0
+          };
+        } catch (err) {
+          return {
+            name: tbl,
+            exists: false,
+            columns: [],
+            rowCount: 0,
+            error: err instanceof Error ? err.message : 'Erro'
+          };
+        }
+      });
+
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
     }
 
-    // Se conseguiu listar via API REST
-    const openApiSpec = await tablesResponse.json();
-    const tables = Object.keys(openApiSpec.definitions || {}).filter(
-      name => !name.startsWith('_') && name !== 'rpc'
-    );
+    // Separar tabelas existentes e não existentes
+    const existingTables = results.filter(r => r.exists);
+    const missingTables = results.filter(r => !r.exists);
 
-    // Obter detalhes de cada tabela
-    const externalSupabase = createClient(externalUrl, externalKey);
-    const tableDetails: { name: string; columns: string[]; rowCount: number }[] = [];
-
-    for (const tableName of tables) {
-      try {
-        const { data, count } = await externalSupabase
-          .from(tableName)
-          .select('*', { count: 'exact', head: false })
-          .limit(1);
-
-        if (data !== null) {
-          const columns = data.length > 0 ? Object.keys(data[0]) : [];
-          tableDetails.push({
-            name: tableName,
-            columns,
-            rowCount: count || 0,
-          });
-        }
-      } catch {
-        // Ignorar tabelas com erro
-      }
-    }
+    console.log(`[INSPECT] Found ${existingTables.length} tables, ${missingTables.length} missing`);
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        tables: tableDetails,
-        message: `Encontradas ${tableDetails.length} tabelas no banco externo`
+        summary: {
+          total_tested: results.length,
+          existing: existingTables.length,
+          missing: missingTables.length
+        },
+        existingTables: existingTables.map(t => ({
+          name: t.name,
+          columns: t.columns,
+          rowCount: t.rowCount
+        })),
+        missingTables: missingTables.map(t => ({
+          name: t.name,
+          error: t.error
+        }))
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('Inspection error:', errorMessage);
+    console.error('[INSPECT] Error:', errorMessage);
     
     return new Response(
       JSON.stringify({ error: errorMessage }),
