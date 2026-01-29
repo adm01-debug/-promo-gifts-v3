@@ -91,6 +91,10 @@ export default function Index() {
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.colors.length) count += filters.colors.length;
+    // Contar filtros do sistema hierárquico de cores
+    if (filters.colorGroups?.length) count += filters.colorGroups.length;
+    if (filters.colorVariations?.length) count += filters.colorVariations.length;
+    if (filters.colorNuances?.length) count += filters.colorNuances.length;
     if (filters.categories.length) count += filters.categories.length;
     if (filters.suppliers.length) count += filters.suppliers.length;
     if (filters.publicoAlvo.length) count += filters.publicoAlvo.length;
@@ -147,9 +151,34 @@ export default function Index() {
     }
 
     // Aplicar filtros
+    // Filtro de cores legado
     if (filters.colors.length) {
       result = result.filter((p) => 
         p.colors?.some((c: any) => filters.colors.includes(c.name)) || false
+      );
+    }
+
+    // Filtro de cores hierárquico - por grupo (Azul, Verde, etc.)
+    if (filters.colorGroups?.length) {
+      result = result.filter((p) => 
+        p.colors?.some((c: any) => {
+          const colorGroup = (c.group || c.name || '').toLowerCase();
+          return filters.colorGroups.some(g => 
+            colorGroup.includes(g.toLowerCase()) || g.toLowerCase().includes(colorGroup)
+          );
+        }) || false
+      );
+    }
+
+    // Filtro de cores hierárquico - por variação específica (Azul Royal, Verde Limão, etc.)
+    if (filters.colorVariations?.length) {
+      result = result.filter((p) => 
+        p.colors?.some((c: any) => {
+          const colorName = (c.name || '').toLowerCase();
+          return filters.colorVariations.some(v => 
+            colorName.includes(v.toLowerCase()) || v.toLowerCase().includes(colorName)
+          );
+        }) || false
       );
     }
 
