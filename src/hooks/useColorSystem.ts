@@ -42,11 +42,10 @@ async function fetchExternalColors() {
   // Buscar grupos de cores
   const groupsResponse = await supabase.functions.invoke('external-db-bridge', {
     body: {
-      action: 'query',
       table: 'color_groups',
-      select: '*',
+      operation: 'select',
       filters: { is_active: true },
-      orderBy: 'sort_order'
+      orderBy: { column: 'sort_order', ascending: true }
     }
   });
 
@@ -59,11 +58,10 @@ async function fetchExternalColors() {
   // Buscar variações de cores
   const variationsResponse = await supabase.functions.invoke('external-db-bridge', {
     body: {
-      action: 'query',
       table: 'color_variations',
-      select: '*',
+      operation: 'select',
       filters: { is_active: true },
-      orderBy: 'sort_order'
+      orderBy: { column: 'sort_order', ascending: true }
     }
   });
 
@@ -177,11 +175,10 @@ export function useColorVariations(groupId: string | null) {
 
       const response = await supabase.functions.invoke('external-db-bridge', {
         body: {
-          action: 'query',
           table: 'color_variations',
-          select: '*',
+          operation: 'select',
           filters: { group_id: groupId, is_active: true },
-          orderBy: 'sort_order'
+          orderBy: { column: 'sort_order', ascending: true }
         }
       });
 
