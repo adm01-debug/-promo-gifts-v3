@@ -264,7 +264,7 @@ export function useVariantStock() {
     } finally {
       setIsLoading(false);
     }
-  }, [productsDB, variantStocksDB]);
+  }, [productsDB]);
   
   // Carregar dados iniciais
   useEffect(() => {
