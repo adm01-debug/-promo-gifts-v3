@@ -10,6 +10,7 @@ export interface ColorGroup {
   name: string;
   slug: string;
   hex_code: string | null;
+  internal_code: string | null;
   variations: ColorVariation[];
 }
 
@@ -18,6 +19,8 @@ export interface ColorVariation {
   name: string;
   slug: string;
   hex_code: string | null;
+  internal_code: string | null;
+  group_id: string;
 }
 
 export interface ColorNuance {
@@ -32,24 +35,94 @@ export interface ColorFilters {
 }
 
 // =====================================================
-// HOOK PRINCIPAL - Carrega toda a hierarquia de cores
+// HELPER - Busca dados do banco externo Promobrind
+// =====================================================
+
+async function fetchExternalColors() {
+  // Buscar grupos de cores
+  const groupsResponse = await supabase.functions.invoke('external-db-bridge', {
+    body: {
+      action: 'query',
+      table: 'color_groups',
+      select: '*',
+      filters: { is_active: true },
+      orderBy: 'sort_order'
+    }
+  });
+
+  if (groupsResponse.error) {
+    throw new Error(`Erro ao buscar grupos de cores: ${groupsResponse.error.message}`);
+  }
+
+  const groups = groupsResponse.data?.data || [];
+
+  // Buscar variações de cores
+  const variationsResponse = await supabase.functions.invoke('external-db-bridge', {
+    body: {
+      action: 'query',
+      table: 'color_variations',
+      select: '*',
+      filters: { is_active: true },
+      orderBy: 'sort_order'
+    }
+  });
+
+  if (variationsResponse.error) {
+    throw new Error(`Erro ao buscar variações de cores: ${variationsResponse.error.message}`);
+  }
+
+  const variations = variationsResponse.data?.data || [];
+
+  // Mapear variações para seus grupos
+  const groupsWithVariations: ColorGroup[] = groups.map((group: any) => ({
+    id: group.id,
+    name: group.name,
+    slug: group.slug || group.name.toLowerCase().replace(/\s+/g, '-'),
+    hex_code: group.hex_code,
+    internal_code: group.internal_code,
+    variations: variations
+      .filter((v: any) => v.group_id === group.id)
+      .map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        slug: v.slug || v.name.toLowerCase().replace(/\s+/g, '-'),
+        hex_code: v.hex_code,
+        internal_code: v.internal_code,
+        group_id: v.group_id
+      }))
+  }));
+
+  return groupsWithVariations;
+}
+
+// =====================================================
+// HOOK PRINCIPAL - Carrega toda a hierarquia de cores do Promobrind
 // =====================================================
 
 export function useColorSystem() {
   return useQuery<ColorFilters>({
-    queryKey: ['color-system'],
+    queryKey: ['color-system-external'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_color_filters');
+      const groups = await fetchExternalColors();
       
-      if (error) {
-        console.error('Erro ao carregar sistema de cores:', error);
-        throw new Error(`Falha ao carregar cores: ${error.message}`);
+      // Nuances são mantidas localmente (acabamentos como Fosco, Brilhante, etc.)
+      const { data: nuances, error: nuancesError } = await supabase
+        .from('color_nuances')
+        .select('id, name, slug')
+        .eq('is_active', true)
+        .order('sort_order');
+
+      if (nuancesError) {
+        console.warn('Nuances não encontradas localmente:', nuancesError);
       }
-      
-      return data as ColorFilters;
+
+      return {
+        groups,
+        nuances: nuances || []
+      };
     },
-    staleTime: 60 * 60 * 1000, // 1 hora - dados muito estáveis
-    gcTime: 24 * 60 * 60 * 1000, // 24 horas em cache
+    staleTime: 60 * 60 * 1000, // 1 hora
+    gcTime: 24 * 60 * 60 * 1000, // 24 horas
   });
 }
 
@@ -62,36 +135,9 @@ export function useColorSystem() {
  */
 export function useColorGroups() {
   return useQuery<ColorGroup[]>({
-    queryKey: ['color-groups'],
+    queryKey: ['color-groups-external'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('color_groups')
-        .select(`
-          id,
-          name,
-          slug,
-          hex_code,
-          color_variations (
-            id,
-            name,
-            slug,
-            hex_code
-          )
-        `)
-        .eq('is_active', true)
-        .order('sort_order');
-
-      if (error) {
-        throw new Error(`Falha ao carregar grupos de cor: ${error.message}`);
-      }
-
-      return (data || []).map(group => ({
-        id: group.id,
-        name: group.name,
-        slug: group.slug,
-        hex_code: group.hex_code,
-        variations: (group.color_variations || []) as ColorVariation[],
-      }));
+      return await fetchExternalColors();
     },
     staleTime: 60 * 60 * 1000,
   });
@@ -125,22 +171,32 @@ export function useColorNuances() {
  */
 export function useColorVariations(groupId: string | null) {
   return useQuery<ColorVariation[]>({
-    queryKey: ['color-variations', groupId],
+    queryKey: ['color-variations-external', groupId],
     queryFn: async () => {
       if (!groupId) return [];
 
-      const { data, error } = await supabase
-        .from('color_variations')
-        .select('id, name, slug, hex_code')
-        .eq('group_id', groupId)
-        .eq('is_active', true)
-        .order('sort_order');
+      const response = await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          action: 'query',
+          table: 'color_variations',
+          select: '*',
+          filters: { group_id: groupId, is_active: true },
+          orderBy: 'sort_order'
+        }
+      });
 
-      if (error) {
-        throw new Error(`Falha ao carregar variações: ${error.message}`);
+      if (response.error) {
+        throw new Error(`Falha ao carregar variações: ${response.error.message}`);
       }
 
-      return data || [];
+      return (response.data?.data || []).map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        slug: v.slug || v.name.toLowerCase().replace(/\s+/g, '-'),
+        hex_code: v.hex_code,
+        internal_code: v.internal_code,
+        group_id: v.group_id
+      }));
     },
     enabled: !!groupId,
     staleTime: 60 * 60 * 1000,
