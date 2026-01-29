@@ -145,7 +145,62 @@ export async function fetchPromobrindProducts(options?: {
     orderBy: { column: 'name', ascending: true },
   });
 
-  return result.records;
+  const products = result.records;
+
+  // Buscar cores das variantes de TODOS os produtos de uma vez
+  // para enriquecer o campo colors (que vem vazio da tabela products)
+  if (products.length > 0) {
+    try {
+      const productIds = products.map(p => p.id);
+      
+      const variantsResult = await invokeExternalDb<{
+        product_id: string;
+        color_name: string | null;
+        color_hex: string | null;
+        color_code: string | null;
+      }>({
+        table: 'product_variants',
+        operation: 'select',
+        select: 'product_id, color_name, color_hex, color_code',
+        filters: { is_active: true },
+        limit: 5000,
+      });
+
+      // Agrupar cores por produto
+      const colorsByProduct = new Map<string, Array<{ name: string; hex: string; code: string }>>();
+      
+      variantsResult.records.forEach(variant => {
+        if (!variant.color_name || !productIds.includes(variant.product_id)) return;
+        
+        if (!colorsByProduct.has(variant.product_id)) {
+          colorsByProduct.set(variant.product_id, []);
+        }
+        
+        const colors = colorsByProduct.get(variant.product_id)!;
+        // Evitar duplicatas
+        if (!colors.some(c => c.name === variant.color_name)) {
+          colors.push({
+            name: variant.color_name,
+            hex: variant.color_hex || '#CCCCCC',
+            code: variant.color_code || '',
+          });
+        }
+      });
+
+      // Enriquecer produtos com cores das variantes
+      products.forEach(product => {
+        const variantColors = colorsByProduct.get(product.id);
+        if (variantColors && variantColors.length > 0) {
+          product.colors = variantColors;
+        }
+      });
+    } catch (err) {
+      console.warn('Não foi possível buscar cores das variantes:', err);
+      // Continua sem cores - não bloqueia o fluxo
+    }
+  }
+
+  return products;
 }
 
 /**
