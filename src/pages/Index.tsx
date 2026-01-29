@@ -159,13 +159,23 @@ export default function Index() {
     }
 
     // Filtro de cores hierárquico - por grupo (Azul, Verde, etc.)
+    // colorGroups contém slugs (ex: "azul", "verde") e p.colors[].group contém nomes (ex: "Azul")
     if (filters.colorGroups?.length) {
       result = result.filter((p) => 
         p.colors?.some((c: any) => {
-          const colorGroup = (c.group || c.name || '').toLowerCase();
-          return filters.colorGroups.some(g => 
-            colorGroup.includes(g.toLowerCase()) || g.toLowerCase().includes(colorGroup)
-          );
+          const colorGroup = (c.group || '').toLowerCase().trim();
+          const colorName = (c.name || '').toLowerCase().trim();
+          
+          return filters.colorGroups.some(slug => {
+            const slugLower = slug.toLowerCase().trim();
+            // Match exato no grupo
+            if (colorGroup === slugLower) return true;
+            // Match parcial no grupo
+            if (colorGroup.includes(slugLower) || slugLower.includes(colorGroup)) return true;
+            // Match no nome da cor (fallback)
+            if (colorName.includes(slugLower) || slugLower.includes(colorName.split(/[\s-]/)[0])) return true;
+            return false;
+          });
         }) || false
       );
     }
@@ -174,10 +184,14 @@ export default function Index() {
     if (filters.colorVariations?.length) {
       result = result.filter((p) => 
         p.colors?.some((c: any) => {
-          const colorName = (c.name || '').toLowerCase();
-          return filters.colorVariations.some(v => 
-            colorName.includes(v.toLowerCase()) || v.toLowerCase().includes(colorName)
-          );
+          const colorName = (c.name || '').toLowerCase().trim();
+          return filters.colorVariations.some(slug => {
+            const slugLower = slug.toLowerCase().trim();
+            // Converter slug para palavras (ex: "azul-royal" -> ["azul", "royal"])
+            const slugWords = slugLower.split('-');
+            // Match se todas as palavras do slug estão no nome da cor
+            return slugWords.every(word => colorName.includes(word));
+          });
         }) || false
       );
     }

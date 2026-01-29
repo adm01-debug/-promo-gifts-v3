@@ -63,15 +63,50 @@ export interface ProductFilters {
   inStock?: boolean;
 }
 
+// Cores base para detecção de grupo
+const COLOR_GROUP_KEYWORDS: Record<string, string[]> = {
+  'Azul': ['azul', 'blue', 'marinho', 'celeste', 'royal', 'turquesa', 'petróleo', 'navy'],
+  'Verde': ['verde', 'green', 'limão', 'menta', 'musgo', 'oliva', 'esmeralda', 'lime'],
+  'Vermelho': ['vermelho', 'red', 'bordô', 'vinho', 'cereja', 'coral', 'carmim', 'rubi'],
+  'Amarelo': ['amarelo', 'yellow', 'dourado', 'ouro', 'gold', 'mostarda'],
+  'Laranja': ['laranja', 'orange', 'tangerina', 'pêssego'],
+  'Rosa': ['rosa', 'pink', 'magenta', 'fúcsia', 'salmão'],
+  'Roxo': ['roxo', 'purple', 'lilás', 'violeta', 'lavanda', 'uva'],
+  'Preto': ['preto', 'black', 'negro', 'grafite', 'chumbo'],
+  'Branco': ['branco', 'white', 'off-white', 'creme', 'gelo', 'pérola', 'neve'],
+  'Cinza': ['cinza', 'gray', 'grey', 'prata', 'silver', 'chumbo'],
+  'Marrom': ['marrom', 'brown', 'chocolate', 'café', 'caramelo', 'bege', 'nude', 'areia', 'natural', 'palha', 'terra'],
+  'Transparente': ['transparente', 'transparent', 'cristal', 'clear', 'incolor'],
+};
+
+function detectColorGroup(colorName: string): string {
+  const nameLower = colorName.toLowerCase().trim();
+  
+  for (const [group, keywords] of Object.entries(COLOR_GROUP_KEYWORDS)) {
+    if (keywords.some(kw => nameLower.includes(kw))) {
+      return group;
+    }
+  }
+  
+  // Fallback: usar primeira palavra como grupo
+  const firstWord = nameLower.split(/[\s-]+/)[0];
+  return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+}
+
 // Converte array de cores para formato padronizado
 function normalizeColors(colors: any[] | undefined): ProductColor[] {
   if (!colors || !Array.isArray(colors)) return [];
   
-  return colors.map((c: any) => ({
-    name: c.name || c.color_name || 'Sem cor',
-    hex: c.hex || c.hex_code || c.color_hex || '#CCCCCC',
-    group: c.group || c.color_group || c.name || 'Outros',
-  }));
+  return colors.map((c: any) => {
+    const name = c.name || c.color_name || 'Sem cor';
+    const group = c.group || c.color_group || detectColorGroup(name);
+    
+    return {
+      name,
+      hex: c.hex || c.hex_code || c.color_hex || '#CCCCCC',
+      group,
+    };
+  });
 }
 
 // Determina status do estoque baseado na quantidade
