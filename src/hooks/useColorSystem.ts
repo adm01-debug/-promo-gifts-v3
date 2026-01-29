@@ -53,7 +53,8 @@ async function fetchExternalColors() {
     throw new Error(`Erro ao buscar grupos de cores: ${groupsResponse.error.message}`);
   }
 
-  const groups = groupsResponse.data?.data || [];
+  // Resposta vem em data.data.records
+  const groups = groupsResponse.data?.data?.records || [];
 
   // Buscar variações de cores
   const variationsResponse = await supabase.functions.invoke('external-db-bridge', {
@@ -69,7 +70,7 @@ async function fetchExternalColors() {
     throw new Error(`Erro ao buscar variações de cores: ${variationsResponse.error.message}`);
   }
 
-  const variations = variationsResponse.data?.data || [];
+  const variations = variationsResponse.data?.data?.records || [];
 
   // Mapear variações para seus grupos
   const groupsWithVariations: ColorGroup[] = groups.map((group: any) => ({
@@ -186,7 +187,7 @@ export function useColorVariations(groupId: string | null) {
         throw new Error(`Falha ao carregar variações: ${response.error.message}`);
       }
 
-      return (response.data?.data || []).map((v: any) => ({
+      return (response.data?.data?.records || []).map((v: any) => ({
         id: v.id,
         name: v.name,
         slug: v.slug || v.name.toLowerCase().replace(/\s+/g, '-'),
