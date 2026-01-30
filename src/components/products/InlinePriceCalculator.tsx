@@ -127,19 +127,37 @@ export function InlinePriceCalculator({
 
       setIsLoading(true);
       try {
-        // Build filters for variant_sale_prices
-        const filters: Record<string, unknown> = { is_active: true };
+        let variantIds: string[] = [];
+
+        // If we have a specific variantId, use it directly
         if (variantId) {
-          filters.variant_id = variantId;
+          variantIds = [variantId];
         } else {
-          filters.product_id = productId;
+          // Otherwise, get all variant IDs for this product
+          const variantsResponse = await invokeExternalDb({
+            table: "product_variants",
+            operation: "select",
+            select: "id",
+            filters: { product_id: productId, is_active: true },
+            range: [0, 20],
+          });
+
+          const variants = variantsResponse?.data?.records || variantsResponse?.records || [];
+          variantIds = variants.map((v: { id: string }) => v.id);
         }
 
+        if (variantIds.length === 0) {
+          setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+          setIsLoading(false);
+          return;
+        }
+
+        // Fetch sale prices for the first variant (they should share the same price structure)
         const response = await invokeExternalDb({
           table: "variant_sale_prices",
           operation: "select",
-          filters,
-          range: [0, 20], // Get all price tiers for this product/variant
+          filters: { variant_id: variantIds[0], is_active: true },
+          range: [0, 20],
         });
 
         const records = response?.data?.records || response?.records || [];
