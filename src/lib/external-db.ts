@@ -245,7 +245,7 @@ export async function fetchPromobrindProducts(options?: {
 }
 
 /**
- * Busca um produto específico pelo ID
+ * Busca um produto específico pelo ID (com enriquecimento de cores das variantes)
  */
 export async function fetchPromobrindProductById(
   productId: string
@@ -258,7 +258,45 @@ export async function fetchPromobrindProductById(
     limit: 1,
   });
 
-  return result.records[0] || null;
+  const product = result.records[0] || null;
+  
+  // Se o produto não tem cores ou tem array vazio, buscar das variantes
+  if (product && (!product.colors || product.colors.length === 0)) {
+    try {
+      const variantsResult = await invokeExternalDb<{
+        product_id: string;
+        color_name: string | null;
+        color_hex: string | null;
+        color_code: string | null;
+      }>({
+        table: 'product_variants',
+        operation: 'select',
+        select: 'product_id, color_name, color_hex, color_code',
+        filters: { product_id: productId, is_active: true },
+        limit: 100,
+      });
+
+      // Extrair cores únicas das variantes
+      const uniqueColors: Array<{ name: string; hex: string; code?: string }> = [];
+      variantsResult.records.forEach(variant => {
+        if (variant.color_name && !uniqueColors.some(c => c.name === variant.color_name)) {
+          uniqueColors.push({
+            name: variant.color_name,
+            hex: variant.color_hex || '#CCCCCC',
+            code: variant.color_code || '',
+          });
+        }
+      });
+
+      if (uniqueColors.length > 0) {
+        product.colors = uniqueColors;
+      }
+    } catch (err) {
+      console.warn('Não foi possível buscar cores das variantes para produto:', productId, err);
+    }
+  }
+
+  return product;
 }
 
 /**
