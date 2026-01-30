@@ -443,21 +443,21 @@ export interface PromobrindPriceTable {
 
 /**
  * Busca áreas de impressão de um produto do BD Promobrind
- * Busca todos os campos disponíveis sem especificar select (evita erro de colunas inexistentes)
+ * Usa tabela principal product_print_areas (view v_product_print_areas_complete pode não existir)
  */
 export async function fetchPromobrindPrintAreas(
   productId: string
 ): Promise<PromobrindPrintArea[]> {
-  // Tentar buscar da view completa primeiro (sem especificar colunas para evitar erro)
+  // Tentar tabela principal primeiro (mais confiável)
   try {
     const result = await invokeExternalDb<PromobrindPrintArea>({
-      table: 'v_product_print_areas_complete',
+      table: 'product_print_areas',
       operation: 'select',
       filters: { product_id: productId },
       limit: 100,
     });
     
-    // Mapear campos que podem ter nomes diferentes na view
+    // Mapear campos que podem ter nomes diferentes
     return result.records.map(record => ({
       id: record.id,
       product_id: record.product_id,
@@ -476,21 +476,9 @@ export async function fetchPromobrindPrintAreas(
       is_default: record.is_default ?? false,
       area_image_url: record.area_image_url,
     }));
-  } catch {
-    // Fallback para tabela principal
-    try {
-      const result = await invokeExternalDb<PromobrindPrintArea>({
-        table: 'product_print_areas',
-        operation: 'select',
-        filters: { product_id: productId },
-        limit: 100,
-      });
-      return result.records;
-    } catch {
-      // Último fallback - retorna array vazio
-      console.error('Erro ao buscar áreas de impressão do Promobrind');
-      return [];
-    }
+  } catch (err) {
+    console.error('Erro ao buscar áreas de impressão do Promobrind:', err);
+    return [];
   }
 }
 
