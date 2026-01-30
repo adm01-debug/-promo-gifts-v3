@@ -34,19 +34,14 @@ interface InlinePriceCalculatorProps {
   className?: string;
 }
 
-interface ProductVariant {
+interface VariantSalePrice {
   id: string;
+  variant_id?: string;
   product_id?: string;
-  price_1?: number | null;
-  price_2?: number | null;
-  price_3?: number | null;
-  price_4?: number | null;
-  price_5?: number | null;
-  min_qty_1?: number | null;
-  min_qty_2?: number | null;
-  min_qty_3?: number | null;
-  min_qty_4?: number | null;
-  min_qty_5?: number | null;
+  price_list_id?: string;
+  sale_price?: number | null;
+  min_quantity?: number | null;
+  is_active?: boolean;
 }
 
 // Fallback price tiers when no external data
@@ -71,32 +66,23 @@ const calculateFallbackTiers = (basePrice: number, minQty: number): PriceTableRo
   });
 };
 
-// Extract price tiers from product_variants record
-const extractPriceTiersFromVariant = (variant: ProductVariant, basePrice: number): PriceTableRow[] => {
+// Extract price tiers from variant_sale_prices records
+const extractPriceTiersFromSalePrices = (salePrices: VariantSalePrice[], basePrice: number): PriceTableRow[] => {
   const tiers: PriceTableRow[] = [];
   
-  // Check each price tier (price_1 to price_5)
-  for (let i = 1; i <= 5; i++) {
-    const priceKey = `price_${i}` as keyof ProductVariant;
-    const qtyKey = `min_qty_${i}` as keyof ProductVariant;
-    
-    const price = variant[priceKey] as number | null;
-    const qty = variant[qtyKey] as number | null;
+  for (const sp of salePrices) {
+    const price = sp.sale_price;
+    const qty = sp.min_quantity;
     
     if (price != null && price > 0) {
-      const quantity = qty != null && qty > 0 ? qty : (i === 1 ? 1 : i * 50);
+      const quantity = qty != null && qty > 0 ? qty : 1;
       const unitPrice = Number(price);
-      
-      // Calculate discount based on base price
-      const discount = basePrice > 0 && i > 1
-        ? Math.round((1 - unitPrice / basePrice) * 100)
-        : 0;
       
       tiers.push({
         quantity,
         unitPrice,
         total: unitPrice * quantity,
-        discount: Math.max(0, discount),
+        discount: 0, // Will calculate after sorting
       });
     }
   }
@@ -104,10 +90,15 @@ const extractPriceTiersFromVariant = (variant: ProductVariant, basePrice: number
   // Sort by quantity
   tiers.sort((a, b) => a.quantity - b.quantity);
   
-  // Ensure first tier has no discount shown
-  if (tiers.length > 0) {
-    tiers[0].discount = 0;
-  }
+  // Calculate discounts based on first tier price (or basePrice)
+  const referencePrice = tiers.length > 0 ? tiers[0].unitPrice : basePrice;
+  tiers.forEach((tier, idx) => {
+    if (idx === 0) {
+      tier.discount = 0;
+    } else if (referencePrice > 0) {
+      tier.discount = Math.max(0, Math.round((1 - tier.unitPrice / referencePrice) * 100));
+    }
+  });
   
   return tiers;
 };
@@ -126,7 +117,7 @@ export function InlinePriceCalculator({
   const [isLoading, setIsLoading] = useState(false);
   const [, setHasExternalData] = useState(false);
   
-  // Fetch price tiers from external database (product_variants table)
+  // Fetch price tiers from external database (variant_sale_prices table)
   useEffect(() => {
     async function fetchPriceTiers() {
       if (!productId) {
@@ -136,37 +127,34 @@ export function InlinePriceCalculator({
 
       setIsLoading(true);
       try {
-        // Fetch from product_variants table where prices are stored
+        // Build filters for variant_sale_prices
         const filters: Record<string, unknown> = { is_active: true };
         if (variantId) {
-          filters.id = variantId;
+          filters.variant_id = variantId;
         } else {
           filters.product_id = productId;
         }
 
         const response = await invokeExternalDb({
-          table: "product_variants",
+          table: "variant_sale_prices",
           operation: "select",
           filters,
-          range: [0, 1], // Just get one variant to extract price tiers
+          range: [0, 20], // Get all price tiers for this product/variant
         });
 
         const records = response?.data?.records || response?.records || [];
         
         if (records.length > 0) {
-          // Extract price tiers from the first variant
-          const variant = records[0] as ProductVariant;
-          const tiers = extractPriceTiersFromVariant(variant, basePrice);
+          const salePrices = records as VariantSalePrice[];
+          const tiers = extractPriceTiersFromSalePrices(salePrices, basePrice);
           
           if (tiers.length > 0) {
             setPriceTiers(tiers);
             setHasExternalData(true);
           } else {
-            // No valid prices, use fallback
             setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
           }
         } else {
-          // No variants found, use fallback
           setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
         }
       } catch (error) {
