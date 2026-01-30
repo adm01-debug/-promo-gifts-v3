@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ChevronDown, 
   ChevronUp, 
   Calculator, 
   ArrowRight,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
+import { invokeExternalDb } from "@/lib/external-db";
 
 interface PriceTableRow {
   quantity: number;
@@ -25,14 +27,30 @@ interface PriceTableRow {
 
 interface InlinePriceCalculatorProps {
   productId?: string;
+  variantId?: string;
   basePrice: number;
   minQuantity?: number;
   productName: string;
   className?: string;
 }
 
-// Mock price tiers - in production, this would come from the database
-const calculatePriceTiers = (basePrice: number, minQty: number): PriceTableRow[] => {
+interface ProductVariant {
+  id: string;
+  product_id?: string;
+  price_1?: number | null;
+  price_2?: number | null;
+  price_3?: number | null;
+  price_4?: number | null;
+  price_5?: number | null;
+  min_qty_1?: number | null;
+  min_qty_2?: number | null;
+  min_qty_3?: number | null;
+  min_qty_4?: number | null;
+  min_qty_5?: number | null;
+}
+
+// Fallback price tiers when no external data
+const calculateFallbackTiers = (basePrice: number, minQty: number): PriceTableRow[] => {
   const tiers = [
     { qty: minQty, discount: 0 },
     { qty: 50, discount: 5 },
@@ -53,8 +71,50 @@ const calculatePriceTiers = (basePrice: number, minQty: number): PriceTableRow[]
   });
 };
 
+// Extract price tiers from product_variants record
+const extractPriceTiersFromVariant = (variant: ProductVariant, basePrice: number): PriceTableRow[] => {
+  const tiers: PriceTableRow[] = [];
+  
+  // Check each price tier (price_1 to price_5)
+  for (let i = 1; i <= 5; i++) {
+    const priceKey = `price_${i}` as keyof ProductVariant;
+    const qtyKey = `min_qty_${i}` as keyof ProductVariant;
+    
+    const price = variant[priceKey] as number | null;
+    const qty = variant[qtyKey] as number | null;
+    
+    if (price != null && price > 0) {
+      const quantity = qty != null && qty > 0 ? qty : (i === 1 ? 1 : i * 50);
+      const unitPrice = Number(price);
+      
+      // Calculate discount based on base price
+      const discount = basePrice > 0 && i > 1
+        ? Math.round((1 - unitPrice / basePrice) * 100)
+        : 0;
+      
+      tiers.push({
+        quantity,
+        unitPrice,
+        total: unitPrice * quantity,
+        discount: Math.max(0, discount),
+      });
+    }
+  }
+  
+  // Sort by quantity
+  tiers.sort((a, b) => a.quantity - b.quantity);
+  
+  // Ensure first tier has no discount shown
+  if (tiers.length > 0) {
+    tiers[0].discount = 0;
+  }
+  
+  return tiers;
+};
+
 export function InlinePriceCalculator({
-  productId: _productId,
+  productId,
+  variantId,
   basePrice,
   minQuantity = 1,
   productName: _productName,
@@ -62,12 +122,70 @@ export function InlinePriceCalculator({
 }: InlinePriceCalculatorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [customQuantity, setCustomQuantity] = useState<number>(minQuantity);
+  const [priceTiers, setPriceTiers] = useState<PriceTableRow[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [, setHasExternalData] = useState(false);
   
-  const priceTiers = calculatePriceTiers(basePrice, minQuantity);
+  // Fetch price tiers from external database (product_variants table)
+  useEffect(() => {
+    async function fetchPriceTiers() {
+      if (!productId) {
+        setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // Fetch from product_variants table where prices are stored
+        const filters: Record<string, unknown> = { is_active: true };
+        if (variantId) {
+          filters.id = variantId;
+        } else {
+          filters.product_id = productId;
+        }
+
+        const response = await invokeExternalDb({
+          table: "product_variants",
+          operation: "select",
+          filters,
+          range: [0, 1], // Just get one variant to extract price tiers
+        });
+
+        const records = response?.data?.records || response?.records || [];
+        
+        if (records.length > 0) {
+          // Extract price tiers from the first variant
+          const variant = records[0] as ProductVariant;
+          const tiers = extractPriceTiersFromVariant(variant, basePrice);
+          
+          if (tiers.length > 0) {
+            setPriceTiers(tiers);
+            setHasExternalData(true);
+          } else {
+            // No valid prices, use fallback
+            setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+          }
+        } else {
+          // No variants found, use fallback
+          setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+        }
+      } catch (error) {
+        console.error("Error fetching price tiers:", error);
+        setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchPriceTiers();
+  }, [productId, variantId, basePrice, minQuantity]);
   
   // Calculate price for custom quantity
   const getCustomPrice = (qty: number): { unitPrice: number; discount: number } => {
-    // Find applicable tier
+    if (priceTiers.length === 0) {
+      return { unitPrice: basePrice, discount: 0 };
+    }
+    // Find applicable tier (highest min_quantity that is <= qty)
     const applicableTier = [...priceTiers].reverse().find(t => qty >= t.quantity);
     if (applicableTier) {
       return { 
@@ -75,7 +193,7 @@ export function InlinePriceCalculator({
         discount: applicableTier.discount || 0 
       };
     }
-    return { unitPrice: basePrice, discount: 0 };
+    return { unitPrice: priceTiers[0]?.unitPrice || basePrice, discount: 0 };
   };
   
   const customPriceInfo = getCustomPrice(customQuantity);
@@ -118,50 +236,61 @@ export function InlinePriceCalculator({
           <CardContent className="pt-0 space-y-6">
             {/* Price tiers table */}
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left font-medium">Quantidade</th>
-                    <th className="px-4 py-3 text-right font-medium">Preço/un</th>
-                    <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Total</th>
-                    <th className="px-4 py-3 text-right font-medium">Desconto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {priceTiers.map((tier, idx) => (
-                    <tr 
-                      key={`tier-${idx}-${tier.quantity}`}
-                      className={cn(
-                        "border-t border-border/50 transition-colors",
-                        idx === 0 && "bg-primary/5",
-                        idx > 0 && "hover:bg-muted/30"
-                      )}
-                    >
-                      <td className="px-4 py-3 font-medium">
-                        {tier.quantity.toLocaleString('pt-BR')} un
-                        {idx === 0 && (
-                          <Badge variant="outline" className="ml-2 text-xs">Mínimo</Badge>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold">
-                        {formatPrice(tier.unitPrice)}
-                      </td>
-                      <td className="px-4 py-3 text-right text-muted-foreground hidden sm:table-cell">
-                        {formatPrice(tier.total)}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {tier.discount ? (
-                          <Badge variant="secondary" className="bg-success/10 text-success border-success/20">
-                            -{tier.discount}%
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
+              {isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <span className="ml-2 text-sm text-muted-foreground">Carregando preços...</span>
+                </div>
+              ) : priceTiers.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground">
+                  Nenhuma tabela de preços disponível
+                </div>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium">Quantidade</th>
+                      <th className="px-4 py-3 text-right font-medium">Preço/un</th>
+                      <th className="px-4 py-3 text-right font-medium hidden sm:table-cell">Total</th>
+                      <th className="px-4 py-3 text-right font-medium">Desconto</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {priceTiers.map((tier, idx) => (
+                      <tr 
+                        key={`tier-${idx}-${tier.quantity}`}
+                        className={cn(
+                          "border-t border-border/50 transition-colors",
+                          idx === 0 && "bg-primary/5",
+                          idx > 0 && "hover:bg-muted/30"
+                        )}
+                      >
+                        <td className="px-4 py-3 font-medium">
+                          {tier.quantity.toLocaleString('pt-BR')} un
+                          {idx === 0 && (
+                            <Badge variant="outline" className="ml-2 text-xs">Mínimo</Badge>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold">
+                          {formatPrice(tier.unitPrice)}
+                        </td>
+                        <td className="px-4 py-3 text-right text-muted-foreground hidden sm:table-cell">
+                          {formatPrice(tier.total)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {tier.discount ? (
+                            <Badge variant="secondary" className="bg-success/10 text-success border-success/20">
+                              -{tier.discount}%
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
 
             <Separator />
