@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDb } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -175,17 +176,19 @@ export function GroupPersonalizationManager() {
     enabled: !!components?.length,
   });
 
-  // Fetch techniques
+  // Fetch techniques from external DB
   const { data: techniques } = useQuery({
-    queryKey: ["techniques"],
+    queryKey: ["techniques-external"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("personalization_techniques")
-        .select("id, code, name")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data as Technique[];
+      const result = await invokeExternalDb<Technique>({
+        table: "personalization_techniques",
+        operation: "select",
+        select: "id, code, name",
+        filters: { is_active: true },
+        orderBy: { column: "name", ascending: true },
+        limit: 100,
+      });
+      return result.records;
     },
   });
 

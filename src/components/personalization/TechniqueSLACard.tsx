@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDb } from "@/lib/external-db";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,15 +70,20 @@ export function TechniqueSLACard({
   const [sortBy, setSortBy] = useState<"sla" | "cost">("sla");
 
   const { data: techniques, isLoading } = useQuery({
-    queryKey: ["techniques-sla", productId],
+    queryKey: ["techniques-sla-external", productId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("personalization_techniques")
-        .select("*")
-        .eq("is_active", true)
-        .order("estimated_days", { ascending: true });
-      if (error) throw error;
-      return data as Technique[];
+      const result = await invokeExternalDb<Technique>({
+        table: "personalization_techniques",
+        operation: "select",
+        filters: { is_active: true },
+        orderBy: { column: "estimated_days", ascending: true },
+        limit: 100,
+      });
+      return result.records.map(t => ({
+        ...t,
+        setup_cost: (t as any).setup_price ?? t.setup_cost,
+        unit_cost: (t as any).handling_price ?? t.unit_cost,
+      }));
     },
   });
 

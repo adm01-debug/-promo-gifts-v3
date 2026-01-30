@@ -352,34 +352,42 @@ export async function fetchPromobrindCategories(): Promise<{ id: string; name: s
 }
 
 /**
- * Busca cores únicas dos produtos Promobrind
+ * Busca cores únicas das variantes de produtos Promobrind
+ * (A tabela products.colors geralmente está vazia, então usamos product_variants)
  */
-export async function fetchPromobrindColors(): Promise<{ name: string; hex: string }[]> {
-  const result = await invokeExternalDb<{ colors: any[] }>({
-    table: 'products',
-    operation: 'select',
-    filters: { active: true },
-    select: 'colors',
-    limit: 1000,
-  });
+export async function fetchPromobrindColors(): Promise<{ name: string; hex: string; group?: string }[]> {
+  try {
+    // Buscar cores diretamente das variantes de produtos (fonte mais confiável)
+    const result = await invokeExternalDb<{
+      color_name: string | null;
+      color_hex: string | null;
+      color_code: string | null;
+    }>({
+      table: 'product_variants',
+      operation: 'select',
+      select: 'color_name, color_hex, color_code',
+      filters: { is_active: true },
+      limit: 5000,
+    });
 
-  const uniqueColors = new Map<string, { name: string; hex: string }>();
-  result.records.forEach((p) => {
-    if (p.colors && Array.isArray(p.colors)) {
-      p.colors.forEach((color: any) => {
-        if (color?.name && !uniqueColors.has(color.name)) {
-          uniqueColors.set(color.name, {
-            name: color.name,
-            hex: color.hex || '#000000',
-          });
-        }
-      });
-    }
-  });
+    const uniqueColors = new Map<string, { name: string; hex: string; group?: string }>();
+    
+    result.records.forEach((variant) => {
+      if (variant.color_name && !uniqueColors.has(variant.color_name)) {
+        uniqueColors.set(variant.color_name, {
+          name: variant.color_name,
+          hex: variant.color_hex || '#CCCCCC',
+        });
+      }
+    });
 
-  return Array.from(uniqueColors.values()).sort((a, b) =>
-    a.name.localeCompare(b.name)
-  );
+    return Array.from(uniqueColors.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, 'pt-BR')
+    );
+  } catch (err) {
+    console.warn('Erro ao buscar cores das variantes:', err);
+    return [];
+  }
 }
 
 /**

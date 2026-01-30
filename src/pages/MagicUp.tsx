@@ -123,18 +123,20 @@ export default function MagicUp() {
   };
 
   const loadTechniques = async () => {
-    const { data, error } = await supabase
-      .from("personalization_techniques")
-      .select("*")
-      .eq("is_active", true)
-      .order("name");
-
-    if (error) {
+    try {
+      const { invokeExternalDb } = await import("@/lib/external-db");
+      const result = await invokeExternalDb<Technique>({
+        table: "personalization_techniques",
+        operation: "select",
+        filters: { is_active: true },
+        orderBy: { column: "name", ascending: true },
+        limit: 100,
+      });
+      setTechniques(result.records || []);
+    } catch (error) {
+      console.error("Error loading techniques:", error);
       toast.error("Erro ao carregar técnicas");
-      return;
     }
-
-    setTechniques(data || []);
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
