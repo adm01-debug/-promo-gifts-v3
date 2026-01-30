@@ -243,7 +243,7 @@ serve(async (req) => {
     console.log(`Operation: ${operation} on table: ${table} (public: ${allowPublicAccess})`);
 
     // Extrair dados adicionais do body já parseado
-    const { data, filters, id, select, orderBy, limit: queryLimit } = body as {
+    const { data, filters, id, select, orderBy, limit: queryLimit, offset: queryOffset } = body as {
       table: string;
       operation: Operation;
       data?: Record<string, unknown>;
@@ -252,6 +252,7 @@ serve(async (req) => {
       select?: string;
       orderBy?: { column: string; ascending?: boolean };
       limit?: number;
+      offset?: number;
     };
 
     // Identificar grupo do recurso
@@ -357,8 +358,10 @@ serve(async (req) => {
         }
         // Não aplicar ordenação default - nem todas as tabelas têm created_at
 
-        // Limitar resultados
-        query = query.limit(queryLimit || 500);
+        // Paginação (default compatível)
+        const safeLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
+        const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
+        query = query.range(safeOffset, safeOffset + safeLimit - 1);
         
         const { data: selectData, error: selectError, count } = await query;
         
@@ -371,7 +374,7 @@ serve(async (req) => {
         }
         
         result = { records: selectData, count };
-        console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table}`);
+        console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table} (offset=${safeOffset}, limit=${safeLimit})`);
         break;
       }
 
