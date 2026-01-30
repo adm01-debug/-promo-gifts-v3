@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDb } from "@/lib/external-db";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -80,16 +80,23 @@ export function TechniqueSelector({
   const [showActiveFilters, setShowActiveFilters] = useState(false);
 
   const { data: techniques, isLoading } = useQuery({
-    queryKey: ["techniques-selector"],
+    queryKey: ["techniques-selector-external"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("personalization_techniques")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data as Technique[];
+      const result = await invokeExternalDb<Technique>({
+        table: "personalization_techniques",
+        operation: "select",
+        filters: { is_active: true },
+        orderBy: { column: "name", ascending: true },
+        limit: 100,
+      });
+      // Mapear campos do BD externo para interface
+      return result.records.map(t => ({
+        ...t,
+        setup_cost: (t as any).setup_price ?? t.setup_cost ?? null,
+        unit_cost: (t as any).handling_price ?? t.unit_cost ?? null,
+      }));
     },
+    staleTime: 10 * 60 * 1000, // 10 minutos
   });
 
   const filteredTechniques = useMemo(() => {

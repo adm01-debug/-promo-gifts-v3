@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchPromobrindProductBySku } from "@/lib/external-db";
+import { fetchPromobrindProductBySku, invokeExternalDb } from "@/lib/external-db";
 import { 
   Paintbrush, 
   ChevronDown, 
@@ -120,7 +120,7 @@ export function ProductCustomizationOptions({ productId, productSku }: ProductCu
 
           if (locationsError) throw locationsError;
 
-          // Para cada localização, buscar técnicas
+          // Para cada localização, buscar técnicas (sem join, porque personalization_techniques está no BD externo)
           const locationsWithTechniques = await Promise.all(
             (locationsData || []).map(async (location) => {
               const { data: techniquesData, error: techniquesError } = await supabase
@@ -129,20 +129,47 @@ export function ProductCustomizationOptions({ productId, productSku }: ProductCu
                   id,
                   technique_id,
                   composed_code,
-                  is_default,
-                  personalization_techniques (
-                    id,
-                    name,
-                    code,
-                    description,
-                    unit_cost,
-                    setup_cost
-                  )
+                  is_default
                 `)
                 .eq("component_location_id", location.id)
                 .eq("is_active", true);
 
               if (techniquesError) throw techniquesError;
+
+              // Buscar dados das técnicas do BD externo
+              const techniqueIds = (techniquesData || [])
+                .map(t => t.technique_id)
+                .filter(Boolean);
+
+              let techniquesMap = new Map<string, any>();
+              if (techniqueIds.length > 0) {
+                try {
+                  const externalTechniques = await invokeExternalDb<{
+                    id: string;
+                    name: string;
+                    code: string;
+                    description: string | null;
+                    unit_cost: number | null;
+                    setup_cost: number | null;
+                    setup_price: number | null;
+                    handling_price: number | null;
+                  }>({
+                    table: "personalization_techniques",
+                    operation: "select",
+                    filters: { is_active: true },
+                    limit: 100,
+                  });
+                  externalTechniques.records.forEach(t => {
+                    techniquesMap.set(t.id, {
+                      ...t,
+                      unit_cost: t.handling_price ?? t.unit_cost,
+                      setup_cost: t.setup_price ?? t.setup_cost,
+                    });
+                  });
+                } catch (err) {
+                  console.warn("Não foi possível buscar técnicas do BD externo:", err);
+                }
+              }
 
               return {
                 ...location,
@@ -151,7 +178,14 @@ export function ProductCustomizationOptions({ productId, productSku }: ProductCu
                   technique_id: t.technique_id,
                   composed_code: t.composed_code,
                   is_default: t.is_default,
-                  technique: t.personalization_techniques as any,
+                  technique: techniquesMap.get(t.technique_id) || {
+                    id: t.technique_id,
+                    name: "Técnica",
+                    code: "",
+                    description: null,
+                    unit_cost: null,
+                    setup_cost: null,
+                  },
                 })),
               };
             })

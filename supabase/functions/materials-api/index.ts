@@ -66,34 +66,92 @@ serve(async (req) => {
 
     switch (action) {
       case 'groups': {
-        // Buscar grupos de materiais via RPC segura
-        const { data, error } = await externalSupabase.rpc('get_all_material_groups_safe');
-
-        if (error) {
-          console.error('Error fetching material groups via RPC:', error);
-          // Fallback para materialized view
-          const { data: fallbackData, error: fallbackError } = await externalSupabase
-            .from('mv_material_group_stats')
-            .select('*')
-            .order('group_name', { ascending: true });
-          
-          if (fallbackError) throw fallbackError;
-          result = { groups: fallbackData, count: fallbackData?.length || 0 };
-        } else {
-          result = { groups: data, count: data?.length || 0 };
+        // Tentar buscar grupos de materiais via RPC segura
+        try {
+          const { data, error } = await externalSupabase.rpc('get_all_material_groups_safe');
+          if (!error && data) {
+            result = { groups: data, count: data?.length || 0 };
+            break;
+          }
+        } catch (rpcErr) {
+          console.warn('RPC get_all_material_groups_safe não disponível, usando fallback');
         }
+
+        // Fallback para query direta
+        const { data: groups, error: groupsError } = await externalSupabase
+          .from('material_groups')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+
+        if (groupsError) throw groupsError;
+
+        // Contar materiais por grupo
+        const { data: typesCount } = await externalSupabase
+          .from('material_types')
+          .select('group_id')
+          .eq('is_active', true);
+
+        const countByGroup = new Map<string, number>();
+        typesCount?.forEach((t: any) => {
+          const count = countByGroup.get(t.group_id) || 0;
+          countByGroup.set(t.group_id, count + 1);
+        });
+
+        const mappedGroups = (groups || []).map((g: any) => ({
+          group_id: g.id,
+          group_name: g.name,
+          group_slug: g.slug,
+          group_description: g.description,
+          group_hex_code: g.hex_code,
+          group_icon: g.icon,
+          display_order: g.sort_order || 0,
+          total_materials: countByGroup.get(g.id) || 0,
+          products_using: 0,
+        }));
+
+        result = { groups: mappedGroups, count: mappedGroups.length };
         break;
       }
 
       case 'types': {
-        // Buscar todos os tipos de materiais via RPC segura
-        const { data, error } = await externalSupabase.rpc('get_all_material_types_safe');
-
-        if (error) {
-          console.error('Error fetching material types via RPC:', error);
-          throw new Error(error.message);
+        // Tentar buscar tipos via RPC segura
+        try {
+          const { data, error } = await externalSupabase.rpc('get_all_material_types_safe');
+          if (!error && data) {
+            result = { types: data, count: data?.length || 0 };
+            break;
+          }
+        } catch (rpcErr) {
+          console.warn('RPC get_all_material_types_safe não disponível, usando fallback');
         }
-        result = { types: data, count: data?.length || 0 };
+
+        // Fallback para query direta
+        const { data: types, error: typesError } = await externalSupabase
+          .from('material_types')
+          .select(`
+            *,
+            material_groups (id, name, slug, description, hex_code, icon)
+          `)
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+
+        if (typesError) throw typesError;
+
+        const mappedTypes = (types || []).map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          description: t.description,
+          properties: t.properties,
+          display_order: t.sort_order || 0,
+          is_active: t.is_active,
+          group_id: t.group_id,
+          group_name: t.material_groups?.name,
+          group_slug: t.material_groups?.slug,
+        }));
+
+        result = { types: mappedTypes, count: mappedTypes.length };
         break;
       }
 
@@ -106,28 +164,98 @@ serve(async (req) => {
           );
         }
 
-        // Usar RPC com slug do grupo
-        const { data, error } = await externalSupabase.rpc('get_material_types_by_group_slug', {
-          p_group_slug: groupId
-        });
-
-        if (error) {
-          console.error('Error fetching material types by group slug:', error);
-          throw new Error(error.message);
+        // Tentar RPC primeiro
+        try {
+          const { data, error } = await externalSupabase.rpc('get_material_types_by_group_slug', {
+            p_group_slug: groupId
+          });
+          if (!error && data) {
+            result = { types: data, count: data?.length || 0, groupSlug: groupId };
+            break;
+          }
+        } catch (rpcErr) {
+          console.warn('RPC get_material_types_by_group_slug não disponível, usando fallback');
         }
-        result = { types: data, count: data?.length || 0, groupSlug: groupId };
+
+        // Fallback: buscar por join com material_groups
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId);
+        
+        let query = externalSupabase
+          .from('material_types')
+          .select(`
+            *,
+            material_groups!inner (id, name, slug, description, hex_code, icon)
+          `)
+          .eq('is_active', true);
+
+        if (isUuid) {
+          query = query.eq('group_id', groupId);
+        } else {
+          query = query.eq('material_groups.slug', groupId);
+        }
+
+        const { data: types, error: typesError } = await query.order('sort_order', { ascending: true });
+
+        if (typesError) throw typesError;
+
+        const mappedTypes = (types || []).map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          description: t.description,
+          properties: t.properties,
+          display_order: t.sort_order || 0,
+          is_active: t.is_active,
+          group_id: t.group_id,
+          group_name: t.material_groups?.name,
+          group_slug: t.material_groups?.slug,
+        }));
+
+        result = { types: mappedTypes, count: mappedTypes.length, groupSlug: groupId };
         break;
       }
 
       case 'complete': {
-        // Buscar materiais completos (tipos + grupos)
-        const { data, error } = await externalSupabase.rpc('get_materials_complete_safe');
-
-        if (error) {
-          console.error('Error fetching complete materials:', error);
-          throw new Error(error.message);
+        // Tentar buscar materiais completos via RPC
+        try {
+          const { data, error } = await externalSupabase.rpc('get_materials_complete_safe');
+          if (!error && data) {
+            result = { materials: data, count: data?.length || 0 };
+            break;
+          }
+        } catch (rpcErr) {
+          console.warn('RPC get_materials_complete_safe não disponível, usando fallback');
         }
-        result = { materials: data, count: data?.length || 0 };
+
+        // Fallback para query direta
+        const { data: types, error: typesError } = await externalSupabase
+          .from('material_types')
+          .select(`
+            *,
+            material_groups (id, name, slug, description, hex_code, icon, sort_order)
+          `)
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+
+        if (typesError) throw typesError;
+
+        const materials = (types || []).map((t: any) => ({
+          type_id: t.id,
+          type_name: t.name,
+          type_slug: t.slug,
+          type_description: t.description,
+          type_properties: t.properties,
+          type_display_order: t.sort_order || 0,
+          group_id: t.group_id,
+          group_name: t.material_groups?.name,
+          group_slug: t.material_groups?.slug,
+          group_description: t.material_groups?.description,
+          group_hex_code: t.material_groups?.hex_code,
+          group_icon: t.material_groups?.icon,
+          group_display_order: t.material_groups?.sort_order || 0,
+        }));
+
+        result = { materials, count: materials.length };
         break;
       }
 

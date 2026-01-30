@@ -267,18 +267,24 @@ export default function MockupGenerator() {
       
       const [productsData, techniquesRes, clientsRes] = await Promise.all([
         fetchPromobrindProducts({ limit: 500 }),
-        supabase
-          .from("personalization_techniques")
-          .select("id, name, code")
-          .eq("is_active", true)
-          .order("name"),
+        // Buscar técnicas do BD externo via bridge
+        supabase.functions.invoke('external-db-bridge', {
+          body: {
+            table: 'personalization_techniques',
+            operation: 'select',
+            filters: { is_active: true },
+            orderBy: { column: 'name', ascending: true },
+            limit: 100,
+          }
+        }),
         supabase
           .from("bitrix_clients")
           .select("id, name")
           .order("name")
       ]);
 
-      if (techniquesRes.error) throw techniquesRes.error;
+      // Processar técnicas do BD externo
+      const techniquesData = techniquesRes.data?.data?.records || techniquesRes.data?.records || [];
 
       // Mapear produtos Promobrind para formato esperado
       const mappedProducts = productsData.map(p => {
@@ -292,7 +298,7 @@ export default function MockupGenerator() {
       });
 
       setProducts(mappedProducts);
-      setTechniques(techniquesRes.data || []);
+      setTechniques(techniquesData);
       setClients(clientsRes.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);

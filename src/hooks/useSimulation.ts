@@ -4,6 +4,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDb } from "@/lib/external-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from "@/lib/external-db";
@@ -146,15 +147,20 @@ export function useSimulation() {
 
   // Fetch techniques
   const { data: techniques, isLoading: techniquesLoading } = useQuery({
-    queryKey: ["simulator-techniques"],
+    queryKey: ["simulator-techniques-external"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("personalization_techniques")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data as Technique[];
+      const result = await invokeExternalDb<Technique>({
+        table: "personalization_techniques",
+        operation: "select",
+        filters: { is_active: true },
+        orderBy: { column: "name", ascending: true },
+        limit: 100,
+      });
+      return result.records.map(t => ({
+        ...t,
+        setup_cost: (t as any).setup_price ?? t.setup_cost,
+        unit_cost: (t as any).handling_price ?? t.unit_cost,
+      }));
     },
   });
 

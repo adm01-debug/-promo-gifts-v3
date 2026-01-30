@@ -130,7 +130,7 @@ export function InlinePriceCalculator({
                 <tbody>
                   {priceTiers.map((tier, idx) => (
                     <tr 
-                      key={tier.quantity}
+                      key={`tier-${idx}-${tier.quantity}`}
                       className={cn(
                         "border-t border-border/50 transition-colors",
                         idx === 0 && "bg-primary/5",

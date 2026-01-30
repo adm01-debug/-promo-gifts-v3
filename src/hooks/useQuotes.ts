@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDb } from "@/lib/external-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -621,14 +622,14 @@ export function useQuotes() {
   // Fetch personalization techniques
   const fetchTechniques = async () => {
     try {
-      const { data, error } = await supabase
-        .from("personalization_techniques")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
-
-      if (error) throw error;
-      setTechniques(data || []);
+      const result = await invokeExternalDb<any>({
+        table: "personalization_techniques",
+        operation: "select",
+        filters: { is_active: true },
+        orderBy: { column: "name", ascending: true },
+        limit: 100,
+      });
+      setTechniques(result.records || []);
     } catch (err) {
       console.error("Error fetching techniques:", err);
     }
