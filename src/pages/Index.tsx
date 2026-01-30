@@ -1,6 +1,6 @@
 // Catálogo de Produtos - Index Page
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Package,
   TrendingUp,
@@ -52,6 +52,7 @@ type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "co
 
 export default function Index() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
@@ -62,6 +63,8 @@ export default function Index() {
 
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
   
+  // Ler query de busca da URL
+  const searchQueryFromUrl = searchParams.get("search") || "";
 
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -69,7 +72,7 @@ export default function Index() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientWithColors | null>(null);
   const [clientModalOpen, setClientModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [activeQuickFilterId, setActiveQuickFilterId] = useState<string | undefined>();
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(12);
@@ -82,6 +85,11 @@ export default function Index() {
   
   // Estado de loading combinado
   const isLoading = isLoadingProducts;
+
+  // Sincronizar searchQuery com URL
+  useEffect(() => {
+    setSearchQuery(searchQueryFromUrl);
+  }, [searchQueryFromUrl]);
 
   // Reset pagination when filters change
   useEffect(() => {
