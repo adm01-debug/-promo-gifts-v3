@@ -10,7 +10,7 @@ const corsHeaders = {
 type ResourceGroup = 'products' | 'companies' | 'views';
 type Operation = 'select' | 'insert' | 'update' | 'delete';
 
-// Tabelas relacionadas a PRODUTOS (CRUD completo) - SINCRONIZADO 2026-01-28
+// Tabelas relacionadas a PRODUTOS (CRUD completo) - SINCRONIZADO 2026-01-30
 const PRODUCT_TABLES = [
   // Principais
   'products',
@@ -62,6 +62,10 @@ const PRODUCT_TABLES = [
   // Mockups
   'mockup_drafts',
   'generated_mockups',
+  // Técnicas de Personalização e Preços
+  'personalization_techniques',
+  'customization_price_tables',
+  'customization_price_tiers',
 ] as const;
 
 // Views e Materialized Views (somente leitura)

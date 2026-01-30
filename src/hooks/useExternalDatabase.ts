@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 // TABELAS DISPONÍVEIS NO BANCO EXTERNO
 // ============================================
 
-// Tabelas de PRODUTOS (CRUD completo) - SINCRONIZADO COM BD EXTERNO 2026-01-28
+// Tabelas de PRODUTOS (CRUD completo) - SINCRONIZADO COM BD EXTERNO 2026-01-30
 export const PRODUCT_TABLES = [
   // Principais
   'products',
@@ -58,6 +58,10 @@ export const PRODUCT_TABLES = [
   // Mockups
   'mockup_drafts',
   'generated_mockups',
+  // Técnicas de Personalização e Preços
+  'personalization_techniques',
+  'customization_price_tables',
+  'customization_price_tiers',
 ] as const;
 
 // Views e Materialized Views (somente leitura)
