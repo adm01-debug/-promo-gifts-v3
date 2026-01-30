@@ -136,14 +136,21 @@ export async function fetchPromobrindProducts(options?: {
     filters.name = options.search;
   }
 
-  const result = await invokeExternalDb<PromobrindProduct>({
+  // Preparar opções da query - sem limite por padrão para buscar todos
+  const queryOptions: InvokeOptions = {
     table: 'products',
     operation: 'select',
     filters,
     select: PRODUCT_SELECT_FIELDS,
-    limit: options?.limit || 10000, // Suporte para catálogo grande (10k+ produtos)
     orderBy: { column: 'name', ascending: true },
-  });
+  };
+  
+  // Só adiciona limit se explicitamente definido
+  if (options?.limit) {
+    queryOptions.limit = options.limit;
+  }
+
+  const result = await invokeExternalDb<PromobrindProduct>(queryOptions);
 
   const products = result.records;
 
