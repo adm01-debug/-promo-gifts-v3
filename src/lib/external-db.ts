@@ -12,6 +12,7 @@ interface InvokeOptions<T = Record<string, unknown>> {
   select?: string;
   orderBy?: { column: string; ascending?: boolean };
   limit?: number;
+  offset?: number;
 }
 
 interface InvokeResult<T> {
@@ -136,23 +137,56 @@ export async function fetchPromobrindProducts(options?: {
     filters.name = options.search;
   }
 
-  // Preparar opções da query - sem limite por padrão para buscar todos
-  const queryOptions: InvokeOptions = {
-    table: 'products',
-    operation: 'select',
-    filters,
-    select: PRODUCT_SELECT_FIELDS,
-    orderBy: { column: 'name', ascending: true },
-  };
-  
-  // Só adiciona limit se explicitamente definido
-  if (options?.limit) {
-    queryOptions.limit = options.limit;
+  // Se limit foi informado, faz uma única chamada.
+  // Caso contrário, pagina automaticamente para buscar tudo.
+  const orderBy = { column: 'name', ascending: true } as const;
+
+  let products: PromobrindProduct[] = [];
+
+  if (typeof options?.limit === 'number' && options.limit > 0) {
+    const result = await invokeExternalDb<PromobrindProduct>({
+      table: 'products',
+      operation: 'select',
+      filters,
+      select: PRODUCT_SELECT_FIELDS,
+      orderBy,
+      limit: options.limit,
+      offset: 0,
+    });
+    products = result.records;
+  } else {
+    // Paginação: o backend aplica default 500; aqui buscamos em páginas maiores
+    // para suportar catálogos grandes (10k+). Mantemos pageSize = 1000 para evitar timeouts.
+    const pageSize = 1000;
+    let offset = 0;
+    let totalCount: number | null = null;
+
+    // Segurança: evita loops infinitos caso o count venha nulo/errado.
+    const HARD_MAX = 200000;
+
+    while (offset < HARD_MAX) {
+      const page = await invokeExternalDb<PromobrindProduct>({
+        table: 'products',
+        operation: 'select',
+        filters,
+        select: PRODUCT_SELECT_FIELDS,
+        orderBy,
+        limit: pageSize,
+        offset,
+      });
+
+      if (typeof page.count === 'number') {
+        totalCount = page.count;
+      }
+
+      products.push(...page.records);
+      offset += page.records.length;
+
+      // Paradas
+      if (page.records.length < pageSize) break;
+      if (totalCount !== null && products.length >= totalCount) break;
+    }
   }
-
-  const result = await invokeExternalDb<PromobrindProduct>(queryOptions);
-
-  const products = result.records;
 
   // Buscar cores das variantes de TODOS os produtos de uma vez
   // para enriquecer o campo colors (que vem vazio da tabela products)
