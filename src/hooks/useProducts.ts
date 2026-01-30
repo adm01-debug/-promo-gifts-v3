@@ -201,7 +201,7 @@ export function useProducts(
     queryFn: async () => {
       const products = await fetchPromobrindProducts({
         search: filters?.search,
-        limit: 10000, // Suporte para catálogo grande
+        // Sem limite - busca todos os produtos
       });
 
       let result = products.map(mapPromobrindToProduct);
