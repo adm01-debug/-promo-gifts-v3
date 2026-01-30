@@ -141,7 +141,7 @@ export async function fetchPromobrindProducts(options?: {
     operation: 'select',
     filters,
     select: PRODUCT_SELECT_FIELDS,
-    limit: options?.limit || 2000, // Aumentado para suportar catálogo completo (1000+ produtos)
+    limit: options?.limit || 10000, // Suporte para catálogo grande (10k+ produtos)
     orderBy: { column: 'name', ascending: true },
   });
 
