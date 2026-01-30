@@ -66,6 +66,12 @@ const PRODUCT_TABLES = [
   'personalization_techniques',
   'customization_price_tables',
   'customization_price_tiers',
+  // Legacy técnicas (Promobrind original)
+  'tecnica_gravacao',
+  'tecnica_gravacao_variantes',
+  'fornecedor_gravacao',
+  'tecnica_faixa_area',
+  'tecnica_faixa_pontos',
 ] as const;
 
 // Views e Materialized Views (somente leitura)

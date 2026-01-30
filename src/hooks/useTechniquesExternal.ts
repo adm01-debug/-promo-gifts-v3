@@ -1,8 +1,8 @@
 /**
  * Hook para buscar técnicas de personalização do BD EXTERNO
  * 
- * Substitui chamadas diretas a supabase.from('personalization_techniques')
- * que acessavam o banco local (vazio) pelo banco externo via bridge.
+ * Usa a tabela REAL do Promobrind: tecnica_gravacao (legacy)
+ * Mapeia campos para o formato esperado pela aplicação.
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db';
@@ -24,6 +24,50 @@ export interface ExternalTechnique {
   is_active: boolean;
 }
 
+// Interface RAW da tabela tecnica_gravacao no Promobrind
+interface TecnicaGravacaoRaw {
+  id: string;
+  codigo: string;
+  codigo_interno: string;
+  nome: string;
+  slug: string;
+  descricao: string | null;
+  permite_cores: boolean;
+  max_cores: number | string;
+  cobra_por_cor: boolean;
+  cobra_por_area: boolean;
+  cobra_por_pontos: boolean;
+  requer_setup: boolean;
+  tipo_setup: string;
+  tempo_producao_dias: number;
+  ordem_exibicao: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Transforma dados RAW do Promobrind para o formato da aplicação
+ */
+function transformTechnique(raw: TecnicaGravacaoRaw): ExternalTechnique {
+  return {
+    id: raw.id,
+    name: raw.nome,
+    code: raw.codigo,
+    description: raw.descricao,
+    category: raw.tipo_setup || null,
+    setup_cost: null, // Vem de tabelas de preço separadas
+    unit_cost: null,
+    min_quantity: null,
+    estimated_days: raw.tempo_producao_dias,
+    max_colors: typeof raw.max_cores === 'string' ? parseInt(raw.max_cores, 10) : raw.max_cores,
+    requires_color_count: raw.permite_cores,
+    price_by_color: raw.cobra_por_cor,
+    price_by_area: raw.cobra_por_area,
+    is_active: raw.ativo,
+  };
+}
+
 /**
  * Busca todas as técnicas ativas do banco externo
  */
@@ -31,20 +75,15 @@ export function useTechniquesExternal() {
   return useQuery({
     queryKey: ['techniques-external'],
     queryFn: async (): Promise<ExternalTechnique[]> => {
-      const result = await invokeExternalDb<ExternalTechnique>({
-        table: 'personalization_techniques',
+      const result = await invokeExternalDb<TecnicaGravacaoRaw>({
+        table: 'tecnica_gravacao',
         operation: 'select',
-        filters: { is_active: true },
-        orderBy: { column: 'name', ascending: true },
+        filters: { ativo: true },
+        orderBy: { column: 'nome', ascending: true },
         limit: 100,
       });
 
-      // Mapear campos para compatibilidade
-      return result.records.map(t => ({
-        ...t,
-        setup_cost: (t as any).setup_price ?? t.setup_cost ?? null,
-        unit_cost: (t as any).handling_price ?? t.unit_cost ?? null,
-      }));
+      return result.records.map(transformTechnique);
     },
     staleTime: 10 * 60 * 1000, // 10 minutos
   });
@@ -57,16 +96,20 @@ export function useTechniquesExternalSimple() {
   return useQuery({
     queryKey: ['techniques-external-simple'],
     queryFn: async (): Promise<Array<{ id: string; name: string; code: string | null }>> => {
-      const result = await invokeExternalDb<{ id: string; name: string; code: string | null }>({
-        table: 'personalization_techniques',
+      const result = await invokeExternalDb<TecnicaGravacaoRaw>({
+        table: 'tecnica_gravacao',
         operation: 'select',
-        select: 'id, name, code',
-        filters: { is_active: true },
-        orderBy: { column: 'name', ascending: true },
+        select: 'id, nome, codigo',
+        filters: { ativo: true },
+        orderBy: { column: 'nome', ascending: true },
         limit: 100,
       });
 
-      return result.records;
+      return result.records.map(raw => ({
+        id: raw.id,
+        name: raw.nome,
+        code: raw.codigo,
+      }));
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -81,23 +124,45 @@ export function useTechniqueByIdExternal(id: string | undefined) {
     queryFn: async (): Promise<ExternalTechnique | null> => {
       if (!id) return null;
       
-      const result = await invokeExternalDb<ExternalTechnique>({
-        table: 'personalization_techniques',
+      const result = await invokeExternalDb<TecnicaGravacaoRaw>({
+        table: 'tecnica_gravacao',
         operation: 'select',
         filters: { id },
         limit: 1,
       });
 
-      const tech = result.records[0];
-      if (!tech) return null;
+      const raw = result.records[0];
+      if (!raw) return null;
 
-      return {
-        ...tech,
-        setup_cost: (tech as any).setup_price ?? tech.setup_cost ?? null,
-        unit_cost: (tech as any).handling_price ?? tech.unit_cost ?? null,
-      };
+      return transformTechnique(raw);
     },
     enabled: !!id,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Busca técnicas por código (ex: 'SERIGRAFIA', 'LASER')
+ */
+export function useTechniqueByCodeExternal(code: string | undefined) {
+  return useQuery({
+    queryKey: ['technique-external-code', code],
+    queryFn: async (): Promise<ExternalTechnique | null> => {
+      if (!code) return null;
+      
+      const result = await invokeExternalDb<TecnicaGravacaoRaw>({
+        table: 'tecnica_gravacao',
+        operation: 'select',
+        filters: { codigo: code, ativo: true },
+        limit: 1,
+      });
+
+      const raw = result.records[0];
+      if (!raw) return null;
+
+      return transformTechnique(raw);
+    },
+    enabled: !!code,
     staleTime: 10 * 60 * 1000,
   });
 }
