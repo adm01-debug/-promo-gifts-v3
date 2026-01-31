@@ -2,21 +2,67 @@
  * Hook: Lista de Técnicas
  * 
  * Responsável por: Busca e filtragem de técnicas
+ * NOTA: Usa o Supabase LOCAL (personalization_techniques existe aqui, não no BD externo)
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { TECNICAS_QUERY_OPTIONS } from '@/lib/query-config';
-import { invokeExternalDb } from '@/lib/external-db';
-import { 
-  rawToTecnicaUnificada, 
-  transformRawToTecnicas 
-} from '@/lib/personalization';
 import { TECNICAS_QUERY_KEYS } from './keys';
 import type { 
   TecnicaUnificada, 
   TecnicaResumo,
   TecnicaFiltros,
-  PersonalizationTechniqueRaw,
 } from '@/types/tecnica-unificada';
+
+/**
+ * Transforma dados do BD local para TecnicaUnificada
+ */
+function localToTecnicaUnificada(row: {
+  id: string;
+  code: string | null;
+  name: string;
+  description: string | null;
+  is_active: boolean | null;
+  setup_cost: number | null;
+  unit_cost: number | null;
+  min_quantity: number | null;
+  estimated_days: number | null;
+  created_at: string;
+  updated_at: string;
+}): TecnicaUnificada {
+  return {
+    id: row.id,
+    codigo: row.code || '',
+    codigoFornecedor: null,
+    codigoStricker: null,
+    nome: row.name,
+    descricao: row.description,
+    categoria: 'geral', // BD local não tem categoria
+    icone: null,
+    permiteCores: true,
+    minCores: 1,
+    maxCores: 12,
+    precoPorCor: false,
+    precoCorExtra: 0,
+    precoPorArea: false,
+    precoPorPontos: false,
+    areaMinimaCm2: null,
+    areaMaximaCm2: null,
+    pontosMaximos: null,
+    custoSetup: row.setup_cost || 0,
+    custoManuseio: 0,
+    multiplicadorCusto: 1,
+    quantidadeMinima: row.min_quantity,
+    prazoEstimado: row.estimated_days,
+    aplicaSuperficieCurva: false,
+    promptSuffix: null,
+    ativo: row.is_active ?? true,
+    ordemExibicao: 0,
+    fonte: 'externo',
+    criadoEm: row.created_at,
+    atualizadoEm: row.updated_at,
+  };
+}
 
 /**
  * Lista completa de técnicas com filtros
@@ -25,19 +71,27 @@ export function useTecnicasList(filtros?: TecnicaFiltros) {
   return useQuery({
     queryKey: [...TECNICAS_QUERY_KEYS.lista(), filtros],
     queryFn: async (): Promise<TecnicaUnificada[]> => {
-      const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-        table: 'personalization_techniques',
-        operation: 'select',
-        orderBy: { column: 'display_order', ascending: true },
-      });
+      let query = supabase
+        .from('personalization_techniques')
+        .select('*')
+        .order('name', { ascending: true });
 
-      let tecnicas = transformRawToTecnicas(result.records);
+      // Filtro de ativo no nível do BD
+      if (filtros?.apenasAtivas) {
+        query = query.eq('is_active', true);
+      }
 
-      // Aplicar filtros
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro ao buscar técnicas:', error);
+        throw error;
+      }
+
+      let tecnicas = (data || []).map(localToTecnicaUnificada);
+
+      // Aplicar filtros adicionais (que o BD local não suporta diretamente)
       if (filtros) {
-        if (filtros.apenasAtivas) {
-          tecnicas = tecnicas.filter(t => t.ativo);
-        }
         if (filtros.categoria) {
           tecnicas = tecnicas.filter(t => t.categoria === filtros.categoria);
         }
@@ -76,24 +130,32 @@ export function useTecnicasResumo(apenasAtivas = true) {
   return useQuery({
     queryKey: [...TECNICAS_QUERY_KEYS.resumo(), apenasAtivas],
     queryFn: async (): Promise<TecnicaResumo[]> => {
-      const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-        table: 'personalization_techniques',
-        operation: 'select',
-        select: 'id,code,name,category,requires_color_count,max_colors,price_by_color,price_by_area,is_active',
-        filters: apenasAtivas ? { is_active: true } : undefined,
-        orderBy: { column: 'name', ascending: true },
-      });
+      let query = supabase
+        .from('personalization_techniques')
+        .select('id, code, name, is_active')
+        .order('name', { ascending: true });
 
-      return result.records.map(t => ({
+      if (apenasAtivas) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro ao buscar resumo técnicas:', error);
+        throw error;
+      }
+
+      return (data || []).map(t => ({
         id: t.id,
-        codigo: t.code,
+        codigo: t.code || '',
         nome: t.name,
-        categoria: t.category,
-        permiteCores: t.requires_color_count,
-        maxCores: t.max_colors,
-        precoPorCor: t.price_by_color,
-        precoPorArea: t.price_by_area,
-        ativo: t.is_active,
+        categoria: 'geral',
+        permiteCores: true,
+        maxCores: 12,
+        precoPorCor: false,
+        precoPorArea: false,
+        ativo: t.is_active ?? true,
       }));
     },
     ...TECNICAS_QUERY_OPTIONS,
@@ -109,15 +171,18 @@ export function useTecnicaById(id: string | undefined) {
     queryFn: async (): Promise<TecnicaUnificada | null> => {
       if (!id) return null;
 
-      const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-        table: 'personalization_techniques',
-        operation: 'select',
-        filters: { id },
-        limit: 1,
-      });
+      const { data, error } = await supabase
+        .from('personalization_techniques')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
 
-      const tecnica = result.records[0];
-      return tecnica ? rawToTecnicaUnificada(tecnica) : null;
+      if (error) {
+        console.error('Erro ao buscar técnica por ID:', error);
+        throw error;
+      }
+
+      return data ? localToTecnicaUnificada(data) : null;
     },
     enabled: !!id,
     ...TECNICAS_QUERY_OPTIONS,
@@ -133,15 +198,18 @@ export function useTecnicaByCodigo(codigo: string | undefined) {
     queryFn: async (): Promise<TecnicaUnificada | null> => {
       if (!codigo) return null;
 
-      const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-        table: 'personalization_techniques',
-        operation: 'select',
-        filters: { code: codigo },
-        limit: 1,
-      });
+      const { data, error } = await supabase
+        .from('personalization_techniques')
+        .select('*')
+        .eq('code', codigo)
+        .maybeSingle();
 
-      const tecnica = result.records[0];
-      return tecnica ? rawToTecnicaUnificada(tecnica) : null;
+      if (error) {
+        console.error('Erro ao buscar técnica por código:', error);
+        throw error;
+      }
+
+      return data ? localToTecnicaUnificada(data) : null;
     },
     enabled: !!codigo,
     ...TECNICAS_QUERY_OPTIONS,
