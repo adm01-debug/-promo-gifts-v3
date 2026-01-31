@@ -34,8 +34,8 @@ import { MaterialBadge } from "@/components/materials/MaterialBadge";
 import { RamoAtividadeBadge } from "@/components/ramo-atividade/RamoAtividadeBadge";
 import { RamoAtividadeGroupAccordion } from "@/components/ramo-atividade/RamoAtividadeGroupAccordion";
 import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
+import { ExternalCategoryFilter } from "./ExternalCategoryFilter";
 import {
-  CATEGORIES,
   PUBLICO_ALVO,
   ENDOMARKETING,
   FAIXAS_PRECO,
@@ -49,7 +49,7 @@ export interface FilterState {
   colorNuances: string[];     // slugs das nuances (Metalizado, etc.)
   // Mantém compatibilidade com o antigo
   colors: string[];
-  categories: number[];
+  categories: string[];  // UUIDs das categorias externas
   suppliers: string[];
   publicoAlvo: string[];
   datasComemorativas: string[];
@@ -79,7 +79,7 @@ export const defaultFilters: FilterState = {
   colorVariations: [],
   colorNuances: [],
   colors: [],
-  categories: [],
+  categories: [],  // UUIDs
   suppliers: [],
   publicoAlvo: [],
   datasComemorativas: [],
@@ -274,31 +274,15 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           />
         </div>
 
-        {/* Categorias */}
+        {/* Categorias - Sistema com categorias externas */}
         <FilterSection id="categorias" title="Categorias">
-          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
-            {CATEGORIES.map((category) => {
-              const icon = getCategoryIcon(category.name, categoryIcons) !== '📦' 
-                ? getCategoryIcon(category.name, categoryIcons) 
-                : category.icon || '📦';
-              return (
-                <div key={category.id} className="flex items-center gap-2">
-                  <Checkbox
-                    id={`cat-${category.id}`}
-                    checked={filters.categories.includes(category.id)}
-                    onCheckedChange={() => toggleArrayFilter('categories', category.id)}
-                  />
-                  <Label
-                    htmlFor={`cat-${category.id}`}
-                    className="text-sm cursor-pointer flex items-center gap-1.5 leading-tight"
-                  >
-                    <span className="flex-shrink-0">{icon}</span>
-                    <span className="break-words">{toTitleCase(category.name)}</span>
-                  </Label>
-                </div>
-              );
-            })}
-          </div>
+          <ExternalCategoryFilter
+            selectedCategories={filters.categories}
+            onCategoriesChange={(categories) => 
+              onFilterChange({ ...filters, categories })
+            }
+            compact
+          />
         </FilterSection>
 
         {/* Preço */}
