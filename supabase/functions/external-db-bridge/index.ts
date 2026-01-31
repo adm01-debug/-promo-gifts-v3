@@ -24,6 +24,7 @@ const PRODUCT_TABLES = [
   'product_materials',
   'product_tags',
   'product_categories',
+  'product_category_assignments', // Vínculo N:N produto-categoria
   'product_suppliers',
   'product_print_areas',
   'product_kit_components',

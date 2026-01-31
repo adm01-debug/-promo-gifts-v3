@@ -47,6 +47,7 @@ import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { RecentlyViewedBar } from "@/components/products/RecentlyViewedBar";
 import { InfoTooltip } from "@/components/common/ContextualTooltips";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
+import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
@@ -89,9 +90,15 @@ export default function Index() {
     materialGroupSlugs: filters.materialGroups || [],
     materialTypeSlugs: filters.materialTypes || [],
   });
+
+  // Hook para buscar produtos por categorias (usa tabela product_category_assignments)
+  const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
+    categoryIds: selectedExternalCategory ? [selectedExternalCategory.id] : [],
+    includeDescendants: true,
+  });
   
   // Estado de loading combinado
-  const isLoading = isLoadingProducts || isLoadingMaterialFilter;
+  const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
 
   // Sincronizar searchQuery com URL
   useEffect(() => {
@@ -160,12 +167,12 @@ export default function Index() {
       );
     }
 
-    // External category filter (from sidebar)
-    if (selectedExternalCategory) {
-      result = result.filter((p) => 
-        p.category_id === selectedExternalCategory.id ||
-        p.category_name?.toLowerCase() === selectedExternalCategory.name.toLowerCase()
-      );
+    // Filtro por categoria do sidebar usando tabela product_category_assignments
+    if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
+      result = result.filter((p) => categoryFilteredProductIds.has(p.id));
+    } else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) {
+      // Filtro ativo mas sem resultados = nenhum produto corresponde
+      result = [];
     }
 
     // Aplicar filtros
@@ -279,7 +286,7 @@ export default function Index() {
     }
 
     return result;
-  }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore, selectedExternalCategory, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter]);
+  }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
 
   // Paginated products
   const paginatedProducts = useMemo(() => {

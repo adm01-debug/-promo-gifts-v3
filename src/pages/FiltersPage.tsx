@@ -28,6 +28,7 @@ import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
+import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 import { toast } from "sonner";
 
 export default function FiltersPage() {
@@ -44,6 +45,12 @@ export default function FiltersPage() {
   const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
     materialGroupSlugs: filters.materialGroups || [],
     materialTypeSlugs: filters.materialTypes || [],
+  });
+
+  // Hook para buscar produtos por categorias (usa tabela product_category_assignments)
+  const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
+    categoryIds: filters.categories.map(String),
+    includeDescendants: true,
   });
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
   const [sortBy, setSortBy] = useState<string>("name");
@@ -241,12 +248,12 @@ export default function FiltersPage() {
       );
     }
 
-    // Filtro por categorias
-    if (filters.categories.length > 0) {
-      result = result.filter((product) =>
-        filters.categories.includes(parseInt(product.category_id || '0')) ||
-        filters.categories.map(String).includes(product.category_id || '')
-      );
+    // Filtro por categorias usando tabela product_category_assignments
+    if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
+      result = result.filter((p) => categoryFilteredProductIds.has(p.id));
+    } else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) {
+      // Filtro ativo mas sem resultados = nenhum produto corresponde
+      result = [];
     }
 
     // Filtro por fornecedores
@@ -312,7 +319,7 @@ export default function FiltersPage() {
     }
 
     return result;
-  }, [filters, sortBy, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter]);
+  }, [filters, sortBy, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
 
   // Resumo dos filtros ativos para exibição
   const activeFiltersSummary = useMemo(() => {
