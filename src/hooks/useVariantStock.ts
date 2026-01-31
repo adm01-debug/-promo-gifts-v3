@@ -22,48 +22,25 @@ interface ExternalProductWithVariants {
   id: string;
   name: string;
   sku?: string;
-  stock?: number;
   min_quantity?: number;
-  category_id?: string;
-  category_name?: string;
-  supplier_id?: string;
-  supplier_name?: string;
-  lead_time_days?: number;
+  min_stock?: number;
   updated_at?: string;
-  colors?: Array<{
-    name: string;
-    hex?: string;
-    code?: string;
-    stock?: number;
-  }>;
-  variations?: Array<{
-    id?: string;
-    name: string;
-    sku?: string;
-    stock?: number;
-    color?: string;
-    size?: string;
-    attributes?: Record<string, string>;
-  }>;
 }
 
+// Interface alinhada com schema real do BD externo (product_variants)
 interface ExternalVariantStock {
   id: string;
   product_id: string;
-  variant_id?: string;
   sku?: string;
+  name?: string;
   color_id?: string;
   color_name?: string;
   color_hex?: string;
-  size?: string;
+  color_code?: string;
+  size_id?: string;
+  size_code?: string;
   stock_quantity: number;
-  min_stock?: number;
-  max_stock?: number;
-  reserved_quantity?: number;
-  in_transit_quantity?: number;
-  avg_daily_sales?: number;
-  last_sale_at?: string;
-  last_restock_at?: string;
+  is_active?: boolean;
   updated_at?: string;
 }
 
@@ -98,7 +75,7 @@ export function useVariantStock() {
   
   // Hooks para APIs externas
   const productsDB = useExternalDatabase<ExternalProductWithVariants>('products');
-  // variant_stocks não existe no BD externo - estoque vem embutido no produto
+  const variantsDB = useExternalDatabase<ExternalVariantStock>('product_variants');
   
   // ============================================
   // BUSCAR DADOS DE ESTOQUE
@@ -107,75 +84,52 @@ export function useVariantStock() {
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Buscar produtos com variações embutidas (usando apenas colunas que existem no BD externo)
+      // 1. Buscar produtos
       const productsResult = await productsDB.fetchAll({
-        select: 'id,name,sku,min_quantity,updated_at,colors,variations',
+        select: 'id,name,sku,min_quantity,min_stock,updated_at',
         limit: 500,
       });
       
-      // 2. Estoque por variação - tabela variant_stocks não existe no BD externo
-      // O estoque vem embutido nos campos colors/variations do produto
-      const variantStockMap = new Map<string, ExternalVariantStock[]>();
+      // 2. Buscar variantes com estoque (tabela real do BD externo)
+      const variantsResult = await variantsDB.fetchAll({
+        select: 'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
+        limit: 5000,
+      });
+      
+      // Agrupar variantes por product_id
+      const variantsByProduct = new Map<string, ExternalVariantStock[]>();
+      if (variantsResult?.records) {
+        variantsResult.records.forEach(v => {
+          if (!v.product_id) return;
+          const existing = variantsByProduct.get(v.product_id) || [];
+          existing.push(v);
+          variantsByProduct.set(v.product_id, existing);
+        });
+      }
       
       if (productsResult?.records) {
         const summaries: ProductStockSummary[] = productsResult.records.map(product => {
-          // Converter para VariantStock
+          const productVariants = variantsByProduct.get(product.id) || [];
           const variants: VariantStock[] = [];
           
-          // Primeiro: tentar usar dados da tabela variant_stocks
-          const externalVariants = variantStockMap.get(product.id) || [];
-          
-          if (externalVariants.length > 0) {
-            // Usar dados da tabela variant_stocks
-            externalVariants.forEach(ev => {
-              const currentStock = ev.stock_quantity || 0;
-              const minStock = ev.min_stock || 10;
-              const maxStock = ev.max_stock;
-              const reservedStock = ev.reserved_quantity || 0;
-              const inTransitStock = ev.in_transit_quantity || 0;
-              const availableStock = calculateAvailableStock(currentStock, reservedStock);
-              const status = calculateStockStatus(currentStock, minStock, maxStock, inTransitStock);
-              
-              variants.push({
-                id: ev.id,
-                productId: product.id,
-                variantId: ev.variant_id || ev.id,
-                variantSku: ev.sku || `${product.sku}-${ev.color_name || 'VAR'}`,
-                colorId: ev.color_id,
-                colorName: ev.color_name,
-                colorHex: ev.color_hex,
-                sizeName: ev.size,
-                currentStock,
-                minStock,
-                maxStock,
-                reservedStock,
-                inTransitStock,
-                availableStock,
-                status,
-                daysUntilStockout: calculateDaysUntilStockout(availableStock, ev.avg_daily_sales),
-                avgDailySales: ev.avg_daily_sales,
-                lastSaleDate: ev.last_sale_at,
-                lastRestockDate: ev.last_restock_at,
-                updatedAt: ev.updated_at || new Date().toISOString(),
-              });
-            });
-          } else if (product.colors && Array.isArray(product.colors) && product.colors.length > 0) {
-            // Fallback: usar cores do produto (JSONB) - estoque vem da cor individual
-            product.colors.forEach((color, idx) => {
-              const currentStock = color.stock ?? 0;
-              const minStock = Math.max(1, Math.floor((product.min_quantity || 10) / product.colors!.length));
+          if (productVariants.length > 0) {
+            // Usar variantes reais da tabela product_variants
+            productVariants.forEach(pv => {
+              const currentStock = pv.stock_quantity || 0;
+              const minStock = product.min_stock || product.min_quantity || 10;
               const reservedStock = 0;
               const inTransitStock = 0;
               const availableStock = calculateAvailableStock(currentStock, reservedStock);
               const status = calculateStockStatus(currentStock, minStock);
               
               variants.push({
-                id: `${product.id}-color-${idx}`,
+                id: pv.id,
                 productId: product.id,
-                variantId: `${product.id}-color-${idx}`,
-                variantSku: `${product.sku || 'PROD'}-${color.code || color.name?.substring(0, 3).toUpperCase() || idx}`,
-                colorName: color.name,
-                colorHex: color.hex,
+                variantId: pv.id,
+                variantSku: pv.sku || `${product.sku}-${pv.color_code || 'VAR'}`,
+                colorId: pv.color_id,
+                colorName: pv.color_name || 'Padrão',
+                colorHex: pv.color_hex,
                 currentStock,
                 minStock,
                 reservedStock,
@@ -183,41 +137,14 @@ export function useVariantStock() {
                 availableStock,
                 status,
                 daysUntilStockout: calculateDaysUntilStockout(availableStock),
-                updatedAt: product.updated_at || new Date().toISOString(),
-              });
-            });
-          } else if (product.variations && Array.isArray(product.variations) && product.variations.length > 0) {
-            // Fallback: usar variações do produto (JSONB) - estoque vem da variação individual
-            product.variations.forEach((variation, idx) => {
-              const currentStock = variation.stock ?? 0;
-              const minStock = Math.max(1, Math.floor((product.min_quantity || 10) / product.variations!.length));
-              const reservedStock = 0;
-              const inTransitStock = 0;
-              const availableStock = calculateAvailableStock(currentStock, reservedStock);
-              const status = calculateStockStatus(currentStock, minStock);
-              
-              variants.push({
-                id: variation.id || `${product.id}-var-${idx}`,
-                productId: product.id,
-                variantId: variation.id || `${product.id}-var-${idx}`,
-                variantSku: variation.sku || `${product.sku || 'PROD'}-${idx}`,
-                colorName: variation.color,
-                sizeName: variation.size,
-                attributeValues: variation.attributes,
-                currentStock,
-                minStock,
-                reservedStock,
-                inTransitStock,
-                availableStock,
-                status,
-                daysUntilStockout: calculateDaysUntilStockout(availableStock),
-                updatedAt: product.updated_at || new Date().toISOString(),
+                updatedAt: pv.updated_at || product.updated_at || new Date().toISOString(),
               });
             });
           } else {
-            // Produto sem variações - criar uma única variação "padrão" com estoque 0
+            // Produto sem variantes na tabela product_variants
+            // Criar variação padrão com estoque 0
             const currentStock = 0;
-            const minStock = product.min_quantity || 10;
+            const minStock = product.min_stock || product.min_quantity || 10;
             const reservedStock = 0;
             const inTransitStock = 0;
             const availableStock = calculateAvailableStock(currentStock, reservedStock);
@@ -247,8 +174,6 @@ export function useVariantStock() {
             productId: product.id,
             productName: product.name,
             productSku: product.sku || '',
-            categoryName: product.category_name,
-            supplierName: product.supplier_name,
             ...aggregated,
           };
         });
@@ -262,9 +187,9 @@ export function useVariantStock() {
     } catch (error) {
       console.error('Erro ao buscar dados de estoque:', error);
     } finally {
-      setIsLoading(false);
+    setIsLoading(false);
     }
-  }, [productsDB]);
+  }, [productsDB, variantsDB]);
   
   // Carregar dados iniciais
   useEffect(() => {
