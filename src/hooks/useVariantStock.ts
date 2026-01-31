@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useExternalDatabase } from './useExternalDatabase';
+import { supabase } from '@/integrations/supabase/client';
 import {
   VariantStock,
   ProductStockSummary,
@@ -27,7 +27,6 @@ interface ExternalProductWithVariants {
   updated_at?: string;
 }
 
-// Interface alinhada com schema real do BD externo (product_variants)
 interface ExternalVariantStock {
   id: string;
   product_id: string;
@@ -63,6 +62,52 @@ interface ExternalFutureStock {
 }
 
 // ============================================
+// HELPER: Busca paginada direta via edge function
+// ============================================
+
+async function fetchPaginatedFromBridge<T extends { id: string }>(
+  table: string,
+  select: string,
+  pageSize = 1000,
+  maxRecords = 50000
+): Promise<T[]> {
+  const all: T[] = [];
+  let offset = 0;
+  let lastFirstId: string | undefined;
+
+  while (all.length < maxRecords) {
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+      body: { table, operation: 'select', select, limit: pageSize, offset },
+    });
+
+    if (error) {
+      console.error(`[Stock] Erro ao buscar ${table}:`, error);
+      break;
+    }
+
+    const records = (data?.data?.records ?? []) as T[];
+    const count = data?.data?.count as number | null;
+
+    if (records.length === 0) break;
+
+    // Trava anti-loop: primeiro ID repetido = offset ignorado
+    if (records[0]?.id === lastFirstId) {
+      console.warn(`[Stock] Paginação ignorando offset em ${table}; parando.`);
+      break;
+    }
+    lastFirstId = records[0]?.id;
+
+    all.push(...records);
+    offset += records.length;
+
+    if (count !== null && offset >= count) break;
+    if (records.length < pageSize) break;
+  }
+
+  return all;
+}
+
+// ============================================
 // HOOK PRINCIPAL: useVariantStock
 // ============================================
 
@@ -72,42 +117,30 @@ export function useVariantStock() {
   const [productStocks, setProductStocks] = useState<ProductStockSummary[]>([]);
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
   const [futureStock, setFutureStock] = useState<FutureStockEntry[]>([]);
-  
-  // Hooks para APIs externas
-  const productsDB = useExternalDatabase<ExternalProductWithVariants>('products');
-  const variantsDB = useExternalDatabase<ExternalVariantStock>('product_variants');
-  
+
   // ============================================
   // BUSCAR DADOS DE ESTOQUE
   // ============================================
-  
+
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const pageSize = 1000;
-
-      // 1) Produtos (paginado) - usa count e trava anti-loop
-      const allProducts = await fetchAllPaginated<ExternalProductWithVariants>(
-        productsDB.fetchAll,
-        {
-          select: 'id,name,sku,min_quantity,min_stock,updated_at',
-        },
-        pageSize,
-        2000
+      // 1) Produtos
+      const allProducts = await fetchPaginatedFromBridge<ExternalProductWithVariants>(
+        'products',
+        'id,name,sku,min_quantity,min_stock,updated_at',
+        1000,
+        20000
       );
-
       console.log(`[Stock] Carregados ${allProducts.length} produtos`);
 
-      // 2) Variantes (paginado)
-      const allVariants = await fetchAllPaginated<ExternalVariantStock>(
-        variantsDB.fetchAll,
-        {
-          select: 'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
-        },
-        pageSize,
-        4000
+      // 2) Variantes
+      const allVariants = await fetchPaginatedFromBridge<ExternalVariantStock>(
+        'product_variants',
+        'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
+        1000,
+        50000
       );
-
       console.log(`[Stock] Carregadas ${allVariants.length} variantes`);
       
       // Agrupar variantes por product_id
@@ -201,7 +234,7 @@ export function useVariantStock() {
     } finally {
       setIsLoading(false);
     }
-  }, [productsDB, variantsDB]);
+  }, []);
   
   // Carregar dados iniciais
   useEffect(() => {
@@ -385,58 +418,6 @@ export function useVariantStock() {
 // ============================================
 // FUNÇÕES AUXILIARES
 // ============================================
-
-type PaginatedFetchAll<T> = (options?: {
-  filters?: Record<string, unknown>;
-  select?: string;
-  orderBy?: { column: string; ascending?: boolean };
-  limit?: number;
-  offset?: number;
-}) => Promise<{ records: T[]; count: number | null } | null>;
-
-async function fetchAllPaginated<T>(
-  fetchAll: PaginatedFetchAll<T>,
-  base: {
-    filters?: Record<string, unknown>;
-    select?: string;
-    orderBy?: { column: string; ascending?: boolean };
-  },
-  pageSize = 1000,
-  maxPages = 2000
-): Promise<T[]> {
-  const all: T[] = [];
-  let offset = 0;
-  let totalCount: number | null = null;
-  let lastFirstId: string | undefined;
-
-  for (let page = 0; page < maxPages; page++) {
-    const res = await fetchAll({
-      ...base,
-      limit: pageSize,
-      offset,
-    });
-
-    if (!res?.records) break;
-    if (totalCount === null) totalCount = res.count ?? null;
-    if (res.records.length === 0) break;
-
-    // Trava anti-loop: se o backend ignorar offset, o primeiro ID se repete
-    const firstId = (res.records as any)?.[0]?.id as string | undefined;
-    if (firstId && firstId === lastFirstId) {
-      console.warn('[Stock] Paginação parece ignorar offset; interrompendo para evitar loop infinito');
-      break;
-    }
-    lastFirstId = firstId;
-
-    all.push(...res.records);
-    offset += res.records.length;
-
-    if (totalCount !== null && offset >= totalCount) break;
-    if (res.records.length < pageSize) break;
-  }
-
-  return all;
-}
 
 function generateStockAlerts(products: ProductStockSummary[]): StockAlert[] {
   const alerts: StockAlert[] = [];
