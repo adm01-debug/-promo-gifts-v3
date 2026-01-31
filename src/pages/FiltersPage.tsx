@@ -49,7 +49,7 @@ export default function FiltersPage() {
 
   // Hook para buscar produtos por categorias (usa tabela product_category_assignments)
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
-    categoryIds: filters.categories.map(String),
+    categoryIds: filters.categories, // Já são UUIDs (strings)
     includeDescendants: true,
   });
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
@@ -119,7 +119,8 @@ export default function FiltersPage() {
           setCommandAction(command.action || null);
           toast.success(command.action || "Filtro aplicado");
         } else if (command.filterKey === "categories" && command.value) {
-          const categoryIds = (command.value as string[]).map(v => parseInt(v)).filter(n => !isNaN(n));
+          // Categories são agora UUIDs (strings)
+          const categoryIds = command.value as string[];
           setFilters(prev => ({ ...prev, categories: [...prev.categories, ...categoryIds] }));
           setCommandAction(command.action || null);
           toast.success(command.action || "Filtro aplicado");
