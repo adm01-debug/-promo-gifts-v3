@@ -84,51 +84,30 @@ export function useVariantStock() {
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Buscar TODOS os produtos com paginação
       const pageSize = 1000;
-      let allProducts: ExternalProductWithVariants[] = [];
-      let offset = 0;
-      let hasMore = true;
-      
-      while (hasMore) {
-        const productsResult = await productsDB.fetchAll({
+
+      // 1) Produtos (paginado) - usa count e trava anti-loop
+      const allProducts = await fetchAllPaginated<ExternalProductWithVariants>(
+        productsDB.fetchAll,
+        {
           select: 'id,name,sku,min_quantity,min_stock,updated_at',
-          limit: pageSize,
-          offset,
-        });
-        
-        if (productsResult?.records && productsResult.records.length > 0) {
-          allProducts = [...allProducts, ...productsResult.records];
-          offset += pageSize;
-          hasMore = productsResult.records.length === pageSize;
-        } else {
-          hasMore = false;
-        }
-      }
-      
+        },
+        pageSize,
+        2000
+      );
+
       console.log(`[Stock] Carregados ${allProducts.length} produtos`);
-      
-      // 2. Buscar TODAS as variantes com paginação
-      let allVariants: ExternalVariantStock[] = [];
-      offset = 0;
-      hasMore = true;
-      
-      while (hasMore) {
-        const variantsResult = await variantsDB.fetchAll({
+
+      // 2) Variantes (paginado)
+      const allVariants = await fetchAllPaginated<ExternalVariantStock>(
+        variantsDB.fetchAll,
+        {
           select: 'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
-          limit: pageSize,
-          offset,
-        });
-        
-        if (variantsResult?.records && variantsResult.records.length > 0) {
-          allVariants = [...allVariants, ...variantsResult.records];
-          offset += pageSize;
-          hasMore = variantsResult.records.length === pageSize;
-        } else {
-          hasMore = false;
-        }
-      }
-      
+        },
+        pageSize,
+        4000
+      );
+
       console.log(`[Stock] Carregadas ${allVariants.length} variantes`);
       
       // Agrupar variantes por product_id
@@ -220,7 +199,7 @@ export function useVariantStock() {
     } catch (error) {
       console.error('Erro ao buscar dados de estoque:', error);
     } finally {
-    setIsLoading(false);
+      setIsLoading(false);
     }
   }, [productsDB, variantsDB]);
   
@@ -406,6 +385,58 @@ export function useVariantStock() {
 // ============================================
 // FUNÇÕES AUXILIARES
 // ============================================
+
+type PaginatedFetchAll<T> = (options?: {
+  filters?: Record<string, unknown>;
+  select?: string;
+  orderBy?: { column: string; ascending?: boolean };
+  limit?: number;
+  offset?: number;
+}) => Promise<{ records: T[]; count: number | null } | null>;
+
+async function fetchAllPaginated<T>(
+  fetchAll: PaginatedFetchAll<T>,
+  base: {
+    filters?: Record<string, unknown>;
+    select?: string;
+    orderBy?: { column: string; ascending?: boolean };
+  },
+  pageSize = 1000,
+  maxPages = 2000
+): Promise<T[]> {
+  const all: T[] = [];
+  let offset = 0;
+  let totalCount: number | null = null;
+  let lastFirstId: string | undefined;
+
+  for (let page = 0; page < maxPages; page++) {
+    const res = await fetchAll({
+      ...base,
+      limit: pageSize,
+      offset,
+    });
+
+    if (!res?.records) break;
+    if (totalCount === null) totalCount = res.count ?? null;
+    if (res.records.length === 0) break;
+
+    // Trava anti-loop: se o backend ignorar offset, o primeiro ID se repete
+    const firstId = (res.records as any)?.[0]?.id as string | undefined;
+    if (firstId && firstId === lastFirstId) {
+      console.warn('[Stock] Paginação parece ignorar offset; interrompendo para evitar loop infinito');
+      break;
+    }
+    lastFirstId = firstId;
+
+    all.push(...res.records);
+    offset += res.records.length;
+
+    if (totalCount !== null && offset >= totalCount) break;
+    if (res.records.length < pageSize) break;
+  }
+
+  return all;
+}
 
 function generateStockAlerts(products: ProductStockSummary[]): StockAlert[] {
   const alerts: StockAlert[] = [];
