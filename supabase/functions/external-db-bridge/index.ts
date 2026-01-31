@@ -187,6 +187,102 @@ function getResourceGroup(tableName: string): ResourceGroup | null {
   return null;
 }
 
+// ============================================
+// Aliases / Compatibilidade de schema (BD externo)
+// ============================================
+
+/**
+ * Compat: várias partes do app antigo ainda chamam a tabela
+ * `personalization_techniques`, mas no BD externo a fonte de verdade é
+ * `tecnica_gravacao`.
+ */
+function isPersonalizationTechniquesAlias(table: string) {
+  return table === 'personalization_techniques';
+}
+
+function mapTechniqueFiltersToExternal(filters: Record<string, unknown> | undefined) {
+  if (!filters) return undefined;
+  const out: Record<string, unknown> = { ...filters };
+
+  // boolean ativo
+  if ('is_active' in out) {
+    out.ativo = out.is_active;
+    delete out.is_active;
+  }
+
+  // campos comuns
+  if ('code' in out) {
+    out.codigo = out.code;
+    delete out.code;
+  }
+  if ('name' in out) {
+    out.nome = out.name;
+    delete out.name;
+  }
+  if ('description' in out) {
+    out.descricao = out.description;
+    delete out.description;
+  }
+  if ('max_colors' in out) {
+    out.max_cores = out.max_colors;
+    delete out.max_colors;
+  }
+  if ('estimated_days' in out) {
+    out.tempo_producao_dias = out.estimated_days;
+    delete out.estimated_days;
+  }
+
+  return out;
+}
+
+function mapTechniqueOrderByToExternal(orderBy: { column: string; ascending?: boolean } | undefined) {
+  if (!orderBy) return undefined;
+  const columnMap: Record<string, string> = {
+    name: 'nome',
+    code: 'codigo',
+    is_active: 'ativo',
+    estimated_days: 'tempo_producao_dias',
+  };
+  return {
+    ...orderBy,
+    column: columnMap[orderBy.column] ?? orderBy.column,
+  };
+}
+
+function mapTechniqueRowToLegacyShape(row: Record<string, unknown>) {
+  const codigo = (row.codigo as string | undefined) ?? null;
+  const nome = (row.nome as string | undefined) ?? '';
+  const descricao = (row.descricao as string | undefined) ?? null;
+  const ativo = (row.ativo as boolean | undefined) ?? true;
+  const tempo = (row.tempo_producao_dias as number | undefined) ?? null;
+  const maxCoresRaw = row.max_cores as unknown;
+  const maxCores =
+    typeof maxCoresRaw === 'number'
+      ? maxCoresRaw
+      : typeof maxCoresRaw === 'string'
+        ? Number(maxCoresRaw)
+        : null;
+
+  // Retornar com campos legacy esperados em várias telas
+  return {
+    ...row,
+    code: codigo,
+    name: nome,
+    description: descricao,
+    is_active: ativo,
+    estimated_days: tempo,
+    requires_color_count: (row.permite_cores as boolean | undefined) ?? null,
+    max_colors: Number.isFinite(maxCores as number) ? (maxCores as number) : null,
+    display_order: (row.ordem_exibicao as number | undefined) ?? null,
+    // Campos que existiam em alguns schemas antigos
+    setup_price: null,
+    handling_price: null,
+    setup_cost: null,
+    unit_cost: null,
+    min_quantity: null,
+  };
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -196,7 +292,19 @@ serve(async (req) => {
   try {
     // Parse body primeiro para verificar operação
     const body = await req.json();
-    const { table, operation } = body as { table: string; operation: Operation };
+    let table = (body as any).table as string;
+    const operation = (body as any).operation as Operation;
+
+    // Compatibilidade: alias de tabela antiga -> tabela real no BD externo
+    const usingTechniqueAlias = isPersonalizationTechniquesAlias(table);
+    if (usingTechniqueAlias) {
+      table = 'tecnica_gravacao';
+      (body as any).table = table;
+      (body as any).filters = mapTechniqueFiltersToExternal((body as any).filters);
+      (body as any).orderBy = mapTechniqueOrderByToExternal((body as any).orderBy);
+      // select legacy pode referenciar colunas que não existem; força '*'
+      (body as any).select = '*';
+    }
     
     // Operações de leitura podem ser públicas (para busca de produtos no login/público)
     const isReadOperation = operation === 'select';
@@ -347,7 +455,7 @@ serve(async (req) => {
             if (value !== undefined && value !== null && value !== '') {
               if (typeof value === 'string') {
                 // Busca parcial para campos de texto
-                if (['name', 'description', 'title', 'razao_social', 'nome_fantasia'].includes(key)) {
+                if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
                   query = query.ilike(key, `%${value}%`);
                 } else {
                   query = query.eq(key, value);
@@ -387,7 +495,13 @@ serve(async (req) => {
           );
         }
         
-        result = { records: selectData, count };
+        // Compat: mapear resposta para shape antigo quando chamarem personalization_techniques
+        if (usingTechniqueAlias && Array.isArray(selectData)) {
+          const mapped = selectData.map((r: any) => mapTechniqueRowToLegacyShape(r));
+          result = { records: mapped, count };
+        } else {
+          result = { records: selectData, count };
+        }
         console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table} (offset=${safeOffset}, limit=${safeLimit})`);
         break;
       }
