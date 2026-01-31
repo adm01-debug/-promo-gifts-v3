@@ -84,31 +84,64 @@ export function useVariantStock() {
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // 1. Buscar produtos
-      const productsResult = await productsDB.fetchAll({
-        select: 'id,name,sku,min_quantity,min_stock,updated_at',
-        limit: 500,
-      });
+      // 1. Buscar TODOS os produtos com paginação
+      const pageSize = 1000;
+      let allProducts: ExternalProductWithVariants[] = [];
+      let offset = 0;
+      let hasMore = true;
       
-      // 2. Buscar variantes com estoque (tabela real do BD externo)
-      const variantsResult = await variantsDB.fetchAll({
-        select: 'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
-        limit: 5000,
-      });
+      while (hasMore) {
+        const productsResult = await productsDB.fetchAll({
+          select: 'id,name,sku,min_quantity,min_stock,updated_at',
+          limit: pageSize,
+          offset,
+        });
+        
+        if (productsResult?.records && productsResult.records.length > 0) {
+          allProducts = [...allProducts, ...productsResult.records];
+          offset += pageSize;
+          hasMore = productsResult.records.length === pageSize;
+        } else {
+          hasMore = false;
+        }
+      }
+      
+      console.log(`[Stock] Carregados ${allProducts.length} produtos`);
+      
+      // 2. Buscar TODAS as variantes com paginação
+      let allVariants: ExternalVariantStock[] = [];
+      offset = 0;
+      hasMore = true;
+      
+      while (hasMore) {
+        const variantsResult = await variantsDB.fetchAll({
+          select: 'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
+          limit: pageSize,
+          offset,
+        });
+        
+        if (variantsResult?.records && variantsResult.records.length > 0) {
+          allVariants = [...allVariants, ...variantsResult.records];
+          offset += pageSize;
+          hasMore = variantsResult.records.length === pageSize;
+        } else {
+          hasMore = false;
+        }
+      }
+      
+      console.log(`[Stock] Carregadas ${allVariants.length} variantes`);
       
       // Agrupar variantes por product_id
       const variantsByProduct = new Map<string, ExternalVariantStock[]>();
-      if (variantsResult?.records) {
-        variantsResult.records.forEach(v => {
-          if (!v.product_id) return;
-          const existing = variantsByProduct.get(v.product_id) || [];
-          existing.push(v);
-          variantsByProduct.set(v.product_id, existing);
-        });
-      }
+      allVariants.forEach(v => {
+        if (!v.product_id) return;
+        const existing = variantsByProduct.get(v.product_id) || [];
+        existing.push(v);
+        variantsByProduct.set(v.product_id, existing);
+      });
       
-      if (productsResult?.records) {
-        const summaries: ProductStockSummary[] = productsResult.records.map(product => {
+      if (allProducts.length > 0) {
+        const summaries: ProductStockSummary[] = allProducts.map(product => {
           const productVariants = variantsByProduct.get(product.id) || [];
           const variants: VariantStock[] = [];
           
