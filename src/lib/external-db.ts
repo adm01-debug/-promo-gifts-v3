@@ -90,6 +90,9 @@ export interface PromobrindProduct {
   id: string;
   name: string;
   sku: string;
+  /** Preço de venda final (SSOT para exibição no app) */
+  sale_price?: number | null;
+  /** Preço base (custo do fornecedor) */
   base_price: number | null;
   image_url: string | null;        // Campo correto do schema
   images: string[] | null;
@@ -114,11 +117,24 @@ export interface PromobrindProduct {
 // ============================================
 
 // Select fields que existem no schema Promobrind
-const PRODUCT_SELECT_FIELDS = 
+// Observação: alguns schemas/views legados podem não ter `sale_price`.
+// Para evitar tela branca, fazemos fallback automático para o select antigo.
+const PRODUCT_SELECT_FIELDS_WITH_SALE =
+  'id, name, sku, sale_price, base_price, image_url, images, primary_image_url, ' +
+  'category_id, main_category_id, supplier_reference, description, ' +
+  'short_description, brand, is_active, active, stock_quantity, colors, ' +
+  'materials, dimensions, min_quantity';
+
+const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, base_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_reference, description, ' +
   'short_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity';
+
+function shouldFallbackSalePriceSelect(err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /sale_price/i.test(msg) && /(does not exist|não existe)/i.test(msg);
+}
 
 /**
  * Busca produtos do banco Promobrind via bridge
@@ -144,15 +160,29 @@ export async function fetchPromobrindProducts(options?: {
   let products: PromobrindProduct[] = [];
 
   if (typeof options?.limit === 'number' && options.limit > 0) {
-    const result = await invokeExternalDb<PromobrindProduct>({
-      table: 'products',
-      operation: 'select',
-      filters,
-      select: PRODUCT_SELECT_FIELDS,
-      orderBy,
-      limit: options.limit,
-      offset: 0,
-    });
+    let result: InvokeResult<PromobrindProduct>;
+    try {
+      result = await invokeExternalDb<PromobrindProduct>({
+        table: 'products',
+        operation: 'select',
+        filters,
+        select: PRODUCT_SELECT_FIELDS_WITH_SALE,
+        orderBy,
+        limit: options.limit,
+        offset: 0,
+      });
+    } catch (err) {
+      if (!shouldFallbackSalePriceSelect(err)) throw err;
+      result = await invokeExternalDb<PromobrindProduct>({
+        table: 'products',
+        operation: 'select',
+        filters,
+        select: PRODUCT_SELECT_FIELDS_LEGACY,
+        orderBy,
+        limit: options.limit,
+        offset: 0,
+      });
+    }
     products = result.records;
   } else {
     // Paginação: o backend aplica default 500; aqui buscamos em páginas maiores
@@ -165,15 +195,29 @@ export async function fetchPromobrindProducts(options?: {
     const HARD_MAX = 200000;
 
     while (offset < HARD_MAX) {
-      const page = await invokeExternalDb<PromobrindProduct>({
-        table: 'products',
-        operation: 'select',
-        filters,
-        select: PRODUCT_SELECT_FIELDS,
-        orderBy,
-        limit: pageSize,
-        offset,
-      });
+      let page: InvokeResult<PromobrindProduct>;
+      try {
+        page = await invokeExternalDb<PromobrindProduct>({
+          table: 'products',
+          operation: 'select',
+          filters,
+          select: PRODUCT_SELECT_FIELDS_WITH_SALE,
+          orderBy,
+          limit: pageSize,
+          offset,
+        });
+      } catch (err) {
+        if (!shouldFallbackSalePriceSelect(err)) throw err;
+        page = await invokeExternalDb<PromobrindProduct>({
+          table: 'products',
+          operation: 'select',
+          filters,
+          select: PRODUCT_SELECT_FIELDS_LEGACY,
+          orderBy,
+          limit: pageSize,
+          offset,
+        });
+      }
 
       if (typeof page.count === 'number') {
         totalCount = page.count;
@@ -250,13 +294,25 @@ export async function fetchPromobrindProducts(options?: {
 export async function fetchPromobrindProductById(
   productId: string
 ): Promise<PromobrindProduct | null> {
-  const result = await invokeExternalDb<PromobrindProduct>({
-    table: 'products',
-    operation: 'select',
-    filters: { id: productId },
-    select: PRODUCT_SELECT_FIELDS,
-    limit: 1,
-  });
+  let result: InvokeResult<PromobrindProduct>;
+  try {
+    result = await invokeExternalDb<PromobrindProduct>({
+      table: 'products',
+      operation: 'select',
+      filters: { id: productId },
+      select: PRODUCT_SELECT_FIELDS_WITH_SALE,
+      limit: 1,
+    });
+  } catch (err) {
+    if (!shouldFallbackSalePriceSelect(err)) throw err;
+    result = await invokeExternalDb<PromobrindProduct>({
+      table: 'products',
+      operation: 'select',
+      filters: { id: productId },
+      select: PRODUCT_SELECT_FIELDS_LEGACY,
+      limit: 1,
+    });
+  }
 
   const product = result.records[0] || null;
   
@@ -305,13 +361,25 @@ export async function fetchPromobrindProductById(
 export async function fetchPromobrindProductBySku(
   sku: string
 ): Promise<PromobrindProduct | null> {
-  const result = await invokeExternalDb<PromobrindProduct>({
-    table: 'products',
-    operation: 'select',
-    filters: { sku },
-    select: PRODUCT_SELECT_FIELDS,
-    limit: 1,
-  });
+  let result: InvokeResult<PromobrindProduct>;
+  try {
+    result = await invokeExternalDb<PromobrindProduct>({
+      table: 'products',
+      operation: 'select',
+      filters: { sku },
+      select: PRODUCT_SELECT_FIELDS_WITH_SALE,
+      limit: 1,
+    });
+  } catch (err) {
+    if (!shouldFallbackSalePriceSelect(err)) throw err;
+    result = await invokeExternalDb<PromobrindProduct>({
+      table: 'products',
+      operation: 'select',
+      filters: { sku },
+      select: PRODUCT_SELECT_FIELDS_LEGACY,
+      limit: 1,
+    });
+  }
 
   return result.records[0] || null;
 }
@@ -401,7 +469,9 @@ export function getProductImageUrl(product: PromobrindProduct): string | null {
  * Helper para obter preço do produto (fallback 0)
  */
 export function getProductPrice(product: PromobrindProduct): number {
-  return product.base_price || 0;
+  // Preferir sempre o preço de venda. Se não existir no schema/registro,
+  // fazer fallback para base_price (compatibilidade) e por fim 0.
+  return product.sale_price ?? product.base_price ?? 0;
 }
 
 /**
