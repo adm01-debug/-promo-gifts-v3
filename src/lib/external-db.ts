@@ -603,7 +603,7 @@ export async function fetchPromobrindPrintAreas(
 // ============================================
 
 // Buscar todos os campos disponíveis sem especificar select (evita erro de colunas inexistentes)
-// O BD externo personalization_techniques pode ter estrutura diferente
+// No BD externo, a fonte de verdade para técnicas é `tecnica_gravacao`.
 const TECHNIQUE_SELECT_FIELDS = '*';
 
 /**
@@ -614,32 +614,54 @@ export async function fetchPromobrindTechniques(options?: {
   codes?: string[];
   limit?: number;
 }): Promise<PromobrindTechnique[]> {
-  const filters: Record<string, unknown> = { is_active: true };
+  const filters: Record<string, unknown> = { ativo: true };
   
   if (options?.ids?.length) {
     filters.id = options.ids;
   }
   if (options?.codes?.length) {
-    filters.code = options.codes;
+    filters.codigo = options.codes;
   }
 
   const result = await invokeExternalDb<PromobrindTechnique>({
-    table: 'personalization_techniques',
+    table: 'tecnica_gravacao',
     operation: 'select',
     filters,
     select: TECHNIQUE_SELECT_FIELDS,
     limit: options?.limit || 100,
-    orderBy: { column: 'name', ascending: true },
+    orderBy: { column: 'ordem_exibicao', ascending: true },
   });
   
-  // Mapear campos para compatibilidade com código existente
-  return result.records.map(t => ({
-    ...t,
-    setup_cost: t.setup_price ?? 0,
-    unit_cost: t.handling_price ?? 0,
-    min_quantity: (t as Record<string, unknown>).min_quantity as number | null ?? null,
-    estimated_days: (t as Record<string, unknown>).estimated_days as number | null ?? null,
-  }));
+  // Mapear campos (schema PT-BR) para o shape usado no app
+  return result.records.map((t: any) => {
+    const maxCoresRaw = t.max_cores ?? t.max_colors;
+    const maxCores =
+      typeof maxCoresRaw === 'number'
+        ? maxCoresRaw
+        : typeof maxCoresRaw === 'string'
+          ? Number(maxCoresRaw)
+          : null;
+
+    return {
+      ...t,
+      code: t.codigo ?? t.code,
+      name: t.nome ?? t.name,
+      description: t.descricao ?? t.description ?? null,
+      requires_color_count: t.permite_cores ?? t.requires_color_count ?? null,
+      max_colors: Number.isFinite(maxCores as number) ? (maxCores as number) : null,
+      price_by_color: t.cobra_por_cor ?? t.price_by_color ?? null,
+      price_by_area: t.cobra_por_area ?? t.price_by_area ?? null,
+      is_active: t.ativo ?? t.is_active ?? true,
+      estimated_days: t.tempo_producao_dias ?? t.estimated_days ?? null,
+      display_order: t.ordem_exibicao ?? t.display_order ?? null,
+      // Custos não estão na tabela mestre; vêm das tabelas de faixa/preço
+      setup_price: null,
+      handling_price: null,
+      setup_cost: null,
+      unit_cost: null,
+      min_quantity: null,
+    } as PromobrindTechnique;
+  });
 }
 
 /**
@@ -649,7 +671,7 @@ export async function fetchPromobrindTechniqueById(
   techniqueId: string
 ): Promise<PromobrindTechnique | null> {
   const result = await invokeExternalDb<PromobrindTechnique>({
-    table: 'personalization_techniques',
+    table: 'tecnica_gravacao',
     operation: 'select',
     filters: { id: techniqueId },
     select: TECHNIQUE_SELECT_FIELDS,
@@ -660,12 +682,32 @@ export async function fetchPromobrindTechniqueById(
   if (!tech) return null;
   
   // Mapear campos para compatibilidade
+  const t: any = tech;
+  const maxCoresRaw = t.max_cores ?? t.max_colors;
+  const maxCores =
+    typeof maxCoresRaw === 'number'
+      ? maxCoresRaw
+      : typeof maxCoresRaw === 'string'
+        ? Number(maxCoresRaw)
+        : null;
+
   return {
     ...tech,
-    setup_cost: tech.setup_price ?? 0,
-    unit_cost: tech.handling_price ?? 0,
-    min_quantity: (tech as Record<string, unknown>).min_quantity as number | null ?? null,
-    estimated_days: (tech as Record<string, unknown>).estimated_days as number | null ?? null,
+    code: t.codigo ?? t.code,
+    name: t.nome ?? t.name,
+    description: t.descricao ?? t.description ?? null,
+    requires_color_count: t.permite_cores ?? t.requires_color_count ?? null,
+    max_colors: Number.isFinite(maxCores as number) ? (maxCores as number) : null,
+    price_by_color: t.cobra_por_cor ?? t.price_by_color ?? null,
+    price_by_area: t.cobra_por_area ?? t.price_by_area ?? null,
+    is_active: t.ativo ?? t.is_active ?? true,
+    estimated_days: t.tempo_producao_dias ?? t.estimated_days ?? null,
+    display_order: t.ordem_exibicao ?? t.display_order ?? null,
+    setup_price: null,
+    handling_price: null,
+    setup_cost: null,
+    unit_cost: null,
+    min_quantity: null,
   };
 }
 
