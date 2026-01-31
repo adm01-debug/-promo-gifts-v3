@@ -2,12 +2,11 @@
  * Repository: Técnicas de Personalização
  * 
  * Abstrai acesso a dados de técnicas.
- * Único ponto de acesso ao BD externo para técnicas.
+ * NOTA: Usa Supabase LOCAL (personalization_techniques existe aqui, não no BD externo)
  */
 
-import { invokeExternalDb, invokeExternalDbSingle } from '@/lib/external-db';
-import { transformRawToTecnicas, rawToTecnicaUnificada } from '../transformers';
-import type { TecnicaUnificada, PersonalizationTechniqueRaw } from '@/types/tecnica-unificada';
+import { supabase } from '@/integrations/supabase/client';
+import type { TecnicaUnificada } from '@/types/tecnica-unificada';
 
 // ============================================
 // TYPES
@@ -36,6 +35,59 @@ export interface TechniqueQueryOptions {
 }
 
 // ============================================
+// TRANSFORMER
+// ============================================
+
+type LocalTechniqueRow = {
+  id: string;
+  code: string | null;
+  name: string;
+  description: string | null;
+  is_active: boolean | null;
+  setup_cost: number | null;
+  unit_cost: number | null;
+  min_quantity: number | null;
+  estimated_days: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+function localToTecnicaUnificada(row: LocalTechniqueRow): TecnicaUnificada {
+  return {
+    id: row.id,
+    codigo: row.code || '',
+    codigoFornecedor: null,
+    codigoStricker: null,
+    nome: row.name,
+    descricao: row.description,
+    categoria: 'geral',
+    icone: null,
+    permiteCores: true,
+    minCores: 1,
+    maxCores: 12,
+    precoPorCor: false,
+    precoCorExtra: 0,
+    precoPorArea: false,
+    precoPorPontos: false,
+    areaMinimaCm2: null,
+    areaMaximaCm2: null,
+    pontosMaximos: null,
+    custoSetup: row.setup_cost || 0,
+    custoManuseio: 0,
+    multiplicadorCusto: 1,
+    quantidadeMinima: row.min_quantity,
+    prazoEstimado: row.estimated_days,
+    aplicaSuperficieCurva: false,
+    promptSuffix: null,
+    ativo: row.is_active ?? true,
+    ordemExibicao: 0,
+    fonte: 'externo',
+    criadoEm: row.created_at,
+    atualizadoEm: row.updated_at,
+  };
+}
+
+// ============================================
 // REPOSITORY
 // ============================================
 
@@ -43,45 +95,42 @@ export interface TechniqueQueryOptions {
  * Busca todas as técnicas com filtros opcionais
  */
 export async function findAll(options: TechniqueQueryOptions = {}): Promise<TecnicaUnificada[]> {
-  const { filters, orderBy, limit = 100, offset } = options;
+  const { filters, orderBy, limit = 100 } = options;
 
-  // Construir filtros para o BD
-  const dbFilters: Record<string, unknown> = {};
-  
+  let query = supabase
+    .from('personalization_techniques')
+    .select('*');
+
+  // Filtros diretos
   if (filters?.isActive !== undefined) {
-    dbFilters.is_active = filters.isActive;
-  }
-  if (filters?.category) {
-    dbFilters.category = filters.category;
-  }
-  if (filters?.requiresColors !== undefined) {
-    dbFilters.requires_color_count = filters.requiresColors;
-  }
-  if (filters?.priceByArea !== undefined) {
-    dbFilters.price_by_area = filters.priceByArea;
-  }
-  if (filters?.priceByStitches !== undefined) {
-    dbFilters.price_by_stitches = filters.priceByStitches;
-  }
-  if (filters?.appliesToCurved !== undefined) {
-    dbFilters.applies_to_curved = filters.appliesToCurved;
+    query = query.eq('is_active', filters.isActive);
   }
 
-  const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-    table: 'personalization_techniques',
-    operation: 'select',
-    filters: Object.keys(dbFilters).length > 0 ? dbFilters : undefined,
-    orderBy: orderBy ? { 
-      column: mapOrderByColumn(orderBy.column), 
-      ascending: orderBy.ascending ?? true 
-    } : { column: 'display_order', ascending: true },
-    limit,
-    offset,
-  });
+  // Ordenação
+  if (orderBy) {
+    const colMap: Record<string, string> = {
+      name: 'name',
+      code: 'code',
+      display_order: 'name', // BD local não tem display_order
+      created_at: 'created_at',
+    };
+    query = query.order(colMap[orderBy.column] || 'name', { ascending: orderBy.ascending ?? true });
+  } else {
+    query = query.order('name', { ascending: true });
+  }
 
-  let tecnicas = transformRawToTecnicas(result.records);
+  query = query.limit(limit);
 
-  // Filtro de busca textual (pós-query)
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Repository findAll error:', error);
+    throw error;
+  }
+
+  let tecnicas = (data || []).map(localToTecnicaUnificada);
+
+  // Filtros pós-query
   if (filters?.search) {
     const search = filters.search.toLowerCase();
     tecnicas = tecnicas.filter(t =>
@@ -98,49 +147,58 @@ export async function findAll(options: TechniqueQueryOptions = {}): Promise<Tecn
  * Busca técnica por ID
  */
 export async function findById(id: string): Promise<TecnicaUnificada | null> {
-  const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-    table: 'personalization_techniques',
-    operation: 'select',
-    filters: { id },
-    limit: 1,
-  });
+  const { data, error } = await supabase
+    .from('personalization_techniques')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
 
-  const raw = result.records[0];
-  return raw ? rawToTecnicaUnificada(raw) : null;
+  if (error) {
+    console.error('Repository findById error:', error);
+    throw error;
+  }
+
+  return data ? localToTecnicaUnificada(data) : null;
 }
 
 /**
  * Busca técnica por código
  */
 export async function findByCode(code: string): Promise<TecnicaUnificada | null> {
-  const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-    table: 'personalization_techniques',
-    operation: 'select',
-    filters: { code },
-    limit: 1,
-  });
+  const { data, error } = await supabase
+    .from('personalization_techniques')
+    .select('*')
+    .eq('code', code)
+    .maybeSingle();
 
-  const raw = result.records[0];
-  return raw ? rawToTecnicaUnificada(raw) : null;
+  if (error) {
+    console.error('Repository findByCode error:', error);
+    throw error;
+  }
+
+  return data ? localToTecnicaUnificada(data) : null;
 }
 
 /**
  * Busca técnicas ativas (resumo para dropdowns)
  */
 export async function findActiveForDropdown(): Promise<Pick<TecnicaUnificada, 'id' | 'codigo' | 'nome' | 'categoria'>[]> {
-  const result = await invokeExternalDb<PersonalizationTechniqueRaw>({
-    table: 'personalization_techniques',
-    operation: 'select',
-    select: 'id,code,name,category',
-    filters: { is_active: true },
-    orderBy: { column: 'name', ascending: true },
-  });
+  const { data, error } = await supabase
+    .from('personalization_techniques')
+    .select('id, code, name')
+    .eq('is_active', true)
+    .order('name', { ascending: true });
 
-  return result.records.map(raw => ({
-    id: raw.id,
-    codigo: raw.code,
-    nome: raw.name,
-    categoria: raw.category,
+  if (error) {
+    console.error('Repository findActiveForDropdown error:', error);
+    throw error;
+  }
+
+  return (data || []).map(row => ({
+    id: row.id,
+    codigo: row.code || '',
+    nome: row.name,
+    categoria: 'geral',
   }));
 }
 
@@ -148,31 +206,55 @@ export async function findActiveForDropdown(): Promise<Pick<TecnicaUnificada, 'i
  * Lista categorias únicas
  */
 export async function findCategories(): Promise<string[]> {
-  const tecnicas = await findAll({ filters: { isActive: true } });
-  return [...new Set(tecnicas.map(t => t.categoria))].sort();
+  // BD local não tem campo categoria - retorna default
+  return ['geral'];
 }
 
 /**
  * Cria nova técnica
  */
-export async function create(data: Partial<PersonalizationTechniqueRaw>): Promise<void> {
-  await invokeExternalDbSingle({
-    table: 'personalization_techniques',
-    operation: 'insert',
-    data,
-  });
+export async function create(data: { 
+  name: string; 
+  code?: string; 
+  description?: string;
+  setup_cost?: number;
+  unit_cost?: number;
+  min_quantity?: number;
+  estimated_days?: number;
+  is_active?: boolean;
+}): Promise<void> {
+  const { error } = await supabase
+    .from('personalization_techniques')
+    .insert(data);
+
+  if (error) {
+    console.error('Repository create error:', error);
+    throw error;
+  }
 }
 
 /**
  * Atualiza técnica existente
  */
-export async function update(id: string, data: Partial<PersonalizationTechniqueRaw>): Promise<void> {
-  await invokeExternalDbSingle({
-    table: 'personalization_techniques',
-    operation: 'update',
-    id,
-    data,
-  });
+export async function update(id: string, data: Partial<{
+  name: string;
+  code: string;
+  description: string;
+  setup_cost: number;
+  unit_cost: number;
+  min_quantity: number;
+  estimated_days: number;
+  is_active: boolean;
+}>): Promise<void> {
+  const { error } = await supabase
+    .from('personalization_techniques')
+    .update(data)
+    .eq('id', id);
+
+  if (error) {
+    console.error('Repository update error:', error);
+    throw error;
+  }
 }
 
 /**
@@ -186,25 +268,15 @@ export async function toggleActive(id: string, isActive: boolean): Promise<void>
  * Remove técnica
  */
 export async function remove(id: string): Promise<void> {
-  await invokeExternalDbSingle({
-    table: 'personalization_techniques',
-    operation: 'delete',
-    id,
-  });
-}
+  const { error } = await supabase
+    .from('personalization_techniques')
+    .delete()
+    .eq('id', id);
 
-// ============================================
-// HELPERS
-// ============================================
-
-function mapOrderByColumn(column: TechniqueOrderBy['column']): string {
-  const mapping: Record<string, string> = {
-    name: 'name',
-    code: 'code',
-    display_order: 'display_order',
-    created_at: 'created_at',
-  };
-  return mapping[column] || 'display_order';
+  if (error) {
+    console.error('Repository remove error:', error);
+    throw error;
+  }
 }
 
 // ============================================
