@@ -143,46 +143,39 @@ serve(async (req) => {
           targetCategoryIds = findDescendants(categoryIds);
         }
 
+        console.log('Querying products for categories:', targetCategoryIds);
+
         // Buscar na tabela de vínculo N:N (product_category_assignments)
         const { data: assignments, error: assignError } = await externalClient
           .from('product_category_assignments')
           .select('product_id')
           .in('category_id', targetCategoryIds);
 
-        if (assignError) {
-          // Se a tabela não existir, tentar fallback para product_categories
-          console.log('Tentando fallback para product_categories...');
+        if (!assignError && assignments && assignments.length > 0) {
+          const productIds = [...new Set(assignments.map((a: any) => a.product_id))];
+          console.log(`Found ${productIds.length} products via product_category_assignments`);
           
-          const { data: fallbackData, error: fallbackError } = await externalClient
-            .from('product_categories')
-            .select('product_id')
-            .in('category_id', targetCategoryIds);
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              productIds,
+              source: 'product_category_assignments',
+              categoriesUsed: targetCategoryIds.length
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
 
-          if (fallbackError) {
-            // Último fallback: buscar por category_id direto nos produtos
-            console.log('Tentando fallback para products.category_id...');
-            
-            const { data: productsData, error: productsError } = await externalClient
-              .from('products')
-              .select('id')
-              .in('category_id', targetCategoryIds);
+        // Fallback: tentar product_categories
+        console.log('Trying fallback: product_categories table...');
+        const { data: fallbackData, error: fallbackError } = await externalClient
+          .from('product_categories')
+          .select('product_id')
+          .in('category_id', targetCategoryIds);
 
-            if (productsError) throw productsError;
-
-            const productIds = [...new Set(productsData.map((p: any) => p.id))];
-            
-            return new Response(
-              JSON.stringify({ 
-                success: true, 
-                productIds,
-                source: 'products.category_id',
-                categoriesUsed: targetCategoryIds.length
-              }),
-              { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-
+        if (!fallbackError && fallbackData && fallbackData.length > 0) {
           const productIds = [...new Set(fallbackData.map((a: any) => a.product_id))];
+          console.log(`Found ${productIds.length} products via product_categories`);
           
           return new Response(
             JSON.stringify({ 
@@ -195,14 +188,17 @@ serve(async (req) => {
           );
         }
 
-        const productIds = [...new Set(assignments.map((a: any) => a.product_id))];
-
+        // Se nenhuma tabela de vínculo funcionou, retornar vazio
+        // NÃO tentar products.category_id pois causa erro de tipo UUID vs numérico
+        console.log('No product-category assignments found for selected categories');
+        
         return new Response(
           JSON.stringify({ 
             success: true, 
-            productIds,
-            source: 'product_category_assignments',
-            categoriesUsed: targetCategoryIds.length
+            productIds: [],
+            source: 'none',
+            categoriesUsed: targetCategoryIds.length,
+            message: 'No product-category assignments found'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
