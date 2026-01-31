@@ -24,6 +24,7 @@ interface ExternalProductWithVariants {
   sku?: string;
   min_quantity?: number;
   min_stock?: number;
+  stock_quantity?: number;
   updated_at?: string;
 }
 
@@ -41,6 +42,11 @@ interface ExternalVariantStock {
   stock_quantity: number;
   is_active?: boolean;
   updated_at?: string;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  const n = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 interface ExternalFutureStock {
@@ -128,7 +134,7 @@ export function useVariantStock() {
       // 1) Produtos
       const allProducts = await fetchPaginatedFromBridge<ExternalProductWithVariants>(
         'products',
-        'id,name,sku,min_quantity,min_stock,updated_at',
+        'id,name,sku,min_quantity,min_stock,stock_quantity,updated_at',
         1000,
         20000
       );
@@ -160,7 +166,7 @@ export function useVariantStock() {
           if (productVariants.length > 0) {
             // Usar variantes reais da tabela product_variants
             productVariants.forEach(pv => {
-              const currentStock = pv.stock_quantity || 0;
+              const currentStock = toNumber(pv.stock_quantity, 0);
               const minStock = product.min_stock || product.min_quantity || 10;
               const reservedStock = 0;
               const inTransitStock = 0;
@@ -185,10 +191,53 @@ export function useVariantStock() {
                 updatedAt: pv.updated_at || product.updated_at || new Date().toISOString(),
               });
             });
+
+            // Fallback: quando o estoque real está no produto (products.stock_quantity)
+            // mas as variações vêm zeradas (situação atual do banco externo).
+            const productLevelStock = toNumber(product.stock_quantity, 0);
+            const sumVariantStock = variants.reduce((sum, v) => sum + toNumber(v.currentStock, 0), 0);
+
+            if (sumVariantStock === 0 && productLevelStock > 0) {
+              const minStock = product.min_stock || product.min_quantity || 10;
+
+              if (variants.length === 1) {
+                // Se só existe uma variação, atribuímos o estoque do produto a ela.
+                variants[0] = {
+                  ...variants[0],
+                  currentStock: productLevelStock,
+                  availableStock: calculateAvailableStock(productLevelStock, variants[0].reservedStock),
+                  status: calculateStockStatus(productLevelStock, minStock),
+                  daysUntilStockout: calculateDaysUntilStockout(productLevelStock),
+                };
+              } else {
+                // Se há múltiplas variações (cores), mantemos o detalhe (zerado)
+                // e adicionamos uma linha de “Total do Produto” para refletir o estoque agregado.
+                const reservedStock = 0;
+                const inTransitStock = 0;
+                const availableStock = calculateAvailableStock(productLevelStock, reservedStock);
+                const status = calculateStockStatus(productLevelStock, minStock);
+
+                variants.push({
+                  id: `${product.id}::product_total`,
+                  productId: product.id,
+                  variantId: `${product.id}::product_total`,
+                  variantSku: product.sku || 'PROD',
+                  colorName: 'Total do Produto',
+                  currentStock: productLevelStock,
+                  minStock,
+                  reservedStock,
+                  inTransitStock,
+                  availableStock,
+                  status,
+                  daysUntilStockout: calculateDaysUntilStockout(availableStock),
+                  updatedAt: product.updated_at || new Date().toISOString(),
+                });
+              }
+            }
           } else {
             // Produto sem variantes na tabela product_variants
             // Criar variação padrão com estoque 0
-            const currentStock = 0;
+            const currentStock = toNumber(product.stock_quantity, 0);
             const minStock = product.min_stock || product.min_quantity || 10;
             const reservedStock = 0;
             const inTransitStock = 0;
