@@ -50,26 +50,26 @@ const KEYWORD_ICONS: Record<string, string> = {
   bloco: '📝', calculadora: '🧮', porta: '✏️', clips: '📎',
   // Tecnologia
   cabo: '🔌', carregador: '🔋', fone: '🎧', mouse: '🖱️', 
-  teclado: '⌨️', pendrive: '💾', caixa de som: '🔊', power bank: '🔋',
+  teclado: '⌨️', pendrive: '💾', 'caixa de som': '🔊', 'power bank': '🔋',
   celular: '📱', suporte: '📱', ring: '📱',
   // Ferramentas
   ferramenta: '🔧', chave: '🔩', lanterna: '🔦', trena: '📏', 
   alicate: '🔧', martelo: '🔨', fita: '📐',
   // Esportes / Lazer
   bola: '⚽', raquete: '🏸', yoga: '🧘', fitness: '💪', 
-  esporte: '🏃', toalha: '🏖️', praia: '🏖️', piscina: '🏊',
+  esporte: '🏃', praia: '🏖️', piscina: '🏊',
   // Jogos
   jogo: '🎮', dominó: '🎲', baralho: '🃏', xadrez: '♟️', 
   brinquedo: '🧸', quebra: '🧩',
   // Casa / Decoração
-  vela: '🕯️', porta-retrato: '🖼️', relógio: '⏰', almofada: '🛋️',
-  organizador: '📦', caixa: '📦', vaso: '🌱', decoração: '🏠',
+  vela: '🕯️', 'porta-retrato': '🖼️', relógio: '⏰', almofada: '🛋️',
+  organizador: '📦', vaso: '🌱', decoração: '🏠',
   // Saúde / Beleza
-  espelho: '🪞', escova: '🪥', massageador: '💆', kit higiene: '🧴',
+  espelho: '🪞', escova: '🪥', massageador: '💆', 'kit higiene': '🧴',
   álcool: '🧴', máscara: '😷', sabonete: '🧼', perfume: '🌸',
   // Pet
   pet: '🐾', cachorro: '🐕', gato: '🐈', coleira: '🐾', 
-  comedouro: '🐾', brinquedo pet: '🐾',
+  comedouro: '🐾', 'brinquedo pet': '🐾',
   // Embalagens
   embalagem: '📦', caixa: '📦', sacola: '🛍️', papel: '📄',
   // Chaveiros
