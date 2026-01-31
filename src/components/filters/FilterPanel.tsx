@@ -101,6 +101,8 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   const [ramoSearch, setRamoSearch] = useState('');
   const { data: categoryIcons = [] } = useCategoryIcons();
 
+  const stableSorted = (arr: string[] | undefined) => [...(arr ?? [])].slice().sort();
+
   // Hook de fornecedores (API externa)
   const { suppliers: supplierOptions, isLoading: suppliersLoading } = useSuppliers();
 
@@ -159,8 +161,9 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     const currentMaterialGroups = filters.materialGroups || [];
     const currentMaterialTypes = filters.materialTypes || [];
     
-    const groupsChanged = JSON.stringify(currentMaterialGroups.sort()) !== JSON.stringify(materialFilterState.selectedGroups.sort());
-    const typesChanged = JSON.stringify(currentMaterialTypes.sort()) !== JSON.stringify(materialFilterState.selectedTypes.sort());
+    // CRÍTICO: nunca mutar arrays do state com .sort() (isso causa UI “bugada” e toggles instáveis)
+    const groupsChanged = JSON.stringify(stableSorted(currentMaterialGroups)) !== JSON.stringify(stableSorted(materialFilterState.selectedGroups));
+    const typesChanged = JSON.stringify(stableSorted(currentMaterialTypes)) !== JSON.stringify(stableSorted(materialFilterState.selectedTypes));
     
     if (groupsChanged || typesChanged) {
       onFilterChange({
