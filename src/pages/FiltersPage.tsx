@@ -27,6 +27,7 @@ import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
+import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { toast } from "sonner";
 
 export default function FiltersPage() {
@@ -38,6 +39,12 @@ export default function FiltersPage() {
   const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
   
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  
+  // Hook para buscar produtos por materiais (usa tabela product_materials)
+  const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
+    materialGroupSlugs: filters.materialGroups || [],
+    materialTypeSlugs: filters.materialTypes || [],
+  });
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
   const [sortBy, setSortBy] = useState<string>("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -257,8 +264,16 @@ export default function FiltersPage() {
     // TODO: Integrar com dados reais de produto_ramo_atividade quando estiver implementado
     // Por enquanto, o filtro é aplicado apenas no banco de dados externo
 
-    // Filtro por materiais
-    if (filters.materiais.length > 0) {
+    // Filtro por materiais usando tabela product_materials (hierárquico)
+    if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
+      result = result.filter((p) => materialFilteredProductIds.has(p.id));
+    } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
+      // Filtro ativo mas sem resultados = nenhum produto corresponde
+      result = [];
+    }
+
+    // Fallback: Filtro por materiais legado (campo texto)
+    if (!hasMaterialFilter && filters.materiais.length > 0) {
       result = result.filter((product) =>
         filters.materiais.some((m) => 
           (product.materials || '').toLowerCase().includes(m.toLowerCase())
@@ -297,7 +312,7 @@ export default function FiltersPage() {
     }
 
     return result;
-  }, [filters, sortBy, realProducts]);
+  }, [filters, sortBy, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter]);
 
   // Resumo dos filtros ativos para exibição
   const activeFiltersSummary = useMemo(() => {

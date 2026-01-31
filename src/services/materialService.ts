@@ -183,6 +183,14 @@ class MaterialService {
   async getProductMaterials(productId: string): Promise<{ materials: any[]; count: number; productId: string }> {
     return this.callApi('product_materials', { productId });
   }
+
+  // Buscar IDs de produtos que possuem determinados materiais
+  async getProductsByMaterials(options: {
+    materialTypeIds?: string[];
+    materialGroupSlugs?: string[];
+  }): Promise<{ productIds: string[]; count: number; materialTypeIds?: string[] }> {
+    return this.callApi('products_by_materials', options);
+  }
 }
 
 export const materialService = new MaterialService();

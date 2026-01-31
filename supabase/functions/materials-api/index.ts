@@ -41,11 +41,13 @@ serve(async (req) => {
 
     // Parse body
     const body = await req.json();
-    const { action, groupId, materialId, productId, limit = 100 } = body as {
-      action: 'groups' | 'types' | 'types_by_group' | 'product_materials' | 'stats' | 'search' | 'complete';
+    const { action, groupId, materialId, productId, materialTypeIds, materialGroupSlugs, limit = 100 } = body as {
+      action: 'groups' | 'types' | 'types_by_group' | 'product_materials' | 'products_by_materials' | 'stats' | 'search' | 'complete';
       groupId?: string;
       materialId?: string;
       productId?: string;
+      materialTypeIds?: string[];
+      materialGroupSlugs?: string[];
       limit?: number;
       search?: string;
     };
@@ -298,6 +300,71 @@ serve(async (req) => {
         break;
       }
 
+      case 'products_by_materials': {
+        // Buscar IDs de produtos que possuem determinados materiais
+        // Aceita materialTypeIds (array de UUIDs de material_types) 
+        // e/ou materialGroupSlugs (array de slugs de material_groups)
+        
+        if ((!materialTypeIds || materialTypeIds.length === 0) && 
+            (!materialGroupSlugs || materialGroupSlugs.length === 0)) {
+          return new Response(
+            JSON.stringify({ error: 'materialTypeIds ou materialGroupSlugs é obrigatório' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        let targetMaterialIds: string[] = materialTypeIds || [];
+
+        // Se temos slugs de grupo, buscar todos os material_types desses grupos
+        if (materialGroupSlugs && materialGroupSlugs.length > 0) {
+          const { data: groups, error: groupsError } = await externalSupabase
+            .from('material_groups')
+            .select('id')
+            .in('slug', materialGroupSlugs)
+            .eq('is_active', true);
+
+          if (groupsError) throw groupsError;
+
+          if (groups && groups.length > 0) {
+            const groupIds = groups.map((g: any) => g.id);
+            const { data: types, error: typesError } = await externalSupabase
+              .from('material_types')
+              .select('id')
+              .in('group_id', groupIds)
+              .eq('is_active', true);
+
+            if (typesError) throw typesError;
+            
+            const typeIds = (types || []).map((t: any) => t.id);
+            targetMaterialIds = [...new Set([...targetMaterialIds, ...typeIds])];
+          }
+        }
+
+        if (targetMaterialIds.length === 0) {
+          result = { productIds: [], count: 0 };
+          break;
+        }
+
+        // Buscar product_ids distintos da tabela product_materials
+        const { data: productMaterials, error: pmError } = await externalSupabase
+          .from('product_materials')
+          .select('product_id')
+          .in('material_id', targetMaterialIds)
+          .eq('is_active', true);
+
+        if (pmError) throw pmError;
+
+        // Extrair IDs únicos
+        const uniqueProductIds = [...new Set((productMaterials || []).map((pm: any) => pm.product_id))];
+
+        result = { 
+          productIds: uniqueProductIds, 
+          count: uniqueProductIds.length,
+          materialTypeIds: targetMaterialIds,
+        };
+        break;
+      }
+
       case 'stats': {
         // Estatísticas gerais de materiais
         const { data, error } = await externalSupabase
@@ -355,7 +422,7 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             error: `Ação '${action}' não suportada`,
-            availableActions: ['groups', 'types', 'types_by_group', 'product_materials', 'stats', 'search', 'complete']
+            availableActions: ['groups', 'types', 'types_by_group', 'product_materials', 'products_by_materials', 'stats', 'search', 'complete']
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
