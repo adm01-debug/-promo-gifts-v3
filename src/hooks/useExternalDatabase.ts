@@ -62,12 +62,15 @@ export const PRODUCT_TABLES = [
   'personalization_techniques',
   'customization_price_tables',
   'customization_price_tiers',
-  // Legacy técnicas (Promobrind original)
-  'tecnica_gravacao',
-  'tecnica_gravacao_variantes',
-  'fornecedor_gravacao',
-  'tecnica_faixa_area',
-  'tecnica_faixa_pontos',
+  // ============================================
+  // TÉCNICAS DE GRAVAÇÃO - BD EXTERNO PROMOBRIND
+  // IMPORTANTE: Este é o ÚNICO banco de dados!
+  // Não existe BD local para técnicas.
+  // ============================================
+  'tecnica_gravacao',           // Tabela principal de técnicas
+  'tecnica_gravacao_variante',  // Variações de cada técnica (SINGULAR!)
+  'tecnica_faixa_area',         // Faixas de preço por área
+  'tecnica_faixa_pontos',       // Faixas de preço por pontos (bordado)
 ] as const;
 
 // Views e Materialized Views (somente leitura)
