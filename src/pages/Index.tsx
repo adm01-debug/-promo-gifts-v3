@@ -46,6 +46,7 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { RecentlyViewedBar } from "@/components/products/RecentlyViewedBar";
 import { InfoTooltip } from "@/components/common/ContextualTooltips";
+import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
@@ -83,8 +84,14 @@ export default function Index() {
 
   const ITEMS_PER_PAGE = 12;
   
+  // Hook para buscar produtos por materiais (usa tabela product_materials)
+  const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
+    materialGroupSlugs: filters.materialGroups || [],
+    materialTypeSlugs: filters.materialTypes || [],
+  });
+  
   // Estado de loading combinado
-  const isLoading = isLoadingProducts;
+  const isLoading = isLoadingProducts || isLoadingMaterialFilter;
 
   // Sincronizar searchQuery com URL
   useEffect(() => {
@@ -110,6 +117,9 @@ export default function Index() {
     if (filters.endomarketing.length) count += filters.endomarketing.length;
     if (filters.ramosAtividade?.length) count += filters.ramosAtividade.length;
     if (filters.segmentosAtividade?.length) count += filters.segmentosAtividade.length;
+    // Sistema hierárquico de materiais
+    if (filters.materialGroups?.length) count += filters.materialGroups.length;
+    if (filters.materialTypes?.length) count += filters.materialTypes.length;
     if (filters.materiais.length) count += filters.materiais.length;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) count += 1;
     if (filters.inStock) count += 1;
@@ -228,13 +238,20 @@ export default function Index() {
 
     // isKit e featured não existem no banco externo, ignorar por enquanto
 
-    if (filters.materiais.length) {
+    // Filtro por materiais usando tabela product_materials (hierárquico)
+    if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
+      result = result.filter((p) => materialFilteredProductIds.has(p.id));
+    } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
+      // Filtro ativo mas sem resultados = nenhum produto corresponde
+      result = [];
+    }
+
+    // Fallback: Filtro por materiais legado (campo texto)
+    if (!hasMaterialFilter && filters.materiais.length) {
       result = result.filter((p) => 
         filters.materiais.some((m) => (p.materials || '').toLowerCase().includes(m.toLowerCase()))
       );
     }
-
-    // Filtro por materiais já aplicado acima
 
     // Ordenar
     switch (sortBy) {
@@ -262,7 +279,7 @@ export default function Index() {
     }
 
     return result;
-  }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore, selectedExternalCategory]);
+  }, [filters, sortBy, selectedClient, searchQuery, realProducts, getColorMatchScore, selectedExternalCategory, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter]);
 
   // Paginated products
   const paginatedProducts = useMemo(() => {

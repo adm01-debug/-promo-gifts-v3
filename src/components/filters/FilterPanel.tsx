@@ -57,7 +57,10 @@ export interface FilterState {
   // Sistema hierárquico de Ramos de Atividade
   ramosAtividade: string[];      // slugs dos ramos (grupos pai)
   segmentosAtividade: string[];  // slugs dos segmentos (filhos)
-  materiais: string[];
+  // Sistema hierárquico de Materiais (usa tabela product_materials)
+  materialGroups: string[];      // slugs dos grupos (Tecidos, Metais, etc.)
+  materialTypes: string[];       // slugs dos tipos específicos (Algodão, etc.)
+  materiais: string[];           // Legado - mantido para compatibilidade
   priceRange: [number, number];
   inStock: boolean;
   isKit: boolean;
@@ -83,6 +86,8 @@ export const defaultFilters: FilterState = {
   endomarketing: [],
   ramosAtividade: [],
   segmentosAtividade: [],
+  materialGroups: [],
+  materialTypes: [],
   materiais: [],
   priceRange: [0, 500],
   inStock: false,
@@ -148,6 +153,23 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       });
     }
   }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes, materialGroups, allMaterials]);
+
+  // Sincronizar seleção de materiais do hook interno com o FilterState externo
+  useEffect(() => {
+    const currentMaterialGroups = filters.materialGroups || [];
+    const currentMaterialTypes = filters.materialTypes || [];
+    
+    const groupsChanged = JSON.stringify(currentMaterialGroups.sort()) !== JSON.stringify(materialFilterState.selectedGroups.sort());
+    const typesChanged = JSON.stringify(currentMaterialTypes.sort()) !== JSON.stringify(materialFilterState.selectedTypes.sort());
+    
+    if (groupsChanged || typesChanged) {
+      onFilterChange({
+        ...filters,
+        materialGroups: materialFilterState.selectedGroups,
+        materialTypes: materialFilterState.selectedTypes,
+      });
+    }
+  }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
