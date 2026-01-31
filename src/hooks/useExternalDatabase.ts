@@ -104,6 +104,7 @@ interface QueryOptions {
   select?: string;
   orderBy?: { column: string; ascending?: boolean };
   limit?: number;
+  offset?: number;
 }
 
 interface QueryResult<T> {
@@ -143,6 +144,7 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
           select: options?.select,
           orderBy: options?.orderBy,
           limit: options?.limit,
+          offset: options?.offset,
         },
       });
 

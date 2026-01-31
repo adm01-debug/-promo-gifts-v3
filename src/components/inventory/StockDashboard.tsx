@@ -247,19 +247,19 @@ export function StockDashboard() {
         />
         <StatCard
           title="Em Estoque"
-          value={summary.inStock}
+          value={summary.productsInStock}
           icon={<CheckCircle2 className="h-6 w-6 text-green-600" />}
           variant="success"
         />
         <StatCard
           title="Estoque Baixo"
-          value={summary.lowStock + summary.critical}
+          value={summary.productsLowStock + summary.productsCritical}
           icon={<TrendingDown className="h-6 w-6 text-amber-600" />}
           variant="warning"
         />
         <StatCard
           title="Sem Estoque"
-          value={summary.outOfStock}
+          value={summary.productsOutOfStock}
           icon={<XCircle className="h-6 w-6 text-red-600" />}
           variant="error"
         />
