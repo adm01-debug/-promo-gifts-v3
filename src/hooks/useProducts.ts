@@ -94,10 +94,22 @@ function detectColorGroup(colorName: string): string {
 }
 
 // Converte array de cores para formato padronizado
+// Suporta arrays de strings ["Branco", "Azul"] ou objetos [{name, hex, group}]
 function normalizeColors(colors: any[] | undefined): ProductColor[] {
   if (!colors || !Array.isArray(colors)) return [];
   
   return colors.map((c: any) => {
+    // Se c é uma string simples (ex: "Branco"), converte para objeto
+    if (typeof c === 'string') {
+      const name = c || 'Sem cor';
+      return {
+        name,
+        hex: '#CCCCCC', // Cor padrão - será substituída se disponível
+        group: detectColorGroup(name),
+      };
+    }
+    
+    // Se c é um objeto com propriedades
     const name = c.name || c.color_name || 'Sem cor';
     const group = c.group || c.color_group || detectColorGroup(name);
     
