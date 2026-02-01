@@ -22,6 +22,8 @@ export { RelatedProducts, RecommendedProducts } from "./RelatedProducts";
 export { ProductCustomizationOptions } from "./ProductCustomizationOptions";
 export { ProductPersonalizationRules } from "./ProductPersonalizationRules";
 export { ProductIntelligence } from "./ProductIntelligence";
+export { PackagingBadge } from "./PackagingBadge";
+export { PackagingModal } from "./PackagingModal";
 
 // Hover & Quick Actions
 export { ProductHoverPreview } from "./ProductHoverPreview";

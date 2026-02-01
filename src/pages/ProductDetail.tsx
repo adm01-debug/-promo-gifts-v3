@@ -23,6 +23,8 @@ import { SupplierComparisonModal } from "@/components/compare/SupplierComparison
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductInfoBar } from "@/components/products/ProductInfoBar";
 import { FutureStockModal } from "@/components/products/FutureStockModal";
+import { PackagingBadge } from "@/components/products/PackagingBadge";
+import { PackagingModal } from "@/components/products/PackagingModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -55,6 +57,7 @@ export default function ProductDetail() {
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
+  const [packagingModalOpen, setPackagingModalOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedContext();
   const { products: allProducts } = useProductsContext();
 
@@ -211,6 +214,13 @@ export default function ProductDetail() {
                     KIT
                   </Badge>
                 )}
+                
+                {/* Badge de Embalagem Especial */}
+                <PackagingBadge
+                  packingType={product.packingType}
+                  packingClassification={product.packingClassification}
+                  onClick={() => setPackagingModalOpen(true)}
+                />
               </div>
 
               {/* Title */}
@@ -484,6 +494,20 @@ export default function ProductDetail() {
           productId={product.id}
           productName={product.name}
           productSku={product.sku}
+        />
+
+        {/* Packaging Modal */}
+        <PackagingModal
+          isOpen={packagingModalOpen}
+          onClose={() => setPackagingModalOpen(false)}
+          packingType={product.packingType}
+          boxImage={product.boxImage}
+          boxWidthMm={product.boxWidthMm}
+          boxHeightMm={product.boxHeightMm}
+          boxLengthMm={product.boxLengthMm}
+          boxWeightKg={product.boxWeightKg}
+          boxQuantity={product.boxQuantity}
+          boxVolumeCm3={product.boxVolumeCm3}
         />
 
         {/* Trust Badges */}
