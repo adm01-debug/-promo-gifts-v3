@@ -426,21 +426,23 @@ export function ProductCard({
         </div>
 
         {/* Materials - Hidden on mobile */}
-        <div className="hidden sm:flex flex-wrap gap-1.5 pt-2 border-t border-border/50">
-          {product.materials.slice(0, 2).map((material) => (
-            <span
-              key={material}
-              className="text-xs px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium"
-            >
-              {material}
-            </span>
-          ))}
-          {product.materials.length > 2 && (
-            <span className="text-xs px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium">
-              +{product.materials.length - 2}
-            </span>
-          )}
-        </div>
+        {Array.isArray(product.materials) && product.materials.length > 0 && (
+          <div className="hidden sm:flex flex-wrap gap-1.5 pt-2 border-t border-border/50">
+            {product.materials.slice(0, 2).map((material) => (
+              <span
+                key={material}
+                className="text-xs px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium"
+              >
+                {material}
+              </span>
+            ))}
+            {product.materials.length > 2 && (
+              <span className="text-xs px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium">
+                +{product.materials.length - 2}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Collection Modal */}

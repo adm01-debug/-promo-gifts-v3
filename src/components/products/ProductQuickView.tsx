@@ -273,19 +273,21 @@ export function ProductQuickView({
             )}
 
             {/* Materials */}
-            <div className="mt-4 space-y-2">
-              <p className="text-sm font-medium text-foreground">Materiais</p>
-              <div className="flex flex-wrap gap-2">
-                {product.materials.map((material) => (
-                  <span
-                    key={material}
-                    className="text-xs px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium"
-                  >
-                    {material}
-                  </span>
-                ))}
+            {Array.isArray(product.materials) && product.materials.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium text-foreground">Materiais</p>
+                <div className="flex flex-wrap gap-2">
+                  {product.materials.map((material) => (
+                    <span
+                      key={material}
+                      className="text-xs px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium"
+                    >
+                      {material}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Quantity */}
             <div className="mt-4 space-y-2">

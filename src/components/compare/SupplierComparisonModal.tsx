@@ -325,17 +325,19 @@ export function SupplierComparisonModal({
                       </Badge>
                     )}
                   </p>
-                  <div className="flex flex-wrap gap-1">
-                    {product.materials.map((material) => (
-                      <Badge
-                        key={material}
-                        variant="outline"
-                        className="text-xs"
-                      >
-                        {material}
-                      </Badge>
-                    ))}
-                  </div>
+                  {Array.isArray(product.materials) && product.materials.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {product.materials.map((material) => (
+                        <Badge
+                          key={material}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {material}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

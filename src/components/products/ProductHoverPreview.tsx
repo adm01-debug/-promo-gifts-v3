@@ -126,13 +126,15 @@ export function ProductHoverPreview({
           )}
           
           {/* Materials */}
-          <div className="flex flex-wrap gap-1">
-            {product.materials.slice(0, 3).map((material) => (
-              <Badge key={material} variant="secondary" className="text-xs py-0 h-5">
-                {material}
-              </Badge>
-            ))}
-          </div>
+          {Array.isArray(product.materials) && product.materials.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {product.materials.slice(0, 3).map((material) => (
+                <Badge key={material} variant="secondary" className="text-xs py-0 h-5">
+                  {material}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </HoverCardContent>
     </HoverCard>
