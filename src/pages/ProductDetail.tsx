@@ -478,6 +478,7 @@ export default function ProductDetail() {
         <FutureStockModal
           open={futureStockOpen}
           onOpenChange={setFutureStockOpen}
+          productId={product.id}
           productName={product.name}
           productSku={product.sku}
           colors={product.colors || []}
