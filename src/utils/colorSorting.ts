@@ -1,5 +1,6 @@
 // Utilitário para ordenação padronizada de cores
 // Ordem: Preto → Branco → Azuis → Verdes → Vermelhos → Amarelos → Laranjas → Rosas → Roxos → Marrons → Cinzas → Outros
+// Dentro de cada grupo: Escuro → Claro
 
 const COLOR_GROUP_ORDER: Record<string, number> = {
   // Neutros primeiro
@@ -80,6 +81,32 @@ const COLOR_GROUP_ORDER: Record<string, number> = {
   chumbo: 11,
 };
 
+// Palavras que indicam tons escuros (prioridade menor = aparece primeiro)
+const DARK_MODIFIERS: string[] = [
+  'escuro', 'dark', 'noite', 'night', 'deep', 'profundo',
+  'marinho', 'navy', 'midnight', 'meia-noite',
+  'petróleo', 'petroleum', 'militar', 'musgo', 'floresta', 'forest',
+  'vinho', 'bordô', 'burgundy', 'oxblood',
+  'chocolate', 'café', 'coffee', 'mogno'
+];
+
+// Palavras que indicam tons claros (prioridade maior = aparece depois)
+const LIGHT_MODIFIERS: string[] = [
+  'claro', 'light', 'baby', 'bebê', 'pastel', 'soft', 'suave',
+  'celeste', 'sky', 'céu', 'agua', 'água', 'aqua',
+  'lima', 'lime', 'menta', 'mint', 'pistache',
+  'salmão', 'salmon', 'coral', 'pêssego', 'peach',
+  'rosa', 'pink', 'blush', 'nude', 'bege', 'creme', 'cream',
+  'lilás', 'lavanda', 'lavender',
+  'gelo', 'ice', 'neve', 'snow', 'off-white', 'offwhite'
+];
+
+// Palavras que indicam tons médios/vibrantes
+const MEDIUM_MODIFIERS: string[] = [
+  'royal', 'real', 'neon', 'fluorescente', 'vivo', 'brilhante', 'bright',
+  'elétrico', 'electric', 'turquesa', 'turquoise', 'tiffany'
+];
+
 /**
  * Detecta o grupo de cor baseado no nome
  */
@@ -99,41 +126,128 @@ function getColorGroup(colorName: string): number {
 }
 
 /**
+ * Calcula luminosidade a partir de um hex color (0 = escuro, 1 = claro)
+ */
+function getLuminanceFromHex(hex: string | undefined): number {
+  if (!hex) return 0.5; // Valor médio se não há hex
+  
+  // Remove # se existir
+  const cleanHex = hex.replace('#', '');
+  
+  // Converte para RGB
+  const r = parseInt(cleanHex.substring(0, 2), 16) / 255;
+  const g = parseInt(cleanHex.substring(2, 4), 16) / 255;
+  const b = parseInt(cleanHex.substring(4, 6), 16) / 255;
+  
+  // Fórmula de luminância relativa (percepção humana)
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+/**
+ * Detecta prioridade de luminosidade baseado no nome da cor
+ * Retorna: 1 = escuro, 2 = médio, 3 = claro
+ */
+function getLuminosityPriority(colorName: string): number {
+  const normalized = colorName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  
+  // Verifica se tem modificadores escuros
+  for (const modifier of DARK_MODIFIERS) {
+    const normalizedMod = modifier.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (normalized.includes(normalizedMod)) {
+      return 1; // Escuro primeiro
+    }
+  }
+  
+  // Verifica se tem modificadores claros
+  for (const modifier of LIGHT_MODIFIERS) {
+    const normalizedMod = modifier.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (normalized.includes(normalizedMod)) {
+      return 3; // Claro por último
+    }
+  }
+  
+  // Verifica se tem modificadores médios/vibrantes
+  for (const modifier of MEDIUM_MODIFIERS) {
+    const normalizedMod = modifier.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (normalized.includes(normalizedMod)) {
+      return 2; // Médio no meio
+    }
+  }
+  
+  // Padrão: médio
+  return 2;
+}
+
+/**
  * Ordena um array de itens por cor seguindo a ordem padrão
+ * Primeiro por grupo de cor, depois do escuro para o claro
  * @param items Array de itens com propriedade de cor
  * @param getColorName Função para extrair o nome da cor do item
+ * @param getHex Função opcional para extrair o hex da cor (para ordenação mais precisa)
  */
 export function sortByColorGroup<T>(
   items: T[],
-  getColorName: (item: T) => string
+  getColorName: (item: T) => string,
+  getHex?: (item: T) => string | undefined
 ): T[] {
   return [...items].sort((a, b) => {
     const groupA = getColorGroup(getColorName(a));
     const groupB = getColorGroup(getColorName(b));
     
+    // Primeiro ordena por grupo de cor
     if (groupA !== groupB) {
       return groupA - groupB;
     }
     
-    // Dentro do mesmo grupo, ordena alfabeticamente
+    // Dentro do mesmo grupo, ordena do escuro para o claro
+    const lumPriorityA = getLuminosityPriority(getColorName(a));
+    const lumPriorityB = getLuminosityPriority(getColorName(b));
+    
+    if (lumPriorityA !== lumPriorityB) {
+      return lumPriorityA - lumPriorityB;
+    }
+    
+    // Se temos hex disponível, usa luminância real como desempate
+    if (getHex) {
+      const hexA = getHex(a);
+      const hexB = getHex(b);
+      if (hexA && hexB) {
+        const lumA = getLuminanceFromHex(hexA);
+        const lumB = getLuminanceFromHex(hexB);
+        // Escuro primeiro (menor luminância primeiro)
+        if (Math.abs(lumA - lumB) > 0.05) {
+          return lumA - lumB;
+        }
+      }
+    }
+    
+    // Fallback: ordena alfabeticamente
     return getColorName(a).localeCompare(getColorName(b), 'pt-BR');
   });
 }
 
 /**
- * Ordena variações de produto por cor
+ * Ordena variações de produto por cor (escuro → claro)
  */
-export function sortVariationsByColor<T extends { color: { name: string } }>(
+export function sortVariationsByColor<T extends { color: { name: string; hex?: string } }>(
   variations: T[]
 ): T[] {
-  return sortByColorGroup(variations, (v) => v.color.name);
+  return sortByColorGroup(
+    variations, 
+    (v) => v.color.name,
+    (v) => v.color.hex
+  );
 }
 
 /**
- * Ordena resumo de cores (para FutureStockModal)
+ * Ordena resumo de cores para FutureStockModal (escuro → claro)
  */
-export function sortColorSummary<T extends { name: string }>(
+export function sortColorSummary<T extends { name: string; hex?: string }>(
   colors: T[]
 ): T[] {
-  return sortByColorGroup(colors, (c) => c.name);
+  return sortByColorGroup(
+    colors, 
+    (c) => c.name,
+    (c) => c.hex
+  );
 }

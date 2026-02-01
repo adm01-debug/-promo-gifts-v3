@@ -287,7 +287,8 @@ export function ProductGallery({
       {/* Color Variations - Cards verticais abaixo da foto principal */}
       {colors && colors.length > 0 && (() => {
         // Ordenar cores seguindo o padrão: Preto → Branco → Azuis → Verdes → etc
-        const sortedColors = sortByColorGroup(colors, (c) => c.name);
+        // Dentro de cada grupo: escuro → claro (usando hex para precisão)
+        const sortedColors = sortByColorGroup(colors, (c) => c.name, (c) => c.hex);
         
         return (
         <div className="space-y-3 animate-fade-in">
