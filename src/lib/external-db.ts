@@ -104,12 +104,13 @@ export interface PromobrindProduct {
   supplier_name?: string | null;   // Enriquecido em runtime
   description: string | null;
   short_description: string | null;
+  meta_description?: string | null; // Fallback para description
   brand: string | null;
   is_active: boolean;
   active: boolean;                 // Alias no schema externo
   stock_quantity?: number | null;
   colors?: any[] | null;
-  materials?: string | null;       // É string no schema, não array
+  materials?: string[] | any[] | null; // Pode ser array de strings ou enriquecido
   dimensions?: string | null;
   min_quantity?: number | null;
 }
@@ -124,13 +125,13 @@ export interface PromobrindProduct {
 const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, base_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
-  'short_description, brand, is_active, active, stock_quantity, colors, ' +
+  'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity';
 
 const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, base_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
-  'short_description, brand, is_active, active, stock_quantity, colors, ' +
+  'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity';
 
 function shouldFallbackSalePriceSelect(err: unknown) {
@@ -347,6 +348,11 @@ export async function fetchPromobrindProductById(
   // O campo colors da tabela products contém apenas strings ["Azul", "Preto"]
   // Precisamos dos dados completos das variantes
   if (product) {
+    // Se description está vazio, usar meta_description como fallback
+    if (!product.description && product.meta_description) {
+      product.description = product.meta_description;
+    }
+
     // Buscar nome do fornecedor se tiver supplier_id
     if (product.supplier_id) {
       try {
@@ -362,6 +368,53 @@ export async function fetchPromobrindProductById(
         }
       } catch (err) {
         console.warn('Não foi possível buscar nome do fornecedor:', err);
+      }
+    }
+
+    // Buscar materiais da tabela product_materials + material_types
+    // Se o array materials está vazio, enriquecer com dados relacionais
+    if (!product.materials || (Array.isArray(product.materials) && product.materials.length === 0)) {
+      try {
+        const materialsResult = await invokeExternalDb<{
+          product_id: string;
+          material_id: string;
+          part: string | null;
+        }>({
+          table: 'product_materials',
+          operation: 'select',
+          select: 'product_id, material_id, part',
+          filters: { product_id: productId, is_active: true },
+          limit: 20,
+        });
+
+        if (materialsResult.records.length > 0) {
+          // Buscar nomes dos materiais
+          const materialIds = materialsResult.records.map(m => m.material_id);
+          const materialNames: string[] = [];
+
+          for (const materialId of materialIds) {
+            try {
+              const typeResult = await invokeExternalDb<{ id: string; name: string }>({
+                table: 'material_types',
+                operation: 'select',
+                select: 'id, name',
+                filters: { id: materialId },
+                limit: 1,
+              });
+              if (typeResult.records[0]?.name) {
+                materialNames.push(typeResult.records[0].name);
+              }
+            } catch {
+              // Ignora erro individual
+            }
+          }
+
+          if (materialNames.length > 0) {
+            product.materials = materialNames;
+          }
+        }
+      } catch (err) {
+        console.warn('Não foi possível buscar materiais do produto:', err);
       }
     }
 
