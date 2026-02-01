@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles } from "lucide-react";
+import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,7 +11,7 @@ import { ProductQuickView } from "./ProductQuickView";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { NoveltyBadge } from "./NoveltyBadge";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
-import { getSupplierBadgeClasses } from "@/lib/supplier-colors";
+import { getSupplierColors } from "@/lib/supplier-colors";
 
 export interface ProductCardProps {
   product: Product;
@@ -400,11 +400,9 @@ export function ProductCard({
             {product.sku}
           </span>
           
-          {/* Nome do fornecedor - cores específicas por fornecedor */}
-          <span className={cn(
-            "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium shrink-0 truncate max-w-[120px]",
-            getSupplierBadgeClasses(product.supplier.name)
-          )}>
+          {/* Nome do fornecedor - badge neutro */}
+          <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium shrink-0 truncate max-w-[120px] flex items-center gap-1">
+            <Building2 className={cn("h-3 w-3 shrink-0", getSupplierColors(product.supplier.name).text)} />
             {product.supplier.name}
           </span>
         </div>
