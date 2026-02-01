@@ -210,8 +210,8 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
       name: p.category_name || "Sem categoria",
     },
     supplier: {
-      id: p.supplier_reference || p.brand || "unknown",
-      name: p.brand || "Fornecedor",
+      id: p.supplier_id || p.supplier_reference || p.brand || "unknown",
+      name: p.supplier_name || p.brand || "Fornecedor",
     },
     tags: {
       publicoAlvo: [],
