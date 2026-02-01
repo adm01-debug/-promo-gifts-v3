@@ -38,7 +38,6 @@ export interface Product {
     length_cm?: number | null;
     diameter_cm?: number | null;
     weight_g?: number | null;
-    weight_kg?: number | null;
   };
 
   // Campos adicionais para compatibilidade com componentes mock
@@ -238,7 +237,6 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
       length_cm: p.length_cm,
       diameter_cm: p.diameter_cm,
       weight_g: p.weight_g,
-      weight_kg: p.weight_kg,
     },
     
     // Variações (para exibir estoque por cor e thumbnails na galeria)

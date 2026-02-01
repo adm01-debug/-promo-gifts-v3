@@ -7,26 +7,22 @@ interface ProductDimensionsProps {
     length_cm?: number | null;
     diameter_cm?: number | null;
     weight_g?: number | null;
-    weight_kg?: number | null;
   };
 }
 
 export function ProductDimensions({ dimensions }: ProductDimensionsProps) {
   if (!dimensions) return null;
 
-  const { height_cm, width_cm, length_cm, diameter_cm, weight_g, weight_kg } = dimensions;
+  const { height_cm, width_cm, length_cm, diameter_cm, weight_g } = dimensions;
   
   // Verifica se há pelo menos uma dimensão disponível
   const hasDimensions = height_cm || width_cm || length_cm || diameter_cm;
-  const hasWeight = weight_g || weight_kg;
+  const hasWeight = weight_g;
   
   if (!hasDimensions && !hasWeight) return null;
 
   // Formata peso para exibição
   const formatWeight = () => {
-    if (weight_kg) {
-      return `${weight_kg.toLocaleString('pt-BR')} kg`;
-    }
     if (weight_g) {
       if (weight_g >= 1000) {
         return `${(weight_g / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg`;
