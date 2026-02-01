@@ -1,4 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
+import { useOrderFuzzySearch } from "@/hooks/useGenericFuzzySearch";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -64,13 +65,16 @@ export default function OrdersListPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.order_number.toLowerCase().includes(search.toLowerCase()) ||
-      order.client?.name?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  // Busca fuzzy de pedidos - tolerante a erros de digitação
+  const { results: fuzzyResults, hasSearch } = useOrderFuzzySearch(orders, search);
+
+  const filteredOrders = useMemo(() => {
+    const baseList = hasSearch ? fuzzyResults : orders;
+    return baseList.filter((order) => {
+      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      return matchesStatus;
+    });
+  }, [orders, fuzzyResults, hasSearch, statusFilter]);
 
   const stats = {
     total: orders.length,

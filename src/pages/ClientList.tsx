@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
+import { useClientFuzzySearch } from "@/hooks/useGenericFuzzySearch";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -108,22 +109,20 @@ export default function ClientList() {
     };
   }, [clients]);
 
-  // Filtrar clientes
-  const filteredClients = useMemo(() => {
-    return clients.filter((client) => {
-      const matchesSearch =
-        searchQuery === "" ||
-        client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        client.ramo?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        client.nicho?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        client.email?.toLowerCase().includes(searchQuery.toLowerCase());
+  // Busca fuzzy de clientes - tolerante a erros de digitação
+  const { results: fuzzyResults, hasSearch } = useClientFuzzySearch(clients, searchQuery);
 
+  // Filtrar clientes (aplicar filtros de ramo/nicho sobre resultados fuzzy)
+  const filteredClients = useMemo(() => {
+    const baseList = hasSearch ? fuzzyResults : clients;
+    
+    return baseList.filter((client) => {
       const matchesRamo = ramoFilter === "all" || client.ramo === ramoFilter;
       const matchesNicho = nichoFilter === "all" || client.nicho === nichoFilter;
 
-      return matchesSearch && matchesRamo && matchesNicho;
+      return matchesRamo && matchesNicho;
     });
-  }, [clients, searchQuery, ramoFilter, nichoFilter]);
+  }, [clients, fuzzyResults, hasSearch, ramoFilter, nichoFilter]);
 
   // Paginação
   const totalPages = Math.ceil(filteredClients.length / ITEMS_PER_PAGE);

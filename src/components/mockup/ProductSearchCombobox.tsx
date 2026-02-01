@@ -1,4 +1,5 @@
 import * as React from "react";
+import Fuse from "fuse.js";
 import { Check, ChevronsUpDown, Package, Search, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -49,18 +50,26 @@ export function ProductSearchCombobox({
   // Debounce search input for better performance
   const debouncedSearch = useDebounce(search, 300);
 
-  // Filter products based on debounced search
+  // Criar instância do Fuse.js para busca fuzzy
+  const fuse = React.useMemo(() => new Fuse(products, {
+    keys: [
+      { name: 'name', weight: 0.5 },
+      { name: 'sku', weight: 0.5 },
+    ],
+    threshold: 0.35,
+    distance: 100,
+    minMatchCharLength: 2,
+    ignoreLocation: true,
+  }), [products]);
+
+  // Filter products based on debounced search - busca fuzzy tolerante a erros
   const filteredProducts = React.useMemo(() => {
     setIsSearching(false);
     if (!debouncedSearch.trim()) return products.slice(0, 50); // Show first 50 when no search
     
-    const searchLower = debouncedSearch.toLowerCase();
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchLower) ||
-        product.sku.toLowerCase().includes(searchLower)
-    ).slice(0, 50);
-  }, [products, debouncedSearch]);
+    const fuseResults = fuse.search(debouncedSearch);
+    return fuseResults.map(r => r.item).slice(0, 50);
+  }, [products, debouncedSearch, fuse]);
 
   // Show searching indicator when typing
   React.useEffect(() => {

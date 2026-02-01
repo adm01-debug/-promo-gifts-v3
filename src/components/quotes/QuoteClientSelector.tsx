@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useClientFuzzySearch } from "@/hooks/useGenericFuzzySearch";
 import { Check, ChevronsUpDown, Building2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -62,11 +63,8 @@ export function QuoteClientSelector({ selectedClient, onClientSelect }: QuoteCli
     }
   };
 
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.ramo?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Busca fuzzy de clientes - tolerante a erros de digitação
+  const { results: filteredClients } = useClientFuzzySearch(clients, searchQuery);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
