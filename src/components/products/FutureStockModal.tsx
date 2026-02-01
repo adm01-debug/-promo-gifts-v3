@@ -214,12 +214,12 @@ export function FutureStockModal({
                   )}
                 </div>
                 
-                {/* Cards de cor */}
+                {/* Grid de cores - compacto para exibir todas */}
                 <div className="space-y-2">
                   <span className="text-sm font-medium text-muted-foreground">
                     Filtrar por variação ({colorSummary.length} cores)
                   </span>
-                  <div className="flex gap-3 overflow-x-auto pb-2">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                     {colorSummary.map((color) => {
                       const hasEntries = color.incomingCount > 0;
                       const isSelected = selectedColor === color.name;
@@ -228,18 +228,19 @@ export function FutureStockModal({
                         <button
                           key={color.name}
                           onClick={() => setSelectedColor(isSelected ? null : color.name)}
+                          title={`${color.name}\nAtual: ${color.currentStock.toLocaleString("pt-BR")}\nPrevisto: +${color.incomingTotal.toLocaleString("pt-BR")}`}
                           className={cn(
-                            "shrink-0 rounded-xl overflow-hidden transition-all duration-200",
-                            "border bg-card hover:shadow-md",
-                            isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                            !hasEntries && "opacity-40"
+                            "relative rounded-lg overflow-hidden transition-all duration-200",
+                            "border bg-card hover:shadow-md hover:scale-105",
+                            isSelected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
+                            !hasEntries && "opacity-40 grayscale"
                           )}
                           style={{
                             borderColor: isSelected ? color.hex : undefined,
                           }}
                         >
                           {/* Imagem ou cor sólida */}
-                          <div className="w-20 aspect-square relative overflow-hidden">
+                          <div className="aspect-square relative overflow-hidden">
                             {color.thumbnail ? (
                               <img
                                 src={color.thumbnail}
@@ -249,24 +250,24 @@ export function FutureStockModal({
                             ) : (
                               <div
                                 className="w-full h-full"
-                                style={{ backgroundColor: color.hex }}
+                                style={{ backgroundColor: color.hex || '#888' }}
                               />
                             )}
                             {/* Badge de quantidade incoming */}
                             {hasEntries && (
-                              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center gap-0.5">
-                                <TrendingUp className="h-2.5 w-2.5" />
-                                {color.incomingTotal.toLocaleString("pt-BR")}
+                              <div className="absolute bottom-0.5 right-0.5 px-1 py-0.5 rounded bg-primary/90 text-primary-foreground text-[9px] font-bold">
+                                +{color.incomingTotal >= 1000 ? `${(color.incomingTotal / 1000).toFixed(1)}k` : color.incomingTotal}
                               </div>
                             )}
+                            {/* Estoque atual no topo */}
+                            <div className="absolute top-0.5 left-0.5 px-1 py-0.5 rounded bg-background/80 text-foreground text-[9px] font-medium">
+                              {color.currentStock >= 1000 ? `${(color.currentStock / 1000).toFixed(1)}k` : color.currentStock}
+                            </div>
                           </div>
-                          {/* Info */}
-                          <div className="p-2 text-center">
-                            <span className="text-xs font-medium truncate block">
+                          {/* Nome da cor */}
+                          <div className="p-1 text-center bg-card">
+                            <span className="text-[10px] font-medium truncate block leading-tight">
                               {color.name}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground">
-                              Atual: {color.currentStock.toLocaleString("pt-BR")}
                             </span>
                           </div>
                         </button>
