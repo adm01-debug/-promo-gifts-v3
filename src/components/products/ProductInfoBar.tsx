@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Building2, CalendarClock, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { getSupplierColors } from "@/lib/supplier-colors";
 interface ProductInfoBarProps {
   sku: string;
   supplierName: string;
+  supplierId?: string;
   onOpenFutureStock: () => void;
   onOpenSupplierComparison: () => void;
   hasFutureStock?: boolean;
@@ -16,10 +18,18 @@ interface ProductInfoBarProps {
 export function ProductInfoBar({
   sku,
   supplierName,
+  supplierId,
   onOpenFutureStock,
   onOpenSupplierComparison,
   hasFutureStock = true,
 }: ProductInfoBarProps) {
+  const navigate = useNavigate();
+
+  const handleSupplierClick = () => {
+    if (supplierId) {
+      navigate(`/filtros?supplier=${supplierId}`);
+    }
+  };
   return (
     <div className="flex items-center gap-3 flex-wrap">
       {/* SKU */}
@@ -30,21 +40,32 @@ export function ProductInfoBar({
         SKU: {sku}
       </Badge>
 
-      {/* Fornecedor - Ícone colorido, hover colorido */}
-      <Badge 
-        variant="outline" 
-        className="text-xs px-3 py-1.5 rounded-full font-medium border-border bg-card cursor-default transition-all duration-200 hover:scale-[1.02] group/supplier"
-        style={{
-          ['--supplier-color' as string]: getSupplierColors(supplierName).hex,
-        }}
-      >
-        <Building2 
-          className={cn("h-3.5 w-3.5 mr-1.5 transition-colors", getSupplierColors(supplierName).text)} 
-        />
-        <span className="group-hover/supplier:text-[var(--supplier-color)] transition-colors">
-          {supplierName}
-        </span>
-      </Badge>
+      {/* Fornecedor - Clicável, abre Super Filtro com esse fornecedor */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Badge 
+            variant="outline" 
+            className={cn(
+              "text-xs px-3 py-1.5 rounded-full font-medium border-border bg-card transition-all duration-200 hover:scale-[1.02] group/supplier",
+              supplierId && "cursor-pointer"
+            )}
+            style={{
+              ['--supplier-color' as string]: getSupplierColors(supplierName).hex,
+            }}
+            onClick={handleSupplierClick}
+          >
+            <Building2 
+              className={cn("h-3.5 w-3.5 mr-1.5 transition-colors", getSupplierColors(supplierName).text)} 
+            />
+            <span className="group-hover/supplier:text-[var(--supplier-color)] transition-colors">
+              {supplierName}
+            </span>
+          </Badge>
+        </TooltipTrigger>
+        <TooltipContent>
+          Ver todos os produtos de {supplierName}
+        </TooltipContent>
+      </Tooltip>
 
       {/* Estoque Futuro */}
       <Tooltip>

@@ -222,6 +222,7 @@ export default function ProductDetail() {
               <ProductInfoBar
                 sku={selectedVariation?.sku || product.sku}
                 supplierName={product.supplier.name}
+                supplierId={product.supplier.id}
                 onOpenFutureStock={() => setFutureStockOpen(true)}
                 onOpenSupplierComparison={() => setSupplierCompareOpen(true)}
               />
