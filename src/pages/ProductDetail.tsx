@@ -19,6 +19,7 @@ import { RelatedProducts, RecommendedProducts } from "@/components/products/Rela
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
+import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { Button } from "@/components/ui/button";
@@ -344,22 +345,27 @@ export default function ProductDetail() {
             </div>
 
             {/* Materials */}
-            <div className="space-y-3">
-              <h3 className="font-display text-lg font-semibold text-foreground">
-                Materiais
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {product.materials.map((material) => (
-                  <Badge 
-                    key={material} 
-                    variant="secondary"
-                    className="px-4 py-1.5 text-sm rounded-full"
-                  >
-                    {material}
-                  </Badge>
-                ))}
+            {product.materials && product.materials.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-display text-lg font-semibold text-foreground">
+                  Materiais
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {product.materials.map((material) => (
+                    <Badge 
+                      key={material} 
+                      variant="secondary"
+                      className="px-4 py-1.5 text-sm rounded-full"
+                    >
+                      {material}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Dimensions & Weight */}
+            <ProductDimensions dimensions={product.dimensions} />
 
             {/* Inline Price Calculator */}
             <InlinePriceCalculator

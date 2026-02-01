@@ -31,6 +31,16 @@ export interface Product {
   /** Quantidade mínima (compatibilidade com telas antigas/mock). */
   minQuantity: number;
 
+  // Dimensões físicas do produto
+  dimensions?: {
+    height_cm?: number | null;
+    width_cm?: number | null;
+    length_cm?: number | null;
+    diameter_cm?: number | null;
+    weight_g?: number | null;
+    weight_kg?: number | null;
+  };
+
   // Campos adicionais para compatibilidade com componentes mock
   stockStatus: "in-stock" | "low-stock" | "out-of-stock";
   featured: boolean;
@@ -219,6 +229,16 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
       endomarketing: [],
       ramo: [],
       nicho: [],
+    },
+    
+    // Dimensões físicas
+    dimensions: {
+      height_cm: p.height_cm,
+      width_cm: p.width_cm,
+      length_cm: p.length_cm,
+      diameter_cm: p.diameter_cm,
+      weight_g: p.weight_g,
+      weight_kg: p.weight_kg,
     },
     
     // Variações (para exibir estoque por cor e thumbnails na galeria)
