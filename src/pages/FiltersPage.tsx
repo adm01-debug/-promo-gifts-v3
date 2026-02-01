@@ -273,9 +273,10 @@ export default function FiltersPage() {
       result = [];
     }
 
-    // Filtro por fornecedores
+    // Filtro por fornecedores (por ID)
     if (filters.suppliers.length > 0) {
       result = result.filter((product) =>
+        filters.suppliers.includes(product.supplier?.id || '') ||
         filters.suppliers.includes(product.brand || '') ||
         filters.suppliers.includes(product.supplier_reference || '')
       );
