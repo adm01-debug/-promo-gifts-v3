@@ -65,6 +65,18 @@ export interface AdvancedFilterState {
   techniques: string[];
   tags: string[];
   
+  // Sistema hierárquico de cores (novo)
+  colorGroups: string[];      // slugs dos grupos (Azul, Verde, etc.)
+  colorVariations: string[];  // slugs das variações (Azul Royal, etc.)
+  colorNuances: string[];     // slugs das nuances (Metalizado, etc.)
+  
+  // Filtros de marketing (novo)
+  datasComemorativas: string[];
+  publicoAlvo: string[];
+  endomarketing: string[];
+  ramosAtividade: string[];      // slugs dos ramos (grupos pai)
+  segmentosAtividade: string[];  // slugs dos segmentos (filhos)
+  
   // Faixa de preço
   priceRange: [number, number];
   
@@ -96,6 +108,14 @@ export const defaultAdvancedFilters: AdvancedFilterState = {
   materials: [],
   techniques: [],
   tags: [],
+  colorGroups: [],
+  colorVariations: [],
+  colorNuances: [],
+  datasComemorativas: [],
+  publicoAlvo: [],
+  endomarketing: [],
+  ramosAtividade: [],
+  segmentosAtividade: [],
   priceRange: [0, 1000],
   quantityRange: [1, 10000],
   stockStatus: 'all',
@@ -298,6 +318,17 @@ export function useAdvancedFilters() {
     if (filters.materials.length) count += filters.materials.length;
     if (filters.techniques.length) count += filters.techniques.length;
     if (filters.tags.length) count += filters.tags.length;
+    // Cores hierárquicas
+    if (filters.colorGroups.length) count += filters.colorGroups.length;
+    if (filters.colorVariations.length) count += filters.colorVariations.length;
+    if (filters.colorNuances.length) count += filters.colorNuances.length;
+    // Filtros de marketing
+    if (filters.datasComemorativas.length) count += filters.datasComemorativas.length;
+    if (filters.publicoAlvo.length) count += filters.publicoAlvo.length;
+    if (filters.endomarketing.length) count += filters.endomarketing.length;
+    if (filters.ramosAtividade.length) count += filters.ramosAtividade.length;
+    if (filters.segmentosAtividade.length) count += filters.segmentosAtividade.length;
+    // Ranges e opções
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 1000) count++;
     if (filters.quantityRange[0] > 1 || filters.quantityRange[1] < 10000) count++;
     if (filters.stockStatus !== 'all') count++;

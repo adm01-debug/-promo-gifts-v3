@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   ChevronDown, 
   ChevronUp, 
-  Palette, 
   RefreshCw,
   Package,
   Truck,
@@ -16,7 +15,11 @@ import {
   Paintbrush,
   Search,
   X,
-  Gem
+  Gem,
+  Calendar,
+  Users,
+  Building2,
+  Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -43,7 +46,28 @@ import {
   CategoryOption,
 } from "@/hooks/useAdvancedFilters";
 import { useMaterialFilter } from "@/hooks/useMaterialFilter";
+import { useRamoAtividadeFilter } from "@/hooks/useRamoAtividadeFilter";
 import { MaterialBadge } from "@/components/materials/MaterialBadge";
+import { RamoAtividadeBadge } from "@/components/ramo-atividade/RamoAtividadeBadge";
+import { RamoAtividadeGroupAccordion } from "@/components/ramo-atividade/RamoAtividadeGroupAccordion";
+import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
+import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
+import { PUBLICO_ALVO, ENDOMARKETING } from "@/data/mockData";
+
+// Função para padronizar texto: primeira letra maiúscula, resto minúsculo
+const toTitleCase = (str: string): string => {
+  const prepositions = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'com', 'por'];
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      if (index > 0 && prepositions.includes(word)) {
+        return word;
+      }
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};
 
 interface AdvancedFilterPanelProps {
   filters: AdvancedFilterState;
@@ -60,16 +84,16 @@ export function AdvancedFilterPanel({
   activeFiltersCount,
   className 
 }: AdvancedFilterPanelProps) {
-  const [openSections, setOpenSections] = useState<string[]>(['search', 'categories', 'stock', 'materials']);
+  const [openSections, setOpenSections] = useState<string[]>(['search', 'categories', 'stock', 'materials', 'colors']);
   const [categorySearch, setCategorySearch] = useState('');
   const [materialSearch, setMaterialSearch] = useState('');
+  const [ramoSearch, setRamoSearch] = useState('');
   
   const {
     isLoading,
     categoryOptions,
     techniqueOptions,
     supplierOptions,
-    colorOptions,
     tagOptions,
   } = useAdvancedFilters();
 
@@ -85,6 +109,16 @@ export function AdvancedFilterPanel({
     isGroupSelected: isMaterialGroupSelected,
     getTypesForGroup,
   } = useMaterialFilter();
+
+  // Hook de Ramos de Atividade
+  const {
+    groups: ramoGroups,
+    segmentos: allSegmentos,
+    isLoading: ramosLoading,
+    totalGroups: totalRamoGroups,
+    totalSegmentos: totalRamoSegmentos,
+    getSegmentosForRamo,
+  } = useRamoAtividadeFilter();
 
   // Expandir automaticamente grupos com materiais selecionados
   React.useEffect(() => {
@@ -343,36 +377,26 @@ export function AdvancedFilterPanel({
           </div>
         </FilterSection>
 
-        {/* Cores */}
-        <FilterSection 
-          id="colors" 
-          title="Cores" 
-          icon={<Palette className="h-4 w-4" />}
-          badge={filters.colors.length}
-        >
-          <div className="flex flex-wrap gap-2">
-            {colorOptions.map(color => (
-              <button
-                key={color.id}
-                onClick={() => toggleArrayFilter('colors', color.id)}
-                className={cn(
-                  "w-7 h-7 rounded-full border-2 transition-all hover:scale-110",
-                  filters.colors.includes(color.id) 
-                    ? "ring-2 ring-primary ring-offset-2 ring-offset-background" 
-                    : "border-border"
-                )}
-                style={{ 
-                  backgroundColor: color.hex,
-                  borderColor: color.hex === '#FFFFFF' ? 'hsl(var(--border))' : 'transparent'
-                }}
-                title={color.name}
-              />
-            ))}
-            {colorOptions.length === 0 && (
-              <p className="text-sm text-muted-foreground">Carregando cores...</p>
-            )}
-          </div>
-        </FilterSection>
+        {/* Cores - Sistema Hierárquico */}
+        <div className="py-3">
+          <ColorGroupFilter
+            selection={{
+              groups: filters.colorGroups || [],
+              variations: filters.colorVariations || [],
+              nuances: filters.colorNuances || [],
+            }}
+            onChange={(selection: ColorFilterSelection) => {
+              onFilterChange({
+                ...filters,
+                colorGroups: selection.groups,
+                colorVariations: selection.variations,
+                colorNuances: selection.nuances,
+              });
+            }}
+            showNuances={true}
+            showVariations={true}
+          />
+        </div>
 
         {/* Materiais - Design Aprimorado */}
         <FilterSection 
@@ -802,6 +826,214 @@ export function AdvancedFilterPanel({
                 placeholder="Máx."
               />
             </div>
+          </div>
+        </FilterSection>
+
+        {/* Datas Comemorativas */}
+        <FilterSection 
+          id="datas-comemorativas" 
+          title="Datas Comemorativas" 
+          icon={<Calendar className="h-4 w-4" />}
+          badge={(filters.datasComemorativas?.length || 0)}
+        >
+          <CommemorativeDateFilter
+            selectedDate={(filters.datasComemorativas || [])[0] || null}
+            onSelectDate={(slug) => {
+              onFilterChange({
+                ...filters,
+                datasComemorativas: slug ? [slug] : [],
+              });
+            }}
+            compact
+          />
+        </FilterSection>
+
+        {/* Público-Alvo */}
+        <FilterSection 
+          id="publico" 
+          title="Público-Alvo" 
+          icon={<Users className="h-4 w-4" />}
+          badge={(filters.publicoAlvo?.length || 0)}
+        >
+          <ScrollArea className="h-40">
+            <div className="space-y-2 pr-3">
+              {[...PUBLICO_ALVO].sort((a, b) => a.localeCompare(b)).map((publico) => (
+                <div key={publico} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`adv-pub-${publico}`}
+                    checked={(filters.publicoAlvo || []).includes(publico)}
+                    onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
+                  />
+                  <Label htmlFor={`adv-pub-${publico}`} className="text-sm cursor-pointer">
+                    {toTitleCase(publico)}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </FilterSection>
+
+        {/* Endomarketing */}
+        <FilterSection 
+          id="endomarketing" 
+          title="Endomarketing" 
+          icon={<Briefcase className="h-4 w-4" />}
+          badge={(filters.endomarketing?.length || 0)}
+        >
+          <ScrollArea className="h-40">
+            <div className="space-y-2 pr-3">
+              {[...ENDOMARKETING].sort((a, b) => a.localeCompare(b)).map((endo) => (
+                <div key={endo} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`adv-endo-${endo}`}
+                    checked={(filters.endomarketing || []).includes(endo)}
+                    onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
+                  />
+                  <Label htmlFor={`adv-endo-${endo}`} className="text-sm cursor-pointer">
+                    {toTitleCase(endo)}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </FilterSection>
+
+        {/* Ramos de Atividade */}
+        <FilterSection 
+          id="ramos-atividade" 
+          title="Ramos de Atividade" 
+          icon={<Building2 className="h-4 w-4" />}
+          badge={(filters.ramosAtividade?.length || 0) + (filters.segmentosAtividade?.length || 0)}
+        >
+          <div className="space-y-3">
+            {/* Badges dos ramos selecionados */}
+            {((filters.ramosAtividade?.length || 0) > 0 || (filters.segmentosAtividade?.length || 0) > 0) && (
+              <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+                    <Building2 className="h-3 w-3" />
+                    Selecionados
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onFilterChange({
+                        ...filters,
+                        ramosAtividade: [],
+                        segmentosAtividade: [],
+                      });
+                    }}
+                    className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    Limpar todos
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {(filters.ramosAtividade || []).map(slug => {
+                    const ramo = ramoGroups.find(r => r.slug === slug);
+                    return ramo ? (
+                      <RamoAtividadeBadge
+                        key={`ramo-${slug}`}
+                        name={ramo.name}
+                        size="sm"
+                        variant="solid"
+                        onRemove={() => {
+                          onFilterChange({
+                            ...filters,
+                            ramosAtividade: (filters.ramosAtividade || []).filter(r => r !== slug),
+                          });
+                        }}
+                      />
+                    ) : null;
+                  })}
+                  {(filters.segmentosAtividade || []).map(slug => {
+                    const segmento = allSegmentos.find(s => s.slug === slug);
+                    return segmento ? (
+                      <RamoAtividadeBadge
+                        key={`seg-${slug}`}
+                        name={segmento.name}
+                        size="sm"
+                        variant="outline"
+                        onRemove={() => {
+                          onFilterChange({
+                            ...filters,
+                            segmentosAtividade: (filters.segmentosAtividade || []).filter(s => s !== slug),
+                          });
+                        }}
+                      />
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Busca de ramos */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar ramo..."
+                value={ramoSearch}
+                onChange={(e) => setRamoSearch(e.target.value)}
+                className="h-8 text-sm pl-8 pr-8"
+              />
+              {ramoSearch && (
+                <button
+                  type="button"
+                  onClick={() => setRamoSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Loading */}
+            {ramosLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-12 w-full rounded-lg" />
+                <Skeleton className="h-12 w-full rounded-lg" />
+              </div>
+            ) : (
+              <ScrollArea className="h-48">
+                <div className="space-y-1.5 pr-3">
+                  {ramoGroups
+                    .filter(ramo => 
+                      !ramoSearch || 
+                      ramo.name.toLowerCase().includes(ramoSearch.toLowerCase()) ||
+                      getSegmentosForRamo(ramo.slug).some(s => 
+                        s.name.toLowerCase().includes(ramoSearch.toLowerCase())
+                      )
+                    )
+                    .map(ramo => (
+                      <RamoAtividadeGroupAccordion
+                        key={ramo.id}
+                        ramo={ramo}
+                        segmentos={getSegmentosForRamo(ramo.slug)}
+                        selectedRamos={filters.ramosAtividade || []}
+                        selectedSegmentos={filters.segmentosAtividade || []}
+                        onToggleRamo={(slug) => {
+                          const current = filters.ramosAtividade || [];
+                          onFilterChange({
+                            ...filters,
+                            ramosAtividade: current.includes(slug)
+                              ? current.filter(r => r !== slug)
+                              : [...current, slug],
+                          });
+                        }}
+                        onToggleSegmento={(slug) => {
+                          const current = filters.segmentosAtividade || [];
+                          onFilterChange({
+                            ...filters,
+                            segmentosAtividade: current.includes(slug)
+                              ? current.filter(s => s !== slug)
+                              : [...current, slug],
+                          });
+                        }}
+                      />
+                    ))}
+                </div>
+              </ScrollArea>
+            )}
           </div>
         </FilterSection>
 
