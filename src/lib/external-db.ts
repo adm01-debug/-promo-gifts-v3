@@ -341,8 +341,10 @@ export async function fetchPromobrindProductById(
 
   const product = result.records[0] || null;
   
-  // Se o produto não tem cores ou tem array vazio, buscar das variantes
-  if (product && (!product.colors || product.colors.length === 0)) {
+  // SEMPRE buscar variantes para enriquecer cores com hex, stock e imagens
+  // O campo colors da tabela products contém apenas strings ["Azul", "Preto"]
+  // Precisamos dos dados completos das variantes
+  if (product) {
     try {
       const variantsResult = await invokeExternalDb<{
         product_id: string;
