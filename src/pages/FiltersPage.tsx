@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { PresetsBar } from "@/components/filters/PresetsBar";
@@ -33,13 +33,29 @@ import { toast } from "sonner";
 
 export default function FiltersPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isFavorite, toggleFavorite } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   
   // Buscar produtos reais do banco de dados
   const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
   
-  const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [filters, setFilters] = useState<FilterState>(() => {
+    // Verificar se há filtro de fornecedor na URL
+    const supplierParam = searchParams.get('supplier');
+    if (supplierParam) {
+      return { ...defaultFilters, suppliers: [supplierParam] };
+    }
+    return defaultFilters;
+  });
+
+  // Atualizar filtros quando a URL mudar
+  useEffect(() => {
+    const supplierParam = searchParams.get('supplier');
+    if (supplierParam && !filters.suppliers.includes(supplierParam)) {
+      setFilters(prev => ({ ...prev, suppliers: [supplierParam] }));
+    }
+  }, [searchParams]);
   
   // Hook para buscar produtos por materiais (usa tabela product_materials)
   const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
