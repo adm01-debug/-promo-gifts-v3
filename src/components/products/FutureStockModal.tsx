@@ -1,16 +1,20 @@
 import { useState, useMemo } from "react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addDays, isAfter, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarClock, Package, Truck, AlertTriangle, Calendar, Loader2, TrendingUp } from "lucide-react";
+import { CalendarClock, Package, Truck, AlertTriangle, Calendar, Loader2, TrendingUp, ArrowUpDown, Filter, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { 
   useProductVariantsWithStock,
   processStockEntries,
   calculateColorSummary,
 } from "@/hooks/useVariantSupplierSources";
+
+type SortOrder = "nearest" | "farthest" | "quantity-desc" | "quantity-asc";
+type DateFilter = "all" | "7days" | "30days" | "90days" | "past";
 
 interface FutureStockModalProps {
   open: boolean;
@@ -28,6 +32,8 @@ export function FutureStockModal({
   productSku,
 }: FutureStockModalProps) {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>("nearest");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   
   // Buscar variantes com dados de estoque/reposição
   const { data: variantsWithStock = [], isLoading, error } = useProductVariantsWithStock(productId);
@@ -44,13 +50,63 @@ export function FutureStockModal({
     [variantsWithStock, stockEntries]
   );
   
-  // Filtrar por cor se selecionada
-  const filteredEntries = selectedColor
-    ? stockEntries.filter(entry => entry.colorName === selectedColor)
-    : stockEntries;
+  // Aplicar filtros e ordenação
+  const filteredAndSortedEntries = useMemo(() => {
+    const now = new Date();
+    let entries = [...stockEntries];
+    
+    // Filtrar por cor
+    if (selectedColor) {
+      entries = entries.filter(entry => entry.colorName === selectedColor);
+    }
+    
+    // Filtrar por período
+    if (dateFilter !== "all") {
+      entries = entries.filter(entry => {
+        const entryDate = parseISO(entry.expectedDate);
+        switch (dateFilter) {
+          case "past":
+            return isBefore(entryDate, now);
+          case "7days":
+            return isAfter(entryDate, now) && isBefore(entryDate, addDays(now, 7));
+          case "30days":
+            return isAfter(entryDate, now) && isBefore(entryDate, addDays(now, 30));
+          case "90days":
+            return isAfter(entryDate, now) && isBefore(entryDate, addDays(now, 90));
+          default:
+            return true;
+        }
+      });
+    }
+    
+    // Ordenar
+    entries.sort((a, b) => {
+      switch (sortOrder) {
+        case "nearest":
+          return new Date(a.expectedDate).getTime() - new Date(b.expectedDate).getTime();
+        case "farthest":
+          return new Date(b.expectedDate).getTime() - new Date(a.expectedDate).getTime();
+        case "quantity-desc":
+          return b.expectedQuantity - a.expectedQuantity;
+        case "quantity-asc":
+          return a.expectedQuantity - b.expectedQuantity;
+        default:
+          return 0;
+      }
+    });
+    
+    return entries;
+  }, [stockEntries, selectedColor, dateFilter, sortOrder]);
   
   const hasNoFutureStock = stockEntries.length === 0;
   const hasVariants = variantsWithStock.length > 0;
+  const hasActiveFilters = selectedColor || dateFilter !== "all";
+  
+  const clearFilters = () => {
+    setSelectedColor(null);
+    setDateFilter("all");
+    setSortOrder("nearest");
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,75 +149,130 @@ export function FutureStockModal({
               </div>
             )}
             
-            {/* Filtro por cor - cards clicáveis */}
+            {/* Filtros e Ordenação */}
             {!isLoading && !error && colorSummary.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Filtrar por variação ({colorSummary.length} cores)
-                  </span>
-                  {selectedColor && (
+              <div className="space-y-4">
+                {/* Controles de filtro/ordenação */}
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Ordenação */}
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                    <Select value={sortOrder} onValueChange={(v) => setSortOrder(v as SortOrder)}>
+                      <SelectTrigger className="w-[160px] h-9 text-sm">
+                        <SelectValue placeholder="Ordenar por" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nearest">
+                          <span className="flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5" /> Mais próximo
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="farthest">
+                          <span className="flex items-center gap-2">
+                            <Calendar className="h-3.5 w-3.5" /> Mais distante
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="quantity-desc">
+                          <span className="flex items-center gap-2">
+                            <TrendingUp className="h-3.5 w-3.5" /> Maior qtd
+                          </span>
+                        </SelectItem>
+                        <SelectItem value="quantity-asc">
+                          <span className="flex items-center gap-2">
+                            <Package className="h-3.5 w-3.5" /> Menor qtd
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Filtro por período */}
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4 text-muted-foreground" />
+                    <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as DateFilter)}>
+                      <SelectTrigger className="w-[140px] h-9 text-sm">
+                        <SelectValue placeholder="Período" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as datas</SelectItem>
+                        <SelectItem value="7days">Próximos 7 dias</SelectItem>
+                        <SelectItem value="30days">Próximos 30 dias</SelectItem>
+                        <SelectItem value="90days">Próximos 90 dias</SelectItem>
+                        <SelectItem value="past">Atrasados</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Limpar filtros */}
+                  {hasActiveFilters && (
                     <button
-                      onClick={() => setSelectedColor(null)}
-                      className="text-xs text-primary hover:underline"
+                      onClick={clearFilters}
+                      className="text-xs text-primary hover:underline ml-auto"
                     >
-                      Ver todas
+                      Limpar filtros
                     </button>
                   )}
                 </div>
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {colorSummary.map((color) => {
-                    const hasEntries = color.incomingCount > 0;
-                    const isSelected = selectedColor === color.name;
-                    
-                    return (
-                      <button
-                        key={color.name}
-                        onClick={() => setSelectedColor(isSelected ? null : color.name)}
-                        className={cn(
-                          "shrink-0 rounded-xl overflow-hidden transition-all duration-200",
-                          "border bg-card hover:shadow-md",
-                          isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
-                          !hasEntries && "opacity-40"
-                        )}
-                        style={{
-                          borderColor: isSelected ? color.hex : undefined,
-                        }}
-                      >
-                        {/* Imagem ou cor sólida */}
-                        <div className="w-20 aspect-square relative overflow-hidden">
-                          {color.thumbnail ? (
-                            <img
-                              src={color.thumbnail}
-                              alt={color.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div
-                              className="w-full h-full"
-                              style={{ backgroundColor: color.hex }}
-                            />
+                
+                {/* Cards de cor */}
+                <div className="space-y-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Filtrar por variação ({colorSummary.length} cores)
+                  </span>
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {colorSummary.map((color) => {
+                      const hasEntries = color.incomingCount > 0;
+                      const isSelected = selectedColor === color.name;
+                      
+                      return (
+                        <button
+                          key={color.name}
+                          onClick={() => setSelectedColor(isSelected ? null : color.name)}
+                          className={cn(
+                            "shrink-0 rounded-xl overflow-hidden transition-all duration-200",
+                            "border bg-card hover:shadow-md",
+                            isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background",
+                            !hasEntries && "opacity-40"
                           )}
-                          {/* Badge de quantidade incoming */}
-                          {hasEntries && (
-                            <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center gap-0.5">
-                              <TrendingUp className="h-2.5 w-2.5" />
-                              {color.incomingTotal.toLocaleString("pt-BR")}
-                            </div>
-                          )}
-                        </div>
-                        {/* Info */}
-                        <div className="p-2 text-center">
-                          <span className="text-xs font-medium truncate block">
-                            {color.name}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground">
-                            Atual: {color.currentStock.toLocaleString("pt-BR")}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
+                          style={{
+                            borderColor: isSelected ? color.hex : undefined,
+                          }}
+                        >
+                          {/* Imagem ou cor sólida */}
+                          <div className="w-20 aspect-square relative overflow-hidden">
+                            {color.thumbnail ? (
+                              <img
+                                src={color.thumbnail}
+                                alt={color.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div
+                                className="w-full h-full"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                            )}
+                            {/* Badge de quantidade incoming */}
+                            {hasEntries && (
+                              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center gap-0.5">
+                                <TrendingUp className="h-2.5 w-2.5" />
+                                {color.incomingTotal.toLocaleString("pt-BR")}
+                              </div>
+                            )}
+                          </div>
+                          {/* Info */}
+                          <div className="p-2 text-center">
+                            <span className="text-xs font-medium truncate block">
+                              {color.name}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              Atual: {color.currentStock.toLocaleString("pt-BR")}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -199,11 +310,18 @@ export function FutureStockModal({
               </div>
             ) : !isLoading && !error && hasVariants && (
               <div className="space-y-3">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Previsões de reposição ({filteredEntries.length})
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Previsões de reposição ({filteredAndSortedEntries.length})
+                  </span>
+                  {filteredAndSortedEntries.length === 0 && hasActiveFilters && (
+                    <span className="text-xs text-muted-foreground">
+                      Nenhum resultado para os filtros selecionados
+                    </span>
+                  )}
+                </div>
                 <div className="space-y-3">
-                  {filteredEntries.map((entry) => {
+                  {filteredAndSortedEntries.map((entry) => {
                     const expectedDate = parseISO(entry.expectedDate);
                     const daysUntil = Math.ceil(
                       (expectedDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
@@ -292,7 +410,7 @@ export function FutureStockModal({
             )}
             
             {/* Resumo total */}
-            {!isLoading && !error && !hasNoFutureStock && (
+            {!isLoading && !error && !hasNoFutureStock && filteredAndSortedEntries.length > 0 && (
               <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -300,15 +418,17 @@ export function FutureStockModal({
                       <Truck className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <span className="font-medium text-foreground">Total previsto</span>
+                      <span className="font-medium text-foreground">
+                        {hasActiveFilters ? "Total filtrado" : "Total previsto"}
+                      </span>
                       <p className="text-sm text-muted-foreground">
-                        {filteredEntries.length} reposição(ões) agendada(s)
+                        {filteredAndSortedEntries.length} reposição(ões) agendada(s)
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-bold text-primary">
-                      +{filteredEntries.reduce((sum, e) => sum + e.expectedQuantity, 0).toLocaleString("pt-BR")}
+                      +{filteredAndSortedEntries.reduce((sum, e) => sum + e.expectedQuantity, 0).toLocaleString("pt-BR")}
                     </span>
                     <p className="text-xs text-muted-foreground">unidades no total</p>
                   </div>
