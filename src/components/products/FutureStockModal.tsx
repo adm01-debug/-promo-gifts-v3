@@ -380,6 +380,12 @@ export function FutureStockModal({
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5" />
                               {format(expectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                              <span className={cn(
+                                "ml-1 font-medium",
+                                isPast ? "text-destructive" : isUrgent ? "text-warning" : "text-foreground/70"
+                              )}>
+                                ({isPast ? `${Math.abs(daysUntil)} dias atrás` : daysUntil === 0 ? "hoje" : daysUntil === 1 ? "amanhã" : `${daysUntil} dias`})
+                              </span>
                             </span>
                             <span className="flex items-center gap-1">
                               <Package className="h-3.5 w-3.5" />
