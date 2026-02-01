@@ -184,7 +184,7 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
   return {
     id: p.id,
     name: p.name,
-    description: p.description || p.short_description,
+    description: p.description || p.short_description || p.meta_description,
     category_id: p.category_id || p.main_category_id,
     category_name: p.category_name || null,
     price: getProductPrice(p),
