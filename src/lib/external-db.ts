@@ -243,16 +243,29 @@ export async function fetchPromobrindProducts(options?: {
         color_name: string | null;
         color_hex: string | null;
         color_code: string | null;
+        sku: string | null;
+        stock_quantity: number | null;
+        images: string[] | null;
+        selected_images: string[] | null;
+        selected_thumbnail: string | null;
       }>({
         table: 'product_variants',
         operation: 'select',
-        select: 'product_id, color_name, color_hex, color_code',
+        select: 'product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
         filters: { is_active: true },
         limit: 5000,
       });
 
       // Agrupar cores por produto
-      const colorsByProduct = new Map<string, Array<{ name: string; hex: string; code: string }>>();
+      const colorsByProduct = new Map<string, Array<{ 
+        name: string; 
+        hex: string; 
+        code: string;
+        sku?: string;
+        stock?: number;
+        image?: string;
+        images?: string[];
+      }>>();
       
       variantsResult.records.forEach(variant => {
         if (!variant.color_name || !productIds.includes(variant.product_id)) return;
@@ -262,12 +275,24 @@ export async function fetchPromobrindProducts(options?: {
         }
         
         const colors = colorsByProduct.get(variant.product_id)!;
-        // Evitar duplicatas
+        // Evitar duplicatas por nome de cor
         if (!colors.some(c => c.name === variant.color_name)) {
+          // Determinar imagens da variante
+          const variantImages = variant.selected_images?.length 
+            ? variant.selected_images 
+            : variant.images?.length 
+              ? variant.images 
+              : [];
+          const thumbnailImage = variant.selected_thumbnail || variantImages[0] || null;
+          
           colors.push({
             name: variant.color_name,
             hex: variant.color_hex || '#CCCCCC',
             code: variant.color_code || '',
+            sku: variant.sku || undefined,
+            stock: variant.stock_quantity ?? undefined,
+            image: thumbnailImage || undefined,
+            images: variantImages.length > 0 ? variantImages : undefined,
           });
         }
       });
@@ -324,22 +349,47 @@ export async function fetchPromobrindProductById(
         color_name: string | null;
         color_hex: string | null;
         color_code: string | null;
+        sku: string | null;
+        stock_quantity: number | null;
+        images: string[] | null;
+        selected_images: string[] | null;
+        selected_thumbnail: string | null;
       }>({
         table: 'product_variants',
         operation: 'select',
-        select: 'product_id, color_name, color_hex, color_code',
+        select: 'product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
         filters: { product_id: productId, is_active: true },
         limit: 100,
       });
 
-      // Extrair cores únicas das variantes
-      const uniqueColors: Array<{ name: string; hex: string; code?: string }> = [];
+      // Extrair cores únicas das variantes com imagens
+      const uniqueColors: Array<{ 
+        name: string; 
+        hex: string; 
+        code?: string;
+        sku?: string;
+        stock?: number;
+        image?: string;
+        images?: string[];
+      }> = [];
       variantsResult.records.forEach(variant => {
         if (variant.color_name && !uniqueColors.some(c => c.name === variant.color_name)) {
+          // Determinar imagens da variante
+          const variantImages = variant.selected_images?.length 
+            ? variant.selected_images 
+            : variant.images?.length 
+              ? variant.images 
+              : [];
+          const thumbnailImage = variant.selected_thumbnail || variantImages[0] || null;
+          
           uniqueColors.push({
             name: variant.color_name,
             hex: variant.color_hex || '#CCCCCC',
             code: variant.color_code || '',
+            sku: variant.sku || undefined,
+            stock: variant.stock_quantity ?? undefined,
+            image: thumbnailImage || undefined,
+            images: variantImages.length > 0 ? variantImages : undefined,
           });
         }
       });
