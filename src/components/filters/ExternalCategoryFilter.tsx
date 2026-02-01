@@ -46,9 +46,12 @@ export function ExternalCategoryFilter({
   const { data: categoryIcons = [] } = useCategoryIcons();
   const { data: categories = [], isLoading, fetchAll } = useExternalCategories();
 
-  // Carregar categorias na montagem
+  // Carregar categorias na montagem (apenas se ainda não tem dados)
   React.useEffect(() => {
-    fetchAll({ filters: { is_active: true }, limit: 500 });
+    if (categories.length === 0 && !isLoading) {
+      fetchAll({ filters: { is_active: true }, limit: 500 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Construir árvore hierárquica
