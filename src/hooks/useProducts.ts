@@ -158,6 +158,28 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
   if (images.length === 0) {
     images = ['/placeholder.svg'];
   }
+
+  // Mapear variações (cores com estoque e imagens) para o formato esperado pelo ProductGallery
+  // A estrutura do p.colors quando vem enriquecida do external-db tem: name, hex, code, sku, stock, image, images
+  const variations: any[] = [];
+  if (p.colors && Array.isArray(p.colors)) {
+    p.colors.forEach((c: any, index: number) => {
+      if (typeof c === 'object' && c.name) {
+        variations.push({
+          id: `${p.id}-${index}`,
+          sku: c.sku || p.sku,
+          color: {
+            name: c.name,
+            hex: c.hex || '#CCCCCC',
+          },
+          stock: c.stock ?? 0,
+          image: c.image || null,
+          images: c.images || [],
+          videos: [],
+        });
+      }
+    });
+  }
   
   return {
     id: p.id,
@@ -198,6 +220,9 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
       ramo: [],
       nicho: [],
     },
+    
+    // Variações (para exibir estoque por cor e thumbnails na galeria)
+    variations: variations.length > 0 ? variations : undefined,
   };
 }
 
