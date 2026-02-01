@@ -244,54 +244,55 @@ export default function ProductDetail() {
                     </span>
                     <span className="text-lg text-muted-foreground ml-1">/un</span>
                   </div>
-                  {/* Estoque granular por cor */}
-                  <div className="flex flex-wrap items-center justify-end gap-2">
-                    {product.variations && product.variations.length > 0 ? (
-                      <>
-                        {product.variations.slice(0, 5).map((variation) => {
-                          const isSelected = selectedVariation?.id === variation.id;
-                          return (
-                            <button
-                              key={variation.id}
-                              onClick={() => setSelectedVariation(variation)}
-                              className={cn(
-                                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all",
-                                !isSelected && "bg-secondary/50 border border-border hover:bg-secondary",
-                                variation.stock === 0 && "opacity-50"
-                              )}
-                              style={isSelected ? {
-                                backgroundColor: `${variation.color.hex}20`,
-                                border: `1px solid ${variation.color.hex}`,
-                                boxShadow: `0 0 0 2px ${variation.color.hex}30`
-                              } : undefined}
-                            >
-                              <div
-                                className="w-3 h-3 rounded-full border border-white/20 shadow-sm"
-                                style={{ backgroundColor: variation.color.hex }}
-                              />
-                              <span className={cn(
-                                variation.stock === 0 ? "text-destructive" : variation.stock < 100 ? "text-warning" : "text-foreground"
-                              )}>
-                                {variation.stock.toLocaleString("pt-BR")}
-                              </span>
-                            </button>
-                          );
-                        })}
-                        {product.variations.length > 5 && (
-                          <span className="text-xs text-muted-foreground">+{product.variations.length - 5}</span>
-                        )}
-                      </>
-                    ) : (
-                      <span className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border",
-                        stockInfo.class
-                      )}>
-                        <Package className="h-4 w-4" />
-                        {product.stock.toLocaleString("pt-BR")} un.
-                      </span>
-                    )}
-                  </div>
                 </div>
+                
+                {/* Estoque granular por cor - TODAS as variações */}
+                {product.variations && product.variations.length > 0 ? (
+                  <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                    {product.variations.map((variation) => {
+                      const isSelected = selectedVariation?.id === variation.id;
+                      return (
+                        <button
+                          key={variation.id}
+                          onClick={() => setSelectedVariation(variation)}
+                          title={`${variation.color.name}: ${variation.stock.toLocaleString("pt-BR")} un.`}
+                          className={cn(
+                            "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all",
+                            !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
+                            variation.stock === 0 && "opacity-50"
+                          )}
+                          style={isSelected ? {
+                            backgroundColor: `${variation.color.hex}20`,
+                            border: `1px solid ${variation.color.hex}`,
+                            boxShadow: `0 0 0 2px ${variation.color.hex}30`
+                          } : undefined}
+                        >
+                          <div
+                            className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm shrink-0"
+                            style={{ backgroundColor: variation.color.hex }}
+                          />
+                          <span className={cn(
+                            variation.stock === 0 ? "text-destructive" : variation.stock < 100 ? "text-warning" : "text-foreground"
+                          )}>
+                            {variation.stock >= 1000 
+                              ? `${(variation.stock / 1000).toFixed(1)}k` 
+                              : variation.stock.toLocaleString("pt-BR")}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-end mt-3">
+                    <span className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border",
+                      stockInfo.class
+                    )}>
+                      <Package className="h-4 w-4" />
+                      {product.stock.toLocaleString("pt-BR")} un.
+                    </span>
+                  </div>
+                )}
 
                 <Separator className="bg-border/50" />
 
