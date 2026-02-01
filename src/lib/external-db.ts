@@ -99,7 +99,9 @@ export interface PromobrindProduct {
   primary_image_url: string | null;
   category_id: string | null;
   main_category_id: string | null; // Campo correto do schema
+  supplier_id: string | null;      // FK para tabela suppliers
   supplier_reference: string | null;
+  supplier_name?: string | null;   // Enriquecido em runtime
   description: string | null;
   short_description: string | null;
   brand: string | null;
@@ -121,13 +123,13 @@ export interface PromobrindProduct {
 // Para evitar tela branca, fazemos fallback automático para o select antigo.
 const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, base_price, image_url, images, primary_image_url, ' +
-  'category_id, main_category_id, supplier_reference, description, ' +
+  'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity';
 
 const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, base_price, image_url, images, primary_image_url, ' +
-  'category_id, main_category_id, supplier_reference, description, ' +
+  'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity';
 
@@ -345,6 +347,24 @@ export async function fetchPromobrindProductById(
   // O campo colors da tabela products contém apenas strings ["Azul", "Preto"]
   // Precisamos dos dados completos das variantes
   if (product) {
+    // Buscar nome do fornecedor se tiver supplier_id
+    if (product.supplier_id) {
+      try {
+        const supplierResult = await invokeExternalDb<{ id: string; name: string; code: string }>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id, name, code',
+          filters: { id: product.supplier_id },
+          limit: 1,
+        });
+        if (supplierResult.records[0]) {
+          product.supplier_name = supplierResult.records[0].name;
+        }
+      } catch (err) {
+        console.warn('Não foi possível buscar nome do fornecedor:', err);
+      }
+    }
+
     try {
       const variantsResult = await invokeExternalDb<{
         product_id: string;
