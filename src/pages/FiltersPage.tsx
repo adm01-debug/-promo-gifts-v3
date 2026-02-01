@@ -252,6 +252,7 @@ export default function FiltersPage() {
     if (filters.inStock) count++;
     if (filters.isKit) count++;
     if (filters.featured) count++;
+    if (filters.hasCommercialPackaging) count++;
     return count;
   }, [filters]);
 
@@ -323,6 +324,11 @@ export default function FiltersPage() {
     // Filtro por estoque
     if (filters.inStock) {
       result = result.filter((product) => (product.stock || 0) > 0);
+    }
+
+    // Filtro por embalagem especial nativa
+    if (filters.hasCommercialPackaging) {
+      result = result.filter((product) => product.hasCommercialPackaging === true);
     }
 
     // isKit e featured não existem no banco externo, ignorar por enquanto
