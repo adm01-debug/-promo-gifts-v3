@@ -149,7 +149,7 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-secondary/50 to-muted/30">
+      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-secondary/50 to-muted/30 z-0">
         {/* Skeleton loader with shimmer */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
@@ -382,7 +382,7 @@ export function ProductCard({
       </div>
 
       {/* Content */}
-      <div className="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
+      <div className="relative z-10 p-2.5 sm:p-4 space-y-2 sm:space-y-3 bg-card">
         {/* Category Badges - Ícones das categorias (escondido em layouts compactos) */}
         {!hideCategoryBadges && (
           <ProductCategoryBadges 
