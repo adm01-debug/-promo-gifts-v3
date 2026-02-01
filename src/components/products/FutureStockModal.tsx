@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarClock, Package, Truck, AlertTriangle, Calendar, Plus, Loader2 } from "lucide-react";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useFutureStockByProduct, type FutureStockEntry } from "@/hooks/useFutureStock";
+import { useExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { AddFutureStockDialog } from "./AddFutureStockDialog";
 
 interface ColorVariation {
@@ -61,7 +62,24 @@ export function FutureStockModal({
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   
-  const { data: futureStock = [], isLoading } = useFutureStockByProduct(productId);
+  const { data: futureStock = [], isLoading: isLoadingFuture } = useFutureStockByProduct(productId);
+  const { data: externalVariants = [], isLoading: isLoadingVariants } = useExternalVariantStock(productId);
+  
+  const isLoading = isLoadingFuture || isLoadingVariants;
+  
+  // Enriquecer cores com dados das variantes externas (imagens, estoque atualizado)
+  const enrichedColors = useMemo(() => {
+    return colors.map(color => {
+      const variant = externalVariants.find(
+        v => v.color_name === color.name || v.color_code === color.sku?.split('-').pop()
+      );
+      return {
+        ...color,
+        image: variant?.selected_thumbnail || variant?.images?.[0] || color.image,
+        stock: variant?.stock_quantity ?? color.stock,
+      };
+    });
+  }, [colors, externalVariants]);
   
   // Filtrar por cor se selecionada
   const filteredEntries = selectedColor
@@ -69,7 +87,7 @@ export function FutureStockModal({
     : futureStock;
   
   // Calcular totais por cor para exibir nos cards
-  const totalsByColor = colors.reduce((acc, color) => {
+  const totalsByColor = enrichedColors.reduce((acc, color) => {
     const entries = futureStock.filter(e => e.color_name === color.name);
     const total = entries.reduce((sum, e) => sum + e.expected_quantity, 0);
     acc[color.name] = { count: entries.length, total };
@@ -132,7 +150,7 @@ export function FutureStockModal({
                     )}
                   </div>
                   <div className="flex gap-3 overflow-x-auto pb-2">
-                    {colors.map((color) => {
+                    {enrichedColors.map((color) => {
                       const colorData = totalsByColor[color.name] || { count: 0, total: 0 };
                       const hasEntries = colorData.count > 0;
                       const isSelected = selectedColor === color.name;
@@ -311,7 +329,7 @@ export function FutureStockModal({
         productId={productId}
         productName={productName}
         productSku={productSku}
-        colors={colors}
+        colors={enrichedColors}
       />
     </>
   );
