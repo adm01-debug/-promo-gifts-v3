@@ -155,16 +155,46 @@ export default function Index() {
   const filteredProducts = useMemo(() => {
     let result = [...realProducts];
 
-    // Text search filter
+    // Text search filter - busca por nome, SKU, marca, fornecedor, categoria, materiais, descrição
     if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query) ||
-          (p.category_name || '').toLowerCase().includes(query) ||
-          (Array.isArray(p.materials) ? p.materials.join(' ') : (p.materials || '')).toLowerCase().includes(query) ||
-          (p.description || '').toLowerCase().includes(query),
-      );
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter((p) => {
+        // Busca por código/SKU (match exato ou parcial)
+        const sku = (p.sku || '').toLowerCase();
+        if (sku.includes(query) || query.includes(sku)) return true;
+        
+        // Busca por referência do fornecedor
+        const supplierRef = (p.supplier_reference || '').toLowerCase();
+        if (supplierRef.includes(query)) return true;
+        
+        // Busca por marca/brand
+        const brand = (p.brand || '').toLowerCase();
+        if (brand.includes(query)) return true;
+        
+        // Busca por nome do fornecedor
+        const supplierName = (p.supplier?.name || '').toLowerCase();
+        if (supplierName.includes(query)) return true;
+        
+        // Busca por nome do produto
+        if (p.name.toLowerCase().includes(query)) return true;
+        
+        // Busca por categoria
+        if ((p.category_name || '').toLowerCase().includes(query)) return true;
+        
+        // Busca por materiais
+        const materialsStr = Array.isArray(p.materials) 
+          ? p.materials.join(' ').toLowerCase() 
+          : (p.materials || '').toLowerCase();
+        if (materialsStr.includes(query)) return true;
+        
+        // Busca por descrição
+        if ((p.description || '').toLowerCase().includes(query)) return true;
+        
+        // Busca por descrição curta
+        if ((p.short_description || '').toLowerCase().includes(query)) return true;
+        
+        return false;
+      });
     }
 
     // Filtro por categoria do sidebar usando tabela product_category_assignments

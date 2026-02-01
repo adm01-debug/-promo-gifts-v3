@@ -254,9 +254,54 @@ export default function FiltersPage() {
     return count;
   }, [filters]);
 
+  // Pegar search da URL
+  const searchQuery = searchParams.get('search') || '';
+
   // Aplicar filtros nos produtos - USANDO PRODUTOS REAIS
   const filteredProducts = useMemo(() => {
     let result = [...realProducts];
+
+    // Text search filter - busca por nome, SKU, marca, fornecedor, categoria, materiais, descrição
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter((p) => {
+        // Busca por código/SKU (match exato ou parcial)
+        const sku = (p.sku || '').toLowerCase();
+        if (sku.includes(query) || query.includes(sku)) return true;
+        
+        // Busca por referência do fornecedor
+        const supplierRef = (p.supplier_reference || '').toLowerCase();
+        if (supplierRef.includes(query)) return true;
+        
+        // Busca por marca/brand
+        const brand = (p.brand || '').toLowerCase();
+        if (brand.includes(query)) return true;
+        
+        // Busca por nome do fornecedor
+        const supplierName = (p.supplier?.name || '').toLowerCase();
+        if (supplierName.includes(query)) return true;
+        
+        // Busca por nome do produto
+        if (p.name.toLowerCase().includes(query)) return true;
+        
+        // Busca por categoria
+        if ((p.category_name || '').toLowerCase().includes(query)) return true;
+        
+        // Busca por materiais
+        const materialsStr = Array.isArray(p.materials) 
+          ? p.materials.join(' ').toLowerCase() 
+          : (p.materials || '').toLowerCase();
+        if (materialsStr.includes(query)) return true;
+        
+        // Busca por descrição
+        if ((p.description || '').toLowerCase().includes(query)) return true;
+        
+        // Busca por descrição curta
+        if ((p.short_description || '').toLowerCase().includes(query)) return true;
+        
+        return false;
+      });
+    }
 
     // Filtro por cores
     if (filters.colors.length > 0) {
@@ -336,7 +381,7 @@ export default function FiltersPage() {
     }
 
     return result;
-  }, [filters, sortBy, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
+  }, [filters, sortBy, realProducts, searchQuery, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
 
   // Resumo dos filtros ativos para exibição
   const activeFiltersSummary = useMemo(() => {
