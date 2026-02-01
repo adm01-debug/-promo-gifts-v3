@@ -51,6 +51,8 @@ const PRODUCT_TABLES = [
   'variation_types',
   'variation_values',
   'stock_movements',
+  // Estoque e Reposição
+  'variant_supplier_sources',  // Dados de estoque e previsão de reposição
   // Coleções
   'collections',
   'collection_products',
