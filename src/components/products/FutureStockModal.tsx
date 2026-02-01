@@ -12,6 +12,7 @@ import {
   processStockEntries,
   calculateColorSummary,
 } from "@/hooks/useVariantSupplierSources";
+import { sortColorSummary } from "@/utils/colorSorting";
 
 type SortOrder = "nearest" | "farthest" | "quantity-desc" | "quantity-asc";
 type DateFilter = "all" | "7days" | "30days" | "90days" | "past";
@@ -44,9 +45,9 @@ export function FutureStockModal({
     [variantsWithStock]
   );
   
-  // Calcular resumo por cor
+  // Calcular resumo por cor e ordenar
   const colorSummary = useMemo(
-    () => calculateColorSummary(variantsWithStock, stockEntries),
+    () => sortColorSummary(calculateColorSummary(variantsWithStock, stockEntries)),
     [variantsWithStock, stockEntries]
   );
   

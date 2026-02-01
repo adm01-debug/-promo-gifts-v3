@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Heart,
@@ -31,6 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
 import { useProduct, type Product } from "@/hooks/useProducts";
+import { sortVariationsByColor } from "@/utils/colorSorting";
 
 type ProductVariation = any;
 type KitItem = any;
@@ -246,10 +247,10 @@ export default function ProductDetail() {
                   </div>
                 </div>
                 
-                {/* Estoque granular por cor - TODAS as variações */}
+                {/* Estoque granular por cor - TODAS as variações ordenadas */}
                 {product.variations && product.variations.length > 0 ? (
                   <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                    {product.variations.map((variation) => {
+                    {sortVariationsByColor(product.variations).map((variation) => {
                       const isSelected = selectedVariation?.id === variation.id;
                       return (
                         <button
