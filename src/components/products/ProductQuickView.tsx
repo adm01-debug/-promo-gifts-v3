@@ -14,6 +14,9 @@ import {
   Layers,
   Plus,
   Minus,
+  Ruler,
+  Weight,
+  ImageOff,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +29,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { ProductColorSelector, type ProductColor } from "./ProductColorSelector";
+import { sortByColorGroup } from "@/utils/colorSorting";
 import { toast } from "sonner";
 
 interface ProductQuickViewProps {
@@ -53,16 +57,20 @@ export function ProductQuickView({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Early return if product is null
   if (!product) return null;
   
-  // Mapear cores do produto para o formato do seletor
-  const productColors: ProductColor[] = product.colors.map((color, idx) => ({
+  // Mapear cores do produto para o formato do seletor com ordenação padronizada
+  const sortedColors = sortByColorGroup(product.colors);
+  const productColors: ProductColor[] = sortedColors.map((color, idx) => ({
     id: `${product.id}-color-${idx}`,
     name: color.name,
     hex: color.hex,
     variationName: color.name,
+    groupName: color.group,
   }));
 
   const formatPrice = (price: number) => {
@@ -88,12 +96,16 @@ export function ProductQuickView({
   const stockInfo = getStockStatusInfo(product.stockStatus);
 
   const handlePrevImage = () => {
+    setImageLoaded(false);
+    setImageError(false);
     setCurrentImageIndex((prev) =>
       prev === 0 ? product.images.length - 1 : prev - 1
     );
   };
 
   const handleNextImage = () => {
+    setImageLoaded(false);
+    setImageError(false);
     setCurrentImageIndex((prev) =>
       prev === product.images.length - 1 ? 0 : prev + 1
     );
@@ -162,18 +174,46 @@ export function ProductQuickView({
             </div>
 
             {/* Main Image */}
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentImageIndex}
-                src={product.images[currentImageIndex]}
-                alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
-                className="w-full h-full object-contain p-8"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.05 }}
-                transition={{ duration: 0.3 }}
-              />
-            </AnimatePresence>
+            <div className="relative w-full h-full flex items-center justify-center">
+              {/* Loading skeleton */}
+              {!imageLoaded && !imageError && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full border-4 border-muted border-t-primary animate-spin" />
+                </div>
+              )}
+              
+              {/* Error state */}
+              {imageError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+                  <ImageOff className="h-16 w-16 mb-2" />
+                  <p className="text-sm">Imagem não disponível</p>
+                </div>
+              )}
+              
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentImageIndex}
+                  src={product.images[currentImageIndex]}
+                  alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
+                  className={cn(
+                    "w-full h-full object-contain p-8 transition-opacity duration-300",
+                    imageLoaded ? "opacity-100" : "opacity-0"
+                  )}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: imageLoaded ? 1 : 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.05 }}
+                  transition={{ duration: 0.3 }}
+                  onLoad={() => {
+                    setImageLoaded(true);
+                    setImageError(false);
+                  }}
+                  onError={() => {
+                    setImageError(true);
+                    setImageLoaded(false);
+                  }}
+                />
+              </AnimatePresence>
+            </div>
 
             {/* Navigation Arrows */}
             {product.images.length > 1 && (
@@ -270,6 +310,40 @@ export function ProductQuickView({
                 maxVisible={8}
                 size="md"
               />
+            )}
+
+            {/* Dimensions & Weight - Compact grid */}
+            {(product.dimensions || product.weight) && (
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {product.dimensions?.width && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                    <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Larg:</span>
+                    <span className="text-xs font-medium">{product.dimensions.width}cm</span>
+                  </div>
+                )}
+                {product.dimensions?.height && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                    <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Alt:</span>
+                    <span className="text-xs font-medium">{product.dimensions.height}cm</span>
+                  </div>
+                )}
+                {product.dimensions?.length && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                    <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Prof:</span>
+                    <span className="text-xs font-medium">{product.dimensions.length}cm</span>
+                  </div>
+                )}
+                {product.weight && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                    <Weight className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Peso:</span>
+                    <span className="text-xs font-medium">{product.weight >= 1000 ? `${(product.weight / 1000).toFixed(1)}kg` : `${product.weight}g`}</span>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Materials */}
