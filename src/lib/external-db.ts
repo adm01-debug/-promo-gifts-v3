@@ -120,7 +120,6 @@ export interface PromobrindProduct {
   length_cm?: number | null;
   diameter_cm?: number | null;
   weight_g?: number | null;
-  weight_kg?: number | null;
 }
 
 // ============================================
@@ -134,13 +133,13 @@ const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, base_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, weight_kg';
+  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g';
 
 const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, base_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, weight_kg';
+  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g';
   'materials, dimensions, min_quantity';
 
 function shouldFallbackSalePriceSelect(err: unknown) {
