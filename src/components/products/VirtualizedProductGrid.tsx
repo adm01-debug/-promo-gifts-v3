@@ -57,7 +57,8 @@ export function VirtualizedProductGrid({
 
   // Calculate rows based on columns
   const rowCount = Math.ceil(products.length / columns);
-  const estimatedRowHeight = 420; // Approximate height of product card + gap
+  // Card height calculation: image (aspect-[4/5] on ~280px width = ~350px) + content (~140px) + gap (16px) = ~510px
+  const estimatedRowHeight = 520;
 
   const virtualizer = useVirtualizer({
     count: hasMore ? rowCount + 1 : rowCount, // Add 1 for loading row
@@ -191,6 +192,7 @@ export function VirtualizedProductGrid({
                   paddingLeft: "0.5rem",
                   paddingRight: "1.5rem",
                   paddingBottom: "1rem",
+                  isolation: "isolate", // Cria stacking context isolado para evitar conflitos de z-index
                 }}
               >
                 {rowProducts.map((product, colIndex) => (
@@ -199,6 +201,8 @@ export function VirtualizedProductGrid({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: colIndex * 0.05 }}
+                    className="relative"
+                    style={{ zIndex: 1 }} // Base z-index para cada card
                   >
                     <ProductCard
                       product={product}
