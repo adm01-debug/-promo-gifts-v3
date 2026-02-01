@@ -243,13 +243,17 @@ export async function fetchPromobrindProducts(options?: {
     }
   }
 
-  // Buscar cores das variantes de TODOS os produtos de uma vez
-  // para enriquecer o campo colors (que vem vazio da tabela products)
+  // Enriquecer produtos em paralelo: cores + nomes de fornecedores
   if (products.length > 0) {
-    try {
-      const productIds = products.map(p => p.id);
-      
-      const variantsResult = await invokeExternalDb<{
+    const productIds = products.map(p => p.id);
+    
+    // Coletar supplier_ids únicos para buscar nomes
+    const uniqueSupplierIds = [...new Set(products.map(p => p.supplier_id).filter(Boolean))] as string[];
+    
+    // Executar buscas em paralelo
+    const [variantsResult, suppliersResult] = await Promise.all([
+      // Buscar cores das variantes
+      invokeExternalDb<{
         product_id: string;
         color_name: string | null;
         color_hex: string | null;
@@ -265,60 +269,85 @@ export async function fetchPromobrindProducts(options?: {
         select: 'product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
         filters: { is_active: true },
         limit: 5000,
-      });
-
-      // Agrupar cores por produto
-      const colorsByProduct = new Map<string, Array<{ 
-        name: string; 
-        hex: string; 
-        code: string;
-        sku?: string;
-        stock?: number;
-        image?: string;
-        images?: string[];
-      }>>();
+      }).catch(err => {
+        console.warn('Não foi possível buscar cores das variantes:', err);
+        return { records: [] } as { records: any[] };
+      }),
       
-      variantsResult.records.forEach(variant => {
-        if (!variant.color_name || !productIds.includes(variant.product_id)) return;
+      // Buscar nomes dos fornecedores
+      uniqueSupplierIds.length > 0
+        ? invokeExternalDb<{ id: string; name: string; code: string }>({
+            table: 'suppliers',
+            operation: 'select',
+            select: 'id, name, code',
+            limit: 500,
+          }).catch(err => {
+            console.warn('Não foi possível buscar fornecedores:', err);
+            return { records: [] } as { records: { id: string; name: string; code: string }[] };
+          })
+        : Promise.resolve({ records: [] } as { records: { id: string; name: string; code: string }[] }),
+    ]);
+    
+    // Mapear fornecedores por ID
+    const suppliersMap = new Map<string, string>();
+    suppliersResult.records.forEach(s => {
+      suppliersMap.set(s.id, s.name);
+    });
+    
+    // Agrupar cores por produto
+    const colorsByProduct = new Map<string, Array<{ 
+      name: string; 
+      hex: string; 
+      code: string;
+      sku?: string;
+      stock?: number;
+      image?: string;
+      images?: string[];
+    }>>();
+    
+    variantsResult.records.forEach(variant => {
+      if (!variant.color_name || !productIds.includes(variant.product_id)) return;
+      
+      if (!colorsByProduct.has(variant.product_id)) {
+        colorsByProduct.set(variant.product_id, []);
+      }
+      
+      const colors = colorsByProduct.get(variant.product_id)!;
+      // Evitar duplicatas por nome de cor
+      if (!colors.some(c => c.name === variant.color_name)) {
+        // Determinar imagens da variante
+        const variantImages = variant.selected_images?.length 
+          ? variant.selected_images 
+          : variant.images?.length 
+            ? variant.images 
+            : [];
+        const thumbnailImage = variant.selected_thumbnail || variantImages[0] || null;
         
-        if (!colorsByProduct.has(variant.product_id)) {
-          colorsByProduct.set(variant.product_id, []);
-        }
-        
-        const colors = colorsByProduct.get(variant.product_id)!;
-        // Evitar duplicatas por nome de cor
-        if (!colors.some(c => c.name === variant.color_name)) {
-          // Determinar imagens da variante
-          const variantImages = variant.selected_images?.length 
-            ? variant.selected_images 
-            : variant.images?.length 
-              ? variant.images 
-              : [];
-          const thumbnailImage = variant.selected_thumbnail || variantImages[0] || null;
-          
-          colors.push({
-            name: variant.color_name,
-            hex: variant.color_hex || '#CCCCCC',
-            code: variant.color_code || '',
-            sku: variant.sku || undefined,
-            stock: variant.stock_quantity ?? undefined,
-            image: thumbnailImage || undefined,
-            images: variantImages.length > 0 ? variantImages : undefined,
-          });
-        }
-      });
+        colors.push({
+          name: variant.color_name,
+          hex: variant.color_hex || '#CCCCCC',
+          code: variant.color_code || '',
+          sku: variant.sku || undefined,
+          stock: variant.stock_quantity ?? undefined,
+          image: thumbnailImage || undefined,
+          images: variantImages.length > 0 ? variantImages : undefined,
+        });
+      }
+    });
 
-      // Enriquecer produtos com cores das variantes
-      products.forEach(product => {
-        const variantColors = colorsByProduct.get(product.id);
-        if (variantColors && variantColors.length > 0) {
-          product.colors = variantColors;
-        }
-      });
-    } catch (err) {
-      console.warn('Não foi possível buscar cores das variantes:', err);
-      // Continua sem cores - não bloqueia o fluxo
-    }
+    // Enriquecer produtos com cores e nomes de fornecedores
+    products.forEach(product => {
+      // Cores das variantes
+      const variantColors = colorsByProduct.get(product.id);
+      if (variantColors && variantColors.length > 0) {
+        product.colors = variantColors;
+      }
+      
+      // Nome do fornecedor
+      if (product.supplier_id && suppliersMap.has(product.supplier_id)) {
+        product.supplier_name = suppliersMap.get(product.supplier_id);
+      }
+    });
   }
 
   return products;
