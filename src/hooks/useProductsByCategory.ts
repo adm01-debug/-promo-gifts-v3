@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface UseProductsByCategoryOptions {
@@ -31,20 +31,36 @@ export function useProductsByCategory({
   const [error, setError] = useState<string | null>(null);
   const [categoriesCount, setCategoriesCount] = useState(0);
   const [source, setSource] = useState<string | null>(null);
+  
+  // CRITICAL: Estabilizar referência do array para evitar loops infinitos
+  const categoryIdsKey = useMemo(() => 
+    [...categoryIds].sort().join(','), 
+    [categoryIds]
+  );
+  
+  // Ref para evitar chamadas duplicadas
+  const lastFetchedKey = useRef<string>('');
+  const isFetchingRef = useRef(false);
 
   // Verificar se há filtro ativo
   const hasFilter = useMemo(() => {
     return categoryIds.length > 0;
-  }, [categoryIds]);
+  }, [categoryIds.length]);
 
   const fetchProductIds = useCallback(async () => {
+    // Evitar chamadas duplicadas
+    if (isFetchingRef.current) return;
+    if (lastFetchedKey.current === categoryIdsKey && productIds.size > 0) return;
+    
     if (!hasFilter || !enabled) {
       setProductIds(new Set());
       setCategoriesCount(0);
       setSource(null);
+      lastFetchedKey.current = '';
       return;
     }
 
+    isFetchingRef.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -68,6 +84,7 @@ export function useProductsByCategory({
       setProductIds(new Set(data.productIds || []));
       setCategoriesCount(data.categoriesUsed || categoryIds.length);
       setSource(data.source || null);
+      lastFetchedKey.current = categoryIdsKey;
 
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido';
@@ -76,13 +93,16 @@ export function useProductsByCategory({
       setProductIds(new Set());
     } finally {
       setIsLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [categoryIds, includeDescendants, hasFilter, enabled]);
+  }, [categoryIdsKey, includeDescendants, hasFilter, enabled, categoryIds]);
 
-  // Buscar quando os parâmetros mudam
+  // Buscar quando a chave de categorias muda
   useEffect(() => {
-    fetchProductIds();
-  }, [fetchProductIds]);
+    if (categoryIdsKey !== lastFetchedKey.current || !hasFilter) {
+      fetchProductIds();
+    }
+  }, [categoryIdsKey, hasFilter, fetchProductIds]);
 
   return {
     productIds,
