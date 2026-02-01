@@ -907,6 +907,78 @@ export type Database = {
           },
         ]
       }
+      future_stock_entries: {
+        Row: {
+          color_hex: string | null
+          color_name: string | null
+          created_at: string
+          created_by: string | null
+          expected_date: string
+          expected_quantity: number
+          id: string
+          notes: string | null
+          order_date: string | null
+          product_id: string
+          product_name: string
+          product_sku: string
+          source: string
+          source_reference: string | null
+          status: string
+          supplier_id: string | null
+          supplier_name: string | null
+          updated_at: string
+          updated_by: string | null
+          variant_id: string | null
+          variant_sku: string | null
+        }
+        Insert: {
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_date: string
+          expected_quantity: number
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          product_id: string
+          product_name: string
+          product_sku: string
+          source?: string
+          source_reference?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          variant_id?: string | null
+          variant_sku?: string | null
+        }
+        Update: {
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_date?: string
+          expected_quantity?: number
+          id?: string
+          notes?: string | null
+          order_date?: string | null
+          product_id?: string
+          product_name?: string
+          product_sku?: string
+          source?: string
+          source_reference?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          variant_id?: string | null
+          variant_sku?: string | null
+        }
+        Relationships: []
+      }
       generated_mockups: {
         Row: {
           client_id: string | null
