@@ -447,12 +447,45 @@ serve(async (req) => {
 
     switch (operation) {
       case 'select': {
+        // ============================================
+        // FILTRO POR CATEGORIA COM DESCENDENTES
+        // Usa função get_category_descendants() do BD para incluir subcategorias
+        // ============================================
+        let categoryDescendants: string[] | null = null;
+        let categoryFilterKey: string | null = null;
+        
+        if (table === 'products' && filters && (filters.category_id || filters.main_category_id)) {
+          const categoryId = (filters.category_id || filters.main_category_id) as string;
+          categoryFilterKey = filters.category_id ? 'category_id' : 'main_category_id';
+          
+          // Buscar todos os IDs descendentes da categoria selecionada
+          try {
+            const { data: descendantsData, error: descendantsError } = await externalSupabase
+              .rpc('get_category_descendants', { category_uuid: categoryId });
+            
+            if (!descendantsError && descendantsData && Array.isArray(descendantsData)) {
+              categoryDescendants = descendantsData as string[];
+              console.log(`Category ${categoryId} has ${categoryDescendants.length} descendants (including self)`);
+            } else if (descendantsError) {
+              console.warn('Could not fetch category descendants, falling back to exact match:', descendantsError.message);
+            }
+          } catch (err) {
+            console.warn('Error calling get_category_descendants:', err);
+          }
+        }
+        
         let query = externalSupabase.from(table).select(select || '*', { count: 'exact' });
         
         // Aplicar filtros
         if (filters) {
           Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
+              // Se é filtro de categoria e temos descendentes, usar IN ao invés de EQ
+              if (categoryDescendants && (key === 'category_id' || key === 'main_category_id')) {
+                query = query.in(key, categoryDescendants);
+                return; // Skip o processamento normal
+              }
+              
               if (typeof value === 'string') {
                 // Busca parcial para campos de texto
                 if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
@@ -502,7 +535,7 @@ serve(async (req) => {
         } else {
           result = { records: selectData, count };
         }
-        console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table} (offset=${safeOffset}, limit=${safeLimit})`);
+        console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table} (offset=${safeOffset}, limit=${safeLimit})${categoryDescendants ? ` [category with ${categoryDescendants.length} descendants]` : ''}`);
         break;
       }
 
