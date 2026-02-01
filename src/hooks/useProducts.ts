@@ -40,6 +40,17 @@ export interface Product {
     weight_g?: number | null;
   };
 
+  // Campos de embalagem especial
+  packingType?: string | null;
+  packingClassification?: string | null;
+  boxImage?: string | null;
+  boxWidthMm?: number | null;
+  boxHeightMm?: number | null;
+  boxLengthMm?: number | null;
+  boxWeightKg?: number | null;
+  boxQuantity?: number | null;
+  boxVolumeCm3?: number | null;
+
   // Campos adicionais para compatibilidade com componentes mock
   stockStatus: "in-stock" | "low-stock" | "out-of-stock";
   featured: boolean;
@@ -340,6 +351,17 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
       diameter_cm: p.diameter_cm,
       weight_g: p.weight_g,
     },
+    
+    // Campos de embalagem especial
+    packingType: p.packing_type,
+    packingClassification: p.packing_classification,
+    boxImage: p.box_image,
+    boxWidthMm: p.box_width_mm,
+    boxHeightMm: p.box_height_mm,
+    boxLengthMm: p.box_length_mm,
+    boxWeightKg: p.box_weight_kg,
+    boxQuantity: p.box_quantity,
+    boxVolumeCm3: p.box_volume_cm3,
     
     // Variações (para exibir estoque por cor e thumbnails na galeria)
     variations: variations.length > 0 ? variations : undefined,

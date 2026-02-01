@@ -120,6 +120,17 @@ export interface PromobrindProduct {
   length_cm?: number | null;
   diameter_cm?: number | null;
   weight_g?: number | null;
+  
+  // Campos de embalagem especial
+  packing_type?: string | null;           // "Caixa de Presente", "Bolsa", "Estojo"
+  packing_classification?: string | null; // "commercial", "protective", "unknown", null
+  box_image?: string | null;              // URL completa da imagem
+  box_width_mm?: number | null;           // Largura em mm
+  box_height_mm?: number | null;          // Altura em mm
+  box_length_mm?: number | null;          // Profundidade em mm
+  box_weight_kg?: number | null;          // Peso em kg
+  box_quantity?: number | null;           // Quantidade por caixa master
+  box_volume_cm3?: number | null;         // Volume em cm³
 }
 
 // ============================================
@@ -133,14 +144,15 @@ const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, base_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g';
+  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, ' +
+  'packing_type, packing_classification, box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, base_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g';
-  'materials, dimensions, min_quantity';
+  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, ' +
+  'packing_type, packing_classification, box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 function shouldFallbackSalePriceSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
