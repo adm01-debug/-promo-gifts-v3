@@ -14,10 +14,13 @@ import { Separator } from "@/components/ui/separator";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { cn } from "@/lib/utils";
 
+type PackagingContext = 'always' | 'with_customization' | 'without_customization' | null;
+
 interface PackagingModalProps {
   isOpen: boolean;
   onClose: () => void;
   packingType: string | null;
+  packagingContext?: PackagingContext;
   boxImage: string | null;
   boxWidthMm: number | null;
   boxHeightMm: number | null;
@@ -27,10 +30,18 @@ interface PackagingModalProps {
   boxVolumeCm3: number | null;
 }
 
+// Mapeamento de contexto para texto
+const contextLabels: Record<string, string> = {
+  'always': 'Sempre disponível',
+  'with_customization': 'Disponível com personalização',
+  'without_customization': 'Disponível sem personalização',
+};
+
 export function PackagingModal({
   isOpen,
   onClose,
   packingType,
+  packagingContext,
   boxImage,
   boxWidthMm,
   boxHeightMm,
@@ -104,12 +115,19 @@ export function PackagingModal({
                 <Package className="h-4 w-4 text-warning" />
                 Tipo
               </div>
-              <Badge 
-                variant="secondary" 
-                className="px-3 py-1.5 text-sm font-medium bg-warning/10 text-warning-foreground border border-warning/20"
-              >
-                {packingType}
-              </Badge>
+              <div className="flex flex-col gap-1.5">
+                <Badge 
+                  variant="secondary" 
+                  className="px-3 py-1.5 text-sm font-medium bg-warning/10 text-warning-foreground border border-warning/20 w-fit"
+                >
+                  {packingType}
+                </Badge>
+                {packagingContext && contextLabels[packagingContext] && (
+                  <span className="text-xs text-muted-foreground">
+                    {contextLabels[packagingContext]}
+                  </span>
+                )}
+              </div>
             </div>
           )}
 

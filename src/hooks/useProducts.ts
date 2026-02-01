@@ -43,6 +43,9 @@ export interface Product {
   // Campos de embalagem especial
   packingType?: string | null;
   packingClassification?: string | null;
+  hasCommercialPackaging?: boolean | null;
+  repackingType?: string | null;
+  packagingContext?: 'always' | 'with_customization' | 'without_customization' | null;
   boxImage?: string | null;
   boxWidthMm?: number | null;
   boxHeightMm?: number | null;
@@ -355,6 +358,9 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
     // Campos de embalagem especial
     packingType: p.packing_type,
     packingClassification: p.packing_classification,
+    hasCommercialPackaging: p.has_commercial_packaging,
+    repackingType: p.repacking_type,
+    packagingContext: p.packaging_context as Product['packagingContext'],
     boxImage: p.box_image,
     boxWidthMm: p.box_width_mm,
     boxHeightMm: p.box_height_mm,
