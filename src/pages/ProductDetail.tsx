@@ -481,7 +481,6 @@ export default function ProductDetail() {
           productId={product.id}
           productName={product.name}
           productSku={product.sku}
-          colors={product.colors || []}
         />
 
         {/* Trust Badges */}
