@@ -1,4 +1,4 @@
-import { Ruler, Scale, Box } from "lucide-react";
+import { Ruler, Scale, Box, ArrowUpDown, ArrowLeftRight, MoveHorizontal } from "lucide-react";
 
 interface ProductDimensionsProps {
   dimensions?: {
@@ -10,89 +10,100 @@ interface ProductDimensionsProps {
   };
 }
 
+interface SpecItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  iconBgClass?: string;
+  iconColorClass?: string;
+}
+
+function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColorClass = "text-primary" }: SpecItemProps) {
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border">
+      <div className={`w-10 h-10 rounded-lg ${iconBgClass} flex items-center justify-center shrink-0`}>
+        <span className={iconColorClass}>{icon}</span>
+      </div>
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-medium text-foreground">{value}</p>
+      </div>
+    </div>
+  );
+}
+
 export function ProductDimensions({ dimensions }: ProductDimensionsProps) {
   if (!dimensions) return null;
 
   const { height_cm, width_cm, length_cm, diameter_cm, weight_g } = dimensions;
   
-  // Verifica se há pelo menos uma dimensão disponível
-  const hasDimensions = height_cm || width_cm || length_cm || diameter_cm;
-  const hasWeight = weight_g;
+  // Verifica se há pelo menos uma especificação disponível
+  const hasAnySpec = height_cm || width_cm || length_cm || diameter_cm || weight_g;
   
-  if (!hasDimensions && !hasWeight) return null;
+  if (!hasAnySpec) return null;
 
   // Formata peso para exibição
-  const formatWeight = () => {
-    if (weight_g) {
-      if (weight_g >= 1000) {
-        return `${(weight_g / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg`;
-      }
-      return `${weight_g.toLocaleString('pt-BR')} g`;
+  const formatWeight = (g: number) => {
+    if (g >= 1000) {
+      return `${(g / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg`;
     }
-    return null;
+    return `${g.toLocaleString('pt-BR')} g`;
   };
 
-  // Monta string de dimensões
-  const formatDimensions = () => {
-    const parts: string[] = [];
-    
-    if (diameter_cm) {
-      parts.push(`Ø ${diameter_cm} cm`);
-    } else {
-      if (length_cm) parts.push(`${length_cm}`);
-      if (width_cm) parts.push(`${width_cm}`);
-      if (height_cm) parts.push(`${height_cm}`);
-      
-      if (parts.length > 0) {
-        return `${parts.join(' × ')} cm`;
-      }
-    }
-    
-    return parts.join(' ');
-  };
+  // Monta lista de especificações individuais
+  const specs: SpecItemProps[] = [];
 
-  const dimensionsText = formatDimensions();
-  const weightText = formatWeight();
+  if (diameter_cm) {
+    specs.push({
+      icon: <Box className="h-5 w-5" />,
+      label: "Diâmetro",
+      value: `${diameter_cm} cm`,
+    });
+  }
+
+  if (height_cm) {
+    specs.push({
+      icon: <ArrowUpDown className="h-5 w-5" />,
+      label: "Altura",
+      value: `${height_cm} cm`,
+    });
+  }
+
+  if (width_cm) {
+    specs.push({
+      icon: <ArrowLeftRight className="h-5 w-5" />,
+      label: "Largura",
+      value: `${width_cm} cm`,
+    });
+  }
+
+  if (length_cm) {
+    specs.push({
+      icon: <MoveHorizontal className="h-5 w-5" />,
+      label: "Profundidade",
+      value: `${length_cm} cm`,
+    });
+  }
+
+  if (weight_g) {
+    specs.push({
+      icon: <Scale className="h-5 w-5" />,
+      label: "Peso",
+      value: formatWeight(weight_g),
+      iconBgClass: "bg-info/10",
+      iconColorClass: "text-info",
+    });
+  }
 
   return (
     <div className="space-y-3">
       <h3 className="font-display text-lg font-semibold text-foreground">
         Especificações
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {dimensionsText && (
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              {diameter_cm ? (
-                <Box className="h-5 w-5 text-primary" />
-              ) : (
-                <Ruler className="h-5 w-5 text-primary" />
-              )}
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">
-                {diameter_cm ? 'Diâmetro' : 'Dimensões (C×L×A)'}
-              </p>
-              <p className="text-sm font-medium text-foreground">
-                {dimensionsText}
-              </p>
-            </div>
-          </div>
-        )}
-        
-        {weightText && (
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border">
-            <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
-              <Scale className="h-5 w-5 text-info" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Peso</p>
-              <p className="text-sm font-medium text-foreground">
-                {weightText}
-              </p>
-            </div>
-          </div>
-        )}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {specs.map((spec, index) => (
+          <SpecItem key={index} {...spec} />
+        ))}
       </div>
     </div>
   );
