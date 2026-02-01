@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useExternalCategories, ExternalCategory } from "@/hooks/useExternalDatabase";
+import { useExternalCategoriesQuery, ExternalCategory } from "@/hooks/useExternalCategoriesQuery";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 
 interface ExternalCategoryFilterProps {
@@ -44,15 +44,7 @@ export function ExternalCategoryFilter({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   
   const { data: categoryIcons = [] } = useCategoryIcons();
-  const { data: categories = [], isLoading, fetchAll } = useExternalCategories();
-
-  // Carregar categorias na montagem (apenas se ainda não tem dados)
-  React.useEffect(() => {
-    if (categories.length === 0 && !isLoading) {
-      fetchAll({ filters: { is_active: true }, limit: 500 });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { data: categories = [], isLoading } = useExternalCategoriesQuery();
 
   // Construir árvore hierárquica
   const categoryTree = useMemo((): CategoryNode[] => {
@@ -62,7 +54,7 @@ export function ExternalCategoryFilter({
     const roots: CategoryNode[] = [];
 
     // Primeiro passo: criar todos os nós
-    (categories as ExternalCategory[]).forEach((cat) => {
+    categories.forEach((cat) => {
       categoryMap.set(cat.id, {
         ...cat,
         children: [],
@@ -237,7 +229,7 @@ export function ExternalCategoryFilter({
           </div>
           <div className="flex flex-wrap gap-1.5">
             {selectedCategories.slice(0, 5).map((catId) => {
-              const cat = (categories as ExternalCategory[]).find((c) => c.id === catId);
+              const cat = categories.find((c) => c.id === catId);
               return cat ? (
                 <Badge
                   key={catId}
@@ -281,7 +273,7 @@ export function ExternalCategoryFilter({
 
       {/* Estatísticas */}
       <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
-        <span>{(categories as ExternalCategory[]).length} categorias</span>
+        <span>{categories.length} categorias</span>
         <span className="text-primary font-medium">
           {selectedCategories.length} selecionadas
         </span>
