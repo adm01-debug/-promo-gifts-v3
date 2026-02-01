@@ -34,13 +34,14 @@ function ProductCardWrapper({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isVisible && !hasAnimated) {
+    // Animar imediatamente ou quando ficar visível
+    if (!hasAnimated) {
       const timer = setTimeout(() => {
         setHasAnimated(true);
-      }, index * 80); // Stagger delay
+      }, Math.min(index * 80, 800)); // Stagger delay com limite máximo
       return () => clearTimeout(timer);
     }
-  }, [isVisible, hasAnimated, index]);
+  }, [hasAnimated, index]);
 
   return (
     <div
@@ -51,7 +52,7 @@ function ProductCardWrapper({
           : 'opacity-0 translate-y-8 scale-95'
       }`}
       style={{
-        transitionDelay: hasAnimated ? '0ms' : `${index * 80}ms`,
+        transitionDelay: hasAnimated ? '0ms' : `${Math.min(index * 80, 800)}ms`,
       }}
     >
       <ProductCard product={product} hideCategoryBadges={hideCategoryBadges} {...props} />
