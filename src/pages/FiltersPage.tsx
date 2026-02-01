@@ -282,11 +282,10 @@ export default function FiltersPage() {
 
     // Fallback: Filtro por materiais legado (campo texto)
     if (!hasMaterialFilter && filters.materiais.length > 0) {
-      result = result.filter((product) =>
-        filters.materiais.some((m) => 
-          (product.materials || '').toLowerCase().includes(m.toLowerCase())
-        )
-      );
+      result = result.filter((product) => {
+        const materialsStr = Array.isArray(product.materials) ? product.materials.join(' ').toLowerCase() : (product.materials || '').toLowerCase();
+        return filters.materiais.some((m) => materialsStr.includes(m.toLowerCase()));
+      });
     }
 
     // Filtro por faixa de preço

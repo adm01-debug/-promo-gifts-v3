@@ -162,7 +162,7 @@ export default function Index() {
         (p) =>
           p.name.toLowerCase().includes(query) ||
           (p.category_name || '').toLowerCase().includes(query) ||
-          (p.materials || '').toLowerCase().includes(query) ||
+          (Array.isArray(p.materials) ? p.materials.join(' ') : (p.materials || '')).toLowerCase().includes(query) ||
           (p.description || '').toLowerCase().includes(query),
       );
     }
@@ -255,9 +255,10 @@ export default function Index() {
 
     // Fallback: Filtro por materiais legado (campo texto)
     if (!hasMaterialFilter && filters.materiais.length) {
-      result = result.filter((p) => 
-        filters.materiais.some((m) => (p.materials || '').toLowerCase().includes(m.toLowerCase()))
-      );
+      result = result.filter((p) => {
+        const materialsStr = Array.isArray(p.materials) ? p.materials.join(' ').toLowerCase() : (p.materials || '').toLowerCase();
+        return filters.materiais.some((m) => materialsStr.includes(m.toLowerCase()));
+      });
     }
 
     // Ordenar

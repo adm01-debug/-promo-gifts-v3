@@ -83,7 +83,7 @@ export function useSearch(products: Product[] = []) {
         p.name.toLowerCase().includes(searchTerm) ||
         (p.sku || '').toLowerCase().includes(searchTerm) ||
         (p.description || '').toLowerCase().includes(searchTerm) ||
-        (p.materials || '').toLowerCase().includes(searchTerm)
+        (Array.isArray(p.materials) ? p.materials.join(' ') : (p.materials || '')).toLowerCase().includes(searchTerm)
     ).slice(0, 5);
 
     matchingProducts.forEach((product) => {
