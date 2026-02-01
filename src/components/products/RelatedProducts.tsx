@@ -73,10 +73,11 @@ export function RelatedProducts({ currentProduct, allProducts, maxItems = 4 }: R
     let related = [...sameCategory];
     
     if (related.length < maxItems) {
+      const currentMaterials = Array.isArray(currentProduct.materials) ? currentProduct.materials : [];
       const sameMaterial = allProducts.filter(
         p => p.id !== currentProduct.id && 
              !sameCategory.includes(p) &&
-             p.materials.some(m => currentProduct.materials.includes(m))
+             (Array.isArray(p.materials) ? p.materials : []).some(m => currentMaterials.includes(m))
       );
       related = [...related, ...sameMaterial];
     }

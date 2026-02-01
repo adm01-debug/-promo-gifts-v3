@@ -401,7 +401,7 @@ export function EnhancedProductCard({
                 {product.description}
               </p>
 
-              {product.materials?.length > 0 && (
+              {Array.isArray(product.materials) && product.materials.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {product.materials.slice(0, 3).map((material: string, idx: number) => (
                     <Badge key={idx} variant="outline" className="text-[10px]">
