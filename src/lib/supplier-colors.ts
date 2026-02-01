@@ -7,6 +7,7 @@ export interface SupplierColorConfig {
   bg: string;
   text: string;
   border?: string;
+  hex: string; // cor hex pura para estilos inline
 }
 
 // Mapeamento de cores por fornecedor (baseado em palavras-chave no nome)
@@ -16,29 +17,34 @@ const SUPPLIER_COLORS: Record<string, SupplierColorConfig> = {
     bg: 'bg-[#4169E1]/15',
     text: 'text-[#4169E1]',
     border: 'border-[#4169E1]/30',
+    hex: '#4169E1',
   },
   // SPOT / Stricker - Verde Tiffany
   spot: {
     bg: 'bg-[#0ABAB5]/15',
     text: 'text-[#0ABAB5]',
     border: 'border-[#0ABAB5]/30',
+    hex: '#0ABAB5',
   },
   stricker: {
     bg: 'bg-[#0ABAB5]/15',
     text: 'text-[#0ABAB5]',
     border: 'border-[#0ABAB5]/30',
+    hex: '#0ABAB5',
   },
   // Asia Import - Vermelho Vivo
   asia: {
     bg: 'bg-[#FF3B30]/15',
     text: 'text-[#FF3B30]',
     border: 'border-[#FF3B30]/30',
+    hex: '#FF3B30',
   },
   // Fallback - Laranja Vivo (cor principal do sistema)
   default: {
     bg: 'bg-orange-500/15',
     text: 'text-orange-500',
     border: 'border-orange-500/30',
+    hex: '#f97316',
   },
 };
 
