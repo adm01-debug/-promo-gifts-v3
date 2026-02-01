@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem, Building2 } from "lucide-react";
+import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem, Building2, Gift } from "lucide-react";
 
 // Função para padronizar texto: primeira letra maiúscula, resto minúsculo
 // Mantém preposições em minúsculo
@@ -65,6 +65,8 @@ export interface FilterState {
   inStock: boolean;
   isKit: boolean;
   featured: boolean;
+  // Embalagem especial nativa
+  hasCommercialPackaging: boolean;
 }
 
 interface FilterPanelProps {
@@ -93,6 +95,7 @@ export const defaultFilters: FilterState = {
   inStock: false,
   isKit: false,
   featured: false,
+  hasCommercialPackaging: false,
 };
 
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount }: FilterPanelProps) {
@@ -793,6 +796,31 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                 </div>
               </ScrollArea>
             )}
+          </div>
+        </FilterSection>
+
+        {/* Embalagem Especial */}
+        <FilterSection id="embalagem-especial" title="Embalagem Especial" icon={<Gift className="h-4 w-4 text-warning" />}>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 p-2.5 rounded-lg border border-warning/20 bg-warning/5 hover:bg-warning/10 transition-colors">
+              <Checkbox
+                id="has-commercial-packaging"
+                checked={filters.hasCommercialPackaging}
+                onCheckedChange={() => toggleBooleanFilter('hasCommercialPackaging')}
+                className="border-warning/50 data-[state=checked]:bg-warning data-[state=checked]:border-warning"
+              />
+              <Label 
+                htmlFor="has-commercial-packaging" 
+                className="text-sm cursor-pointer flex items-center gap-2 flex-1"
+              >
+                <span className="font-medium text-warning-foreground">
+                  Com Embalagem Nativa
+                </span>
+              </Label>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
+              Filtra produtos que possuem embalagem comercial especial inclusa no preço.
+            </p>
           </div>
         </FilterSection>
       </div>
