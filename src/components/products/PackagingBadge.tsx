@@ -1,30 +1,49 @@
 /**
  * PackagingBadge - Badge clicável para produtos com embalagem especial
- * Só exibe quando packing_classification === 'commercial'
+ * Exibe quando has_commercial_packaging === true
  */
 import { Gift, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+type PackagingContext = 'always' | 'with_customization' | 'without_customization' | null;
+
 interface PackagingBadgeProps {
+  hasCommercialPackaging: boolean | null;
   packingType: string | null;
-  packingClassification: string | null;
+  repackingType: string | null;
+  packagingContext: PackagingContext;
   onClick: () => void;
   className?: string;
 }
 
+// Mapeamento de contexto para texto de exibição
+const contextLabels: Record<string, string> = {
+  'always': 'Sempre disponível',
+  'with_customization': 'Com personalização',
+  'without_customization': 'Sem personalização',
+};
+
 export function PackagingBadge({
+  hasCommercialPackaging,
   packingType,
-  packingClassification,
+  repackingType,
+  packagingContext,
   onClick,
   className,
 }: PackagingBadgeProps) {
-  // Só exibir para embalagens comerciais
-  if (packingClassification !== 'commercial') {
+  // Só exibir se has_commercial_packaging === true
+  if (!hasCommercialPackaging) {
     return null;
   }
 
-  const displayText = packingType || "Embalagem Especial";
+  // Determinar tipo de embalagem baseado no contexto
+  const displayType = packagingContext === 'with_customization' 
+    ? (repackingType || packingType || "Embalagem Especial")
+    : (packingType || "Embalagem Especial");
+
+  // Texto do contexto
+  const contextText = packagingContext ? contextLabels[packagingContext] : null;
 
   return (
     <Badge
@@ -36,15 +55,22 @@ export function PackagingBadge({
         "border-warning/30 hover:border-warning/60",
         "hover:from-warning/20 hover:to-warning/10",
         "hover:scale-[1.02] hover:shadow-md",
-        "px-3 py-1.5",
+        "px-3 py-1.5 flex-col items-start gap-0.5",
         className
       )}
     >
-      <Gift className="h-3.5 w-3.5 mr-1.5 text-warning group-hover/packaging:scale-110 transition-transform" />
-      <span className="text-warning-foreground font-medium text-xs">
-        {displayText}
-      </span>
-      <ChevronRight className="h-3 w-3 ml-1 text-warning/60 group-hover/packaging:translate-x-0.5 transition-transform" />
+      <div className="flex items-center">
+        <Gift className="h-3.5 w-3.5 mr-1.5 text-warning group-hover/packaging:scale-110 transition-transform" />
+        <span className="text-warning-foreground font-medium text-xs">
+          {displayType}
+        </span>
+        <ChevronRight className="h-3 w-3 ml-1 text-warning/60 group-hover/packaging:translate-x-0.5 transition-transform" />
+      </div>
+      {contextText && (
+        <span className="text-[10px] text-muted-foreground pl-5">
+          {contextText}
+        </span>
+      )}
     </Badge>
   );
 }

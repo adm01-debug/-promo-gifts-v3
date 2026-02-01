@@ -217,8 +217,10 @@ export default function ProductDetail() {
                 
                 {/* Badge de Embalagem Especial */}
                 <PackagingBadge
+                  hasCommercialPackaging={product.hasCommercialPackaging}
                   packingType={product.packingType}
-                  packingClassification={product.packingClassification}
+                  repackingType={product.repackingType}
+                  packagingContext={product.packagingContext}
                   onClick={() => setPackagingModalOpen(true)}
                 />
               </div>
@@ -500,7 +502,10 @@ export default function ProductDetail() {
         <PackagingModal
           isOpen={packagingModalOpen}
           onClose={() => setPackagingModalOpen(false)}
-          packingType={product.packingType}
+          packingType={product.packagingContext === 'with_customization' 
+            ? (product.repackingType || product.packingType)
+            : product.packingType}
+          packagingContext={product.packagingContext}
           boxImage={product.boxImage}
           boxWidthMm={product.boxWidthMm}
           boxHeightMm={product.boxHeightMm}
