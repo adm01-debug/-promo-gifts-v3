@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import Fuse from "fuse.js";
 import { Product } from "@/hooks/useProducts";
 import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
 
@@ -59,10 +60,39 @@ export function useSearch(products: Product[] = []) {
     setHistory([]);
   }, []);
 
-  // Generate suggestions based on query
+  // Criar instância Fuse.js para busca fuzzy de produtos
+  const productFuse = useMemo(() => new Fuse(products, {
+    keys: [
+      { name: 'sku', weight: 0.35 },
+      { name: 'name', weight: 0.30 },
+      { name: 'brand', weight: 0.15 },
+      { name: 'category_name', weight: 0.10 },
+      { name: 'description', weight: 0.10 },
+    ],
+    threshold: 0.35,
+    distance: 100,
+    minMatchCharLength: 2,
+    ignoreLocation: true,
+  }), [products]);
+
+  // Criar instância Fuse.js para busca fuzzy de categorias
+  const categoryFuse = useMemo(() => new Fuse(CATEGORIES, {
+    keys: ['name'],
+    threshold: 0.35,
+    ignoreLocation: true,
+  }), []);
+
+  // Criar instância Fuse.js para busca fuzzy de fornecedores
+  const supplierFuse = useMemo(() => new Fuse(SUPPLIERS, {
+    keys: ['name'],
+    threshold: 0.35,
+    ignoreLocation: true,
+  }), []);
+
+  // Generate suggestions based on query - usando busca fuzzy
   const suggestions = useMemo((): SearchResult[] => {
     const results: SearchResult[] = [];
-    const searchTerm = query.toLowerCase().trim();
+    const searchTerm = query.trim();
 
     // If no query, show recent history
     if (!searchTerm) {
@@ -77,16 +107,16 @@ export function useSearch(products: Product[] = []) {
       return results;
     }
 
-    // Search products (using products passed from context)
-    const matchingProducts = products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(searchTerm) ||
-        (p.sku || '').toLowerCase().includes(searchTerm) ||
-        (p.description || '').toLowerCase().includes(searchTerm) ||
-        (Array.isArray(p.materials) ? p.materials.join(' ') : (p.materials || '')).toLowerCase().includes(searchTerm)
-    ).slice(0, 5);
+    // Se termo muito curto, não buscar
+    if (searchTerm.length < 2) {
+      return results;
+    }
 
-    matchingProducts.forEach((product) => {
+    // Search products - busca fuzzy tolerante a erros
+    const matchingProducts = productFuse.search(searchTerm).slice(0, 5);
+
+    matchingProducts.forEach((result) => {
+      const product = result.item;
       results.push({
         type: "product",
         id: product.id,
@@ -97,12 +127,11 @@ export function useSearch(products: Product[] = []) {
       });
     });
 
-    // Search categories
-    const matchingCategories = CATEGORIES.filter((c) =>
-      c.name.toLowerCase().includes(searchTerm)
-    ).slice(0, 3);
+    // Search categories - busca fuzzy
+    const matchingCategories = categoryFuse.search(searchTerm).slice(0, 3);
 
-    matchingCategories.forEach((category) => {
+    matchingCategories.forEach((result) => {
+      const category = result.item;
       const productCount = products.filter((p) => 
         p.category_id === String(category.id) || 
         parseInt(p.category_id || '0') === category.id
@@ -116,12 +145,11 @@ export function useSearch(products: Product[] = []) {
       });
     });
 
-    // Search suppliers
-    const matchingSuppliers = SUPPLIERS.filter((s) =>
-      s.name.toLowerCase().includes(searchTerm)
-    ).slice(0, 3);
+    // Search suppliers - busca fuzzy
+    const matchingSuppliers = supplierFuse.search(searchTerm).slice(0, 3);
 
-    matchingSuppliers.forEach((supplier) => {
+    matchingSuppliers.forEach((result) => {
+      const supplier = result.item;
       const productCount = products.filter((p) => 
         p.brand === supplier.id || p.supplier_reference === supplier.id
       ).length;
@@ -135,7 +163,7 @@ export function useSearch(products: Product[] = []) {
     });
 
     return results;
-  }, [query, history, products]);
+  }, [query, history, products, productFuse, categoryFuse, supplierFuse]);
 
   // Quick suggestions (popular/trending)
   const quickSuggestions = useMemo(() => {
