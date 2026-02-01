@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Play, Maximize2, X, Move, RotateCcw, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-
+import { sortByColorGroup } from "@/utils/colorSorting";
 interface ColorMedia {
   name: string;
   hex: string;
@@ -285,7 +285,11 @@ export function ProductGallery({
       </div>
 
       {/* Color Variations - Cards verticais abaixo da foto principal */}
-      {colors && colors.length > 0 && (
+      {colors && colors.length > 0 && (() => {
+        // Ordenar cores seguindo o padrão: Preto → Branco → Azuis → Verdes → etc
+        const sortedColors = sortByColorGroup(colors, (c) => c.name);
+        
+        return (
         <div className="space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Variações ({colors.length})</span>
@@ -304,9 +308,11 @@ export function ProductGallery({
           </div>
           
           <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
-            {colors.map((color, index) => {
+            {sortedColors.map((color) => {
+              // Encontrar o índice original para manter a seleção funcionando
+              const originalIndex = colors.findIndex(c => c.name === color.name && c.sku === color.sku);
               const hasVideos = color.videos && color.videos.length > 0;
-              const isSelected = selectedColorIndex === index;
+              const isSelected = selectedColorIndex === originalIndex;
               const stockStatus = color.stock !== undefined 
                 ? color.stock === 0 
                   ? { color: "text-destructive", label: "Sem estoque" }
@@ -317,8 +323,8 @@ export function ProductGallery({
               
               return (
                 <button
-                  key={color.name}
-                  onClick={() => handleColorClick(index)}
+                  key={`${color.name}-${color.sku}`}
+                  onClick={() => handleColorClick(originalIndex)}
                   className={cn(
                     "group/color relative shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-300",
                     "bg-card shadow-md hover:shadow-lg hover:-translate-y-1"
@@ -399,7 +405,8 @@ export function ProductGallery({
             })}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Thumbnails removidas - navegação via cards de variação ou setas */}
 
