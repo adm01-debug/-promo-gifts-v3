@@ -186,7 +186,9 @@ export function ExternalCategoryFilter({
             <span className="flex-shrink-0">{icon}</span>
             <span className="truncate">{toTitleCase(node.name)}</span>
             {hasChildren && (
-              <span className="text-xs text-muted-foreground">({node.children.length})</span>
+              <span className="text-xs text-muted-foreground" title={`${node.children.length} subcategorias`}>
+                ▾{node.children.length}
+              </span>
             )}
           </Label>
         </div>

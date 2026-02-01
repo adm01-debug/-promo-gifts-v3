@@ -103,7 +103,7 @@ serve(async (req) => {
       }
 
       case 'products_by_categories': {
-        // Buscar produtos vinculados às categorias via product_category_assignments
+        // Buscar produtos vinculados às categorias
         if (!categoryIds || categoryIds.length === 0) {
           return new Response(
             JSON.stringify({ success: true, productIds: [] }),
@@ -143,9 +143,39 @@ serve(async (req) => {
           targetCategoryIds = findDescendants(categoryIds);
         }
 
-        console.log('Querying products for categories:', targetCategoryIds);
+        console.log('Querying products for categories:', targetCategoryIds.length, 'categories');
 
-        // Buscar na tabela de vínculo N:N (product_category_assignments)
+        // ESTRATÉGIA 1: Usar products.category_id diretamente (fonte principal)
+        // Este é o campo mais confiável no banco Promobrind
+        console.log('Strategy 1: Using products.category_id directly...');
+        const { data: directProducts, error: directError } = await externalClient
+          .from('products')
+          .select('id')
+          .in('category_id', targetCategoryIds)
+          .eq('is_active', true);
+
+        if (!directError && directProducts && directProducts.length > 0) {
+          const productIds = directProducts.map((p: any) => p.id);
+          console.log(`Found ${productIds.length} products via products.category_id`);
+          
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              productIds,
+              source: 'products.category_id',
+              categoriesUsed: targetCategoryIds.length
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (directError) {
+          console.log('products.category_id query error:', directError.message);
+        }
+
+        // ESTRATÉGIA 2: Tentar product_category_assignments (tabela N:N)
+        // Nota: Esta tabela pode ter UUIDs de categoria inválidos/placeholders
+        console.log('Strategy 2: Trying product_category_assignments...');
         const { data: assignments, error: assignError } = await externalClient
           .from('product_category_assignments')
           .select('product_id')
@@ -166,8 +196,8 @@ serve(async (req) => {
           );
         }
 
-        // Fallback: tentar product_categories
-        console.log('Trying fallback: product_categories table...');
+        // ESTRATÉGIA 3: Tentar product_categories (outra tabela N:N)
+        console.log('Strategy 3: Trying product_categories table...');
         const { data: fallbackData, error: fallbackError } = await externalClient
           .from('product_categories')
           .select('product_id')
@@ -188,9 +218,8 @@ serve(async (req) => {
           );
         }
 
-        // Se nenhuma tabela de vínculo funcionou, retornar vazio
-        // NÃO tentar products.category_id pois causa erro de tipo UUID vs numérico
-        console.log('No product-category assignments found for selected categories');
+        // Se nenhuma estratégia funcionou, retornar vazio
+        console.log('No products found for selected categories');
         
         return new Response(
           JSON.stringify({ 
@@ -198,7 +227,7 @@ serve(async (req) => {
             productIds: [],
             source: 'none',
             categoriesUsed: targetCategoryIds.length,
-            message: 'No product-category assignments found'
+            message: 'No products found for selected categories'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
