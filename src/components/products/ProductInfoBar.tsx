@@ -30,13 +30,20 @@ export function ProductInfoBar({
         SKU: {sku}
       </Badge>
 
-      {/* Fornecedor - Ícone colorido por fornecedor */}
+      {/* Fornecedor - Ícone colorido, hover colorido */}
       <Badge 
         variant="outline" 
-        className="text-xs px-3 py-1.5 rounded-full font-medium border-border bg-card"
+        className="text-xs px-3 py-1.5 rounded-full font-medium border-border bg-card cursor-default transition-all duration-200 hover:scale-[1.02] group/supplier"
+        style={{
+          ['--supplier-color' as string]: getSupplierColors(supplierName).hex,
+        }}
       >
-        <Building2 className={cn("h-3.5 w-3.5 mr-1.5", getSupplierColors(supplierName).text)} />
-        {supplierName}
+        <Building2 
+          className={cn("h-3.5 w-3.5 mr-1.5 transition-colors", getSupplierColors(supplierName).text)} 
+        />
+        <span className="group-hover/supplier:text-[var(--supplier-color)] transition-colors">
+          {supplierName}
+        </span>
       </Badge>
 
       {/* Estoque Futuro */}
