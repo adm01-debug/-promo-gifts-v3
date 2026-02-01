@@ -180,43 +180,45 @@ export function ProductQuickView({
             {/* Main Image */}
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Loading skeleton */}
-              {!imageLoaded && !imageError && (
+              {!imageLoaded && !imageError && product.images[currentImageIndex] && product.images[currentImageIndex] !== '/placeholder.svg' && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-16 h-16 rounded-full border-4 border-muted border-t-primary animate-spin" />
                 </div>
               )}
               
-              {/* Error state */}
-              {imageError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                  <ImageOff className="h-16 w-16 mb-2" />
+              {/* Placeholder/Error state */}
+              {(imageError || !product.images[currentImageIndex] || product.images[currentImageIndex] === '/placeholder.svg') && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
+                  <ImageOff className="h-16 w-16 mb-2 opacity-50" />
                   <p className="text-sm">Imagem não disponível</p>
                 </div>
               )}
               
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={currentImageIndex}
-                  src={product.images[currentImageIndex]}
-                  alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
-                  className={cn(
-                    "w-full h-full object-contain p-8 transition-opacity duration-300",
-                    imageLoaded ? "opacity-100" : "opacity-0"
-                  )}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: imageLoaded ? 1 : 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                  onLoad={() => {
-                    setImageLoaded(true);
-                    setImageError(false);
-                  }}
-                  onError={() => {
-                    setImageError(true);
-                    setImageLoaded(false);
-                  }}
-                />
-              </AnimatePresence>
+              {product.images[currentImageIndex] && product.images[currentImageIndex] !== '/placeholder.svg' && (
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={currentImageIndex}
+                    src={product.images[currentImageIndex]}
+                    alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
+                    className={cn(
+                      "w-full h-full object-contain p-8 transition-opacity duration-300",
+                      imageLoaded ? "opacity-100" : "opacity-0"
+                    )}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: imageLoaded ? 1 : 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                    onLoad={() => {
+                      setImageLoaded(true);
+                      setImageError(false);
+                    }}
+                    onError={() => {
+                      setImageError(true);
+                      setImageLoaded(false);
+                    }}
+                  />
+                </AnimatePresence>
+              )}
             </div>
 
             {/* Navigation Arrows */}

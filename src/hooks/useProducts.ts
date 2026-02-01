@@ -75,18 +75,111 @@ export interface ProductFilters {
 // Cores base para detecção de grupo
 const COLOR_GROUP_KEYWORDS: Record<string, string[]> = {
   'Azul': ['azul', 'blue', 'marinho', 'celeste', 'royal', 'turquesa', 'petróleo', 'navy'],
-  'Verde': ['verde', 'green', 'limão', 'menta', 'musgo', 'oliva', 'esmeralda', 'lime'],
+  'Verde': ['verde', 'green', 'limão', 'menta', 'musgo', 'oliva', 'esmeralda', 'lime', 'neon'],
   'Vermelho': ['vermelho', 'red', 'bordô', 'vinho', 'cereja', 'coral', 'carmim', 'rubi'],
   'Amarelo': ['amarelo', 'yellow', 'dourado', 'ouro', 'gold', 'mostarda'],
   'Laranja': ['laranja', 'orange', 'tangerina', 'pêssego'],
-  'Rosa': ['rosa', 'pink', 'magenta', 'fúcsia', 'salmão'],
+  'Rosa': ['rosa', 'pink', 'magenta', 'fúcsia', 'salmão', 'flamingo', 'bebê'],
   'Roxo': ['roxo', 'purple', 'lilás', 'violeta', 'lavanda', 'uva'],
   'Preto': ['preto', 'black', 'negro', 'grafite', 'chumbo'],
   'Branco': ['branco', 'white', 'off-white', 'creme', 'gelo', 'pérola', 'neve'],
-  'Cinza': ['cinza', 'gray', 'grey', 'prata', 'silver', 'chumbo'],
+  'Cinza': ['cinza', 'gray', 'grey', 'prata', 'silver', 'acetinado', 'fosco', 'cromado'],
   'Marrom': ['marrom', 'brown', 'chocolate', 'café', 'caramelo', 'bege', 'nude', 'areia', 'natural', 'palha', 'terra'],
   'Transparente': ['transparente', 'transparent', 'cristal', 'clear', 'incolor'],
 };
+
+// Mapeamento de cores conhecidas para hexadecimais (para fallback quando a API não retorna hex)
+const KNOWN_COLOR_HEX: Record<string, string> = {
+  // Cores básicas
+  'preto': '#000000',
+  'branco': '#FFFFFF',
+  'cinza': '#808080',
+  'cinza claro': '#C0C0C0',
+  'cinza grafite': '#2F2F2F',
+  
+  // Azuis
+  'azul': '#0000FF',
+  'azul royal': '#4169E1',
+  'azul marinho': '#000080',
+  'azul celeste': '#87CEEB',
+  'azul petróleo': '#0D4F5C',
+  
+  // Vermelhos
+  'vermelho': '#FF0000',
+  'vermelho bordô': '#800020',
+  'vinho': '#722F37',
+  
+  // Verdes
+  'verde': '#008000',
+  'verde neon': '#39FF14',
+  'verde claro': '#90EE90',
+  'verde musgo': '#556B2F',
+  'verde militar': '#4B5320',
+  
+  // Amarelos
+  'amarelo': '#FFFF00',
+  'dourado': '#FFD700',
+  'mostarda': '#FFDB58',
+  
+  // Laranjas
+  'laranja': '#EF941B',
+  'coral': '#FF7F50',
+  'salmão': '#FA8072',
+  
+  // Rosas
+  'rosa': '#FFC0CB',
+  'rosa flamingo': '#FC8EAC',
+  'rosa bebê': '#F4C2C2',
+  'magenta': '#FF00FF',
+  'fúcsia': '#FF00FF',
+  
+  // Roxos
+  'roxo': '#800080',
+  'lilás': '#C8A2C8',
+  'violeta': '#EE82EE',
+  'lavanda': '#E6E6FA',
+  
+  // Marrons e beges
+  'marrom': '#8B4513',
+  'bege': '#F5F5DC',
+  'bege palha': '#CCAA92',
+  'natural': '#BB8B64',
+  'nude': '#E3BC9A',
+  'caramelo': '#FFD59A',
+  'chocolate': '#7B3F00',
+  'café': '#6F4E37',
+  
+  // Metálicos
+  'prata': '#C0C0C0',
+  'prata cromado': '#D8DBDE',
+  'prata acetinado (fosco)': '#868686',
+  'cromado': '#E8E8E8',
+  'ouro': '#FFD700',
+};
+
+// Busca hex em mapeamento conhecido
+function findKnownHex(colorName: string): string | null {
+  if (!colorName) return null;
+  const nameLower = colorName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  
+  // Busca exata
+  for (const [key, hex] of Object.entries(KNOWN_COLOR_HEX)) {
+    const keyNormalized = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (keyNormalized === nameLower) {
+      return hex;
+    }
+  }
+  
+  // Busca parcial - nome contém a cor conhecida
+  for (const [key, hex] of Object.entries(KNOWN_COLOR_HEX)) {
+    const keyNormalized = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (nameLower.includes(keyNormalized) || keyNormalized.includes(nameLower)) {
+      return hex;
+    }
+  }
+  
+  return null;
+}
 
 function detectColorGroup(colorName: string): string {
   const nameLower = colorName.toLowerCase().trim();
@@ -111,9 +204,11 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
     // Se c é uma string simples (ex: "Branco"), converte para objeto
     if (typeof c === 'string') {
       const name = c || 'Sem cor';
+      // Tenta encontrar hex em mapeamento conhecido
+      const knownHex = findKnownHex(name);
       return {
         name,
-        hex: '#CCCCCC', // Cor padrão - será substituída se disponível
+        hex: knownHex || '#CCCCCC',
         group: detectColorGroup(name),
       };
     }
@@ -122,12 +217,20 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
     const name = c.name || c.color_name || 'Sem cor';
     const group = c.group || c.color_group || detectColorGroup(name);
     
+    // Prioriza hex do objeto, depois busca em mapeamento conhecido
+    let hex = c.hex || c.hex_code || c.color_hex;
+    if (!hex || hex === '#CCCCCC') {
+      const knownHex = findKnownHex(name);
+      if (knownHex) hex = knownHex;
+    }
+    
     return {
       name,
-      hex: c.hex || c.hex_code || c.color_hex || '#CCCCCC',
+      hex: hex || '#CCCCCC',
       group,
     };
   });
+}
 }
 
 // Determina status do estoque baseado na quantidade
