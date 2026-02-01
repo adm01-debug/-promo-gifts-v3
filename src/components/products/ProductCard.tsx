@@ -11,6 +11,7 @@ import { ProductQuickView } from "./ProductQuickView";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { NoveltyBadge } from "./NoveltyBadge";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
+import { getSupplierBadgeClasses } from "@/lib/supplier-colors";
 
 export interface ProductCardProps {
   product: Product;
@@ -399,8 +400,11 @@ export function ProductCard({
             {product.sku}
           </span>
           
-          {/* Nome do fornecedor */}
-          <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium shrink-0 truncate max-w-[120px]">
+          {/* Nome do fornecedor - cores específicas por fornecedor */}
+          <span className={cn(
+            "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full font-medium shrink-0 truncate max-w-[120px]",
+            getSupplierBadgeClasses(product.supplier.name)
+          )}>
             {product.supplier.name}
           </span>
         </div>

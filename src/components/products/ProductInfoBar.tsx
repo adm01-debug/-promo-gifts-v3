@@ -2,6 +2,8 @@ import { Building2, CalendarClock, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { getSupplierBadgeClasses } from "@/lib/supplier-colors";
 
 interface ProductInfoBarProps {
   sku: string;
@@ -28,12 +30,15 @@ export function ProductInfoBar({
         SKU: {sku}
       </Badge>
 
-      {/* Fornecedor */}
+      {/* Fornecedor - Cores específicas */}
       <Badge 
         variant="outline" 
-        className="text-xs px-3 py-1.5 rounded-full font-medium border-border bg-card"
+        className={cn(
+          "text-xs px-3 py-1.5 rounded-full font-medium",
+          getSupplierBadgeClasses(supplierName)
+        )}
       >
-        <Building2 className="h-3.5 w-3.5 mr-1.5 text-orange-500" />
+        <Building2 className="h-3.5 w-3.5 mr-1.5" />
         {supplierName}
       </Badge>
 
