@@ -231,7 +231,6 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
     };
   });
 }
-}
 
 // Determina status do estoque baseado na quantidade
 function getStockStatus(stock: number): 'in-stock' | 'low-stock' | 'out-of-stock' {
