@@ -8,7 +8,6 @@ import {
   Tag,
   Layers,
   Sparkles,
-  Building2,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
@@ -22,6 +21,8 @@ import { ProductIntelligence } from "@/components/products/ProductIntelligence";
 import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
+import { ProductInfoBar } from "@/components/products/ProductInfoBar";
+import { FutureStockModal } from "@/components/products/FutureStockModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -52,6 +53,7 @@ export default function ProductDetail() {
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
+  const [futureStockOpen, setFutureStockOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedContext();
   const { products: allProducts } = useProductsContext();
 
@@ -215,31 +217,13 @@ export default function ProductDetail() {
                 {product.name}
               </h1>
 
-              {/* SKU & Supplier */}
-              <div className="flex items-center gap-4 flex-wrap">
-                <span className="text-sm text-muted-foreground font-mono bg-muted px-3 py-1 rounded-full">
-                  SKU: {selectedVariation?.sku || product.sku}
-                </span>
-                <span className="text-sm px-3 py-1 rounded-full bg-secondary text-secondary-foreground font-medium">
-                  {product.supplier.name}
-                </span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSupplierCompareOpen(true)}
-                      className="rounded-full h-8 px-3 text-xs"
-                    >
-                      <Building2 className="h-3.5 w-3.5 mr-1.5" />
-                      Comparar Fornecedores
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Ver mesmo produto em outros fornecedores
-                  </TooltipContent>
-                </Tooltip>
-              </div>
+              {/* SKU, Supplier, Estoque Futuro, Comparar Fornecedores */}
+              <ProductInfoBar
+                sku={selectedVariation?.sku || product.sku}
+                supplierName={product.supplier.name}
+                onOpenFutureStock={() => setFutureStockOpen(true)}
+                onOpenSupplierComparison={() => setSupplierCompareOpen(true)}
+              />
             </div>
 
             {/* Price & Stock Card */}
@@ -488,6 +472,15 @@ export default function ProductDetail() {
           productId={id || ""}
           open={supplierCompareOpen}
           onOpenChange={setSupplierCompareOpen}
+        />
+
+        {/* Future Stock Modal */}
+        <FutureStockModal
+          open={futureStockOpen}
+          onOpenChange={setFutureStockOpen}
+          productName={product.name}
+          productSku={product.sku}
+          colors={product.colors || []}
         />
 
         {/* Trust Badges */}
