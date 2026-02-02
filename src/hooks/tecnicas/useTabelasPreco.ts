@@ -43,7 +43,7 @@ export function useTabelasPreco(filtros?: TabelaPrecoFiltros) {
         table: 'customization_price_tables',
         operation: 'select',
         filters: Object.keys(filters).length > 0 ? filters : undefined,
-        orderBy: { column: 'table_code_option', ascending: true },
+        orderBy: { column: 'table_code', ascending: true },
         limit: 500,
       });
 
