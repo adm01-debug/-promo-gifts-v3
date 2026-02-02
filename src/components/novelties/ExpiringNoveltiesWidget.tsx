@@ -70,7 +70,6 @@ export function ExpiringNoveltiesWidget() {
                     "bg-background/50 hover:bg-accent/50 transition-colors",
                     "border border-transparent hover:border-warning/30"
                   )}
-                  )}
                   onClick={() => handleClick(item.product_id)}
                 >
                   {/* Imagem pequena */}
