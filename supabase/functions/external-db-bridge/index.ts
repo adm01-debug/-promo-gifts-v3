@@ -202,6 +202,62 @@ function isPersonalizationTechniquesAlias(table: string) {
   return table === 'personalization_techniques';
 }
 
+/**
+ * Compat: o app usa `customization_price_tables` mas no BD externo
+ * a tabela real é `tecnica_faixa_area`.
+ */
+function isCustomizationPriceTablesAlias(table: string) {
+  return table === 'customization_price_tables' || table === 'customization_price_tiers';
+}
+
+function mapPriceTableFiltersToExternal(filters: Record<string, unknown> | undefined) {
+  if (!filters) return undefined;
+  const out: Record<string, unknown> = { ...filters };
+
+  // Mapear campos legacy para schema externo
+  if ('is_active' in out) {
+    out.ativo = out.is_active;
+    delete out.is_active;
+  }
+  if ('table_code' in out) {
+    // table_code no legacy corresponde ao codigo da técnica
+    out.codigo = out.table_code;
+    delete out.table_code;
+  }
+  if ('technique_id' in out) {
+    out.tecnica_gravacao_id = out.technique_id;
+    delete out.technique_id;
+  }
+
+  return out;
+}
+
+function mapPriceTableRowToLegacyShape(row: Record<string, unknown>) {
+  return {
+    ...row,
+    // Campos esperados pelo frontend
+    id: row.id,
+    table_code: row.codigo,
+    table_code_option: row.codigo,
+    table_fullcode: row.codigo,
+    customization_type_name: row.nome,
+    max_colors: null,
+    max_area_width_cm: row.area_maxima_cm2 ? Math.sqrt(row.area_maxima_cm2 as number) : null,
+    max_area_height_cm: row.area_maxima_cm2 ? Math.sqrt(row.area_maxima_cm2 as number) : null,
+    max_area_cm2: row.area_maxima_cm2,
+    min_area_cm2: row.area_minima_cm2,
+    price_by_color: false,
+    price_by_area: true,
+    setup_price: 0,
+    handling_price: row.valor_adicional_peca ?? 0,
+    price_modifier: row.multiplicador_preco ?? 1,
+    is_active: row.ativo ?? true,
+    technique_id: row.tecnica_gravacao_id,
+    display_order: row.ordem_exibicao,
+    description: row.descricao,
+  };
+}
+
 function mapTechniqueFiltersToExternal(filters: Record<string, unknown> | undefined) {
   if (!filters) return undefined;
   const out: Record<string, unknown> = { ...filters };
@@ -299,12 +355,21 @@ serve(async (req) => {
 
     // Compatibilidade: alias de tabela antiga -> tabela real no BD externo
     const usingTechniqueAlias = isPersonalizationTechniquesAlias(table);
+    const usingPriceTableAlias = isCustomizationPriceTablesAlias(table);
+    
     if (usingTechniqueAlias) {
       table = 'tecnica_gravacao';
       (body as any).table = table;
       (body as any).filters = mapTechniqueFiltersToExternal((body as any).filters);
       (body as any).orderBy = mapTechniqueOrderByToExternal((body as any).orderBy);
       // select legacy pode referenciar colunas que não existem; força '*'
+      (body as any).select = '*';
+    }
+    
+    if (usingPriceTableAlias) {
+      table = 'tecnica_faixa_area';
+      (body as any).table = table;
+      (body as any).filters = mapPriceTableFiltersToExternal((body as any).filters);
       (body as any).select = '*';
     }
     
@@ -533,6 +598,9 @@ serve(async (req) => {
         // Compat: mapear resposta para shape antigo quando chamarem personalization_techniques
         if (usingTechniqueAlias && Array.isArray(selectData)) {
           const mapped = selectData.map((r: any) => mapTechniqueRowToLegacyShape(r));
+          result = { records: mapped, count };
+        } else if (usingPriceTableAlias && Array.isArray(selectData)) {
+          const mapped = selectData.map((r: any) => mapPriceTableRowToLegacyShape(r));
           result = { records: mapped, count };
         } else {
           result = { records: selectData, count };
