@@ -232,6 +232,16 @@ function mapPriceTableFiltersToExternal(filters: Record<string, unknown> | undef
     out.codigo = out.table_code;
     delete out.table_code;
   }
+  if ('table_code_option' in out) {
+    // Em alguns fluxos legacy o filtro vem como table_code_option
+    out.codigo = out.table_code_option;
+    delete out.table_code_option;
+  }
+  if ('table_fullcode' in out) {
+    // Alguns schemas antigos usavam table_fullcode como código completo
+    out.codigo = out.table_fullcode;
+    delete out.table_fullcode;
+  }
   if ('technique_id' in out) {
     out.tecnica_gravacao_id = out.technique_id;
     delete out.technique_id;
