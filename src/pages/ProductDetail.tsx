@@ -43,6 +43,7 @@ import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PopularityBadge, LowStockAlert, TrustBadgesRow } from "@/components/common/SocialProof";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
+import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
 import { useProductsContext } from "@/contexts/ProductsContext";
 
@@ -140,22 +141,22 @@ export default function ProductDetail() {
 
   return (
     <MainLayout>
-      <div className="space-y-8 animate-fade-in">
-        {/* Dynamic Breadcrumbs */}
-        <DynamicBreadcrumbs />
+      <div className="space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-0">
+        {/* Dynamic Breadcrumbs - Hidden on mobile */}
+        <DynamicBreadcrumbs className="hidden md:flex" />
 
         {/* Social Proof & Stock Alerts */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {product.featured && <PopularityBadge variant="trending" />}
           {product.stockStatus === "low-stock" && (
             <LowStockAlert quantity={product.stock} />
           )}
         </div>
 
-        {/* Main content */}
-        <div className="grid lg:grid-cols-2 gap-10">
+        {/* Main content - Single column on mobile */}
+        <div className="grid lg:grid-cols-2 gap-4 md:gap-10">
           {/* Left column - Gallery */}
-          <div className="space-y-6" style={{ animationDelay: '100ms' }}>
+          <div className="space-y-4 md:space-y-6" style={{ animationDelay: '100ms' }}>
             <ProductGallery
               images={displayImages}
               video={product.video}
@@ -181,36 +182,36 @@ export default function ProductDetail() {
           </div>
 
           {/* Right column - Info */}
-          <div className="space-y-6" style={{ animationDelay: '200ms' }}>
+          <div className="space-y-4 md:space-y-6" style={{ animationDelay: '200ms' }}>
             {/* Header */}
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {/* Category/Group Badges - Ícones das categorias */}
               <ProductCategoryBadges 
                 category={product.category} 
                 groups={product.groups}
               />
 
-              {/* Status Badges */}
-              <div className="flex flex-wrap gap-2">
+              {/* Status Badges - Compact on mobile */}
+              <div className="flex flex-wrap gap-1.5 md:gap-2">
                 {product.featured && (
-                  <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-3 py-1 shadow-lg">
-                    <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                  <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-2 md:px-3 py-0.5 md:py-1 text-[11px] md:text-sm shadow-lg">
+                    <Sparkles className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                     Destaque
                   </Badge>
                 )}
                 {product.newArrival && (
-                  <Badge className="bg-gradient-to-r from-info to-info/80 text-info-foreground px-3 py-1">
+                  <Badge className="bg-gradient-to-r from-info to-info/80 text-info-foreground px-2 md:px-3 py-0.5 md:py-1 text-[11px] md:text-sm">
                     Novidade
                   </Badge>
                 )}
                 {product.onSale && (
-                  <Badge className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground px-3 py-1">
+                  <Badge className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground px-2 md:px-3 py-0.5 md:py-1 text-[11px] md:text-sm">
                     Promoção
                   </Badge>
                 )}
                 {product.isKit && (
-                  <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground px-3 py-1">
-                    <Layers className="h-3.5 w-3.5 mr-1.5" />
+                  <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground px-2 md:px-3 py-0.5 md:py-1 text-[11px] md:text-sm">
+                    <Layers className="h-3 w-3 md:h-3.5 md:w-3.5 mr-1" />
                     KIT
                   </Badge>
                 )}
@@ -225,8 +226,8 @@ export default function ProductDetail() {
                 />
               </div>
 
-              {/* Title */}
-              <h1 className="font-display text-3xl lg:text-4xl font-bold text-foreground leading-tight">
+              {/* Title - Smaller on mobile */}
+              <h1 className="font-display text-xl sm:text-2xl lg:text-4xl font-bold text-foreground leading-tight">
                 {product.name}
               </h1>
 
@@ -241,22 +242,22 @@ export default function ProductDetail() {
             </div>
 
             {/* Price & Stock Card */}
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-6 shadow-lg">
+            <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-4 md:p-6 shadow-lg">
               {/* Decorative gradient */}
               {product.featured && (
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
+                <div className="absolute top-0 right-0 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
               )}
               
-              <div className="relative space-y-4">
+              <div className="relative space-y-3 md:space-y-4">
                 <div className="flex items-end justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">
+                    <p className="text-xs md:text-sm text-muted-foreground mb-0.5 md:mb-1">
                       A partir de
                     </p>
-                    <span className="text-4xl font-display font-bold text-foreground">
+                    <span className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="text-lg text-muted-foreground ml-1">/un</span>
+                    <span className="text-base md:text-lg text-muted-foreground ml-1">/un</span>
                   </div>
                 </div>
                 
@@ -310,24 +311,25 @@ export default function ProductDetail() {
 
                 <Separator className="bg-border/50" />
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Tag className="h-4 w-4 text-primary" />
+                {/* Info Grid - 2 cols on mobile, 3 on desktop */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-muted-foreground">
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <Tag className="h-3 w-3 md:h-4 md:w-4 text-primary" />
                     </div>
-                    <span>Mín. {minQuantity} un.</span>
+                    <span className="truncate">Mín. {minQuantity}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center">
-                      <Truck className="h-4 w-4 text-info" />
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-muted-foreground">
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
+                      <Truck className="h-3 w-3 md:h-4 md:w-4 text-info" />
                     </div>
-                    <span>Consultar prazo</span>
+                    <span className="truncate">Consultar</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
-                      <Shield className="h-4 w-4 text-success" />
+                  <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-muted-foreground col-span-2 md:col-span-1">
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+                      <Shield className="h-3 w-3 md:h-4 md:w-4 text-success" />
                     </div>
-                    <span>Garantia</span>
+                    <span className="truncate">Garantia</span>
                   </div>
                 </div>
               </div>
@@ -397,8 +399,8 @@ export default function ProductDetail() {
               productName={product.name}
             />
 
-            {/* Actions */}
-            <div className="flex items-center gap-3 pt-4 border-t border-border">
+            {/* Actions - Desktop only */}
+            <div className="hidden md:flex items-center gap-3 pt-4 border-t border-border">
               <ShareActions product={product} />
               
               <Button
@@ -521,6 +523,16 @@ export default function ProductDetail() {
 
       {/* Floating Compare Bar */}
       <FloatingCompareBar />
+
+      {/* Mobile Product Actions Bar */}
+      <MobileProductActions
+        productId={product.id}
+        productName={product.name}
+        productSku={product.sku}
+        productPrice={product.price}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleFavorite}
+      />
     </MainLayout>
   );
 }
