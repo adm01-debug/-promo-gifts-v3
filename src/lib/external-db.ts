@@ -738,42 +738,114 @@ export interface PromobrindPriceTable {
 
 /**
  * Busca áreas de impressão de um produto do BD Promobrind
- * Usa tabela principal product_print_areas (view v_product_print_areas_complete pode não existir)
+ * Usa RPC fn_get_product_print_areas que retorna áreas + técnicas resolvidas em UMA chamada
  */
 export async function fetchPromobrindPrintAreas(
   productId: string
 ): Promise<PromobrindPrintArea[]> {
-  // Tentar tabela principal primeiro (mais confiável)
   try {
-    const result = await invokeExternalDb<PromobrindPrintArea>({
-      table: 'product_print_areas',
-      operation: 'select',
-      filters: { product_id: productId },
-      limit: 100,
+    // Usar RPC otimizada que retorna áreas com técnicas resolvidas
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+      body: {
+        operation: 'rpc',
+        rpcName: 'fn_get_product_print_areas',
+        rpcParams: { p_product_id: productId },
+      },
     });
+
+    if (error) throw new Error(error.message);
+    if (!data?.success) throw new Error(data?.error || 'Erro desconhecido');
     
-    // Mapear campos que podem ter nomes diferentes
-    return result.records.map(record => ({
-      id: record.id,
-      product_id: record.product_id,
-      area_code: record.area_code || '',
-      area_name: record.area_name || record.location_name || '',
-      component_name: record.component_name,
-      location_name: record.location_name,
-      max_width_cm: (record as any).max_width_cm ?? (record as any).largura_max_cm ?? null,
-      max_height_cm: (record as any).max_height_cm ?? (record as any).altura_max_cm ?? null,
-      max_area_cm2: (record as any).max_area_cm2 ?? (record as any).area_max_cm2 ?? null,
-      is_curved: record.is_curved ?? false,
-      technique_id: record.technique_id,
-      technique_code: record.technique_code,
-      technique_name: record.technique_name,
-      max_colors: record.max_colors,
-      is_default: record.is_default ?? false,
-      area_image_url: record.area_image_url,
-    }));
+    const areas = data.data as any[];
+    if (!areas || !Array.isArray(areas)) return [];
+
+    // A RPC retorna áreas com array de técnicas embutido
+    // Precisamos "desnormalizar" para o formato esperado pelo código existente
+    const result: PromobrindPrintArea[] = [];
+    
+    for (const area of areas) {
+      const techniques = area.techniques || [];
+      
+      if (techniques.length === 0) {
+        // Área sem técnicas - incluir mesmo assim
+        result.push({
+          id: area.area_id || area.id,
+          product_id: productId,
+          area_code: area.area_code || '',
+          area_name: area.area_name || area.location_name || '',
+          component_name: area.component_name,
+          location_name: area.location_name,
+          max_width_cm: area.max_width,
+          max_height_cm: area.max_height,
+          max_area_cm2: null,
+          is_curved: area.is_curved ?? false,
+          technique_id: undefined,
+          technique_code: undefined,
+          technique_name: undefined,
+          max_colors: undefined,
+          is_default: area.is_primary ?? false,
+          area_image_url: undefined,
+        });
+      } else {
+        // Uma entrada por técnica (para manter compatibilidade)
+        for (const tech of techniques) {
+          result.push({
+            id: area.area_id || area.id,
+            product_id: productId,
+            area_code: area.area_code || '',
+            area_name: area.area_name || area.location_name || '',
+            component_name: area.component_name,
+            location_name: area.location_name,
+            max_width_cm: area.max_width,
+            max_height_cm: area.max_height,
+            max_area_cm2: null,
+            is_curved: area.is_curved ?? false,
+            technique_id: tech.id,
+            technique_code: tech.codigo || tech.code,
+            technique_name: tech.nome || tech.name,
+            max_colors: tech.max_colors,
+            is_default: area.is_primary ?? false,
+            area_image_url: undefined,
+          });
+        }
+      }
+    }
+    
+    return result;
   } catch (err) {
-    console.error('Erro ao buscar áreas de impressão do Promobrind:', err);
-    return [];
+    console.warn('RPC fn_get_product_print_areas falhou, tentando fallback:', err);
+    
+    // Fallback: buscar diretamente da tabela
+    try {
+      const result = await invokeExternalDb<any>({
+        table: 'product_print_areas',
+        operation: 'select',
+        filters: { product_id: productId },
+        limit: 100,
+      });
+      
+      return result.records.map(record => ({
+        id: record.id,
+        product_id: record.product_id,
+        area_code: record.area_code || '',
+        area_name: record.area_name || record.location_name || '',
+        component_name: record.component_name,
+        location_name: record.location_name,
+        max_width_cm: record.max_width_cm ?? record.largura_max_cm ?? null,
+        max_height_cm: record.max_height_cm ?? record.altura_max_cm ?? null,
+        max_area_cm2: record.max_area_cm2 ?? record.area_max_cm2 ?? null,
+        is_curved: record.is_curved ?? false,
+        technique_id: record.technique_id,
+        technique_code: record.technique_code,
+        technique_name: record.technique_name,
+        max_colors: record.max_colors,
+        is_default: record.is_default ?? false,
+        area_image_url: record.area_image_url,
+      }));
+    } catch (fallbackErr) {
+      console.error('Fallback também falhou:', fallbackErr);
+      return [];
+    }
   }
 }
 
