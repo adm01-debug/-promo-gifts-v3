@@ -83,7 +83,10 @@ export function PersistentBreadcrumbs({
   return (
     <nav 
       aria-label="Breadcrumb" 
-      className={cn("flex items-center text-sm", className)}
+      className={cn(
+        "hidden md:flex items-center text-sm", // Hidden on mobile - redundant with bottom nav
+        className
+      )}
     >
       <ol className="flex items-center gap-1.5 flex-wrap">
         {breadcrumbs.map((item, index) => {
