@@ -2,26 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Interface para produto novidade (usando products.is_new)
- */
-export interface NoveltyProduct {
-  id: string;
-  sku: string;
-  name: string;
-  description: string | null;
-  is_new: boolean;
-  is_featured: boolean;
-  base_price: number;
-  category_id: string | null;
-  category_name: string | null;
-  primary_image_url: string | null;
-  supplier_id: string | null;
-  supplier_name: string | null;
-  created_at: string;
-}
-
-/**
  * Interface para novidade com detalhes da view v_product_novelties
+ * Esta é a fonte principal de dados para novidades
  */
 export interface NoveltyWithDetails {
   novelty_id: string;
@@ -34,6 +16,8 @@ export interface NoveltyWithDetails {
   category_id: string | null;
   category_name: string | null;
   supplier_code: string | null;
+  supplier_id: string | null;
+  supplier_name: string | null;
   supplier_product_code: string | null;
   detected_at: string;
   expires_at: string;
@@ -44,29 +28,24 @@ export interface NoveltyWithDetails {
 }
 
 /**
- * Interface para estatísticas de novidades (vw_novelty_stats)
+ * Interface para estatísticas de novidades (RPC get_novelties_stats)
  */
 export interface NoveltyStats {
-  total_products: number;
-  products_is_new_true: number;
-  products_is_new_false: number;
-  total_novelty_records: number;
+  total_novelties: number;
   active_novelties: number;
-  expired_novelties: number;
-  expiring_in_7_days: number;
-  next_expiration: string | null;
-  generated_at: string;
+  expiring_soon: number;
+  by_supplier?: Record<string, number>;
 }
 
 /**
- * Interface para estatísticas resumidas (RPC)
+ * Interface normalizada para exibição de estatísticas
  */
-export interface NoveltyStatsRPC {
-  total_novelties: number;
-  active_novelties: number;
-  highlighted_novelties: number;
-  expiring_soon: number;
-  by_supplier?: Record<string, number>;
+export interface NoveltyStatsDisplay {
+  totalNovelties: number;
+  activeNovelties: number;
+  expiringSoon: number;
+  totalProducts: number;
+  noveltyRate: number;
 }
 
 export interface UseNoveltiesOptions {
@@ -76,54 +55,11 @@ export interface UseNoveltiesOptions {
 }
 
 /**
- * Hook simples para buscar produtos novidade (products.is_new = true)
- * RECOMENDADO para a maioria dos casos
- */
-export function useNoveltyProducts(options: UseNoveltiesOptions = {}) {
-  const { limit = 50, offset = 0 } = options;
-
-  return useQuery<NoveltyProduct[]>({
-    queryKey: ['novelty-products', limit, offset],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          id,
-          sku,
-          name,
-          description,
-          is_new,
-          is_featured,
-          base_price,
-          category_id,
-          category_name,
-          primary_image_url,
-          supplier_id,
-          supplier_name,
-          created_at
-        `)
-        .eq('is_new', true)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      if (error) {
-        console.error('Erro ao buscar produtos novidade:', error);
-        throw new Error(`Falha ao buscar novidades: ${error.message}`);
-      }
-
-      return (data || []) as NoveltyProduct[];
-    },
-    staleTime: 2 * 60 * 1000, // 2 minutos
-    retry: 2,
-  });
-}
-
-/**
  * Hook para buscar novidades com detalhes completos (view v_product_novelties)
- * Use quando precisar de days_remaining, status, etc.
+ * FONTE PRINCIPAL - Use esta para listar novidades
  */
 export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
-  const { limit = 50, onlyHighlighted = false } = options;
+  const { limit = 100, onlyHighlighted = false } = options;
 
   return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-details', limit, onlyHighlighted],
@@ -180,41 +116,38 @@ export function useExpiringNovelties(maxDays: number = 7) {
 }
 
 /**
- * Hook para estatísticas de novidades (view vw_novelty_stats)
+ * Hook para estatísticas de novidades (RPC get_novelties_stats)
  */
 export function useNoveltyStats() {
-  return useQuery<NoveltyStats>({
-    queryKey: ['novelty-stats-view'],
+  return useQuery<NoveltyStatsDisplay>({
+    queryKey: ['novelty-stats'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vw_novelty_stats')
-        .select('*')
-        .single();
-
-      if (error) {
-        console.error('Erro ao buscar estatísticas:', error);
-        // Fallback para RPC se a view não existir
-        const { data: rpcData, error: rpcError } = await supabase.rpc('get_novelties_stats');
-        
-        if (rpcError) {
-          throw new Error(`Falha ao buscar estatísticas: ${rpcError.message}`);
-        }
-
-        const stats = Array.isArray(rpcData) ? rpcData[0] : rpcData;
-        return {
-          total_products: 0,
-          products_is_new_true: stats?.active_novelties || 0,
-          products_is_new_false: 0,
-          total_novelty_records: stats?.total_novelties || 0,
-          active_novelties: stats?.active_novelties || 0,
-          expired_novelties: 0,
-          expiring_in_7_days: stats?.expiring_soon || 0,
-          next_expiration: null,
-          generated_at: new Date().toISOString(),
-        } as NoveltyStats;
+      // Buscar estatísticas via RPC
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_novelties_stats');
+      
+      if (rpcError) {
+        console.error('Erro ao buscar estatísticas:', rpcError);
+        throw new Error(`Falha ao buscar estatísticas: ${rpcError.message}`);
       }
 
-      return data as NoveltyStats;
+      const stats = rpcData as NoveltyStats;
+
+      // Buscar contagem total de produtos
+      const { count: totalProducts } = await supabase
+        .from('products')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true);
+
+      const total = totalProducts || 0;
+      const activeNovelties = stats?.active_novelties || 0;
+
+      return {
+        totalNovelties: stats?.total_novelties || 0,
+        activeNovelties: activeNovelties,
+        expiringSoon: stats?.expiring_soon || 0,
+        totalProducts: total,
+        noveltyRate: total > 0 ? Math.round((activeNovelties / total) * 100) : 0,
+      };
     },
     staleTime: 5 * 60 * 1000,
     retry: 2,
@@ -223,7 +156,6 @@ export function useNoveltyStats() {
 
 /**
  * Hook para buscar novidades via RPC get_active_novelties
- * @deprecated Use useNoveltyProducts para casos simples
  */
 export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: string; maxDays?: number } = {}) {
   const { supplierCode, limit = 50, offset = 0, maxDays } = options;
@@ -258,16 +190,16 @@ export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: str
 }
 
 /**
- * Hook para contar total de novidades ativas
+ * Hook para contar total de novidades ativas (usando view)
  */
 export function useNoveltyCount() {
   return useQuery<number>({
     queryKey: ['novelty-count'],
     queryFn: async () => {
       const { count, error } = await supabase
-        .from('products')
+        .from('v_product_novelties')
         .select('*', { count: 'exact', head: true })
-        .eq('is_new', true);
+        .eq('is_active', true);
 
       if (error) {
         console.error('Erro ao contar novidades:', error);
@@ -317,16 +249,16 @@ export function useNoveltyProductIds() {
     queryKey: ['novelty-product-ids'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('products')
-        .select('id')
-        .eq('is_new', true);
+        .from('v_product_novelties')
+        .select('product_id')
+        .eq('is_active', true);
 
       if (error) {
         console.error('Erro ao buscar IDs de novidades:', error);
         return new Set();
       }
 
-      return new Set((data || []).map(d => d.id));
+      return new Set((data || []).map(d => d.product_id));
     },
     staleTime: 2 * 60 * 1000,
   });

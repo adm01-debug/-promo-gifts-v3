@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package, Clock, Grid3X3, List, Filter } from "lucide-react";
-import { useNoveltyProducts, useNoveltiesWithDetails } from "@/hooks/useNovelties";
+import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { cn } from "@/lib/utils";
 
@@ -14,29 +14,13 @@ type ViewMode = "grid" | "list";
 type SortMode = "recent" | "expiring" | "name";
 
 interface NoveltyCardProps {
-  product: {
-    id?: string;
-    product_id?: string;
-    name?: string;
-    product_name?: string;
-    sku?: string;
-    product_sku?: string | null;
-    primary_image_url?: string | null;
-    product_image?: string | null;
-    base_price?: number | null;
-    category_name?: string | null;
-    days_remaining?: number;
-  };
+  product: NoveltyWithDetails;
   viewMode: ViewMode;
   onClick: () => void;
 }
 
 function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
-  const productId = product.id || product.product_id;
-  const productName = product.name || product.product_name || "Produto";
-  const productSku = product.sku || product.product_sku;
-  const productImage = product.primary_image_url || product.product_image;
-  const daysRemaining = product.days_remaining || 30;
+  const daysRemaining = product.days_remaining;
 
   if (viewMode === "list") {
     return (
@@ -47,10 +31,10 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
         <CardContent className="p-3 flex items-center gap-3">
           {/* Imagem pequena */}
           <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden">
-            {productImage ? (
+            {product.product_image ? (
               <img 
-                src={productImage} 
-                alt={productName}
+                src={product.product_image} 
+                alt={product.product_name}
                 className="w-full h-full object-cover"
                 loading="lazy"
               />
@@ -73,10 +57,10 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
               )}
             </div>
             <h4 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-              {productName}
+              {product.product_name}
             </h4>
-            {productSku && (
-              <p className="text-xs text-muted-foreground">SKU: {productSku}</p>
+            {product.product_sku && (
+              <p className="text-xs text-muted-foreground">SKU: {product.product_sku}</p>
             )}
           </div>
 
@@ -102,10 +86,10 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
       <CardContent className="p-0">
         {/* Imagem */}
         <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30">
-          {productImage ? (
+          {product.product_image ? (
             <img 
-              src={productImage} 
-              alt={productName}
+              src={product.product_image} 
+              alt={product.product_name}
               className="w-full h-full object-cover"
               loading="lazy"
             />
@@ -137,13 +121,13 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
         {/* Info */}
         <div className="p-3 space-y-1.5">
           <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors min-h-[2.5rem]">
-            {productName}
+            {product.product_name}
           </h4>
           
           <div className="flex items-center justify-between gap-2">
-            {productSku && (
+            {product.product_sku && (
               <p className="text-[11px] text-muted-foreground truncate">
-                {productSku}
+                {product.product_sku}
               </p>
             )}
             {product.category_name && (
@@ -201,32 +185,22 @@ export function NoveltyProductGrid() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortMode, setSortMode] = useState<SortMode>("recent");
-  const [limit, setLimit] = useState(24);
 
   // Usar hook com detalhes para ter days_remaining
-  const { data: noveltiesDetails, isLoading: loadingDetails } = useNoveltiesWithDetails({ limit: 100 });
-  // Fallback para produtos simples
-  const { data: noveltyProducts, isLoading: loadingProducts } = useNoveltyProducts({ limit });
+  const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 100 });
 
-  const isLoading = loadingDetails && loadingProducts;
-  
-  // Preferir dados com detalhes, fallback para produtos simples
-  const products = noveltiesDetails?.length ? noveltiesDetails : noveltyProducts || [];
+  const products = novelties || [];
 
   // Ordenar produtos
   const sortedProducts = [...products].sort((a, b) => {
     switch (sortMode) {
       case "expiring":
-        const daysA = 'days_remaining' in a ? a.days_remaining : 30;
-        const daysB = 'days_remaining' in b ? b.days_remaining : 30;
-        return (daysA || 30) - (daysB || 30);
+        return (a.days_remaining || 30) - (b.days_remaining || 30);
       case "name":
-        const nameA = ('name' in a ? a.name : a.product_name) || "";
-        const nameB = ('name' in b ? b.name : b.product_name) || "";
-        return nameA.localeCompare(nameB, 'pt-BR');
+        return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
       case "recent":
       default:
-        return 0; // Já vem ordenado por data
+        return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
     }
   });
 
@@ -234,9 +208,9 @@ export function NoveltyProductGrid() {
     navigate(`/produto/${productId}`);
   };
 
-  const handleLoadMore = () => {
-    setLimit(prev => prev + 24);
-  };
+  if (error) {
+    console.error('Erro ao carregar novidades:', error);
+  }
 
   return (
     <Card className="border-primary/20">
@@ -299,45 +273,33 @@ export function NoveltyProductGrid() {
             ))}
           </div>
         ) : sortedProducts.length > 0 ? (
-          <>
-            <div className={cn(
-              viewMode === "grid" 
-                ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
-                : "space-y-3"
-            )}>
-              {sortedProducts.map((product, index) => (
-                <div 
-                  key={product.product_id || ('id' in product ? product.id : index)}
-                  className="stagger-item"
-                  style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
-                >
-                  <NoveltyCard
-                    product={product}
-                    viewMode={viewMode}
-                    onClick={() => handleProductClick(product.product_id || ('id' in product ? product.id! : ""))}
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Load more */}
-            {sortedProducts.length >= limit && (
-              <div className="flex justify-center mt-6">
-                <Button 
-                  variant="outline" 
-                  onClick={handleLoadMore}
-                  className="gap-2"
-                >
-                  Carregar mais
-                </Button>
+          <div className={cn(
+            viewMode === "grid" 
+              ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
+              : "space-y-3"
+          )}>
+            {sortedProducts.map((product, index) => (
+              <div 
+                key={product.novelty_id}
+                className="stagger-item"
+                style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
+              >
+                <NoveltyCard
+                  product={product}
+                  viewMode={viewMode}
+                  onClick={() => handleProductClick(product.product_id)}
+                />
               </div>
-            )}
-          </>
+            ))}
+          </div>
         ) : (
           <div className="text-center py-12">
             <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground">
               Nenhuma novidade encontrada
+            </p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              Produtos novos aparecerão aqui automaticamente
             </p>
           </div>
         )}
