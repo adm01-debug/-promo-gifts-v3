@@ -232,6 +232,24 @@ function mapPriceTableFiltersToExternal(filters: Record<string, unknown> | undef
   return out;
 }
 
+function mapPriceTableOrderByToExternal(orderBy: { column: string; ascending?: boolean } | undefined) {
+  if (!orderBy) return { column: 'ordem_exibicao', ascending: true };
+  
+  const columnMap: Record<string, string> = {
+    'table_code': 'codigo',
+    'table_code_option': 'codigo',
+    'customization_type_name': 'nome',
+    'max_colors': 'ordem_exibicao',
+    'display_order': 'ordem_exibicao',
+    'is_active': 'ativo',
+  };
+
+  return {
+    column: columnMap[orderBy.column] || 'ordem_exibicao',
+    ascending: orderBy.ascending ?? true,
+  };
+}
+
 function mapPriceTableRowToLegacyShape(row: Record<string, unknown>) {
   return {
     ...row,
@@ -370,6 +388,7 @@ serve(async (req) => {
       table = 'tecnica_faixa_area';
       (body as any).table = table;
       (body as any).filters = mapPriceTableFiltersToExternal((body as any).filters);
+      (body as any).orderBy = mapPriceTableOrderByToExternal((body as any).orderBy);
       (body as any).select = '*';
     }
     
