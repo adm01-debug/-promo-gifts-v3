@@ -15,6 +15,8 @@ const ALLOWED_RPCS = [
   'fn_get_product_print_areas',
   'fn_link_product_print_areas',
   'fn_backfill_product_print_areas',
+  'fn_get_customization_price',
+  'fn_find_fornecedor_price_table',
   'get_category_descendants',
 ] as const;
 
@@ -82,10 +84,11 @@ const PRODUCT_TABLES = [
   // IMPORTANTE: Este é o ÚNICO banco de dados!
   // Não existe BD local para técnicas.
   // ============================================
-  'tecnica_gravacao',           // Tabela principal de técnicas
-  'tecnica_gravacao_variante',  // Variações de cada técnica (SINGULAR!)
-  'tecnica_faixa_area',         // Faixas de preço por área
-  'tecnica_faixa_pontos',       // Faixas de preço por pontos (bordado)
+  'tecnica_gravacao',                      // Tabela principal de técnicas
+  'tecnica_gravacao_variante',             // Variações de cada técnica (SINGULAR!)
+  'tecnica_faixa_area',                    // Faixas de preço por área (legacy)
+  'tecnica_faixa_pontos',                  // Faixas de preço por pontos (bordado)
+  'tabela_preco_fornecedores_gravacao',    // Tabela de preços (briefing atual)
 ] as const;
 
 // Views e Materialized Views (somente leitura)
@@ -212,7 +215,7 @@ function isPersonalizationTechniquesAlias(table: string) {
 
 /**
  * Compat: o app usa `customization_price_tables` mas no BD externo
- * a tabela real é `tecnica_faixa_area`.
+ * a tabela real é `tabela_preco_fornecedores_gravacao`.
  */
 function isCustomizationPriceTablesAlias(table: string) {
   return table === 'customization_price_tables' || table === 'customization_price_tiers';
@@ -222,75 +225,84 @@ function mapPriceTableFiltersToExternal(filters: Record<string, unknown> | undef
   if (!filters) return undefined;
   const out: Record<string, unknown> = { ...filters };
 
-  // Mapear campos legacy para schema externo
+  // Mapear campos legacy para schema externo (tabela_preco_fornecedores_gravacao)
   if ('is_active' in out) {
-    out.ativo = out.is_active;
-    delete out.is_active;
+    out.is_active = out.is_active; // Mesmo nome na tabela nova
   }
   if ('table_code' in out) {
-    // table_code no legacy corresponde ao codigo da técnica
-    out.codigo = out.table_code;
+    // table_code mapeia para tecnica_codigo
+    out.tecnica_codigo = out.table_code;
     delete out.table_code;
   }
   if ('table_code_option' in out) {
-    // Em alguns fluxos legacy o filtro vem como table_code_option
-    out.codigo = out.table_code_option;
+    // table_code_option mapeia para table_code
+    out.table_code = out.table_code_option;
     delete out.table_code_option;
   }
   if ('table_fullcode' in out) {
-    // Alguns schemas antigos usavam table_fullcode como código completo
-    out.codigo = out.table_fullcode;
+    out.table_code = out.table_fullcode;
     delete out.table_fullcode;
   }
   if ('technique_id' in out) {
-    out.tecnica_gravacao_id = out.technique_id;
+    // technique_id não existe diretamente; usar tecnica_codigo se necessário
     delete out.technique_id;
+  }
+  if ('customization_type_name' in out) {
+    out.tecnica_codigo = out.customization_type_name;
+    delete out.customization_type_name;
   }
 
   return out;
 }
 
 function mapPriceTableOrderByToExternal(orderBy: { column: string; ascending?: boolean } | undefined) {
-  if (!orderBy) return { column: 'ordem_exibicao', ascending: true };
+  if (!orderBy) return { column: 'table_code', ascending: true };
   
   const columnMap: Record<string, string> = {
-    'table_code': 'codigo',
-    'table_code_option': 'codigo',
-    'customization_type_name': 'nome',
-    'max_colors': 'ordem_exibicao',
-    'display_order': 'ordem_exibicao',
-    'is_active': 'ativo',
+    'table_code': 'table_code',
+    'table_code_option': 'table_code',
+    'customization_type_name': 'tecnica_codigo',
+    'max_colors': 'max_colors',
+    'display_order': 'table_code',
+    'is_active': 'is_active',
   };
 
   return {
-    column: columnMap[orderBy.column] || 'ordem_exibicao',
+    column: columnMap[orderBy.column] || 'table_code',
     ascending: orderBy.ascending ?? true,
   };
 }
 
 function mapPriceTableRowToLegacyShape(row: Record<string, unknown>) {
+  // Mapear tabela_preco_fornecedores_gravacao para shape legacy
   return {
     ...row,
-    // Campos esperados pelo frontend
+    // Campos esperados pelo frontend (baseado no briefing)
     id: row.id,
-    table_code: row.codigo,
-    table_code_option: row.codigo,
-    table_fullcode: row.codigo,
-    customization_type_name: row.nome,
-    max_colors: null,
-    max_area_width_cm: row.area_maxima_cm2 ? Math.sqrt(row.area_maxima_cm2 as number) : null,
-    max_area_height_cm: row.area_maxima_cm2 ? Math.sqrt(row.area_maxima_cm2 as number) : null,
-    max_area_cm2: row.area_maxima_cm2,
-    min_area_cm2: row.area_minima_cm2,
-    price_by_color: false,
-    price_by_area: true,
-    setup_price: 0,
-    handling_price: row.valor_adicional_peca ?? 0,
-    price_modifier: row.multiplicador_preco ?? 1,
-    is_active: row.ativo ?? true,
-    technique_id: row.tecnica_gravacao_id,
-    display_order: row.ordem_exibicao,
-    description: row.descricao,
+    table_code: row.table_code,
+    table_code_option: row.table_code,
+    table_fullcode: row.table_code,
+    customization_type_name: row.tecnica_codigo,
+    tecnica_codigo: row.tecnica_codigo,
+    max_colors: row.max_colors,
+    max_area_width_cm: row.max_area_width_cm,
+    max_area_height_cm: row.max_area_height_cm,
+    price_by_color: row.price_by_color ?? false,
+    price_by_area: row.price_by_area ?? false,
+    setup_price: row.setup_price ?? 0,
+    handling_price: 0,
+    is_active: row.is_active ?? true,
+    // Faixas de preço (min_qty_1 a min_qty_15, price_1 a price_15)
+    min_qty_1: row.min_qty_1,
+    min_qty_2: row.min_qty_2,
+    min_qty_3: row.min_qty_3,
+    min_qty_4: row.min_qty_4,
+    min_qty_5: row.min_qty_5,
+    price_1: row.price_1,
+    price_2: row.price_2,
+    price_3: row.price_3,
+    price_4: row.price_4,
+    price_5: row.price_5,
   };
 }
 
@@ -456,7 +468,7 @@ serve(async (req) => {
     }
     
     if (usingPriceTableAlias) {
-      table = 'tecnica_faixa_area';
+      table = 'tabela_preco_fornecedores_gravacao';
       (body as any).table = table;
       (body as any).filters = mapPriceTableFiltersToExternal((body as any).filters);
       (body as any).orderBy = mapPriceTableOrderByToExternal((body as any).orderBy);
