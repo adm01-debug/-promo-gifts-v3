@@ -37,12 +37,13 @@ function useCountUp(end: number, duration: number = 800) {
 interface StatCardProps {
   label: string;
   value: number;
+  suffix?: string;
   icon: React.ReactNode;
   variant: "success" | "warning" | "info" | "default";
   delay?: number;
 }
 
-function StatCard({ label, value, icon, variant, delay = 0 }: StatCardProps) {
+function StatCard({ label, value, suffix = "", icon, variant, delay = 0 }: StatCardProps) {
   const animatedValue = useCountUp(value, 800);
   
   const variantClasses = {
@@ -67,7 +68,7 @@ function StatCard({ label, value, icon, variant, delay = 0 }: StatCardProps) {
           </div>
           <div className="min-w-0">
             <p className="text-xl sm:text-2xl font-bold tabular-nums truncate">
-              {animatedValue.toLocaleString('pt-BR')}
+              {animatedValue.toLocaleString('pt-BR')}{suffix}
             </p>
             <p className="text-xs sm:text-sm text-muted-foreground truncate">
               {label}
@@ -96,7 +97,7 @@ function StatCardSkeleton() {
 }
 
 export function NoveltyStatsCards() {
-  const { data: stats, isLoading } = useNoveltyStats();
+  const { data: stats, isLoading, error } = useNoveltyStats();
 
   if (isLoading) {
     return (
@@ -108,34 +109,37 @@ export function NoveltyStatsCards() {
     );
   }
 
+  if (error) {
+    console.error('Erro ao carregar estatísticas:', error);
+  }
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <StatCard
         label="Novidades Ativas"
-        value={stats?.active_novelties || stats?.products_is_new_true || 0}
+        value={stats?.activeNovelties || 0}
         icon={<Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="success"
         delay={0}
       />
       <StatCard
         label="Expirando em 7d"
-        value={stats?.expiring_in_7_days || 0}
+        value={stats?.expiringSoon || 0}
         icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="warning"
         delay={100}
       />
       <StatCard
         label="Total Produtos"
-        value={stats?.total_products || 0}
+        value={stats?.totalProducts || 0}
         icon={<Package className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="info"
         delay={200}
       />
       <StatCard
         label="Taxa Novidades"
-        value={stats?.total_products 
-          ? Math.round(((stats?.active_novelties || 0) / stats.total_products) * 100) 
-          : 0}
+        value={stats?.noveltyRate || 0}
+        suffix="%"
         icon={<TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="default"
         delay={300}
