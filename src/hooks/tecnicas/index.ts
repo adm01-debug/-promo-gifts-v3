@@ -45,3 +45,28 @@ export {
   type PriceCalculation,
   type LegacyPriceTable,
 } from './usePrecoCalculation';
+
+// Re-export Print Areas hook
+export {
+  usePrintAreas,
+  useTechniques,
+  useTechniqueStats,
+  useHasPrintAreas,
+} from '../usePrintAreas';
+
+// Re-export tipos de gravação
+export type {
+  TecnicaGravacao,
+  TecnicaSimples,
+  ProductPrintArea,
+  PrintAreaWithTechniques,
+  PersonalizacaoSelecionada,
+  TechniqueStats,
+  AreaShape,
+} from '@/types/gravacao';
+
+export {
+  TECHNIQUE_COLORS,
+  TECHNIQUE_ICONS,
+  SHAPE_STYLES,
+} from '@/types/gravacao';

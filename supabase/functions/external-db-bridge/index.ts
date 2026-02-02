@@ -8,7 +8,15 @@ const corsHeaders = {
 
 // Mapeamento completo das tabelas do banco externo
 type ResourceGroup = 'products' | 'companies' | 'views';
-type Operation = 'select' | 'insert' | 'update' | 'delete';
+type Operation = 'select' | 'insert' | 'update' | 'delete' | 'rpc';
+
+// Whitelist de RPCs permitidas
+const ALLOWED_RPCS = [
+  'fn_get_product_print_areas',
+  'fn_link_product_print_areas',
+  'fn_backfill_product_print_areas',
+  'get_category_descendants',
+] as const;
 
 // Tabelas relacionadas a PRODUTOS (CRUD completo) - SINCRONIZADO 2026-01-30
 const PRODUCT_TABLES = [
@@ -370,6 +378,59 @@ serve(async (req) => {
     const body = await req.json();
     let table = (body as any).table as string;
     const operation = (body as any).operation as Operation;
+
+    // ============================================
+    // OPERAÇÃO RPC (Remote Procedure Call)
+    // ============================================
+    if (operation === 'rpc') {
+      const rpcName = (body as any).rpcName as string;
+      const rpcParams = (body as any).rpcParams as Record<string, unknown>;
+
+      // Validar RPC na whitelist
+      if (!ALLOWED_RPCS.includes(rpcName as any)) {
+        return new Response(
+          JSON.stringify({ 
+            error: `RPC '${rpcName}' não permitida`,
+            allowedRpcs: ALLOWED_RPCS,
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Criar cliente para banco externo
+      const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
+      const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
+
+      if (!externalUrl || !externalKey) {
+        return new Response(
+          JSON.stringify({ error: 'Banco externo não configurado' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const externalSupabase = createClient(externalUrl, externalKey);
+      
+      console.log(`RPC: ${rpcName}`, rpcParams);
+      
+      const { data: rpcData, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
+
+      if (rpcError) {
+        console.error('RPC error:', rpcError);
+        return new Response(
+          JSON.stringify({ error: rpcError.message }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ data: rpcData, success: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ============================================
+    // OPERAÇÕES CRUD (select, insert, update, delete)
+    // ============================================
 
     // Compatibilidade: alias de tabela antiga -> tabela real no BD externo
     const usingTechniqueAlias = isPersonalizationTechniquesAlias(table);
