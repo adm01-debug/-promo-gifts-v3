@@ -147,7 +147,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         personalizations: [...state.personalizations, action.payload],
         currentPersonalizationIndex: state.personalizations.length,
         isEditingPersonalization: false,
-        // Reset estado da personalização atual
+        // Reset estado da personalização atual para nova gravação
         selectedLocation: null,
         selectedTechnique: null,
         engravingOptions: {
@@ -156,6 +156,8 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
           height: 10,
           positions: 1,
         },
+        // IMPORTANTE: Vai para 'location' para adicionar nova gravação ou continuar
+        currentStep: 'location' as WizardStep,
         result: null,
       };
 

@@ -21,7 +21,16 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
     isEditingPersonalization,
     editPersonalization,
     removePersonalization,
+    selectedLocation,
+    currentStep,
   } = wizard;
+
+  // Determina se estamos criando uma nova personalização (não editando existente)
+  const isCreatingNew = !isEditingPersonalization && (
+    currentStep === 'location' || 
+    currentStep === 'technique' || 
+    currentStep === 'configuration'
+  );
 
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-2">
@@ -59,27 +68,29 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
       ))}
 
       {/* Aba da nova personalização em edição */}
-      {!isEditingPersonalization && (
+      {isCreatingNew && (
         <Button
           variant="default"
           size="sm"
           className="gap-1"
         >
           <span className="font-bold">{personalizations.length + 1}.</span>
-          Personalização
+          {selectedLocation ? selectedLocation.locationName : 'Personalização'}
         </Button>
       )}
 
-      {/* Botão adicionar nova */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="gap-1 text-muted-foreground hover:text-primary shrink-0"
-        onClick={onAddNew}
-      >
-        <Plus className="h-4 w-4" />
-        Nova Personalização
-      </Button>
+      {/* Botão adicionar nova - só mostra se já tem ao menos uma e não está criando */}
+      {personalizations.length > 0 && !isCreatingNew && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-1 text-muted-foreground hover:text-primary shrink-0"
+          onClick={onAddNew}
+        >
+          <Plus className="h-4 w-4" />
+          Nova Personalização
+        </Button>
+      )}
     </div>
   );
 }

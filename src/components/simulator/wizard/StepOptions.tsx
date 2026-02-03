@@ -32,8 +32,16 @@ interface StepOptionsProps {
 export function StepOptions({ wizard }: StepOptionsProps) {
   const { selectedTechnique, selectedLocation, engravingOptions } = wizard;
 
+  // Se não tem técnica/location, redirecionar para o passo correto
   if (!selectedTechnique || !selectedLocation) {
-    return null;
+    // Retornar mensagem amigável em vez de null
+    return (
+      <div className="max-w-4xl mx-auto text-center py-16">
+        <p className="text-muted-foreground">
+          Selecione um local e técnica de gravação primeiro.
+        </p>
+      </div>
+    );
   }
 
   const maxWidth = selectedTechnique.maxWidth || selectedLocation.maxWidthCm || 50;
