@@ -27,7 +27,8 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
   } = wizard;
 
   // Determina se estamos criando uma nova personalização (não editando existente)
-  const isCreatingNew = !isEditingPersonalization && (
+  // Só mostra se há locais disponíveis
+  const isCreatingNew = !isEditingPersonalization && hasAvailableLocations && (
     currentStep === 'location' || 
     currentStep === 'technique' || 
     currentStep === 'configuration'
