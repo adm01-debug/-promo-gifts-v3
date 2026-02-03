@@ -161,18 +161,19 @@ export function ProductPersonalizationManager() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  // Fetch products from Promobrind
+  // Fetch products from Promobrind - sem limite para buscar todos
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ["admin-products-promobrind"],
+    queryKey: ["admin-products-promobrind-full"],
     queryFn: async () => {
       const { fetchPromobrindProducts } = await import('@/lib/external-db');
-      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      const productsData = await fetchPromobrindProducts(); // Sem limit = paginação automática
       return productsData.map(p => ({
         id: p.id,
         name: p.name,
         sku: p.sku,
       })) as Product[];
     },
+    staleTime: 10 * 60 * 1000, // 10 min cache
   });
 
   // Fetch product groups for search

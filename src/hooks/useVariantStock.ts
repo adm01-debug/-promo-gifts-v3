@@ -44,27 +44,26 @@ interface ExternalVariantStock {
   updated_at?: string;
 }
 
+interface ExternalSupplierSource {
+  id: string;
+  variant_id: string;
+  supplier_id?: string;
+  supplier_sku?: string;
+  quantity: number;
+  reserved_quantity: number;
+  next_quantity_1?: number | null;
+  next_date_1?: string | null;
+  next_quantity_2?: number | null;
+  next_date_2?: string | null;
+  next_quantity_3?: number | null;
+  next_date_3?: string | null;
+  is_active?: boolean;
+  updated_at?: string;
+}
+
 function toNumber(value: unknown, fallback = 0): number {
   const n = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(n) ? n : fallback;
-}
-
-interface ExternalFutureStock {
-  id: string;
-  product_id: string;
-  variant_id?: string;
-  color_name?: string;
-  expected_quantity: number;
-  expected_date: string;
-  order_date?: string;
-  source: string;
-  source_reference?: string;
-  status: string;
-  supplier_id?: string;
-  supplier_name?: string;
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
 }
 
 // ============================================
@@ -75,7 +74,8 @@ async function fetchPaginatedFromBridge<T extends { id: string }>(
   table: string,
   select: string,
   pageSize = 1000,
-  maxRecords = 50000
+  maxRecords = 100000,
+  filters?: Record<string, unknown>
 ): Promise<T[]> {
   const all: T[] = [];
   let offset = 0;
@@ -83,7 +83,7 @@ async function fetchPaginatedFromBridge<T extends { id: string }>(
 
   while (all.length < maxRecords) {
     const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-      body: { table, operation: 'select', select, limit: pageSize, offset },
+      body: { table, operation: 'select', select, limit: pageSize, offset, filters },
     });
 
     if (error) {
@@ -120,6 +120,7 @@ async function fetchPaginatedFromBridge<T extends { id: string }>(
 export function useVariantStock() {
   const [filters, setFilters] = useState<StockFilters>(defaultStockFilters);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState({ step: '', current: 0, total: 0 });
   const [productStocks, setProductStocks] = useState<ProductStockSummary[]>([]);
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
   const [futureStock, setFutureStock] = useState<FutureStockEntry[]>([]);
@@ -130,24 +131,41 @@ export function useVariantStock() {
 
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
+    setLoadingProgress({ step: 'Carregando produtos...', current: 0, total: 3 });
+    
     try {
-      // 1) Produtos
+      // 1) Produtos - sem limite fixo, busca todos
       const allProducts = await fetchPaginatedFromBridge<ExternalProductWithVariants>(
         'products',
         'id,name,sku,min_quantity,min_stock,stock_quantity,updated_at',
         1000,
-        20000
+        100000,
+        { active: true }
       );
       console.log(`[Stock] Carregados ${allProducts.length} produtos`);
+      setLoadingProgress({ step: 'Carregando variantes...', current: 1, total: 3 });
 
-      // 2) Variantes
+      // 2) Variantes - busca todas as ativas
       const allVariants = await fetchPaginatedFromBridge<ExternalVariantStock>(
         'product_variants',
         'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
         1000,
-        50000
+        100000,
+        { is_active: true }
       );
       console.log(`[Stock] Carregadas ${allVariants.length} variantes`);
+      setLoadingProgress({ step: 'Carregando previsões de estoque...', current: 2, total: 3 });
+
+      // 3) Supplier Sources - estoque futuro
+      const allSupplierSources = await fetchPaginatedFromBridge<ExternalSupplierSource>(
+        'variant_supplier_sources',
+        'id,variant_id,supplier_id,supplier_sku,quantity,reserved_quantity,next_quantity_1,next_date_1,next_quantity_2,next_date_2,next_quantity_3,next_date_3,is_active,updated_at',
+        1000,
+        100000,
+        { is_active: true }
+      );
+      console.log(`[Stock] Carregados ${allSupplierSources.length} supplier sources`);
+      setLoadingProgress({ step: 'Processando dados...', current: 3, total: 3 });
       
       // Agrupar variantes por product_id
       const variantsByProduct = new Map<string, ExternalVariantStock[]>();
@@ -157,6 +175,20 @@ export function useVariantStock() {
         existing.push(v);
         variantsByProduct.set(v.product_id, existing);
       });
+
+      // Agrupar supplier sources por variant_id
+      const sourcesByVariant = new Map<string, ExternalSupplierSource>();
+      allSupplierSources.forEach(s => {
+        if (!s.variant_id) return;
+        // Se já existe, pegar o mais recente
+        const existing = sourcesByVariant.get(s.variant_id);
+        if (!existing || (s.updated_at && existing.updated_at && s.updated_at > existing.updated_at)) {
+          sourcesByVariant.set(s.variant_id, s);
+        }
+      });
+
+      // Gerar entradas de estoque futuro
+      const futureEntries: FutureStockEntry[] = [];
       
       if (allProducts.length > 0) {
         const summaries: ProductStockSummary[] = allProducts.map(product => {
@@ -166,12 +198,70 @@ export function useVariantStock() {
           if (productVariants.length > 0) {
             // Usar variantes reais da tabela product_variants
             productVariants.forEach(pv => {
-              const currentStock = toNumber(pv.stock_quantity, 0);
+              const supplierSource = sourcesByVariant.get(pv.id);
+              
+              // Estoque: priorizar supplier_source.quantity se disponível
+              const currentStock = supplierSource 
+                ? toNumber(supplierSource.quantity, toNumber(pv.stock_quantity, 0))
+                : toNumber(pv.stock_quantity, 0);
+              
               const minStock = product.min_stock || product.min_quantity || 10;
-              const reservedStock = 0;
-              const inTransitStock = 0;
+              const reservedStock = supplierSource ? toNumber(supplierSource.reserved_quantity, 0) : 0;
+              
+              // Calcular estoque em trânsito (soma das previsões futuras)
+              let inTransitStock = 0;
+              if (supplierSource) {
+                if (supplierSource.next_quantity_1) inTransitStock += supplierSource.next_quantity_1;
+                if (supplierSource.next_quantity_2) inTransitStock += supplierSource.next_quantity_2;
+                if (supplierSource.next_quantity_3) inTransitStock += supplierSource.next_quantity_3;
+                
+                // Criar entradas de estoque futuro
+                if (supplierSource.next_quantity_1 && supplierSource.next_date_1) {
+                  futureEntries.push({
+                    id: `${supplierSource.id}-1`,
+                    productId: product.id,
+                    variantId: pv.id,
+                    colorName: pv.color_name || undefined,
+                    expectedQuantity: supplierSource.next_quantity_1,
+                    expectedDate: supplierSource.next_date_1,
+                    source: 'purchase_order',
+                    status: 'confirmed',
+                    createdAt: supplierSource.updated_at || new Date().toISOString(),
+                    updatedAt: supplierSource.updated_at || new Date().toISOString(),
+                  });
+                }
+                if (supplierSource.next_quantity_2 && supplierSource.next_date_2) {
+                  futureEntries.push({
+                    id: `${supplierSource.id}-2`,
+                    productId: product.id,
+                    variantId: pv.id,
+                    colorName: pv.color_name || undefined,
+                    expectedQuantity: supplierSource.next_quantity_2,
+                    expectedDate: supplierSource.next_date_2,
+                    source: 'purchase_order',
+                    status: 'pending',
+                    createdAt: supplierSource.updated_at || new Date().toISOString(),
+                    updatedAt: supplierSource.updated_at || new Date().toISOString(),
+                  });
+                }
+                if (supplierSource.next_quantity_3 && supplierSource.next_date_3) {
+                  futureEntries.push({
+                    id: `${supplierSource.id}-3`,
+                    productId: product.id,
+                    variantId: pv.id,
+                    colorName: pv.color_name || undefined,
+                    expectedQuantity: supplierSource.next_quantity_3,
+                    expectedDate: supplierSource.next_date_3,
+                    source: 'purchase_order',
+                    status: 'pending',
+                    createdAt: supplierSource.updated_at || new Date().toISOString(),
+                    updatedAt: supplierSource.updated_at || new Date().toISOString(),
+                  });
+                }
+              }
+              
               const availableStock = calculateAvailableStock(currentStock, reservedStock);
-              const status = calculateStockStatus(currentStock, minStock);
+              const status = calculateStockStatus(currentStock, minStock, undefined, inTransitStock);
               
               variants.push({
                 id: pv.id,
@@ -188,6 +278,8 @@ export function useVariantStock() {
                 availableStock,
                 status,
                 daysUntilStockout: calculateDaysUntilStockout(availableStock),
+                futureStock: inTransitStock > 0 ? inTransitStock : undefined,
+                futureStockDate: supplierSource?.next_date_1 || undefined,
                 updatedAt: pv.updated_at || product.updated_at || new Date().toISOString(),
               });
             });
@@ -211,7 +303,7 @@ export function useVariantStock() {
                 };
               } else {
                 // Se há múltiplas variações (cores), mantemos o detalhe (zerado)
-                // e adicionamos uma linha de “Total do Produto” para refletir o estoque agregado.
+                // e adicionamos uma linha de "Total do Produto" para refletir o estoque agregado.
                 const reservedStock = 0;
                 const inTransitStock = 0;
                 const availableStock = calculateAvailableStock(productLevelStock, reservedStock);
@@ -273,10 +365,13 @@ export function useVariantStock() {
         });
         
         setProductStocks(summaries);
+        setFutureStock(futureEntries);
         
         // Gerar alertas
         const newAlerts = generateStockAlerts(summaries);
         setAlerts(newAlerts);
+        
+        console.log(`[Stock] Processados ${summaries.length} produtos com ${futureEntries.length} previsões de estoque futuro`);
       }
     } catch (error) {
       console.error('Erro ao buscar dados de estoque:', error);
@@ -442,6 +537,7 @@ export function useVariantStock() {
   return {
     // Estado
     isLoading,
+    loadingProgress,
     productStocks: filteredProducts,
     allProductStocks: productStocks,
     summary,
