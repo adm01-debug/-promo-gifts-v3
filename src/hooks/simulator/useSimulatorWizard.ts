@@ -591,9 +591,21 @@ export function useSimulatorWizard() {
     dispatch({ type: 'EDIT_PERSONALIZATION', payload: index });
   }, []);
 
+  // GAP FIX #3: Valida se há locais disponíveis antes de iniciar nova personalização
   const startNewPersonalization = useCallback(() => {
+    // Recalcula locais disponíveis
+    const usedLocationIds = new Set(
+      state.personalizations.map(p => p.location.id)
+    );
+    const availableCount = state.availableLocations.filter(loc => !usedLocationIds.has(loc.id)).length;
+    
+    if (availableCount === 0) {
+      toast.warning('Todos os locais já foram personalizados');
+      return;
+    }
+    
     dispatch({ type: 'START_NEW_PERSONALIZATION' });
-  }, []);
+  }, [state.personalizations, state.availableLocations]);
 
   const cancelPersonalization = useCallback(() => {
     dispatch({ type: 'CANCEL_PERSONALIZATION' });
@@ -719,25 +731,36 @@ export function useSimulatorWizard() {
   }, [state.currentStep]);
 
   // Locais disponíveis (filtra os que já têm personalizações confirmadas)
+  // GAP FIX #1: Ao editar, mostra o local da personalização atual + locais não usados
   const availableLocationsFiltered = useMemo(() => {
-    // Se estamos editando uma personalização existente, não filtrar
-    if (state.isEditingPersonalization) {
-      return state.availableLocations;
-    }
-    
     // IDs dos locais já usados em personalizações confirmadas
     const usedLocationIds = new Set(
       state.personalizations.map(p => p.location.id)
     );
     
+    // Se estamos editando, permitir o local da personalização atual
+    if (state.isEditingPersonalization && state.personalizations[state.currentPersonalizationIndex]) {
+      const currentLocationId = state.personalizations[state.currentPersonalizationIndex].location.id;
+      // Retorna locais não usados + o local da personalização sendo editada
+      return state.availableLocations.filter(
+        loc => !usedLocationIds.has(loc.id) || loc.id === currentLocationId
+      );
+    }
+    
     // Retorna apenas locais não usados
     return state.availableLocations.filter(loc => !usedLocationIds.has(loc.id));
-  }, [state.availableLocations, state.personalizations, state.isEditingPersonalization]);
+  }, [state.availableLocations, state.personalizations, state.isEditingPersonalization, state.currentPersonalizationIndex]);
 
   // Verifica se ainda há locais disponíveis para novas personalizações
+  // GAP FIX #2: Considera locais após remoção de personalização
   const hasAvailableLocations = useMemo(() => {
-    return availableLocationsFiltered.length > 0;
-  }, [availableLocationsFiltered]);
+    // Recalcula excluindo todos os locais usados (não edição)
+    const usedLocationIds = new Set(
+      state.personalizations.map(p => p.location.id)
+    );
+    const availableCount = state.availableLocations.filter(loc => !usedLocationIds.has(loc.id)).length;
+    return availableCount > 0;
+  }, [state.availableLocations, state.personalizations]);
 
   // ============================================
   // RETURN
