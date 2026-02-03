@@ -67,7 +67,7 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
 
       {/* Desktop: Premium horizontal steps */}
       <div className="hidden sm:block">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           {/* Progress bar background */}
           <div className="relative mb-8">
             <div className="absolute top-6 left-12 right-12 h-1 bg-muted rounded-full" />
