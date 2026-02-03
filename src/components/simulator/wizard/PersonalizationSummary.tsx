@@ -19,6 +19,8 @@ import {
   ShoppingCart,
   Sparkles,
   Edit2,
+  Settings,
+  Ruler,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
@@ -45,7 +47,14 @@ export function PersonalizationSummary({
     effectivePrice,
     currentPersonalizationIndex,
     isEditingPersonalization,
+    selectedLocation,
+    selectedTechnique,
+    engravingOptions,
+    currentStep,
   } = wizard;
+
+  // Verifica se está no passo de configuração (opções)
+  const isConfiguringOptions = currentStep === 'options' && selectedLocation && selectedTechnique;
 
   const formatCurrency = useCallback((value: number) => {
     return new Intl.NumberFormat('pt-BR', { 
@@ -113,6 +122,48 @@ export function PersonalizationSummary({
                 </span>
               </div>
             </div>
+
+            {/* Configuração em andamento */}
+            {isConfiguringOptions && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-3 rounded-lg bg-primary/5 border border-primary/20"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Settings className="h-3.5 w-3.5 text-primary animate-pulse" />
+                  <span className="text-[11px] font-semibold text-primary uppercase tracking-wide">
+                    Configurando
+                  </span>
+                </div>
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Local</span>
+                    <span className="font-medium truncate max-w-[100px]">{selectedLocation?.locationName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Técnica</span>
+                    <span className="font-medium text-primary truncate max-w-[100px]">{selectedTechnique?.name}</span>
+                  </div>
+                  {selectedTechnique?.requiresColorSelection && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <Palette className="h-3 w-3" /> Cores
+                      </span>
+                      <span className="font-semibold">{engravingOptions.colors}</span>
+                    </div>
+                  )}
+                  {selectedTechnique?.requiresSizeSelection && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <Ruler className="h-3 w-3" /> Tamanho
+                      </span>
+                      <span className="font-semibold">{engravingOptions.width}×{engravingOptions.height}cm</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
 
             {/* Personalizações */}
             <div>
