@@ -21,6 +21,7 @@ import {
   Package,
   Sparkles,
 } from 'lucide-react';
+// Note: Layers icon kept for navigation button usage
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
@@ -230,59 +231,6 @@ export function StepOptions({ wizard }: StepOptionsProps) {
           </motion.div>
         )}
 
-        {/* Positions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="p-6 rounded-3xl bg-card border shadow-sm"
-        >
-          <div className="flex items-center gap-3 mb-5">
-            <div className="p-2 rounded-xl bg-primary/10">
-              <Layers className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h4 className="font-bold text-lg">Posições</h4>
-              <p className="text-sm text-muted-foreground">Locais com gravação</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-center gap-4">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-12 w-12 rounded-xl"
-              onClick={() => wizard.updateOptions({ 
-                positions: Math.max(1, engravingOptions.positions - 1) 
-              })}
-              disabled={engravingOptions.positions <= 1}
-            >
-              -
-            </Button>
-            <Input
-              type="number"
-              value={engravingOptions.positions}
-              onChange={e => wizard.updateOptions({ 
-                positions: Math.max(1, parseInt(e.target.value) || 1) 
-              })}
-              min={1}
-              max={10}
-              className="text-center text-3xl font-bold w-24 h-16 rounded-xl"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-12 w-12 rounded-xl"
-              onClick={() => wizard.updateOptions({ 
-                positions: Math.min(10, engravingOptions.positions + 1) 
-              })}
-              disabled={engravingOptions.positions >= 10}
-            >
-              +
-            </Button>
-          </div>
-        </motion.div>
-
         {/* Summary Preview */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -314,10 +262,6 @@ export function StepOptions({ wizard }: StepOptionsProps) {
                 <span className="font-semibold">{engravingOptions.width}×{engravingOptions.height}cm</span>
               </div>
             )}
-            <div className="flex justify-between py-2 border-b border-primary/10">
-              <span className="text-muted-foreground">Posições</span>
-              <span className="font-semibold">{engravingOptions.positions}</span>
-            </div>
             <div className="flex justify-between py-2">
               <span className="text-muted-foreground">Quantidade</span>
               <span className="font-bold text-primary">{wizard.quantity} unidades</span>
