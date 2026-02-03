@@ -3,17 +3,43 @@ export { useTecnicasGravacao, useTecnicaGravacao } from './useTecnicasGravacao';
 export { useVariantesGravacao, useAllVariantes } from './useVariantesGravacao';
 export { useFornecedoresGravacao } from './useFornecedoresGravacao';
 
-// Re-export do novo hook unificado baseado no briefing
+// ============================================
+// SISTEMA DE PREÇOS v2 - ARQUITETURA OFICIAL
+// Implementado em 02/02/2026
+// ============================================
 export {
+  // Hooks principais v2
   useProductPrintAreas,
-  useTecnicasGravacao as useAllTecnicas,
-  useCustomizationPrice,
-  useFindPriceTable,
+  useTabelasPrecoOficial,
+  useFaixasPrecoOficial,
+  useCustomizationPriceV2,
+  useTabelaPrecoPorCodigo,
+  // Tipos v2
+  type TabelaPrecoOficial,
+  type FaixaPrecoOficial,
+  type CustomizationPriceV2,
+  type PrintAreaWithTechniques,
+  // Constantes e helpers
   TECHNIQUE_COLORS,
   TECHNIQUE_ICONS,
   AREA_SHAPES,
+  QUANTITY_TIERS_REFERENCE,
+  getTechniqueColor,
+  getTechniqueIcon,
+  formatPrice,
+  calculateTotalWithColorDiscount,
+  calculateSetupCost,
+  findPriceTier,
+  calculateCustomizationTotal,
+} from '../useGravacaoV2';
+
+// ============================================
+// LEGACY (compatibilidade - será removido)
+// ============================================
+export {
+  useCustomizationPrice,
+  useFindPriceTable,
   QUANTITY_TIERS,
   type TecnicaGravacao,
-  type PrintAreaWithTechniques,
   type CustomizationPrice,
 } from '../useGravacao';

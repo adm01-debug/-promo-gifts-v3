@@ -1,0 +1,550 @@
+/**
+ * useGravacaoV2 - Hooks para Sistema de Gravação/Personalização v2
+ * 
+ * ARQUITETURA OFICIAL (02/02/2026):
+ * - tabela_preco_gravacao_oficial: 43 técnicas com configurações
+ * - tabela_preco_gravacao_oficial_faixa: 301 faixas de preço
+ * - fn_get_customization_price: RPC que calcula preços com fallback automático
+ * 
+ * A função RPC busca:
+ * 1. Por customization_price_table_id (se vinculado)
+ * 2. Por technique_id (fallback automático)
+ * 3. Tabela de fornecedores legacy (último fallback)
+ */
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { invokeExternalDb } from '@/lib/external-db';
+
+// ============================================
+// TIPOS - SISTEMA DE PREÇOS v2
+// ============================================
+
+/**
+ * Técnica de gravação da tabela oficial
+ * (tabela_preco_gravacao_oficial - 43 registros)
+ * Schema atualizado conforme banco externo 03/02/2026
+ */
+export interface TabelaPrecoOficial {
+  id: string;
+  tecnica_variante_id: string | null;
+  codigo: string;               // Ex: "SERITEX-01", "FIBER-PL-01"
+  nome: string;
+  descricao: string | null;
+  
+  // Cobrança por cor
+  cobra_por_cor: boolean;
+  max_cores: number | null;
+  desconto_segunda_cor: number | null;      // Ex: 0.2 = 20%
+  desconto_terceira_cor: number | null;     // Ex: 0.3 = 30%
+  desconto_quarta_cor_mais: number | null;  // Ex: 0.4 = 40%
+  
+  // Cobrança por área
+  cobra_por_area: boolean;
+  area_maxima_cm2: number | null;
+  area_maxima_texto: string | null;         // Ex: "30x30cm"
+  
+  // Cobrança por pontos (bordado)
+  cobra_por_pontos: boolean;
+  max_pontos: number | null;
+  
+  // Custos
+  custo_setup: number | null;
+  custo_setup_por_cor: boolean;
+  tipo_setup: string | null;                // "POR_COR", "UNICO", etc.
+  custo_manuseio: number | null;
+  custo_manuseio_por_peca: boolean;
+  custo_aplicacao: number | null;
+  cobra_aplicacao: boolean;
+  custo_queima_forno: number | null;
+  cobra_queima_forno: boolean;
+  custo_termo_transferencia: number | null;
+  cobra_termo_transferencia: boolean;
+  
+  // Regras
+  faturamento_minimo: number | null;
+  quantidade_corte: number | null;
+  
+  // Validade
+  validade_inicio: string | null;
+  validade_fim: string | null;
+  
+  // Metadados
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Faixa de preço da tabela oficial
+ * (tabela_preco_gravacao_oficial_faixa - 301 registros)
+ * Schema atualizado conforme banco externo 03/02/2026
+ */
+export interface FaixaPrecoOficial {
+  id: string;
+  tabela_preco_gravacao_id: string;  // FK para tabela_preco_gravacao_oficial
+  quantidade_minima: number;
+  quantidade_maxima: number | null;
+  preco_unitario: number;
+  prazo_dias: number | null;
+  ordem: number;                      // Ordem de exibição
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Retorno da função fn_get_customization_price v2
+ */
+export interface CustomizationPriceV2 {
+  area_id: string;
+  area_code: string;
+  area_name: string;
+  table_code: string;
+  technique: string;
+  technique_code: string;
+  quantity: number;
+  num_cores: number;
+  tier_used: number;
+  unit_price: number;
+  setup_price: number;
+  handling_price: number;
+  total_price: number;
+  price_by_color: boolean;
+  max_colors: number | null;
+  faturamento_minimo: number | null;
+  prazo_dias: number | null;
+  source: 'oficial' | 'fornecedor' | 'fallback';
+}
+
+/**
+ * Área de gravação com técnicas (retorno de fn_get_product_print_areas)
+ */
+export interface PrintAreaWithTechniques {
+  area_id: string;
+  area_code: string;
+  area_name: string;
+  max_width: number;
+  max_height: number;
+  shape: string;
+  is_curved: boolean;
+  is_primary: boolean;
+  display_order: number;
+  customization_price_table_id: string | null;
+  technique_id: string | null;
+  techniques: {
+    id: string;
+    nome: string;
+    codigo: string;
+  }[];
+}
+
+// ============================================
+// HELPER: Invocar RPC no banco externo
+// ============================================
+
+async function invokeExternalRpc<T>(
+  rpcName: string,
+  params: Record<string, unknown>
+): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: {
+      operation: 'rpc',
+      rpcName,
+      rpcParams: params,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro na RPC');
+  
+  return data.data as T;
+}
+
+// ============================================
+// HOOKS
+// ============================================
+
+/**
+ * Hook: Busca áreas de gravação de um produto com técnicas
+ * Usa RPC fn_get_product_print_areas
+ */
+export function useProductPrintAreas(productId: string | null) {
+  return useQuery({
+    queryKey: ['product-print-areas-v2', productId],
+    queryFn: async (): Promise<PrintAreaWithTechniques[]> => {
+      if (!productId) return [];
+
+      const result = await invokeExternalRpc<PrintAreaWithTechniques[]>(
+        'fn_get_product_print_areas',
+        { p_product_id: productId }
+      );
+      
+      return result || [];
+    },
+    enabled: !!productId,
+    staleTime: 60 * 1000,
+  });
+}
+
+/**
+ * Hook: Busca todas as tabelas de preço oficiais (43 técnicas)
+ */
+export function useTabelasPrecoOficial() {
+  return useQuery({
+    queryKey: ['tabelas-preco-oficial'],
+    queryFn: async (): Promise<TabelaPrecoOficial[]> => {
+      const result = await invokeExternalDb<TabelaPrecoOficial>({
+        table: 'tabela_preco_gravacao_oficial',
+        operation: 'select',
+        filters: { ativo: true },
+        orderBy: { column: 'codigo', ascending: true },
+      });
+      
+      return result.records || [];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook: Busca faixas de preço de uma tabela específica
+ */
+export function useFaixasPrecoOficial(tabelaPrecoId: string | null) {
+  return useQuery({
+    queryKey: ['faixas-preco-oficial', tabelaPrecoId],
+    queryFn: async (): Promise<FaixaPrecoOficial[]> => {
+      if (!tabelaPrecoId) return [];
+      
+      const result = await invokeExternalDb<FaixaPrecoOficial>({
+        table: 'tabela_preco_gravacao_oficial_faixa',
+        operation: 'select',
+        filters: { tabela_preco_gravacao_id: tabelaPrecoId },
+        orderBy: { column: 'ordem', ascending: true },
+      });
+      
+      return result.records || [];
+    },
+    enabled: !!tabelaPrecoId,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook: Calcula preço de personalização usando fn_get_customization_price v2
+ * 
+ * A função RPC faz fallback automático:
+ * 1. Tenta buscar por customization_price_table_id
+ * 2. Se não encontrar, busca por technique_id
+ * 3. Se ainda não encontrar, busca na tabela de fornecedores (legacy)
+ */
+export function useCustomizationPriceV2() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const calculatePrice = useCallback(async (
+    areaId: string,
+    quantidade: number,
+    numCores: number = 1
+  ): Promise<CustomizationPriceV2 | null> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await invokeExternalRpc<CustomizationPriceV2>(
+        'fn_get_customization_price',
+        {
+          p_area_id: areaId,
+          p_quantidade: quantidade,
+          p_num_cores: numCores,
+        }
+      );
+      
+      setLoading(false);
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
+      setError(message);
+      setLoading(false);
+      return null;
+    }
+  }, []);
+
+  return { calculatePrice, loading, error };
+}
+
+/**
+ * Hook: Busca uma tabela de preço específica por código
+ */
+export function useTabelaPrecoPorCodigo(codigo: string | null) {
+  return useQuery({
+    queryKey: ['tabela-preco-codigo', codigo],
+    queryFn: async (): Promise<TabelaPrecoOficial | null> => {
+      if (!codigo) return null;
+      
+      const result = await invokeExternalDb<TabelaPrecoOficial>({
+        table: 'tabela_preco_gravacao_oficial',
+        operation: 'select',
+        filters: { codigo },
+        limit: 1,
+      });
+      
+      return result.records[0] || null;
+    },
+    enabled: !!codigo,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+// ============================================
+// CONSTANTES
+// ============================================
+
+export const TECHNIQUE_COLORS: Record<string, string> = {
+  SERIGRAFIA: 'bg-blue-100 text-blue-800',
+  SERITEX: 'bg-blue-100 text-blue-800',
+  LASER: 'bg-red-100 text-red-800',
+  FIBER: 'bg-red-100 text-red-800',
+  LASER_CO2: 'bg-red-100 text-red-800',
+  CO2: 'bg-red-100 text-red-800',
+  LASER_UV: 'bg-red-100 text-red-800',
+  UV_DIGITAL: 'bg-purple-100 text-purple-800',
+  DIGITAL: 'bg-purple-100 text-purple-800',
+  TAMPOGRAFIA: 'bg-green-100 text-green-800',
+  TAMPO: 'bg-green-100 text-green-800',
+  BORDADO: 'bg-yellow-100 text-yellow-800',
+  SUBLIMACAO: 'bg-pink-100 text-pink-800',
+  SUBLI: 'bg-pink-100 text-pink-800',
+  HOT_STAMPING: 'bg-orange-100 text-orange-800',
+  STAMP: 'bg-orange-100 text-orange-800',
+  TRANSFER_DIGITAL: 'bg-cyan-100 text-cyan-800',
+  DTF: 'bg-cyan-100 text-cyan-800',
+  ADESIVO: 'bg-indigo-100 text-indigo-800',
+  DOMING: 'bg-indigo-100 text-indigo-800',
+  ETIQUETA: 'bg-gray-100 text-gray-800',
+  HEAT_TRANSFER: 'bg-rose-100 text-rose-800',
+  FILME_RECORTE: 'bg-teal-100 text-teal-800',
+  DECALQUE: 'bg-amber-100 text-amber-800',
+  EMBORRACHADO: 'bg-lime-100 text-lime-800',
+};
+
+export const TECHNIQUE_ICONS: Record<string, string> = {
+  SERIGRAFIA: '🖌️',
+  SERITEX: '🖌️',
+  LASER: '⚡',
+  FIBER: '⚡',
+  LASER_CO2: '⚡',
+  CO2: '⚡',
+  LASER_UV: '⚡',
+  UV_DIGITAL: '🎨',
+  DIGITAL: '🎨',
+  TAMPOGRAFIA: '📘',
+  TAMPO: '📘',
+  BORDADO: '🧵',
+  SUBLIMACAO: '🌈',
+  SUBLI: '🌈',
+  HOT_STAMPING: '✨',
+  STAMP: '✨',
+  TRANSFER_DIGITAL: '📋',
+  DTF: '📋',
+  ADESIVO: '🏷️',
+  DOMING: '🏷️',
+  ETIQUETA: '🏷️',
+  HEAT_TRANSFER: '🔥',
+  FILME_RECORTE: '✂️',
+  DECALQUE: '🔥',
+  EMBORRACHADO: '🔲',
+};
+
+export const AREA_SHAPES = {
+  rectangle: 'Retângulo',
+  circle: 'Círculo',
+  oval: 'Oval',
+  triangle: 'Triângulo',
+  custom: 'Customizado',
+} as const;
+
+/**
+ * Faixas de quantidade padrão (referência)
+ * As faixas reais vêm da tabela tabela_preco_gravacao_oficial_faixa
+ */
+export const QUANTITY_TIERS_REFERENCE = [
+  { min: 1, max: 9, label: '1-9 un' },
+  { min: 10, max: 24, label: '10-24 un' },
+  { min: 25, max: 49, label: '25-49 un' },
+  { min: 50, max: 99, label: '50-99 un' },
+  { min: 100, max: 249, label: '100-249 un' },
+  { min: 250, max: 499, label: '250-499 un' },
+  { min: 500, max: 999, label: '500-999 un' },
+  { min: 1000, max: null, label: '1000+ un' },
+];
+
+/**
+ * Helper: Obter cor do badge baseado no código da técnica
+ */
+export function getTechniqueColor(codigo: string): string {
+  // Tentar match exato primeiro
+  if (TECHNIQUE_COLORS[codigo]) {
+    return TECHNIQUE_COLORS[codigo];
+  }
+  
+  // Tentar match por prefixo
+  const prefix = codigo.split('-')[0]?.split('_')[0]?.toUpperCase();
+  if (prefix && TECHNIQUE_COLORS[prefix]) {
+    return TECHNIQUE_COLORS[prefix];
+  }
+  
+  // Default
+  return 'bg-gray-100 text-gray-800';
+}
+
+/**
+ * Helper: Obter ícone baseado no código da técnica
+ */
+export function getTechniqueIcon(codigo: string): string {
+  if (TECHNIQUE_ICONS[codigo]) {
+    return TECHNIQUE_ICONS[codigo];
+  }
+  
+  const prefix = codigo.split('-')[0]?.split('_')[0]?.toUpperCase();
+  if (prefix && TECHNIQUE_ICONS[prefix]) {
+    return TECHNIQUE_ICONS[prefix];
+  }
+  
+  return '🔧';
+}
+
+/**
+ * Helper: Formatar preço em BRL
+ */
+export function formatPrice(value: number | null | undefined): string {
+  if (value == null) return '-';
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value);
+}
+
+/**
+ * Helper: Calcular preço total com descontos de cores
+ * Os descontos já vêm em decimal (0.2 = 20%)
+ */
+export function calculateTotalWithColorDiscount(
+  basePrice: number,
+  numCores: number,
+  tabela: TabelaPrecoOficial
+): number {
+  if (!tabela.cobra_por_cor || numCores <= 1) {
+    return basePrice;
+  }
+  
+  let discount = 0;
+  if (numCores === 2 && tabela.desconto_segunda_cor) {
+    discount = tabela.desconto_segunda_cor;  // Já é 0.2, não precisa dividir
+  } else if (numCores === 3 && tabela.desconto_terceira_cor) {
+    discount = tabela.desconto_terceira_cor;
+  } else if (numCores >= 4 && tabela.desconto_quarta_cor_mais) {
+    discount = tabela.desconto_quarta_cor_mais;
+  }
+  
+  const pricePerColor = basePrice * (1 - discount);
+  return pricePerColor * numCores;
+}
+
+/**
+ * Helper: Calcular custo de setup
+ */
+export function calculateSetupCost(
+  numCores: number,
+  tabela: TabelaPrecoOficial
+): number {
+  if (!tabela.custo_setup) return 0;
+  
+  if (tabela.custo_setup_por_cor) {
+    return tabela.custo_setup * numCores;
+  }
+  
+  return tabela.custo_setup;
+}
+
+/**
+ * Helper: Encontrar faixa de preço para uma quantidade
+ */
+export function findPriceTier(
+  quantidade: number,
+  faixas: FaixaPrecoOficial[]
+): FaixaPrecoOficial | null {
+  for (const faixa of faixas) {
+    const min = faixa.quantidade_minima;
+    const max = faixa.quantidade_maxima;
+    
+    if (quantidade >= min && (max === null || quantidade <= max)) {
+      return faixa;
+    }
+  }
+  
+  // Se não encontrou, pegar a última faixa (maior quantidade)
+  if (faixas.length > 0) {
+    return faixas[faixas.length - 1];
+  }
+  
+  return null;
+}
+
+/**
+ * Helper: Calcular preço total de personalização
+ */
+export function calculateCustomizationTotal(
+  quantidade: number,
+  numCores: number,
+  tabela: TabelaPrecoOficial,
+  faixas: FaixaPrecoOficial[]
+): {
+  faixa: FaixaPrecoOficial | null;
+  precoUnitario: number;
+  precoTotalGravacao: number;
+  custoSetup: number;
+  custoManuseio: number;
+  total: number;
+  faturamentoMinimo: number | null;
+  prazoDias: number | null;
+} {
+  const faixa = findPriceTier(quantidade, faixas);
+  
+  if (!faixa) {
+    return {
+      faixa: null,
+      precoUnitario: 0,
+      precoTotalGravacao: 0,
+      custoSetup: 0,
+      custoManuseio: 0,
+      total: 0,
+      faturamentoMinimo: tabela.faturamento_minimo,
+      prazoDias: null,
+    };
+  }
+  
+  const precoUnitarioBase = faixa.preco_unitario;
+  const precoUnitarioAjustado = calculateTotalWithColorDiscount(
+    precoUnitarioBase,
+    numCores,
+    tabela
+  );
+  const precoTotalGravacao = precoUnitarioAjustado * quantidade;
+  const custoSetup = calculateSetupCost(numCores, tabela);
+  const custoManuseio = tabela.custo_manuseio_por_peca 
+    ? (tabela.custo_manuseio || 0) * quantidade
+    : (tabela.custo_manuseio || 0);
+  
+  const total = precoTotalGravacao + custoSetup + custoManuseio;
+  
+  return {
+    faixa,
+    precoUnitario: precoUnitarioAjustado,
+    precoTotalGravacao,
+    custoSetup,
+    custoManuseio,
+    total: Math.max(total, tabela.faturamento_minimo || 0),
+    faturamentoMinimo: tabela.faturamento_minimo,
+    prazoDias: faixa.prazo_dias,
+  };
+}
