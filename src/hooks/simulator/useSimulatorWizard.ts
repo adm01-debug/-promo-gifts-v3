@@ -718,6 +718,27 @@ export function useSimulatorWizard() {
     return getStepIndex(state.currentStep) > 0;
   }, [state.currentStep]);
 
+  // Locais disponíveis (filtra os que já têm personalizações confirmadas)
+  const availableLocationsFiltered = useMemo(() => {
+    // Se estamos editando uma personalização existente, não filtrar
+    if (state.isEditingPersonalization) {
+      return state.availableLocations;
+    }
+    
+    // IDs dos locais já usados em personalizações confirmadas
+    const usedLocationIds = new Set(
+      state.personalizations.map(p => p.location.id)
+    );
+    
+    // Retorna apenas locais não usados
+    return state.availableLocations.filter(loc => !usedLocationIds.has(loc.id));
+  }, [state.availableLocations, state.personalizations, state.isEditingPersonalization]);
+
+  // Verifica se ainda há locais disponíveis para novas personalizações
+  const hasAvailableLocations = useMemo(() => {
+    return availableLocationsFiltered.length > 0;
+  }, [availableLocationsFiltered]);
+
   // ============================================
   // RETURN
   // ============================================
@@ -735,6 +756,8 @@ export function useSimulatorWizard() {
     stepProgress,
     canProceed,
     canGoBack,
+    availableLocationsFiltered,
+    hasAvailableLocations,
     
     // Navigation
     setStep,
