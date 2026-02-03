@@ -426,7 +426,18 @@ export function useVariantStock() {
     
     // Filtro por status
     if (filters.status !== 'all') {
-      items = items.filter(p => p.overallStatus === filters.status);
+      items = items.filter(p => {
+        // Match no status geral do produto
+        if (p.overallStatus === filters.status) return true;
+        
+        // Para 'incoming', também incluir produtos que tenham variantes com estoque em trânsito
+        if (filters.status === 'incoming') {
+          return p.totalInTransitStock > 0 || p.variants.some(v => v.status === 'incoming' || v.inTransitStock > 0);
+        }
+        
+        // Para outros status, também verificar se há variantes com esse status
+        return p.variants.some(v => v.status === filters.status);
+      });
     }
     
     // Filtro por busca

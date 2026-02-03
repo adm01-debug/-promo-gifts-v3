@@ -405,14 +405,23 @@ export function aggregateVariantsToProduct(
     };
   });
   
-  // Status geral
+  // Contagem de variantes com estoque chegando
+  const variantsIncoming = variants.filter(v => v.status === 'incoming' || v.inTransitStock > 0).length;
+  
+  // Status geral - prioridade: incoming > out_of_stock > critical > low_stock > in_stock
   let overallStatus: StockStatus = 'in_stock';
-  if (variantsOutOfStock === variants.length) {
+  if (variantsIncoming > 0 && (variantsOutOfStock > 0 || totalCurrentStock === 0)) {
+    // Há estoque chegando para produtos sem estoque ou com variantes zeradas
+    overallStatus = 'incoming';
+  } else if (variantsOutOfStock === variants.length) {
     overallStatus = 'out_of_stock';
   } else if (variantsCritical > 0 || variantsOutOfStock > 0) {
     overallStatus = 'critical';
   } else if (variantsLowStock > 0) {
     overallStatus = 'low_stock';
+  } else if (totalInTransitStock > 0) {
+    // Produto com estoque OK mas também tem reposição chegando
+    // Mantém in_stock mas podemos considerar incoming secundário
   }
   
   return {
