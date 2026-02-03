@@ -167,23 +167,53 @@ export interface PriceCalculationParams {
 }
 
 /**
- * Resultado do cálculo de preço
+ * Resultado do cálculo de preço v5.1
+ * 
+ * LÓGICA v5.1:
+ * - Setup = CUSTO do faturamento mínimo (não é somado ao total!)
+ * - faturamento_minimo = custo_setup × (1 + markup%)
+ * - Se subtotal_pecas < faturamento_minimo → Total = faturamento_minimo
+ * - Se subtotal_pecas >= faturamento_minimo → Total = subtotal_pecas
  */
 export interface PriceCalculationResult {
   tableId: string;
   tableCode: string;
+  tableCodeShort?: string;      // Código curto (ex: FB, ST, TP)
   techniqueName: string;
+  
+  // Código de orçamento v5.1
+  quoteCode?: string;           // Formato: {TECNICA_CURTO}01-{FAIXA}-{AREA}-{CORES}
   
   // Quantidade e faixa
   quantity: number;
   tierUsed: number;
+  tierMinQty?: number;
+  tierMaxQty?: number;
   
-  // Preços
+  // CUSTOS (base, sem markup)
+  costBaseUnit?: number;        // Preço unitário base da faixa
+  costUnitTotal?: number;       // Custo unitário ajustado (com cores)
+  costSetup?: number;           // Custo do setup
+  costTotal?: number;           // Custo total das peças
+  
+  // MARKUP
+  markupPercent?: number;       // % de markup aplicado (ex: 115)
+  minUnitPrice?: number;        // Preço mínimo por unidade
+  
+  // PREÇOS FINAIS (com markup)
   unitPrice: number;
   subtotal: number;
   setupPrice: number;
   handlingPrice: number;
+  
+  // Faturamento mínimo v5.1
+  minimumInvoice?: number;      // faturamento_minimo_gravacao
+  minimumApplied?: boolean;     // Se o mínimo foi aplicado
+  
   grandTotal: number;
+  
+  // MARGEM
+  marginPercent?: number;       // Margem de lucro em %
   
   // Economia
   savings?: {

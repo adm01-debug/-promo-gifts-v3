@@ -1,13 +1,38 @@
-import { useMemo } from 'react';
+/**
+ * QuantityAndResult - Seletor de quantidade e resultado v5.1
+ * 
+ * Usa a RPC fn_get_customization_price para cálculos com:
+ * - Markup (115%)
+ * - Faturamento mínimo (setup como piso, não soma!)
+ * - Código de orçamento automático
+ */
+
+import { useMemo, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator, Clock, TrendingDown, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Calculator, 
+  Clock, 
+  TrendingDown, 
+  AlertCircle, 
+  Copy, 
+  CheckCircle2,
+  Info,
+  Loader2
+} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { useCustomizationPricing } from '@/hooks/useCustomizationPricing';
+import { 
+  useCustomizationPriceV2, 
+  useFaixasPrecoOficial, 
+  type CustomizationPriceV2 
+} from '@/hooks/useGravacaoV2';
 import { formatCurrency, formatNumber } from './utils';
 import type { Product, ProductTechnique } from './types';
+import { toast } from 'sonner';
 
 interface QuantityAndResultProps {
   product: Product;
@@ -26,47 +51,53 @@ export function QuantityAndResult({
   quantity,
   onQuantityChange,
 }: QuantityAndResultProps) {
-  const { priceTables, calculatePrice, getTiers } = useCustomizationPricing();
+  const { calculatePrice, loading: priceLoading } = useCustomizationPriceV2();
+  const [priceData, setPriceData] = useState<CustomizationPriceV2 | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const matchingTable = useMemo(() => {
-    const codeMatch = priceTables.find(
-      (t) =>
-        t.table_code.toLowerCase().includes(technique.techniqueCode.toLowerCase()) ||
-        technique.techniqueCode.toLowerCase().includes(t.table_code.toLowerCase())
-    );
-    if (codeMatch) return codeMatch;
-
-    return priceTables.find(
-      (t) =>
-        t.customization_type_name.toLowerCase().includes(technique.techniqueName.toLowerCase()) ||
-        technique.techniqueName.toLowerCase().includes(t.customization_type_name.toLowerCase())
-    );
-  }, [priceTables, technique]);
-
-  const priceCalc = useMemo(() => {
-    if (!matchingTable) return null;
-    const calc = calculatePrice(matchingTable.table_code, quantity);
-    if (!calc) return null;
-
-    let modifiedUnitPrice = calc.unitPrice;
-    if (colors > 1 && matchingTable.price_by_color) {
-      modifiedUnitPrice *= 1 + (colors - 1) * 0.1;
-    }
-    modifiedUnitPrice *= sizeModifier;
-
-    return {
-      ...calc,
-      unitPrice: modifiedUnitPrice,
-      totalPrice: modifiedUnitPrice * quantity,
-      grandTotal: modifiedUnitPrice * quantity + calc.setupPrice + calc.handlingPrice,
+  // Calcular preço quando quantidade ou parâmetros mudam
+  useEffect(() => {
+    const calculate = async () => {
+      setIsCalculating(true);
+      setError(null);
+      
+      try {
+        // Usar o ID da técnica como ID da área
+        const result = await calculatePrice(technique.id, quantity, colors);
+        
+        if (result?.success) {
+          setPriceData(result);
+        } else {
+          setError('Erro ao calcular preço');
+          setPriceData(null);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erro desconhecido');
+        setPriceData(null);
+      } finally {
+        setIsCalculating(false);
+      }
     };
-  }, [matchingTable, calculatePrice, quantity, colors, sizeModifier]);
 
-  const tiers = matchingTable ? getTiers(matchingTable.table_code) : [];
+    const debounce = setTimeout(calculate, 300);
+    return () => clearTimeout(debounce);
+  }, [technique.id, quantity, colors, calculatePrice]);
+
+  // Cálculos derivados
   const productTotal = product.price * quantity;
-  const customizationTotal = priceCalc?.grandTotal || 0;
+  const customizationTotal = priceData?.total_price || 0;
   const grandTotal = productTotal + customizationTotal;
-  const unitTotal = grandTotal / quantity;
+  const unitTotal = quantity > 0 ? grandTotal / quantity : 0;
+
+  const handleCopyCode = () => {
+    if (!priceData?.codigo_orcamento) return;
+    navigator.clipboard.writeText(priceData.codigo_orcamento);
+    setCopied(true);
+    toast.success('Código copiado!');
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const quickQuantities = [50, 100, 250, 500, 1000, 2500, 5000];
 
@@ -114,49 +145,101 @@ export function QuantityAndResult({
       {/* Result */}
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calculator className="w-5 h-5 text-primary" />
-            Resumo do Orçamento
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calculator className="w-5 h-5 text-primary" />
+              Resumo do Orçamento
+              {isCalculating && <Loader2 className="w-4 h-4 animate-spin" />}
+            </CardTitle>
+            
+            {priceData?.codigo_orcamento && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleCopyCode}
+                      className="font-mono gap-2"
+                    >
+                      {copied ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                      {priceData.codigo_orcamento}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Código de orçamento - clique para copiar</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
-          {!matchingTable ? (
-            <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400">
+          {error ? (
+            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
               <AlertCircle className="w-5 h-5 mb-2" />
-              <p className="font-medium">Tabela de preços não encontrada</p>
-              <p className="text-sm mt-1">
-                Não encontramos tabela de preços para "{technique.techniqueName}". Verifique se a
-                técnica está cadastrada nas tabelas de customização.
-              </p>
+              <p className="font-medium">Erro ao calcular preço</p>
+              <p className="text-sm mt-1">{error}</p>
             </div>
           ) : (
             <>
               <div className="space-y-2">
+                {/* Produto */}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Produtos ({formatNumber(quantity)} x {formatCurrency(product.price)})
+                    Produtos ({formatNumber(quantity)} × {formatCurrency(product.price)})
                   </span>
                   <span>{formatCurrency(productTotal)}</span>
                 </div>
 
-                {priceCalc && (
+                {priceData && (
                   <>
+                    {/* Gravação */}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Gravação ({formatNumber(quantity)} x {formatCurrency(priceCalc.unitPrice)})
+                        {priceData.technique}
+                        {priceData.num_cores > 1 && ` (${priceData.num_cores}c)`}
                       </span>
-                      <span>{formatCurrency(priceCalc.totalPrice)}</span>
                     </div>
 
-                    {priceCalc.setupPrice > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Setup</span>
-                        <span>{formatCurrency(priceCalc.setupPrice)}</span>
+                    <div className="flex justify-between text-sm pl-4">
+                      <span className="text-muted-foreground">
+                        {formatNumber(quantity)} × {formatCurrency(priceData.unit_price)}
+                        <span className="text-xs ml-1">(Faixa {priceData.tier_used})</span>
+                      </span>
+                      <span>{formatCurrency(priceData.subtotal_pecas)}</span>
+                    </div>
+
+                    {/* Faturamento mínimo aplicado */}
+                    {priceData.minimum_applied && (
+                      <div className="flex items-center justify-between text-sm p-2 rounded bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                        <div className="flex items-center gap-1">
+                          <Info className="w-4 h-4" />
+                          <span>Faturamento mínimo aplicado</span>
+                        </div>
+                        <span className="font-semibold">{formatCurrency(priceData.faturamento_minimo_gravacao)}</span>
                       </div>
                     )}
+
+                    {/* Subtotal gravação */}
+                    <div className="flex justify-between text-sm pt-1 border-t border-dashed">
+                      <span className="text-muted-foreground">Subtotal gravação</span>
+                      <span className={cn(
+                        "font-medium",
+                        priceData.minimum_applied && "text-amber-600 dark:text-amber-400"
+                      )}>
+                        {formatCurrency(priceData.total_price)}
+                      </span>
+                    </div>
                   </>
                 )}
 
+                {/* Total */}
                 <div className="pt-2 border-t flex justify-between font-bold text-lg">
                   <span>Total</span>
                   <span className="text-primary">{formatCurrency(grandTotal)}</span>
@@ -167,20 +250,29 @@ export function QuantityAndResult({
                 </div>
               </div>
 
-              {priceCalc?.savings && priceCalc.savings.percentageOff > 0 && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                  <TrendingDown className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                    Economia de {priceCalc.savings.percentageOff}% (
-                    {formatCurrency(priceCalc.savings.comparedToMin)})
+              {/* Margem */}
+              {priceData && priceData.margin_percent > 0 && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                  <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                    Margem: {priceData.margin_percent.toFixed(1)}%
                   </span>
                 </div>
               )}
 
-              {priceCalc?.slaDays && (
+              {/* Prazo */}
+              {priceData?.production_days && priceData.production_days > 0 && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
-                  <span>Prazo estimado: {priceCalc.slaDays} dias úteis</span>
+                  <span>Prazo estimado: {priceData.production_days} dias úteis</span>
+                </div>
+              )}
+
+              {/* Info sobre markup */}
+              {priceData && (
+                <div className="text-xs text-center text-muted-foreground mt-2">
+                  <span>Markup: {priceData.markup_percent}% | </span>
+                  <span>Preço mín. unitário: {formatCurrency(priceData.preco_minimo_unitario)}</span>
                 </div>
               )}
             </>
@@ -188,34 +280,14 @@ export function QuantityAndResult({
         </CardContent>
       </Card>
 
-      {/* Price tiers */}
-      {tiers.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">Faixas de preço</h4>
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-            {tiers.slice(0, 10).map((tier) => {
-              const isActive =
-                quantity >= tier.minQuantity &&
-                (!tier.maxQuantity || quantity <= tier.maxQuantity);
-              return (
-                <div
-                  key={tier.tierIndex}
-                  className={cn(
-                    'p-2 rounded-lg text-center text-xs transition-colors',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  )}
-                >
-                  <p className="font-medium">
-                    {formatNumber(tier.minQuantity)}
-                    {tier.maxQuantity ? ` - ${formatNumber(tier.maxQuantity)}` : '+'}
-                  </p>
-                  <p className="font-bold">{formatCurrency(tier.unitPrice)}</p>
-                </div>
-              );
-            })}
-          </div>
+      {/* Info box sobre a lógica v5.1 */}
+      {priceData && (
+        <div className="text-xs text-muted-foreground p-3 rounded-lg bg-muted/50">
+          <p className="font-medium mb-1">📊 Sistema de Preços v5.1</p>
+          <p>
+            O setup é aplicado como <strong>faturamento mínimo</strong>, não é somado ao total.
+            Se o subtotal das peças for menor que o mínimo, o total será igual ao faturamento mínimo.
+          </p>
         </div>
       )}
     </div>

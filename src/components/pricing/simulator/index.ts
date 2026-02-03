@@ -9,3 +9,4 @@ export { CustomizationOptions } from './CustomizationOptions';
 export { QuantityAndResult } from './QuantityAndResult';
 export { EngravingList } from './EngravingList';
 export { MultiEngravingResult } from './MultiEngravingResult';
+export { PriceResultV51, QuoteCodeBadge } from './PriceResultV51';
