@@ -233,32 +233,34 @@ export function ZoomableGallery({
             <ImageViewer />
           </div>
 
-          {/* Navigation */}
+          {/* Navigation - Always visible translucent arrows */}
           {images.length > 1 && (
             <>
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="icon"
                 className={cn(
-                  "absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full",
-                  "bg-card/90 backdrop-blur-sm shadow-lg",
-                  "opacity-0 group-hover:opacity-100 transition-opacity"
+                  "absolute left-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
+                  "bg-black/30 hover:bg-black/50 backdrop-blur-sm",
+                  "text-white/80 hover:text-white",
+                  "transition-all duration-200 border-0"
                 )}
                 onClick={goToPrevious}
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-6 w-6" />
               </Button>
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="icon"
                 className={cn(
-                  "absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full",
-                  "bg-card/90 backdrop-blur-sm shadow-lg",
-                  "opacity-0 group-hover:opacity-100 transition-opacity"
+                  "absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
+                  "bg-black/30 hover:bg-black/50 backdrop-blur-sm",
+                  "text-white/80 hover:text-white",
+                  "transition-all duration-200 border-0"
                 )}
                 onClick={goToNext}
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-6 w-6" />
               </Button>
             </>
           )}
