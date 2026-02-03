@@ -5,7 +5,6 @@
  */
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -19,9 +18,7 @@ import {
   Calculator,
   Loader2,
   Package,
-  Sparkles,
 } from 'lucide-react';
-// Note: Layers icon kept for navigation button usage
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
@@ -99,8 +96,8 @@ export function StepOptions({ wizard }: StepOptionsProps) {
         </div>
       </div>
 
-      {/* Options Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Options */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
         {/* Colors */}
         {selectedTechnique.requiresColorSelection && (
           <motion.div
@@ -230,44 +227,6 @@ export function StepOptions({ wizard }: StepOptionsProps) {
             </div>
           </motion.div>
         )}
-
-        {/* Summary Preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="p-6 rounded-3xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20"
-        >
-          <div className="flex items-center gap-3 mb-5">
-            <div className="p-2 rounded-xl bg-primary text-primary-foreground">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <h4 className="font-bold text-lg">Resumo</h4>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between py-2 border-b border-primary/10">
-              <span className="text-muted-foreground">Técnica</span>
-              <span className="font-semibold">{selectedTechnique.name}</span>
-            </div>
-            {selectedTechnique.requiresColorSelection && (
-              <div className="flex justify-between py-2 border-b border-primary/10">
-                <span className="text-muted-foreground">Cores</span>
-                <span className="font-semibold">{engravingOptions.colors}</span>
-              </div>
-            )}
-            {selectedTechnique.requiresSizeSelection && (
-              <div className="flex justify-between py-2 border-b border-primary/10">
-                <span className="text-muted-foreground">Dimensões</span>
-                <span className="font-semibold">{engravingOptions.width}×{engravingOptions.height}cm</span>
-              </div>
-            )}
-            <div className="flex justify-between py-2">
-              <span className="text-muted-foreground">Quantidade</span>
-              <span className="font-bold text-primary">{wizard.quantity} unidades</span>
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Navigation */}
