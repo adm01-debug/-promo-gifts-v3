@@ -21,8 +21,8 @@ interface WizardStepIndicatorProps {
 const STEP_ICONS: Record<WizardStep, React.ElementType> = {
   product: Package,
   location: MapPin,
+  configuration: Settings,
   technique: Palette,
-  options: Settings,
   result: Calculator,
 };
 
