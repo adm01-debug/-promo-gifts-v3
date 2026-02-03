@@ -164,11 +164,11 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         currentStep: action.payload,
         completedSteps: state.completedSteps.filter(s => stepsToKeep.includes(s)),
         // Reset dados dos passos seguintes baseado na nova ordem:
-        // 0=product, 1=location, 2=configuration, 3=technique, 4=result
+        // 0=product, 1=location, 2=technique, 3=configuration, 4=result
         ...(stepIndex <= 0 && { selectedProduct: null }),
         ...(stepIndex <= 1 && { selectedLocation: null, availableLocations: [] }),
-        ...(stepIndex <= 2 && { engravingOptions: initialState.engravingOptions }),
-        ...(stepIndex <= 3 && { selectedTechnique: null, availableTechniques: [] }),
+        ...(stepIndex <= 2 && { selectedTechnique: null, availableTechniques: [] }),
+        ...(stepIndex <= 3 && { engravingOptions: initialState.engravingOptions }),
         result: null,
       };
     }
@@ -450,16 +450,16 @@ export function useSimulatorWizard() {
   const selectLocation = useCallback((location: EngravingLocation | null) => {
     dispatch({ type: 'SELECT_LOCATION', payload: location });
     if (location) {
-      // Nova ordem: Local → Configuração
-      dispatch({ type: 'SET_STEP', payload: 'configuration' });
+      // Nova ordem: Local → Técnica
+      dispatch({ type: 'SET_STEP', payload: 'technique' });
     }
   }, []);
 
   const selectTechnique = useCallback((technique: SelectedTechnique | null) => {
     dispatch({ type: 'SELECT_TECHNIQUE', payload: technique });
     if (technique) {
-      // Nova ordem: Técnica → Resultado
-      dispatch({ type: 'SET_STEP', payload: 'result' });
+      // Nova ordem: Técnica → Configuração
+      dispatch({ type: 'SET_STEP', payload: 'configuration' });
     }
   }, []);
 
