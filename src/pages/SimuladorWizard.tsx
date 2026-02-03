@@ -144,7 +144,7 @@ export default function SimuladorWizard() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
-                className="mb-6"
+                className="mb-6 max-w-4xl mx-auto"
               >
                 <PersonalizationTabs 
                   wizard={wizard} 
