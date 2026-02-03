@@ -95,6 +95,7 @@ const PRODUCT_TABLES = [
   // ============================================
   'tabela_preco_gravacao_oficial',         // 43 técnicas com configurações (NOVA!)
   'tabela_preco_gravacao_oficial_faixa',   // 301 faixas de preço (NOVA!)
+  'organization_markup_customization',     // 59 configurações de markup (v5.1)
 ] as const;
 
 // Views e Materialized Views (somente leitura)

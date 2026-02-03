@@ -1,13 +1,36 @@
-import { useMemo } from 'react';
+/**
+ * MultiEngravingResult - Resultado de múltiplas gravações v5.1
+ * 
+ * Usa a RPC fn_get_customization_price para cálculos com:
+ * - Markup (115%)
+ * - Faturamento mínimo (setup como piso)
+ * - Código de orçamento automático
+ */
+
+import { useMemo, useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator, Clock, TrendingDown, AlertCircle, Package, Paintbrush } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Calculator, 
+  Clock, 
+  AlertCircle, 
+  Package, 
+  Paintbrush,
+  Copy,
+  CheckCircle2,
+  Info,
+  Loader2
+} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { useCustomizationPricing } from '@/hooks/useCustomizationPricing';
+import { useCustomizationPriceV2, type CustomizationPriceV2 } from '@/hooks/useGravacaoV2';
 import { formatCurrency, formatNumber } from './utils';
 import type { Product, ConfiguredEngraving } from './types';
+import { toast } from 'sonner';
 
 interface MultiEngravingResultProps {
   product: Product;
@@ -16,13 +39,11 @@ interface MultiEngravingResultProps {
   onQuantityChange: (qty: number) => void;
 }
 
-interface EngravingCalculation {
+interface EngravingCalculationV51 {
   engraving: ConfiguredEngraving;
-  unitPrice: number;
-  totalPrice: number;
-  setupPrice: number;
-  slaDays: number | null;
-  tableFound: boolean;
+  priceData: CustomizationPriceV2 | null;
+  loading: boolean;
+  error: string | null;
 }
 
 export function MultiEngravingResult({
@@ -31,117 +52,96 @@ export function MultiEngravingResult({
   quantity,
   onQuantityChange,
 }: MultiEngravingResultProps) {
-  const { priceTables, calculatePrice } = useCustomizationPricing();
+  const { calculatePrice, loading: priceLoading } = useCustomizationPriceV2();
+  const [calculations, setCalculations] = useState<EngravingCalculationV51[]>([]);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
 
-  // Calcular preço de cada gravação
-  const engravingCalculations = useMemo((): EngravingCalculation[] => {
-    return engravings.map((engraving) => {
-      // Tentar encontrar tabela de preços correspondente
-      const tableCode = engraving.tableCode || engraving.technique.techniqueCode;
+  // Recalcular quando quantidade ou gravações mudam
+  useEffect(() => {
+    const calculateAll = async () => {
+      if (engravings.length === 0) {
+        setCalculations([]);
+        return;
+      }
+
+      setIsCalculating(true);
       
-      // Buscar tabela que corresponde
-      const matchingTable = priceTables.find((t) => {
-        const code = tableCode.toLowerCase();
-        const tc = t.table_code.toLowerCase();
-        const fullCode = (t.table_fullcode || '').toLowerCase();
-        
-        // Match por cores e área se disponível
-        const colorMatch = !t.price_by_color || t.max_colors >= engraving.colors;
-        const codeMatch = tc.includes(code) || code.includes(tc) || fullCode.includes(code);
-        
-        // Match por área se especificado
-        if (engraving.sizeOption) {
-          const [width, height] = engraving.sizeOption.split('x').map(Number);
-          const areaMatch = t.max_area_width_cm === width && t.max_area_height_cm === height;
-          return codeMatch && colorMatch && areaMatch;
-        }
-        
-        return codeMatch && colorMatch;
-      });
-
-      if (!matchingTable) {
-        // Fallback: buscar por nome da técnica
-        const nameMatch = priceTables.find((t) =>
-          t.customization_type_name.toLowerCase().includes(engraving.technique.techniqueName.toLowerCase()) ||
-          engraving.technique.techniqueName.toLowerCase().includes(t.customization_type_name.toLowerCase())
-        );
-
-        if (nameMatch) {
-          const calc = calculatePrice(nameMatch.table_code, quantity);
-          if (calc) {
-            let modifiedUnitPrice = calc.unitPrice;
-            // Modificar por cores se aplicável
-            if (engraving.colors > 1 && nameMatch.price_by_color) {
-              modifiedUnitPrice *= 1 + (engraving.colors - 1) * 0.1;
-            }
-
+      const results = await Promise.all(
+        engravings.map(async (engraving) => {
+          try {
+            // Usar ID da área da técnica selecionada
+            // Assumindo que technique.id é o ID da área de impressão
+            const areaId = engraving.technique.id;
+            
+            const priceData = await calculatePrice(
+              areaId,
+              quantity,
+              engraving.colors || 1
+            );
+            
             return {
               engraving,
-              unitPrice: modifiedUnitPrice,
-              totalPrice: modifiedUnitPrice * quantity,
-              setupPrice: calc.setupPrice,
-              slaDays: calc.slaDays,
-              tableFound: true,
+              priceData,
+              loading: false,
+              error: priceData?.success === false ? 'Erro no cálculo' : null,
+            };
+          } catch (err) {
+            return {
+              engraving,
+              priceData: null,
+              loading: false,
+              error: err instanceof Error ? err.message : 'Erro desconhecido',
             };
           }
-        }
+        })
+      );
+      
+      setCalculations(results);
+      setIsCalculating(false);
+    };
 
-        return {
-          engraving,
-          unitPrice: 0,
-          totalPrice: 0,
-          setupPrice: 0,
-          slaDays: null,
-          tableFound: false,
-        };
-      }
-
-      const calc = calculatePrice(matchingTable.table_code, quantity);
-      if (!calc) {
-        return {
-          engraving,
-          unitPrice: 0,
-          totalPrice: 0,
-          setupPrice: 0,
-          slaDays: null,
-          tableFound: false,
-        };
-      }
-
-      let modifiedUnitPrice = calc.unitPrice;
-      // Modificar por cores se aplicável
-      if (engraving.colors > 1 && matchingTable.price_by_color) {
-        modifiedUnitPrice *= 1 + (engraving.colors - 1) * 0.1;
-      }
-
-      return {
-        engraving,
-        unitPrice: modifiedUnitPrice,
-        totalPrice: modifiedUnitPrice * quantity,
-        setupPrice: calc.setupPrice,
-        slaDays: calc.slaDays,
-        tableFound: true,
-      };
-    });
-  }, [engravings, priceTables, calculatePrice, quantity]);
+    const debounce = setTimeout(calculateAll, 300);
+    return () => clearTimeout(debounce);
+  }, [engravings, quantity, calculatePrice]);
 
   // Totais
   const productTotal = product.price * quantity;
-  const customizationTotal = engravingCalculations.reduce(
-    (sum, calc) => sum + calc.totalPrice + calc.setupPrice,
+  const customizationTotal = calculations.reduce(
+    (sum, calc) => sum + (calc.priceData?.total_price || 0),
     0
   );
   const grandTotal = productTotal + customizationTotal;
-  const unitTotal = grandTotal / quantity;
+  const unitTotal = quantity > 0 ? grandTotal / quantity : 0;
 
   // Prazo máximo
   const maxSlaDays = Math.max(
-    ...engravingCalculations.map((c) => c.slaDays || 0).filter(Boolean),
+    ...calculations.map((c) => c.priceData?.production_days || 0).filter(Boolean),
     0
   );
 
-  // Verificar se há tabelas não encontradas
-  const hasUnfoundTables = engravingCalculations.some((c) => !c.tableFound);
+  // Verificar se há erros
+  const hasErrors = calculations.some((c) => c.error || !c.priceData?.success);
+
+  // Verificar se algum aplicou faturamento mínimo
+  const hasMinimumApplied = calculations.some((c) => c.priceData?.minimum_applied);
+
+  // Coletar todos os códigos de orçamento
+  const allCodes = calculations
+    .filter((c) => c.priceData?.codigo_orcamento)
+    .map((c) => c.priceData!.codigo_orcamento);
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(code);
+    toast.success('Código copiado!');
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleCopyAllCodes = () => {
+    navigator.clipboard.writeText(allCodes.join(' | '));
+    toast.success('Todos os códigos copiados!');
+  };
 
   const quickQuantities = [50, 100, 250, 500, 1000, 2500, 5000];
 
@@ -186,13 +186,13 @@ export function MultiEngravingResult({
         </div>
       </div>
 
-      {/* Warning if tables not found */}
-      {hasUnfoundTables && (
-        <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400">
+      {/* Warning if errors */}
+      {hasErrors && !isCalculating && (
+        <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
           <AlertCircle className="w-5 h-5 mb-2" />
-          <p className="font-medium">Algumas tabelas de preço não foram encontradas</p>
+          <p className="font-medium">Algumas técnicas não puderam ser calculadas</p>
           <p className="text-sm mt-1">
-            Verifique se as técnicas selecionadas estão cadastradas nas tabelas de customização.
+            Verifique se as áreas estão corretamente configuradas no banco de dados.
           </p>
         </div>
       )}
@@ -200,17 +200,42 @@ export function MultiEngravingResult({
       {/* Result */}
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Calculator className="w-5 h-5 text-primary" />
-            Resumo do Orçamento
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calculator className="w-5 h-5 text-primary" />
+              Resumo do Orçamento
+              {isCalculating && <Loader2 className="w-4 h-4 animate-spin" />}
+            </CardTitle>
+            
+            {allCodes.length > 1 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" onClick={handleCopyAllCodes}>
+                      <Copy className="w-4 h-4 mr-1" />
+                      Copiar Códigos
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Copiar todos os códigos de orçamento</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {/* Produto */}
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium">
               <Package className="w-4 h-4 text-muted-foreground" />
               Produto
+            </div>
+            <div className="flex justify-between text-sm pl-6">
+              <span className="text-muted-foreground truncate max-w-[200px]">
+                {product.name}
+              </span>
             </div>
             <div className="flex justify-between text-sm pl-6">
               <span className="text-muted-foreground">
@@ -220,6 +245,8 @@ export function MultiEngravingResult({
             </div>
           </div>
 
+          <Separator />
+
           {/* Gravações */}
           {engravings.length > 0 && (
             <div className="space-y-2">
@@ -228,43 +255,96 @@ export function MultiEngravingResult({
                 Personalizações ({engravings.length})
               </div>
               
-              {engravingCalculations.map((calc, idx) => (
-                <div key={calc.engraving.id} className="pl-6 space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground truncate max-w-[200px]">
+              {calculations.map((calc, idx) => (
+                <div key={calc.engraving.id} className="pl-6 space-y-1 py-2 border-b border-dashed last:border-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm text-muted-foreground truncate">
                       {idx + 1}. {calc.engraving.technique.techniqueName}
-                      {calc.engraving.colors > 0 && ` (${calc.engraving.colors}c)`}
+                      {calc.engraving.colors > 1 && ` (${calc.engraving.colors}c)`}
                     </span>
-                    <span className={cn(!calc.tableFound && "text-amber-600")}>
-                      {calc.tableFound ? formatCurrency(calc.totalPrice) : 'N/D'}
-                    </span>
+                    
+                    {calc.loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : calc.error || !calc.priceData?.success ? (
+                      <span className="text-sm text-destructive">N/D</span>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className="font-mono text-xs cursor-pointer hover:bg-muted transition-colors"
+                          onClick={() => handleCopyCode(calc.priceData!.codigo_orcamento)}
+                        >
+                          {copied === calc.priceData.codigo_orcamento ? (
+                            <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600 dark:text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3 h-3 mr-1" />
+                          )}
+                          {calc.priceData.codigo_orcamento}
+                        </Badge>
+                        <span className={cn(
+                          "text-sm font-medium",
+                          calc.priceData.minimum_applied && "text-amber-600 dark:text-amber-400"
+                        )}>
+                          {formatCurrency(calc.priceData.total_price)}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  {calc.tableFound && calc.unitPrice > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      {formatNumber(quantity)} × {formatCurrency(calc.unitPrice)}
-                      {calc.setupPrice > 0 && ` + Setup ${formatCurrency(calc.setupPrice)}`}
+                  
+                  {calc.priceData?.success && (
+                    <div className="text-xs text-muted-foreground space-y-0.5">
+                      <div className="flex justify-between">
+                        <span>
+                          {formatNumber(quantity)} × {formatCurrency(calc.priceData.unit_price)}
+                          {' '}(Faixa {calc.priceData.tier_used})
+                        </span>
+                        <span>{formatCurrency(calc.priceData.subtotal_pecas)}</span>
+                      </div>
+                      
+                      {calc.priceData.minimum_applied && (
+                        <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                          <Info className="w-3 h-3" />
+                          <span>Fat. mínimo aplicado: {formatCurrency(calc.priceData.faturamento_minimo_gravacao)}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               ))}
               
               {/* Subtotal personalização */}
-              <div className="flex justify-between text-sm pt-2 pl-6 border-t border-dashed">
-                <span className="text-muted-foreground">Subtotal gravações</span>
+              <div className="flex justify-between text-sm pt-2 pl-6 font-medium">
+                <span>Subtotal gravações</span>
                 <span>{formatCurrency(customizationTotal)}</span>
               </div>
             </div>
           )}
 
+          <Separator />
+
           {/* Total */}
-          <div className="pt-2 border-t flex justify-between font-bold text-lg">
-            <span>Total</span>
+          <div className="pt-2 flex justify-between font-bold text-lg">
+            <span>Total Geral</span>
             <span className="text-primary">{formatCurrency(grandTotal)}</span>
           </div>
 
           <div className="text-sm text-center text-muted-foreground">
-            = {formatCurrency(unitTotal)} por unidade
+            = {formatCurrency(unitTotal)} por unidade completa
           </div>
+
+          {/* Info sobre faturamento mínimo */}
+          {hasMinimumApplied && (
+            <div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4" />
+                <span className="font-medium">Faturamento mínimo aplicado</span>
+              </div>
+              <p className="text-xs mt-1">
+                O valor do setup foi aplicado como piso mínimo em uma ou mais técnicas.
+                Aumente a quantidade para diluir o custo.
+              </p>
+            </div>
+          )}
 
           {/* Prazo */}
           {maxSlaDays > 0 && (

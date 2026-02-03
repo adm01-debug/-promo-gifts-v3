@@ -93,27 +93,65 @@ export interface FaixaPrecoOficial {
 }
 
 /**
- * Retorno da função fn_get_customization_price v2
+ * Retorno da função fn_get_customization_price v5.1
+ * 
+ * IMPORTANTE: Setup é PISO MÍNIMO, não adicional!
+ * - Se subtotal_pecas < faturamento_minimo_gravacao → total = faturamento_minimo
+ * - Se subtotal_pecas >= faturamento_minimo_gravacao → total = subtotal_pecas
  */
 export interface CustomizationPriceV2 {
+  success: boolean;
+  
+  // Identificação da área
   area_id: string;
   area_code: string;
   area_name: string;
-  table_code: string;
+  area_order: number;
+  
+  // Identificação da tabela/técnica
+  tabela_id: string;
+  tabela_codigo: string;
+  tabela_codigo_curto: string;
   technique: string;
-  technique_code: string;
+  
+  // Código de orçamento (formato: {TECNICA_CURTO}01-{FAIXA}-{AREA}-{CORES})
+  codigo_orcamento: string;
+  
+  // Parâmetros da requisição
   quantity: number;
   num_cores: number;
+  
+  // Faixa utilizada
   tier_used: number;
-  unit_price: number;
-  setup_price: number;
-  handling_price: number;
-  total_price: number;
+  tier_min_qty: number;
+  tier_max_qty: number;
+  
+  // CUSTOS (base, sem markup)
+  cost_base_unit: number;      // Preço unitário base da faixa
+  cost_unit_total: number;     // Custo unitário ajustado (com cores)
+  cost_setup: number;          // Custo do setup (faturamento mínimo)
+  cost_total: number;          // Custo total das peças
+  
+  // MARKUP
+  markup_percent: number;      // % de markup aplicado (ex: 115)
+  preco_minimo_unitario: number; // Preço mínimo por unidade
+  
+  // PREÇOS FINAIS (com markup)
+  unit_price: number;          // Preço unitário final
+  subtotal_pecas: number;      // Quantidade × unit_price
+  faturamento_minimo_gravacao: number; // Setup × (1 + markup%)
+  minimum_applied: boolean;    // Se o faturamento mínimo foi aplicado
+  total_price: number;         // MAIOR entre subtotal e faturamento_minimo
+  
+  // MARGEM
+  margin_percent: number;      // Margem de lucro em %
+  
+  // CONFIGURAÇÕES DA TÉCNICA
   price_by_color: boolean;
-  max_colors: number | null;
-  faturamento_minimo: number | null;
-  prazo_dias: number | null;
-  source: 'oficial' | 'fornecedor' | 'fallback';
+  setup_by_color: boolean;
+  
+  // PRAZO
+  production_days: number | null;
 }
 
 /**
@@ -491,60 +529,134 @@ export function findPriceTier(
 }
 
 /**
- * Helper: Calcular preço total de personalização
+ * Helper: Calcular preço total de personalização v5.1
+ * 
+ * LÓGICA v5.1:
+ * - Setup = CUSTO do faturamento mínimo (não é somado ao total!)
+ * - faturamento_minimo = custo_setup × (1 + markup%)
+ * - Se subtotal_pecas < faturamento_minimo → Total = faturamento_minimo
+ * - Se subtotal_pecas >= faturamento_minimo → Total = subtotal_pecas
+ * 
+ * @param quantidade Quantidade de peças
+ * @param numCores Número de cores
+ * @param tabela Tabela de preço oficial
+ * @param faixas Faixas de preço
+ * @param markupPercent Markup em % (padrão: 115)
  */
 export function calculateCustomizationTotal(
   quantidade: number,
   numCores: number,
   tabela: TabelaPrecoOficial,
-  faixas: FaixaPrecoOficial[]
+  faixas: FaixaPrecoOficial[],
+  markupPercent: number = 115
 ): {
   faixa: FaixaPrecoOficial | null;
-  precoUnitario: number;
-  precoTotalGravacao: number;
+  // CUSTOS (base, sem markup)
+  custoUnitarioBase: number;
+  custoUnitarioTotal: number;
   custoSetup: number;
   custoManuseio: number;
+  custoTotalPecas: number;
+  // PREÇOS (com markup)
+  precoUnitario: number;
+  precoMinimoUnitario: number;
+  subtotalPecas: number;
+  faturamentoMinimoGravacao: number;
+  minimumApplied: boolean;
   total: number;
-  faturamentoMinimo: number | null;
+  // MARGEM
+  margemPercent: number;
+  // PRAZO
   prazoDias: number | null;
 } {
   const faixa = findPriceTier(quantidade, faixas);
+  const markupMultiplier = 1 + (markupPercent / 100);
   
   if (!faixa) {
     return {
       faixa: null,
-      precoUnitario: 0,
-      precoTotalGravacao: 0,
+      custoUnitarioBase: 0,
+      custoUnitarioTotal: 0,
       custoSetup: 0,
       custoManuseio: 0,
+      custoTotalPecas: 0,
+      precoUnitario: 0,
+      precoMinimoUnitario: 0,
+      subtotalPecas: 0,
+      faturamentoMinimoGravacao: tabela.faturamento_minimo || 0,
+      minimumApplied: false,
       total: 0,
-      faturamentoMinimo: tabela.faturamento_minimo,
+      margemPercent: 0,
       prazoDias: null,
     };
   }
   
-  const precoUnitarioBase = faixa.preco_unitario;
-  const precoUnitarioAjustado = calculateTotalWithColorDiscount(
-    precoUnitarioBase,
+  // 1. CUSTOS BASE (sem markup)
+  const custoUnitarioBase = faixa.preco_unitario;
+  
+  // Calcular custo unitário com desconto de cores
+  const custoUnitarioTotal = calculateTotalWithColorDiscount(
+    custoUnitarioBase,
     numCores,
     tabela
   );
-  const precoTotalGravacao = precoUnitarioAjustado * quantidade;
+  
   const custoSetup = calculateSetupCost(numCores, tabela);
   const custoManuseio = tabela.custo_manuseio_por_peca 
     ? (tabela.custo_manuseio || 0) * quantidade
     : (tabela.custo_manuseio || 0);
+  const custoTotalPecas = custoUnitarioTotal * quantidade;
   
-  const total = precoTotalGravacao + custoSetup + custoManuseio;
+  // 2. APLICAR MARKUP
+  let precoUnitario = custoUnitarioTotal * markupMultiplier;
+  
+  // 3. APLICAR PREÇO MÍNIMO UNITÁRIO (se configurado)
+  // Assumindo um preço mínimo padrão de R$ 1.50 para laser, R$ 1.00 para outros
+  const precoMinimoUnitario = 1.00; // TODO: Buscar de organization_markup_customization
+  if (precoUnitario < precoMinimoUnitario) {
+    precoUnitario = precoMinimoUnitario;
+  }
+  
+  // 4. CALCULAR SUBTOTAL DAS PEÇAS (já com markup)
+  const subtotalPecas = precoUnitario * quantidade;
+  
+  // 5. CALCULAR FATURAMENTO MÍNIMO (setup × markup) - v5.1
+  // O custo_setup é o CUSTO do faturamento mínimo
+  const faturamentoMinimoGravacao = custoSetup * markupMultiplier;
+  
+  // 6. COMPARAR E DEFINIR TOTAL - LÓGICA v5.1
+  // Setup NÃO é somado! É apenas o piso mínimo!
+  let total: number;
+  let minimumApplied: boolean;
+  
+  if (subtotalPecas < faturamentoMinimoGravacao) {
+    total = faturamentoMinimoGravacao;
+    minimumApplied = true;
+  } else {
+    total = subtotalPecas;
+    minimumApplied = false;
+  }
+  
+  // 7. CALCULAR MARGEM
+  const custoTotal = custoTotalPecas + custoManuseio;
+  const margemPercent = custoTotal > 0 
+    ? ((total - custoTotal) / custoTotal) * 100 
+    : 0;
   
   return {
     faixa,
-    precoUnitario: precoUnitarioAjustado,
-    precoTotalGravacao,
+    custoUnitarioBase,
+    custoUnitarioTotal,
     custoSetup,
     custoManuseio,
-    total: Math.max(total, tabela.faturamento_minimo || 0),
-    faturamentoMinimo: tabela.faturamento_minimo,
+    custoTotalPecas,
+    precoUnitario,
+    precoMinimoUnitario,
+    subtotalPecas,
+    faturamentoMinimoGravacao,
+    minimumApplied,
+    total,
+    margemPercent,
     prazoDias: faixa.prazo_dias,
   };
 }
