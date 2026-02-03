@@ -323,30 +323,65 @@ export function StepOptions({ wizard }: StepOptionsProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="flex justify-between pt-6"
+        className="flex flex-col sm:flex-row justify-between gap-4 pt-6"
       >
         <Button variant="ghost" size="lg" onClick={wizard.previousStep} className="gap-2">
           <ChevronLeft className="h-5 w-5" />
           Voltar
         </Button>
-        <Button
-          onClick={wizard.calculateResult}
-          disabled={wizard.isCalculating || areaExceeded}
-          size="lg"
-          className="gap-3 min-w-[200px] h-14 rounded-xl shadow-lg shadow-primary/25 text-base"
-        >
-          {wizard.isCalculating ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Calculando...
-            </>
-          ) : (
-            <>
-              <Calculator className="h-5 w-5" />
-              Ver Resultado
-            </>
+        
+        <div className="flex gap-3">
+          {/* Botão Adicionar/Atualizar Gravação */}
+          <Button
+            onClick={async () => {
+              await wizard.confirmPersonalization();
+            }}
+            disabled={wizard.isCalculating || areaExceeded}
+            size="lg"
+            variant="outline"
+            className="gap-2 min-w-[180px] h-14 rounded-xl text-base"
+          >
+            {wizard.isEditingPersonalization ? (
+              <>
+                <Settings className="h-5 w-5" />
+                Atualizar Gravação
+              </>
+            ) : (
+              <>
+                <Layers className="h-5 w-5" />
+                Adicionar Gravação
+              </>
+            )}
+          </Button>
+
+          {/* Botão Ver Resultado (só aparece se já tem pelo menos uma personalização) */}
+          {wizard.personalizations.length > 0 && (
+            <Button
+              onClick={async () => {
+                // Se tem config pendente, confirma primeiro
+                if (wizard.selectedLocation && wizard.selectedTechnique) {
+                  await wizard.confirmPersonalization();
+                }
+                await wizard.calculateResult();
+              }}
+              disabled={wizard.isCalculating || areaExceeded}
+              size="lg"
+              className="gap-3 min-w-[180px] h-14 rounded-xl shadow-lg shadow-primary/25 text-base"
+            >
+              {wizard.isCalculating ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Calculando...
+                </>
+              ) : (
+                <>
+                  <Calculator className="h-5 w-5" />
+                  Ver Resultado
+                </>
+              )}
+            </Button>
           )}
-        </Button>
+        </div>
       </motion.div>
     </div>
   );

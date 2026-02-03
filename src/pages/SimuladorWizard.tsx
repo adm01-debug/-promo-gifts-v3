@@ -1,7 +1,8 @@
 /**
  * SimuladorWizard - Página do Simulador com layout premium e arejado
  * 
- * Suporta receber produto pré-selecionado via location.state.preSelectedProduct
+ * Suporta MÚLTIPLAS PERSONALIZAÇÕES por produto.
+ * Fluxo: Produto → (Local → Técnica → Config) × N → Resultado
  */
 
 import { useEffect, useRef } from "react";
@@ -14,7 +15,9 @@ import {
   StepLocation, 
   StepTechnique, 
   StepOptions, 
-  StepResult 
+  StepResult,
+  PersonalizationSummary,
+  PersonalizationTabs,
 } from "@/components/simulator/wizard";
 import { Calculator, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
@@ -45,7 +48,6 @@ export default function SimuladorWizard() {
     if (preSelectedProduct?.id) {
       hasProcessedPreSelection.current = true;
       
-      // Converter para SelectedProduct
       const product: SelectedProduct = {
         id: preSelectedProduct.id,
         name: preSelectedProduct.name,
@@ -55,7 +57,6 @@ export default function SimuladorWizard() {
         categoryName: preSelectedProduct.categoryName,
       };
       
-      // Selecionar o produto automaticamente
       wizard.selectProduct(product);
       
       toast.success(`${preSelectedProduct.name} selecionado`, {
@@ -65,6 +66,22 @@ export default function SimuladorWizard() {
     }
   }, [location.state, wizard.selectProduct]);
 
+  // Verificar se está em fluxo de personalização (após selecionar produto)
+  const isInPersonalizationFlow = wizard.selectedProduct !== null && wizard.currentStep !== 'product';
+  const showSidebar = isInPersonalizationFlow && wizard.currentStep !== 'result';
+
+  const handleAddNewPersonalization = () => {
+    wizard.startNewPersonalization();
+  };
+
+  const handleFinalizeSimulation = async () => {
+    // Se há personalização em andamento, confirmar primeiro
+    if (wizard.selectedLocation && wizard.selectedTechnique) {
+      await wizard.confirmPersonalization();
+    }
+    await wizard.calculateResult();
+  };
+
   return (
     <MainLayout>
       <div className="min-h-[calc(100vh-8rem)]">
@@ -73,7 +90,7 @@ export default function SimuladorWizard() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="relative mb-10"
+          className="relative mb-8"
         >
           {/* Background gradient */}
           <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -81,66 +98,95 @@ export default function SimuladorWizard() {
             <div className="absolute -top-20 right-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
           </div>
 
-          <div className="text-center py-8">
+          <div className="text-center py-6">
             <motion.div 
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, type: "spring" }}
-              className="inline-flex items-center gap-3 mb-4"
+              className="inline-flex items-center gap-3 mb-3"
             >
               <div className="relative">
                 <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl" />
                 <div className="relative p-3 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-                  <Calculator className="h-7 w-7 text-primary-foreground" />
+                  <Calculator className="h-6 w-6 text-primary-foreground" />
                 </div>
               </div>
               <div className="text-left">
-                <h1 className="font-display text-3xl font-bold tracking-tight">
+                <h1 className="font-display text-2xl font-bold tracking-tight">
                   Simulador
                 </h1>
                 <p className="text-primary font-medium text-sm flex items-center gap-1">
-                  <Sparkles className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3 w-3" />
                   Personalização
                 </p>
               </div>
             </motion.div>
-            
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-muted-foreground max-w-md mx-auto"
-            >
-              Configure e compare custos de gravação em poucos passos simples
-            </motion.p>
           </div>
         </motion.div>
 
-        {/* Step Indicator */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mb-12"
-        >
-          <WizardStepIndicator wizard={wizard} />
-        </motion.div>
+        {/* Layout com Sidebar */}
+        <div className={`flex gap-6 ${showSidebar ? 'lg:pr-80' : ''}`}>
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Step Indicator */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-8"
+            >
+              <WizardStepIndicator wizard={wizard} />
+            </motion.div>
 
-        {/* Step Content */}
-        <motion.div 
-          key={wizard.currentStep}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-          className="pb-16"
-        >
-          {wizard.currentStep === 'product' && <StepProduct wizard={wizard} />}
-          {wizard.currentStep === 'location' && <StepLocation wizard={wizard} />}
-          {wizard.currentStep === 'technique' && <StepTechnique wizard={wizard} />}
-          {wizard.currentStep === 'configuration' && <StepOptions wizard={wizard} />}
-          {wizard.currentStep === 'result' && <StepResult wizard={wizard} />}
-        </motion.div>
+            {/* Tabs de Personalizações (só mostra quando há produto selecionado) */}
+            {isInPersonalizationFlow && wizard.currentStep !== 'result' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="mb-6"
+              >
+                <PersonalizationTabs 
+                  wizard={wizard} 
+                  onAddNew={handleAddNewPersonalization}
+                />
+              </motion.div>
+            )}
+
+            {/* Step Content */}
+            <motion.div 
+              key={wizard.currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="pb-16"
+            >
+              {wizard.currentStep === 'product' && <StepProduct wizard={wizard} />}
+              {wizard.currentStep === 'location' && <StepLocation wizard={wizard} />}
+              {wizard.currentStep === 'technique' && <StepTechnique wizard={wizard} />}
+              {wizard.currentStep === 'configuration' && <StepOptions wizard={wizard} />}
+              {wizard.currentStep === 'result' && <StepResult wizard={wizard} />}
+            </motion.div>
+          </div>
+
+          {/* Sidebar - Resumo */}
+          {showSidebar && (
+            <motion.aside
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="hidden lg:block fixed right-4 top-32 bottom-8 w-72 rounded-2xl border bg-card shadow-xl overflow-hidden"
+            >
+              <PersonalizationSummary
+                wizard={wizard}
+                onAddNew={handleAddNewPersonalization}
+                onFinalize={handleFinalizeSimulation}
+                showAddButton={wizard.personalizations.length > 0 && !wizard.isEditingPersonalization}
+              />
+            </motion.aside>
+          )}
+        </div>
       </div>
     </MainLayout>
   );
