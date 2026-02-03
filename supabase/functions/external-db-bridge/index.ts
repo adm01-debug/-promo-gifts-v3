@@ -88,7 +88,13 @@ const PRODUCT_TABLES = [
   'tecnica_gravacao_variante',             // Variações de cada técnica (SINGULAR!)
   'tecnica_faixa_area',                    // Faixas de preço por área (legacy)
   'tecnica_faixa_pontos',                  // Faixas de preço por pontos (bordado)
-  'tabela_preco_fornecedores_gravacao',    // Tabela de preços (briefing atual)
+  'tabela_preco_fornecedores_gravacao',    // Tabela de preços (fornecedores - legacy)
+  // ============================================
+  // SISTEMA DE PREÇOS v2 - ARQUITETURA OFICIAL
+  // Implementado em 02/02/2026
+  // ============================================
+  'tabela_preco_gravacao_oficial',         // 43 técnicas com configurações (NOVA!)
+  'tabela_preco_gravacao_oficial_faixa',   // 301 faixas de preço (NOVA!)
 ] as const;
 
 // Views e Materialized Views (somente leitura)
