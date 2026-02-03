@@ -17,17 +17,17 @@
 // ============================================
 
 export type WizardStep = 
-  | 'product'      // Passo 1: Selecionar produto + quantidade
-  | 'location'     // Passo 2: Selecionar local de gravação
-  | 'technique'    // Passo 3: Selecionar técnica de personalização
-  | 'options'      // Passo 4: Configurar opções (cores, tamanho)
-  | 'result';      // Passo 5: Ver resultado
+  | 'product'        // Passo 1: Selecionar produto + quantidade
+  | 'location'       // Passo 2: Selecionar local de gravação
+  | 'configuration'  // Passo 3: Configurar opções (cores, tamanho)
+  | 'technique'      // Passo 4: Selecionar técnica de personalização
+  | 'result';        // Passo 5: Ver resultado
 
 export const WIZARD_STEPS: WizardStep[] = [
   'product',
   'location', 
+  'configuration',
   'technique',
-  'options',
   'result'
 ];
 
@@ -54,19 +54,19 @@ export const WIZARD_STEP_CONFIG: Record<WizardStep, WizardStepConfig> = {
     icon: 'MapPin',
     description: 'Selecione onde será aplicada a personalização'
   },
+  configuration: {
+    step: 'configuration',
+    label: 'Configurações',
+    shortLabel: 'Configuração',
+    icon: 'Settings',
+    description: 'Configure cores, tamanho e posições'
+  },
   technique: {
     step: 'technique',
     label: 'Técnica de Gravação',
     shortLabel: 'Técnica',
     icon: 'Palette',
     description: 'Escolha a técnica de personalização'
-  },
-  options: {
-    step: 'options',
-    label: 'Configurar Opções',
-    shortLabel: 'Opções',
-    icon: 'Settings',
-    description: 'Configure cores, tamanho e posições'
   },
   result: {
     step: 'result',
@@ -306,12 +306,12 @@ export const isStepComplete = (step: WizardStep, state: SimulatorWizardState): b
       return state.selectedProduct !== null && state.quantity > 0;
     case 'location':
       return state.selectedLocation !== null;
-    case 'technique':
-      return state.selectedTechnique !== null;
-    case 'options':
+    case 'configuration':
       return state.engravingOptions.colors > 0 && 
              state.engravingOptions.width > 0 && 
              state.engravingOptions.height > 0;
+    case 'technique':
+      return state.selectedTechnique !== null;
     case 'result':
       return state.result !== null;
     default:
