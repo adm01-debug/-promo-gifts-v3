@@ -73,9 +73,9 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
         <Button
           variant="default"
           size="sm"
-          className="gap-1"
+          className="gap-1 uppercase text-xs font-semibold"
         >
-          <span className="font-bold">{personalizations.length + 1}.</span>
+          <Plus className="h-4 w-4" />
           {selectedLocation ? selectedLocation.locationName : 'Personalização'}
         </Button>
       )}
