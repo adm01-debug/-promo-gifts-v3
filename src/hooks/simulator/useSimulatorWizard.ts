@@ -2,7 +2,7 @@
  * useSimulatorWizard - Hook central para orquestração do simulador
  * 
  * Gerencia o estado do wizard e coordena as transições entre passos:
- * Produto → Local de Gravação → Técnica → Opções → Resultado
+ * Produto → Local de Gravação → Configuração → Técnica → Resultado
  * 
  * IMPORTANTE: Usa o BD EXTERNO Promobrind via external-db-bridge para:
  * - Áreas de impressão (product_print_areas / v_product_print_areas_complete)
@@ -163,11 +163,12 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         ...state,
         currentStep: action.payload,
         completedSteps: state.completedSteps.filter(s => stepsToKeep.includes(s)),
-        // Reset dados dos passos seguintes
+        // Reset dados dos passos seguintes baseado na nova ordem:
+        // 0=product, 1=location, 2=configuration, 3=technique, 4=result
         ...(stepIndex <= 0 && { selectedProduct: null }),
         ...(stepIndex <= 1 && { selectedLocation: null, availableLocations: [] }),
-        ...(stepIndex <= 2 && { selectedTechnique: null, availableTechniques: [] }),
-        ...(stepIndex <= 3 && { engravingOptions: initialState.engravingOptions }),
+        ...(stepIndex <= 2 && { engravingOptions: initialState.engravingOptions }),
+        ...(stepIndex <= 3 && { selectedTechnique: null, availableTechniques: [] }),
         result: null,
       };
     }
@@ -449,14 +450,16 @@ export function useSimulatorWizard() {
   const selectLocation = useCallback((location: EngravingLocation | null) => {
     dispatch({ type: 'SELECT_LOCATION', payload: location });
     if (location) {
-      dispatch({ type: 'SET_STEP', payload: 'technique' });
+      // Nova ordem: Local → Configuração
+      dispatch({ type: 'SET_STEP', payload: 'configuration' });
     }
   }, []);
 
   const selectTechnique = useCallback((technique: SelectedTechnique | null) => {
     dispatch({ type: 'SELECT_TECHNIQUE', payload: technique });
     if (technique) {
-      dispatch({ type: 'SET_STEP', payload: 'options' });
+      // Nova ordem: Técnica → Resultado
+      dispatch({ type: 'SET_STEP', payload: 'result' });
     }
   }, []);
 
