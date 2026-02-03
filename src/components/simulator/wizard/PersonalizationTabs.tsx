@@ -23,6 +23,7 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
     removePersonalization,
     selectedLocation,
     currentStep,
+    hasAvailableLocations,
   } = wizard;
 
   // Determina se estamos criando uma nova personalização (não editando existente)
@@ -79,8 +80,8 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
         </Button>
       )}
 
-      {/* Botão adicionar nova - só mostra se já tem ao menos uma e não está criando */}
-      {personalizations.length > 0 && !isCreatingNew && (
+      {/* Botão adicionar nova - só mostra se há locais disponíveis e não está criando */}
+      {personalizations.length > 0 && !isCreatingNew && hasAvailableLocations && (
         <Button
           variant="ghost"
           size="sm"

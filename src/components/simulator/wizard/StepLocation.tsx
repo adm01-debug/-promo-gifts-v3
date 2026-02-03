@@ -29,7 +29,8 @@ interface StepLocationProps {
 }
 
 export function StepLocation({ wizard }: StepLocationProps) {
-  const { availableLocations, selectedLocation, locationsLoading } = wizard;
+  // Usa locais filtrados (exclui locais já usados em personalizações)
+  const { availableLocationsFiltered, selectedLocation, locationsLoading, personalizations } = wizard;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -93,28 +94,44 @@ export function StepLocation({ wizard }: StepLocationProps) {
             <Skeleton key={i} className="h-44 w-full rounded-2xl" />
           ))}
         </div>
-      ) : availableLocations.length === 0 ? (
+      ) : availableLocationsFiltered.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center justify-center py-20 text-center"
         >
-          <div className="p-5 rounded-full bg-warning/10 mb-5">
-            <AlertTriangle className="h-10 w-10 text-warning" />
+          <div className="p-5 rounded-full bg-primary/10 mb-5">
+            <CheckCircle2 className="h-10 w-10 text-primary" />
           </div>
-          <p className="font-bold text-xl mb-2">Nenhum local configurado</p>
-          <p className="text-muted-foreground max-w-md">
-            Este produto não possui áreas de personalização cadastradas no sistema.
+          <p className="font-bold text-xl mb-2">
+            {personalizations.length > 0 
+              ? 'Todos os locais já foram personalizados!' 
+              : 'Nenhum local configurado'}
           </p>
-          <Button variant="outline" className="mt-6 gap-2" onClick={wizard.previousStep}>
-            <ChevronLeft className="h-4 w-4" />
-            Escolher outro produto
-          </Button>
+          <p className="text-muted-foreground max-w-md">
+            {personalizations.length > 0 
+              ? `Você já configurou ${personalizations.length} personalização(ões). Finalize a simulação ou remova uma gravação existente.`
+              : 'Este produto não possui áreas de personalização cadastradas no sistema.'}
+          </p>
+          {personalizations.length > 0 ? (
+            <Button 
+              className="mt-6 gap-2" 
+              onClick={wizard.calculateResult}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Ver Resultado Final
+            </Button>
+          ) : (
+            <Button variant="outline" className="mt-6 gap-2" onClick={wizard.previousStep}>
+              <ChevronLeft className="h-4 w-4" />
+              Escolher outro produto
+            </Button>
+          )}
         </motion.div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <AnimatePresence mode="popLayout">
-            {availableLocations.map((location, idx) => {
+            {availableLocationsFiltered.map((location, idx) => {
               const isSelected = selectedLocation?.id === location.id;
               
               return (
