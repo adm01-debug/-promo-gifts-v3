@@ -83,173 +83,185 @@ export function PersonalizationSummary({
   }
 
   return (
-    <div className={`flex flex-col h-full ${compact ? 'p-3' : 'p-4'}`}>
+    <div className={`flex flex-col h-full ${compact ? 'p-3' : 'p-4'} overflow-hidden`}>
       {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-3 shrink-0">
         <div className="p-2 rounded-lg bg-primary/10">
           <ShoppingCart className="h-4 w-4 text-primary" />
         </div>
-        <h3 className="font-semibold">Resumo</h3>
+        <h3 className="font-semibold text-base">Resumo</h3>
       </div>
 
-      <ScrollArea className="flex-1 -mx-4 px-4">
-        {/* Produto */}
-        <div className="p-3 rounded-xl bg-muted/50 mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-muted-foreground uppercase">Produto</span>
-            <span className="font-semibold">{formatCurrency(totals.productTotal)}</span>
-          </div>
-          <p className="text-sm font-medium truncate">{selectedProduct.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {quantity} un. × {formatCurrency(effectivePrice)}
-          </p>
-        </div>
-
-        {/* Personalizações */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-muted-foreground uppercase">
-              Personalizações ({personalizations.length})
-            </span>
-            {personalizations.length > 0 && (
-              <span className="font-semibold text-sm">
-                {formatCurrency(totals.personalizationTotal)}
-              </span>
-            )}
-          </div>
-
-          <AnimatePresence mode="popLayout">
-            {personalizations.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="p-4 rounded-xl border border-dashed text-center"
-              >
-                <Sparkles className="h-6 w-6 mx-auto mb-2 text-muted-foreground/50" />
-                <p className="text-sm text-muted-foreground">
-                  Nenhuma gravação adicionada
-                </p>
-              </motion.div>
-            ) : (
-              <div className="space-y-2">
-                {personalizations.map((pers, idx) => (
-                  <motion.div
-                    key={pers.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className={`
-                      p-3 rounded-xl border transition-all
-                      ${isEditingPersonalization && currentPersonalizationIndex === idx 
-                        ? 'border-primary bg-primary/5' 
-                        : 'bg-card hover:bg-muted/30'
-                      }
-                    `}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="secondary" className="text-xs px-1.5">
-                            {idx + 1}
-                          </Badge>
-                          <span className="text-xs font-medium text-primary truncate">
-                            {pers.technique.name}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {pers.location.componentName} | {pers.location.locationName}
-                        </p>
-                        <div className="flex gap-1 mt-1.5">
-                          <Badge variant="outline" className="text-[10px] px-1">
-                            {pers.options.colors} {pers.options.colors === 1 ? 'cor' : 'cores'}
-                          </Badge>
-                          <Badge variant="outline" className="text-[10px] px-1">
-                            {pers.options.width}×{pers.options.height}cm
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="font-semibold text-sm">
-                          {formatCurrency(pers.totalCost)}
-                        </p>
-                        <div className="flex gap-1 mt-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => handleEditPersonalization(idx)}
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-destructive hover:text-destructive"
-                            onClick={() => handleRemovePersonalization(pers.id)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+      {/* Scrollable Content */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-3 pr-2">
+            {/* Produto */}
+            <div className="p-3 rounded-lg bg-muted/50">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Produto
+                </span>
               </div>
+              <p className="text-sm font-medium leading-tight mb-1 break-words">
+                {selectedProduct.name}
+              </p>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{quantity} un. × {formatCurrency(effectivePrice)}</span>
+                <span className="font-semibold text-foreground">
+                  {formatCurrency(totals.productTotal)}
+                </span>
+              </div>
+            </div>
+
+            {/* Personalizações */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                  Personalizações ({personalizations.length})
+                </span>
+                {personalizations.length > 0 && (
+                  <span className="font-semibold text-sm text-primary">
+                    {formatCurrency(totals.personalizationTotal)}
+                  </span>
+                )}
+              </div>
+
+              <AnimatePresence mode="popLayout">
+                {personalizations.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-4 rounded-lg border border-dashed border-muted-foreground/30 text-center"
+                  >
+                    <Sparkles className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
+                    <p className="text-xs text-muted-foreground">
+                      Nenhuma gravação adicionada
+                    </p>
+                  </motion.div>
+                ) : (
+                  <div className="space-y-2">
+                    {personalizations.map((pers, idx) => (
+                      <motion.div
+                        key={pers.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className={`
+                          p-2.5 rounded-lg border transition-all
+                          ${isEditingPersonalization && currentPersonalizationIndex === idx 
+                            ? 'border-primary bg-primary/5' 
+                            : 'bg-card/50 hover:bg-muted/30 border-border/50'
+                          }
+                        `}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0">
+                                {idx + 1}
+                              </Badge>
+                              <span className="text-xs font-medium text-primary truncate">
+                                {pers.technique.name}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-muted-foreground leading-tight">
+                              {pers.location.componentName} • {pers.location.locationName}
+                            </p>
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                                {pers.options.colors} {pers.options.colors === 1 ? 'cor' : 'cores'}
+                              </Badge>
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
+                                {pers.options.width}×{pers.options.height}cm
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0 flex flex-col items-end">
+                            <p className="font-semibold text-sm">
+                              {formatCurrency(pers.totalCost)}
+                            </p>
+                            <div className="flex gap-0.5 mt-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => handleEditPersonalization(idx)}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-destructive hover:text-destructive"
+                                onClick={() => handleRemovePersonalization(pers.id)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Botão adicionar nova gravação */}
+            {showAddButton && personalizations.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={onAddNew}
+              >
+                <Plus className="h-4 w-4" />
+                Nova Personalização
+              </Button>
             )}
-          </AnimatePresence>
-        </div>
+          </div>
+        </ScrollArea>
+      </div>
 
-        {/* Botão adicionar nova gravação */}
-        {showAddButton && personalizations.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full gap-2 mb-3"
-            onClick={onAddNew}
-          >
-            <Plus className="h-4 w-4" />
-            Nova Personalização
-          </Button>
-        )}
-      </ScrollArea>
-
-      <Separator className="my-3" />
-
-      {/* Totais */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-sm">
+      {/* Footer fixo */}
+      <div className="shrink-0 pt-3 mt-3 border-t border-border/50">
+        {/* Extras */}
+        <div className="flex items-center justify-between text-sm mb-2">
           <span className="text-muted-foreground">Extras</span>
           <span>R$ 0,00</span>
         </div>
+        
+        {/* Total */}
         <div className="flex items-center justify-between">
           <div>
-            <span className="font-bold text-lg">Total</span>
-            <p className="text-xs text-muted-foreground">
+            <span className="font-bold text-base">Total</span>
+            <p className="text-[11px] text-muted-foreground">
               ≈{formatCurrency(totals.grandTotalPerUnit)}/Un.
             </p>
           </div>
-          <span className="font-bold text-2xl text-primary">
+          <span className="font-bold text-xl text-primary">
             {formatCurrency(totals.grandTotal)}
           </span>
         </div>
+
+        {/* Botão Finalizar */}
+        {onFinalize && personalizations.length > 0 && (
+          <Button
+            size="default"
+            className="w-full mt-3 gap-2"
+            onClick={onFinalize}
+          >
+            Calcular Total
+          </Button>
+        )}
+
+        {/* Disclaimer */}
+        <p className="text-[10px] text-muted-foreground/70 text-center mt-2 leading-tight">
+          * Valor sujeito a alterações após avaliação do layout
+        </p>
       </div>
-
-      {/* Botão Finalizar */}
-      {onFinalize && personalizations.length > 0 && (
-        <Button
-          size="lg"
-          className="w-full mt-4 gap-2"
-          onClick={onFinalize}
-        >
-          Calcular Total
-        </Button>
-      )}
-
-      {/* Disclaimer */}
-      <p className="text-[10px] text-muted-foreground text-center mt-3">
-        * O valor da personalização está sujeito a alterações após avaliação do layout
-      </p>
     </div>
   );
 }
