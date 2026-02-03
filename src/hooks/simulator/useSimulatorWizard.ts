@@ -1,13 +1,8 @@
 /**
  * useSimulatorWizard - Hook central para orquestração do simulador
  * 
- * Gerencia o estado do wizard e coordena as transições entre passos:
- * Produto → Local de Gravação → Configuração → Técnica → Resultado
- * 
- * IMPORTANTE: Usa o BD EXTERNO Promobrind via external-db-bridge para:
- * - Áreas de impressão (product_print_areas / v_product_print_areas_complete)
- * - Técnicas de personalização (personalization_techniques)
- * - Tabelas de preço (customization_price_tables)
+ * Gerencia o estado do wizard com suporte a MÚLTIPLAS PERSONALIZAÇÕES:
+ * Produto → (Local → Técnica → Configuração) × N → Resultado
  */
 
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
@@ -30,7 +25,8 @@ import type {
   SelectedTechnique,
   EngravingOptions,
   SimulationPriceResult,
-  AvailableTechnique,
+  Personalization,
+  PersonalizationResult,
 } from '@/types/domain/simulator-wizard';
 import {
   WIZARD_STEPS,
@@ -39,6 +35,7 @@ import {
   getPreviousStep,
   isStepComplete,
   canNavigateToStep,
+  calculatePersonalizationCost,
 } from '@/types/domain/simulator-wizard';
 
 // ============================================
@@ -52,6 +49,9 @@ const initialState: SimulatorWizardState = {
   quantity: 100,
   useNegotiatedPrice: false,
   negotiatedPrice: null,
+  personalizations: [],
+  currentPersonalizationIndex: 0,
+  isEditingPersonalization: false,
   availableLocations: [],
   selectedLocation: null,
   availableTechniques: [],
@@ -80,7 +80,10 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return {
         ...state,
         selectedProduct: action.payload,
-        // Reset passos seguintes ao mudar produto
+        // Reset tudo ao mudar produto
+        personalizations: [],
+        currentPersonalizationIndex: 0,
+        isEditingPersonalization: false,
         selectedLocation: null,
         selectedTechnique: null,
         availableLocations: [],
@@ -92,7 +95,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return { 
         ...state, 
         quantity: action.payload,
-        result: null, // Recalcular ao mudar quantidade
+        result: null,
       };
     
     case 'SET_NEGOTIATED_PRICE':
@@ -110,7 +113,6 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return {
         ...state,
         selectedLocation: action.payload,
-        // Reset passos seguintes ao mudar local
         selectedTechnique: null,
         availableTechniques: [],
         result: null,
@@ -123,7 +125,6 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return {
         ...state,
         selectedTechnique: action.payload,
-        // Reset opções com valores do técnica selecionada
         engravingOptions: action.payload ? {
           colors: 1,
           width: Math.min(10, action.payload.maxWidth || 50),
@@ -139,12 +140,81 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         engravingOptions: { ...state.engravingOptions, ...action.payload },
         result: null,
       };
+
+    case 'ADD_PERSONALIZATION':
+      return {
+        ...state,
+        personalizations: [...state.personalizations, action.payload],
+        currentPersonalizationIndex: state.personalizations.length,
+        isEditingPersonalization: false,
+        // Reset estado da personalização atual
+        selectedLocation: null,
+        selectedTechnique: null,
+        engravingOptions: {
+          colors: 1,
+          width: 10,
+          height: 10,
+          positions: 1,
+        },
+        result: null,
+      };
+
+    case 'REMOVE_PERSONALIZATION': {
+      const newPersonalizations = state.personalizations.filter(p => p.id !== action.payload);
+      return {
+        ...state,
+        personalizations: newPersonalizations.map((p, idx) => ({ ...p, index: idx + 1 })),
+        result: null,
+      };
+    }
+
+    case 'EDIT_PERSONALIZATION': {
+      const pers = state.personalizations[action.payload];
+      if (!pers) return state;
+      
+      return {
+        ...state,
+        currentPersonalizationIndex: action.payload,
+        isEditingPersonalization: true,
+        selectedLocation: pers.location,
+        selectedTechnique: pers.technique,
+        engravingOptions: pers.options,
+        currentStep: 'location',
+      };
+    }
+
+    case 'START_NEW_PERSONALIZATION':
+      return {
+        ...state,
+        currentPersonalizationIndex: state.personalizations.length,
+        isEditingPersonalization: false,
+        selectedLocation: null,
+        selectedTechnique: null,
+        engravingOptions: {
+          colors: 1,
+          width: 10,
+          height: 10,
+          positions: 1,
+        },
+        currentStep: 'location',
+      };
+
+    case 'CANCEL_PERSONALIZATION':
+      return {
+        ...state,
+        isEditingPersonalization: false,
+        selectedLocation: null,
+        selectedTechnique: null,
+        currentStep: state.personalizations.length > 0 ? 'result' : 'product',
+      };
     
     case 'SET_RESULT':
       return { 
         ...state, 
         result: action.payload,
-        completedSteps: action.payload ? [...new Set([...state.completedSteps, 'result' as WizardStep])] : state.completedSteps,
+        completedSteps: action.payload 
+          ? [...new Set([...state.completedSteps, 'result' as WizardStep])] 
+          : state.completedSteps,
       };
     
     case 'SET_CALCULATING':
@@ -163,9 +233,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         ...state,
         currentStep: action.payload,
         completedSteps: state.completedSteps.filter(s => stepsToKeep.includes(s)),
-        // Reset dados dos passos seguintes baseado na nova ordem:
-        // 0=product, 1=location, 2=technique, 3=configuration, 4=result
-        ...(stepIndex <= 0 && { selectedProduct: null }),
+        ...(stepIndex <= 0 && { selectedProduct: null, personalizations: [] }),
         ...(stepIndex <= 1 && { selectedLocation: null, availableLocations: [] }),
         ...(stepIndex <= 2 && { selectedTechnique: null, availableTechniques: [] }),
         ...(stepIndex <= 3 && { engravingOptions: initialState.engravingOptions }),
@@ -186,40 +254,26 @@ export function useSimulatorWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
   // ============================================
-  // QUERIES - Busca dados dinâmicos
+  // QUERIES
   // ============================================
 
-  // Buscar locais de gravação do BD EXTERNO Promobrind quando produto é selecionado
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
     queryKey: ['wizard-locations-promobrind', state.selectedProduct?.id],
     queryFn: async () => {
       if (!state.selectedProduct?.id) return [];
       
-      // Buscar áreas de impressão do BD EXTERNO Promobrind
       const printAreas = await fetchPromobrindPrintAreas(state.selectedProduct.id);
       
       if (!printAreas.length) {
-        // Fallback: buscar do BD local se não houver áreas no Promobrind
         console.log('Nenhuma área no Promobrind, tentando BD local...');
         const { data: productLocations, error: prodError } = await supabase
           .from('product_components')
           .select(`
-            id,
-            component_code,
-            component_name,
+            id, component_code, component_name,
             product_component_locations (
-              id,
-              location_code,
-              location_name,
-              max_width_cm,
-              max_height_cm,
-              max_area_cm2,
-              area_image_url,
+              id, location_code, location_name, max_width_cm, max_height_cm, max_area_cm2, area_image_url,
               product_component_location_techniques (
-                id,
-                technique_id,
-                max_colors,
-                is_default,
+                id, technique_id, max_colors, is_default,
                 personalization_techniques (id, name, code)
               )
             )
@@ -230,7 +284,6 @@ export function useSimulatorWizard() {
 
         if (prodError) throw prodError;
 
-        // Transformar em EngravingLocation[]
         const locations: EngravingLocation[] = [];
         productLocations?.forEach(comp => {
           comp.product_component_locations?.forEach((loc: any) => {
@@ -261,7 +314,6 @@ export function useSimulatorWizard() {
         return locations;
       }
 
-      // Agrupar áreas de impressão por componente+localização
       const locationMap = new Map<string, EngravingLocation>();
       
       for (const area of printAreas) {
@@ -284,7 +336,6 @@ export function useSimulatorWizard() {
           });
         }
         
-        // Adicionar técnica se existir
         if (area.technique_id && area.technique_name) {
           const location = locationMap.get(key)!;
           const existingTech = location.availableTechniques.find(
@@ -311,14 +362,12 @@ export function useSimulatorWizard() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Atualizar locais disponíveis quando query completar
   useEffect(() => {
     if (locationsData) {
       dispatch({ type: 'SET_AVAILABLE_LOCATIONS', payload: locationsData });
     }
   }, [locationsData]);
 
-  // Buscar detalhes das técnicas do BD EXTERNO Promobrind para o local selecionado
   const { data: techniquesData, isLoading: techniquesLoading } = useQuery({
     queryKey: ['wizard-techniques-promobrind', state.selectedLocation?.id],
     queryFn: async () => {
@@ -327,13 +376,11 @@ export function useSimulatorWizard() {
       const techniqueIds = state.selectedLocation.availableTechniques.map(t => t.techniqueId);
       if (techniqueIds.length === 0) return [];
 
-      // Buscar técnicas do BD EXTERNO Promobrind
       let techniques: PromobrindTechnique[] = [];
       try {
         techniques = await fetchPromobrindTechniques({ ids: techniqueIds });
       } catch (error) {
         console.log('Erro ao buscar técnicas do Promobrind, tentando BD local...', error);
-        // Fallback para BD local
         const { data, error: localError } = await supabase
           .from('personalization_techniques')
           .select('*')
@@ -342,7 +389,6 @@ export function useSimulatorWizard() {
 
         if (localError) throw localError;
         
-        // Converter formato local para Promobrind
         techniques = (data || []).map(t => ({
           id: t.id,
           code: t.code || '',
@@ -360,13 +406,11 @@ export function useSimulatorWizard() {
         }));
       }
 
-      // Combinar com dados do local de gravação
       return techniques.map(tech => {
         const locationTech = state.selectedLocation!.availableTechniques.find(
           t => t.techniqueId === tech.id
         );
         
-        // Determinar se precisa de seleção de cores/tamanho baseado no código
         const code = tech.code?.toUpperCase() || '';
         const requiresColor = code.includes('SILK') || code.includes('SERIGRAFIA') || 
                               code.includes('BORD') || code.includes('EMBROID') ||
@@ -398,7 +442,6 @@ export function useSimulatorWizard() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Atualizar técnicas disponíveis quando query completar
   useEffect(() => {
     if (techniquesData) {
       dispatch({ type: 'SET_AVAILABLE_TECHNIQUES', payload: techniquesData });
@@ -434,7 +477,6 @@ export function useSimulatorWizard() {
   const selectProduct = useCallback((product: SelectedProduct | null) => {
     dispatch({ type: 'SELECT_PRODUCT', payload: product });
     if (product) {
-      // Auto-avançar para próximo passo
       dispatch({ type: 'SET_STEP', payload: 'location' });
     }
   }, []);
@@ -450,7 +492,6 @@ export function useSimulatorWizard() {
   const selectLocation = useCallback((location: EngravingLocation | null) => {
     dispatch({ type: 'SELECT_LOCATION', payload: location });
     if (location) {
-      // Nova ordem: Local → Técnica
       dispatch({ type: 'SET_STEP', payload: 'technique' });
     }
   }, []);
@@ -458,7 +499,6 @@ export function useSimulatorWizard() {
   const selectTechnique = useCallback((technique: SelectedTechnique | null) => {
     dispatch({ type: 'SELECT_TECHNIQUE', payload: technique });
     if (technique) {
-      // Nova ordem: Técnica → Configuração
       dispatch({ type: 'SET_STEP', payload: 'configuration' });
     }
   }, []);
@@ -467,9 +507,100 @@ export function useSimulatorWizard() {
     dispatch({ type: 'UPDATE_OPTIONS', payload: options });
   }, []);
 
+  // Adicionar/confirmar personalização atual
+  const confirmPersonalization = useCallback(async () => {
+    if (!state.selectedLocation || !state.selectedTechnique) {
+      toast.error('Selecione local e técnica');
+      return null;
+    }
+
+    const costs = calculatePersonalizationCost(
+      state.selectedTechnique,
+      state.engravingOptions,
+      state.quantity
+    );
+
+    // Buscar tabela de preço do Promobrind
+    let priceTableUsed: string | undefined;
+    let tierApplied: string | undefined;
+    
+    try {
+      const priceTable = await findBestPriceTable({
+        techniqueName: state.selectedTechnique.name,
+        techniqueCode: state.selectedTechnique.code,
+        quantity: state.quantity,
+        colors: state.engravingOptions.colors,
+        width: state.engravingOptions.width,
+        height: state.engravingOptions.height,
+      });
+      
+      if (priceTable) {
+        costs.unitCost = priceTable.unit_price;
+        costs.setupCost = priceTable.setup_price || 0;
+        costs.totalCost = (costs.unitCost * state.quantity) + costs.setupCost;
+        costs.costPerUnit = costs.totalCost / state.quantity;
+        priceTableUsed = priceTable.code_option;
+        tierApplied = `${priceTable.min_quantity}-${priceTable.max_quantity || '∞'}`;
+      }
+    } catch (e) {
+      console.log('Tabela de preço não encontrada, usando valores da técnica');
+    }
+
+    const personalization: Personalization = {
+      id: `pers-${Date.now()}`,
+      index: state.isEditingPersonalization 
+        ? state.currentPersonalizationIndex + 1 
+        : state.personalizations.length + 1,
+      location: state.selectedLocation,
+      technique: state.selectedTechnique,
+      options: { ...state.engravingOptions },
+      ...costs,
+      estimatedDays: state.selectedTechnique.estimatedDays,
+      priceTableUsed,
+      tierApplied,
+    };
+
+    if (state.isEditingPersonalization) {
+      // Atualizar personalização existente
+      const newPersonalizations = [...state.personalizations];
+      newPersonalizations[state.currentPersonalizationIndex] = personalization;
+      dispatch({ type: 'RESET_WIZARD' });
+      // Restaurar estado
+      if (state.selectedProduct) {
+        dispatch({ type: 'SELECT_PRODUCT', payload: state.selectedProduct });
+      }
+      newPersonalizations.forEach(p => {
+        dispatch({ type: 'ADD_PERSONALIZATION', payload: p });
+      });
+    } else {
+      dispatch({ type: 'ADD_PERSONALIZATION', payload: personalization });
+    }
+
+    toast.success(`Gravação ${personalization.index} adicionada`);
+    return personalization;
+  }, [state]);
+
+  const removePersonalization = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_PERSONALIZATION', payload: id });
+    toast.info('Gravação removida');
+  }, []);
+
+  const editPersonalization = useCallback((index: number) => {
+    dispatch({ type: 'EDIT_PERSONALIZATION', payload: index });
+  }, []);
+
+  const startNewPersonalization = useCallback(() => {
+    dispatch({ type: 'START_NEW_PERSONALIZATION' });
+  }, []);
+
+  const cancelPersonalization = useCallback(() => {
+    dispatch({ type: 'CANCEL_PERSONALIZATION' });
+  }, []);
+
+  // Calcular resultado final (soma todas as personalizações)
   const calculateResult = useCallback(async () => {
-    if (!state.selectedProduct || !state.selectedLocation || !state.selectedTechnique) {
-      toast.error('Complete todas as seleções antes de calcular');
+    if (!state.selectedProduct || state.personalizations.length === 0) {
+      toast.error('Adicione pelo menos uma personalização');
       return null;
     }
 
@@ -477,119 +608,66 @@ export function useSimulatorWizard() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
-      const { engravingOptions, selectedProduct, selectedLocation, selectedTechnique, quantity } = state;
-      
-      const area = engravingOptions.width * engravingOptions.height;
-      const codeUpper = selectedTechnique.code.toUpperCase();
-      
-      let unitCost = selectedTechnique.unitCost;
-      let setupCost = selectedTechnique.setupCost;
-      let priceTableUsed: string | undefined;
-      let tierApplied: string | undefined;
-      let slaDays = selectedTechnique.estimatedDays;
-      
-      // Tentar buscar tabela de preço do BD EXTERNO Promobrind
-      try {
-        const priceTable = await findBestPriceTable({
-          techniqueName: selectedTechnique.name,
-          techniqueCode: selectedTechnique.code,
-          quantity,
-          colors: engravingOptions.colors,
-          width: engravingOptions.width,
-          height: engravingOptions.height,
-        });
-        
-        if (priceTable) {
-          console.log('Tabela de preço encontrada:', priceTable.code_option);
-          unitCost = priceTable.unit_price;
-          setupCost = priceTable.setup_price || 0;
-          priceTableUsed = priceTable.code_option;
-          tierApplied = `${priceTable.min_quantity}-${priceTable.max_quantity || '∞'}`;
-          if (priceTable.sla_days) {
-            slaDays = priceTable.sla_days;
-          }
-        }
-      } catch (priceError) {
-        console.log('Tabela de preço não encontrada, usando valores da técnica:', priceError);
-      }
-      
-      // Calcular multiplicador baseado no tipo de técnica
-      let unitCostMultiplier = 1;
-      
-      if (codeUpper.includes('SILK') || codeUpper.includes('SERIGRAFIA') || codeUpper.includes('TAMPOGRAFIA')) {
-        unitCostMultiplier = engravingOptions.colors;
-      } else if (codeUpper.includes('DTF') || codeUpper.includes('SUB') || codeUpper.includes('SUBLIM')) {
-        unitCostMultiplier = Math.max(1, area / 100);
-      } else if (codeUpper.includes('BORD') || codeUpper.includes('EMBROID')) {
-        // Bordado: preço por ponto/área
-        unitCostMultiplier = Math.max(1, (area / 50) * Math.max(1, engravingOptions.colors * 0.5));
-      } else if (codeUpper.includes('LASER')) {
-        unitCostMultiplier = Math.max(1, area / 100);
-      } else if (codeUpper.includes('TRANSFER')) {
-        unitCostMultiplier = Math.max(1, area / 80);
-      } else if (codeUpper.includes('HOT') || codeUpper.includes('STAMP')) {
-        // Hot Stamping: preço por posição e área
-        unitCostMultiplier = Math.max(1, area / 50);
-      } else if (codeUpper.includes('UV') || codeUpper.includes('DIGITAL')) {
-        unitCostMultiplier = Math.max(1, area / 100) * Math.max(1, engravingOptions.colors * 0.3);
-      }
-
-      const finalUnitCost = unitCost * unitCostMultiplier * engravingOptions.positions;
-      const finalSetupCost = setupCost * engravingOptions.positions * 
-        ((codeUpper.includes('SILK') || codeUpper.includes('SERIGRAFIA')) ? engravingOptions.colors : 1);
-      const totalCustomizationCost = (finalUnitCost * quantity) + finalSetupCost;
-      const costPerUnit = totalCustomizationCost / quantity;
-
       const productPrice = state.useNegotiatedPrice && state.negotiatedPrice 
         ? state.negotiatedPrice 
-        : selectedProduct.price;
-      const productTotal = productPrice * quantity;
-      const grandTotal = productTotal + totalCustomizationCost;
-      const grandTotalPerUnit = grandTotal / quantity;
+        : state.selectedProduct.price;
+      const productTotal = productPrice * state.quantity;
+
+      const personalizationResults: PersonalizationResult[] = state.personalizations.map(p => ({
+        id: p.id,
+        index: p.index,
+        location: {
+          componentName: p.location.componentName,
+          locationName: p.location.locationName,
+          maxDimensions: `${p.location.maxWidthCm || '–'}×${p.location.maxHeightCm || '–'}cm`,
+        },
+        technique: {
+          id: p.technique.id,
+          code: p.technique.code,
+          name: p.technique.name,
+          estimatedDays: p.estimatedDays,
+        },
+        options: {
+          colors: p.options.colors,
+          width: p.options.width,
+          height: p.options.height,
+          positions: p.options.positions,
+          area: p.options.width * p.options.height,
+        },
+        customization: {
+          unitCost: p.unitCost,
+          setupCost: p.setupCost,
+          totalCost: p.totalCost,
+          costPerUnit: p.costPerUnit,
+        },
+        priceTableUsed: p.priceTableUsed,
+        tierApplied: p.tierApplied,
+      }));
+
+      const customizationTotal = state.personalizations.reduce((sum, p) => sum + p.totalCost, 0);
+      const grandTotal = productTotal + customizationTotal;
+      const grandTotalPerUnit = grandTotal / state.quantity;
+      const maxEstimatedDays = Math.max(...state.personalizations.map(p => p.estimatedDays));
 
       const result: SimulationPriceResult = {
         id: `sim-${Date.now()}`,
         timestamp: Date.now(),
         product: {
-          id: selectedProduct.id,
-          name: selectedProduct.name,
-          sku: selectedProduct.sku,
+          id: state.selectedProduct.id,
+          name: state.selectedProduct.name,
+          sku: state.selectedProduct.sku,
           unitPrice: productPrice,
-          quantity,
+          quantity: state.quantity,
           totalPrice: productTotal,
         },
-        location: {
-          componentName: selectedLocation.componentName,
-          locationName: selectedLocation.locationName,
-          maxDimensions: `${selectedLocation.maxWidthCm || '–'}×${selectedLocation.maxHeightCm || '–'}cm`,
-        },
-        technique: {
-          id: selectedTechnique.id,
-          code: selectedTechnique.code,
-          name: selectedTechnique.name,
-          estimatedDays: slaDays,
-        },
-        options: {
-          colors: engravingOptions.colors,
-          width: engravingOptions.width,
-          height: engravingOptions.height,
-          positions: engravingOptions.positions,
-          area,
-        },
-        customization: {
-          unitCost: finalUnitCost,
-          setupCost: finalSetupCost,
-          totalCost: totalCustomizationCost,
-          costPerUnit,
-        },
+        personalizations: personalizationResults,
         totals: {
           productTotal,
-          customizationTotal: totalCustomizationCost,
+          customizationTotal,
           grandTotal,
           grandTotalPerUnit,
         },
-        priceTableUsed,
-        tierApplied,
+        maxEstimatedDays,
       };
 
       dispatch({ type: 'SET_RESULT', payload: result });
@@ -661,13 +739,22 @@ export function useSimulatorWizard() {
     nextStep,
     previousStep,
     
-    // Actions
+    // Product Actions
     selectProduct,
     setQuantity,
     setNegotiatedPrice,
+    
+    // Personalization Flow
     selectLocation,
     selectTechnique,
     updateOptions,
+    confirmPersonalization,
+    removePersonalization,
+    editPersonalization,
+    startNewPersonalization,
+    cancelPersonalization,
+    
+    // Final
     calculateResult,
     resetWizard,
     resetFromStep,

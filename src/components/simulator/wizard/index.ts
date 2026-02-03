@@ -10,3 +10,5 @@ export { StepOptions } from './StepOptions';
 export { StepResult } from './StepResult';
 export { SmartSuggestion } from './SmartSuggestion';
 export { TechniqueComparator } from './TechniqueComparator';
+export { PersonalizationSummary } from './PersonalizationSummary';
+export { PersonalizationTabs } from './PersonalizationTabs';

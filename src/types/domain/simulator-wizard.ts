@@ -1,15 +1,11 @@
 /**
  * Domain Types: Simulator Wizard Architecture
  * 
- * Arquitetura modular para o fluxo do simulador:
- * Produto → Local de Gravação → Técnica → Opções (Cores/Tamanho) → Resultado
+ * Arquitetura modular para o fluxo do simulador com MÚLTIPLAS PERSONALIZAÇÕES:
+ * Produto → (Local → Técnica → Configuração) × N → Resultado
  * 
- * Fontes de dados:
- * - Regras de Grupo: product_groups → product_group_components → product_group_locations → product_group_location_techniques
- * - Regras de Produto: product_components → product_component_locations → product_component_location_techniques
- * - Técnicas: personalization_techniques (CRUD principal)
- * 
- * Hierarquia de prioridade: Produto > Grupo > Global
+ * Cada produto pode ter múltiplas gravações (ex: capa + contra-capa)
+ * O sistema soma os custos de todas as personalizações no resultado final
  */
 
 // ============================================
@@ -153,13 +149,34 @@ export interface EngravingOptions {
   width: number;
   height: number;
   positions: number;
-  sizeOption?: string; // Código da opção de tamanho (ex: "pequeno", "medio", "grande")
-  colorOption?: string; // Código da opção de cor
-  tableCode?: string; // Código da tabela de preço usada
+  sizeOption?: string;
+  colorOption?: string;
+  tableCode?: string;
 }
 
 // ============================================
-// RESULTADO DA SIMULAÇÃO
+// PERSONALIZAÇÃO INDIVIDUAL (GRAVAÇÃO)
+// ============================================
+
+export interface Personalization {
+  id: string;
+  index: number; // 1, 2, 3...
+  location: EngravingLocation;
+  technique: SelectedTechnique;
+  options: EngravingOptions;
+  // Custos calculados
+  unitCost: number;
+  setupCost: number;
+  totalCost: number;
+  costPerUnit: number;
+  estimatedDays: number;
+  // Metadata
+  priceTableUsed?: string;
+  tierApplied?: string;
+}
+
+// ============================================
+// RESULTADO DA SIMULAÇÃO (COM MÚLTIPLAS GRAVAÇÕES)
 // ============================================
 
 export interface SimulationPriceResult {
@@ -177,37 +194,8 @@ export interface SimulationPriceResult {
     totalPrice: number;
   };
   
-  // Local de gravação
-  location: {
-    componentName: string;
-    locationName: string;
-    maxDimensions: string;
-  };
-  
-  // Técnica
-  technique: {
-    id: string;
-    code: string;
-    name: string;
-    estimatedDays: number;
-  };
-  
-  // Opções aplicadas
-  options: {
-    colors: number;
-    width: number;
-    height: number;
-    positions: number;
-    area: number;
-  };
-  
-  // Custos de personalização
-  customization: {
-    unitCost: number;
-    setupCost: number;
-    totalCost: number;
-    costPerUnit: number;
-  };
+  // Todas as personalizações
+  personalizations: PersonalizationResult[];
   
   // Totais
   totals: {
@@ -217,7 +205,37 @@ export interface SimulationPriceResult {
     grandTotalPerUnit: number;
   };
   
-  // Metadata para cálculo
+  // Maior prazo entre todas as personalizações
+  maxEstimatedDays: number;
+}
+
+export interface PersonalizationResult {
+  id: string;
+  index: number;
+  location: {
+    componentName: string;
+    locationName: string;
+    maxDimensions: string;
+  };
+  technique: {
+    id: string;
+    code: string;
+    name: string;
+    estimatedDays: number;
+  };
+  options: {
+    colors: number;
+    width: number;
+    height: number;
+    positions: number;
+    area: number;
+  };
+  customization: {
+    unitCost: number;
+    setupCost: number;
+    totalCost: number;
+    costPerUnit: number;
+  };
   priceTableUsed?: string;
   tierApplied?: string;
 }
@@ -237,15 +255,22 @@ export interface SimulatorWizardState {
   useNegotiatedPrice: boolean;
   negotiatedPrice: number | null;
   
-  // Passo 2: Local
+  // Personalizações confirmadas (gravações já adicionadas)
+  personalizations: Personalization[];
+  
+  // Personalização atual em edição
+  currentPersonalizationIndex: number; // 0 = primeira, 1 = segunda...
+  isEditingPersonalization: boolean;
+  
+  // Passo 2: Local (personalização atual)
   availableLocations: EngravingLocation[];
   selectedLocation: EngravingLocation | null;
   
-  // Passo 3: Técnica
+  // Passo 3: Técnica (personalização atual)
   availableTechniques: SelectedTechnique[];
   selectedTechnique: SelectedTechnique | null;
   
-  // Passo 4: Opções
+  // Passo 4: Opções (personalização atual)
   engravingOptions: EngravingOptions;
   
   // Passo 5: Resultado
@@ -270,6 +295,11 @@ export type WizardAction =
   | { type: 'SET_AVAILABLE_TECHNIQUES'; payload: SelectedTechnique[] }
   | { type: 'SELECT_TECHNIQUE'; payload: SelectedTechnique | null }
   | { type: 'UPDATE_OPTIONS'; payload: Partial<EngravingOptions> }
+  | { type: 'ADD_PERSONALIZATION'; payload: Personalization }
+  | { type: 'REMOVE_PERSONALIZATION'; payload: string } // id
+  | { type: 'EDIT_PERSONALIZATION'; payload: number } // index
+  | { type: 'START_NEW_PERSONALIZATION' }
+  | { type: 'CANCEL_PERSONALIZATION' }
   | { type: 'SET_RESULT'; payload: SimulationPriceResult | null }
   | { type: 'SET_CALCULATING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
@@ -334,4 +364,48 @@ export const canNavigateToStep = (targetStep: WizardStep, state: SimulatorWizard
   }
   
   return true;
+};
+
+// ============================================
+// HELPERS PARA CÁLCULO DE CUSTO
+// ============================================
+
+export const calculatePersonalizationCost = (
+  technique: SelectedTechnique,
+  options: EngravingOptions,
+  quantity: number
+): { unitCost: number; setupCost: number; totalCost: number; costPerUnit: number } => {
+  const area = options.width * options.height;
+  const codeUpper = technique.code.toUpperCase();
+  
+  let unitCostMultiplier = 1;
+  
+  if (codeUpper.includes('SILK') || codeUpper.includes('SERIGRAFIA') || codeUpper.includes('TAMPOGRAFIA')) {
+    unitCostMultiplier = options.colors;
+  } else if (codeUpper.includes('DTF') || codeUpper.includes('SUB') || codeUpper.includes('SUBLIM')) {
+    unitCostMultiplier = Math.max(1, area / 100);
+  } else if (codeUpper.includes('BORD') || codeUpper.includes('EMBROID')) {
+    unitCostMultiplier = Math.max(1, (area / 50) * Math.max(1, options.colors * 0.5));
+  } else if (codeUpper.includes('LASER')) {
+    unitCostMultiplier = Math.max(1, area / 100);
+  } else if (codeUpper.includes('TRANSFER')) {
+    unitCostMultiplier = Math.max(1, area / 80);
+  } else if (codeUpper.includes('HOT') || codeUpper.includes('STAMP')) {
+    unitCostMultiplier = Math.max(1, area / 50);
+  } else if (codeUpper.includes('UV') || codeUpper.includes('DIGITAL')) {
+    unitCostMultiplier = Math.max(1, area / 100) * Math.max(1, options.colors * 0.3);
+  }
+
+  const finalUnitCost = technique.unitCost * unitCostMultiplier * options.positions;
+  const finalSetupCost = technique.setupCost * options.positions * 
+    ((codeUpper.includes('SILK') || codeUpper.includes('SERIGRAFIA')) ? options.colors : 1);
+  const totalCost = (finalUnitCost * quantity) + finalSetupCost;
+  const costPerUnit = totalCost / quantity;
+
+  return {
+    unitCost: finalUnitCost,
+    setupCost: finalSetupCost,
+    totalCost,
+    costPerUnit,
+  };
 };
