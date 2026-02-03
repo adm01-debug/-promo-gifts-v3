@@ -138,7 +138,7 @@ export default function SimuladorWizard() {
           {wizard.currentStep === 'product' && <StepProduct wizard={wizard} />}
           {wizard.currentStep === 'location' && <StepLocation wizard={wizard} />}
           {wizard.currentStep === 'technique' && <StepTechnique wizard={wizard} />}
-          {wizard.currentStep === 'options' && <StepOptions wizard={wizard} />}
+          {wizard.currentStep === 'configuration' && <StepOptions wizard={wizard} />}
           {wizard.currentStep === 'result' && <StepResult wizard={wizard} />}
         </motion.div>
       </div>
