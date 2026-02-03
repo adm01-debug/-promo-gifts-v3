@@ -169,12 +169,14 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
 export function StockDashboard() {
   const {
     isLoading,
+    loadingProgress,
     productStocks,
     summary,
     alerts,
     criticalAlerts,
     filters,
     allColors,
+    futureStock,
     fetchStockData,
     updateFilter,
     resetFilters,
@@ -184,6 +186,15 @@ export function StockDashboard() {
   if (isLoading) {
     return (
       <div className="space-y-6 p-6">
+        <div className="flex flex-col items-center justify-center py-12">
+          <Package className="h-12 w-12 text-primary animate-pulse mb-4" />
+          <p className="text-lg font-medium mb-2">Carregando estoque...</p>
+          {loadingProgress && (
+            <p className="text-sm text-muted-foreground">
+              {loadingProgress.step} ({loadingProgress.current}/{loadingProgress.total})
+            </p>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map(i => (
             <Skeleton key={i} className="h-24" />
@@ -239,29 +250,34 @@ export function StockDashboard() {
       )}
 
       {/* Cards de Resumo */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <StatCard
           title="Total de Produtos"
-          value={summary.totalProducts}
+          value={summary.totalProducts.toLocaleString('pt-BR')}
           icon={<Package className="h-6 w-6 text-primary" />}
         />
         <StatCard
           title="Em Estoque"
-          value={summary.productsInStock}
+          value={summary.productsInStock.toLocaleString('pt-BR')}
           icon={<CheckCircle2 className="h-6 w-6 text-green-600" />}
           variant="success"
         />
         <StatCard
           title="Estoque Baixo"
-          value={summary.productsLowStock + summary.productsCritical}
+          value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-amber-600" />}
           variant="warning"
         />
         <StatCard
           title="Sem Estoque"
-          value={summary.productsOutOfStock}
+          value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-red-600" />}
           variant="error"
+        />
+        <StatCard
+          title="Estoque Futuro"
+          value={futureStock.length > 0 ? `${futureStock.length} previsões` : '-'}
+          icon={<Truck className="h-6 w-6 text-purple-600" />}
         />
       </div>
 

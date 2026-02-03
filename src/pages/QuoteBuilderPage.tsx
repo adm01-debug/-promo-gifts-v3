@@ -136,12 +136,12 @@ export default function QuoteBuilderPage() {
     }
   }, [isEditMode, quoteId]);
 
-  // Fetch products from Promobrind
+  // Fetch products from Promobrind - sem limite para buscar todos
   const { data: products } = useQuery({
-    queryKey: ["quote-products-promobrind"],
+    queryKey: ["quote-products-promobrind-full"],
     queryFn: async () => {
       const { fetchPromobrindProducts } = await import('@/lib/external-db');
-      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      const productsData = await fetchPromobrindProducts(); // Sem limit = paginação automática
       
       // Mapear para formato esperado
       return productsData.map(p => ({
@@ -152,6 +152,7 @@ export default function QuoteBuilderPage() {
         images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
       })) as Product[];
     },
+    staleTime: 10 * 60 * 1000, // 10 min cache
   });
 
   // Fetch clients

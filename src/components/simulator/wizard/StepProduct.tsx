@@ -35,11 +35,12 @@ const QUANTITY_PRESETS = [50, 100, 250, 500, 1000];
 export function StepProduct({ wizard }: StepProductProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch products
+  // Fetch products - sem limite para buscar todos os produtos do catálogo
   const { data: products, isLoading } = useQuery({
-    queryKey: ['wizard-products'],
+    queryKey: ['wizard-products-all'],
     queryFn: async () => {
-      const data = await fetchPromobrindProducts({ limit: 500 });
+      // Sem limit = paginação automática busca todos
+      const data = await fetchPromobrindProducts();
       return data
         .filter(p => p.active !== false && p.is_active !== false)
         .map(p => ({
@@ -52,7 +53,7 @@ export function StepProduct({ wizard }: StepProductProps) {
           brand: p.brand || null,
         }));
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 min cache para catálogos grandes
   });
 
   // Filter products

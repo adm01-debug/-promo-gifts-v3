@@ -76,18 +76,19 @@ export function ProductGroupsManager() {
     },
   });
 
-  // Fetch all products from Promobrind
+  // Fetch all products from Promobrind - sem limite para buscar todos
   const { data: allProducts } = useQuery({
-    queryKey: ["all-products-promobrind"],
+    queryKey: ["all-products-promobrind-full"],
     queryFn: async () => {
       const { fetchPromobrindProducts } = await import('@/lib/external-db');
-      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      const productsData = await fetchPromobrindProducts(); // Sem limit = paginação automática
       return productsData.map(p => ({
         id: p.id,
         name: p.name,
         sku: p.sku,
       })) as Product[];
     },
+    staleTime: 10 * 60 * 1000, // 10 min cache
   });
 
   // Fetch group members

@@ -266,7 +266,7 @@ export default function MockupGenerator() {
       const { fetchPromobrindProducts, getProductImageUrl } = await import('@/lib/external-db');
       
       const [productsData, techniquesRes, clientsRes] = await Promise.all([
-        fetchPromobrindProducts({ limit: 500 }),
+        fetchPromobrindProducts(), // Sem limit = paginação automática busca todos
         // Buscar técnicas do BD externo via bridge
         supabase.functions.invoke('external-db-bridge', {
           body: {
