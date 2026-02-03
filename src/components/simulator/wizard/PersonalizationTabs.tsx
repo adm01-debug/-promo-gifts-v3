@@ -85,11 +85,11 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
         <Button
           variant="ghost"
           size="sm"
-          className="gap-1 text-muted-foreground hover:text-primary shrink-0"
+          className="gap-1 text-muted-foreground hover:text-primary shrink-0 uppercase text-xs font-semibold"
           onClick={onAddNew}
         >
           <Plus className="h-4 w-4" />
-          Nova Personalização
+          Personalização
         </Button>
       )}
     </div>
