@@ -1,5 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import type { Category } from "@/data/mockData";
@@ -9,18 +11,33 @@ interface ProductCategoryBadgesProps {
   groups?: Category[];
   className?: string;
   showLabels?: boolean;
+  // Props para o link de personalização
+  productId?: string;
+  productName?: string;
+  productSku?: string;
+  productPrice?: number;
+  productImageUrl?: string | null;
+  showPersonalizationLink?: boolean;
 }
 
 /**
  * Exibe badges com ícones/emojis das categorias/grupos do produto
  * Combina a categoria principal com grupos adicionais
+ * Inclui link opcional para o simulador de personalização
  */
 export function ProductCategoryBadges({ 
   category, 
   groups, 
   className,
-  showLabels = false 
+  showLabels = false,
+  productId,
+  productName,
+  productSku,
+  productPrice,
+  productImageUrl,
+  showPersonalizationLink = true,
 }: ProductCategoryBadgesProps) {
+  const navigate = useNavigate();
   const { data: categoryIcons = [] } = useCategoryIcons();
   
   // Combinar categoria principal com grupos adicionais (sem duplicatas)
@@ -45,6 +62,28 @@ export function ProductCategoryBadges({
     return cat.icon || '📦';
   };
 
+  // Navegar para o simulador com o produto pré-selecionado
+  const handlePersonalizationClick = () => {
+    if (!productId) return;
+    
+    // Criar objeto com dados do produto para passar via state
+    const productData = {
+      id: productId,
+      name: productName || '',
+      sku: productSku || '',
+      price: productPrice || 0,
+      imageUrl: productImageUrl,
+      categoryName: category?.name,
+    };
+    
+    // Navegar passando o produto via state
+    navigate('/simulador', { 
+      state: { 
+        preSelectedProduct: productData 
+      } 
+    });
+  };
+
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
       {allCategories.map((cat) => (
@@ -67,6 +106,30 @@ export function ProductCategoryBadges({
           </TooltipContent>
         </Tooltip>
       ))}
+
+      {/* Link para Simulador de Personalização */}
+      {showPersonalizationLink && productId && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              onClick={handlePersonalizationClick}
+              className={cn(
+                "px-2.5 py-1 text-sm font-medium cursor-pointer",
+                "border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/20",
+                "text-orange-500 hover:text-orange-400",
+                "transition-all duration-200 hover:scale-105 hover:border-orange-500"
+              )}
+            >
+              <Palette className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-xs">Personalização</span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="font-medium">
+            Simular preço de personalização
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }

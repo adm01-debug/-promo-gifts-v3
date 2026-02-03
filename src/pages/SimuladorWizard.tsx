@@ -1,7 +1,11 @@
 /**
  * SimuladorWizard - Página do Simulador com layout premium e arejado
+ * 
+ * Suporta receber produto pré-selecionado via location.state.preSelectedProduct
  */
 
+import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useSimulatorWizard } from "@/hooks/simulator/useSimulatorWizard";
 import { 
@@ -14,9 +18,52 @@ import {
 } from "@/components/simulator/wizard";
 import { Calculator, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import type { SelectedProduct } from "@/types/domain/simulator-wizard";
+
+// Interface para dados do produto vindos via state
+interface PreSelectedProductState {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  imageUrl?: string | null;
+  categoryName?: string | null;
+}
 
 export default function SimuladorWizard() {
+  const location = useLocation();
   const wizard = useSimulatorWizard();
+  const hasProcessedPreSelection = useRef(false);
+
+  // Processar produto pré-selecionado via state (vindo do ProductDetail)
+  useEffect(() => {
+    if (hasProcessedPreSelection.current) return;
+    
+    const preSelectedProduct = (location.state as { preSelectedProduct?: PreSelectedProductState })?.preSelectedProduct;
+    
+    if (preSelectedProduct?.id) {
+      hasProcessedPreSelection.current = true;
+      
+      // Converter para SelectedProduct
+      const product: SelectedProduct = {
+        id: preSelectedProduct.id,
+        name: preSelectedProduct.name,
+        sku: preSelectedProduct.sku,
+        price: preSelectedProduct.price,
+        imageUrl: preSelectedProduct.imageUrl,
+        categoryName: preSelectedProduct.categoryName,
+      };
+      
+      // Selecionar o produto automaticamente
+      wizard.selectProduct(product);
+      
+      toast.success(`${preSelectedProduct.name} selecionado`, {
+        description: "Continue configurando a personalização",
+        duration: 3000,
+      });
+    }
+  }, [location.state, wizard.selectProduct]);
 
   return (
     <MainLayout>

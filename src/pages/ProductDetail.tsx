@@ -185,10 +185,15 @@ export default function ProductDetail() {
           <div className="space-y-4 md:space-y-6" style={{ animationDelay: '200ms' }}>
             {/* Header */}
             <div className="space-y-3 md:space-y-4">
-              {/* Category/Group Badges - Ícones das categorias */}
+              {/* Category/Group Badges - Ícones das categorias + Link Personalização */}
               <ProductCategoryBadges 
                 category={product.category} 
                 groups={product.groups}
+                productId={product.id}
+                productName={product.name}
+                productSku={product.sku}
+                productPrice={product.price}
+                productImageUrl={product.images?.[0]}
               />
 
               {/* Status Badges - Compact on mobile */}
