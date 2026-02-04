@@ -260,15 +260,15 @@ export async function fetchPromobrindProducts(options?: {
     }
   }
 
-  // Enriquecer produtos em paralelo: cores + nomes de fornecedores
+  // Enriquecer produtos em paralelo: cores + nomes de fornecedores + imagens da nova tabela
   if (products.length > 0) {
     const productIds = products.map(p => p.id);
     
     // Coletar supplier_ids únicos para buscar nomes
     const uniqueSupplierIds = [...new Set(products.map(p => p.supplier_id).filter(Boolean))] as string[];
     
-    // Executar buscas em paralelo
-    const [variantsResult, suppliersResult] = await Promise.all([
+    // Executar buscas em paralelo (incluindo imagens da nova tabela product_images)
+    const [variantsResult, suppliersResult, imagesResult] = await Promise.all([
       // Buscar cores das variantes
       invokeExternalDb<{
         product_id: string;
@@ -303,12 +303,50 @@ export async function fetchPromobrindProducts(options?: {
             return { records: [] } as { records: { id: string; name: string; code: string }[] };
           })
         : Promise.resolve({ records: [] } as { records: { id: string; name: string; code: string }[] }),
+      
+      // NOVO: Buscar imagens da tabela product_images
+      invokeExternalDb<{
+        product_id: string;
+        url_cdn: string;
+        image_type: string;
+        is_primary: boolean;
+        display_order: number;
+        alt_text: string | null;
+      }>({
+        table: 'product_images',
+        operation: 'select',
+        select: 'product_id, url_cdn, image_type, is_primary, display_order, alt_text',
+        filters: { is_active: true },
+        orderBy: { column: 'display_order', ascending: true },
+        limit: 10000,
+      }).catch(err => {
+        console.warn('Não foi possível buscar imagens da tabela product_images:', err);
+        return { records: [] } as { records: any[] };
+      }),
     ]);
     
     // Mapear fornecedores por ID
     const suppliersMap = new Map<string, string>();
     suppliersResult.records.forEach(s => {
       suppliersMap.set(s.id, s.name);
+    });
+    
+    // Agrupar imagens por produto (NOVO)
+    const imagesByProduct = new Map<string, Array<{ url: string; type: string; isPrimary: boolean; order: number }>>();
+    const productIdSet = new Set(productIds);
+    
+    imagesResult.records.forEach((img: any) => {
+      if (!productIdSet.has(img.product_id)) return;
+      
+      if (!imagesByProduct.has(img.product_id)) {
+        imagesByProduct.set(img.product_id, []);
+      }
+      imagesByProduct.get(img.product_id)!.push({
+        url: img.url_cdn,
+        type: img.image_type,
+        isPrimary: img.is_primary,
+        order: img.display_order,
+      });
     });
     
     // Agrupar cores por produto
@@ -352,8 +390,25 @@ export async function fetchPromobrindProducts(options?: {
       }
     });
 
-    // Enriquecer produtos com cores e nomes de fornecedores
+    // Enriquecer produtos com cores, nomes de fornecedores e IMAGENS
     products.forEach(product => {
+      // NOVO: Imagens da tabela product_images (prioridade sobre campos legados)
+      const productImages = imagesByProduct.get(product.id);
+      if (productImages && productImages.length > 0) {
+        // Ordenar por display_order
+        productImages.sort((a, b) => a.order - b.order);
+        
+        // Definir primary_image_url (prioridade: is_primary, depois primeira)
+        const primaryImage = productImages.find(img => img.isPrimary) || productImages[0];
+        if (primaryImage) {
+          product.primary_image_url = primaryImage.url;
+          product.image_url = primaryImage.url; // Retrocompatibilidade
+        }
+        
+        // Definir array de imagens
+        product.images = productImages.map(img => img.url);
+      }
+      
       // Cores das variantes
       const variantColors = colorsByProduct.get(product.id);
       if (variantColors && variantColors.length > 0) {
@@ -405,6 +460,41 @@ export async function fetchPromobrindProductById(
     // Se description está vazio, usar meta_description como fallback
     if (!product.description && product.meta_description) {
       product.description = product.meta_description;
+    }
+
+    // NOVO: Buscar imagens da tabela product_images (prioridade sobre campos legados)
+    try {
+      const imagesResult = await invokeExternalDb<{
+        url_cdn: string;
+        image_type: string;
+        is_primary: boolean;
+        display_order: number;
+        alt_text: string | null;
+      }>({
+        table: 'product_images',
+        operation: 'select',
+        select: 'url_cdn, image_type, is_primary, display_order, alt_text',
+        filters: { product_id: productId, is_active: true },
+        orderBy: { column: 'display_order', ascending: true },
+        limit: 100,
+      });
+
+      if (imagesResult.records.length > 0) {
+        // Ordenar por display_order
+        const sortedImages = imagesResult.records.sort((a, b) => a.display_order - b.display_order);
+        
+        // Definir primary_image_url (prioridade: is_primary, depois primeira)
+        const primaryImage = sortedImages.find(img => img.is_primary) || sortedImages[0];
+        if (primaryImage) {
+          product.primary_image_url = primaryImage.url_cdn;
+          product.image_url = primaryImage.url_cdn; // Retrocompatibilidade
+        }
+        
+        // Definir array de imagens
+        product.images = sortedImages.map(img => img.url_cdn);
+      }
+    } catch (err) {
+      console.warn('Não foi possível buscar imagens da tabela product_images:', err);
     }
 
     // Buscar nome do fornecedor se tiver supplier_id
