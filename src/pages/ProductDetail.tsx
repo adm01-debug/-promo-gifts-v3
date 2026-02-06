@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { getCdnUrl } from "@/utils/image-utils";
 import {
   Heart,
   Package,
@@ -141,6 +143,18 @@ export default function ProductDetail() {
 
   return (
     <MainLayout>
+      {/* SEO — Briefing v3: meta tags dinâmicas por produto */}
+      <Helmet>
+        <title>{product.name} | PromoHub</title>
+        <meta name="description" content={product.description || `${product.name} - Brinde Promocional`} />
+        <meta property="og:title" content={product.name} />
+        <meta property="og:description" content={product.description || `${product.name} - Brinde Promocional`} />
+        <meta property="og:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
+        <meta property="og:type" content="product" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={product.name} />
+        <meta name="twitter:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
+      </Helmet>
       <div className="space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-0">
         {/* Dynamic Breadcrumbs - Hidden on mobile */}
         <DynamicBreadcrumbs className="hidden md:flex" />

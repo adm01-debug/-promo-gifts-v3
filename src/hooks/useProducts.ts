@@ -17,6 +17,8 @@ export interface Product {
   category_name?: string | null;
   price: number;
   image_url?: string;
+  /** Briefing v3: imagem OG (is_og_image=true, cor individual) para cards e compartilhamento */
+  og_image_url?: string;
   images: string[];
   sku: string;
   stock: number;
@@ -314,6 +316,7 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
     category_name: p.category_name || null,
     price: getProductPrice(p),
     image_url: images[0],
+    og_image_url: p.og_image_url || undefined,
     images,
     sku: p.sku,
     stock,

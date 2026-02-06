@@ -97,6 +97,8 @@ export interface PromobrindProduct {
   image_url: string | null;        // Campo correto do schema
   images: string[] | null;
   primary_image_url: string | null;
+  /** Briefing v3: URL da imagem OG (is_og_image=true, cor individual). Enriquecido em runtime. */
+  og_image_url?: string | null;
   category_id: string | null;
   main_category_id: string | null; // Campo correto do schema
   supplier_id: string | null;      // FK para tabela suppliers
@@ -327,18 +329,24 @@ export async function fetchPromobrindProducts(options?: {
         : Promise.resolve({ records: [] } as { records: { id: string; name: string; code: string }[] }),
       
       // Buscar imagens da tabela product_images (paginado — 9.245+ registros)
+      // Briefing v3: expandido com is_og_image, title_text, url_original, filename, applies_to_color
       paginatedFetch<{
         product_id: string;
         url_cdn: string;
+        url_original: string | null;
+        filename: string | null;
         image_type: string;
         is_primary: boolean;
+        is_og_image: boolean;
+        applies_to_color: boolean | null;
         display_order: number;
         alt_text: string | null;
+        title_text: string | null;
         supplier_code: string | null;
       }>({
         table: 'product_images',
         operation: 'select',
-        select: 'product_id, url_cdn, image_type, is_primary, display_order, alt_text, supplier_code',
+        select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
         filters: { is_active: true },
         orderBy: { column: 'display_order', ascending: true },
         limit: 5000,
@@ -354,8 +362,20 @@ export async function fetchPromobrindProducts(options?: {
       suppliersMap.set(s.id, s.name);
     });
     
-    // Agrupar imagens por produto (com supplier_code para vincular a variantes)
-    const imagesByProduct = new Map<string, Array<{ url: string; type: string; isPrimary: boolean; order: number; supplierCode: string | null }>>();
+    // Agrupar imagens por produto (com metadados expandidos — Briefing v3)
+    const imagesByProduct = new Map<string, Array<{
+      url: string;
+      urlOriginal: string | null;
+      filename: string | null;
+      type: string;
+      isPrimary: boolean;
+      isOgImage: boolean;
+      appliesToColor: boolean | null;
+      order: number;
+      supplierCode: string | null;
+      altText: string | null;
+      titleText: string | null;
+    }>>();
     const productIdSet = new Set(productIds);
     
     imagesRecords.forEach((img: any) => {
@@ -366,10 +386,16 @@ export async function fetchPromobrindProducts(options?: {
       }
       imagesByProduct.get(img.product_id)!.push({
         url: img.url_cdn,
+        urlOriginal: img.url_original || null,
+        filename: img.filename || null,
         type: img.image_type,
         isPrimary: img.is_primary,
+        isOgImage: img.is_og_image || false,
+        appliesToColor: img.applies_to_color ?? null,
         order: img.display_order,
         supplierCode: img.supplier_code || null,
+        altText: img.alt_text || null,
+        titleText: img.title_text || null,
       });
     });
     
@@ -451,9 +477,18 @@ export async function fetchPromobrindProducts(options?: {
           product.image_url = primaryImage.url;
         }
         
+        // Briefing v3: og_image_url = is_og_image (MAIN, cor individual) para cards e OG tags
+        const ogImage = mainImages.find(img => img.isOgImage) 
+          || mainImages.find(img => img.type === 'main')
+          || primaryImage;
+        if (ogImage) {
+          product.og_image_url = ogImage.url;
+        }
+        
         // Definir array de imagens
         product.images = mainImages.map(img => img.url);
       }
+    });
       
       // Cores das variantes
       const variantColors = colorsByProduct.get(product.id);
@@ -511,26 +546,37 @@ export async function fetchPromobrindProductById(
     // Buscar imagens da tabela product_images
     // ARQUITETURA: product_images.supplier_code corresponde a product_variants.color_code
     // Imagens com supplier_code = null são gerais (box, set, etc.)
+    // Briefing v3: expandido com is_og_image, title_text, url_original, filename, applies_to_color
     let allProductImages: Array<{
       url_cdn: string;
+      url_original: string | null;
+      filename: string | null;
       image_type: string;
       is_primary: boolean;
+      is_og_image: boolean;
+      applies_to_color: boolean | null;
       display_order: number;
       alt_text: string | null;
+      title_text: string | null;
       supplier_code: string | null;
     }> = [];
     try {
       const imagesResult = await invokeExternalDb<{
         url_cdn: string;
+        url_original: string | null;
+        filename: string | null;
         image_type: string;
         is_primary: boolean;
+        is_og_image: boolean;
+        applies_to_color: boolean | null;
         display_order: number;
         alt_text: string | null;
+        title_text: string | null;
         supplier_code: string | null;
       }>({
         table: 'product_images',
         operation: 'select',
-        select: 'url_cdn, image_type, is_primary, display_order, alt_text, supplier_code',
+        select: 'url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
         filters: { product_id: productId, is_active: true },
         orderBy: { column: 'display_order', ascending: true },
         limit: 200,
@@ -557,6 +603,14 @@ export async function fetchPromobrindProductById(
         if (primaryImage) {
           product.primary_image_url = primaryImage.url_cdn;
           product.image_url = primaryImage.url_cdn;
+        }
+        
+        // Briefing v3: og_image_url = is_og_image (MAIN, cor individual) para cards e OG tags
+        const ogImage = mainImages.find(img => img.is_og_image)
+          || mainImages.find(img => img.image_type === 'main')
+          || primaryImage;
+        if (ogImage) {
+          product.og_image_url = ogImage.url_cdn;
         }
         
         // Definir array de imagens gerais (todas as fotos de cores + gerais)

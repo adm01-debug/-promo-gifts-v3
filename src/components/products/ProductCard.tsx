@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2 } from "lucide-react";
+import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -156,17 +157,37 @@ export function ProductCard({
           <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
         )}
         
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          className={cn(
-            "w-full h-full object-cover transition-all duration-700 ease-out",
-            "group-hover:scale-110",
-            imageLoaded ? "opacity-100" : "opacity-0"
-          )}
-          loading="lazy"
-          onLoad={() => setImageLoaded(true)}
-        />
+        {/* Briefing v3: usar og_image_url (MAIN, cor individual) para cards com variante /card */}
+        {(() => {
+          const rawUrl = product.og_image_url || product.images[0];
+          const cardUrl = rawUrl ? getCdnUrl(rawUrl, 'card') : '/placeholder.svg';
+          const srcSetVal = rawUrl ? getSrcSet(rawUrl) : undefined;
+          return (
+            <img
+              src={cardUrl}
+              srcSet={srcSetVal}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+              alt={product.name}
+              title={product.name}
+              className={cn(
+                "w-full h-full object-cover transition-all duration-700 ease-out",
+                "group-hover:scale-110",
+                imageLoaded ? "opacity-100" : "opacity-0"
+              )}
+              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              onError={(e) => {
+                // Fallback: se CDN falhar, tentar imagem original
+                const img = e.currentTarget;
+                if (!img.dataset.fallback) {
+                  img.dataset.fallback = '1';
+                  img.srcset = '';
+                  img.src = product.images[0] || '/placeholder.svg';
+                }
+              }}
+            />
+          );
+        })()}
 
         {/* Gradient overlay on hover */}
         <div 

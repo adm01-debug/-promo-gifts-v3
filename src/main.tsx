@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { HelmetProvider } from "react-helmet-async";
 import { registerServiceWorker } from "@/lib/sw-register";
 import EnhancedErrorBoundary from "@/components/errors/EnhancedErrorBoundary";
 import App from "./App.tsx";
@@ -13,9 +14,11 @@ if (!root) {
 
 createRoot(root).render(
   <StrictMode>
-    <EnhancedErrorBoundary>
-      <App />
-    </EnhancedErrorBoundary>
+    <HelmetProvider>
+      <EnhancedErrorBoundary>
+        <App />
+      </EnhancedErrorBoundary>
+    </HelmetProvider>
   </StrictMode>
 );
 

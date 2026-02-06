@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { sortByColorGroup } from "@/utils/colorSorting";
+import { getCdnUrl } from "@/utils/image-utils";
 interface ColorMedia {
   name: string;
   hex: string;
@@ -184,8 +185,9 @@ export function ProductGallery({
         />
       ) : (
         <img
-          src={allMedia[selectedIndex]}
+          src={inDialog ? allMedia[selectedIndex] : getCdnUrl(allMedia[selectedIndex], 'large')}
           alt={`${productName} - Imagem ${selectedIndex + 1}`}
+          title={productName}
           className={cn(
             "w-full h-full object-contain transition-all duration-500 ease-out",
             zoom > 1 && "cursor-grab",
@@ -198,6 +200,13 @@ export function ProductGallery({
           }}
           draggable={false}
           onLoad={() => setIsImageLoading(false)}
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (!img.dataset.fallback) {
+              img.dataset.fallback = '1';
+              img.src = allMedia[selectedIndex];
+            }
+          }}
         />
       )}
     </div>
@@ -339,8 +348,9 @@ export function ProductGallery({
                   <div className="relative aspect-square overflow-hidden">
                     {color.image || color.images?.[0] ? (
                       <img 
-                        src={color.images?.[0] || color.image} 
-                        alt={color.name} 
+                        src={getCdnUrl(color.images?.[0] || color.image || '', 'thumbnail')} 
+                        alt={color.name}
+                        title={color.name}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover/color:scale-110"
                       />
                     ) : (
@@ -538,7 +548,7 @@ export function ProductGallery({
                     </div>
                   ) : (
                     <img
-                      src={media}
+                      src={getCdnUrl(media, 'thumbnail')}
                       alt={`${productName} - Thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
