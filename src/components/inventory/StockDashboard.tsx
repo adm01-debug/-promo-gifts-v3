@@ -181,6 +181,7 @@ export function StockDashboard() {
     updateFilter,
     resetFilters,
     dismissAlert,
+    dismissAllAlerts,
   } = useVariantStock();
 
   if (isLoading) {
@@ -228,10 +229,21 @@ export function StockDashboard() {
       {criticalAlerts.length > 0 && (
         <Card className="border-red-500/30 bg-red-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
-              Alertas Críticos ({criticalAlerts.length})
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+                <AlertTriangle className="h-5 w-5" />
+                Alertas Críticos ({criticalAlerts.length})
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                onClick={dismissAllAlerts}
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpar Todos
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="max-h-40">
@@ -361,10 +373,21 @@ export function StockDashboard() {
       {alerts.length > criticalAlerts.length && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Outros Alertas ({alerts.length - criticalAlerts.length})
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <AlertCircle className="h-5 w-5" />
+                Outros Alertas ({alerts.length - criticalAlerts.length})
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                onClick={dismissAllAlerts}
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpar Todos
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="max-h-60">
