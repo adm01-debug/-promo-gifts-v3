@@ -20,6 +20,7 @@ const routeLabels: Record<string, string> = {
   "": "Início",
   "dashboard": "Dashboard",
   "catalogo": "Catálogo",
+  "produto": "Detalhe do Produto",
   "produtos": "Produtos",
   "orcamentos": "Orçamentos",
   "novo": "Novo",
@@ -82,7 +83,7 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
         if (prevSegment === "orcamentos") label = `#${segment.slice(0, 8)}...`;
         else if (prevSegment === "pedidos") label = `Pedido`;
         else if (prevSegment === "clientes" || prevSegment === "empresas") label = `Cliente`;
-        else if (prevSegment === "produtos") label = `Produto`;
+        else if (prevSegment === "produtos" || prevSegment === "produto") label = `Detalhe do Produto`;
         
         items.push({ label, href: currentPath });
       } else {
