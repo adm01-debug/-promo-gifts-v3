@@ -34,15 +34,17 @@ interface InlinePriceCalculatorProps {
   className?: string;
 }
 
-interface ProductVariantPricing {
+interface SupplierSourcePricing {
   id: string;
-  product_id?: string;
+  variant_id?: string;
   is_active?: boolean;
-  price_1?: number | null;
-  price_2?: number | null;
-  price_3?: number | null;
-  price_4?: number | null;
-  price_5?: number | null;
+  is_preferred?: boolean;
+  cost_price?: number | null;
+  cost_price_1?: number | null;
+  cost_price_2?: number | null;
+  cost_price_3?: number | null;
+  cost_price_4?: number | null;
+  cost_price_5?: number | null;
   min_qty_1?: number | null;
   min_qty_2?: number | null;
   min_qty_3?: number | null;
@@ -72,20 +74,26 @@ const calculateFallbackTiers = (basePrice: number, minQty: number): PriceTableRo
   });
 };
 
-// Extract price tiers from product_variants pricing columns
-const extractPriceTiersFromVariant = (variant: ProductVariantPricing, basePrice: number): PriceTableRow[] => {
+// Extract price tiers from variant_supplier_sources cost_price columns
+// Applies markup ratio based on basePrice (sale price) vs cost_price_1
+const extractPriceTiersFromSource = (source: SupplierSourcePricing, basePrice: number): PriceTableRow[] => {
   const tiers: PriceTableRow[] = [];
   
+  // Determine the markup ratio: sale_price / cost_price
+  const baseCost = source.cost_price_1 ?? source.cost_price ?? null;
+  const markupRatio = baseCost && baseCost > 0 ? basePrice / baseCost : 1;
+  
   for (let i = 1; i <= 5; i++) {
-    const price = variant[`price_${i}` as keyof ProductVariantPricing] as number | null;
-    const qty = variant[`min_qty_${i}` as keyof ProductVariantPricing] as number | null;
+    const costPrice = source[`cost_price_${i}` as keyof SupplierSourcePricing] as number | null;
+    const qty = source[`min_qty_${i}` as keyof SupplierSourcePricing] as number | null;
     
-    if (price != null && price > 0) {
+    if (costPrice != null && costPrice > 0) {
       const quantity = qty != null && qty > 0 ? qty : (i === 1 ? 1 : i * 50);
+      const salePrice = costPrice * markupRatio;
       tiers.push({
         quantity,
-        unitPrice: Number(price),
-        total: Number(price) * quantity,
+        unitPrice: Number(salePrice.toFixed(2)),
+        total: Number((salePrice * quantity).toFixed(2)),
         discount: 0,
       });
     }
@@ -94,7 +102,7 @@ const extractPriceTiersFromVariant = (variant: ProductVariantPricing, basePrice:
   // Sort by quantity
   tiers.sort((a, b) => a.quantity - b.quantity);
   
-  // Calculate discounts based on first tier price (or basePrice)
+  // Calculate discounts based on first tier price
   const referencePrice = tiers.length > 0 ? tiers[0].unitPrice : basePrice;
   tiers.forEach((tier, idx) => {
     if (idx === 0) {
@@ -121,7 +129,7 @@ export function InlinePriceCalculator({
   const [isLoading, setIsLoading] = useState(false);
   const [, setHasExternalData] = useState(false);
   
-  // Fetch price tiers from external database (product_variants table)
+  // Fetch price tiers from external database (variant_supplier_sources table)
   useEffect(() => {
     async function fetchPriceTiers() {
       if (!productId) {
@@ -131,25 +139,44 @@ export function InlinePriceCalculator({
 
       setIsLoading(true);
       try {
-        // Fetch variant with pricing data directly from product_variants
-        const filters: Record<string, unknown> = { product_id: productId, is_active: true };
+        // Step 1: Get variant ID(s) for this product
+        const variantFilters: Record<string, unknown> = { product_id: productId, is_active: true };
         if (variantId) {
-          filters.id = variantId;
+          variantFilters.id = variantId;
         }
 
-        const response = await invokeExternalDb({
+        const variantResponse = await invokeExternalDb({
           table: "product_variants",
           operation: "select",
-          select: "id,price_1,price_2,price_3,price_4,price_5,min_qty_1,min_qty_2,min_qty_3,min_qty_4,min_qty_5",
-          filters,
+          select: "id",
+          filters: variantFilters,
           range: [0, 1],
         });
 
-        const records = response?.data?.records || response?.records || [];
+        const variants = variantResponse?.data?.records || variantResponse?.records || [];
         
-        if (records.length > 0) {
-          const variant = records[0] as ProductVariantPricing;
-          const tiers = extractPriceTiersFromVariant(variant, basePrice);
+        if (variants.length === 0) {
+          setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+          setIsLoading(false);
+          return;
+        }
+
+        const targetVariantId = variants[0].id as string;
+
+        // Step 2: Get pricing from variant_supplier_sources (preferred source)
+        const sourceResponse = await invokeExternalDb({
+          table: "variant_supplier_sources",
+          operation: "select",
+          select: "id,cost_price,cost_price_1,cost_price_2,cost_price_3,cost_price_4,cost_price_5,min_qty_1,min_qty_2,min_qty_3,min_qty_4,min_qty_5",
+          filters: { variant_id: targetVariantId, is_active: true, is_preferred: true },
+          range: [0, 1],
+        });
+
+        const sources = sourceResponse?.data?.records || sourceResponse?.records || [];
+
+        if (sources.length > 0) {
+          const source = sources[0] as SupplierSourcePricing;
+          const tiers = extractPriceTiersFromSource(source, basePrice);
           
           if (tiers.length > 0) {
             setPriceTiers(tiers);
