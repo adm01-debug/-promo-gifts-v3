@@ -462,7 +462,15 @@ export async function fetchPromobrindProductById(
       product.description = product.meta_description;
     }
 
-    // NOVO: Buscar imagens da tabela product_images (prioridade sobre campos legados)
+    // NOVO: Buscar imagens da tabela product_images (com variant_id para vincular às variantes)
+    let allProductImages: Array<{
+      url_cdn: string;
+      image_type: string;
+      is_primary: boolean;
+      display_order: number;
+      alt_text: string | null;
+      variant_id: string | null;
+    }> = [];
     try {
       const imagesResult = await invokeExternalDb<{
         url_cdn: string;
@@ -470,28 +478,36 @@ export async function fetchPromobrindProductById(
         is_primary: boolean;
         display_order: number;
         alt_text: string | null;
+        variant_id: string | null;
       }>({
         table: 'product_images',
         operation: 'select',
-        select: 'url_cdn, image_type, is_primary, display_order, alt_text',
+        select: 'url_cdn, image_type, is_primary, display_order, alt_text, variant_id',
         filters: { product_id: productId, is_active: true },
         orderBy: { column: 'display_order', ascending: true },
-        limit: 100,
+        limit: 200,
       });
 
-      if (imagesResult.records.length > 0) {
-        // Ordenar por display_order
-        const sortedImages = imagesResult.records.sort((a, b) => a.display_order - b.display_order);
+      allProductImages = imagesResult.records;
+
+      if (allProductImages.length > 0) {
+        // Imagens gerais do produto (sem variant_id) = galeria principal
+        const generalImages = allProductImages
+          .filter(img => !img.variant_id)
+          .sort((a, b) => a.display_order - b.display_order);
+        
+        // Se não há imagens gerais, usar todas como fallback
+        const mainImages = generalImages.length > 0 ? generalImages : allProductImages.sort((a, b) => a.display_order - b.display_order);
         
         // Definir primary_image_url (prioridade: is_primary, depois primeira)
-        const primaryImage = sortedImages.find(img => img.is_primary) || sortedImages[0];
+        const primaryImage = mainImages.find(img => img.is_primary) || mainImages[0];
         if (primaryImage) {
           product.primary_image_url = primaryImage.url_cdn;
           product.image_url = primaryImage.url_cdn; // Retrocompatibilidade
         }
         
-        // Definir array de imagens
-        product.images = sortedImages.map(img => img.url_cdn);
+        // Definir array de imagens gerais
+        product.images = mainImages.map(img => img.url_cdn);
       }
     } catch (err) {
       console.warn('Não foi possível buscar imagens da tabela product_images:', err);
@@ -564,6 +580,7 @@ export async function fetchPromobrindProductById(
 
     try {
       const variantsResult = await invokeExternalDb<{
+        id: string;
         product_id: string;
         color_name: string | null;
         color_hex: string | null;
@@ -576,12 +593,12 @@ export async function fetchPromobrindProductById(
       }>({
         table: 'product_variants',
         operation: 'select',
-        select: 'product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
+        select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
         filters: { product_id: productId, is_active: true },
         limit: 100,
       });
 
-      // Extrair cores únicas das variantes com imagens
+      // Extrair cores únicas das variantes com imagens da nova tabela product_images
       const uniqueColors: Array<{ 
         name: string; 
         hex: string; 
@@ -593,13 +610,27 @@ export async function fetchPromobrindProductById(
       }> = [];
       variantsResult.records.forEach(variant => {
         if (variant.color_name && !uniqueColors.some(c => c.name === variant.color_name)) {
-          // Determinar imagens da variante
-          const variantImages = variant.selected_images?.length 
+          // PRIORIDADE 1: Imagens da tabela product_images vinculadas a este variant_id
+          const variantImagesFromNewTable = allProductImages
+            .filter(img => img.variant_id === variant.id)
+            .sort((a, b) => a.display_order - b.display_order)
+            .map(img => img.url_cdn);
+          
+          // PRIORIDADE 2: Campos legados da tabela product_variants (fallback)
+          const legacyImages = variant.selected_images?.length 
             ? variant.selected_images 
             : variant.images?.length 
               ? variant.images 
               : [];
-          const thumbnailImage = variant.selected_thumbnail || variantImages[0] || null;
+          
+          // Usar imagens novas se disponíveis, senão legadas
+          const finalImages = variantImagesFromNewTable.length > 0 
+            ? variantImagesFromNewTable 
+            : legacyImages;
+          
+          const thumbnailImage = variantImagesFromNewTable.length > 0
+            ? variantImagesFromNewTable[0]
+            : (variant.selected_thumbnail || legacyImages[0] || null);
           
           uniqueColors.push({
             name: variant.color_name,
@@ -608,7 +639,7 @@ export async function fetchPromobrindProductById(
             sku: variant.sku || undefined,
             stock: variant.stock_quantity ?? undefined,
             image: thumbnailImage || undefined,
-            images: variantImages.length > 0 ? variantImages : undefined,
+            images: finalImages.length > 0 ? finalImages : undefined,
           });
         }
       });
