@@ -488,7 +488,6 @@ export async function fetchPromobrindProducts(options?: {
         // Definir array de imagens
         product.images = mainImages.map(img => img.url);
       }
-    });
       
       // Cores das variantes
       const variantColors = colorsByProduct.get(product.id);
