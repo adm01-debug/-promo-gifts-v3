@@ -335,20 +335,23 @@ export function ProductGallery({
                     boxShadow: isSelected ? `0 0 0 3px ${color.hex}30` : undefined
                   }}
                 >
-                  {/* Imagem da variação */}
+                  {/* Imagem da variação - fallback para imagem geral do produto */}
                   <div className="relative aspect-square overflow-hidden">
-                    {color.image || color.images?.[0] ? (
-                      <img 
-                        src={color.images?.[0] || color.image} 
-                        alt={color.name} 
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover/color:scale-110"
-                      />
-                    ) : (
-                      <div 
-                        className="w-full h-full" 
-                        style={{ backgroundColor: color.hex }}
-                      />
-                    )}
+                    {(() => {
+                      const variantImg = color.images?.[0] || color.image || images[0];
+                      return variantImg && variantImg !== '/placeholder.svg' ? (
+                        <img 
+                          src={variantImg} 
+                          alt={color.name} 
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover/color:scale-110"
+                        />
+                      ) : (
+                        <div 
+                          className="w-full h-full" 
+                          style={{ backgroundColor: color.hex }}
+                        />
+                      );
+                    })()}
                     
                     {/* Ícone de vídeo overlay - cor do produto */}
                     {hasVideos && (
