@@ -268,9 +268,31 @@ export async function fetchPromobrindProducts(options?: {
     const uniqueSupplierIds = [...new Set(products.map(p => p.supplier_id).filter(Boolean))] as string[];
     
     // Executar buscas em paralelo (incluindo imagens da nova tabela product_images)
-    const [variantsResult, suppliersResult, imagesResult] = await Promise.all([
-      // Buscar cores das variantes
-      invokeExternalDb<{
+    // Helper para paginar buscas grandes (evita perda silenciosa de dados)
+    async function paginatedFetch<T>(
+      options: Omit<InvokeOptions, 'offset'> & { limit: number },
+    ): Promise<T[]> {
+      const PAGE_SIZE = options.limit;
+      let allRecords: T[] = [];
+      let offset = 0;
+      const MAX_PAGES = 20; // segurança contra loops infinitos
+
+      for (let page = 0; page < MAX_PAGES; page++) {
+        const result = await invokeExternalDb<T>({ ...options, offset, limit: PAGE_SIZE });
+        allRecords.push(...result.records);
+        offset += result.records.length;
+        
+        // Parar se retornou menos que o page size (última página)
+        if (result.records.length < PAGE_SIZE) break;
+        // Parar se já buscamos tudo
+        if (result.count && allRecords.length >= result.count) break;
+      }
+      return allRecords;
+    }
+
+    const [variantsRecords, suppliersResult, imagesRecords] = await Promise.all([
+      // Buscar cores das variantes (paginado para suportar catálogos grandes)
+      paginatedFetch<{
         product_id: string;
         color_name: string | null;
         color_hex: string | null;
@@ -288,7 +310,7 @@ export async function fetchPromobrindProducts(options?: {
         limit: 5000,
       }).catch(err => {
         console.warn('Não foi possível buscar cores das variantes:', err);
-        return { records: [] } as { records: any[] };
+        return [] as any[];
       }),
       
       // Buscar nomes dos fornecedores
@@ -304,8 +326,8 @@ export async function fetchPromobrindProducts(options?: {
           })
         : Promise.resolve({ records: [] } as { records: { id: string; name: string; code: string }[] }),
       
-      // Buscar imagens da tabela product_images (com supplier_code para vincular a variantes)
-      invokeExternalDb<{
+      // Buscar imagens da tabela product_images (paginado — 9.245+ registros)
+      paginatedFetch<{
         product_id: string;
         url_cdn: string;
         image_type: string;
@@ -319,10 +341,10 @@ export async function fetchPromobrindProducts(options?: {
         select: 'product_id, url_cdn, image_type, is_primary, display_order, alt_text, supplier_code',
         filters: { is_active: true },
         orderBy: { column: 'display_order', ascending: true },
-        limit: 10000,
+        limit: 5000,
       }).catch(err => {
         console.warn('Não foi possível buscar imagens da tabela product_images:', err);
-        return { records: [] } as { records: any[] };
+        return [] as any[];
       }),
     ]);
     
@@ -336,7 +358,7 @@ export async function fetchPromobrindProducts(options?: {
     const imagesByProduct = new Map<string, Array<{ url: string; type: string; isPrimary: boolean; order: number; supplierCode: string | null }>>();
     const productIdSet = new Set(productIds);
     
-    imagesResult.records.forEach((img: any) => {
+    imagesRecords.forEach((img: any) => {
       if (!productIdSet.has(img.product_id)) return;
       
       if (!imagesByProduct.has(img.product_id)) {
@@ -363,7 +385,7 @@ export async function fetchPromobrindProducts(options?: {
       images?: string[];
     }>>();
     
-    variantsResult.records.forEach(variant => {
+    variantsRecords.forEach(variant => {
       if (!variant.color_name || !productIds.includes(variant.product_id)) return;
       
       if (!colorsByProduct.has(variant.product_id)) {
@@ -393,7 +415,9 @@ export async function fetchPromobrindProducts(options?: {
           ? variantImagesByCode 
           : legacyImages;
         
-        const thumbnailImage = finalImages[0] || variant.selected_thumbnail || null;
+        // PRIORIDADE 3: Fallback para imagem principal do produto (mesmo comportamento de fetchPromobrindProductById)
+        const productPrimaryImg = productImgs.find(img => img.isPrimary)?.url || productImgs[0]?.url || null;
+        const thumbnailImage = finalImages[0] || variant.selected_thumbnail || productPrimaryImg;
         
         colors.push({
           name: variant.color_name,
