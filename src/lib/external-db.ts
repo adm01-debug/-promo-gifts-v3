@@ -628,9 +628,10 @@ export async function fetchPromobrindProductById(
             ? variantImagesFromNewTable 
             : legacyImages;
           
+          // PRIORIDADE 3: Se não há imagem específica, usar imagem principal do produto
           const thumbnailImage = variantImagesFromNewTable.length > 0
             ? variantImagesFromNewTable[0]
-            : (variant.selected_thumbnail || legacyImages[0] || null);
+            : (variant.selected_thumbnail || legacyImages[0] || product.primary_image_url || product.image_url || null);
           
           uniqueColors.push({
             name: variant.color_name,
