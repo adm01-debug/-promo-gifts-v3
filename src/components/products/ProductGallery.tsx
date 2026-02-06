@@ -162,7 +162,7 @@ export function ProductGallery({
         "relative overflow-hidden",
         inDialog 
           ? "w-full h-full bg-background/50" 
-          : "aspect-[4/3] rounded-2xl bg-gradient-to-br from-secondary/30 via-muted/20 to-secondary/30"
+          : "aspect-[4/3] rounded-2xl bg-white dark:bg-muted/30"
       )}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
