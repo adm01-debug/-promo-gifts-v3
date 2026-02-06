@@ -236,7 +236,7 @@ export function ProductQuickView({
         
         <div className="grid md:grid-cols-2 gap-0">
           {/* Image Gallery */}
-          <div className="relative bg-gradient-to-br from-secondary/30 to-muted/20 aspect-square md:aspect-auto md:min-h-[500px]">
+          <div className="relative bg-white aspect-square md:aspect-auto md:min-h-[500px]">
             {/* Badges */}
             <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
               {product.featured && (
