@@ -340,7 +340,7 @@ export function ProductQuickView({
                       e.stopPropagation();
                       setImageError(false);
                       setCurrentImageIndex(idx);
-                    }
+                    }}
                   />
                 ))}
               </div>
