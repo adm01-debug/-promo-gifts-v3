@@ -331,7 +331,7 @@ export function ProductQuickView({
                   variant="secondary"
                   size="icon"
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg hover:bg-card"
-                  onClick={handlePrevImage}
+                  onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
@@ -339,7 +339,7 @@ export function ProductQuickView({
                   variant="secondary"
                   size="icon"
                   className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg hover:bg-card"
-                  onClick={handleNextImage}
+                  onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
                 >
                   <ChevronRight className="h-5 w-5" />
                 </Button>
@@ -358,7 +358,8 @@ export function ProductQuickView({
                         ? "bg-primary scale-110"
                         : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                     )}
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setImageLoaded(false);
                       setImageError(false);
                       setCurrentImageIndex(idx);
