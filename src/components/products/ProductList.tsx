@@ -32,7 +32,7 @@ function ProductListItemWrapper({
     if (isVisible && !hasAnimated) {
       const timer = setTimeout(() => {
         setHasAnimated(true);
-      }, index * 60);
+      }, Math.min(index * 60, 800));
       return () => clearTimeout(timer);
     }
   }, [isVisible, hasAnimated, index]);
@@ -45,7 +45,7 @@ function ProductListItemWrapper({
           : 'opacity-0 -translate-x-4'
       }`}
       style={{
-        transitionDelay: hasAnimated ? '0ms' : `${index * 60}ms`,
+        transitionDelay: hasAnimated ? '0ms' : `${Math.min(index * 60, 800)}ms`,
       }}
     >
       <ProductListItem product={product} {...props} />
