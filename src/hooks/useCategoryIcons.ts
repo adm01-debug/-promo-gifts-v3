@@ -71,7 +71,7 @@ const KEYWORD_ICONS: Record<string, string> = {
   pet: '🐾', cachorro: '🐕', gato: '🐈', coleira: '🐾', 
   comedouro: '🐾', 'brinquedo pet': '🐾',
   // Embalagens
-  embalagem: '📦', caixa: '📦', sacola: '🛍️', papel: '📄',
+  embalagem: '📦', caixa: '📦', papel: '📄',
   // Chaveiros
   chaveiro: '🔑', mosquetão: '🔗',
   // Infantil
@@ -80,7 +80,7 @@ const KEYWORD_ICONS: Record<string, string> = {
   troféu: '🏆', medalha: '🥇', placa: '🏅', pin: '📌', botton: '📌',
   // Alimentos
   doce: '🍫', chocolate: '🍫', bombom: '🍬', biscoito: '🍪', 
-  comida: '🍔', alimento: '🍎', castanha: '🥜', café: '☕',
+  comida: '🍔', alimento: '🍎', castanha: '🥜',
   // Eco / Sustentável
   eco: '🌿', reciclado: '♻️', bambu: '🎋', sustentável: '🌱', madeira: '🪵',
 };
