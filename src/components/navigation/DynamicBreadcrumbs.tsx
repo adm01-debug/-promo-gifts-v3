@@ -76,14 +76,18 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
       const isNumericId = /^\d+$/.test(segment);
       
       if (isUuid || isNumericId) {
-        // For IDs, show a contextual label based on previous segment
         const prevSegment = pathSegments[index - 1];
-        let label = "Detalhes";
         
+        // Para rotas de detalhe de produto (/produto/:id), o UUID é redundante
+        // pois o segmento "produto" já mostra "Detalhe do Produto"
+        if (prevSegment === "produto" || prevSegment === "produtos") {
+          return; // Pular — não adicionar UUID ao breadcrumb
+        }
+        
+        let label = "Detalhes";
         if (prevSegment === "orcamentos") label = `#${segment.slice(0, 8)}...`;
         else if (prevSegment === "pedidos") label = `Pedido`;
         else if (prevSegment === "clientes" || prevSegment === "empresas") label = `Cliente`;
-        else if (prevSegment === "produtos" || prevSegment === "produto") label = `Detalhe do Produto`;
         
         items.push({ label, href: currentPath });
       } else {
@@ -91,9 +95,18 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
         const label = routeLabels[segment] || 
           segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
         
+        // Verificar se o próximo segmento é um UUID/ID que será omitido (ex: /produto/:id)
+        const nextSegment = pathSegments[index + 1];
+        const nextIsSkippedId = nextSegment && (
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextSegment) ||
+          /^\d+$/.test(nextSegment)
+        ) && (segment === "produto" || segment === "produtos");
+        
+        const isLastVisible = index >= pathSegments.length - 1 || nextIsSkippedId;
+        
         items.push({ 
           label, 
-          href: index < pathSegments.length - 1 ? currentPath : undefined 
+          href: isLastVisible ? undefined : currentPath 
         });
       }
     });
