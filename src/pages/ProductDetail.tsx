@@ -155,7 +155,7 @@ export default function ProductDetail() {
         <meta name="twitter:title" content={product.name} />
         <meta name="twitter:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
       </Helmet>
-      <div className="space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-0">
+      <div className="max-w-7xl mx-auto space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-0">
         {/* Dynamic Breadcrumbs - Hidden on mobile */}
         <DynamicBreadcrumbs className="hidden md:flex" />
 
