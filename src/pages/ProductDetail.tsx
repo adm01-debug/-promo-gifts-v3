@@ -157,7 +157,14 @@ export default function ProductDetail() {
       </Helmet>
       <div className="space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-0">
         {/* Dynamic Breadcrumbs - Hidden on mobile */}
-        <DynamicBreadcrumbs className="hidden md:flex" />
+        <DynamicBreadcrumbs 
+          className="hidden md:flex" 
+          customItems={[
+            { label: "Início", href: "/", icon: undefined },
+            { label: "Detalhe do Produto", href: undefined },
+            { label: product.sku },
+          ]}
+        />
 
         {/* Social Proof & Stock Alerts */}
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
