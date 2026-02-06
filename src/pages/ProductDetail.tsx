@@ -156,15 +156,7 @@ export default function ProductDetail() {
         <meta name="twitter:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
       </Helmet>
       <div className="space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-0">
-        {/* Dynamic Breadcrumbs - Hidden on mobile */}
-        <DynamicBreadcrumbs 
-          className="hidden md:flex" 
-          customItems={[
-            { label: "Início", href: "/", icon: undefined },
-            { label: "Detalhe do Produto", href: undefined },
-            { label: product.sku },
-          ]}
-        />
+        {/* Breadcrumbs handled by MainLayout PersistentBreadcrumbs */}
 
         {/* Social Proof & Stock Alerts */}
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
