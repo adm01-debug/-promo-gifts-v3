@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+// framer-motion removido — transição via CSS animate-fade-in
 import {
   Heart,
   GitCompare,
@@ -59,7 +59,7 @@ export function ProductQuickView({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  // imageLoaded removido — transição instantânea sem skeleton intermediário
   const [imageError, setImageError] = useState(false);
 
   // Hook: buscar imagens do produto via BD externo (Briefing v3)
@@ -71,7 +71,7 @@ export function ProductQuickView({
       setCurrentImageIndex(0);
       setQuantity(1);
       setSelectedColorId(null);
-      setImageLoaded(false);
+      // reset states
       setImageError(false);
     }
   }, [open, product?.id]);
@@ -122,7 +122,7 @@ export function ProductQuickView({
   // Reset index quando imagens mudam
   useEffect(() => {
     setCurrentImageIndex(0);
-    setImageLoaded(false);
+    // reset on color change
     setImageError(false);
   }, [selectedColorId]);
 
@@ -176,7 +176,6 @@ export function ProductQuickView({
   const currentAlt = currentImage?.alt_text || `${product.name} - Imagem ${currentImageIndex + 1}`;
 
   const handlePrevImage = () => {
-    setImageLoaded(false);
     setImageError(false);
     setCurrentImageIndex((prev) =>
       prev === 0 ? displayImages.length - 1 : prev - 1
@@ -184,7 +183,6 @@ export function ProductQuickView({
   };
 
   const handleNextImage = () => {
-    setImageLoaded(false);
     setImageError(false);
     setCurrentImageIndex((prev) =>
       prev === displayImages.length - 1 ? 0 : prev + 1
@@ -261,11 +259,7 @@ export function ProductQuickView({
             {/* Main Image */}
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Loading skeleton */}
-              {!imageLoaded && !imageError && currentImageUrl !== '/placeholder.svg' && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 rounded-full border-4 border-muted border-t-primary animate-spin" />
-                </div>
-              )}
+              {/* Spinner removido — imagens do CDN carregam rapidamente */}
               
               {/* Placeholder/Error state */}
               {(imageError || currentImageUrl === '/placeholder.svg') && (
@@ -276,51 +270,35 @@ export function ProductQuickView({
               )}
               
               {currentImageUrl !== '/placeholder.svg' && (
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={`${currentImageIndex}-${selectedColorId}`}
-                    src={currentImageUrl}
-                    srcSet={currentImageSrcSet}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    alt={currentAlt}
-                    title={currentImage?.title_text || product.name}
-                    className={cn(
-                      "w-full h-full object-contain p-8 transition-opacity duration-300",
-                      imageLoaded ? "opacity-100" : "opacity-0"
-                    )}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: imageLoaded ? 1 : 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                    onLoad={() => {
-                      setImageLoaded(true);
-                      setImageError(false);
-                    }}
-                    onError={(e) => {
-                      // Fallback: tentar URL original se CDN falhar
-                      const img = e.currentTarget;
-                      if (!img.dataset.fallback && currentImage?.url_original) {
-                        img.dataset.fallback = '1';
+                <img
+                  key={`${currentImageIndex}-${selectedColorId}`}
+                  src={currentImageUrl}
+                  srcSet={currentImageSrcSet}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  alt={currentAlt}
+                  title={currentImage?.title_text || product.name}
+                  className="w-full h-full object-contain p-8 animate-fade-in"
+                  onError={(e) => {
+                    // Fallback: tentar URL original se CDN falhar
+                    const img = e.currentTarget;
+                    if (!img.dataset.fallback && currentImage?.url_original) {
+                      img.dataset.fallback = '1';
+                      img.srcset = '';
+                      img.src = currentImage.url_original;
+                    } else if (!img.dataset.fallback2) {
+                      img.dataset.fallback2 = '1';
+                      const legacyImg = product.images[currentImageIndex] || product.images[0];
+                      if (legacyImg) {
                         img.srcset = '';
-                        img.src = currentImage.url_original;
-                      } else if (!img.dataset.fallback2) {
-                        img.dataset.fallback2 = '1';
-                        // Fallback final: imagem do array legado
-                        const legacyImg = product.images[currentImageIndex] || product.images[0];
-                        if (legacyImg) {
-                          img.srcset = '';
-                          img.src = legacyImg;
-                        } else {
-                          setImageError(true);
-                          setImageLoaded(false);
-                        }
+                        img.src = legacyImg;
                       } else {
                         setImageError(true);
-                        setImageLoaded(false);
                       }
-                    }}
-                  />
-                </AnimatePresence>
+                    } else {
+                      setImageError(true);
+                    }
+                  }}
+                />
               )}
             </div>
 
@@ -360,10 +338,9 @@ export function ProductQuickView({
                     )}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setImageLoaded(false);
                       setImageError(false);
                       setCurrentImageIndex(idx);
-                    }}
+                    }
                   />
                 ))}
               </div>
