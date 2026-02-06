@@ -52,27 +52,6 @@ interface SupplierSourcePricing {
   min_qty_5?: number | null;
 }
 
-// Fallback price tiers when no external data
-const calculateFallbackTiers = (basePrice: number, minQty: number): PriceTableRow[] => {
-  const tiers = [
-    { qty: minQty, discount: 0 },
-    { qty: 50, discount: 5 },
-    { qty: 100, discount: 10 },
-    { qty: 250, discount: 15 },
-    { qty: 500, discount: 20 },
-    { qty: 1000, discount: 25 },
-  ].filter(t => t.qty >= minQty);
-
-  return tiers.map(tier => {
-    const unitPrice = basePrice * (1 - tier.discount / 100);
-    return {
-      quantity: tier.qty,
-      unitPrice,
-      total: unitPrice * tier.qty,
-      discount: tier.discount,
-    };
-  });
-};
 
 // Extract price tiers from variant_supplier_sources cost_price columns
 // Applies markup ratio based on basePrice (sale price) vs cost_price_1
@@ -133,7 +112,7 @@ export function InlinePriceCalculator({
   useEffect(() => {
     async function fetchPriceTiers() {
       if (!productId) {
-        setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+        setPriceTiers([]);
         return;
       }
 
@@ -156,7 +135,7 @@ export function InlinePriceCalculator({
         const variants = variantResponse?.data?.records || variantResponse?.records || [];
         
         if (variants.length === 0) {
-          setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+          setPriceTiers([]);
           setIsLoading(false);
           return;
         }
@@ -177,19 +156,16 @@ export function InlinePriceCalculator({
         if (sources.length > 0) {
           const source = sources[0] as SupplierSourcePricing;
           const tiers = extractPriceTiersFromSource(source, basePrice);
-          
+          setPriceTiers(tiers);
           if (tiers.length > 0) {
-            setPriceTiers(tiers);
             setHasExternalData(true);
-          } else {
-            setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
           }
         } else {
-          setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+          setPriceTiers([]);
         }
       } catch (error) {
         console.error("Error fetching price tiers:", error);
-        setPriceTiers(calculateFallbackTiers(basePrice, minQuantity));
+        setPriceTiers([]);
       } finally {
         setIsLoading(false);
       }
