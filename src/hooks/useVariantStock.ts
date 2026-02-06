@@ -533,6 +533,10 @@ export function useVariantStock() {
     setAlerts(prev => prev.filter(a => a.id !== alertId));
   }, []);
   
+  const dismissAllAlerts = useCallback(() => {
+    setAlerts([]);
+  }, []);
+  
   // Buscar estoque de um produto específico
   const getProductStock = useCallback((productId: string): ProductStockSummary | undefined => {
     return productStocks.find(p => p.productId === productId);
@@ -563,6 +567,7 @@ export function useVariantStock() {
     updateFilter,
     resetFilters,
     dismissAlert,
+    dismissAllAlerts,
     setFilters,
     
     // Getters
