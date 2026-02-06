@@ -51,6 +51,11 @@ export function PersistentBreadcrumbs({
     const items: BreadcrumbItem[] = [];
     const pathParts = location.pathname.split("/").filter(Boolean);
     
+    // If on home, just show home
+    if (location.pathname === "/" && showHome) {
+      return [{ label: "Catálogo de Produtos", icon: Home }];
+    }
+    
     if (showHome && location.pathname !== "/") {
       items.push({ label: "Início", href: "/", icon: Home });
     }
@@ -58,20 +63,38 @@ export function PersistentBreadcrumbs({
     let currentPath = "";
     pathParts.forEach((part, index) => {
       currentPath += `/${part}`;
-      const label = routeLabels[currentPath] || part.charAt(0).toUpperCase() + part.slice(1);
       
-      // Last item is current page, no href
-      if (index === pathParts.length - 1) {
-        items.push({ label });
+      // Check if this part is a UUID or numeric ID
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part);
+      const isNumericId = /^\d+$/.test(part);
+      
+      if (isUuid || isNumericId) {
+        const prevPart = pathParts[index - 1];
+        // For product detail pages, skip the UUID — "Detalhe do Produto" already covers it
+        if (prevPart === "produto" || prevPart === "produtos") {
+          return; // Skip UUID in breadcrumb
+        }
+        // For other routes with IDs, show a short label
+        items.push({ label: `#${part.slice(0, 8)}...` });
       } else {
-        items.push({ label, href: currentPath });
+        const label = routeLabels[currentPath] || part.charAt(0).toUpperCase() + part.slice(1);
+        
+        // Check if next segment is a UUID that will be skipped (make this the last item)
+        const nextPart = pathParts[index + 1];
+        const nextIsSkippedId = nextPart && (
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextPart) ||
+          /^\d+$/.test(nextPart)
+        ) && (part === "produto" || part === "produtos");
+        
+        const isLastVisible = index >= pathParts.length - 1 || nextIsSkippedId;
+        
+        if (isLastVisible) {
+          items.push({ label });
+        } else {
+          items.push({ label, href: currentPath });
+        }
       }
     });
-    
-    // If on home, just show home
-    if (location.pathname === "/" && showHome) {
-      return [{ label: "Catálogo de Produtos", icon: Home }];
-    }
     
     return items;
   };
