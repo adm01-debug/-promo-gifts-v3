@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -31,6 +31,8 @@ import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { ProductColorSelector, type ProductColor } from "./ProductColorSelector";
 import { sortByColorGroup } from "@/utils/colorSorting";
 import { toast } from "sonner";
+import { useProductImages, type ProductImage } from "@/hooks/useProductImages";
+import { getCdnUrl, getSrcSet, getColorImages, type ProductImageMeta } from "@/utils/image-utils";
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -60,9 +62,73 @@ export function ProductQuickView({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
+  // Hook: buscar imagens do produto via BD externo (Briefing v3)
+  const { data: productImages = [] } = useProductImages(open && product ? product.id : null);
+
+  // Reset state quando produto muda ou modal abre
+  useEffect(() => {
+    if (open) {
+      setCurrentImageIndex(0);
+      setQuantity(1);
+      setSelectedColorId(null);
+      setImageLoaded(false);
+      setImageError(false);
+    }
+  }, [open, product?.id]);
+
+  // Converter ProductImage[] para ProductImageMeta[] para usar com image-utils
+  const imageMetas: ProductImageMeta[] = useMemo(() => {
+    if (productImages.length === 0) return [];
+    return productImages.map(img => ({
+      id: img.id,
+      url_cdn: img.url_cdn,
+      url_original: null,
+      image_type: img.image_type,
+      is_primary: img.is_primary,
+      is_og_image: false,
+      applies_to_color: img.color_id ? true : null,
+      supplier_code: img.color_id,
+      alt_text: img.alt_text,
+      title_text: img.title_text,
+      display_order: img.display_order,
+    }));
+  }, [productImages]);
+
+  // Determinar imagens a exibir com base na cor selecionada
+  const displayImages = useMemo(() => {
+    if (!product) return [];
+
+    // Se temos imagens do hook useProductImages, usar elas
+    if (imageMetas.length > 0) {
+      if (selectedColorId) {
+        const filtered = getColorImages(imageMetas, selectedColorId);
+        return filtered.length > 0 ? filtered : imageMetas;
+      }
+      return imageMetas;
+    }
+
+    // Fallback: usar imagens do product.images (legado)
+    return product.images.map((url, idx) => ({
+      url_cdn: url,
+      url_original: url,
+      image_type: idx === 0 ? 'main' : 'gallery',
+      is_primary: idx === 0,
+      display_order: idx,
+      alt_text: null,
+      title_text: null,
+    } as ProductImageMeta));
+  }, [imageMetas, selectedColorId, product]);
+
+  // Reset index quando imagens mudam
+  useEffect(() => {
+    setCurrentImageIndex(0);
+    setImageLoaded(false);
+    setImageError(false);
+  }, [selectedColorId]);
+
   // Early return if product is null
   if (!product) return null;
-  
+
   // Mapear cores do produto para o formato do seletor com ordenação padronizada
   const sortedColors = sortByColorGroup(
     product.colors || [],
@@ -70,7 +136,7 @@ export function ProductQuickView({
     (color) => color.hex
   );
   const productColors: ProductColor[] = sortedColors.map((color, idx) => ({
-    id: `${product.id}-color-${idx}`,
+    id: color.code || `${product.id}-color-${idx}`,
     name: color.name,
     hex: color.hex,
     variationName: color.name,
@@ -99,11 +165,21 @@ export function ProductQuickView({
 
   const stockInfo = getStockStatusInfo(product.stockStatus);
 
+  // Obter URL atual da imagem com variante CDN
+  const currentImage = displayImages[currentImageIndex] || displayImages[0];
+  const currentImageUrl = currentImage
+    ? getCdnUrl(currentImage.url_cdn, 'large')
+    : '/placeholder.svg';
+  const currentImageSrcSet = currentImage
+    ? getSrcSet(currentImage.url_cdn)
+    : undefined;
+  const currentAlt = currentImage?.alt_text || `${product.name} - Imagem ${currentImageIndex + 1}`;
+
   const handlePrevImage = () => {
     setImageLoaded(false);
     setImageError(false);
     setCurrentImageIndex((prev) =>
-      prev === 0 ? product.images.length - 1 : prev - 1
+      prev === 0 ? displayImages.length - 1 : prev - 1
     );
   };
 
@@ -111,7 +187,7 @@ export function ProductQuickView({
     setImageLoaded(false);
     setImageError(false);
     setCurrentImageIndex((prev) =>
-      prev === product.images.length - 1 ? 0 : prev + 1
+      prev === displayImages.length - 1 ? 0 : prev + 1
     );
   };
 
@@ -144,6 +220,11 @@ export function ProductQuickView({
   const handleViewDetails = () => {
     onOpenChange(false);
     navigate(`/produto/${product.id}`);
+  };
+
+  const handleColorSelect = (color: ProductColor) => {
+    const newId = color.id || null;
+    setSelectedColorId(prev => prev === newId ? null : newId);
   };
 
   return (
@@ -180,26 +261,29 @@ export function ProductQuickView({
             {/* Main Image */}
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Loading skeleton */}
-              {!imageLoaded && !imageError && product.images[currentImageIndex] && product.images[currentImageIndex] !== '/placeholder.svg' && (
+              {!imageLoaded && !imageError && currentImageUrl !== '/placeholder.svg' && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-16 h-16 rounded-full border-4 border-muted border-t-primary animate-spin" />
                 </div>
               )}
               
               {/* Placeholder/Error state */}
-              {(imageError || !product.images[currentImageIndex] || product.images[currentImageIndex] === '/placeholder.svg') && (
+              {(imageError || currentImageUrl === '/placeholder.svg') && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
                   <ImageOff className="h-16 w-16 mb-2 opacity-50" />
                   <p className="text-sm">Imagem não disponível</p>
                 </div>
               )}
               
-              {product.images[currentImageIndex] && product.images[currentImageIndex] !== '/placeholder.svg' && (
+              {currentImageUrl !== '/placeholder.svg' && (
                 <AnimatePresence mode="wait">
                   <motion.img
-                    key={currentImageIndex}
-                    src={product.images[currentImageIndex]}
-                    alt={`${product.name} - Imagem ${currentImageIndex + 1}`}
+                    key={`${currentImageIndex}-${selectedColorId}`}
+                    src={currentImageUrl}
+                    srcSet={currentImageSrcSet}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    alt={currentAlt}
+                    title={currentImage?.title_text || product.name}
                     className={cn(
                       "w-full h-full object-contain p-8 transition-opacity duration-300",
                       imageLoaded ? "opacity-100" : "opacity-0"
@@ -212,9 +296,28 @@ export function ProductQuickView({
                       setImageLoaded(true);
                       setImageError(false);
                     }}
-                    onError={() => {
-                      setImageError(true);
-                      setImageLoaded(false);
+                    onError={(e) => {
+                      // Fallback: tentar URL original se CDN falhar
+                      const img = e.currentTarget;
+                      if (!img.dataset.fallback && currentImage?.url_original) {
+                        img.dataset.fallback = '1';
+                        img.srcset = '';
+                        img.src = currentImage.url_original;
+                      } else if (!img.dataset.fallback2) {
+                        img.dataset.fallback2 = '1';
+                        // Fallback final: imagem do array legado
+                        const legacyImg = product.images[currentImageIndex] || product.images[0];
+                        if (legacyImg) {
+                          img.srcset = '';
+                          img.src = legacyImg;
+                        } else {
+                          setImageError(true);
+                          setImageLoaded(false);
+                        }
+                      } else {
+                        setImageError(true);
+                        setImageLoaded(false);
+                      }
                     }}
                   />
                 </AnimatePresence>
@@ -222,7 +325,7 @@ export function ProductQuickView({
             </div>
 
             {/* Navigation Arrows */}
-            {product.images.length > 1 && (
+            {displayImages.length > 1 && (
               <>
                 <Button
                   variant="secondary"
@@ -244,9 +347,9 @@ export function ProductQuickView({
             )}
 
             {/* Thumbnail dots */}
-            {product.images.length > 1 && (
+            {displayImages.length > 1 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {product.images.map((_, idx) => (
+                {displayImages.map((_, idx) => (
                   <button
                     key={idx}
                     className={cn(
@@ -255,7 +358,11 @@ export function ProductQuickView({
                         ? "bg-primary scale-110"
                         : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                     )}
-                    onClick={() => setCurrentImageIndex(idx)}
+                    onClick={() => {
+                      setImageLoaded(false);
+                      setImageError(false);
+                      setCurrentImageIndex(idx);
+                    }}
                   />
                 ))}
               </div>
@@ -307,66 +414,15 @@ export function ProductQuickView({
 
             <Separator className="my-4" />
 
-            {/* Colors - Usando o novo sistema hierárquico */}
+            {/* Colors - Usando o sistema hierárquico com filtragem de imagens */}
             {productColors.length > 0 && (
               <ProductColorSelector
                 colors={productColors}
                 selectedColorId={selectedColorId}
-                onColorSelect={(color) => setSelectedColorId(color.id || null)}
+                onColorSelect={handleColorSelect}
                 maxVisible={8}
                 size="md"
               />
-            )}
-
-            {/* Dimensions & Weight - Compact grid */}
-            {(product.dimensions || product.weight) && (
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                {product.dimensions?.width && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                    <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Larg:</span>
-                    <span className="text-xs font-medium">{product.dimensions.width}cm</span>
-                  </div>
-                )}
-                {product.dimensions?.height && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                    <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Alt:</span>
-                    <span className="text-xs font-medium">{product.dimensions.height}cm</span>
-                  </div>
-                )}
-                {product.dimensions?.length && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                    <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Prof:</span>
-                    <span className="text-xs font-medium">{product.dimensions.length}cm</span>
-                  </div>
-                )}
-                {product.weight && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
-                    <Weight className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">Peso:</span>
-                    <span className="text-xs font-medium">{product.weight >= 1000 ? `${(product.weight / 1000).toFixed(1)}kg` : `${product.weight}g`}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Materials */}
-            {Array.isArray(product.materials) && product.materials.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium text-foreground">Materiais</p>
-                <div className="flex flex-wrap gap-2">
-                  {product.materials.map((material) => (
-                    <span
-                      key={material}
-                      className="text-xs px-2.5 py-1 rounded-full bg-muted/50 text-muted-foreground font-medium"
-                    >
-                      {material}
-                    </span>
-                  ))}
-                </div>
-              </div>
             )}
 
             {/* Quantity */}

@@ -6,6 +6,8 @@ export interface ProductColor {
   name: string;
   hex: string;
   group: string;
+  /** Código do fornecedor (supplier_code) — usado para vincular imagens à cor */
+  code?: string;
 }
 
 // Interface adaptada para compatibilidade com o sistema E componentes mock
@@ -226,6 +228,7 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
         name,
         hex: knownHex || '#CCCCCC',
         group: detectColorGroup(name),
+        code: undefined,
       };
     }
     
@@ -240,10 +243,13 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
       if (knownHex) hex = knownHex;
     }
     
+    const code = c.code || c.color_code || c.supplier_code || undefined;
+    
     return {
       name,
       hex: hex || '#CCCCCC',
       group,
+      code,
     };
   });
 }
