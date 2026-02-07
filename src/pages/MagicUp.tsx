@@ -135,7 +135,8 @@ export default function MagicUp() {
           }),
           invokeExternalDb<{
             id: string;
-            url: string;
+            url_cdn: string | null;
+            url_original: string | null;
             supplier_code: string | null;
             is_primary: boolean;
             is_og_image: boolean;
@@ -150,15 +151,16 @@ export default function MagicUp() {
           }),
         ]);
 
-        // Mapear imagens
+        // Mapear imagens — usar url_cdn com fallback para url_original
         const images: ProductImage[] = (imagesResult.records || [])
-          .filter((img) => img.image_type !== 'box') // excluir embalagem
+          .filter((img) => img.image_type !== 'box')
           .map((img) => ({
-            url: img.url,
+            url: img.url_cdn || img.url_original || '',
             supplierCode: img.supplier_code || null,
             isPrimary: img.is_primary,
             isOgImage: img.is_og_image || false,
-          }));
+          }))
+          .filter((img) => img.url);
         setProductImages(images);
 
         // Mapear cores
