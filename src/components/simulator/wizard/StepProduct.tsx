@@ -230,7 +230,7 @@ export function StepProduct({ wizard }: StepProductProps) {
                 Selecionado
               </h4>
               
-              {wizard.selectedProduct ? (
+              {wizard.selectedProduct && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -271,15 +271,6 @@ export function StepProduct({ wizard }: StepProductProps) {
                     </div>
                   </div>
                 </motion.div>
-              ) : (
-                <div className="py-10 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-muted/50 mx-auto flex items-center justify-center mb-3">
-                    <Package className="h-8 w-8 text-muted-foreground/30" />
-                  </div>
-                  <p className="text-muted-foreground font-medium">
-                    Selecione um produto
-                  </p>
-                </div>
               )}
             </div>
 
