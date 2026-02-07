@@ -68,6 +68,15 @@ export const WIZARD_STEP_CONFIG: Record<WizardStep, WizardStepConfig> = {
 // PRODUTO SELECIONADO
 // ============================================
 
+export interface ProductColorVariant {
+  name: string;
+  hex: string;
+  code?: string;
+  sku?: string;
+  stock?: number;
+  image?: string;
+}
+
 export interface SelectedProduct {
   id: string;
   name: string;
@@ -76,6 +85,7 @@ export interface SelectedProduct {
   imageUrl?: string | null;
   categoryName?: string | null;
   brand?: string | null;
+  colors?: ProductColorVariant[];
 }
 
 // ============================================
