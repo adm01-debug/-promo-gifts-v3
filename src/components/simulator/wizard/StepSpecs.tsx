@@ -29,7 +29,7 @@ interface StepSpecsProps {
 }
 
 export function StepSpecs({ wizard }: StepSpecsProps) {
-  const { selectedLocation, engravingSpecs, maxColorsForLocation } = wizard;
+  const { selectedLocation, engravingSpecs } = wizard;
 
   if (!selectedLocation) {
     return (
@@ -116,45 +116,43 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
               </div>
               <h4 className="font-bold text-lg">Cores</h4>
             </div>
-            <Badge variant="outline">Máx {maxColorsForLocation}</Badge>
           </div>
           
-          {/* Quick Select */}
-          <div className="flex flex-wrap gap-2 mb-5">
-            {Array.from({ length: Math.min(6, maxColorsForLocation) }, (_, i) => i + 1).map(num => (
+          {/* Color Buttons: 1, 2, 3, 4, Colorido */}
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3, 4].map(num => (
               <Button
                 key={num}
                 variant={engravingSpecs.colors === num ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => wizard.updateSpecs({ colors: num })}
                 className={cn(
-                  'w-11 h-11 rounded-xl text-base',
+                  'w-14 h-12 rounded-xl text-lg font-bold',
                   engravingSpecs.colors === num && 'shadow-lg shadow-primary/20'
                 )}
               >
                 {num}
               </Button>
             ))}
+            <Button
+              variant={engravingSpecs.colors === 5 ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => wizard.updateSpecs({ colors: 5 })}
+              className={cn(
+                'h-12 px-5 rounded-xl text-sm font-bold',
+                engravingSpecs.colors === 5 && 'shadow-lg shadow-primary/20'
+              )}
+            >
+              🎨 Colorido
+            </Button>
           </div>
-          
-          {/* Slider */}
-          <div className="space-y-3">
-            <Slider
-              value={[engravingSpecs.colors]}
-              min={1}
-              max={maxColorsForLocation}
-              step={1}
-              onValueChange={([value]) => wizard.updateSpecs({ colors: value })}
-              className="py-2"
-            />
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-muted-foreground">1</span>
-              <span className="font-bold text-lg text-primary">
-                {engravingSpecs.colors} {engravingSpecs.colors === 1 ? 'cor' : 'cores'}
-              </span>
-              <span className="text-xs text-muted-foreground">{maxColorsForLocation}</span>
-            </div>
-          </div>
+
+          <p className="text-sm text-muted-foreground mt-4">
+            {engravingSpecs.colors === 5 
+              ? 'Full color (impressão digital)' 
+              : `${engravingSpecs.colors} ${engravingSpecs.colors === 1 ? 'cor' : 'cores'} de gravação`
+            }
+          </p>
         </motion.div>
 
         {/* Size */}
