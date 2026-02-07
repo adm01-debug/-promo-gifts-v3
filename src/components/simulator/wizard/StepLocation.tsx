@@ -116,7 +116,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
           {personalizations.length > 0 ? (
             <Button 
               className="mt-6 gap-2" 
-              onClick={wizard.calculateResult}
+              onClick={() => wizard.setStep('comparison')}
             >
               <CheckCircle2 className="h-4 w-4" />
               Ver Resultado Final
@@ -251,7 +251,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
           size="lg"
           className="gap-2 min-w-[180px] rounded-xl shadow-lg shadow-primary/20"
         >
-          Escolher Técnica
+          Configurar Especificações
           <ChevronRight className="h-5 w-5" />
         </Button>
       </motion.div>

@@ -236,6 +236,7 @@ export type WizardAction =
   | { type: 'SET_COMPARISON_RESULTS'; payload: TechniqueComparisonResult[] }
   | { type: 'SELECT_COMPARISON'; payload: TechniqueComparisonResult | null }
   | { type: 'ADD_PERSONALIZATION'; payload: Personalization }
+  | { type: 'UPDATE_PERSONALIZATION'; payload: { index: number; personalization: Personalization } }
   | { type: 'REMOVE_PERSONALIZATION'; payload: string }
   | { type: 'EDIT_PERSONALIZATION'; payload: number }
   | { type: 'START_NEW_PERSONALIZATION' }
@@ -289,7 +290,11 @@ export const canNavigateToStep = (targetStep: WizardStep, state: SimulatorWizard
   const targetIndex = getStepIndex(targetStep);
   const currentIndex = getStepIndex(state.currentStep);
   
+  // Sempre pode voltar
   if (targetIndex <= currentIndex) return true;
+  
+  // Se já tem personalizações, pode ir direto ao comparativo (resumo)
+  if (targetStep === 'comparison' && state.personalizations.length > 0) return true;
   
   for (let i = 0; i < targetIndex; i++) {
     if (!isStepComplete(WIZARD_STEPS[i], state)) {
