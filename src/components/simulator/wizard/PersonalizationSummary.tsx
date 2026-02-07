@@ -1,26 +1,22 @@
 /**
- * PersonalizationSummary - Resumo lateral das personalizações
+ * PersonalizationSummary - Resumo lateral das personalizações v2
  * 
- * Exibe um resumo em tempo real de todas as gravações adicionadas
- * Similar ao modelo da Spot
+ * Exibe produto, personalizações confirmadas e totais consolidados
  */
 
 import { useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { 
-  Package, 
+  ShoppingCart, 
   Palette, 
   MapPin, 
   X, 
   Plus,
-  ShoppingCart,
   Sparkles,
   Edit2,
-  Settings,
-  Ruler,
+  FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
@@ -28,17 +24,15 @@ import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWiz
 interface PersonalizationSummaryProps {
   wizard: UseSimulatorWizardReturn;
   onAddNew?: () => void;
-  onFinalize?: () => void;
+  onGenerateQuote?: () => void;
   showAddButton?: boolean;
-  compact?: boolean;
 }
 
 export function PersonalizationSummary({ 
   wizard, 
   onAddNew,
-  onFinalize,
+  onGenerateQuote,
   showAddButton = true,
-  compact = false,
 }: PersonalizationSummaryProps) {
   const { 
     selectedProduct, 
@@ -47,14 +41,8 @@ export function PersonalizationSummary({
     effectivePrice,
     currentPersonalizationIndex,
     isEditingPersonalization,
-    selectedLocation,
-    selectedTechnique,
-    engravingOptions,
-    currentStep,
+    totals,
   } = wizard;
-
-  // Verifica se está no passo de configuração (opções)
-  const isConfiguringOptions = currentStep === 'options' && selectedLocation && selectedTechnique;
 
   const formatCurrency = useCallback((value: number) => {
     return new Intl.NumberFormat('pt-BR', { 
@@ -64,35 +52,10 @@ export function PersonalizationSummary({
     }).format(value);
   }, []);
 
-  // Calcular totais
-  const totals = useMemo(() => {
-    const productTotal = (effectivePrice || 0) * quantity;
-    const personalizationTotal = personalizations.reduce((sum, p) => sum + p.totalCost, 0);
-    const grandTotal = productTotal + personalizationTotal;
-    const grandTotalPerUnit = quantity > 0 ? grandTotal / quantity : 0;
-    
-    return {
-      productTotal,
-      personalizationTotal,
-      grandTotal,
-      grandTotalPerUnit,
-    };
-  }, [effectivePrice, quantity, personalizations]);
-
-  const handleRemovePersonalization = useCallback((id: string) => {
-    wizard.removePersonalization(id);
-  }, [wizard]);
-
-  const handleEditPersonalization = useCallback((index: number) => {
-    wizard.editPersonalization(index);
-  }, [wizard]);
-
-  if (!selectedProduct) {
-    return null;
-  }
+  if (!selectedProduct) return null;
 
   return (
-    <div className={`flex flex-col h-full ${compact ? 'p-3' : 'p-4'} overflow-hidden`}>
+    <div className="flex flex-col h-full p-4 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 shrink-0">
         <div className="p-2 rounded-lg bg-primary/10">
@@ -107,12 +70,10 @@ export function PersonalizationSummary({
           <div className="space-y-3 pr-2">
             {/* Produto */}
             <div className="p-3 rounded-lg bg-muted/50">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Produto
-                </span>
-              </div>
-              <p className="text-sm font-medium leading-tight mb-1 break-words">
+              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                Produto
+              </span>
+              <p className="text-sm font-medium leading-tight mb-1 break-words mt-1">
                 {selectedProduct.name}
               </p>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -123,57 +84,15 @@ export function PersonalizationSummary({
               </div>
             </div>
 
-            {/* Configuração em andamento */}
-            {isConfiguringOptions && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 rounded-lg bg-primary/5 border border-primary/20"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <Settings className="h-3.5 w-3.5 text-primary animate-pulse" />
-                  <span className="text-[11px] font-semibold text-primary uppercase tracking-wide">
-                    Configurando
-                  </span>
-                </div>
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Local</span>
-                    <span className="font-medium truncate max-w-[100px]">{selectedLocation?.locationName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Técnica</span>
-                    <span className="font-medium text-primary truncate max-w-[100px]">{selectedTechnique?.name}</span>
-                  </div>
-                  {selectedTechnique?.requiresColorSelection && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Palette className="h-3 w-3" /> Cores
-                      </span>
-                      <span className="font-semibold">{engravingOptions.colors}</span>
-                    </div>
-                  )}
-                  {selectedTechnique?.requiresSizeSelection && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Ruler className="h-3 w-3" /> Tamanho
-                      </span>
-                      <span className="font-semibold">{engravingOptions.width}×{engravingOptions.height}cm</span>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
             {/* Personalizações */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                  Personalizações ({personalizations.length})
+                  Gravações ({personalizations.length})
                 </span>
                 {personalizations.length > 0 && (
                   <span className="font-semibold text-sm text-primary">
-                    {formatCurrency(totals.personalizationTotal)}
+                    {formatCurrency(totals.customizationTotal)}
                   </span>
                 )}
               </div>
@@ -222,23 +141,28 @@ export function PersonalizationSummary({
                             </p>
                             <div className="flex flex-wrap gap-1 mt-1.5">
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                                {pers.options.colors} {pers.options.colors === 1 ? 'cor' : 'cores'}
+                                {pers.specs.colors} {pers.specs.colors === 1 ? 'cor' : 'cores'}
                               </Badge>
                               <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                                {pers.options.width}×{pers.options.height}cm
+                                {pers.specs.width}×{pers.specs.height}cm
                               </Badge>
                             </div>
+                            {pers.pricing.budgetCode && (
+                              <Badge variant="secondary" className="text-[10px] font-mono mt-1 px-1.5 py-0 h-4">
+                                {pers.pricing.budgetCode}
+                              </Badge>
+                            )}
                           </div>
                           <div className="text-right shrink-0 flex flex-col items-end">
                             <p className="font-semibold text-sm">
-                              {formatCurrency(pers.totalCost)}
+                              {formatCurrency(pers.pricing.totalPrice)}
                             </p>
                             <div className="flex gap-0.5 mt-1">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6"
-                                onClick={() => handleEditPersonalization(idx)}
+                                onClick={() => wizard.editPersonalization(idx)}
                               >
                                 <Edit2 className="h-3 w-3" />
                               </Button>
@@ -246,7 +170,7 @@ export function PersonalizationSummary({
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 text-destructive hover:text-destructive"
-                                onClick={() => handleRemovePersonalization(pers.id)}
+                                onClick={() => wizard.removePersonalization(pers.id)}
                               >
                                 <X className="h-3 w-3" />
                               </Button>
@@ -260,8 +184,8 @@ export function PersonalizationSummary({
               </AnimatePresence>
             </div>
 
-            {/* Botão adicionar nova gravação */}
-            {showAddButton && personalizations.length > 0 && (
+            {/* Botão adicionar */}
+            {showAddButton && personalizations.length > 0 && wizard.hasAvailableLocations && (
               <Button
                 variant="outline"
                 size="sm"
@@ -269,7 +193,7 @@ export function PersonalizationSummary({
                 onClick={onAddNew}
               >
                 <Plus className="h-4 w-4" />
-                Nova Personalização
+                Outro Local
               </Button>
             )}
           </div>
@@ -278,12 +202,6 @@ export function PersonalizationSummary({
 
       {/* Footer fixo */}
       <div className="shrink-0 pt-3 mt-3 border-t border-border/50">
-        {/* Extras */}
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="text-muted-foreground">Extras</span>
-          <span>R$ 0,00</span>
-        </div>
-        
         {/* Total */}
         <div className="flex items-center justify-between">
           <div>
@@ -297,18 +215,18 @@ export function PersonalizationSummary({
           </span>
         </div>
 
-        {/* Botão Finalizar */}
-        {onFinalize && personalizations.length > 0 && (
+        {/* Botão Gerar Orçamento */}
+        {onGenerateQuote && personalizations.length > 0 && (
           <Button
             size="default"
             className="w-full mt-3 gap-2"
-            onClick={onFinalize}
+            onClick={onGenerateQuote}
           >
-            Calcular Total
+            <FileText className="h-4 w-4" />
+            Gerar Orçamento
           </Button>
         )}
 
-        {/* Disclaimer */}
         <p className="text-[10px] text-muted-foreground/70 text-center mt-2 leading-tight">
           * Valor sujeito a alterações após avaliação do layout
         </p>

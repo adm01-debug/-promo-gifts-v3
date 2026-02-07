@@ -1,30 +1,28 @@
 /**
- * Domain Types: Simulator Wizard Architecture
+ * Domain Types: Simulator Wizard v2
  * 
- * Arquitetura modular para o fluxo do simulador com MÚLTIPLAS PERSONALIZAÇÕES:
- * Produto → (Local → Técnica → Configuração) × N → Resultado
+ * Novo fluxo: Produto → Local → Especificações → Comparativo
  * 
- * Cada produto pode ter múltiplas gravações (ex: capa + contra-capa)
- * O sistema soma os custos de todas as personalizações no resultado final
+ * O vendedor configura PRIMEIRO (cores, tamanho, tiragem),
+ * depois vê TODAS as técnicas possíveis com preços para comparar.
+ * Suporta múltiplas personalizações por produto.
  */
 
 // ============================================
-// STEPS DO WIZARD
+// STEPS DO WIZARD (4 passos)
 // ============================================
 
 export type WizardStep = 
-  | 'product'        // Passo 1: Selecionar produto + quantidade
-  | 'location'       // Passo 2: Selecionar local de gravação
-  | 'technique'      // Passo 3: Selecionar técnica de personalização
-  | 'configuration'  // Passo 4: Configurar opções (cores, tamanho)
-  | 'result';        // Passo 5: Ver resultado
+  | 'product'      // Passo 1: Selecionar produto + quantidade
+  | 'location'     // Passo 2: Selecionar local de gravação
+  | 'specs'        // Passo 3: Configurar cores, tamanho
+  | 'comparison';  // Passo 4: Comparativo de técnicas com preços
 
 export const WIZARD_STEPS: WizardStep[] = [
   'product',
   'location', 
-  'technique',
-  'configuration',
-  'result'
+  'specs',
+  'comparison',
 ];
 
 export interface WizardStepConfig {
@@ -41,36 +39,29 @@ export const WIZARD_STEP_CONFIG: Record<WizardStep, WizardStepConfig> = {
     label: 'Selecionar Produto',
     shortLabel: 'Produto',
     icon: 'Package',
-    description: 'Escolha o produto e quantidade'
+    description: 'Escolha o produto e quantidade',
   },
   location: {
     step: 'location',
     label: 'Local de Gravação',
     shortLabel: 'Local',
     icon: 'MapPin',
-    description: 'Selecione onde será aplicada a personalização'
+    description: 'Selecione onde será aplicada a personalização',
   },
-  technique: {
-    step: 'technique',
-    label: 'Técnica de Gravação',
-    shortLabel: 'Técnica',
-    icon: 'Palette',
-    description: 'Escolha a técnica de personalização'
+  specs: {
+    step: 'specs',
+    label: 'Especificações',
+    shortLabel: 'Especificações',
+    icon: 'SlidersHorizontal',
+    description: 'Configure cores e tamanho da gravação',
   },
-  configuration: {
-    step: 'configuration',
-    label: 'Configurações',
-    shortLabel: 'Configuração',
-    icon: 'Settings',
-    description: 'Configure cores, tamanho e posições'
+  comparison: {
+    step: 'comparison',
+    label: 'Comparativo',
+    shortLabel: 'Comparativo',
+    icon: 'BarChart3',
+    description: 'Compare técnicas e escolha a melhor opção',
   },
-  result: {
-    step: 'result',
-    label: 'Ver Resultado',
-    shortLabel: 'Resultado',
-    icon: 'Calculator',
-    description: 'Visualize o cálculo final'
-  }
 };
 
 // ============================================
@@ -82,7 +73,6 @@ export interface SelectedProduct {
   name: string;
   sku: string;
   price: number;
-  customPrice?: number; // Preço negociado
   imageUrl?: string | null;
   categoryName?: string | null;
   brand?: string | null;
@@ -103,12 +93,13 @@ export interface EngravingLocation {
   maxHeightCm: number | null;
   maxAreaCm2: number | null;
   areaImageUrl: string | null;
-  isFromGroup: boolean; // true se veio de regras de grupo
+  isFromGroup: boolean;
   availableTechniques: AvailableTechnique[];
 }
 
 export interface AvailableTechnique {
   id: string;
+  printAreaId: string; // ID da print area no banco externo (para fn_get_customization_price)
   techniqueId: string;
   techniqueName: string;
   techniqueCode: string;
@@ -118,126 +109,84 @@ export interface AvailableTechnique {
 }
 
 // ============================================
-// TÉCNICA SELECIONADA
+// ESPECIFICAÇÕES DA GRAVAÇÃO (Passo 3)
 // ============================================
 
-export interface SelectedTechnique {
-  id: string;
-  code: string;
-  name: string;
-  description: string | null;
-  unitCost: number;
-  setupCost: number;
-  estimatedDays: number;
-  minQuantity: number;
-  // Limites do local de gravação
-  maxColors: number | null;
-  maxWidth: number | null;
-  maxHeight: number | null;
-  maxArea: number | null;
-  // Flags de configuração necessária
-  requiresColorSelection: boolean;
-  requiresSizeSelection: boolean;
-}
-
-// ============================================
-// OPÇÕES DE CONFIGURAÇÃO
-// ============================================
-
-export interface EngravingOptions {
+export interface EngravingSpecs {
   colors: number;
   width: number;
   height: number;
-  positions: number;
-  sizeOption?: string;
-  colorOption?: string;
-  tableCode?: string;
 }
 
 // ============================================
-// PERSONALIZAÇÃO INDIVIDUAL (GRAVAÇÃO)
+// RESULTADO DE COMPARAÇÃO (Passo 4)
+// ============================================
+
+export interface TechniqueComparisonResult {
+  techniqueId: string;
+  techniqueName: string;
+  techniqueCode: string;
+  printAreaId: string;
+  maxColors: number | null;
+  
+  // Status
+  isAvailable: boolean;
+  unavailableReason?: string;
+  
+  // Preços (do RPC fn_get_customization_price)
+  unitPrice: number;
+  setupPrice: number;
+  subtotal: number;
+  totalPrice: number;
+  costPerUnit: number;
+  minimumApplied: boolean;
+  
+  // Código de orçamento
+  budgetCode: string;
+  
+  // Prazo
+  productionDays: number | null;
+  
+  // Markup
+  markupPercent: number;
+  marginPercent: number;
+  
+  // Faixa
+  tierUsed: number;
+  tierMinQty: number;
+  tierMaxQty: number;
+  
+  // Badges
+  isCheapest?: boolean;
+  isFastest?: boolean;
+  
+  // Dados completos do RPC (para uso posterior)
+  rawData?: Record<string, unknown>;
+}
+
+// ============================================
+// PERSONALIZAÇÃO CONFIRMADA
 // ============================================
 
 export interface Personalization {
   id: string;
-  index: number; // 1, 2, 3...
-  location: EngravingLocation;
-  technique: SelectedTechnique;
-  options: EngravingOptions;
-  // Custos calculados
-  unitCost: number;
-  setupCost: number;
-  totalCost: number;
-  costPerUnit: number;
-  estimatedDays: number;
-  // Metadata
-  priceTableUsed?: string;
-  tierApplied?: string;
-}
-
-// ============================================
-// RESULTADO DA SIMULAÇÃO (COM MÚLTIPLAS GRAVAÇÕES)
-// ============================================
-
-export interface SimulationPriceResult {
-  // Identificação
-  id: string;
-  timestamp: number;
-  
-  // Produto
-  product: {
-    id: string;
-    name: string;
-    sku: string;
-    unitPrice: number;
-    quantity: number;
-    totalPrice: number;
-  };
-  
-  // Todas as personalizações
-  personalizations: PersonalizationResult[];
-  
-  // Totais
-  totals: {
-    productTotal: number;
-    customizationTotal: number;
-    grandTotal: number;
-    grandTotalPerUnit: number;
-  };
-  
-  // Maior prazo entre todas as personalizações
-  maxEstimatedDays: number;
-}
-
-export interface PersonalizationResult {
-  id: string;
   index: number;
-  location: {
-    componentName: string;
-    locationName: string;
-    maxDimensions: string;
-  };
+  location: EngravingLocation;
   technique: {
     id: string;
     code: string;
     name: string;
-    estimatedDays: number;
   };
-  options: {
-    colors: number;
-    width: number;
-    height: number;
-    positions: number;
-    area: number;
-  };
-  customization: {
-    unitCost: number;
-    setupCost: number;
-    totalCost: number;
+  specs: EngravingSpecs;
+  pricing: {
+    unitPrice: number;
+    setupPrice: number;
+    subtotal: number;
+    totalPrice: number;
     costPerUnit: number;
+    budgetCode: string;
+    productionDays: number | null;
   };
-  priceTableUsed?: string;
-  tierApplied?: string;
 }
 
 // ============================================
@@ -247,34 +196,26 @@ export interface PersonalizationResult {
 export interface SimulatorWizardState {
   // Navegação
   currentStep: WizardStep;
-  completedSteps: WizardStep[];
   
   // Passo 1: Produto
   selectedProduct: SelectedProduct | null;
   quantity: number;
-  useNegotiatedPrice: boolean;
-  negotiatedPrice: number | null;
   
-  // Personalizações confirmadas (gravações já adicionadas)
+  // Personalizações confirmadas
   personalizations: Personalization[];
-  
-  // Personalização atual em edição
-  currentPersonalizationIndex: number; // 0 = primeira, 1 = segunda...
+  currentPersonalizationIndex: number;
   isEditingPersonalization: boolean;
   
-  // Passo 2: Local (personalização atual)
+  // Passo 2: Local
   availableLocations: EngravingLocation[];
   selectedLocation: EngravingLocation | null;
   
-  // Passo 3: Técnica (personalização atual)
-  availableTechniques: SelectedTechnique[];
-  selectedTechnique: SelectedTechnique | null;
+  // Passo 3: Especificações
+  engravingSpecs: EngravingSpecs;
   
-  // Passo 4: Opções (personalização atual)
-  engravingOptions: EngravingOptions;
-  
-  // Passo 5: Resultado
-  result: SimulationPriceResult | null;
+  // Passo 4: Comparativo
+  comparisonResults: TechniqueComparisonResult[];
+  selectedComparison: TechniqueComparisonResult | null;
   
   // UI State
   isCalculating: boolean;
@@ -282,29 +223,26 @@ export interface SimulatorWizardState {
 }
 
 // ============================================
-// ACTIONS DO WIZARD
+// ACTIONS
 // ============================================
 
 export type WizardAction =
   | { type: 'SET_STEP'; payload: WizardStep }
   | { type: 'SELECT_PRODUCT'; payload: SelectedProduct | null }
   | { type: 'SET_QUANTITY'; payload: number }
-  | { type: 'SET_NEGOTIATED_PRICE'; payload: { enabled: boolean; price: number | null } }
   | { type: 'SET_AVAILABLE_LOCATIONS'; payload: EngravingLocation[] }
   | { type: 'SELECT_LOCATION'; payload: EngravingLocation | null }
-  | { type: 'SET_AVAILABLE_TECHNIQUES'; payload: SelectedTechnique[] }
-  | { type: 'SELECT_TECHNIQUE'; payload: SelectedTechnique | null }
-  | { type: 'UPDATE_OPTIONS'; payload: Partial<EngravingOptions> }
+  | { type: 'UPDATE_SPECS'; payload: Partial<EngravingSpecs> }
+  | { type: 'SET_COMPARISON_RESULTS'; payload: TechniqueComparisonResult[] }
+  | { type: 'SELECT_COMPARISON'; payload: TechniqueComparisonResult | null }
   | { type: 'ADD_PERSONALIZATION'; payload: Personalization }
-  | { type: 'REMOVE_PERSONALIZATION'; payload: string } // id
-  | { type: 'EDIT_PERSONALIZATION'; payload: number } // index
+  | { type: 'REMOVE_PERSONALIZATION'; payload: string }
+  | { type: 'EDIT_PERSONALIZATION'; payload: number }
   | { type: 'START_NEW_PERSONALIZATION' }
   | { type: 'CANCEL_PERSONALIZATION' }
-  | { type: 'SET_RESULT'; payload: SimulationPriceResult | null }
   | { type: 'SET_CALCULATING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'RESET_WIZARD' }
-  | { type: 'RESET_FROM_STEP'; payload: WizardStep };
+  | { type: 'RESET_WIZARD' };
 
 // ============================================
 // HELPERS
@@ -336,14 +274,12 @@ export const isStepComplete = (step: WizardStep, state: SimulatorWizardState): b
       return state.selectedProduct !== null && state.quantity > 0;
     case 'location':
       return state.selectedLocation !== null;
-    case 'technique':
-      return state.selectedTechnique !== null;
-    case 'configuration':
-      return state.engravingOptions.colors > 0 && 
-             state.engravingOptions.width > 0 && 
-             state.engravingOptions.height > 0;
-    case 'result':
-      return state.result !== null;
+    case 'specs':
+      return state.engravingSpecs.colors > 0 && 
+             state.engravingSpecs.width > 0 && 
+             state.engravingSpecs.height > 0;
+    case 'comparison':
+      return state.selectedComparison !== null;
     default:
       return false;
   }
@@ -351,12 +287,10 @@ export const isStepComplete = (step: WizardStep, state: SimulatorWizardState): b
 
 export const canNavigateToStep = (targetStep: WizardStep, state: SimulatorWizardState): boolean => {
   const targetIndex = getStepIndex(targetStep);
-  
-  // Sempre pode ir para passos anteriores
   const currentIndex = getStepIndex(state.currentStep);
+  
   if (targetIndex <= currentIndex) return true;
   
-  // Para ir para frente, todos os passos anteriores devem estar completos
   for (let i = 0; i < targetIndex; i++) {
     if (!isStepComplete(WIZARD_STEPS[i], state)) {
       return false;
@@ -364,48 +298,4 @@ export const canNavigateToStep = (targetStep: WizardStep, state: SimulatorWizard
   }
   
   return true;
-};
-
-// ============================================
-// HELPERS PARA CÁLCULO DE CUSTO
-// ============================================
-
-export const calculatePersonalizationCost = (
-  technique: SelectedTechnique,
-  options: EngravingOptions,
-  quantity: number
-): { unitCost: number; setupCost: number; totalCost: number; costPerUnit: number } => {
-  const area = options.width * options.height;
-  const codeUpper = technique.code.toUpperCase();
-  
-  let unitCostMultiplier = 1;
-  
-  if (codeUpper.includes('SILK') || codeUpper.includes('SERIGRAFIA') || codeUpper.includes('TAMPOGRAFIA')) {
-    unitCostMultiplier = options.colors;
-  } else if (codeUpper.includes('DTF') || codeUpper.includes('SUB') || codeUpper.includes('SUBLIM')) {
-    unitCostMultiplier = Math.max(1, area / 100);
-  } else if (codeUpper.includes('BORD') || codeUpper.includes('EMBROID')) {
-    unitCostMultiplier = Math.max(1, (area / 50) * Math.max(1, options.colors * 0.5));
-  } else if (codeUpper.includes('LASER')) {
-    unitCostMultiplier = Math.max(1, area / 100);
-  } else if (codeUpper.includes('TRANSFER')) {
-    unitCostMultiplier = Math.max(1, area / 80);
-  } else if (codeUpper.includes('HOT') || codeUpper.includes('STAMP')) {
-    unitCostMultiplier = Math.max(1, area / 50);
-  } else if (codeUpper.includes('UV') || codeUpper.includes('DIGITAL')) {
-    unitCostMultiplier = Math.max(1, area / 100) * Math.max(1, options.colors * 0.3);
-  }
-
-  const finalUnitCost = technique.unitCost * unitCostMultiplier * options.positions;
-  const finalSetupCost = technique.setupCost * options.positions * 
-    ((codeUpper.includes('SILK') || codeUpper.includes('SERIGRAFIA')) ? options.colors : 1);
-  const totalCost = (finalUnitCost * quantity) + finalSetupCost;
-  const costPerUnit = totalCost / quantity;
-
-  return {
-    unitCost: finalUnitCost,
-    setupCost: finalSetupCost,
-    totalCost,
-    costPerUnit,
-  };
 };

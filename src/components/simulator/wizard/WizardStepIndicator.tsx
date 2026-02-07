@@ -1,12 +1,12 @@
 /**
- * WizardStepIndicator - Indicador visual premium dos passos
+ * WizardStepIndicator - Indicador visual dos 4 passos
  * 
- * Design: Elegante, compacto, com feedback visual rico
+ * Produto → Local → Especificações → Comparativo
  */
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Package, MapPin, Palette, Settings, Calculator, Check, ChevronRight } from 'lucide-react';
+import { Package, MapPin, SlidersHorizontal, BarChart3, Check } from 'lucide-react';
 import { 
   WIZARD_STEPS, 
   WIZARD_STEP_CONFIG,
@@ -21,9 +21,8 @@ interface WizardStepIndicatorProps {
 const STEP_ICONS: Record<WizardStep, React.ElementType> = {
   product: Package,
   location: MapPin,
-  technique: Palette,
-  configuration: Settings,
-  result: Calculator,
+  specs: SlidersHorizontal,
+  comparison: BarChart3,
 };
 
 export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
@@ -31,7 +30,7 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
   
   return (
     <div className="w-full">
-      {/* Mobile: Enhanced progress */}
+      {/* Mobile: Progress bar */}
       <div className="sm:hidden">
         <div className="flex items-center justify-between mb-2 px-1">
           <div className="flex items-center gap-2">
@@ -51,13 +50,12 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
             transition={{ duration: 0.4, ease: 'easeOut' }}
           />
         </div>
-        {/* Step dots */}
         <div className="flex justify-between mt-2 px-1">
           {WIZARD_STEPS.map((step, idx) => (
             <div
               key={step}
               className={cn(
-                'w-2 h-2 rounded-full transition-colors',
+                'w-2.5 h-2.5 rounded-full transition-colors',
                 idx <= currentIndex ? 'bg-primary' : 'bg-muted-foreground/30'
               )}
             />
@@ -65,10 +63,9 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
         </div>
       </div>
 
-      {/* Desktop: Premium horizontal steps */}
+      {/* Desktop: Horizontal steps */}
       <div className="hidden sm:block">
         <div className="w-full">
-          {/* Progress bar background */}
           <div className="relative mb-8">
             <div className="absolute top-6 left-12 right-12 h-1 bg-muted rounded-full" />
             <motion.div
@@ -101,7 +98,6 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
                   whileHover={isClickable ? { y: -2 } : undefined}
                   whileTap={isClickable ? { scale: 0.98 } : undefined}
                 >
-                  {/* Circle */}
                   <motion.div 
                     className={cn(
                       'w-12 h-12 rounded-full flex items-center justify-center transition-all relative',
@@ -119,7 +115,6 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
                       <Icon className="h-5 w-5" />
                     )}
                     
-                    {/* Pulse effect for current */}
                     {isCurrent && (
                       <motion.div
                         className="absolute inset-0 rounded-full bg-primary/20"
@@ -130,7 +125,6 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
                     )}
                   </motion.div>
 
-                  {/* Label */}
                   <div className="text-center">
                     <p className={cn(
                       'text-xs font-medium uppercase tracking-wider mb-0.5',

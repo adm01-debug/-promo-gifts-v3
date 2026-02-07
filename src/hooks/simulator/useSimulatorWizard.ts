@@ -1,8 +1,8 @@
 /**
- * useSimulatorWizard - Hook central para orquestração do simulador
+ * useSimulatorWizard v2 - Hook central do simulador
  * 
- * Gerencia o estado do wizard com suporte a MÚLTIPLAS PERSONALIZAÇÕES:
- * Produto → (Local → Técnica → Configuração) × N → Resultado
+ * Novo fluxo: Produto → Local → Specs → Comparativo
+ * Usa fn_get_customization_price para comparar TODAS as técnicas.
  */
 
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
@@ -11,10 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { 
   fetchPromobrindPrintAreas,
-  fetchPromobrindTechniques,
-  findBestPriceTable,
-  type PromobrindPrintArea,
-  type PromobrindTechnique,
 } from '@/lib/external-db';
 import type {
   SimulatorWizardState,
@@ -22,11 +18,9 @@ import type {
   WizardStep,
   SelectedProduct,
   EngravingLocation,
-  SelectedTechnique,
-  EngravingOptions,
-  SimulationPriceResult,
+  EngravingSpecs,
+  TechniqueComparisonResult,
   Personalization,
-  PersonalizationResult,
 } from '@/types/domain/simulator-wizard';
 import {
   WIZARD_STEPS,
@@ -35,8 +29,29 @@ import {
   getPreviousStep,
   isStepComplete,
   canNavigateToStep,
-  calculatePersonalizationCost,
 } from '@/types/domain/simulator-wizard';
+
+// ============================================
+// HELPER: Invocar RPC no banco externo
+// ============================================
+
+async function invokeExternalRpc<T>(
+  rpcName: string,
+  params: Record<string, unknown>
+): Promise<T> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: {
+      operation: 'rpc',
+      rpcName,
+      rpcParams: params,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro na RPC');
+  
+  return data.data as T;
+}
 
 // ============================================
 // ESTADO INICIAL
@@ -44,25 +59,20 @@ import {
 
 const initialState: SimulatorWizardState = {
   currentStep: 'product',
-  completedSteps: [],
   selectedProduct: null,
   quantity: 100,
-  useNegotiatedPrice: false,
-  negotiatedPrice: null,
   personalizations: [],
   currentPersonalizationIndex: 0,
   isEditingPersonalization: false,
   availableLocations: [],
   selectedLocation: null,
-  availableTechniques: [],
-  selectedTechnique: null,
-  engravingOptions: {
+  engravingSpecs: {
     colors: 1,
-    width: 10,
-    height: 10,
-    positions: 1,
+    width: 5,
+    height: 5,
   },
-  result: null,
+  comparisonResults: [],
+  selectedComparison: null,
   isCalculating: false,
   error: null,
 };
@@ -80,30 +90,21 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return {
         ...state,
         selectedProduct: action.payload,
-        // Reset tudo ao mudar produto
         personalizations: [],
         currentPersonalizationIndex: 0,
         isEditingPersonalization: false,
         selectedLocation: null,
-        selectedTechnique: null,
         availableLocations: [],
-        availableTechniques: [],
-        result: null,
+        comparisonResults: [],
+        selectedComparison: null,
       };
     
     case 'SET_QUANTITY':
       return { 
         ...state, 
         quantity: action.payload,
-        result: null,
-      };
-    
-    case 'SET_NEGOTIATED_PRICE':
-      return {
-        ...state,
-        useNegotiatedPrice: action.payload.enabled,
-        negotiatedPrice: action.payload.price,
-        result: null,
+        comparisonResults: [],
+        selectedComparison: null,
       };
     
     case 'SET_AVAILABLE_LOCATIONS':
@@ -113,33 +114,29 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return {
         ...state,
         selectedLocation: action.payload,
-        selectedTechnique: null,
-        availableTechniques: [],
-        result: null,
-      };
-    
-    case 'SET_AVAILABLE_TECHNIQUES':
-      return { ...state, availableTechniques: action.payload };
-    
-    case 'SELECT_TECHNIQUE':
-      return {
-        ...state,
-        selectedTechnique: action.payload,
-        engravingOptions: action.payload ? {
+        comparisonResults: [],
+        selectedComparison: null,
+        // Reset specs com base no local selecionado
+        engravingSpecs: {
           colors: 1,
-          width: Math.min(10, action.payload.maxWidth || 50),
-          height: Math.min(10, action.payload.maxHeight || 50),
-          positions: 1,
-        } : state.engravingOptions,
-        result: null,
+          width: Math.min(5, action.payload?.maxWidthCm || 50),
+          height: Math.min(5, action.payload?.maxHeightCm || 50),
+        },
       };
     
-    case 'UPDATE_OPTIONS':
+    case 'UPDATE_SPECS':
       return {
         ...state,
-        engravingOptions: { ...state.engravingOptions, ...action.payload },
-        result: null,
+        engravingSpecs: { ...state.engravingSpecs, ...action.payload },
+        comparisonResults: [],
+        selectedComparison: null,
       };
+    
+    case 'SET_COMPARISON_RESULTS':
+      return { ...state, comparisonResults: action.payload };
+    
+    case 'SELECT_COMPARISON':
+      return { ...state, selectedComparison: action.payload };
 
     case 'ADD_PERSONALIZATION':
       return {
@@ -147,26 +144,20 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         personalizations: [...state.personalizations, action.payload],
         currentPersonalizationIndex: state.personalizations.length,
         isEditingPersonalization: false,
-        // Reset estado da personalização atual para nova gravação
         selectedLocation: null,
-        selectedTechnique: null,
-        engravingOptions: {
-          colors: 1,
-          width: 10,
-          height: 10,
-          positions: 1,
-        },
-        // IMPORTANTE: Vai para 'location' para adicionar nova gravação ou continuar
-        currentStep: 'location' as WizardStep,
-        result: null,
+        selectedComparison: null,
+        comparisonResults: [],
+        engravingSpecs: { colors: 1, width: 5, height: 5 },
+        currentStep: 'location',
       };
 
     case 'REMOVE_PERSONALIZATION': {
-      const newPersonalizations = state.personalizations.filter(p => p.id !== action.payload);
+      const newPersonalizations = state.personalizations
+        .filter(p => p.id !== action.payload)
+        .map((p, idx) => ({ ...p, index: idx + 1 }));
       return {
         ...state,
-        personalizations: newPersonalizations.map((p, idx) => ({ ...p, index: idx + 1 })),
-        result: null,
+        personalizations: newPersonalizations,
       };
     }
 
@@ -179,8 +170,9 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         currentPersonalizationIndex: action.payload,
         isEditingPersonalization: true,
         selectedLocation: pers.location,
-        selectedTechnique: pers.technique,
-        engravingOptions: pers.options,
+        engravingSpecs: pers.specs,
+        comparisonResults: [],
+        selectedComparison: null,
         currentStep: 'location',
       };
     }
@@ -191,13 +183,9 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         currentPersonalizationIndex: state.personalizations.length,
         isEditingPersonalization: false,
         selectedLocation: null,
-        selectedTechnique: null,
-        engravingOptions: {
-          colors: 1,
-          width: 10,
-          height: 10,
-          positions: 1,
-        },
+        selectedComparison: null,
+        comparisonResults: [],
+        engravingSpecs: { colors: 1, width: 5, height: 5 },
         currentStep: 'location',
       };
 
@@ -206,17 +194,8 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         ...state,
         isEditingPersonalization: false,
         selectedLocation: null,
-        selectedTechnique: null,
-        currentStep: state.personalizations.length > 0 ? 'result' : 'product',
-      };
-    
-    case 'SET_RESULT':
-      return { 
-        ...state, 
-        result: action.payload,
-        completedSteps: action.payload 
-          ? [...new Set([...state.completedSteps, 'result' as WizardStep])] 
-          : state.completedSteps,
+        selectedComparison: null,
+        currentStep: state.personalizations.length > 0 ? 'comparison' : 'product',
       };
     
     case 'SET_CALCULATING':
@@ -227,21 +206,6 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
     
     case 'RESET_WIZARD':
       return initialState;
-    
-    case 'RESET_FROM_STEP': {
-      const stepIndex = getStepIndex(action.payload);
-      const stepsToKeep = WIZARD_STEPS.slice(0, stepIndex + 1);
-      return {
-        ...state,
-        currentStep: action.payload,
-        completedSteps: state.completedSteps.filter(s => stepsToKeep.includes(s)),
-        ...(stepIndex <= 0 && { selectedProduct: null, personalizations: [] }),
-        ...(stepIndex <= 1 && { selectedLocation: null, availableLocations: [] }),
-        ...(stepIndex <= 2 && { selectedTechnique: null, availableTechniques: [] }),
-        ...(stepIndex <= 3 && { engravingOptions: initialState.engravingOptions }),
-        result: null,
-      };
-    }
     
     default:
       return state;
@@ -256,18 +220,18 @@ export function useSimulatorWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
   // ============================================
-  // QUERIES
+  // QUERIES - Locais de gravação
   // ============================================
 
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
-    queryKey: ['wizard-locations-promobrind', state.selectedProduct?.id],
+    queryKey: ['wizard-locations-v2', state.selectedProduct?.id],
     queryFn: async () => {
       if (!state.selectedProduct?.id) return [];
       
       const printAreas = await fetchPromobrindPrintAreas(state.selectedProduct.id);
       
       if (!printAreas.length) {
-        console.log('Nenhuma área no Promobrind, tentando BD local...');
+        // Fallback: BD local
         const { data: productLocations, error: prodError } = await supabase
           .from('product_components')
           .select(`
@@ -275,7 +239,7 @@ export function useSimulatorWizard() {
             product_component_locations (
               id, location_code, location_name, max_width_cm, max_height_cm, max_area_cm2, area_image_url,
               product_component_location_techniques (
-                id, technique_id, max_colors, is_default,
+                id, technique_id, max_colors, is_default, composed_code,
                 personalization_techniques (id, name, code)
               )
             )
@@ -303,6 +267,7 @@ export function useSimulatorWizard() {
               isFromGroup: false,
               availableTechniques: loc.product_component_location_techniques?.map((lt: any) => ({
                 id: lt.id,
+                printAreaId: loc.id,
                 techniqueId: lt.personalization_techniques?.id || lt.technique_id,
                 techniqueName: lt.personalization_techniques?.name || 'Técnica',
                 techniqueCode: lt.personalization_techniques?.code || '',
@@ -316,6 +281,7 @@ export function useSimulatorWizard() {
         return locations;
       }
 
+      // Agrupar print areas por localização
       const locationMap = new Map<string, EngravingLocation>();
       
       for (const area of printAreas) {
@@ -347,6 +313,7 @@ export function useSimulatorWizard() {
           if (!existingTech) {
             location.availableTechniques.push({
               id: `${area.id}-${area.technique_id}`,
+              printAreaId: area.id, // ID da área para chamada RPC
               techniqueId: area.technique_id,
               techniqueName: area.technique_name,
               techniqueCode: area.technique_code || '',
@@ -369,86 +336,6 @@ export function useSimulatorWizard() {
       dispatch({ type: 'SET_AVAILABLE_LOCATIONS', payload: locationsData });
     }
   }, [locationsData]);
-
-  const { data: techniquesData, isLoading: techniquesLoading } = useQuery({
-    queryKey: ['wizard-techniques-promobrind', state.selectedLocation?.id],
-    queryFn: async () => {
-      if (!state.selectedLocation) return [];
-
-      const techniqueIds = state.selectedLocation.availableTechniques.map(t => t.techniqueId);
-      if (techniqueIds.length === 0) return [];
-
-      let techniques: PromobrindTechnique[] = [];
-      try {
-        techniques = await fetchPromobrindTechniques({ ids: techniqueIds });
-      } catch (error) {
-        console.log('Erro ao buscar técnicas do Promobrind, tentando BD local...', error);
-        const { data, error: localError } = await supabase
-          .from('personalization_techniques')
-          .select('*')
-          .in('id', techniqueIds)
-          .eq('is_active', true);
-
-        if (localError) throw localError;
-        
-        techniques = (data || []).map(t => ({
-          id: t.id,
-          code: t.code || '',
-          name: t.name,
-          description: t.description,
-          category: null,
-          unit_cost: t.unit_cost,
-          setup_cost: t.setup_cost,
-          min_quantity: t.min_quantity,
-          estimated_days: t.estimated_days,
-          max_colors: null,
-          max_width_cm: null,
-          max_height_cm: null,
-          is_active: t.is_active ?? true,
-        }));
-      }
-
-      return techniques.map(tech => {
-        const locationTech = state.selectedLocation!.availableTechniques.find(
-          t => t.techniqueId === tech.id
-        );
-        
-        const code = tech.code?.toUpperCase() || '';
-        const requiresColor = code.includes('SILK') || code.includes('SERIGRAFIA') || 
-                              code.includes('BORD') || code.includes('EMBROID') ||
-                              code.includes('TAMPOGRAFIA') || code.includes('TRANSFER');
-        const requiresSize = code.includes('DTF') || code.includes('SUB') || 
-                             code.includes('TRANSFER') || code.includes('LASER') ||
-                             code.includes('BORD') || code.includes('EMBROID') ||
-                             code.includes('SILK') || code.includes('SERIGRAFIA');
-
-        return {
-          id: tech.id,
-          code: tech.code || '',
-          name: tech.name,
-          description: tech.description,
-          unitCost: tech.unit_cost || 0,
-          setupCost: tech.setup_cost || 0,
-          estimatedDays: tech.estimated_days || 5,
-          minQuantity: tech.min_quantity || 1,
-          maxColors: locationTech?.maxColors || tech.max_colors || null,
-          maxWidth: state.selectedLocation!.maxWidthCm || tech.max_width_cm,
-          maxHeight: state.selectedLocation!.maxHeightCm || tech.max_height_cm,
-          maxArea: state.selectedLocation!.maxAreaCm2,
-          requiresColorSelection: requiresColor,
-          requiresSizeSelection: requiresSize,
-        } as SelectedTechnique;
-      });
-    },
-    enabled: !!state.selectedLocation?.id,
-    staleTime: 10 * 60 * 1000,
-  });
-
-  useEffect(() => {
-    if (techniquesData) {
-      dispatch({ type: 'SET_AVAILABLE_TECHNIQUES', payload: techniquesData });
-    }
-  }, [techniquesData]);
 
   // ============================================
   // ACTIONS
@@ -487,66 +374,186 @@ export function useSimulatorWizard() {
     dispatch({ type: 'SET_QUANTITY', payload: Math.max(1, quantity) });
   }, []);
 
-  const setNegotiatedPrice = useCallback((enabled: boolean, price: number | null = null) => {
-    dispatch({ type: 'SET_NEGOTIATED_PRICE', payload: { enabled, price } });
-  }, []);
-
   const selectLocation = useCallback((location: EngravingLocation | null) => {
     dispatch({ type: 'SELECT_LOCATION', payload: location });
     if (location) {
-      dispatch({ type: 'SET_STEP', payload: 'technique' });
+      dispatch({ type: 'SET_STEP', payload: 'specs' });
     }
   }, []);
 
-  const selectTechnique = useCallback((technique: SelectedTechnique | null) => {
-    dispatch({ type: 'SELECT_TECHNIQUE', payload: technique });
-    if (technique) {
-      dispatch({ type: 'SET_STEP', payload: 'configuration' });
-    }
+  const updateSpecs = useCallback((specs: Partial<EngravingSpecs>) => {
+    dispatch({ type: 'UPDATE_SPECS', payload: specs });
   }, []);
 
-  const updateOptions = useCallback((options: Partial<EngravingOptions>) => {
-    dispatch({ type: 'UPDATE_OPTIONS', payload: options });
-  }, []);
-
-  // Adicionar/confirmar personalização atual
-  const confirmPersonalization = useCallback(async () => {
-    if (!state.selectedLocation || !state.selectedTechnique) {
-      toast.error('Selecione local e técnica');
-      return null;
+  // Buscar preços comparativos para TODAS as técnicas do local
+  const fetchComparisonPrices = useCallback(async () => {
+    if (!state.selectedLocation) {
+      toast.error('Selecione um local primeiro');
+      return;
     }
 
-    const costs = calculatePersonalizationCost(
-      state.selectedTechnique,
-      state.engravingOptions,
-      state.quantity
-    );
+    const techniques = state.selectedLocation.availableTechniques;
+    if (techniques.length === 0) {
+      toast.warning('Nenhuma técnica disponível para este local');
+      return;
+    }
 
-    // Buscar tabela de preço do Promobrind
-    let priceTableUsed: string | undefined;
-    let tierApplied: string | undefined;
-    
+    dispatch({ type: 'SET_CALCULATING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+
     try {
-      const priceTable = await findBestPriceTable({
-        techniqueName: state.selectedTechnique.name,
-        techniqueCode: state.selectedTechnique.code,
-        quantity: state.quantity,
-        colors: state.engravingOptions.colors,
-        width: state.engravingOptions.width,
-        height: state.engravingOptions.height,
+      // Chamar fn_get_customization_price para cada técnica em paralelo
+      const promises = techniques.map(async (tech): Promise<TechniqueComparisonResult> => {
+        // Verificar se cores excedem o máximo
+        if (tech.maxColors !== null && state.engravingSpecs.colors > tech.maxColors) {
+          return {
+            techniqueId: tech.techniqueId,
+            techniqueName: tech.techniqueName,
+            techniqueCode: tech.techniqueCode,
+            printAreaId: tech.printAreaId,
+            maxColors: tech.maxColors,
+            isAvailable: false,
+            unavailableReason: `Máximo ${tech.maxColors} ${tech.maxColors === 1 ? 'cor' : 'cores'}`,
+            unitPrice: 0,
+            setupPrice: 0,
+            subtotal: 0,
+            totalPrice: 0,
+            costPerUnit: 0,
+            minimumApplied: false,
+            budgetCode: '',
+            productionDays: null,
+            markupPercent: 0,
+            marginPercent: 0,
+            tierUsed: 0,
+            tierMinQty: 0,
+            tierMaxQty: 0,
+          };
+        }
+
+        try {
+          const result = await invokeExternalRpc<any>(
+            'fn_get_customization_price',
+            {
+              p_area_id: tech.printAreaId,
+              p_quantidade: state.quantity,
+              p_num_cores: state.engravingSpecs.colors,
+            }
+          );
+
+          if (!result || !result.success) {
+            return {
+              techniqueId: tech.techniqueId,
+              techniqueName: tech.techniqueName,
+              techniqueCode: tech.techniqueCode,
+              printAreaId: tech.printAreaId,
+              maxColors: tech.maxColors,
+              isAvailable: false,
+              unavailableReason: 'Tabela de preço não encontrada',
+              unitPrice: 0,
+              setupPrice: 0,
+              subtotal: 0,
+              totalPrice: 0,
+              costPerUnit: 0,
+              minimumApplied: false,
+              budgetCode: '',
+              productionDays: null,
+              markupPercent: 0,
+              marginPercent: 0,
+              tierUsed: 0,
+              tierMinQty: 0,
+              tierMaxQty: 0,
+            };
+          }
+
+          return {
+            techniqueId: tech.techniqueId,
+            techniqueName: result.technique || tech.techniqueName,
+            techniqueCode: tech.techniqueCode,
+            printAreaId: tech.printAreaId,
+            maxColors: tech.maxColors,
+            isAvailable: true,
+            unitPrice: result.unit_price || 0,
+            setupPrice: result.faturamento_minimo_gravacao || 0,
+            subtotal: result.subtotal_pecas || 0,
+            totalPrice: result.total_price || 0,
+            costPerUnit: state.quantity > 0 ? (result.total_price || 0) / state.quantity : 0,
+            minimumApplied: result.minimum_applied || false,
+            budgetCode: result.codigo_orcamento || '',
+            productionDays: result.production_days,
+            markupPercent: result.markup_percent || 0,
+            marginPercent: result.margin_percent || 0,
+            tierUsed: result.tier_used || 0,
+            tierMinQty: result.tier_min_qty || 0,
+            tierMaxQty: result.tier_max_qty || 0,
+            rawData: result,
+          };
+        } catch (err) {
+          console.warn(`Erro ao calcular preço para ${tech.techniqueName}:`, err);
+          return {
+            techniqueId: tech.techniqueId,
+            techniqueName: tech.techniqueName,
+            techniqueCode: tech.techniqueCode,
+            printAreaId: tech.printAreaId,
+            maxColors: tech.maxColors,
+            isAvailable: false,
+            unavailableReason: 'Erro ao calcular preço',
+            unitPrice: 0,
+            setupPrice: 0,
+            subtotal: 0,
+            totalPrice: 0,
+            costPerUnit: 0,
+            minimumApplied: false,
+            budgetCode: '',
+            productionDays: null,
+            markupPercent: 0,
+            marginPercent: 0,
+            tierUsed: 0,
+            tierMinQty: 0,
+            tierMaxQty: 0,
+          };
+        }
       });
+
+      const results = await Promise.all(promises);
       
-      if (priceTable) {
-        costs.unitCost = priceTable.unit_price;
-        costs.setupCost = priceTable.setup_price || 0;
-        costs.totalCost = (costs.unitCost * state.quantity) + costs.setupCost;
-        costs.costPerUnit = costs.totalCost / state.quantity;
-        priceTableUsed = priceTable.code_option;
-        tierApplied = `${priceTable.min_quantity}-${priceTable.max_quantity || '∞'}`;
+      // Encontrar mais barato e mais rápido entre os disponíveis
+      const available = results.filter(r => r.isAvailable);
+      if (available.length > 0) {
+        const cheapest = [...available].sort((a, b) => a.totalPrice - b.totalPrice)[0];
+        const fastest = [...available].sort((a, b) => 
+          (a.productionDays || 999) - (b.productionDays || 999)
+        )[0];
+        
+        results.forEach(r => {
+          if (r.isAvailable) {
+            r.isCheapest = r.techniqueId === cheapest.techniqueId;
+            r.isFastest = r.techniqueId === fastest.techniqueId && r.techniqueId !== cheapest.techniqueId;
+          }
+        });
       }
-    } catch (e) {
-      console.log('Tabela de preço não encontrada, usando valores da técnica');
+
+      // Ordenar: disponíveis primeiro (por preço), depois indisponíveis
+      const sorted = [
+        ...available.sort((a, b) => a.totalPrice - b.totalPrice),
+        ...results.filter(r => !r.isAvailable),
+      ];
+
+      dispatch({ type: 'SET_COMPARISON_RESULTS', payload: sorted });
+      dispatch({ type: 'SET_STEP', payload: 'comparison' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao comparar técnicas';
+      dispatch({ type: 'SET_ERROR', payload: message });
+      toast.error(message);
+    } finally {
+      dispatch({ type: 'SET_CALCULATING', payload: false });
     }
+  }, [state.selectedLocation, state.quantity, state.engravingSpecs]);
+
+  // Confirmar técnica selecionada → cria personalização
+  const confirmTechnique = useCallback((comparison: TechniqueComparisonResult) => {
+    if (!state.selectedLocation || !comparison.isAvailable) return;
+
+    dispatch({ type: 'SELECT_COMPARISON', payload: comparison });
 
     const personalization: Personalization = {
       id: `pers-${Date.now()}`,
@@ -554,32 +561,42 @@ export function useSimulatorWizard() {
         ? state.currentPersonalizationIndex + 1 
         : state.personalizations.length + 1,
       location: state.selectedLocation,
-      technique: state.selectedTechnique,
-      options: { ...state.engravingOptions },
-      ...costs,
-      estimatedDays: state.selectedTechnique.estimatedDays,
-      priceTableUsed,
-      tierApplied,
+      technique: {
+        id: comparison.techniqueId,
+        code: comparison.techniqueCode,
+        name: comparison.techniqueName,
+      },
+      specs: { ...state.engravingSpecs },
+      pricing: {
+        unitPrice: comparison.unitPrice,
+        setupPrice: comparison.setupPrice,
+        subtotal: comparison.subtotal,
+        totalPrice: comparison.totalPrice,
+        costPerUnit: comparison.costPerUnit,
+        budgetCode: comparison.budgetCode,
+        productionDays: comparison.productionDays,
+      },
     };
 
     if (state.isEditingPersonalization) {
-      // Atualizar personalização existente
+      // Atualizar existente
       const newPersonalizations = [...state.personalizations];
       newPersonalizations[state.currentPersonalizationIndex] = personalization;
+      
+      // Reset e restaurar
       dispatch({ type: 'RESET_WIZARD' });
-      // Restaurar estado
       if (state.selectedProduct) {
         dispatch({ type: 'SELECT_PRODUCT', payload: state.selectedProduct });
+        dispatch({ type: 'SET_QUANTITY', payload: state.quantity });
       }
       newPersonalizations.forEach(p => {
         dispatch({ type: 'ADD_PERSONALIZATION', payload: p });
       });
+      toast.success(`Gravação ${personalization.index} atualizada`);
     } else {
       dispatch({ type: 'ADD_PERSONALIZATION', payload: personalization });
+      toast.success(`${comparison.techniqueName} adicionada`);
     }
-
-    toast.success(`Gravação ${personalization.index} adicionada`);
-    return personalization;
   }, [state]);
 
   const removePersonalization = useCallback((id: string) => {
@@ -591,9 +608,7 @@ export function useSimulatorWizard() {
     dispatch({ type: 'EDIT_PERSONALIZATION', payload: index });
   }, []);
 
-  // GAP FIX #3: Valida se há locais disponíveis antes de iniciar nova personalização
   const startNewPersonalization = useCallback(() => {
-    // Recalcula locais disponíveis
     const usedLocationIds = new Set(
       state.personalizations.map(p => p.location.id)
     );
@@ -611,99 +626,8 @@ export function useSimulatorWizard() {
     dispatch({ type: 'CANCEL_PERSONALIZATION' });
   }, []);
 
-  // Calcular resultado final (soma todas as personalizações)
-  const calculateResult = useCallback(async () => {
-    if (!state.selectedProduct || state.personalizations.length === 0) {
-      toast.error('Adicione pelo menos uma personalização');
-      return null;
-    }
-
-    dispatch({ type: 'SET_CALCULATING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
-
-    try {
-      const productPrice = state.useNegotiatedPrice && state.negotiatedPrice 
-        ? state.negotiatedPrice 
-        : state.selectedProduct.price;
-      const productTotal = productPrice * state.quantity;
-
-      const personalizationResults: PersonalizationResult[] = state.personalizations.map(p => ({
-        id: p.id,
-        index: p.index,
-        location: {
-          componentName: p.location.componentName,
-          locationName: p.location.locationName,
-          maxDimensions: `${p.location.maxWidthCm || '–'}×${p.location.maxHeightCm || '–'}cm`,
-        },
-        technique: {
-          id: p.technique.id,
-          code: p.technique.code,
-          name: p.technique.name,
-          estimatedDays: p.estimatedDays,
-        },
-        options: {
-          colors: p.options.colors,
-          width: p.options.width,
-          height: p.options.height,
-          positions: p.options.positions,
-          area: p.options.width * p.options.height,
-        },
-        customization: {
-          unitCost: p.unitCost,
-          setupCost: p.setupCost,
-          totalCost: p.totalCost,
-          costPerUnit: p.costPerUnit,
-        },
-        priceTableUsed: p.priceTableUsed,
-        tierApplied: p.tierApplied,
-      }));
-
-      const customizationTotal = state.personalizations.reduce((sum, p) => sum + p.totalCost, 0);
-      const grandTotal = productTotal + customizationTotal;
-      const grandTotalPerUnit = grandTotal / state.quantity;
-      const maxEstimatedDays = Math.max(...state.personalizations.map(p => p.estimatedDays));
-
-      const result: SimulationPriceResult = {
-        id: `sim-${Date.now()}`,
-        timestamp: Date.now(),
-        product: {
-          id: state.selectedProduct.id,
-          name: state.selectedProduct.name,
-          sku: state.selectedProduct.sku,
-          unitPrice: productPrice,
-          quantity: state.quantity,
-          totalPrice: productTotal,
-        },
-        personalizations: personalizationResults,
-        totals: {
-          productTotal,
-          customizationTotal,
-          grandTotal,
-          grandTotalPerUnit,
-        },
-        maxEstimatedDays,
-      };
-
-      dispatch({ type: 'SET_RESULT', payload: result });
-      dispatch({ type: 'SET_STEP', payload: 'result' });
-      
-      return result;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao calcular simulação';
-      dispatch({ type: 'SET_ERROR', payload: message });
-      toast.error(message);
-      return null;
-    } finally {
-      dispatch({ type: 'SET_CALCULATING', payload: false });
-    }
-  }, [state]);
-
   const resetWizard = useCallback(() => {
     dispatch({ type: 'RESET_WIZARD' });
-  }, []);
-
-  const resetFromStep = useCallback((step: WizardStep) => {
-    dispatch({ type: 'RESET_FROM_STEP', payload: step });
   }, []);
 
   // ============================================
@@ -711,11 +635,8 @@ export function useSimulatorWizard() {
   // ============================================
 
   const effectivePrice = useMemo(() => {
-    if (state.useNegotiatedPrice && state.negotiatedPrice) {
-      return state.negotiatedPrice;
-    }
     return state.selectedProduct?.price || 0;
-  }, [state.selectedProduct, state.useNegotiatedPrice, state.negotiatedPrice]);
+  }, [state.selectedProduct]);
 
   const stepProgress = useMemo(() => {
     const currentIndex = getStepIndex(state.currentStep);
@@ -730,37 +651,50 @@ export function useSimulatorWizard() {
     return getStepIndex(state.currentStep) > 0;
   }, [state.currentStep]);
 
-  // Locais disponíveis (filtra os que já têm personalizações confirmadas)
-  // GAP FIX #1: Ao editar, mostra o local da personalização atual + locais não usados
+  // Locais filtrados (exclui já personalizados)
   const availableLocationsFiltered = useMemo(() => {
-    // IDs dos locais já usados em personalizações confirmadas
     const usedLocationIds = new Set(
       state.personalizations.map(p => p.location.id)
     );
     
-    // Se estamos editando, permitir o local da personalização atual
     if (state.isEditingPersonalization && state.personalizations[state.currentPersonalizationIndex]) {
       const currentLocationId = state.personalizations[state.currentPersonalizationIndex].location.id;
-      // Retorna locais não usados + o local da personalização sendo editada
       return state.availableLocations.filter(
         loc => !usedLocationIds.has(loc.id) || loc.id === currentLocationId
       );
     }
     
-    // Retorna apenas locais não usados
     return state.availableLocations.filter(loc => !usedLocationIds.has(loc.id));
   }, [state.availableLocations, state.personalizations, state.isEditingPersonalization, state.currentPersonalizationIndex]);
 
-  // Verifica se ainda há locais disponíveis para novas personalizações
-  // GAP FIX #2: Considera locais após remoção de personalização
   const hasAvailableLocations = useMemo(() => {
-    // Recalcula excluindo todos os locais usados (não edição)
     const usedLocationIds = new Set(
       state.personalizations.map(p => p.location.id)
     );
-    const availableCount = state.availableLocations.filter(loc => !usedLocationIds.has(loc.id)).length;
-    return availableCount > 0;
+    return state.availableLocations.filter(loc => !usedLocationIds.has(loc.id)).length > 0;
   }, [state.availableLocations, state.personalizations]);
+
+  // Totais consolidados (produto + todas as personalizações)
+  const totals = useMemo(() => {
+    const productTotal = effectivePrice * state.quantity;
+    const customizationTotal = state.personalizations.reduce((sum, p) => sum + p.pricing.totalPrice, 0);
+    const grandTotal = productTotal + customizationTotal;
+    const grandTotalPerUnit = state.quantity > 0 ? grandTotal / state.quantity : 0;
+    const maxDays = state.personalizations.length > 0
+      ? Math.max(...state.personalizations.map(p => p.pricing.productionDays || 0))
+      : 0;
+    
+    return { productTotal, customizationTotal, grandTotal, grandTotalPerUnit, maxDays };
+  }, [effectivePrice, state.quantity, state.personalizations]);
+
+  // Max cores disponível para o local selecionado
+  const maxColorsForLocation = useMemo(() => {
+    if (!state.selectedLocation) return 10;
+    const maxColors = state.selectedLocation.availableTechniques
+      .map(t => t.maxColors)
+      .filter((c): c is number => c !== null);
+    return maxColors.length > 0 ? Math.max(...maxColors) : 10;
+  }, [state.selectedLocation]);
 
   // ============================================
   // RETURN
@@ -772,7 +706,6 @@ export function useSimulatorWizard() {
     
     // Loading states
     locationsLoading,
-    techniquesLoading,
     
     // Computed
     effectivePrice,
@@ -781,31 +714,36 @@ export function useSimulatorWizard() {
     canGoBack,
     availableLocationsFiltered,
     hasAvailableLocations,
+    totals,
+    maxColorsForLocation,
     
     // Navigation
     setStep,
     nextStep,
     previousStep,
     
-    // Product Actions
+    // Product
     selectProduct,
     setQuantity,
-    setNegotiatedPrice,
     
-    // Personalization Flow
+    // Location
     selectLocation,
-    selectTechnique,
-    updateOptions,
-    confirmPersonalization,
+    
+    // Specs
+    updateSpecs,
+    
+    // Comparison
+    fetchComparisonPrices,
+    confirmTechnique,
+    
+    // Personalization Management
     removePersonalization,
     editPersonalization,
     startNewPersonalization,
     cancelPersonalization,
     
-    // Final
-    calculateResult,
+    // Reset
     resetWizard,
-    resetFromStep,
     
     // Helpers
     isStepComplete: (step: WizardStep) => isStepComplete(step, state),
