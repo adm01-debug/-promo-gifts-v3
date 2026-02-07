@@ -105,6 +105,10 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         quantity: action.payload,
         comparisonResults: [],
         selectedComparison: null,
+        // Limpar personalizações: preços ficam stale com nova quantidade
+        personalizations: [],
+        currentPersonalizationIndex: 0,
+        isEditingPersonalization: false,
       };
     
     case 'SET_AVAILABLE_LOCATIONS':
@@ -148,7 +152,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         selectedComparison: null,
         comparisonResults: [],
         engravingSpecs: { colors: 1, width: 5, height: 5 },
-        currentStep: 'location',
+        currentStep: 'comparison',
       };
 
     case 'REMOVE_PERSONALIZATION': {
@@ -158,6 +162,22 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return {
         ...state,
         personalizations: newPersonalizations,
+      };
+    }
+
+    case 'UPDATE_PERSONALIZATION': {
+      const { index: editIndex, personalization: updatedPers } = action.payload;
+      const updatedPersonalizations = [...state.personalizations];
+      updatedPersonalizations[editIndex] = updatedPers;
+      return {
+        ...state,
+        personalizations: updatedPersonalizations.map((p, idx) => ({ ...p, index: idx + 1 })),
+        isEditingPersonalization: false,
+        selectedLocation: null,
+        selectedComparison: null,
+        comparisonResults: [],
+        engravingSpecs: { colors: 1, width: 5, height: 5 },
+        currentStep: 'comparison',
       };
     }
 
@@ -371,8 +391,14 @@ export function useSimulatorWizard() {
   }, []);
 
   const setQuantity = useCallback((quantity: number) => {
-    dispatch({ type: 'SET_QUANTITY', payload: Math.max(1, quantity) });
-  }, []);
+    const newQty = Math.max(1, quantity);
+    if (state.personalizations.length > 0 && newQty !== state.quantity) {
+      toast.warning('Quantidade alterada — gravações recalculadas', {
+        description: 'As personalizações anteriores foram removidas pois os preços mudam com a tiragem.',
+      });
+    }
+    dispatch({ type: 'SET_QUANTITY', payload: newQty });
+  }, [state.personalizations.length, state.quantity]);
 
   const selectLocation = useCallback((location: EngravingLocation | null) => {
     dispatch({ type: 'SELECT_LOCATION', payload: location });
@@ -519,7 +545,7 @@ export function useSimulatorWizard() {
       // Encontrar mais barato e mais rápido entre os disponíveis
       const available = results.filter(r => r.isAvailable);
       if (available.length > 0) {
-        const cheapest = [...available].sort((a, b) => a.totalPrice - b.totalPrice)[0];
+      const cheapest = [...available].sort((a, b) => a.totalPrice - b.totalPrice)[0];
         const fastest = [...available].sort((a, b) => 
           (a.productionDays || 999) - (b.productionDays || 999)
         )[0];
@@ -527,7 +553,8 @@ export function useSimulatorWizard() {
         results.forEach(r => {
           if (r.isAvailable) {
             r.isCheapest = r.techniqueId === cheapest.techniqueId;
-            r.isFastest = r.techniqueId === fastest.techniqueId && r.techniqueId !== cheapest.techniqueId;
+            // Mostrar badge "Mais Rápido" mesmo se for o mesmo que mais barato (quando há +1 opção)
+            r.isFastest = r.techniqueId === fastest.techniqueId && available.length > 1;
           }
         });
       }
@@ -579,19 +606,8 @@ export function useSimulatorWizard() {
     };
 
     if (state.isEditingPersonalization) {
-      // Atualizar existente
-      const newPersonalizations = [...state.personalizations];
-      newPersonalizations[state.currentPersonalizationIndex] = personalization;
-      
-      // Reset e restaurar
-      dispatch({ type: 'RESET_WIZARD' });
-      if (state.selectedProduct) {
-        dispatch({ type: 'SELECT_PRODUCT', payload: state.selectedProduct });
-        dispatch({ type: 'SET_QUANTITY', payload: state.quantity });
-      }
-      newPersonalizations.forEach(p => {
-        dispatch({ type: 'ADD_PERSONALIZATION', payload: p });
-      });
+      // Atualizar existente via action dedicada
+      dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { index: state.currentPersonalizationIndex, personalization } });
       toast.success(`Gravação ${personalization.index} atualizada`);
     } else {
       dispatch({ type: 'ADD_PERSONALIZATION', payload: personalization });

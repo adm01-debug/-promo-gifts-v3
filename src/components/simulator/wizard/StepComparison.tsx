@@ -95,23 +95,10 @@ ${persText}
   };
 
   // Se já confirmou uma técnica (personalização adicionada), mostrar resumo
-  const justConfirmed = wizard.personalizations.length > 0 && wizard.currentStep === 'comparison';
+  const hasPersonalizations = wizard.personalizations.length > 0;
   
-  // Se voltou para comparison sem ter resultados, mostrar mensagem
-  if (comparisonResults.length === 0 && !justConfirmed) {
-    return (
-      <div className="max-w-4xl mx-auto text-center py-16">
-        <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
-        <p className="text-muted-foreground text-lg mb-4">Nenhum comparativo disponível</p>
-        <Button onClick={() => wizard.setStep('specs')} variant="outline">
-          Voltar para Especificações
-        </Button>
-      </div>
-    );
-  }
-
-  // Quando já adicionou pelo menos uma personalização e está de volta
-  if (justConfirmed && comparisonResults.length === 0) {
+  // Quando já adicionou pelo menos uma personalização e não tem comparison results ativos
+  if (hasPersonalizations && comparisonResults.length === 0) {
     return (
       <div className="max-w-5xl mx-auto space-y-8">
         <ConfirmedSummary 
@@ -120,6 +107,19 @@ ${persText}
           onGenerateQuote={handleGenerateQuote}
           onCopy={handleCopyResult}
         />
+      </div>
+    );
+  }
+  
+  // Se voltou para comparison sem ter resultados nem personalizações
+  if (comparisonResults.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto text-center py-16">
+        <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
+        <p className="text-muted-foreground text-lg mb-4">Nenhum comparativo disponível</p>
+        <Button onClick={() => wizard.setStep('specs')} variant="outline">
+          Voltar para Especificações
+        </Button>
       </div>
     );
   }
