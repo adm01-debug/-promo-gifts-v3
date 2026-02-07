@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -375,24 +376,12 @@ export default function MagicUp() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Produto *</Label>
-                    <Select
-                      value={selectedProduct?.id}
-                      onValueChange={(value) => {
-                        const product = products.find(p => p.id === value);
-                        setSelectedProduct(product || null);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o produto..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name} ({product.sku})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <ProductSearchCombobox
+                      products={products}
+                      selectedProduct={selectedProduct}
+                      onSelect={setSelectedProduct}
+                      placeholder="Buscar produto por nome ou SKU..."
+                    />
                   </div>
 
                   <div>
