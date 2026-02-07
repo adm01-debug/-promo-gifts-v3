@@ -21,6 +21,8 @@ interface Product {
   name: string;
   sku: string;
   images: any;
+  primary_image_url?: string | null;
+  og_image_url?: string | null;
 }
 
 interface Technique {
@@ -196,7 +198,9 @@ export default function MagicUp() {
         id: p.id,
         name: p.name,
         sku: p.sku,
-        images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
+        images: p.images || [],
+        primary_image_url: p.primary_image_url || p.image_url || null,
+        og_image_url: p.og_image_url || null,
       }));
 
       setProducts(mappedProducts);
