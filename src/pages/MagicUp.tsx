@@ -10,11 +10,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Loader2, Upload, Wand2, Download, CheckCircle2, XCircle, Eye, Grid3x3 } from "lucide-react";
+import { Sparkles, Loader2, Upload, Wand2, Download, CheckCircle2, XCircle, Eye, Grid3x3, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { MultiAreaManager, PersonalizationArea } from "@/components/mockup/MultiAreaManager";
+import { usePrintAreas } from "@/hooks/usePrintAreas";
+import type { PrintAreaWithTechniques } from "@/types/gravacao";
 
 interface Product {
   id: string;
@@ -75,6 +77,10 @@ export default function MagicUp() {
   const [techniques, setTechniques] = useState<Technique[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+  
+  // Print areas do produto (locais de personalização do BD externo)
+  const { data: printAreas, isLoading: loadingPrintAreas } = usePrintAreas(selectedProduct?.id || null);
   
   // Upload
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -110,6 +116,7 @@ export default function MagicUp() {
       setColors([]);
       setProductImages([]);
       setPreviewColorCode(null);
+      setSelectedLocationId(null);
       return;
     }
     
@@ -523,6 +530,77 @@ export default function MagicUp() {
                     </Select>
                   </div>
                 </div>
+
+                {/* Local de Personalização */}
+                {selectedProduct && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                      Local de Personalização
+                    </Label>
+                    {loadingPrintAreas ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Carregando locais...
+                      </div>
+                    ) : printAreas && printAreas.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {printAreas.map((area) => {
+                          const label = [area.component_name, area.location_name]
+                            .filter(Boolean)
+                            .join(' — ') || area.area_name || area.area_code;
+                          const isSelected = selectedLocationId === area.area_id;
+                          return (
+                            <button
+                              key={area.area_id}
+                              type="button"
+                              onClick={() => setSelectedLocationId(isSelected ? null : area.area_id)}
+                              className={`
+                                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                                border transition-all cursor-pointer
+                                ${isSelected
+                                  ? 'border-primary bg-primary/15 text-primary ring-1 ring-primary/30'
+                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:border-primary/50 hover:bg-primary/5'
+                                }
+                              `}
+                              title={`${label} (${area.max_width}×${area.max_height} ${area.unit})`}
+                            >
+                              <MapPin className="h-3 w-3" />
+                              {label}
+                              {area.max_width > 0 && area.max_height > 0 && (
+                                <span className="text-[10px] opacity-70">
+                                  {area.max_width}×{area.max_height}{area.unit}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground py-1">
+                        Nenhum local de personalização cadastrado para este produto.
+                      </p>
+                    )}
+                    {selectedLocationId && printAreas && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {(() => {
+                          const selected = printAreas.find(a => a.area_id === selectedLocationId);
+                          if (!selected || !selected.techniques.length) return null;
+                          return (
+                            <span className="flex items-center gap-1 flex-wrap">
+                              Técnicas disponíveis:
+                              {selected.techniques.map(t => (
+                                <Badge key={t.id} variant="outline" className="text-[10px] px-1.5 py-0">
+                                  {t.nome}
+                                </Badge>
+                              ))}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Cores do produto - badges + preview de imagem */}
                 {selectedProduct && (
