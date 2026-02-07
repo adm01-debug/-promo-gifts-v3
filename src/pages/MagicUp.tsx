@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,8 +34,16 @@ interface Technique {
 interface ProductColor {
   hex: string;
   name: string;
+  code: string;
   stock?: number;
   selected: boolean;
+}
+
+interface ProductImage {
+  url: string;
+  supplierCode: string | null;
+  isPrimary: boolean;
+  isOgImage: boolean;
 }
 
 interface GeneratedMockup {
@@ -71,8 +79,10 @@ export default function MagicUp() {
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   
-  // Cores e áreas
+  // Cores, imagens e áreas
   const [colors, setColors] = useState<ProductColor[]>([]);
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
+  const [previewColorCode, setPreviewColorCode] = useState<string | null>(null);
   const [loadingColors, setLoadingColors] = useState(false);
   const [areas, setAreas] = useState<PersonalizationArea[]>([createDefaultArea()]);
   const [artColorsCount, setArtColorsCount] = useState(1);
@@ -92,52 +102,88 @@ export default function MagicUp() {
     loadTechniques();
   }, []);
 
-  // Buscar cores reais do produto quando selecionado
+  // Buscar cores reais e imagens do produto quando selecionado
   useEffect(() => {
     if (!selectedProduct) {
       setColors([]);
+      setProductImages([]);
+      setPreviewColorCode(null);
       return;
     }
     
-    const fetchProductColors = async () => {
+    const fetchProductData = async () => {
       setLoadingColors(true);
       try {
         const { invokeExternalDb } = await import("@/lib/external-db");
-        const result = await invokeExternalDb<{
-          id: string;
-          color_name: string;
-          color_hex: string;
-          color_code: string;
-          stock_quantity: number;
-        }>({
-          table: "product_variants",
-          operation: "select",
-          filters: { product_id: selectedProduct.id },
-          orderBy: { column: "color_name", ascending: true },
-          limit: 100,
-        });
+        
+        // Buscar variantes e imagens em paralelo
+        const [variantsResult, imagesResult] = await Promise.all([
+          invokeExternalDb<{
+            id: string;
+            color_name: string;
+            color_hex: string;
+            color_code: string;
+            stock_quantity: number;
+          }>({
+            table: "product_variants",
+            operation: "select",
+            filters: { product_id: selectedProduct.id },
+            orderBy: { column: "color_name", ascending: true },
+            limit: 100,
+          }),
+          invokeExternalDb<{
+            id: string;
+            url: string;
+            supplier_code: string | null;
+            is_primary: boolean;
+            is_og_image: boolean;
+            display_order: number;
+            image_type: string;
+          }>({
+            table: "product_images",
+            operation: "select",
+            filters: { product_id: selectedProduct.id },
+            orderBy: { column: "display_order", ascending: true },
+            limit: 100,
+          }),
+        ]);
 
+        // Mapear imagens
+        const images: ProductImage[] = (imagesResult.records || [])
+          .filter((img) => img.image_type !== 'box') // excluir embalagem
+          .map((img) => ({
+            url: img.url,
+            supplierCode: img.supplier_code || null,
+            isPrimary: img.is_primary,
+            isOgImage: img.is_og_image || false,
+          }));
+        setProductImages(images);
+
+        // Mapear cores
         const uniqueColors = new Map<string, ProductColor>();
-        (result.records || []).forEach((v) => {
+        (variantsResult.records || []).forEach((v) => {
           if (!v.color_name || uniqueColors.has(v.color_name)) return;
           uniqueColors.set(v.color_name, {
             hex: v.color_hex || "#CCCCCC",
             name: v.color_name,
+            code: v.color_code || "",
             stock: v.stock_quantity ?? 0,
-            selected: true, // todas selecionadas por padrão
+            selected: true,
           });
         });
 
         setColors(Array.from(uniqueColors.values()));
+        setPreviewColorCode(null);
       } catch (error) {
-        console.error("Erro ao buscar cores do produto:", error);
+        console.error("Erro ao buscar dados do produto:", error);
         setColors([]);
+        setProductImages([]);
       } finally {
         setLoadingColors(false);
       }
     };
 
-    fetchProductColors();
+    fetchProductData();
   }, [selectedProduct?.id]);
 
   const loadProducts = async () => {
@@ -339,6 +385,34 @@ export default function MagicUp() {
   const selectedColorsCount = colors.filter(c => c.selected).length;
   const estimatedMockups = selectedColorsCount * areas.length;
 
+  // Imagem do produto baseada na cor selecionada para preview
+  const currentPreviewImage = useMemo(() => {
+    if (productImages.length === 0) return null;
+    
+    // Se tem uma cor de preview selecionada, buscar imagem específica
+    if (previewColorCode) {
+      const colorImage = productImages.find(
+        (img) => img.supplierCode === previewColorCode
+      );
+      if (colorImage) return colorImage.url;
+    }
+    
+    // Fallback: imagem OG (MAIN) ou primária (SET)
+    const ogImage = productImages.find((img) => img.isOgImage);
+    if (ogImage) return ogImage.url;
+    
+    const primaryImage = productImages.find((img) => img.isPrimary);
+    if (primaryImage) return primaryImage.url;
+    
+    return productImages[0]?.url || null;
+  }, [productImages, previewColorCode]);
+
+  // Nome da cor em preview
+  const previewColorName = useMemo(() => {
+    if (!previewColorCode) return null;
+    return colors.find(c => c.code === previewColorCode)?.name || null;
+  }, [previewColorCode, colors]);
+
   return (
     <MainLayout>
       <div className="container mx-auto p-6 max-w-7xl">
@@ -444,9 +518,27 @@ export default function MagicUp() {
                   </div>
                 </div>
 
-                {/* Cores do produto - badges discretos inline */}
+                {/* Cores do produto - badges + preview de imagem */}
                 {selectedProduct && (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    {/* Imagem do produto por cor */}
+                    {currentPreviewImage && (
+                      <div className="flex items-center gap-4">
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-white border border-border/30 shrink-0">
+                          <img
+                            src={currentPreviewImage}
+                            alt={previewColorName || selectedProduct.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        {previewColorName && (
+                          <p className="text-sm text-muted-foreground">
+                            Cor: <span className="text-foreground font-medium">{previewColorName}</span>
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-muted-foreground">
                         {loadingColors ? "Carregando cores..." : `${colors.length} cores disponíveis · ${colors.filter(c => c.selected).length} selecionadas`}
@@ -470,20 +562,26 @@ export default function MagicUp() {
                           const stockFormatted = (color.stock ?? 0) >= 1000 
                             ? `${((color.stock ?? 0) / 1000).toFixed(1)}k` 
                             : String(color.stock ?? 0);
+                          const isPreview = previewColorCode === color.code && !!color.code;
                           return (
                             <button
                               key={color.name}
                               type="button"
-                              onClick={() => handleColorToggle(index)}
+                              onClick={() => {
+                                handleColorToggle(index);
+                                if (color.code) setPreviewColorCode(color.code);
+                              }}
                               className={`
                                 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium
                                 border transition-all cursor-pointer
-                                ${color.selected
-                                  ? 'border-primary/50 bg-primary/10 text-foreground'
-                                  : 'border-border/50 bg-muted/30 text-muted-foreground opacity-50 hover:opacity-75'
+                                ${isPreview
+                                  ? 'border-primary bg-primary/20 text-foreground ring-1 ring-primary/30'
+                                  : color.selected
+                                    ? 'border-primary/50 bg-primary/10 text-foreground'
+                                    : 'border-border/50 bg-muted/30 text-muted-foreground opacity-50 hover:opacity-75'
                                 }
                               `}
-                              title={`${color.name} · Estoque: ${color.stock ?? 0}`}
+                              title={`${color.name} · Estoque: ${color.stock ?? 0} · Clique para ver foto`}
                             >
                               <span
                                 className="w-3 h-3 rounded-full shrink-0 border border-border/30"
