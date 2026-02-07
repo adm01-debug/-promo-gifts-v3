@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from '@/lib/external-db';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
+import { ProductColorGrid } from './ProductColorGrid';
 
 interface StepProductProps {
   wizard: UseSimulatorWizardReturn;
@@ -47,8 +48,9 @@ export function StepProduct({ wizard }: StepProductProps) {
           sku: p.sku,
           price: getProductPrice(p),
           imageUrl: getProductImageUrl(p),
-          categoryName: p.category_id || null, // category_id é o campo correto do Promobrind
+          categoryName: p.category_id || null,
           brand: p.brand || null,
+          colors: (p.colors as Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string }>) || [],
         }));
     },
     staleTime: 10 * 60 * 1000, // 10 min cache para catálogos grandes
@@ -80,6 +82,7 @@ export function StepProduct({ wizard }: StepProductProps) {
       imageUrl: product.imageUrl,
       categoryName: product.categoryName,
       brand: product.brand,
+      colors: product.colors,
     });
   };
 
@@ -254,34 +257,44 @@ export function StepProduct({ wizard }: StepProductProps) {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20"
+          className="space-y-4"
         >
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden">
-              {wizard.selectedProduct.imageUrl ? (
-                <img src={wizard.selectedProduct.imageUrl} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="h-5 w-5 text-muted-foreground/40" />
-                </div>
-              )}
+          {/* Color variants */}
+          {wizard.selectedProduct.colors && wizard.selectedProduct.colors.length > 0 && (
+            <div className="p-4 rounded-2xl bg-card border">
+              <ProductColorGrid colors={wizard.selectedProduct.colors} />
             </div>
-            <div>
-              <p className="font-bold text-sm line-clamp-1">{wizard.selectedProduct.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {wizard.quantity} un. × {formatCurrency(wizard.effectivePrice)} = <span className="font-bold text-primary">{formatCurrency(wizard.effectivePrice * wizard.quantity)}</span>
-              </p>
+          )}
+
+          {/* CTA bar */}
+          <div className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden">
+                {wizard.selectedProduct.imageUrl ? (
+                  <img src={wizard.selectedProduct.imageUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="h-5 w-5 text-muted-foreground/40" />
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="font-bold text-sm line-clamp-1">{wizard.selectedProduct.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {wizard.quantity} un. × {formatCurrency(wizard.effectivePrice)} = <span className="font-bold text-primary">{formatCurrency(wizard.effectivePrice * wizard.quantity)}</span>
+                </p>
+              </div>
             </div>
+            <Button
+              className="h-12 px-8 text-base gap-2 rounded-2xl shadow-lg shadow-primary/20"
+              size="lg"
+              disabled={!wizard.canProceed}
+              onClick={wizard.nextStep}
+            >
+              Continuar
+              <ChevronRight className="h-5 w-5" />
+            </Button>
           </div>
-          <Button
-            className="h-12 px-8 text-base gap-2 rounded-2xl shadow-lg shadow-primary/20"
-            size="lg"
-            disabled={!wizard.canProceed}
-            onClick={wizard.nextStep}
-          >
-            Continuar
-            <ChevronRight className="h-5 w-5" />
-          </Button>
         </motion.div>
       )}
     </div>
