@@ -24,6 +24,8 @@ interface Product {
   name: string;
   sku: string;
   images?: unknown;
+  primary_image_url?: string | null;
+  og_image_url?: string | null;
 }
 
 interface ProductSearchComboboxProps {
@@ -79,6 +81,9 @@ export function ProductSearchCombobox({
   }, [search, debouncedSearch]);
 
   const getProductImage = (product: Product): string | null => {
+    // Prioridade: og_image_url > primary_image_url > images[0]
+    if (product.og_image_url) return product.og_image_url;
+    if (product.primary_image_url) return product.primary_image_url;
     if (!product.images) return null;
     const images = Array.isArray(product.images) ? product.images : [];
     return images.length > 0 ? String(images[0]) : null;
