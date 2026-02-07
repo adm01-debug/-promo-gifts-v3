@@ -224,55 +224,53 @@ export function StepProduct({ wizard }: StepProductProps) {
         <div className="space-y-6">
           {/* Selected Product Card */}
           <div className="sticky top-4">
-            <div className="p-6 rounded-3xl bg-gradient-to-br from-card via-card to-muted/30 border shadow-lg">
-              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Tag className="h-4 w-4" />
-                Selecionado
-              </h4>
-              
-              {wizard.selectedProduct && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-5"
-                >
-                  {/* Product */}
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 rounded-2xl bg-muted overflow-hidden shadow-sm">
-                      {wizard.selectedProduct.imageUrl ? (
-                        <img 
-                          src={wizard.selectedProduct.imageUrl} 
-                          alt={wizard.selectedProduct.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="h-8 w-8 text-muted-foreground/40" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold line-clamp-2 leading-tight">
-                        {wizard.selectedProduct.name}
-                      </p>
-                      <Badge variant="outline" className="text-xs mt-2">
-                        {wizard.selectedProduct.sku}
-                      </Badge>
-                    </div>
-                  </div>
+            {wizard.selectedProduct && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-6 rounded-3xl bg-gradient-to-br from-card via-card to-muted/30 border shadow-lg space-y-5"
+              >
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Selecionado
+                </h4>
 
-                  {/* Price */}
-                  <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Preço unitário</span>
-                      <span className="text-2xl font-bold text-primary">
-                        {formatCurrency(wizard.effectivePrice)}
-                      </span>
-                    </div>
+                {/* Product */}
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-2xl bg-muted overflow-hidden shadow-sm">
+                    {wizard.selectedProduct.imageUrl ? (
+                      <img 
+                        src={wizard.selectedProduct.imageUrl} 
+                        alt={wizard.selectedProduct.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="h-8 w-8 text-muted-foreground/40" />
+                      </div>
+                    )}
                   </div>
-                </motion.div>
-              )}
-            </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold line-clamp-2 leading-tight">
+                      {wizard.selectedProduct.name}
+                    </p>
+                    <Badge variant="outline" className="text-xs mt-2">
+                      {wizard.selectedProduct.sku}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Preço unitário</span>
+                    <span className="text-2xl font-bold text-primary">
+                      {formatCurrency(wizard.effectivePrice)}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* Quantity Section */}
             <div className="p-6 rounded-3xl bg-card border mt-4">
