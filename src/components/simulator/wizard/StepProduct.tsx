@@ -16,7 +16,7 @@ import {
   X, 
   ChevronRight,
   Sparkles,
-  Palette,
+  Tag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -259,58 +259,12 @@ export function StepProduct({ wizard }: StepProductProps) {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
-          {/* Product color variants */}
+          {/* Color variants */}
           {wizard.selectedProduct.colors && wizard.selectedProduct.colors.length > 0 && (
             <div className="p-4 rounded-2xl bg-card border">
               <ProductColorGrid colors={wizard.selectedProduct.colors} />
             </div>
           )}
-
-          {/* Engraving colors selector */}
-          <div className="p-5 rounded-2xl bg-card border">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Palette className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h4 className="font-bold">Cores da Gravação</h4>
-                <p className="text-xs text-muted-foreground">Quantas cores terá a personalização?</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {[1, 2, 3, 4].map(num => (
-                <Button
-                  key={num}
-                  variant={wizard.engravingSpecs.colors === num ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => wizard.updateSpecs({ colors: num })}
-                  className={cn(
-                    'w-14 h-12 rounded-xl text-lg font-bold',
-                    wizard.engravingSpecs.colors === num && 'shadow-lg shadow-primary/20'
-                  )}
-                >
-                  {num}
-                </Button>
-              ))}
-              <Button
-                variant={wizard.engravingSpecs.colors === 5 ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => wizard.updateSpecs({ colors: 5 })}
-                className={cn(
-                  'h-12 px-5 rounded-xl text-sm font-bold',
-                  wizard.engravingSpecs.colors === 5 && 'shadow-lg shadow-primary/20'
-                )}
-              >
-                🎨 Colorido
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground mt-3">
-              {wizard.engravingSpecs.colors === 5 
-                ? 'Full color (impressão digital)' 
-                : `${wizard.engravingSpecs.colors} ${wizard.engravingSpecs.colors === 1 ? 'cor' : 'cores'} de gravação`
-              }
-            </p>
-          </div>
 
           {/* CTA bar */}
           <div className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
