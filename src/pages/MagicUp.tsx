@@ -34,6 +34,7 @@ interface Technique {
 interface ProductColor {
   hex: string;
   name: string;
+  stock?: number;
   selected: boolean;
 }
 
@@ -45,19 +46,6 @@ interface GeneratedMockup {
   area_name: string;
   created_at: string;
 }
-
-const DEFAULT_COLORS: ProductColor[] = [
-  { hex: "#FFFFFF", name: "Branco", selected: true },
-  { hex: "#000000", name: "Preto", selected: false },
-  { hex: "#1E3A8A", name: "Azul Marinho", selected: false },
-  { hex: "#DC2626", name: "Vermelho", selected: false },
-  { hex: "#16A34A", name: "Verde", selected: false },
-  { hex: "#EA580C", name: "Laranja", selected: false },
-  { hex: "#FACC15", name: "Amarelo", selected: false },
-  { hex: "#6B7280", name: "Cinza", selected: false },
-  { hex: "#EC4899", name: "Rosa", selected: false },
-  { hex: "#8B5CF6", name: "Roxo", selected: false },
-];
 
 const createDefaultArea = (): PersonalizationArea => ({
   id: crypto.randomUUID(),
@@ -84,7 +72,8 @@ export default function MagicUp() {
   const [uploading, setUploading] = useState(false);
   
   // Cores e áreas
-  const [colors, setColors] = useState<ProductColor[]>(DEFAULT_COLORS);
+  const [colors, setColors] = useState<ProductColor[]>([]);
+  const [loadingColors, setLoadingColors] = useState(false);
   const [areas, setAreas] = useState<PersonalizationArea[]>([createDefaultArea()]);
   const [artColorsCount, setArtColorsCount] = useState(1);
   
@@ -102,6 +91,54 @@ export default function MagicUp() {
     loadProducts();
     loadTechniques();
   }, []);
+
+  // Buscar cores reais do produto quando selecionado
+  useEffect(() => {
+    if (!selectedProduct) {
+      setColors([]);
+      return;
+    }
+    
+    const fetchProductColors = async () => {
+      setLoadingColors(true);
+      try {
+        const { invokeExternalDb } = await import("@/lib/external-db");
+        const result = await invokeExternalDb<{
+          id: string;
+          color_name: string;
+          color_hex: string;
+          color_code: string;
+          stock_quantity: number;
+        }>({
+          table: "product_variants",
+          operation: "select",
+          filters: { product_id: selectedProduct.id },
+          orderBy: { column: "color_name", ascending: true },
+          limit: 100,
+        });
+
+        const uniqueColors = new Map<string, ProductColor>();
+        (result.records || []).forEach((v) => {
+          if (!v.color_name || uniqueColors.has(v.color_name)) return;
+          uniqueColors.set(v.color_name, {
+            hex: v.color_hex || "#CCCCCC",
+            name: v.color_name,
+            stock: v.stock_quantity ?? 0,
+            selected: true, // todas selecionadas por padrão
+          });
+        });
+
+        setColors(Array.from(uniqueColors.values()));
+      } catch (error) {
+        console.error("Erro ao buscar cores do produto:", error);
+        setColors([]);
+      } finally {
+        setLoadingColors(false);
+      }
+    };
+
+    fetchProductColors();
+  }, [selectedProduct?.id]);
 
   const loadProducts = async () => {
     try {
@@ -406,6 +443,60 @@ export default function MagicUp() {
                     </Select>
                   </div>
                 </div>
+
+                {/* Cores do produto - badges discretos inline */}
+                {selectedProduct && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-muted-foreground">
+                        {loadingColors ? "Carregando cores..." : `${colors.length} cores disponíveis · ${colors.filter(c => c.selected).length} selecionadas`}
+                      </p>
+                      {colors.length > 0 && (
+                        <button
+                          type="button"
+                          className="text-xs text-primary hover:underline"
+                          onClick={() => {
+                            const allSelected = colors.every(c => c.selected);
+                            setColors(colors.map(c => ({ ...c, selected: !allSelected })));
+                          }}
+                        >
+                          {colors.every(c => c.selected) ? "Desmarcar todas" : "Selecionar todas"}
+                        </button>
+                      )}
+                    </div>
+                    {!loadingColors && colors.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {colors.map((color, index) => {
+                          const stockFormatted = (color.stock ?? 0) >= 1000 
+                            ? `${((color.stock ?? 0) / 1000).toFixed(1)}k` 
+                            : String(color.stock ?? 0);
+                          return (
+                            <button
+                              key={color.name}
+                              type="button"
+                              onClick={() => handleColorToggle(index)}
+                              className={`
+                                inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium
+                                border transition-all cursor-pointer
+                                ${color.selected
+                                  ? 'border-primary/50 bg-primary/10 text-foreground'
+                                  : 'border-border/50 bg-muted/30 text-muted-foreground opacity-50 hover:opacity-75'
+                                }
+                              `}
+                              title={`${color.name} · Estoque: ${color.stock ?? 0}`}
+                            >
+                              <span
+                                className="w-3 h-3 rounded-full shrink-0 border border-border/30"
+                                style={{ backgroundColor: color.hex }}
+                              />
+                              {stockFormatted}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {selectedTechnique?.requires_color_count && (
                   <div>
