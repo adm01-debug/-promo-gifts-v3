@@ -1,21 +1,17 @@
 /**
- * SimuladorWizard - Página do Simulador com layout premium e arejado
- * 
- * Suporta MÚLTIPLAS PERSONALIZAÇÕES por produto.
- * Fluxo: Produto → (Local → Técnica → Config) × N → Resultado
+ * SimuladorWizard v2 - Produto → Local → Specs → Comparativo
  */
 
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useSimulatorWizard } from "@/hooks/simulator/useSimulatorWizard";
 import { 
   WizardStepIndicator, 
   StepProduct, 
   StepLocation, 
-  StepTechnique, 
-  StepOptions, 
-  StepResult,
+  StepSpecs,
+  StepComparison,
   PersonalizationSummary,
   PersonalizationTabs,
 } from "@/components/simulator/wizard";
@@ -24,7 +20,6 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import type { SelectedProduct } from "@/types/domain/simulator-wizard";
 
-// Interface para dados do produto vindos via state
 interface PreSelectedProductState {
   id: string;
   name: string;
@@ -36,10 +31,10 @@ interface PreSelectedProductState {
 
 export default function SimuladorWizard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const wizard = useSimulatorWizard();
   const hasProcessedPreSelection = useRef(false);
 
-  // Processar produto pré-selecionado via state (vindo do ProductDetail)
   useEffect(() => {
     if (hasProcessedPreSelection.current) return;
     
@@ -66,20 +61,22 @@ export default function SimuladorWizard() {
     }
   }, [location.state, wizard.selectProduct]);
 
-  // Verificar se está em fluxo de personalização (após selecionar produto)
   const isInPersonalizationFlow = wizard.selectedProduct !== null && wizard.currentStep !== 'product';
-  const showSidebar = isInPersonalizationFlow && wizard.currentStep !== 'result';
+  const showSidebar = isInPersonalizationFlow && wizard.personalizations.length > 0;
 
   const handleAddNewPersonalization = () => {
     wizard.startNewPersonalization();
   };
 
-  const handleFinalizeSimulation = async () => {
-    // Se há personalização em andamento, confirmar primeiro
-    if (wizard.selectedLocation && wizard.selectedTechnique) {
-      await wizard.confirmPersonalization();
-    }
-    await wizard.calculateResult();
+  const handleGenerateQuote = () => {
+    const quoteData = {
+      product: wizard.selectedProduct,
+      quantity: wizard.quantity,
+      personalizations: wizard.personalizations,
+      totals: wizard.totals,
+    };
+    navigate('/orcamentos/novo', { state: { fromSimulator: true, simulationData: quoteData } });
+    toast.success('Redirecionando para o orçamento...');
   };
 
   return (
@@ -92,7 +89,6 @@ export default function SimuladorWizard() {
           transition={{ duration: 0.5 }}
           className="relative mb-8"
         >
-          {/* Background gradient */}
           <div className="absolute inset-0 -z-10 overflow-hidden">
             <div className="absolute -top-40 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
             <div className="absolute -top-20 right-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
@@ -138,13 +134,13 @@ export default function SimuladorWizard() {
               <WizardStepIndicator wizard={wizard} />
             </motion.div>
 
-            {/* Tabs de Personalizações (só mostra quando há produto selecionado) */}
-            {isInPersonalizationFlow && wizard.currentStep !== 'result' && (
+            {/* Tabs de Personalizações */}
+            {isInPersonalizationFlow && wizard.personalizations.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25 }}
-                className="mb-6 max-w-4xl mx-auto"
+                className="mb-6 max-w-5xl mx-auto"
               >
                 <PersonalizationTabs 
                   wizard={wizard} 
@@ -164,9 +160,8 @@ export default function SimuladorWizard() {
             >
               {wizard.currentStep === 'product' && <StepProduct wizard={wizard} />}
               {wizard.currentStep === 'location' && <StepLocation wizard={wizard} />}
-              {wizard.currentStep === 'technique' && <StepTechnique wizard={wizard} />}
-              {wizard.currentStep === 'configuration' && <StepOptions wizard={wizard} />}
-              {wizard.currentStep === 'result' && <StepResult wizard={wizard} />}
+              {wizard.currentStep === 'specs' && <StepSpecs wizard={wizard} />}
+              {wizard.currentStep === 'comparison' && <StepComparison wizard={wizard} />}
             </motion.div>
           </div>
 
@@ -181,8 +176,8 @@ export default function SimuladorWizard() {
               <PersonalizationSummary
                 wizard={wizard}
                 onAddNew={handleAddNewPersonalization}
-                onFinalize={handleFinalizeSimulation}
-                showAddButton={wizard.personalizations.length > 0 && !wizard.isEditingPersonalization}
+                onGenerateQuote={handleGenerateQuote}
+                showAddButton={!wizard.isEditingPersonalization}
               />
             </motion.aside>
           )}

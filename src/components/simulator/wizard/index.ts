@@ -5,10 +5,7 @@
 export { WizardStepIndicator } from './WizardStepIndicator';
 export { StepProduct } from './StepProduct';
 export { StepLocation } from './StepLocation';
-export { StepTechnique } from './StepTechnique';
-export { StepOptions } from './StepOptions';
-export { StepResult } from './StepResult';
-export { SmartSuggestion } from './SmartSuggestion';
-export { TechniqueComparator } from './TechniqueComparator';
+export { StepSpecs } from './StepSpecs';
+export { StepComparison } from './StepComparison';
 export { PersonalizationSummary } from './PersonalizationSummary';
 export { PersonalizationTabs } from './PersonalizationTabs';

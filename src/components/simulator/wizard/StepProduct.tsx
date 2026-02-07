@@ -8,8 +8,6 @@ import { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -316,30 +314,7 @@ export function StepProduct({ wizard }: StepProductProps) {
                 className="text-center text-xl font-bold h-14 rounded-xl"
               />
 
-              {/* Negotiated Price */}
-              <div className="mt-5 pt-5 border-t space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Preço negociado</Label>
-                  <Switch
-                    checked={wizard.useNegotiatedPrice}
-                    onCheckedChange={(checked) => 
-                      wizard.setNegotiatedPrice(checked, wizard.negotiatedPrice)
-                    }
-                  />
-                </div>
-                {wizard.useNegotiatedPrice && (
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="R$ 0,00"
-                    value={wizard.negotiatedPrice || ''}
-                    onChange={e => 
-                      wizard.setNegotiatedPrice(true, parseFloat(e.target.value) || null)
-                    }
-                    className="text-lg font-semibold h-12 rounded-xl"
-                  />
-                )}
-              </div>
+              {/* Removido: Preço negociado não faz parte do fluxo v2 */}
             </div>
 
             {/* Total & CTA */}

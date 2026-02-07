@@ -1,7 +1,5 @@
 /**
- * PersonalizationTabs - Abas para alternar entre personalizações
- * 
- * Permite visualizar/editar cada gravação e adicionar novas
+ * PersonalizationTabs - Abas para alternar entre personalizações v2
  */
 
 import { Button } from '@/components/ui/button';
@@ -19,24 +17,19 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
     personalizations, 
     currentPersonalizationIndex, 
     isEditingPersonalization,
-    editPersonalization,
-    removePersonalization,
     selectedLocation,
     currentStep,
     hasAvailableLocations,
   } = wizard;
 
-  // Determina se estamos criando uma nova personalização (não editando existente)
-  // Só mostra se há locais disponíveis
   const isCreatingNew = !isEditingPersonalization && hasAvailableLocations && (
     currentStep === 'location' || 
-    currentStep === 'technique' || 
-    currentStep === 'configuration'
+    currentStep === 'specs' || 
+    currentStep === 'comparison'
   );
 
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-2">
-      {/* Abas das personalizações existentes */}
       {personalizations.map((pers, idx) => (
         <motion.div
           key={pers.id}
@@ -48,7 +41,7 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
             variant={isEditingPersonalization && currentPersonalizationIndex === idx ? 'default' : 'outline'}
             size="sm"
             className="gap-2 pr-8"
-            onClick={() => editPersonalization(idx)}
+            onClick={() => wizard.editPersonalization(idx)}
           >
             <span className="font-bold">{idx + 1}.</span>
             <span className="truncate max-w-[120px]">
@@ -61,7 +54,7 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
             className="absolute right-0.5 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive"
             onClick={(e) => {
               e.stopPropagation();
-              removePersonalization(pers.id);
+              wizard.removePersonalization(pers.id);
             }}
           >
             <X className="h-3 w-3" />
@@ -69,7 +62,6 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
         </motion.div>
       ))}
 
-      {/* Aba da nova personalização em edição */}
       {isCreatingNew && (
         <Button
           variant="default"
@@ -81,7 +73,6 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
         </Button>
       )}
 
-      {/* Botão adicionar nova - só mostra se há locais disponíveis e não está criando */}
       {personalizations.length > 0 && !isCreatingNew && hasAvailableLocations && (
         <Button
           variant="ghost"
