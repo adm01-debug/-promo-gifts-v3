@@ -191,7 +191,7 @@ export default function MagicUp() {
   const loadProducts = async () => {
     try {
       const { fetchPromobrindProducts } = await import('@/lib/external-db');
-      const productsData = await fetchPromobrindProducts({ limit: 500 });
+      const productsData = await fetchPromobrindProducts();
       
       // Mapear para formato esperado
       const mappedProducts = productsData.map(p => ({
