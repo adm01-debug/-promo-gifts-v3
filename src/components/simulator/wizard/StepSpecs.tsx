@@ -11,7 +11,6 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { 
   SlidersHorizontal, 
-  Palette, 
   Ruler,
   ChevronLeft,
   AlertTriangle,
@@ -101,65 +100,11 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
         </div>
       </div>
 
-      {/* Specs Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
-        {/* Colors */}
+      {/* Size Card */}
+      <div className="max-w-lg">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-3xl bg-card border shadow-sm"
-        >
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-primary/10">
-                <Palette className="h-5 w-5 text-primary" />
-              </div>
-              <h4 className="font-bold text-lg">Cores</h4>
-            </div>
-          </div>
-          
-          {/* Color Buttons: 1, 2, 3, 4, Colorido */}
-          <div className="flex flex-wrap gap-2">
-            {[1, 2, 3, 4].map(num => (
-              <Button
-                key={num}
-                variant={engravingSpecs.colors === num ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => wizard.updateSpecs({ colors: num })}
-                className={cn(
-                  'w-14 h-12 rounded-xl text-lg font-bold',
-                  engravingSpecs.colors === num && 'shadow-lg shadow-primary/20'
-                )}
-              >
-                {num}
-              </Button>
-            ))}
-            <Button
-              variant={engravingSpecs.colors === 5 ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => wizard.updateSpecs({ colors: 5 })}
-              className={cn(
-                'h-12 px-5 rounded-xl text-sm font-bold',
-                engravingSpecs.colors === 5 && 'shadow-lg shadow-primary/20'
-              )}
-            >
-              🎨 Colorido
-            </Button>
-          </div>
-
-          <p className="text-sm text-muted-foreground mt-4">
-            {engravingSpecs.colors === 5 
-              ? 'Full color (impressão digital)' 
-              : `${engravingSpecs.colors} ${engravingSpecs.colors === 1 ? 'cor' : 'cores'} de gravação`
-            }
-          </p>
-        </motion.div>
-
-        {/* Size */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
           className={cn(
             'p-6 rounded-3xl border shadow-sm',
             areaExceeded ? 'bg-warning/5 border-warning/30' : 'bg-card'
