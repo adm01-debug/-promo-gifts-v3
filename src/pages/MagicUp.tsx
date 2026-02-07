@@ -482,55 +482,11 @@ export default function MagicUp() {
               </CardContent>
             </Card>
 
-            {/* Seleção de Cores */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">3</span>
-                  Cores do Produto
-                </CardTitle>
-                <CardDescription>
-                  Selecione as cores para gerar os mockups (gera 1 mockup por cor)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-5 gap-3">
-                  {colors.map((color, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleColorToggle(index)}
-                      className={`
-                        relative cursor-pointer rounded-lg p-4 border-2 transition-all
-                        ${color.selected 
-                          ? 'border-purple-500 shadow-lg scale-105' 
-                          : 'border-gray-200 hover:border-purple-300'
-                        }
-                      `}
-                    >
-                      <div
-                        className="w-full h-16 rounded-md mb-2"
-                        style={{ 
-                          backgroundColor: color.hex,
-                          border: color.hex === '#FFFFFF' ? '1px solid #e5e7eb' : 'none'
-                        }}
-                      />
-                      <p className="text-xs font-medium text-center">{color.name}</p>
-                      {color.selected && (
-                        <div className="absolute top-1 right-1 bg-purple-500 rounded-full p-1">
-                          <CheckCircle2 className="h-4 w-4 text-white" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Áreas de Personalização */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">4</span>
+                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">3</span>
                   Áreas de Personalização
                 </CardTitle>
                 <CardDescription>
@@ -549,7 +505,7 @@ export default function MagicUp() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">5</span>
+                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">4</span>
                   Qualidade da IA
                 </CardTitle>
               </CardHeader>
