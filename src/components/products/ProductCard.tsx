@@ -238,7 +238,7 @@ export function ProductCard({
         {/* Quick actions - Right Side - Always visible on mobile, hover on desktop */}
         <div
           className={cn(
-            "absolute top-3 right-3 flex flex-col gap-2 z-10",
+            "absolute top-3 right-3 flex flex-col gap-2 z-20",
             "transition-all duration-300 ease-out",
             // Mobile: sempre visível; Desktop: hover
             "opacity-100 translate-x-0 md:opacity-0 md:translate-x-4",
