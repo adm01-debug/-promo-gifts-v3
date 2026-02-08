@@ -1,28 +1,23 @@
 /**
- * useSimulatorWizard v2 - Hook central do simulador
+ * useSimulatorWizard v3 - Hook central do simulador
  * 
- * Novo fluxo: Produto → Local → Specs → Comparativo
- * Usa fn_get_customization_price_v2 com variantes para comparar técnicas.
+ * FLUXO SIMPLIFICADO: 2 RPCs
+ * 1. fn_get_product_print_areas_v2 → áreas + técnicas + VARIANTES (tudo em 1 call)
+ * 2. fn_get_customization_price_v2(p_tecnica_variante_id) → preço final
  * 
- * FLUXO DE 3 PASSOS DO PREÇO:
- * 1. fn_get_product_print_areas → áreas com técnicas MESTRE
- * 2. category_area_techniques → variantes da técnica (ex: Plana vs Cilíndrica)
- * 3. fn_get_customization_price_v2(p_tecnica_variante_id) → preço final
+ * NÃO usar: fn_get_product_print_areas (v1), category_area_techniques, fetchTecnicaVariants
  */
 
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { 
-  fetchPromobrindPrintAreas,
-} from '@/lib/external-db';
-import { invokeExternalRpc } from '@/lib/external-rpc';
 import {
-  fetchTecnicaVariants,
+  fetchProductPrintAreasV2,
   calculateCustomizationPriceV2,
+  flattenVariantsFromArea,
 } from '@/hooks/useGravacaoPriceV2';
-import type { TecnicaVariante } from '@/hooks/useGravacaoPriceV2';
+import type { PrintAreaV2, TechniqueVariant } from '@/hooks/useGravacaoPriceV2';
 import type {
   SimulatorWizardState,
   WizardAction,
@@ -41,8 +36,6 @@ import {
   isStepComplete,
   canNavigateToStep,
 } from '@/types/domain/simulator-wizard';
-
-// invokeExternalRpc importado de @/lib/external-rpc
 
 // ============================================
 // ESTADO INICIAL
@@ -96,7 +89,6 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         quantity: action.payload,
         comparisonResults: [],
         selectedComparison: null,
-        // Limpar personalizações: preços ficam stale com nova quantidade
         personalizations: [],
         currentPersonalizationIndex: 0,
         isEditingPersonalization: false,
@@ -111,7 +103,6 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         selectedLocation: action.payload,
         comparisonResults: [],
         selectedComparison: null,
-        // Reset specs com base no local selecionado
         engravingSpecs: {
           colors: 1,
           width: Math.min(5, action.payload?.maxWidthCm || 50),
@@ -224,6 +215,61 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
 }
 
 // ============================================
+// HELPER: Converter PrintAreaV2 → EngravingLocation[]
+// ============================================
+
+function mapPrintAreasToLocations(areas: PrintAreaV2[]): EngravingLocation[] {
+  return areas.map(area => ({
+    id: area.area_id,
+    componentId: area.area_id,
+    componentCode: area.area_code,
+    componentName: area.component_name || 'Componente Principal',
+    locationCode: area.area_code,
+    locationName: area.location_name || area.area_name,
+    maxWidthCm: area.max_width,
+    maxHeightCm: area.max_height,
+    maxAreaCm2: null,
+    areaImageUrl: null,
+    isFromGroup: false,
+    // Cada técnica com variantes fica como availableTechnique
+    // Variantes são armazenadas inline para acesso direto no passo 2
+    availableTechniques: area.techniques.flatMap(tech =>
+      tech.variantes.length > 0
+        ? tech.variantes.map(v => ({
+            id: `${area.area_id}-${v.variante_id}`,
+            printAreaId: area.area_id,
+            techniqueId: tech.id,       // ID mestre
+            techniqueName: tech.nome,
+            techniqueCode: tech.codigo,
+            maxColors: v.max_colors,
+            isDefault: v.is_recommended,
+            isCurved: area.is_curved,
+            // v3: variante inline
+            variantId: v.variante_id,
+            variantName: v.nome,
+            variantCode: v.codigo,
+            hasPricing: v.has_pricing,
+            isRecommended: v.is_recommended,
+          }))
+        : [{
+            // Técnica sem variantes → "Preço sob consulta"
+            id: `${area.area_id}-${tech.id}-no-variant`,
+            printAreaId: area.area_id,
+            techniqueId: tech.id,
+            techniqueName: tech.nome,
+            techniqueCode: tech.codigo,
+            maxColors: null,
+            isDefault: false,
+            isCurved: area.is_curved,
+            hasPricing: false,
+          }]
+    ),
+    // Store raw area data for future reference
+    _rawArea: area,
+  }));
+}
+
+// ============================================
 // HOOK PRINCIPAL
 // ============================================
 
@@ -231,112 +277,73 @@ export function useSimulatorWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
   // ============================================
-  // QUERIES - Locais de gravação
+  // QUERY: Buscar áreas + técnicas + variantes (1 call)
   // ============================================
 
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
-    queryKey: ['wizard-locations-v2', state.selectedProduct?.id],
+    queryKey: ['wizard-locations-v3', state.selectedProduct?.id],
     queryFn: async () => {
       if (!state.selectedProduct?.id) return [];
       
-      const printAreas = await fetchPromobrindPrintAreas(state.selectedProduct.id);
-      
-      if (!printAreas.length) {
-        // Fallback: BD local
-        const { data: productLocations, error: prodError } = await supabase
-          .from('product_components')
-          .select(`
-            id, component_code, component_name,
-            product_component_locations (
-              id, location_code, location_name, max_width_cm, max_height_cm, max_area_cm2, area_image_url,
-              product_component_location_techniques (
-                id, technique_id, max_colors, is_default, composed_code,
-                personalization_techniques (id, name, code)
-              )
+      try {
+        // v3: Uma única RPC retorna TUDO
+        const areas = await fetchProductPrintAreasV2(state.selectedProduct.id);
+        
+        if (areas.length > 0) {
+          return mapPrintAreasToLocations(areas);
+        }
+      } catch (err) {
+        console.warn('fn_get_product_print_areas_v2 falhou, tentando fallback local:', err);
+      }
+
+      // Fallback: BD local (para produtos sem dados no Promobrind)
+      const { data: productLocations, error: prodError } = await supabase
+        .from('product_components')
+        .select(`
+          id, component_code, component_name,
+          product_component_locations (
+            id, location_code, location_name, max_width_cm, max_height_cm, max_area_cm2, area_image_url,
+            product_component_location_techniques (
+              id, technique_id, max_colors, is_default, composed_code,
+              personalization_techniques (id, name, code)
             )
-          `)
-          .eq('product_id', state.selectedProduct.id)
-          .eq('is_active', true)
-          .eq('is_personalizable', true);
+          )
+        `)
+        .eq('product_id', state.selectedProduct.id)
+        .eq('is_active', true)
+        .eq('is_personalizable', true);
 
-        if (prodError) throw prodError;
+      if (prodError) throw prodError;
 
-        const locations: EngravingLocation[] = [];
-        productLocations?.forEach(comp => {
-          comp.product_component_locations?.forEach((loc: any) => {
-            locations.push({
-              id: loc.id,
-              componentId: comp.id,
-              componentCode: comp.component_code,
-              componentName: comp.component_name,
-              locationCode: loc.location_code,
-              locationName: loc.location_name,
-              maxWidthCm: loc.max_width_cm,
-              maxHeightCm: loc.max_height_cm,
-              maxAreaCm2: loc.max_area_cm2,
-              areaImageUrl: loc.area_image_url,
-              isFromGroup: false,
-              availableTechniques: loc.product_component_location_techniques?.map((lt: any) => ({
-                id: lt.id,
-                printAreaId: loc.id,
-                techniqueId: lt.personalization_techniques?.id || lt.technique_id,
-                techniqueName: lt.personalization_techniques?.name || 'Técnica',
-                techniqueCode: lt.personalization_techniques?.code || '',
-                maxColors: lt.max_colors,
-                isDefault: lt.is_default || false,
-              })) || [],
-            });
+      const locations: EngravingLocation[] = [];
+      productLocations?.forEach(comp => {
+        comp.product_component_locations?.forEach((loc: any) => {
+          locations.push({
+            id: loc.id,
+            componentId: comp.id,
+            componentCode: comp.component_code,
+            componentName: comp.component_name,
+            locationCode: loc.location_code,
+            locationName: loc.location_name,
+            maxWidthCm: loc.max_width_cm,
+            maxHeightCm: loc.max_height_cm,
+            maxAreaCm2: loc.max_area_cm2,
+            areaImageUrl: loc.area_image_url,
+            isFromGroup: false,
+            availableTechniques: loc.product_component_location_techniques?.map((lt: any) => ({
+              id: lt.id,
+              printAreaId: loc.id,
+              techniqueId: lt.personalization_techniques?.id || lt.technique_id,
+              techniqueName: lt.personalization_techniques?.name || 'Técnica',
+              techniqueCode: lt.personalization_techniques?.code || '',
+              maxColors: lt.max_colors,
+              isDefault: lt.is_default || false,
+            })) || [],
           });
         });
+      });
 
-        return locations;
-      }
-
-      // Agrupar print areas por localização
-      const locationMap = new Map<string, EngravingLocation>();
-      
-      for (const area of printAreas) {
-        const key = `${area.component_name || 'Componente'}-${area.location_name || area.area_name}`;
-        
-        if (!locationMap.has(key)) {
-          locationMap.set(key, {
-            id: area.id,
-            componentId: area.id,
-            componentCode: area.area_code,
-            componentName: area.component_name || 'Componente Principal',
-            locationCode: area.area_code,
-            locationName: area.location_name || area.area_name,
-            maxWidthCm: area.max_width_cm,
-            maxHeightCm: area.max_height_cm,
-            maxAreaCm2: area.max_area_cm2,
-            areaImageUrl: area.area_image_url,
-            isFromGroup: false,
-            availableTechniques: [],
-          });
-        }
-        
-        if (area.technique_id && area.technique_name) {
-          const location = locationMap.get(key)!;
-          const existingTech = location.availableTechniques.find(
-            t => t.techniqueId === area.technique_id
-          );
-          
-          if (!existingTech) {
-            location.availableTechniques.push({
-              id: `${area.id}-${area.technique_id}`,
-              printAreaId: area.id, // ID da área para chamada RPC
-              techniqueId: area.technique_id,
-              techniqueName: area.technique_name,
-              techniqueCode: area.technique_code || '',
-              maxColors: area.max_colors,
-              isDefault: area.is_default,
-              isCurved: area.is_curved,
-            });
-          }
-        }
-      }
-
-      return Array.from(locationMap.values());
+      return locations;
     },
     enabled: !!state.selectedProduct?.id,
     staleTime: 10 * 60 * 1000,
@@ -402,8 +409,11 @@ export function useSimulatorWizard() {
     dispatch({ type: 'UPDATE_SPECS', payload: specs });
   }, []);
 
-  // Buscar preços comparativos para TODAS as técnicas do local
-  // FLUXO v2: Para cada técnica mestre, buscar variantes → calcular preço com variante
+  // ============================================
+  // COMPARAÇÃO DE PREÇOS (PASSO 2 do v3)
+  // Variantes já vieram do passo 1 — apenas calcular preço
+  // ============================================
+
   const fetchComparisonPrices = useCallback(async () => {
     if (!state.selectedLocation) {
       toast.error('Selecione um local primeiro');
@@ -420,254 +430,77 @@ export function useSimulatorWizard() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
-      // Para cada técnica mestre:
-      // 1. Buscar variantes (category_area_techniques)
-      // 2. Para cada variante, calcular preço (fn_get_customization_price_v2)
       const allResults: TechniqueComparisonResult[] = [];
 
       const promises = techniques.map(async (tech) => {
-        // Verificar se cores excedem o máximo
-        if (tech.maxColors !== null && tech.maxColors > 0 && state.engravingSpecs.colors > tech.maxColors) {
-          allResults.push({
-            techniqueId: tech.techniqueId,
-            techniqueName: tech.techniqueName,
-            techniqueCode: tech.techniqueCode,
-            printAreaId: tech.printAreaId,
-            maxColors: tech.maxColors,
-            isAvailable: false,
-            unavailableReason: `Máximo ${tech.maxColors} ${tech.maxColors === 1 ? 'cor' : 'cores'}`,
-            unitPrice: 0,
-            setupPrice: 0,
-            subtotal: 0,
-            totalPrice: 0,
-            costPerUnit: 0,
-            minimumApplied: false,
-            budgetCode: '',
-            productionDays: null,
-            markupPercent: 0,
-            marginPercent: 0,
-            tierUsed: 0,
-            tierMinQty: 0,
-            tierMaxQty: 0,
-          });
+        // Sem variante → "Preço sob consulta"
+        if (!tech.variantId || tech.hasPricing === false) {
+          allResults.push(createUnavailableResult(
+            tech,
+            tech.variantId ? 'Preço sob consulta' : 'Sem variante disponível'
+          ));
           return;
         }
 
+        // Verificar se cores excedem o máximo da variante
+        if (tech.maxColors !== null && tech.maxColors > 0 && state.engravingSpecs.colors > tech.maxColors) {
+          allResults.push(createUnavailableResult(
+            tech,
+            `Máximo ${tech.maxColors} ${tech.maxColors === 1 ? 'cor' : 'cores'}`
+          ));
+          return;
+        }
+
+        // Cores efetivas: se max_colors = 0 (full color) ou 1 (mono), usar 1
+        const effectiveColors = (tech.maxColors === 0 || tech.maxColors === 1) 
+          ? 1 
+          : state.engravingSpecs.colors;
+
         try {
-          // PASSO 2: Buscar variantes da técnica para esta área
-          const variants = await fetchTecnicaVariants({
-            categoryPrintAreaId: tech.printAreaId,
-            tecnicaGravacaoId: tech.techniqueId,
+          // PASSO 2 do v3: Calcular preço direto com variante_id
+          const result = await calculateCustomizationPriceV2({
+            tecnicaVarianteId: tech.variantId,
+            quantidade: state.quantity,
+            numCores: effectiveColors,
           });
 
-          if (variants.length === 0) {
-            // Fallback: tentar RPC antiga se não encontrar variantes
-            try {
-              const fallbackResult = await invokeExternalRpc<any>(
-                'fn_get_customization_price',
-                {
-                  p_area_id: tech.printAreaId,
-                  p_quantidade: state.quantity,
-                  p_num_cores: state.engravingSpecs.colors,
-                }
-              );
-              
-              if (fallbackResult?.success) {
-                allResults.push({
-                  techniqueId: tech.techniqueId,
-                  techniqueName: fallbackResult.technique || tech.techniqueName,
-                  techniqueCode: tech.techniqueCode,
-                  printAreaId: tech.printAreaId,
-                  maxColors: tech.maxColors,
-                  isAvailable: true,
-                  unitPrice: fallbackResult.unit_price || 0,
-                  setupPrice: fallbackResult.faturamento_minimo_gravacao || 0,
-                  subtotal: fallbackResult.subtotal_pecas || 0,
-                  totalPrice: fallbackResult.total_price || 0,
-                  costPerUnit: state.quantity > 0 ? (fallbackResult.total_price || 0) / state.quantity : 0,
-                  minimumApplied: fallbackResult.minimum_applied || false,
-                  budgetCode: fallbackResult.codigo_orcamento || '',
-                  productionDays: fallbackResult.prazo_dias ?? fallbackResult.production_days ?? null,
-                  markupPercent: fallbackResult.markup_percent || 0,
-                  marginPercent: fallbackResult.margin_percent || 0,
-                  tierUsed: fallbackResult.faixa_utilizada ?? fallbackResult.tier_used ?? 0,
-                  tierMinQty: fallbackResult.tier_min_qty || 0,
-                  tierMaxQty: fallbackResult.tier_max_qty || 0,
-                  rawData: fallbackResult,
-                });
-                return;
-              }
-            } catch {
-              // Fallback também falhou
-            }
-
-            allResults.push({
-              techniqueId: tech.techniqueId,
-              techniqueName: tech.techniqueName,
-              techniqueCode: tech.techniqueCode,
-              printAreaId: tech.printAreaId,
-              maxColors: tech.maxColors,
-              isAvailable: false,
-              unavailableReason: 'Sem variantes disponíveis',
-              unitPrice: 0,
-              setupPrice: 0,
-              subtotal: 0,
-              totalPrice: 0,
-              costPerUnit: 0,
-              minimumApplied: false,
-              budgetCode: '',
-              productionDays: null,
-              markupPercent: 0,
-              marginPercent: 0,
-              tierUsed: 0,
-              tierMinQty: 0,
-              tierMaxQty: 0,
-            });
+          if (!result || !result.success) {
+            allResults.push(createUnavailableResult(tech, 'Erro no cálculo de preço'));
             return;
           }
 
-          // PASSO 3: Para cada variante, calcular preço com fn_get_customization_price_v2
-          // Verificar max_colors da variante
-          const applicableVariants = variants.filter(v => {
-            if (v.max_colors === 0) return true; // Full color, sem restrição
-            if (v.max_colors === null) return true;
-            return state.engravingSpecs.colors <= v.max_colors;
-          });
-
-          if (applicableVariants.length === 0) {
-            // Nenhuma variante suporta o nº de cores
-            allResults.push({
-              techniqueId: tech.techniqueId,
-              techniqueName: tech.techniqueName,
-              techniqueCode: tech.techniqueCode,
-              printAreaId: tech.printAreaId,
-              maxColors: variants[0]?.max_colors ?? tech.maxColors,
-              isAvailable: false,
-              unavailableReason: `Nenhuma variante suporta ${state.engravingSpecs.colors} cores`,
-              unitPrice: 0,
-              setupPrice: 0,
-              subtotal: 0,
-              totalPrice: 0,
-              costPerUnit: 0,
-              minimumApplied: false,
-              budgetCode: '',
-              productionDays: null,
-              markupPercent: 0,
-              marginPercent: 0,
-              tierUsed: 0,
-              tierMinQty: 0,
-              tierMaxQty: 0,
-            });
-            return;
-          }
-
-          // Calcular preço para cada variante aplicável
-          const variantPricePromises = applicableVariants.map(async (variant) => {
-            try {
-              const result = await calculateCustomizationPriceV2({
-                tecnicaVarianteId: variant.tecnica_variante_id,
-                quantidade: state.quantity,
-                numCores: state.engravingSpecs.colors,
-              });
-
-              if (!result || !result.success) {
-                return null;
-              }
-
-              return {
-                variant,
-                result,
-              };
-            } catch (err) {
-              console.warn(`Erro v2 para variante ${variant.tecnica_gravacao_variante.nome}:`, err);
-              return null;
-            }
-          });
-
-          const variantResults = (await Promise.all(variantPricePromises)).filter(Boolean);
-
-          if (variantResults.length === 0) {
-            allResults.push({
-              techniqueId: tech.techniqueId,
-              techniqueName: tech.techniqueName,
-              techniqueCode: tech.techniqueCode,
-              printAreaId: tech.printAreaId,
-              maxColors: tech.maxColors,
-              isAvailable: false,
-              unavailableReason: 'Erro ao calcular preço',
-              unitPrice: 0,
-              setupPrice: 0,
-              subtotal: 0,
-              totalPrice: 0,
-              costPerUnit: 0,
-              minimumApplied: false,
-              budgetCode: '',
-              productionDays: null,
-              markupPercent: 0,
-              marginPercent: 0,
-              tierUsed: 0,
-              tierMinQty: 0,
-              tierMaxQty: 0,
-            });
-            return;
-          }
-
-          // Adicionar cada variante como resultado separado
-          for (const vr of variantResults) {
-            if (!vr) continue;
-            const { variant, result } = vr;
-            
-            allResults.push({
-              techniqueId: tech.techniqueId,
-              techniqueName: result.technique || variant.tecnica_gravacao_variante.nome,
-              techniqueCode: variant.tecnica_gravacao_variante.codigo || tech.techniqueCode,
-              printAreaId: tech.printAreaId,
-              maxColors: variant.max_colors,
-              variantId: variant.tecnica_variante_id,
-              variantName: variant.tecnica_gravacao_variante.nome,
-              variantCode: variant.tecnica_gravacao_variante.codigo,
-              isAvailable: true,
-              unitPrice: result.unit_price || 0,
-              setupPrice: result.faturamento_minimo_gravacao || 0,
-              subtotal: result.subtotal_pecas || 0,
-              totalPrice: result.total_price || 0,
-              costPerUnit: state.quantity > 0 ? (result.total_price || 0) / state.quantity : 0,
-              minimumApplied: result.minimum_applied || false,
-              budgetCode: result.codigo_orcamento || '',
-              productionDays: result.prazo_dias ?? null,
-              markupPercent: result.markup_percent || 0,
-              // Calcular margem: markup 115% → margem = 115/215 ≈ 53.49%
-              marginPercent: result.margin_percent ?? (result.markup_percent ? (result.markup_percent / (100 + result.markup_percent)) * 100 : 0),
-              tierUsed: result.faixa_utilizada || 0,
-              tierMinQty: result.tier_min_qty || 0,
-              tierMaxQty: result.tier_max_qty || 0,
-              rawData: result as unknown as Record<string, unknown>,
-            });
-          }
-        } catch (err) {
-          console.warn(`Erro ao buscar variantes para ${tech.techniqueName}:`, err);
           allResults.push({
             techniqueId: tech.techniqueId,
-            techniqueName: tech.techniqueName,
-            techniqueCode: tech.techniqueCode,
+            techniqueName: result.technique || tech.variantName || tech.techniqueName,
+            techniqueCode: tech.variantCode || tech.techniqueCode,
             printAreaId: tech.printAreaId,
             maxColors: tech.maxColors,
-            isAvailable: false,
-            unavailableReason: 'Erro ao calcular preço',
-            unitPrice: 0,
-            setupPrice: 0,
-            subtotal: 0,
-            totalPrice: 0,
-            costPerUnit: 0,
-            minimumApplied: false,
-            budgetCode: '',
-            productionDays: null,
-            markupPercent: 0,
-            marginPercent: 0,
-            tierUsed: 0,
+            variantId: tech.variantId,
+            variantName: tech.variantName,
+            variantCode: tech.variantCode,
+            isAvailable: true,
+            unitPrice: result.unit_price || 0,
+            setupPrice: result.faturamento_minimo_gravacao || 0,
+            subtotal: result.subtotal_pecas || 0,
+            totalPrice: result.total_price || 0,
+            costPerUnit: state.quantity > 0 ? (result.total_price || 0) / state.quantity : 0,
+            minimumApplied: result.minimum_applied || false,
+            budgetCode: result.codigo_orcamento || '',
+            productionDays: result.prazo_dias ?? null,
+            markupPercent: result.markup_percent || 0,
+            marginPercent: result.margin_percent ?? (
+              result.markup_percent 
+                ? (result.markup_percent / (100 + result.markup_percent)) * 100 
+                : 0
+            ),
+            tierUsed: result.faixa_utilizada || 0,
             tierMinQty: 0,
             tierMaxQty: 0,
+            rawData: result as unknown as Record<string, unknown>,
           });
+        } catch (err) {
+          console.warn(`Erro ao calcular preço para ${tech.variantName || tech.techniqueName}:`, err);
+          allResults.push(createUnavailableResult(tech, 'Erro ao calcular preço'));
         }
       });
 
@@ -683,8 +516,8 @@ export function useSimulatorWizard() {
         
         allResults.forEach(r => {
           if (r.isAvailable) {
-            r.isCheapest = r.techniqueId === cheapest.techniqueId && r.variantId === cheapest.variantId;
-            r.isFastest = r.techniqueId === fastest.techniqueId && r.variantId === fastest.variantId && available.length > 1;
+            r.isCheapest = r.variantId === cheapest.variantId;
+            r.isFastest = r.variantId === fastest.variantId && available.length > 1;
           }
         });
       }
@@ -736,7 +569,6 @@ export function useSimulatorWizard() {
     };
 
     if (state.isEditingPersonalization) {
-      // Atualizar existente via action dedicada
       dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { index: state.currentPersonalizationIndex, personalization } });
       toast.success(`Gravação ${personalization.index} atualizada`);
     } else {
@@ -797,7 +629,6 @@ export function useSimulatorWizard() {
     return getStepIndex(state.currentStep) > 0;
   }, [state.currentStep]);
 
-  // Locais filtrados (exclui já personalizados)
   const availableLocationsFiltered = useMemo(() => {
     const usedLocationIds = new Set(
       state.personalizations.map(p => p.location.id)
@@ -820,7 +651,6 @@ export function useSimulatorWizard() {
     return state.availableLocations.filter(loc => !usedLocationIds.has(loc.id)).length > 0;
   }, [state.availableLocations, state.personalizations]);
 
-  // Totais consolidados (produto + todas as personalizações)
   const totals = useMemo(() => {
     const productTotal = effectivePrice * state.quantity;
     const customizationTotal = state.personalizations.reduce((sum, p) => sum + p.pricing.totalPrice, 0);
@@ -833,12 +663,11 @@ export function useSimulatorWizard() {
     return { productTotal, customizationTotal, grandTotal, grandTotalPerUnit, maxDays };
   }, [effectivePrice, state.quantity, state.personalizations]);
 
-  // Max cores disponível para o local selecionado
   const maxColorsForLocation = useMemo(() => {
     if (!state.selectedLocation) return 10;
     const maxColors = state.selectedLocation.availableTechniques
       .map(t => t.maxColors)
-      .filter((c): c is number => c !== null);
+      .filter((c): c is number => c !== null && c > 0);
     return maxColors.length > 0 ? Math.max(...maxColors) : 10;
   }, [state.selectedLocation]);
 
@@ -847,13 +676,8 @@ export function useSimulatorWizard() {
   // ============================================
 
   return {
-    // State
     ...state,
-    
-    // Loading states
     locationsLoading,
-    
-    // Computed
     effectivePrice,
     stepProgress,
     canProceed,
@@ -862,38 +686,66 @@ export function useSimulatorWizard() {
     hasAvailableLocations,
     totals,
     maxColorsForLocation,
-    
-    // Navigation
     setStep,
     nextStep,
     previousStep,
-    
-    // Product
     selectProduct,
     setQuantity,
-    
-    // Location
     selectLocation,
-    
-    // Specs
     updateSpecs,
-    
-    // Comparison
     fetchComparisonPrices,
     confirmTechnique,
-    
-    // Personalization Management
     removePersonalization,
     editPersonalization,
     startNewPersonalization,
     cancelPersonalization,
-    
-    // Reset
     resetWizard,
-    
-    // Helpers
     isStepComplete: (step: WizardStep) => isStepComplete(step, state),
     canNavigateToStep: (step: WizardStep) => canNavigateToStep(step, state),
+  };
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+function createUnavailableResult(
+  tech: {
+    techniqueId: string;
+    techniqueName: string;
+    techniqueCode: string;
+    printAreaId: string;
+    maxColors: number | null;
+    variantId?: string;
+    variantName?: string;
+    variantCode?: string;
+  },
+  reason: string
+): TechniqueComparisonResult {
+  return {
+    techniqueId: tech.techniqueId,
+    techniqueName: tech.variantName || tech.techniqueName,
+    techniqueCode: tech.variantCode || tech.techniqueCode,
+    printAreaId: tech.printAreaId,
+    maxColors: tech.maxColors,
+    variantId: tech.variantId,
+    variantName: tech.variantName,
+    variantCode: tech.variantCode,
+    isAvailable: false,
+    unavailableReason: reason,
+    unitPrice: 0,
+    setupPrice: 0,
+    subtotal: 0,
+    totalPrice: 0,
+    costPerUnit: 0,
+    minimumApplied: false,
+    budgetCode: '',
+    productionDays: null,
+    markupPercent: 0,
+    marginPercent: 0,
+    tierUsed: 0,
+    tierMinQty: 0,
+    tierMaxQty: 0,
   };
 }
 
