@@ -13,8 +13,8 @@
  */
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { invokeExternalDb } from '@/lib/external-db';
+import { invokeExternalRpc } from '@/lib/external-rpc';
 
 // ============================================
 // TIPOS - SISTEMA DE PREÇOS v2
@@ -176,27 +176,7 @@ export interface PrintAreaWithTechniques {
   }[];
 }
 
-// ============================================
-// HELPER: Invocar RPC no banco externo
-// ============================================
-
-async function invokeExternalRpc<T>(
-  rpcName: string,
-  params: Record<string, unknown>
-): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: {
-      operation: 'rpc',
-      rpcName,
-      rpcParams: params,
-    },
-  });
-
-  if (error) throw new Error(error.message);
-  if (!data?.success) throw new Error(data?.error || 'Erro na RPC');
-  
-  return data.data as T;
-}
+// invokeExternalRpc importado de @/lib/external-rpc
 
 // ============================================
 // HOOKS
@@ -268,15 +248,17 @@ export function useFaixasPrecoOficial(tabelaPrecoId: string | null) {
 }
 
 /**
- * Hook: Calcula preço de personalização usando fn_get_customization_price_v2
+ * Hook: Calcula preço de personalização (suporta v1 e v2)
  * 
  * FLUXO v2:
- * 1. Buscar variantes (category_area_techniques) - use useTecnicaVariants
+ * 1. Buscar variantes (category_area_techniques) - use useTecnicaVariants de useGravacaoPriceV2
  * 2. Calcular preço com variante (fn_get_customization_price_v2)
  * 
- * Para compatibilidade, mantém fallback para fn_get_customization_price (sem variante)
+ * Mantém fallback para fn_get_customization_price (v1, sem variante)
+ * 
+ * NOTA: Para o fluxo v2 puro (simulador wizard), usar os hooks de useGravacaoPriceV2.ts
  */
-export function useCustomizationPriceV2() {
+export function useCustomizationPriceLegacy() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

@@ -6,7 +6,7 @@
  */
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeExternalRpc } from '@/lib/external-rpc';
 
 // ============================================
 // TIPOS (conforme briefing)
@@ -59,27 +59,7 @@ export interface CustomizationPrice {
   max_colors: number | null;
 }
 
-// ============================================
-// HELPER: Invocar RPC no banco externo
-// ============================================
-
-async function invokeExternalRpc<T>(
-  rpcName: string,
-  params: Record<string, unknown>
-): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: {
-      operation: 'rpc',
-      rpcName,
-      rpcParams: params,
-    },
-  });
-
-  if (error) throw new Error(error.message);
-  if (!data?.success) throw new Error(data?.error || 'Erro na RPC');
-  
-  return data.data as T;
-}
+// invokeExternalRpc importado de @/lib/external-rpc
 
 // ============================================
 // HOOKS
