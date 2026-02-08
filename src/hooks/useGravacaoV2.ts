@@ -268,17 +268,52 @@ export function useFaixasPrecoOficial(tabelaPrecoId: string | null) {
 }
 
 /**
- * Hook: Calcula preço de personalização usando fn_get_customization_price v2
+ * Hook: Calcula preço de personalização usando fn_get_customization_price_v2
  * 
- * A função RPC faz fallback automático:
- * 1. Tenta buscar por customization_price_table_id
- * 2. Se não encontrar, busca por technique_id
- * 3. Se ainda não encontrar, busca na tabela de fornecedores (legacy)
+ * FLUXO v2:
+ * 1. Buscar variantes (category_area_techniques) - use useTecnicaVariants
+ * 2. Calcular preço com variante (fn_get_customization_price_v2)
+ * 
+ * Para compatibilidade, mantém fallback para fn_get_customization_price (sem variante)
  */
 export function useCustomizationPriceV2() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Calcular preço com variante (PREFERIDO - v2)
+   */
+  const calculatePriceWithVariant = useCallback(async (
+    tecnicaVarianteId: string,
+    quantidade: number,
+    numCores: number = 1
+  ): Promise<CustomizationPriceV2 | null> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await invokeExternalRpc<CustomizationPriceV2>(
+        'fn_get_customization_price_v2',
+        {
+          p_tecnica_variante_id: tecnicaVarianteId,
+          p_quantidade: quantidade,
+          p_num_cores: numCores,
+        }
+      );
+      
+      setLoading(false);
+      return result;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
+      setError(message);
+      setLoading(false);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Calcular preço por área (FALLBACK - v1 legacy)
+   */
   const calculatePrice = useCallback(async (
     areaId: string,
     quantidade: number,
@@ -307,7 +342,7 @@ export function useCustomizationPriceV2() {
     }
   }, []);
 
-  return { calculatePrice, loading, error };
+  return { calculatePrice, calculatePriceWithVariant, loading, error };
 }
 
 /**

@@ -16,6 +16,7 @@ const ALLOWED_RPCS = [
   'fn_link_product_print_areas',
   'fn_backfill_product_print_areas',
   'fn_get_customization_price',
+  'fn_get_customization_price_v2',
   'fn_find_fornecedor_price_table',
   'get_category_descendants',
 ] as const;
@@ -96,6 +97,11 @@ const PRODUCT_TABLES = [
   'tabela_preco_gravacao_oficial',         // 43 técnicas com configurações (NOVA!)
   'tabela_preco_gravacao_oficial_faixa',   // 301 faixas de preço (NOVA!)
   'organization_markup_customization',     // 59 configurações de markup (v5.1)
+  // ============================================
+  // SISTEMA DE PREÇOS v2 - VARIANTES POR ÁREA
+  // category_area_techniques: vínculos área×técnica com variantes
+  // ============================================
+  'category_area_techniques',              // Vínculos área-técnica com variante_id
 ] as const;
 
 // Views e Materialized Views (somente leitura)
