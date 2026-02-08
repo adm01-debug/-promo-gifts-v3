@@ -2,7 +2,12 @@
  * useSimulatorWizard v2 - Hook central do simulador
  * 
  * Novo fluxo: Produto → Local → Specs → Comparativo
- * Usa fn_get_customization_price para comparar TODAS as técnicas.
+ * Usa fn_get_customization_price_v2 com variantes para comparar técnicas.
+ * 
+ * FLUXO DE 3 PASSOS DO PREÇO:
+ * 1. fn_get_product_print_areas → áreas com técnicas MESTRE
+ * 2. category_area_techniques → variantes da técnica (ex: Plana vs Cilíndrica)
+ * 3. fn_get_customization_price_v2(p_tecnica_variante_id) → preço final
  */
 
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
@@ -12,6 +17,11 @@ import { toast } from 'sonner';
 import { 
   fetchPromobrindPrintAreas,
 } from '@/lib/external-db';
+import {
+  fetchTecnicaVariants,
+  calculateCustomizationPriceV2,
+} from '@/hooks/useGravacaoPriceV2';
+import type { TecnicaVariante } from '@/hooks/useGravacaoPriceV2';
 import type {
   SimulatorWizardState,
   WizardAction,
@@ -412,6 +422,7 @@ export function useSimulatorWizard() {
   }, []);
 
   // Buscar preços comparativos para TODAS as técnicas do local
+  // FLUXO v2: Para cada técnica mestre, buscar variantes → calcular preço com variante
   const fetchComparisonPrices = useCallback(async () => {
     if (!state.selectedLocation) {
       toast.error('Selecione um local primeiro');
@@ -428,11 +439,15 @@ export function useSimulatorWizard() {
     dispatch({ type: 'SET_ERROR', payload: null });
 
     try {
-      // Chamar fn_get_customization_price para cada técnica em paralelo
-      const promises = techniques.map(async (tech): Promise<TechniqueComparisonResult> => {
+      // Para cada técnica mestre:
+      // 1. Buscar variantes (category_area_techniques)
+      // 2. Para cada variante, calcular preço (fn_get_customization_price_v2)
+      const allResults: TechniqueComparisonResult[] = [];
+
+      const promises = techniques.map(async (tech) => {
         // Verificar se cores excedem o máximo
-        if (tech.maxColors !== null && state.engravingSpecs.colors > tech.maxColors) {
-          return {
+        if (tech.maxColors !== null && tech.maxColors > 0 && state.engravingSpecs.colors > tech.maxColors) {
+          allResults.push({
             techniqueId: tech.techniqueId,
             techniqueName: tech.techniqueName,
             techniqueCode: tech.techniqueCode,
@@ -453,28 +468,66 @@ export function useSimulatorWizard() {
             tierUsed: 0,
             tierMinQty: 0,
             tierMaxQty: 0,
-          };
+          });
+          return;
         }
 
         try {
-          const result = await invokeExternalRpc<any>(
-            'fn_get_customization_price',
-            {
-              p_area_id: tech.printAreaId,
-              p_quantidade: state.quantity,
-              p_num_cores: state.engravingSpecs.colors,
-            }
-          );
+          // PASSO 2: Buscar variantes da técnica para esta área
+          const variants = await fetchTecnicaVariants({
+            categoryPrintAreaId: tech.printAreaId,
+            tecnicaGravacaoId: tech.techniqueId,
+          });
 
-          if (!result || !result.success) {
-            return {
+          if (variants.length === 0) {
+            // Fallback: tentar RPC antiga se não encontrar variantes
+            try {
+              const fallbackResult = await invokeExternalRpc<any>(
+                'fn_get_customization_price',
+                {
+                  p_area_id: tech.printAreaId,
+                  p_quantidade: state.quantity,
+                  p_num_cores: state.engravingSpecs.colors,
+                }
+              );
+              
+              if (fallbackResult?.success) {
+                allResults.push({
+                  techniqueId: tech.techniqueId,
+                  techniqueName: fallbackResult.technique || tech.techniqueName,
+                  techniqueCode: tech.techniqueCode,
+                  printAreaId: tech.printAreaId,
+                  maxColors: tech.maxColors,
+                  isAvailable: true,
+                  unitPrice: fallbackResult.unit_price || 0,
+                  setupPrice: fallbackResult.faturamento_minimo_gravacao || 0,
+                  subtotal: fallbackResult.subtotal_pecas || 0,
+                  totalPrice: fallbackResult.total_price || 0,
+                  costPerUnit: state.quantity > 0 ? (fallbackResult.total_price || 0) / state.quantity : 0,
+                  minimumApplied: fallbackResult.minimum_applied || false,
+                  budgetCode: fallbackResult.codigo_orcamento || '',
+                  productionDays: fallbackResult.prazo_dias ?? fallbackResult.production_days ?? null,
+                  markupPercent: fallbackResult.markup_percent || 0,
+                  marginPercent: fallbackResult.margin_percent || 0,
+                  tierUsed: fallbackResult.faixa_utilizada ?? fallbackResult.tier_used ?? 0,
+                  tierMinQty: fallbackResult.tier_min_qty || 0,
+                  tierMaxQty: fallbackResult.tier_max_qty || 0,
+                  rawData: fallbackResult,
+                });
+                return;
+              }
+            } catch {
+              // Fallback também falhou
+            }
+
+            allResults.push({
               techniqueId: tech.techniqueId,
               techniqueName: tech.techniqueName,
               techniqueCode: tech.techniqueCode,
               printAreaId: tech.printAreaId,
               maxColors: tech.maxColors,
               isAvailable: false,
-              unavailableReason: 'Tabela de preço não encontrada',
+              unavailableReason: 'Sem variantes disponíveis',
               unitPrice: 0,
               setupPrice: 0,
               subtotal: 0,
@@ -488,34 +541,130 @@ export function useSimulatorWizard() {
               tierUsed: 0,
               tierMinQty: 0,
               tierMaxQty: 0,
-            };
+            });
+            return;
           }
 
-          return {
-            techniqueId: tech.techniqueId,
-            techniqueName: result.technique || tech.techniqueName,
-            techniqueCode: tech.techniqueCode,
-            printAreaId: tech.printAreaId,
-            maxColors: tech.maxColors,
-            isAvailable: true,
-            unitPrice: result.unit_price || 0,
-            setupPrice: result.faturamento_minimo_gravacao || 0,
-            subtotal: result.subtotal_pecas || 0,
-            totalPrice: result.total_price || 0,
-            costPerUnit: state.quantity > 0 ? (result.total_price || 0) / state.quantity : 0,
-            minimumApplied: result.minimum_applied || false,
-            budgetCode: result.codigo_orcamento || '',
-            productionDays: result.production_days,
-            markupPercent: result.markup_percent || 0,
-            marginPercent: result.margin_percent || 0,
-            tierUsed: result.tier_used || 0,
-            tierMinQty: result.tier_min_qty || 0,
-            tierMaxQty: result.tier_max_qty || 0,
-            rawData: result,
-          };
+          // PASSO 3: Para cada variante, calcular preço com fn_get_customization_price_v2
+          // Verificar max_colors da variante
+          const applicableVariants = variants.filter(v => {
+            if (v.max_colors === 0) return true; // Full color, sem restrição
+            if (v.max_colors === null) return true;
+            return state.engravingSpecs.colors <= v.max_colors;
+          });
+
+          if (applicableVariants.length === 0) {
+            // Nenhuma variante suporta o nº de cores
+            allResults.push({
+              techniqueId: tech.techniqueId,
+              techniqueName: tech.techniqueName,
+              techniqueCode: tech.techniqueCode,
+              printAreaId: tech.printAreaId,
+              maxColors: variants[0]?.max_colors ?? tech.maxColors,
+              isAvailable: false,
+              unavailableReason: `Nenhuma variante suporta ${state.engravingSpecs.colors} cores`,
+              unitPrice: 0,
+              setupPrice: 0,
+              subtotal: 0,
+              totalPrice: 0,
+              costPerUnit: 0,
+              minimumApplied: false,
+              budgetCode: '',
+              productionDays: null,
+              markupPercent: 0,
+              marginPercent: 0,
+              tierUsed: 0,
+              tierMinQty: 0,
+              tierMaxQty: 0,
+            });
+            return;
+          }
+
+          // Calcular preço para cada variante aplicável
+          const variantPricePromises = applicableVariants.map(async (variant) => {
+            try {
+              const result = await calculateCustomizationPriceV2({
+                tecnicaVarianteId: variant.tecnica_variante_id,
+                quantidade: state.quantity,
+                numCores: state.engravingSpecs.colors,
+              });
+
+              if (!result || !result.success) {
+                return null;
+              }
+
+              return {
+                variant,
+                result,
+              };
+            } catch (err) {
+              console.warn(`Erro v2 para variante ${variant.tecnica_gravacao_variante.nome}:`, err);
+              return null;
+            }
+          });
+
+          const variantResults = (await Promise.all(variantPricePromises)).filter(Boolean);
+
+          if (variantResults.length === 0) {
+            allResults.push({
+              techniqueId: tech.techniqueId,
+              techniqueName: tech.techniqueName,
+              techniqueCode: tech.techniqueCode,
+              printAreaId: tech.printAreaId,
+              maxColors: tech.maxColors,
+              isAvailable: false,
+              unavailableReason: 'Erro ao calcular preço',
+              unitPrice: 0,
+              setupPrice: 0,
+              subtotal: 0,
+              totalPrice: 0,
+              costPerUnit: 0,
+              minimumApplied: false,
+              budgetCode: '',
+              productionDays: null,
+              markupPercent: 0,
+              marginPercent: 0,
+              tierUsed: 0,
+              tierMinQty: 0,
+              tierMaxQty: 0,
+            });
+            return;
+          }
+
+          // Adicionar cada variante como resultado separado
+          for (const vr of variantResults) {
+            if (!vr) continue;
+            const { variant, result } = vr;
+            
+            allResults.push({
+              techniqueId: tech.techniqueId,
+              techniqueName: result.technique || variant.tecnica_gravacao_variante.nome,
+              techniqueCode: variant.tecnica_gravacao_variante.codigo || tech.techniqueCode,
+              printAreaId: tech.printAreaId,
+              maxColors: variant.max_colors,
+              variantId: variant.tecnica_variante_id,
+              variantName: variant.tecnica_gravacao_variante.nome,
+              variantCode: variant.tecnica_gravacao_variante.codigo,
+              isAvailable: true,
+              unitPrice: result.unit_price || 0,
+              setupPrice: result.faturamento_minimo_gravacao || 0,
+              subtotal: result.subtotal_pecas || 0,
+              totalPrice: result.total_price || 0,
+              costPerUnit: state.quantity > 0 ? (result.total_price || 0) / state.quantity : 0,
+              minimumApplied: result.minimum_applied || false,
+              budgetCode: result.codigo_orcamento || '',
+              productionDays: result.prazo_dias ?? null,
+              markupPercent: result.markup_percent || 0,
+              marginPercent: 0,
+              tierUsed: result.faixa_utilizada || 0,
+              tierMinQty: 0,
+              tierMaxQty: 0,
+              rawData: result as unknown as Record<string, unknown>,
+            });
+          }
         } catch (err) {
-          console.warn(`Erro ao calcular preço para ${tech.techniqueName}:`, err);
-          return {
+          console.warn(`Erro ao buscar variantes para ${tech.techniqueName}:`, err);
+          allResults.push({
             techniqueId: tech.techniqueId,
             techniqueName: tech.techniqueName,
             techniqueCode: tech.techniqueCode,
@@ -536,25 +685,24 @@ export function useSimulatorWizard() {
             tierUsed: 0,
             tierMinQty: 0,
             tierMaxQty: 0,
-          };
+          });
         }
       });
 
-      const results = await Promise.all(promises);
+      await Promise.all(promises);
       
       // Encontrar mais barato e mais rápido entre os disponíveis
-      const available = results.filter(r => r.isAvailable);
+      const available = allResults.filter(r => r.isAvailable);
       if (available.length > 0) {
-      const cheapest = [...available].sort((a, b) => a.totalPrice - b.totalPrice)[0];
+        const cheapest = [...available].sort((a, b) => a.totalPrice - b.totalPrice)[0];
         const fastest = [...available].sort((a, b) => 
           (a.productionDays || 999) - (b.productionDays || 999)
         )[0];
         
-        results.forEach(r => {
+        allResults.forEach(r => {
           if (r.isAvailable) {
-            r.isCheapest = r.techniqueId === cheapest.techniqueId;
-            // Mostrar badge "Mais Rápido" mesmo se for o mesmo que mais barato (quando há +1 opção)
-            r.isFastest = r.techniqueId === fastest.techniqueId && available.length > 1;
+            r.isCheapest = r.techniqueId === cheapest.techniqueId && r.variantId === cheapest.variantId;
+            r.isFastest = r.techniqueId === fastest.techniqueId && r.variantId === fastest.variantId && available.length > 1;
           }
         });
       }
@@ -562,7 +710,7 @@ export function useSimulatorWizard() {
       // Ordenar: disponíveis primeiro (por preço), depois indisponíveis
       const sorted = [
         ...available.sort((a, b) => a.totalPrice - b.totalPrice),
-        ...results.filter(r => !r.isAvailable),
+        ...allResults.filter(r => !r.isAvailable),
       ];
 
       dispatch({ type: 'SET_COMPARISON_RESULTS', payload: sorted });

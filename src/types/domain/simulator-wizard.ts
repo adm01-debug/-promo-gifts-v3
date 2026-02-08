@@ -110,12 +110,16 @@ export interface EngravingLocation {
 export interface AvailableTechnique {
   id: string;
   printAreaId: string; // ID da print area no banco externo (para fn_get_customization_price)
-  techniqueId: string;
+  techniqueId: string;  // ID MESTRE da técnica (passo 1)
   techniqueName: string;
   techniqueCode: string;
   maxColors: number | null;
   isDefault: boolean;
   isCurved?: boolean;
+  // v2: variante selecionada (passo 2)
+  variantId?: string;       // UUID da variante (tecnica_variante_id)
+  variantName?: string;     // Nome da variante (ex: "Fiber Laser Plana")
+  variantCode?: string;     // Código da variante
 }
 
 // ============================================
@@ -139,11 +143,16 @@ export interface TechniqueComparisonResult {
   printAreaId: string;
   maxColors: number | null;
   
+  // v2: variante usada no cálculo
+  variantId?: string;
+  variantName?: string;
+  variantCode?: string;
+  
   // Status
   isAvailable: boolean;
   unavailableReason?: string;
   
-  // Preços (do RPC fn_get_customization_price)
+  // Preços (do RPC fn_get_customization_price_v2)
   unitPrice: number;
   setupPrice: number;
   subtotal: number;
