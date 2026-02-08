@@ -170,7 +170,7 @@ export function ProductSearchCombobox({
             onValueChange={setSearch}
             autoFocus
           />
-          <CommandList>
+          <CommandList className="max-h-[400px]">
             {isSearching ? (
               <div className="py-6 text-center">
                 <Loader2 className="h-6 w-6 mx-auto mb-2 text-primary animate-spin" />
