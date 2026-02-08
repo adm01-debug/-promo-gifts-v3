@@ -162,12 +162,13 @@ export function ProductSearchCombobox({
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-[400px] p-0" align="start">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" sideOffset={-42}>
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Digite para buscar..."
+            placeholder="Buscar por nome ou SKU..."
             value={search}
             onValueChange={setSearch}
+            autoFocus
           />
           <CommandList>
             {isSearching ? (
