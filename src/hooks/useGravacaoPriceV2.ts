@@ -13,8 +13,8 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { invokeExternalDb } from '@/lib/external-db';
+import { invokeExternalRpc } from '@/lib/external-rpc';
 
 // ============================================
 // TYPES
@@ -56,6 +56,11 @@ export interface CustomizationPriceV2Result {
   num_cores: number;
   markup_percent: number;
   faixa_utilizada: number;
+  // Campos opcionais (podem vir da RPC dependendo da versão)
+  margin_percent?: number;
+  tier_min_qty?: number;
+  tier_max_qty?: number;
+  cost_unit_total?: number;   // Custo unitário (sem markup) para cálculo de margem
 }
 
 /**
@@ -75,27 +80,7 @@ export interface CalculatePriceV2Params {
   numCores: number;
 }
 
-// ============================================
-// HELPER: Invocar RPC no banco externo
-// ============================================
-
-async function invokeExternalRpc<T>(
-  rpcName: string,
-  params: Record<string, unknown>
-): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: {
-      operation: 'rpc',
-      rpcName,
-      rpcParams: params,
-    },
-  });
-
-  if (error) throw new Error(error.message);
-  if (!data?.success) throw new Error(data?.error || 'Erro na RPC');
-  
-  return data.data as T;
-}
+// invokeExternalRpc importado de @/lib/external-rpc
 
 // ============================================
 // PASSO 2: Buscar variantes de uma técnica para uma área

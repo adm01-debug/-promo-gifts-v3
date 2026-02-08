@@ -109,7 +109,7 @@ export interface EngravingLocation {
 
 export interface AvailableTechnique {
   id: string;
-  printAreaId: string; // ID da print area no banco externo (para fn_get_customization_price)
+  printAreaId: string; // ID da print area no banco externo (para fn_get_customization_price_v2)
   techniqueId: string;  // ID MESTRE da técnica (passo 1)
   techniqueName: string;
   techniqueCode: string;

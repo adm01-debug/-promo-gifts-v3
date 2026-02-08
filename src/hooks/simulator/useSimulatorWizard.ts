@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { 
   fetchPromobrindPrintAreas,
 } from '@/lib/external-db';
+import { invokeExternalRpc } from '@/lib/external-rpc';
 import {
   fetchTecnicaVariants,
   calculateCustomizationPriceV2,
@@ -41,27 +42,7 @@ import {
   canNavigateToStep,
 } from '@/types/domain/simulator-wizard';
 
-// ============================================
-// HELPER: Invocar RPC no banco externo
-// ============================================
-
-async function invokeExternalRpc<T>(
-  rpcName: string,
-  params: Record<string, unknown>
-): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: {
-      operation: 'rpc',
-      rpcName,
-      rpcParams: params,
-    },
-  });
-
-  if (error) throw new Error(error.message);
-  if (!data?.success) throw new Error(data?.error || 'Erro na RPC');
-  
-  return data.data as T;
-}
+// invokeExternalRpc importado de @/lib/external-rpc
 
 // ============================================
 // ESTADO INICIAL
@@ -655,10 +636,11 @@ export function useSimulatorWizard() {
               budgetCode: result.codigo_orcamento || '',
               productionDays: result.prazo_dias ?? null,
               markupPercent: result.markup_percent || 0,
-              marginPercent: 0,
+              // Calcular margem: markup 115% → margem = 115/215 ≈ 53.49%
+              marginPercent: result.margin_percent ?? (result.markup_percent ? (result.markup_percent / (100 + result.markup_percent)) * 100 : 0),
               tierUsed: result.faixa_utilizada || 0,
-              tierMinQty: 0,
-              tierMaxQty: 0,
+              tierMinQty: result.tier_min_qty || 0,
+              tierMaxQty: result.tier_max_qty || 0,
               rawData: result as unknown as Record<string, unknown>,
             });
           }

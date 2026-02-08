@@ -6,6 +6,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { 
   PrintAreaWithTechniques, 
   ProductPrintArea,
@@ -15,27 +16,6 @@ import type {
 // ============================================
 // FUNÇÕES AUXILIARES
 // ============================================
-
-/**
- * Chama RPC no banco externo via edge function
- */
-async function invokeExternalRpc<T>(
-  functionName: string,
-  params: Record<string, unknown>
-): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: {
-      operation: 'rpc',
-      rpcName: functionName,
-      rpcParams: params,
-    },
-  });
-
-  if (error) throw new Error(error.message);
-  if (!data?.success) throw new Error(data?.error || 'Erro desconhecido');
-  
-  return data.data as T;
-}
 
 /**
  * Busca áreas de um produto diretamente da tabela

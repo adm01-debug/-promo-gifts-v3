@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { useCustomizationPriceV2, type CustomizationPriceV2 } from '@/hooks/useGravacaoV2';
+import { useCustomizationPriceLegacy, type CustomizationPriceV2 } from '@/hooks/useGravacaoV2';
 import { formatCurrency, formatNumber } from './utils';
 import type { Product, ConfiguredEngraving } from './types';
 import { toast } from 'sonner';
@@ -52,7 +52,7 @@ export function MultiEngravingResult({
   quantity,
   onQuantityChange,
 }: MultiEngravingResultProps) {
-  const { calculatePrice, loading: priceLoading } = useCustomizationPriceV2();
+  const { calculatePrice, loading: priceLoading } = useCustomizationPriceLegacy();
   const [calculations, setCalculations] = useState<EngravingCalculationV51[]>([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
