@@ -12,7 +12,7 @@ export {
   useProductPrintAreas,
   useTabelasPrecoOficial,
   useFaixasPrecoOficial,
-  useCustomizationPriceV2,
+  useCustomizationPriceLegacy,
   useTabelaPrecoPorCodigo,
   // Tipos v2
   type TabelaPrecoOficial,

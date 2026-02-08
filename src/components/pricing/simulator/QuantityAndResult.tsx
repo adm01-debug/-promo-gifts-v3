@@ -26,7 +26,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { 
-  useCustomizationPriceV2, 
+  useCustomizationPriceLegacy, 
   useFaixasPrecoOficial, 
   type CustomizationPriceV2 
 } from '@/hooks/useGravacaoV2';
@@ -51,7 +51,7 @@ export function QuantityAndResult({
   quantity,
   onQuantityChange,
 }: QuantityAndResultProps) {
-  const { calculatePrice, loading: priceLoading } = useCustomizationPriceV2();
+  const { calculatePrice, loading: priceLoading } = useCustomizationPriceLegacy();
   const [priceData, setPriceData] = useState<CustomizationPriceV2 | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
