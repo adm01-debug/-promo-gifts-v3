@@ -109,17 +109,19 @@ export interface EngravingLocation {
 
 export interface AvailableTechnique {
   id: string;
-  printAreaId: string; // ID da print area no banco externo (para fn_get_customization_price_v2)
-  techniqueId: string;  // ID MESTRE da técnica (passo 1)
+  printAreaId: string; // ID da print area no banco externo
+  techniqueId: string;  // ID MESTRE da técnica (NÃO usar para preço)
   techniqueName: string;
   techniqueCode: string;
   maxColors: number | null;
   isDefault: boolean;
   isCurved?: boolean;
-  // v2: variante selecionada (passo 2)
-  variantId?: string;       // UUID da variante (tecnica_variante_id)
-  variantName?: string;     // Nome da variante (ex: "Fiber Laser Plana")
+  // v3: variante inline (do fn_get_product_print_areas_v2)
+  variantId?: string;       // ★ UUID da variante para fn_get_customization_price_v2
+  variantName?: string;     // Nome completo (ex: "Fiber Laser | Plana")
   variantCode?: string;     // Código da variante
+  hasPricing?: boolean;     // false = "preço sob consulta"
+  isRecommended?: boolean;  // Variante recomendada (⭐)
 }
 
 // ============================================

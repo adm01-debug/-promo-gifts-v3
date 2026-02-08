@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
  * 
  * RPCs permitidas:
  * - fn_get_product_print_areas
+ * - fn_get_product_print_areas_v2 (v3 flow - áreas + técnicas + variantes)
  * - fn_get_customization_price
  * - fn_get_customization_price_v2
  * - fn_link_product_print_areas
