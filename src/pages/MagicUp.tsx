@@ -10,12 +10,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Loader2, Upload, Wand2, Download, CheckCircle2, XCircle, Eye, Grid3x3, MapPin } from "lucide-react";
+import { Sparkles, Loader2, Upload, Wand2, Download, CheckCircle2, XCircle, Eye, Grid3x3, MapPin, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { MultiAreaManager, PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 import { usePrintAreas } from "@/hooks/usePrintAreas";
+import { ArtFileUpload, type ArtFile } from "@/components/mockup/ArtFileUpload";
 import type { PrintAreaWithTechniques } from "@/types/gravacao";
 
 interface Product {
@@ -94,6 +95,7 @@ export default function MagicUp() {
   const [loadingColors, setLoadingColors] = useState(false);
   const [areas, setAreas] = useState<PersonalizationArea[]>([createDefaultArea()]);
   const [artColorsCount, setArtColorsCount] = useState(1);
+  const [artFiles, setArtFiles] = useState<ArtFile[]>([]);
   
   // Modelo e geração
   const [aiModel, setAiModel] = useState<"standard" | "pro">("pro");
@@ -755,6 +757,29 @@ export default function MagicUp() {
               </CardContent>
             </Card>
 
+            {/* Arquivos de Arte */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                    <Paperclip className="h-4 w-4" />
+                  </span>
+                  Arquivos de Arte
+                </CardTitle>
+                <CardDescription>
+                  Anexe arquivos em CorelDraw (.cdr) ou PDF da arte do cliente
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ArtFileUpload
+                  files={artFiles}
+                  onFilesChange={setArtFiles}
+                  productId={selectedProduct?.id}
+                  productName={selectedProduct?.name}
+                  maxFiles={5}
+                />
+              </CardContent>
+            </Card>
             {/* Áreas de Personalização */}
             <Card>
               <CardHeader>
