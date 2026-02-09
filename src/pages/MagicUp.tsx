@@ -243,13 +243,8 @@ export default function MagicUp() {
     if (!file) return;
 
     // Validações
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Arquivo muito grande. Máximo: 5MB");
-      return;
-    }
-
-    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-      toast.error("Formato inválido. Use PNG ou JPG");
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Arquivo muito grande. Máximo: 50MB");
       return;
     }
 
@@ -701,20 +696,23 @@ export default function MagicUp() {
               </CardContent>
             </Card>
 
-            {/* Upload Logo */}
+            {/* Logo do Cliente */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">2</span>
                   Logo do Cliente
                 </CardTitle>
+                <CardDescription>
+                  Envie o logo ou arquivo de arte do cliente (qualquer formato, máx. 50MB)
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-400 transition-colors">
+                  <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                     <Input
                       type="file"
-                      accept="image/png,image/jpeg,image/jpg"
+                      accept="*/*"
                       onChange={handleLogoUpload}
                       disabled={uploading}
                       className="hidden"
@@ -726,27 +724,34 @@ export default function MagicUp() {
                     >
                       {uploading ? (
                         <>
-                          <Loader2 className="h-12 w-12 animate-spin text-purple-600" />
-                          <p className="text-lg font-medium">Enviando logo...</p>
+                          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                          <p className="text-lg font-medium">Enviando arquivo...</p>
                         </>
                       ) : logoUrl ? (
                         <>
                           <CheckCircle2 className="h-12 w-12 text-green-600" />
-                          <p className="text-lg font-medium text-green-600">Logo enviado com sucesso!</p>
-                          <div className="mt-4 p-4 bg-white rounded-lg border-2 border-green-200">
-                            <img src={logoUrl} alt="Logo" className="max-h-40" />
-                          </div>
+                          <p className="text-lg font-medium text-green-600">Arquivo enviado com sucesso!</p>
+                          {logoFile && logoFile.type.startsWith("image/") ? (
+                            <div className="mt-4 p-4 bg-muted rounded-lg border-2 border-green-200">
+                              <img src={logoUrl} alt="Logo" className="max-h-40" />
+                            </div>
+                          ) : (
+                            <div className="mt-4 p-3 bg-muted rounded-lg border border-border flex items-center gap-3">
+                              <Paperclip className="h-5 w-5 text-muted-foreground" />
+                              <span className="text-sm font-medium truncate">{logoFile?.name}</span>
+                            </div>
+                          )}
                           <Button variant="outline" size="sm" className="mt-2">
-                            Trocar logo
+                            Trocar arquivo
                           </Button>
                         </>
                       ) : (
                         <>
-                          <Upload className="h-12 w-12 text-gray-400" />
+                          <Upload className="h-12 w-12 text-muted-foreground" />
                           <div>
                             <p className="text-lg font-medium">Clique para fazer upload</p>
                             <p className="text-sm text-muted-foreground mt-1">
-                              PNG ou JPG, máximo 5MB
+                              Qualquer formato · Máx. 50MB
                             </p>
                           </div>
                         </>
@@ -754,30 +759,6 @@ export default function MagicUp() {
                     </label>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Arquivos de Arte */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">
-                    <Paperclip className="h-4 w-4" />
-                  </span>
-                  Arquivos de Arte
-                </CardTitle>
-                <CardDescription>
-                  Anexe arquivos em CorelDraw (.cdr) ou PDF da arte do cliente
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ArtFileUpload
-                  files={artFiles}
-                  onFilesChange={setArtFiles}
-                  productId={selectedProduct?.id}
-                  productName={selectedProduct?.name}
-                  maxFiles={5}
-                />
               </CardContent>
             </Card>
             {/* Áreas de Personalização */}
