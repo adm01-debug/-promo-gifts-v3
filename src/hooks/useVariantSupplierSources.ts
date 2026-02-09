@@ -55,35 +55,73 @@ export function useProductVariantsWithStock(productId: string | undefined) {
     queryFn: async (): Promise<VariantWithSupplierData[]> => {
       if (!productId) return [];
 
-      // 1. Buscar variantes do produto
-      const variantsResult = await invokeExternalDb<{
-        id: string;
-        product_id: string;
-        sku: string;
-        supplier_sku: string | null;
-        color_name: string | null;
-        color_hex: string | null;
-        color_code: string | null;
-        selected_thumbnail: string | null;
-        images: string[] | null;
-        selected_images: string[] | null;
-        stock_quantity: number | null;
-      }>({
-        table: 'product_variants',
-        operation: 'select',
-        select: 'id, product_id, sku, supplier_sku, color_name, color_hex, color_code, selected_thumbnail, images, selected_images, stock_quantity',
-        filters: { product_id: productId, is_active: true },
-        limit: 100,
-      });
+      // 1. Buscar variantes do produto E imagens do product_images em paralelo
+      const [variantsResult, productImagesResult] = await Promise.all([
+        invokeExternalDb<{
+          id: string;
+          product_id: string;
+          sku: string;
+          supplier_sku: string | null;
+          color_name: string | null;
+          color_hex: string | null;
+          color_code: string | null;
+          selected_thumbnail: string | null;
+          images: string[] | null;
+          selected_images: string[] | null;
+          stock_quantity: number | null;
+        }>({
+          table: 'product_variants',
+          operation: 'select',
+          select: 'id, product_id, sku, supplier_sku, color_name, color_hex, color_code, selected_thumbnail, images, selected_images, stock_quantity',
+          filters: { product_id: productId, is_active: true },
+          limit: 100,
+        }),
+        // Buscar imagens da tabela product_images para vincular via supplier_code = color_code
+        invokeExternalDb<{
+          url_cdn: string;
+          url_original: string | null;
+          image_type: string;
+          is_primary: boolean;
+          is_og_image: boolean;
+          supplier_code: string | null;
+          display_order: number;
+        }>({
+          table: 'product_images',
+          operation: 'select',
+          select: 'url_cdn, url_original, image_type, is_primary, is_og_image, supplier_code, display_order',
+          filters: { product_id: productId, is_active: true },
+          orderBy: { column: 'display_order', ascending: true },
+          limit: 200,
+        }).catch(() => ({ records: [] as any[] })),
+      ]);
 
       const variants = variantsResult.records;
       if (variants.length === 0) return [];
 
+      const productImages = productImagesResult.records;
+
+      // Indexar imagens por supplier_code para lookup rápido
+      const imagesBySupplierCode = new Map<string, string>();
+      productImages.forEach(img => {
+        if (img.supplier_code && !imagesBySupplierCode.has(img.supplier_code)) {
+          // Excluir imagens tipo 'box' com code 'SPOT' (embalagem)
+          if (img.image_type === 'box' && img.supplier_code === 'SPOT') return;
+          // Priorizar is_og_image (imagem MAIN da cor individual)
+          const url = img.url_cdn || img.url_original;
+          if (url) imagesBySupplierCode.set(img.supplier_code, url);
+        }
+      });
+      // Segunda passada para pegar is_og_image como prioridade
+      productImages.forEach(img => {
+        if (img.supplier_code && img.is_og_image) {
+          const url = img.url_cdn || img.url_original;
+          if (url) imagesBySupplierCode.set(img.supplier_code, url);
+        }
+      });
+
       // 2. Buscar supplier sources para cada variante INDIVIDUALMENTE
-      // Isso é mais confiável do que buscar 5000 genéricos e filtrar
       const sourcesByVariantId = new Map<string, VariantSupplierSource>();
       
-      // Processar em paralelo com Promise.all para performance
       const sourcePromises = variants.map(async (variant) => {
         try {
           const sourceResult = await invokeExternalDb<VariantSupplierSource>({
@@ -104,14 +142,22 @@ export function useProductVariantsWithStock(productId: string | undefined) {
       
       await Promise.all(sourcePromises);
 
-      // 3. Combinar dados
-      return variants.map(variant => ({
-        variant: {
-          ...variant,
-          images: variant.selected_images?.length ? variant.selected_images : variant.images,
-        },
-        supplierSource: sourcesByVariantId.get(variant.id) || null,
-      }));
+      // 3. Combinar dados — enriquecer thumbnail com product_images
+      return variants.map(variant => {
+        // Thumbnail: product_images (via color_code) > selected_thumbnail > images[0]
+        const imageFromProductImages = variant.color_code 
+          ? imagesBySupplierCode.get(variant.color_code) 
+          : null;
+        
+        return {
+          variant: {
+            ...variant,
+            selected_thumbnail: imageFromProductImages || variant.selected_thumbnail || null,
+            images: variant.selected_images?.length ? variant.selected_images : variant.images,
+          },
+          supplierSource: sourcesByVariantId.get(variant.id) || null,
+        };
+      });
     },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
