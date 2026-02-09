@@ -42,6 +42,7 @@ export interface Product {
     length_cm?: number | null;
     diameter_cm?: number | null;
     weight_g?: number | null;
+    capacity_ml?: number | null;
   };
 
   // Campos de embalagem especial
@@ -362,6 +363,7 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
       length_cm: p.length_cm,
       diameter_cm: p.diameter_cm,
       weight_g: p.weight_g,
+      capacity_ml: p.capacity_ml,
     },
     
     // Campos de embalagem especial

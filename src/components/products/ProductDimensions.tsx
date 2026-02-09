@@ -1,4 +1,4 @@
-import { Ruler, Scale, Box, ArrowUpDown, ArrowLeftRight, MoveHorizontal } from "lucide-react";
+import { Ruler, Scale, Box, ArrowUpDown, ArrowLeftRight, MoveHorizontal, Droplets } from "lucide-react";
 
 interface ProductDimensionsProps {
   dimensions?: {
@@ -7,6 +7,7 @@ interface ProductDimensionsProps {
     length_cm?: number | null;
     diameter_cm?: number | null;
     weight_g?: number | null;
+    capacity_ml?: number | null;
   };
 }
 
@@ -35,10 +36,10 @@ function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColor
 export function ProductDimensions({ dimensions }: ProductDimensionsProps) {
   if (!dimensions) return null;
 
-  const { height_cm, width_cm, length_cm, diameter_cm, weight_g } = dimensions;
+  const { height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml } = dimensions;
   
   // Verifica se há pelo menos uma especificação disponível
-  const hasAnySpec = height_cm || width_cm || length_cm || diameter_cm || weight_g;
+  const hasAnySpec = height_cm || width_cm || length_cm || diameter_cm || weight_g || capacity_ml;
   
   if (!hasAnySpec) return null;
 
@@ -82,6 +83,22 @@ export function ProductDimensions({ dimensions }: ProductDimensionsProps) {
       icon: <MoveHorizontal className="h-5 w-5" />,
       label: "Profundidade",
       value: `${length_cm} cm`,
+    });
+  }
+
+  if (capacity_ml) {
+    const formatCapacity = (ml: number) => {
+      if (ml >= 1000) {
+        return `${(ml / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L`;
+      }
+      return `${ml.toLocaleString('pt-BR')} ml`;
+    };
+    specs.push({
+      icon: <Droplets className="h-5 w-5" />,
+      label: "Capacidade",
+      value: formatCapacity(capacity_ml),
+      iconBgClass: "bg-cyan-500/10",
+      iconColorClass: "text-cyan-500",
     });
   }
 
