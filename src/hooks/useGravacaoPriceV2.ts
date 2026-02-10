@@ -48,7 +48,9 @@ export interface PrintAreaV2 {
   area_code: string;
   area_name: string;
   component_name: string | null;
+  component_code: string | null;
   location_name: string | null;
+  location_code: string | null;
   max_width: number;
   max_height: number;
   unit: string;
