@@ -12,12 +12,11 @@ import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import {
-  fetchProductPrintAreasV2,
-  calculateCustomizationPriceV2,
-  flattenVariantsFromArea,
-} from '@/hooks/useGravacaoPriceV2';
-import type { PrintAreaV2, TechniqueVariant } from '@/hooks/useGravacaoPriceV2';
+import { fetchProductPrintAreasV2 } from '@/hooks/useGravacaoPriceV2';
+import type { PrintAreaV2 } from '@/hooks/useGravacaoPriceV2';
+import { invokeExternalRpc } from '@/lib/external-rpc';
+import { groupPrintAreasToLocations } from '@/lib/print-area-grouping';
+import type { CustomizationPriceV2 } from '@/hooks/useGravacaoV2';
 import type {
   SimulatorWizardState,
   WizardAction,
@@ -215,59 +214,9 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
 }
 
 // ============================================
-// HELPER: Converter PrintAreaV2 → EngravingLocation[]
+// HELPER: Agrupamento importado de @/lib/print-area-grouping
+// groupPrintAreasToLocations() agrupa por component_name + location_name
 // ============================================
-
-function mapPrintAreasToLocations(areas: PrintAreaV2[]): EngravingLocation[] {
-  return areas.map(area => ({
-    id: area.area_id,
-    componentId: area.area_id,
-    componentCode: area.area_code,
-    componentName: area.component_name || 'Componente Principal',
-    locationCode: area.area_code,
-    locationName: area.location_name || area.area_name,
-    maxWidthCm: area.max_width,
-    maxHeightCm: area.max_height,
-    maxAreaCm2: null,
-    areaImageUrl: null,
-    isFromGroup: false,
-    // Cada técnica com variantes fica como availableTechnique
-    // Variantes são armazenadas inline para acesso direto no passo 2
-    availableTechniques: area.techniques.flatMap(tech =>
-      tech.variantes.length > 0
-        ? tech.variantes.map(v => ({
-            id: `${area.area_id}-${v.variante_id}`,
-            printAreaId: area.area_id,
-            techniqueId: tech.id,       // ID mestre
-            techniqueName: tech.nome,
-            techniqueCode: tech.codigo,
-            maxColors: v.max_colors,
-            isDefault: v.is_recommended,
-            isCurved: area.is_curved,
-            // v3: variante inline
-            variantId: v.variante_id,
-            variantName: v.nome,
-            variantCode: v.codigo,
-            hasPricing: v.has_pricing,
-            isRecommended: v.is_recommended,
-          }))
-        : [{
-            // Técnica sem variantes → "Preço sob consulta"
-            id: `${area.area_id}-${tech.id}-no-variant`,
-            printAreaId: area.area_id,
-            techniqueId: tech.id,
-            techniqueName: tech.nome,
-            techniqueCode: tech.codigo,
-            maxColors: null,
-            isDefault: false,
-            isCurved: area.is_curved,
-            hasPricing: false,
-          }]
-    ),
-    // Store raw area data for future reference
-    _rawArea: area,
-  }));
-}
 
 // ============================================
 // HOOK PRINCIPAL
@@ -290,7 +239,7 @@ export function useSimulatorWizard() {
         const areas = await fetchProductPrintAreasV2(state.selectedProduct.id);
         
         if (areas.length > 0) {
-          return mapPrintAreasToLocations(areas);
+          return groupPrintAreasToLocations(areas);
         }
       } catch (err) {
         console.warn('fn_get_product_print_areas_v2 falhou, tentando fallback local:', err);
@@ -433,16 +382,13 @@ export function useSimulatorWizard() {
       const allResults: TechniqueComparisonResult[] = [];
 
       const promises = techniques.map(async (tech) => {
-        // Sem variante → "Preço sob consulta"
-        if (!tech.variantId || tech.hasPricing === false) {
-          allResults.push(createUnavailableResult(
-            tech,
-            tech.variantId ? 'Preço sob consulta' : 'Sem variante disponível'
-          ));
+        // Técnica sem pricing → "Preço sob consulta"
+        if (tech.hasPricing === false) {
+          allResults.push(createUnavailableResult(tech, 'Preço sob consulta'));
           return;
         }
 
-        // Verificar se cores excedem o máximo da variante
+        // Verificar se cores excedem o máximo da técnica
         if (tech.maxColors !== null && tech.maxColors > 0 && state.engravingSpecs.colors > tech.maxColors) {
           allResults.push(createUnavailableResult(
             tech,
@@ -451,18 +397,22 @@ export function useSimulatorWizard() {
           return;
         }
 
-        // Cores efetivas: se max_colors = 0 (full color) ou 1 (mono), usar 1
-        const effectiveColors = (tech.maxColors === 0 || tech.maxColors === 1) 
+        // Cores efetivas: se max_colors = 0 (full color), 1 (mono) ou null (desconhecido), usar 1
+        const effectiveColors = (tech.maxColors === 0 || tech.maxColors === 1 || tech.maxColors === null) 
           ? 1 
           : state.engravingSpecs.colors;
 
         try {
-          // PASSO 2 do v3: Calcular preço direto com variante_id
-          const result = await calculateCustomizationPriceV2({
-            tecnicaVarianteId: tech.variantId,
-            quantidade: state.quantity,
-            numCores: effectiveColors,
-          });
+          // ★ Usar fn_get_customization_price (v1) com area_id
+          // Funciona para TODAS as 9 áreas (incluindo UV/SILK sem techniques[])
+          const result = await invokeExternalRpc<CustomizationPriceV2>(
+            'fn_get_customization_price',
+            {
+              p_area_id: tech.printAreaId,
+              p_quantidade: state.quantity,
+              p_num_cores: effectiveColors,
+            }
+          );
 
           if (!result || !result.success) {
             allResults.push(createUnavailableResult(tech, 'Erro no cálculo de preço'));
@@ -471,13 +421,10 @@ export function useSimulatorWizard() {
 
           allResults.push({
             techniqueId: tech.techniqueId,
-            techniqueName: result.technique || tech.variantName || tech.techniqueName,
-            techniqueCode: tech.variantCode || tech.techniqueCode,
+            techniqueName: result.technique || tech.techniqueName,
+            techniqueCode: result.tabela_codigo_curto || tech.techniqueCode,
             printAreaId: tech.printAreaId,
             maxColors: tech.maxColors,
-            variantId: tech.variantId,
-            variantName: tech.variantName,
-            variantCode: tech.variantCode,
             isAvailable: true,
             unitPrice: result.unit_price || 0,
             setupPrice: result.faturamento_minimo_gravacao || 0,
@@ -486,20 +433,16 @@ export function useSimulatorWizard() {
             costPerUnit: state.quantity > 0 ? (result.total_price || 0) / state.quantity : 0,
             minimumApplied: result.minimum_applied || false,
             budgetCode: result.codigo_orcamento || '',
-            productionDays: result.prazo_dias ?? null,
+            productionDays: result.production_days ?? null,
             markupPercent: result.markup_percent || 0,
-            marginPercent: result.margin_percent ?? (
-              result.markup_percent 
-                ? (result.markup_percent / (100 + result.markup_percent)) * 100 
-                : 0
-            ),
-            tierUsed: result.faixa_utilizada || 0,
-            tierMinQty: 0,
-            tierMaxQty: 0,
+            marginPercent: result.margin_percent ?? 0,
+            tierUsed: result.tier_used || 0,
+            tierMinQty: result.tier_min_qty || 0,
+            tierMaxQty: result.tier_max_qty || 0,
             rawData: result as unknown as Record<string, unknown>,
           });
         } catch (err) {
-          console.warn(`Erro ao calcular preço para ${tech.variantName || tech.techniqueName}:`, err);
+          console.warn(`Erro ao calcular preço para ${tech.techniqueName}:`, err);
           allResults.push(createUnavailableResult(tech, 'Erro ao calcular preço'));
         }
       });
@@ -516,8 +459,8 @@ export function useSimulatorWizard() {
         
         allResults.forEach(r => {
           if (r.isAvailable) {
-            r.isCheapest = r.variantId === cheapest.variantId;
-            r.isFastest = r.variantId === fastest.variantId && available.length > 1;
+            r.isCheapest = r.printAreaId === cheapest.printAreaId;
+            r.isFastest = r.printAreaId === fastest.printAreaId && available.length > 1;
           }
         });
       }
