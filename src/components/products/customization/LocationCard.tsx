@@ -3,6 +3,9 @@
  * 
  * Header: {component_name} — {location_name} + dimensão max + nº técnicas
  * Body: lista de TechniqueOption (1 selecionável por card)
+ * 
+ * Usa forceMount + hidden para evitar remount de TechniqueOptions
+ * ao colapsar/expandir, preservando preços já carregados.
  */
 
 import { ChevronDown, ChevronUp, Sparkles, Maximize2 } from "lucide-react";
@@ -20,6 +23,8 @@ export interface LocationGroupData {
   groupKey: string;
   componentName: string;
   locationName: string;
+  locationCode: string;
+  isPrimary: boolean;
   maxWidth: number;
   maxHeight: number;
   areas: PrintAreaV2[];
@@ -96,8 +101,11 @@ export function LocationCard({
           </button>
         </CollapsibleTrigger>
 
-        <CollapsibleContent>
-          <div className="px-4 pb-4 space-y-2">
+        <CollapsibleContent forceMount>
+          <div className={cn(
+            "px-4 pb-4 space-y-2",
+            !isExpanded && "hidden"
+          )}>
             {group.areas.map((area) => (
               <TechniqueOption
                 key={area.area_id}
