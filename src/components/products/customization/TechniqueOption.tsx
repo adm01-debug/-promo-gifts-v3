@@ -61,19 +61,25 @@ export function TechniqueOption({
       );
       if (result?.success) {
         setPriceData(result);
-        if (isSelected) onSelect(areaId, result);
       }
     } catch {
       setPriceData(null);
     } finally {
       setLoading(false);
     }
-  }, [areaId, quantity, isSelected, onSelect]);
+  }, [areaId, quantity]);
+
+  // Push updated price to parent whenever priceData changes and this technique is selected
+  useEffect(() => {
+    if (isSelected && priceData) {
+      onSelect(areaId, priceData);
+    }
+  }, [priceData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch price on mount and when quantity changes
   useEffect(() => {
     fetchPrice(numColors);
-  }, [areaId, quantity]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchPrice]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Refetch when colors change
   const handleColorChange = (colors: number) => {

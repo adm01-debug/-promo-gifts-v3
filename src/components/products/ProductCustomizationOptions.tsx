@@ -20,6 +20,7 @@ import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
 
 interface ProductCustomizationOptionsProps {
   productId: string;
+  productSku?: string;
   quantity?: number;
   onSelectionChange?: (selections: Map<string, { areaId: string; price: CustomizationPriceV2 | null }>) => void;
 }
@@ -31,6 +32,8 @@ function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
   const groups = new Map<string, {
     componentName: string;
     locationName: string;
+    locationCode: string;
+    isPrimary: boolean;
     areas: PrintAreaV2[];
     displayOrder: number;
   }>();
@@ -44,6 +47,8 @@ function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
       groups.set(key, {
         componentName,
         locationName,
+        locationCode: area.location_code || area.area_code,
+        isPrimary: area.is_primary,
         areas: [],
         displayOrder: area.display_order,
       });
@@ -51,6 +56,7 @@ function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
     const group = groups.get(key)!;
     group.areas.push(area);
     group.displayOrder = Math.min(group.displayOrder, area.display_order);
+    if (area.is_primary) group.isPrimary = true;
   }
 
   return [...groups.entries()]
@@ -59,6 +65,8 @@ function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
       groupKey: key,
       componentName: group.componentName,
       locationName: group.locationName,
+      locationCode: group.locationCode,
+      isPrimary: group.isPrimary,
       maxWidth: Math.max(...group.areas.map(a => a.max_width)),
       maxHeight: Math.max(...group.areas.map(a => a.max_height)),
       areas: group.areas.sort((a, b) => a.display_order - b.display_order),
