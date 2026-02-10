@@ -1,11 +1,12 @@
 /**
  * useSimulatorWizard v3 - Hook central do simulador
  * 
- * FLUXO SIMPLIFICADO: 2 RPCs
- * 1. fn_get_product_print_areas_v2 → áreas + técnicas + VARIANTES (tudo em 1 call)
- * 2. fn_get_customization_price_v2(p_tecnica_variante_id) → preço final
+ * FLUXO HÍBRIDO v2/v1:
+ * 1. fn_get_product_print_areas_v2 → áreas + agrupamento por local físico
+ * 2. fn_get_customization_price (v1, area_id) → preço final (funciona para todas as 9 áreas)
  * 
- * NÃO usar: fn_get_product_print_areas (v1), category_area_techniques, fetchTecnicaVariants
+ * A v1 de pricing resolve tudo via area_id → customization_price_table_id → preço.
+ * NÃO depende de techniques[] (que pode estar vazio para áreas sem allowed_technique_ids).
  */
 
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
@@ -397,8 +398,13 @@ export function useSimulatorWizard() {
           return;
         }
 
-        // Cores efetivas: se max_colors = 0 (full color), 1 (mono) ou null (desconhecido), usar 1
-        const effectiveColors = (tech.maxColors === 0 || tech.maxColors === 1 || tech.maxColors === null) 
+        // Cores efetivas:
+        // - max_colors = 0 → full color (CMYK), enviar 1 (técnica não diferencia por cor)
+        // - max_colors = 1 → monocromática, enviar 1
+        // - max_colors = null → desconhecido (techniques[] vazio), enviar as cores do usuário
+        //   e deixar o v1 decidir se cobra por cor via price_by_color
+        // - max_colors > 1 → enviar as cores do usuário (já validadas no check acima)
+        const effectiveColors = (tech.maxColors === 0 || tech.maxColors === 1) 
           ? 1 
           : state.engravingSpecs.colors;
 
@@ -607,11 +613,13 @@ export function useSimulatorWizard() {
   }, [effectivePrice, state.quantity, state.personalizations]);
 
   const maxColorsForLocation = useMemo(() => {
-    if (!state.selectedLocation) return 10;
+    if (!state.selectedLocation) return 4;
     const maxColors = state.selectedLocation.availableTechniques
       .map(t => t.maxColors)
       .filter((c): c is number => c !== null && c > 0);
-    return maxColors.length > 0 ? Math.max(...maxColors) : 10;
+    // Se nenhuma técnica tem maxColors definido, usar 4 (padrão conservador)
+    // Evita mostrar "até 10 cores" quando o dado real é desconhecido
+    return maxColors.length > 0 ? Math.max(...maxColors) : 4;
   }, [state.selectedLocation]);
 
   // ============================================
