@@ -75,7 +75,7 @@ export default function MagicUp() {
   
   // State básico
   const [products, setProducts] = useState<Product[]>([]);
-  const [techniques, setTechniques] = useState<Technique[]>([]);
+  const [techniques] = useState<Technique[]>([]); // kept for type compat only
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
@@ -109,7 +109,6 @@ export default function MagicUp() {
   // Carregar dados iniciais
   useEffect(() => {
     loadProducts();
-    loadTechniques();
   }, []);
 
   // Buscar cores reais e imagens do produto quando selecionado
@@ -119,6 +118,7 @@ export default function MagicUp() {
       setProductImages([]);
       setPreviewColorCode(null);
       setSelectedLocationId(null);
+      setSelectedTechnique(null);
       return;
     }
     
@@ -221,22 +221,47 @@ export default function MagicUp() {
     }
   };
 
-  const loadTechniques = async () => {
-    try {
-      const { invokeExternalDb } = await import("@/lib/external-db");
-      const result = await invokeExternalDb<Technique>({
-        table: "personalization_techniques",
-        operation: "select",
-        filters: { is_active: true },
-        orderBy: { column: "name", ascending: true },
-        limit: 100,
-      });
-      setTechniques(result.records || []);
-    } catch (error) {
-      console.error("Error loading techniques:", error);
-      toast.error("Erro ao carregar técnicas");
+  // Técnicas derivadas das printAreas do produto selecionado
+  const availableTechniques = useMemo((): Technique[] => {
+    if (!printAreas?.length) return [];
+    
+    // Coletar técnicas únicas de todas as áreas do produto
+    const techMap = new Map<string, Technique>();
+    for (const area of printAreas) {
+      if (area.techniques?.length) {
+        for (const t of area.techniques) {
+          if (!techMap.has(t.id)) {
+            techMap.set(t.id, {
+              id: t.id,
+              name: t.nome,
+              code: t.codigo,
+              prompt_suffix: '',
+              requires_color_count: false,
+            });
+          }
+        }
+      }
     }
-  };
+    
+    // Se um local está selecionado, filtrar apenas as técnicas desse local
+    if (selectedLocationId) {
+      const selectedArea = printAreas.find(a => a.area_id === selectedLocationId);
+      if (selectedArea?.techniques?.length) {
+        const locationTechIds = new Set(selectedArea.techniques.map(t => t.id));
+        return [...techMap.values()].filter(t => locationTechIds.has(t.id));
+      }
+    }
+    
+    return [...techMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [printAreas, selectedLocationId]);
+
+  // Clear technique if it's no longer in the available list
+  useEffect(() => {
+    if (selectedTechnique && availableTechniques.length > 0) {
+      const stillAvailable = availableTechniques.some(t => t.id === selectedTechnique.id);
+      if (!stillAvailable) setSelectedTechnique(null);
+    }
+  }, [availableTechniques, selectedTechnique]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -510,19 +535,25 @@ export default function MagicUp() {
                     <Select
                       value={selectedTechnique?.id}
                       onValueChange={(value) => {
-                        const tech = techniques.find(t => t.id === value);
+                        const tech = availableTechniques.find(t => t.id === value);
                         setSelectedTechnique(tech || null);
                       }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a técnica..." />
                       </SelectTrigger>
-                      <SelectContent>
-                        {techniques.map((tech) => (
-                          <SelectItem key={tech.id} value={tech.id}>
-                            {tech.name}
-                          </SelectItem>
-                        ))}
+                       <SelectContent>
+                        {availableTechniques.length === 0 ? (
+                          <div className="px-3 py-2 text-sm text-muted-foreground">
+                            {selectedProduct ? 'Nenhuma técnica vinculada a este produto' : 'Selecione um produto primeiro'}
+                          </div>
+                        ) : (
+                          availableTechniques.map((tech) => (
+                            <SelectItem key={tech.id} value={tech.id}>
+                              {tech.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
