@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Palette, Check, Loader2 } from "lucide-react";
+import { Palette, Check, Loader2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { invokeExternalRpc } from "@/lib/external-rpc";
@@ -96,12 +96,14 @@ export function TechniqueOption({
     fetchPrice(colors);
   };
 
-  // Determine max colors: from priceData or default
+  // Determine max colors: from enriched priceData.max_cores (from tabela_preco_gravacao_oficial)
   const maxColors = useMemo(() => {
     if (!priceData) return 1;
     if (!priceData.price_by_color) return 1;
-    // Serigrafia typically allows 1-3, but we let the user try up to 4
-    return 4;
+    // max_cores is enriched by the edge function from tabela_preco_gravacao_oficial
+    const mc = (priceData as any).max_cores;
+    if (typeof mc === 'number' && mc > 1) return mc;
+    return 4; // fallback if enrichment missing
   }, [priceData]);
 
   const showColorSelector = isSelected && priceData?.price_by_color && maxColors > 1;
@@ -146,6 +148,12 @@ export function TechniqueOption({
             <Badge variant="outline" className="text-[10px] h-5">
               <Palette className="h-2.5 w-2.5 mr-0.5" />
               até {maxColors} cores
+            </Badge>
+          )}
+          {isSelected && priceData?.production_days && (
+            <Badge variant="outline" className="text-[10px] h-5">
+              <Clock className="h-2.5 w-2.5 mr-0.5" />
+              {priceData.production_days}d
             </Badge>
           )}
           <div className="text-right min-w-[80px]">

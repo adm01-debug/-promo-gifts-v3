@@ -459,16 +459,21 @@ serve(async (req) => {
       }
 
       // ============================================
-      // ENRIQUECIMENTO: fn_get_customization_price_v2
-      // Adiciona largura_max e altura_max da tabela de preços
+      // ENRIQUECIMENTO: fn_get_customization_price (v1 e v2)
+      // Adiciona largura_max, altura_max, max_cores da tabela de preços
       // ============================================
       let enrichedData = rpcData;
-      if (rpcName === 'fn_get_customization_price_v2' && rpcData?.success && rpcData?.tabela_codigo) {
+      const shouldEnrich = (
+        (rpcName === 'fn_get_customization_price_v2' || rpcName === 'fn_get_customization_price') 
+        && rpcData?.success 
+        && rpcData?.tabela_codigo
+      );
+      if (shouldEnrich) {
         try {
-          // 1. Buscar tabela oficial pelo código (inclui area_maxima_texto como fallback)
+          // 1. Buscar tabela oficial pelo código (inclui area_maxima_texto, max_cores, cobra_por_cor)
           const { data: tabelaRows } = await externalSupabase
             .from('tabela_preco_gravacao_oficial')
-            .select('id,area_maxima_texto')
+            .select('id,area_maxima_texto,max_cores,cobra_por_cor')
             .eq('codigo', rpcData.tabela_codigo)
             .eq('ativo', true)
             .limit(1);
@@ -476,10 +481,11 @@ serve(async (req) => {
           if (tabelaRows?.length) {
             const tabelaId = tabelaRows[0].id;
             const areaMaxTexto = tabelaRows[0].area_maxima_texto;
+            const maxCoresFromTable = tabelaRows[0].max_cores;
+            const cobraPorCor = tabelaRows[0].cobra_por_cor;
 
             // 2. Buscar dimensões das faixas dessa tabela
             // Estratégia: pegar MAX real (excluindo sentinelas >=90 que significam "sem limite")
-            // Se não houver valores não-sentinela, tentar parsear area_maxima_texto
             const { data: faixaRows } = await externalSupabase
               .from('tabela_preco_gravacao_oficial_faixa')
               .select('largura_max,altura_max')
@@ -504,11 +510,8 @@ serve(async (req) => {
                 }
               }
               console.log(`Faixas: ${faixaRows.length} rows, larguras: ${[...new Set(larguras)].sort((a,b)=>a-b)} (sentinel=${larguraHasSentinel}), alturas: ${[...new Set(alturas)].sort((a,b)=>a-b)} (sentinel=${alturaHasSentinel})`);
-              // Non-sentinel max = technique-specific limit
               if (larguras.length > 0) maxLargura = Math.max(...larguras);
               if (alturas.length > 0) maxAltura = Math.max(...alturas);
-              // If sentinel exists for an axis, the real max comes from product_print_areas (frontend has it)
-              // Signal this to the frontend by setting the value to null
               if (larguraHasSentinel) maxLargura = null;
               if (alturaHasSentinel) maxAltura = null;
             } else {
@@ -528,11 +531,12 @@ serve(async (req) => {
               ...rpcData,
               largura_max_tecnica: maxLargura,
               altura_max_tecnica: maxAltura,
+              max_cores: maxCoresFromTable ?? (cobraPorCor ? 4 : 1),
             };
-            console.log(`Enriched price v2: ${rpcData.tabela_codigo} → ${maxLargura}×${maxAltura}cm`);
+            console.log(`Enriched price ${rpcName}: ${rpcData.tabela_codigo} → ${maxLargura}×${maxAltura}cm, max_cores=${enrichedData.max_cores}`);
           }
         } catch (enrichErr) {
-          console.warn('Failed to enrich price v2 with dimensions:', enrichErr);
+          console.warn('Failed to enrich price with dimensions:', enrichErr);
         }
       }
 
