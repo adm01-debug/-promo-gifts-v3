@@ -2530,7 +2530,8 @@ export type Database = {
           positions_count: number | null
           quote_item_id: string
           setup_cost: number | null
-          technique_id: string
+          technique_id: string | null
+          technique_name: string | null
           total_cost: number | null
           unit_cost: number | null
         }
@@ -2543,7 +2544,8 @@ export type Database = {
           positions_count?: number | null
           quote_item_id: string
           setup_cost?: number | null
-          technique_id: string
+          technique_id?: string | null
+          technique_name?: string | null
           total_cost?: number | null
           unit_cost?: number | null
         }
@@ -2556,7 +2558,8 @@ export type Database = {
           positions_count?: number | null
           quote_item_id?: string
           setup_cost?: number | null
-          technique_id?: string
+          technique_id?: string | null
+          technique_name?: string | null
           total_cost?: number | null
           unit_cost?: number | null
         }
@@ -2566,13 +2569,6 @@ export type Database = {
             columns: ["quote_item_id"]
             isOneToOne: false
             referencedRelation: "quote_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quote_item_personalizations_technique_id_fkey"
-            columns: ["technique_id"]
-            isOneToOne: false
-            referencedRelation: "personalization_techniques"
             referencedColumns: ["id"]
           },
         ]

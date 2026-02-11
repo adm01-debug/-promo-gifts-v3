@@ -190,8 +190,14 @@ export function useQuotes() {
     setIsLoading(true);
 
     try {
-      // Calculate totals
-      const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+      // Calculate totals (including personalization costs)
+      const subtotal = items.reduce((sum, item) => {
+        const baseTotal = item.quantity * item.unit_price;
+        const persTotal = (item.personalizations || []).reduce(
+          (pSum, p) => pSum + (p.total_cost || 0), 0
+        );
+        return sum + baseTotal + persTotal;
+      }, 0);
       const discountAmount = quote.discount_percent 
         ? subtotal * (quote.discount_percent / 100) 
         : (quote.discount_amount || 0);
@@ -249,7 +255,8 @@ export function useQuotes() {
           if (item.personalizations?.length && insertedItem) {
             const personalizationsToInsert = item.personalizations.map(p => ({
               quote_item_id: insertedItem.id,
-              technique_id: p.technique_id,
+              technique_id: p.technique_id || null,
+              technique_name: p.technique_name || null,
               colors_count: p.colors_count || 1,
               positions_count: p.positions_count || 1,
               area_cm2: p.area_cm2,
@@ -383,8 +390,14 @@ export function useQuotes() {
     setIsLoading(true);
 
     try {
-      // Calculate totals
-      const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+      // Calculate totals (including personalization costs)
+      const subtotal = items.reduce((sum, item) => {
+        const baseTotal = item.quantity * item.unit_price;
+        const persTotal = (item.personalizations || []).reduce(
+          (pSum, p) => pSum + (p.total_cost || 0), 0
+        );
+        return sum + baseTotal + persTotal;
+      }, 0);
       const discountAmount = quote.discount_percent 
         ? subtotal * (quote.discount_percent / 100) 
         : (quote.discount_amount || 0);
@@ -460,7 +473,8 @@ export function useQuotes() {
           if (item.personalizations?.length && insertedItem) {
             const personalizationsToInsert = item.personalizations.map(p => ({
               quote_item_id: insertedItem.id,
-              technique_id: p.technique_id,
+              technique_id: p.technique_id || null,
+              technique_name: p.technique_name || null,
               colors_count: p.colors_count || 1,
               positions_count: p.positions_count || 1,
               area_cm2: p.area_cm2,
