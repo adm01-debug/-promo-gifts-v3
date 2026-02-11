@@ -46,6 +46,7 @@ import { useQuoteTemplates, type QuoteTemplate, type QuoteTemplateItem } from "@
 import { QuoteTemplateSelector } from "@/components/quotes/QuoteTemplateSelector";
 import { SaveAsTemplateButton } from "@/components/quotes/SaveAsTemplateButton";
 import { QuotePersonalizationSelector } from "@/components/quotes/QuotePersonalizationSelector";
+import { CompanyContactSelector } from "@/components/quotes/CompanyContactSelector";
 import { QuoteAutoSave } from "@/components/quotes/QuoteAutoSave";
 import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
 import { useAuth } from "@/contexts/AuthContext";
@@ -82,6 +83,7 @@ export default function QuoteBuilderPage() {
 
   // Quote state
   const [clientId, setClientId] = useState<string>("");
+  const [contactId, setContactId] = useState<string>("");
   const [validUntil, setValidUntil] = useState<string>(
     format(addDays(new Date(), 30), "yyyy-MM-dd")
   );
@@ -155,26 +157,7 @@ export default function QuoteBuilderPage() {
     staleTime: 10 * 60 * 1000, // 10 min cache
   });
 
-  // Fetch clients from CRM
-  const { data: clients } = useQuery({
-    queryKey: ["quote-clients"],
-    queryFn: async () => {
-      const { selectCrm } = await import("@/lib/crm-db");
-      const { getCompanyDisplayName } = await import("@/types/crm");
-      const companies = await selectCrm<any>("companies", {
-        select: "id, razao_social, nome_fantasia",
-        filters: { deleted_at: null },
-        orderBy: { column: "razao_social", ascending: true },
-        limit: 500,
-      });
-      return companies.map((c: any) => ({
-        id: c.id,
-        name: c.nome_fantasia || c.razao_social,
-        email: null,
-        phone: null,
-      })) as Client[];
-    },
-  });
+  // Clients are now handled by CompanyContactSelector component
 
   const filteredProducts = useMemo(() => {
     if (!productSearch.trim()) return products?.slice(0, 20) || [];
@@ -547,25 +530,12 @@ export default function QuoteBuilderPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      Cliente
-                    </Label>
-                    <Select value={clientId || "_none"} onValueChange={(val) => setClientId(val === "_none" ? "" : val)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="_none">Sem cliente</SelectItem>
-                        {clients?.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <CompanyContactSelector
+                    companyId={clientId}
+                    contactId={contactId}
+                    onCompanyChange={setClientId}
+                    onContactChange={setContactId}
+                  />
 
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
