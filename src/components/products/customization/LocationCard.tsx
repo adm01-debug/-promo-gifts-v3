@@ -9,7 +9,6 @@
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Sparkles, Maximize2 } from "lucide-react";
 import {
   Collapsible,
