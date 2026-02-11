@@ -1,14 +1,12 @@
 /**
  * LocationCard — Card colapsável por local físico do produto
  * 
- * Achata todas as combinações técnica+variante em opções individuais.
- * Ex: Laser tem 2 variantes (Plano, Rotativo) → 2 opções separadas.
+ * Cada área dentro do grupo = 1 opção de técnica.
+ * Ex: "Corpo — Lado A" tem 3 áreas: Laser, UV Digital, Serigrafia.
  * 
- * Busca dimensões específicas de cada variante via tabela_preco_gravacao_oficial.
+ * Pricing: fn_get_customization_price (v1) com area_id (delegado ao TechniqueOption).
  */
 
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Sparkles, Maximize2 } from "lucide-react";
 import {
   Collapsible,
@@ -17,9 +15,7 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { TechniqueOption } from "./TechniqueOption";
-import { invokeExternalDb } from "@/lib/external-db";
 import type { PrintAreaV2 } from "@/hooks/useGravacaoPriceV2";
-import type { TechniqueVariant } from "@/hooks/useGravacaoPriceV2";
 import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
 
 export interface LocationGroupData {
@@ -33,97 +29,25 @@ export interface LocationGroupData {
   areas: PrintAreaV2[];
 }
 
-/** Flattened technique+variant combo for rendering */
-interface FlatOption {
-  key: string;           // varianteId (unique key)
-  techniqueName: string;
-  variant: TechniqueVariant;
-  areaMaxWidth: number;
-  areaMaxHeight: number;
-  isCurved: boolean;
-}
-
 interface LocationCardProps {
   group: LocationGroupData;
   isExpanded: boolean;
-  selectedOptionKey: string | null;
+  selectedAreaId: string | null;
   quantity: number;
   onToggle: () => void;
-  onSelectOption: (optionKey: string, priceData: CustomizationPriceV2 | null) => void;
-}
-
-/** Flatten all areas→techniques→variantes into individual options, deduplicating by variante_id */
-function flattenOptions(areas: PrintAreaV2[]): FlatOption[] {
-  const seen = new Set<string>();
-  const options: FlatOption[] = [];
-  for (const area of areas) {
-    for (const tech of area.techniques) {
-      for (const variant of tech.variantes) {
-        if (seen.has(variant.variante_id)) continue;
-        seen.add(variant.variante_id);
-        options.push({
-          key: variant.variante_id,
-          techniqueName: tech.nome,
-          variant,
-          areaMaxWidth: area.max_width,
-          areaMaxHeight: area.max_height,
-          isCurved: area.is_curved,
-        });
-      }
-    }
-  }
-  return options;
-}
-
-/** Fetch area_maxima_texto for each variante_id from tabela_preco_gravacao_oficial */
-function useVariantDimensions(varianteIds: string[]) {
-  return useQuery({
-    queryKey: ['variant-dimensions', varianteIds.sort().join(',')],
-    queryFn: async (): Promise<Map<string, string>> => {
-      if (!varianteIds.length) return new Map();
-      
-      const result = await invokeExternalDb<{
-        tecnica_variante_id: string;
-        area_maxima_texto: string | null;
-        area_maxima_cm2: number | null;
-      }>({
-        table: 'tabela_preco_gravacao_oficial',
-        operation: 'select',
-        select: 'tecnica_variante_id,area_maxima_texto,area_maxima_cm2',
-        filters: { ativo: true },
-        limit: 100,
-      });
-
-      const map = new Map<string, string>();
-      if (result?.records) {
-        for (const row of result.records) {
-          if (row.tecnica_variante_id && varianteIds.includes(row.tecnica_variante_id)) {
-            const text = row.area_maxima_texto || (row.area_maxima_cm2 ? `${row.area_maxima_cm2}cm²` : null);
-            if (text) map.set(row.tecnica_variante_id, text);
-          }
-        }
-      }
-      return map;
-    },
-    enabled: varianteIds.length > 0,
-    staleTime: 10 * 60 * 1000,
-  });
+  onSelectArea: (areaId: string, priceData: CustomizationPriceV2 | null) => void;
 }
 
 export function LocationCard({
   group,
   isExpanded,
-  selectedOptionKey,
+  selectedAreaId,
   quantity,
   onToggle,
-  onSelectOption,
+  onSelectArea,
 }: LocationCardProps) {
-  const hasSelection = selectedOptionKey !== null;
-
-  const flatOptions = useMemo(() => flattenOptions(group.areas), [group.areas]);
-  
-  const varianteIds = useMemo(() => flatOptions.map(o => o.key), [flatOptions]);
-  const { data: dimensionsMap } = useVariantDimensions(varianteIds);
+  const hasSelection = selectedAreaId !== null;
+  const techniqueCount = group.areas.length;
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -162,7 +86,7 @@ export function LocationCard({
                     até {group.maxWidth}×{group.maxHeight}cm
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    · {flatOptions.length} opç{flatOptions.length !== 1 ? "ões" : "ão"}
+                    · {techniqueCount} técnica{techniqueCount !== 1 ? "s" : ""}
                   </span>
                 </div>
               </div>
@@ -180,19 +104,17 @@ export function LocationCard({
             "px-4 pb-4 space-y-2",
             !isExpanded && "hidden"
           )}>
-            {flatOptions.map((opt) => (
+            {group.areas.map((area) => (
               <TechniqueOption
-                key={opt.key}
-                optionKey={opt.key}
-                techniqueName={opt.techniqueName}
-                variant={opt.variant}
-                areaMaxWidth={opt.areaMaxWidth}
-                areaMaxHeight={opt.areaMaxHeight}
-                areaMaxText={dimensionsMap?.get(opt.key) ?? null}
-                isCurved={opt.isCurved}
-                isSelected={selectedOptionKey === opt.key}
+                key={area.area_id}
+                areaId={area.area_id}
+                areaName={area.area_name}
+                areaMaxWidth={area.max_width}
+                areaMaxHeight={area.max_height}
+                isCurved={area.is_curved}
+                isSelected={selectedAreaId === area.area_id}
                 quantity={quantity}
-                onSelect={onSelectOption}
+                onSelect={onSelectArea}
               />
             ))}
           </div>
