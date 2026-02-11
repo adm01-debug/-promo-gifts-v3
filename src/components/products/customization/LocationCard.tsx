@@ -117,6 +117,7 @@ export function LocationCard({
                 isCurved={area.is_curved}
                 isSelected={selectedAreaId === area.area_id}
                 quantity={quantity}
+                techniques={area.techniques}
                 onSelect={onSelectArea}
               />
             ))}
