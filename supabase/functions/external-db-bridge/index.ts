@@ -458,8 +458,53 @@ serve(async (req) => {
         );
       }
 
+      // ============================================
+      // ENRIQUECIMENTO: fn_get_customization_price_v2
+      // Adiciona largura_max e altura_max da tabela de preços
+      // ============================================
+      let enrichedData = rpcData;
+      if (rpcName === 'fn_get_customization_price_v2' && rpcData?.success && rpcData?.tabela_codigo) {
+        try {
+          // 1. Buscar tabela oficial pelo código
+          const { data: tabelaRows } = await externalSupabase
+            .from('tabela_preco_gravacao_oficial')
+            .select('id')
+            .eq('codigo', rpcData.tabela_codigo)
+            .eq('ativo', true)
+            .limit(1);
+
+          if (tabelaRows?.length) {
+            const tabelaId = tabelaRows[0].id;
+
+            // 2. Buscar dimensões máximas das faixas dessa tabela
+            const { data: faixaRows } = await externalSupabase
+              .from('tabela_preco_gravacao_oficial_faixa')
+              .select('largura_max,altura_max')
+              .eq('tabela_preco_gravacao_id', tabelaId);
+
+            if (faixaRows?.length) {
+              let maxLargura = 0;
+              let maxAltura = 0;
+              for (const f of faixaRows) {
+                if (f.largura_max != null && f.largura_max > maxLargura) maxLargura = f.largura_max;
+                if (f.altura_max != null && f.altura_max > maxAltura) maxAltura = f.altura_max;
+              }
+              enrichedData = {
+                ...rpcData,
+                largura_max_tecnica: maxLargura > 0 ? maxLargura : null,
+                altura_max_tecnica: maxAltura > 0 ? maxAltura : null,
+              };
+              console.log(`Enriched price v2: ${rpcData.tabela_codigo} → ${maxLargura}×${maxAltura}cm`);
+            }
+          }
+        } catch (enrichErr) {
+          console.warn('Failed to enrich price v2 with dimensions:', enrichErr);
+          // Continue with original data if enrichment fails
+        }
+      }
+
       return new Response(
-        JSON.stringify({ data: rpcData, success: true }),
+        JSON.stringify({ data: enrichedData, success: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
