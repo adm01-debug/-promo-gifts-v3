@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { selectCrm, selectCrmById } from '@/lib/crm-db';
+import { CrmCompany, toLegacyClient, type LegacyClientFormat } from '@/types/crm';
 
-// Interface atualizada para corresponder à tabela bitrix_clients
+// Interface de compatibilidade — mantida para não quebrar consumidores existentes
 export interface Client {
   id: string;
   bitrix_id: string;
@@ -21,38 +22,35 @@ export interface Client {
   updated_at: string;
 }
 
+/**
+ * Lista clientes do CRM externo (substitui bitrix_clients)
+ */
 export function useClients() {
   return useQuery<Client[]>({
     queryKey: ['clients'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bitrix_clients')
-        .select('*')
-        .order('name');
+      const companies = await selectCrm<CrmCompany>('companies', {
+        filters: { is_active: true },
+        orderBy: { column: 'razao_social', ascending: true },
+        limit: 500,
+      });
 
-      if (error) throw new Error(`Failed to fetch clients: ${error.message}`);
-      return data || [];
+      return companies.map(toLegacyClient);
     },
-    staleTime: 10 * 60 * 1000, // 10 minutos
+    staleTime: 10 * 60 * 1000,
   });
 }
 
+/**
+ * Busca cliente individual do CRM por ID
+ */
 export function useClient(id: string) {
   return useQuery<Client | null>({
     queryKey: ['clients', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('bitrix_clients')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') return null;
-        throw new Error(`Failed to fetch client: ${error.message}`);
-      }
-
-      return data;
+      const company = await selectCrmById<CrmCompany>('companies', id);
+      if (!company) return null;
+      return toLegacyClient(company);
     },
     enabled: !!id,
   });
