@@ -60,18 +60,18 @@ export function TechniqueOption({
 
   const label = formatOptionLabel(techniqueName, variant);
 
-  // Dimensions: prefer enriched technique-specific dims from pricing table faixas,
-  // then area max text, then area physical limits as fallback
+  // Dimensions: combine technique-specific limits (from faixas) with area physical limits
+  // If enriched data returns a value → it's the technique limit (e.g., 3cm for Plano)
+  // If enriched data returns null for an axis → the last faixa is open-ended, use area limit (e.g., 20cm for 360°)
   const dimensionLabel = useMemo(() => {
-    if (priceData?.largura_max_tecnica && priceData?.altura_max_tecnica) {
-      return `${priceData.largura_max_tecnica}×${priceData.altura_max_tecnica}cm`;
+    const w = priceData?.largura_max_tecnica ?? areaMaxWidth;
+    const h = priceData?.altura_max_tecnica ?? areaMaxHeight;
+    if (w > 0 && h > 0) {
+      return `${w}×${h}cm`;
     }
     if (areaMaxText) return areaMaxText;
-    if (areaMaxWidth > 0 && areaMaxHeight > 0) {
-      return `${areaMaxWidth}×${areaMaxHeight}cm`;
-    }
     return null;
-  }, [priceData, areaMaxText, areaMaxWidth, areaMaxHeight]);
+  }, [priceData, areaMaxWidth, areaMaxHeight, areaMaxText]);
 
   // Max colors from variant
   const maxColorsForTech = useMemo(() => {
