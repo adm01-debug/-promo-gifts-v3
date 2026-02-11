@@ -26,6 +26,8 @@ export interface TechniqueVariantOptionProps {
   /** Area default dimensions (fallback when variant has no override) */
   areaMaxWidth: number;
   areaMaxHeight: number;
+  /** Dimension text from tabela_preco_gravacao_oficial (e.g., "8x12cm") */
+  areaMaxText: string | null;
   isCurved: boolean;
   isSelected: boolean;
   quantity: number;
@@ -46,6 +48,7 @@ export function TechniqueOption({
   variant,
   areaMaxWidth,
   areaMaxHeight,
+  areaMaxText,
   isCurved,
   isSelected,
   quantity,
@@ -57,9 +60,8 @@ export function TechniqueOption({
 
   const label = formatOptionLabel(techniqueName, variant);
 
-  // Dimensions from variant override or area default
-  const width = variant.override_width ?? areaMaxWidth;
-  const height = variant.override_height ?? areaMaxHeight;
+  // Dimensions: prefer areaMaxText from pricing table, fallback to variant override or area default
+  const dimensionLabel = areaMaxText || `${variant.override_width ?? areaMaxWidth}×${variant.override_height ?? areaMaxHeight}cm`;
 
   // Max colors from variant
   const maxColorsForTech = useMemo(() => {
@@ -134,7 +136,7 @@ export function TechniqueOption({
           <div>
             <p className="font-medium text-sm text-foreground">{label}</p>
             <p className="text-xs text-muted-foreground">
-              {width}×{height}cm
+              {dimensionLabel}
               {isCurved && " · curva"}
             </p>
           </div>

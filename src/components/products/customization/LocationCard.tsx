@@ -4,10 +4,12 @@
  * Achata todas as combinações técnica+variante em opções individuais.
  * Ex: Laser tem 2 variantes (Plano, Rotativo) → 2 opções separadas.
  * 
- * Usa forceMount + hidden para preservar preços já carregados.
+ * Busca dimensões específicas de cada variante via tabela_preco_gravacao_oficial.
  */
 
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Sparkles, Maximize2 } from "lucide-react";
 import {
   Collapsible,
@@ -16,6 +18,7 @@ import {
 } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { TechniqueOption } from "./TechniqueOption";
+import { invokeExternalDb } from "@/lib/external-db";
 import type { PrintAreaV2 } from "@/hooks/useGravacaoPriceV2";
 import type { TechniqueVariant } from "@/hooks/useGravacaoPriceV2";
 import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
@@ -73,6 +76,41 @@ function flattenOptions(areas: PrintAreaV2[]): FlatOption[] {
   return options;
 }
 
+/** Fetch area_maxima_texto for each variante_id from tabela_preco_gravacao_oficial */
+function useVariantDimensions(varianteIds: string[]) {
+  return useQuery({
+    queryKey: ['variant-dimensions', varianteIds.sort().join(',')],
+    queryFn: async (): Promise<Map<string, string>> => {
+      if (!varianteIds.length) return new Map();
+      
+      const result = await invokeExternalDb<{
+        tecnica_variante_id: string;
+        area_maxima_texto: string | null;
+        area_maxima_cm2: number | null;
+      }>({
+        table: 'tabela_preco_gravacao_oficial',
+        operation: 'select',
+        select: 'tecnica_variante_id,area_maxima_texto,area_maxima_cm2',
+        filters: { ativo: true },
+        limit: 100,
+      });
+
+      const map = new Map<string, string>();
+      if (result?.records) {
+        for (const row of result.records) {
+          if (row.tecnica_variante_id && varianteIds.includes(row.tecnica_variante_id)) {
+            const text = row.area_maxima_texto || (row.area_maxima_cm2 ? `${row.area_maxima_cm2}cm²` : null);
+            if (text) map.set(row.tecnica_variante_id, text);
+          }
+        }
+      }
+      return map;
+    },
+    enabled: varianteIds.length > 0,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
 export function LocationCard({
   group,
   isExpanded,
@@ -84,6 +122,9 @@ export function LocationCard({
   const hasSelection = selectedOptionKey !== null;
 
   const flatOptions = useMemo(() => flattenOptions(group.areas), [group.areas]);
+  
+  const varianteIds = useMemo(() => flatOptions.map(o => o.key), [flatOptions]);
+  const { data: dimensionsMap } = useVariantDimensions(varianteIds);
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -148,6 +189,7 @@ export function LocationCard({
                 variant={opt.variant}
                 areaMaxWidth={opt.areaMaxWidth}
                 areaMaxHeight={opt.areaMaxHeight}
+                areaMaxText={dimensionsMap?.get(opt.key) ?? null}
                 isCurved={opt.isCurved}
                 isSelected={selectedOptionKey === opt.key}
                 quantity={quantity}
