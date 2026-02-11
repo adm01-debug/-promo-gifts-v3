@@ -465,16 +465,17 @@ serve(async (req) => {
       let enrichedData = rpcData;
       if (rpcName === 'fn_get_customization_price_v2' && rpcData?.success && rpcData?.tabela_codigo) {
         try {
-          // 1. Buscar tabela oficial pelo código
+          // 1. Buscar tabela oficial pelo código (inclui area_maxima_texto como fallback)
           const { data: tabelaRows } = await externalSupabase
             .from('tabela_preco_gravacao_oficial')
-            .select('id')
+            .select('id,area_maxima_texto')
             .eq('codigo', rpcData.tabela_codigo)
             .eq('ativo', true)
             .limit(1);
 
           if (tabelaRows?.length) {
             const tabelaId = tabelaRows[0].id;
+            const areaMaxTexto = tabelaRows[0].area_maxima_texto;
 
             // 2. Buscar dimensões máximas das faixas dessa tabela
             const { data: faixaRows } = await externalSupabase
@@ -482,24 +483,38 @@ serve(async (req) => {
               .select('largura_max,altura_max')
               .eq('tabela_preco_gravacao_id', tabelaId);
 
+            let maxLargura: number | null = null;
+            let maxAltura: number | null = null;
+
             if (faixaRows?.length) {
-              let maxLargura = 0;
-              let maxAltura = 0;
+              let l = 0, a = 0;
               for (const f of faixaRows) {
-                if (f.largura_max != null && f.largura_max > maxLargura) maxLargura = f.largura_max;
-                if (f.altura_max != null && f.altura_max > maxAltura) maxAltura = f.altura_max;
+                // Ignorar valores sentinela (>=50 = sem limite real)
+                if (f.largura_max != null && f.largura_max < 50 && f.largura_max > l) l = f.largura_max;
+                if (f.altura_max != null && f.altura_max < 50 && f.altura_max > a) a = f.altura_max;
               }
-              enrichedData = {
-                ...rpcData,
-                largura_max_tecnica: maxLargura > 0 ? maxLargura : null,
-                altura_max_tecnica: maxAltura > 0 ? maxAltura : null,
-              };
-              console.log(`Enriched price v2: ${rpcData.tabela_codigo} → ${maxLargura}×${maxAltura}cm`);
+              if (l > 0) maxLargura = l;
+              if (a > 0) maxAltura = a;
             }
+
+            // Fallback: parsear area_maxima_texto (formato "WxHcm") se faixas não tinham dimensões válidas
+            if ((maxLargura == null || maxAltura == null) && areaMaxTexto) {
+              const match = areaMaxTexto.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)/i);
+              if (match) {
+                if (maxLargura == null) maxLargura = parseFloat(match[1].replace(',', '.'));
+                if (maxAltura == null) maxAltura = parseFloat(match[2].replace(',', '.'));
+              }
+            }
+
+            enrichedData = {
+              ...rpcData,
+              largura_max_tecnica: maxLargura,
+              altura_max_tecnica: maxAltura,
+            };
+            console.log(`Enriched price v2: ${rpcData.tabela_codigo} → ${maxLargura}×${maxAltura}cm`);
           }
         } catch (enrichErr) {
           console.warn('Failed to enrich price v2 with dimensions:', enrichErr);
-          // Continue with original data if enrichment fails
         }
       }
 
