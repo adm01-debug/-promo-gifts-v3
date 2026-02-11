@@ -1,12 +1,10 @@
 /**
  * ProductCustomizationOptions — Opções de personalização agrupadas por local físico
  * 
- * FLUXO HÍBRIDO v2/v1:
- * - fn_get_product_print_areas_v2 para listar e agrupar áreas
- * - fn_get_customization_price (v1) para calcular preço por area_id
+ * Cada local exibe todas as combinações técnica+variante achatadas.
+ * Ex: "Corpo — Lado A" mostra: Laser-Plano, Laser-Rotativo, UV-Plano, etc.
  * 
- * 9 registros → 3 cards (agrupados por component_name + location_name)
- * Cada card = 1 local físico com técnicas selecionáveis
+ * Seleção: 1 opção por local, múltiplos locais simultâneos.
  */
 
 import { useState, useMemo, useCallback } from "react";
@@ -73,12 +71,26 @@ function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
     }));
 }
 
+/** Count total flattened options across all groups */
+function countTotalOptions(groups: LocationGroupData[]): number {
+  let count = 0;
+  for (const g of groups) {
+    for (const area of g.areas) {
+      for (const tech of area.techniques) {
+        count += tech.variantes.length;
+      }
+    }
+  }
+  return count;
+}
+
 export function ProductCustomizationOptions({
   productId,
   quantity = 100,
   onSelectionChange,
 }: ProductCustomizationOptionsProps) {
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  // Key: groupKey, Value: { areaId: varianteId (used as unique key), price }
   const [selectedAreas, setSelectedAreas] = useState<Map<string, { areaId: string; price: CustomizationPriceV2 | null }>>(new Map());
 
   const { data: areas, isLoading } = useProductPrintAreasV2(productId);
@@ -92,13 +104,13 @@ export function ProductCustomizationOptions({
     setExpandedGroup(prev => prev === groupKey ? null : groupKey);
   }, []);
 
-  const handleSelectArea = useCallback((groupKey: string, areaId: string, priceData: CustomizationPriceV2 | null) => {
+  const handleSelectOption = useCallback((groupKey: string, optionKey: string, priceData: CustomizationPriceV2 | null) => {
     setSelectedAreas(prev => {
       const next = new Map(prev);
-      if (next.get(groupKey)?.areaId === areaId) {
+      if (next.get(groupKey)?.areaId === optionKey) {
         next.delete(groupKey); // Toggle off
       } else {
-        next.set(groupKey, { areaId, price: priceData });
+        next.set(groupKey, { areaId: optionKey, price: priceData });
       }
       onSelectionChange?.(next);
       return next;
@@ -121,11 +133,7 @@ export function ProductCustomizationOptions({
 
   if (!groupedLocations.length) return null;
 
-  const totalTechniques = groupedLocations.reduce(
-    (acc, loc) => acc + loc.areas.length,
-    0
-  );
-
+  const totalOptions = countTotalOptions(groupedLocations);
   const totalSelected = selectedAreas.size;
   const totalPrice = [...selectedAreas.values()]
     .reduce((sum, sel) => sum + (sel.price?.unit_price ?? 0), 0);
@@ -147,7 +155,7 @@ export function ProductCustomizationOptions({
             {groupedLocations.length} loca{groupedLocations.length !== 1 ? "is" : "l"}
           </Badge>
           <Badge variant="outline" className="text-xs">
-            {totalTechniques} técnica{totalTechniques !== 1 ? "s" : ""}
+            {totalOptions} opç{totalOptions !== 1 ? "ões" : "ão"}
           </Badge>
         </div>
       </div>
@@ -159,11 +167,11 @@ export function ProductCustomizationOptions({
             key={group.groupKey}
             group={group}
             isExpanded={expandedGroup === group.groupKey}
-            selectedAreaId={selectedAreas.get(group.groupKey)?.areaId ?? null}
+            selectedOptionKey={selectedAreas.get(group.groupKey)?.areaId ?? null}
             quantity={quantity}
             onToggle={() => handleToggle(group.groupKey)}
-            onSelectArea={(areaId, priceData) =>
-              handleSelectArea(group.groupKey, areaId, priceData)
+            onSelectOption={(optionKey, priceData) =>
+              handleSelectOption(group.groupKey, optionKey, priceData)
             }
           />
         ))}
