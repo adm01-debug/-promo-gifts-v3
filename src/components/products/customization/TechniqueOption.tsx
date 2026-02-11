@@ -137,7 +137,6 @@ export function TechniqueOption({
             <p className="font-medium text-sm text-foreground">{label}</p>
             <p className="text-xs text-muted-foreground">
               {dimensionLabel}
-              {isCurved && " · curva"}
             </p>
           </div>
         </div>
