@@ -7,7 +7,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Fuse from "fuse.js";
-import { Building2, User, Search, X, ChevronDown, Loader2, Phone, Mail } from "lucide-react";
+import { Building2, User, Search, X, ChevronDown, Loader2, Phone, Mail, Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -431,15 +431,24 @@ export function CompanyContactSelector({
                   key={contact.id}
                   type="button"
                   className={cn(
-                    "flex w-full items-center gap-3 px-3 py-2.5 rounded-md border text-sm text-left transition-colors",
+                    "flex w-full items-center gap-3 px-3 py-2.5 rounded-md border text-sm text-left transition-all",
                     contactId === contact.id
-                      ? "border-primary bg-primary/5"
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-sm"
                       : "border-border hover:bg-accent/50"
                   )}
                   onClick={() => onContactChange?.(contact.id)}
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-primary" />
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
+                    contactId === contact.id
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-primary/10 text-primary"
+                  )}>
+                    {contactId === contact.id ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <User className="h-4 w-4" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{contact.name}</p>
