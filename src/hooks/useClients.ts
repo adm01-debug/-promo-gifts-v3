@@ -30,7 +30,7 @@ export function useClients() {
     queryKey: ['clients'],
     queryFn: async () => {
       const companies = await selectCrm<CrmCompany>('companies', {
-        filters: { is_active: true },
+        filters: { deleted_at: null },
         orderBy: { column: 'razao_social', ascending: true },
         limit: 500,
       });
