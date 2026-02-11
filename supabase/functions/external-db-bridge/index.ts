@@ -477,7 +477,9 @@ serve(async (req) => {
             const tabelaId = tabelaRows[0].id;
             const areaMaxTexto = tabelaRows[0].area_maxima_texto;
 
-            // 2. Buscar dimensões máximas das faixas dessa tabela
+            // 2. Buscar dimensões das faixas dessa tabela
+            // Estratégia: pegar MAX real (excluindo sentinelas >=90 que significam "sem limite")
+            // Se não houver valores não-sentinela, tentar parsear area_maxima_texto
             const { data: faixaRows } = await externalSupabase
               .from('tabela_preco_gravacao_oficial_faixa')
               .select('largura_max,altura_max')
@@ -487,13 +489,30 @@ serve(async (req) => {
             let maxAltura: number | null = null;
 
             if (faixaRows?.length) {
-              let l = 0, a = 0;
+              const larguras: number[] = [];
+              const alturas: number[] = [];
+              let larguraHasSentinel = false;
+              let alturaHasSentinel = false;
               for (const f of faixaRows) {
-                if (f.largura_max != null && f.largura_max > l) l = f.largura_max;
-                if (f.altura_max != null && f.altura_max > a) a = f.altura_max;
+                if (f.largura_max != null) {
+                  if (f.largura_max >= 90) larguraHasSentinel = true;
+                  else larguras.push(f.largura_max);
+                }
+                if (f.altura_max != null) {
+                  if (f.altura_max >= 90) alturaHasSentinel = true;
+                  else alturas.push(f.altura_max);
+                }
               }
-              if (l > 0) maxLargura = l;
-              if (a > 0) maxAltura = a;
+              console.log(`Faixas: ${faixaRows.length} rows, larguras: ${[...new Set(larguras)].sort((a,b)=>a-b)} (sentinel=${larguraHasSentinel}), alturas: ${[...new Set(alturas)].sort((a,b)=>a-b)} (sentinel=${alturaHasSentinel})`);
+              // Non-sentinel max = technique-specific limit
+              if (larguras.length > 0) maxLargura = Math.max(...larguras);
+              if (alturas.length > 0) maxAltura = Math.max(...alturas);
+              // If sentinel exists for an axis, the real max comes from product_print_areas (frontend has it)
+              // Signal this to the frontend by setting the value to null
+              if (larguraHasSentinel) maxLargura = null;
+              if (alturaHasSentinel) maxAltura = null;
+            } else {
+              console.log(`No faixas found for tabelaId=${tabelaId}`);
             }
 
             // Fallback: parsear area_maxima_texto (formato "WxHcm") se faixas não tinham dimensões válidas
