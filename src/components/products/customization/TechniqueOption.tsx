@@ -1,11 +1,11 @@
 /**
- * TechniqueOption — Uma opção de Técnica + Variante (tamanho)
+ * TechniqueOption — Uma opção de técnica (= 1 área de gravação)
  * 
- * Cada instância = 1 combinação (ex: "Laser — Plano", "UV Digital — Rotativo")
- * Sem dropdown. Seleção direta por clique.
+ * Cada instância = 1 área (ex: "Lado A — Laser", "Lado A — UV Digital")
+ * Seleção direta por clique.
  * 
- * Usa fn_get_customization_price_v2 com variante_id. SEM fallback v1.
- * Mostra seletor de cores apenas quando price_by_color = true.
+ * Usa fn_get_customization_price (v1) com area_id.
+ * Mostra seletor de cores quando price_by_color = true.
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -14,83 +14,59 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { invokeExternalRpc } from "@/lib/external-rpc";
 import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
-import type { TechniqueVariant } from "@/hooks/useGravacaoPriceV2";
 
-export interface TechniqueVariantOptionProps {
-  /** Unique key for this option (varianteId) */
-  optionKey: string;
-  /** Technique name (e.g., "Laser") */
-  techniqueName: string;
-  /** Variant data */
-  variant: TechniqueVariant;
-  /** Area default dimensions (fallback when variant has no override) */
+export interface TechniqueOptionProps {
+  /** area_id from product_print_areas */
+  areaId: string;
+  /** Full area_name (e.g., "Lado A — Laser") */
+  areaName: string;
+  /** Area-specific dimensions */
   areaMaxWidth: number;
   areaMaxHeight: number;
-  /** Dimension text from tabela_preco_gravacao_oficial (e.g., "8x12cm") */
-  areaMaxText: string | null;
   isCurved: boolean;
   isSelected: boolean;
   quantity: number;
-  onSelect: (optionKey: string, priceData: CustomizationPriceV2 | null) => void;
+  onSelect: (areaId: string, priceData: CustomizationPriceV2 | null) => void;
 }
 
-/** Format display label: "Técnica — Variante" */
-function formatOptionLabel(techName: string, variant: TechniqueVariant): string {
-  // Strip technique prefix from variant name if present (e.g., "Fiber Laser | Plana" → "Plana")
-  const parts = variant.nome.split(' | ');
-  const variantLabel = parts.length > 1 ? parts[1] : variant.nome;
-  return `${techName} — ${variantLabel}`;
+/** Extract technique label from area_name: "Lado A — Laser" → "Laser" */
+function extractTechLabel(areaName: string): string {
+  const parts = areaName.split(' — ');
+  return parts.length > 1 ? parts[1] : areaName;
 }
 
 export function TechniqueOption({
-  optionKey,
-  techniqueName,
-  variant,
+  areaId,
+  areaName,
   areaMaxWidth,
   areaMaxHeight,
-  areaMaxText,
   isCurved,
   isSelected,
   quantity,
   onSelect,
-}: TechniqueVariantOptionProps) {
+}: TechniqueOptionProps) {
   const [priceData, setPriceData] = useState<CustomizationPriceV2 | null>(null);
   const [loading, setLoading] = useState(false);
   const [numColors, setNumColors] = useState(1);
 
-  const label = formatOptionLabel(techniqueName, variant);
+  const techLabel = extractTechLabel(areaName);
 
-  // Dimensions: combine technique-specific limits (from faixas) with area physical limits
-  // If enriched data returns a value → it's the technique limit (e.g., 3cm for Plano)
-  // If enriched data returns null for an axis → the last faixa is open-ended, use area limit (e.g., 20cm for 360°)
   const dimensionLabel = useMemo(() => {
-    const w = priceData?.largura_max_tecnica ?? areaMaxWidth;
-    const h = priceData?.altura_max_tecnica ?? areaMaxHeight;
-    if (w > 0 && h > 0) {
-      return `${w}×${h}cm`;
+    if (areaMaxWidth > 0 && areaMaxHeight > 0) {
+      return `${areaMaxWidth}×${areaMaxHeight}cm`;
     }
-    if (areaMaxText) return areaMaxText;
     return null;
-  }, [priceData, areaMaxWidth, areaMaxHeight, areaMaxText]);
+  }, [areaMaxWidth, areaMaxHeight]);
 
-  // Max colors from variant
-  const maxColorsForTech = useMemo(() => {
-    const mc = variant.max_colors;
-    if (mc === 0) return 0; // Full color
-    if (mc > 0) return mc;
-    if (priceData?.price_by_color) return 4;
-    return 1;
-  }, [variant.max_colors, priceData]);
-
-  // Fetch price v2
+  // Fetch price v1 with area_id
   const fetchPrice = useCallback(async (colors: number) => {
-    if (quantity <= 0 || !variant.variante_id) return;
+    if (quantity <= 0 || !areaId) return;
     setLoading(true);
     try {
       const result = await invokeExternalRpc<CustomizationPriceV2>(
-        'fn_get_customization_price_v2',
+        'fn_get_customization_price',
         {
-          p_tecnica_variante_id: variant.variante_id,
+          p_area_id: areaId,
           p_quantidade: quantity,
           p_num_cores: colors,
         }
@@ -101,7 +77,7 @@ export function TechniqueOption({
     } finally {
       setLoading(false);
     }
-  }, [quantity, variant.variante_id]);
+  }, [quantity, areaId]);
 
   // Fetch on mount / quantity change
   useEffect(() => {
@@ -111,7 +87,7 @@ export function TechniqueOption({
   // Push price to parent when it changes and this option is selected
   useEffect(() => {
     if (isSelected) {
-      onSelect(optionKey, priceData);
+      onSelect(areaId, priceData);
     }
   }, [priceData]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -120,7 +96,15 @@ export function TechniqueOption({
     fetchPrice(colors);
   };
 
-  const showColorSelector = isSelected && priceData?.price_by_color && maxColorsForTech > 1;
+  // Determine max colors: from priceData or default
+  const maxColors = useMemo(() => {
+    if (!priceData) return 1;
+    if (!priceData.price_by_color) return 1;
+    // Serigrafia typically allows 1-3, but we let the user try up to 4
+    return 4;
+  }, [priceData]);
+
+  const showColorSelector = isSelected && priceData?.price_by_color && maxColors > 1;
 
   return (
     <div
@@ -130,7 +114,7 @@ export function TechniqueOption({
           ? "bg-primary/10 border-primary/40 ring-1 ring-primary/20"
           : "bg-secondary/50 border-border/50 hover:bg-secondary/80 hover:border-border"
       )}
-      onClick={() => onSelect(optionKey, priceData)}
+      onClick={() => onSelect(areaId, priceData)}
     >
       {/* Header: label + badges + price */}
       <div className="flex items-center justify-between">
@@ -144,7 +128,7 @@ export function TechniqueOption({
             {isSelected && <Check className="h-3 w-3" />}
           </div>
           <div>
-            <p className="font-medium text-sm text-foreground">{label}</p>
+            <p className="font-medium text-sm text-foreground">{techLabel}</p>
             {dimensionLabel && (
               <p className="text-xs text-muted-foreground">
                 {dimensionLabel}
@@ -153,21 +137,15 @@ export function TechniqueOption({
           </div>
         </div>
         <div className="flex items-center gap-1.5">
-          {variant.is_recommended && (
-            <Badge variant="secondary" className="text-[10px] h-5">⭐</Badge>
-          )}
-          {!variant.has_pricing && (
-            <Badge variant="outline" className="text-[10px] h-5 text-muted-foreground">sob consulta</Badge>
-          )}
           {priceData && !priceData.price_by_color && (
             <Badge variant="outline" className="text-[10px] h-5">
-              {maxColorsForTech === 1 ? "1 cor" : maxColorsForTech === 0 ? "Full Color" : `até ${maxColorsForTech} cores`}
+              {maxColors === 1 ? "1 cor" : "Full Color"}
             </Badge>
           )}
           {priceData?.price_by_color && (
             <Badge variant="outline" className="text-[10px] h-5">
               <Palette className="h-2.5 w-2.5 mr-0.5" />
-              até {maxColorsForTech} cores
+              até {maxColors} cores
             </Badge>
           )}
           <div className="text-right min-w-[80px]">
@@ -192,7 +170,7 @@ export function TechniqueOption({
             Nº de cores:
           </p>
           <div className="flex gap-1.5">
-            {Array.from({ length: maxColorsForTech }, (_, i) => i + 1).map(n => (
+            {Array.from({ length: maxColors }, (_, i) => i + 1).map(n => (
               <button
                 key={n}
                 className={cn(

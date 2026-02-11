@@ -1,10 +1,11 @@
 /**
  * ProductCustomizationOptions — Opções de personalização agrupadas por local físico
  * 
- * Cada local exibe todas as combinações técnica+variante achatadas.
- * Ex: "Corpo — Lado A" mostra: Laser-Plano, Laser-Rotativo, UV-Plano, etc.
+ * Cada local exibe as áreas de gravação como opções de técnica.
+ * Ex: "Corpo — Lado A" mostra: Laser, UV Digital, Serigrafia.
  * 
- * Seleção: 1 opção por local, múltiplos locais simultâneos.
+ * Seleção: 1 técnica por local, múltiplos locais simultâneos.
+ * Pricing: fn_get_customization_price (v1) com area_id.
  */
 
 import { useState, useMemo, useCallback } from "react";
@@ -71,28 +72,13 @@ function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
     }));
 }
 
-/** Count total unique flattened options across all groups (deduplicated by variante_id) */
-function countTotalOptions(groups: LocationGroupData[]): number {
-  const seen = new Set<string>();
-  for (const g of groups) {
-    for (const area of g.areas) {
-      for (const tech of area.techniques) {
-        for (const v of tech.variantes) {
-          seen.add(v.variante_id);
-        }
-      }
-    }
-  }
-  return seen.size;
-}
-
 export function ProductCustomizationOptions({
   productId,
   quantity = 100,
   onSelectionChange,
 }: ProductCustomizationOptionsProps) {
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-  // Key: groupKey, Value: { areaId: varianteId (used as unique key), price }
+  // Key: groupKey, Value: { areaId: area_id from product_print_areas, price }
   const [selectedAreas, setSelectedAreas] = useState<Map<string, { areaId: string; price: CustomizationPriceV2 | null }>>(new Map());
 
   const { data: areas, isLoading } = useProductPrintAreasV2(productId);
@@ -106,13 +92,13 @@ export function ProductCustomizationOptions({
     setExpandedGroup(prev => prev === groupKey ? null : groupKey);
   }, []);
 
-  const handleSelectOption = useCallback((groupKey: string, optionKey: string, priceData: CustomizationPriceV2 | null) => {
+  const handleSelectArea = useCallback((groupKey: string, areaId: string, priceData: CustomizationPriceV2 | null) => {
     setSelectedAreas(prev => {
       const next = new Map(prev);
-      if (next.get(groupKey)?.areaId === optionKey) {
+      if (next.get(groupKey)?.areaId === areaId) {
         next.delete(groupKey); // Toggle off
       } else {
-        next.set(groupKey, { areaId: optionKey, price: priceData });
+        next.set(groupKey, { areaId, price: priceData });
       }
       onSelectionChange?.(next);
       return next;
@@ -135,7 +121,8 @@ export function ProductCustomizationOptions({
 
   if (!groupedLocations.length) return null;
 
-  const totalOptions = countTotalOptions(groupedLocations);
+  const totalLocations = groupedLocations.length;
+  const totalTechniques = groupedLocations.reduce((sum, g) => sum + g.areas.length, 0);
   const totalSelected = selectedAreas.size;
   const totalPrice = [...selectedAreas.values()]
     .reduce((sum, sel) => sum + (sel.price?.unit_price ?? 0), 0);
@@ -154,10 +141,10 @@ export function ProductCustomizationOptions({
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="text-xs">
-            {groupedLocations.length} loca{groupedLocations.length !== 1 ? "is" : "l"}
+            {totalLocations} loca{totalLocations !== 1 ? "is" : "l"}
           </Badge>
           <Badge variant="outline" className="text-xs">
-            {totalOptions} opç{totalOptions !== 1 ? "ões" : "ão"}
+            {totalTechniques} técnica{totalTechniques !== 1 ? "s" : ""}
           </Badge>
         </div>
       </div>
@@ -169,11 +156,11 @@ export function ProductCustomizationOptions({
             key={group.groupKey}
             group={group}
             isExpanded={expandedGroup === group.groupKey}
-            selectedOptionKey={selectedAreas.get(group.groupKey)?.areaId ?? null}
+            selectedAreaId={selectedAreas.get(group.groupKey)?.areaId ?? null}
             quantity={quantity}
             onToggle={() => handleToggle(group.groupKey)}
-            onSelectOption={(optionKey, priceData) =>
-              handleSelectOption(group.groupKey, optionKey, priceData)
+            onSelectArea={(areaId, priceData) =>
+              handleSelectArea(group.groupKey, areaId, priceData)
             }
           />
         ))}
