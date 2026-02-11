@@ -50,12 +50,15 @@ interface LocationCardProps {
   onSelectOption: (optionKey: string, priceData: CustomizationPriceV2 | null) => void;
 }
 
-/** Flatten all areas→techniques→variantes into individual options */
+/** Flatten all areas→techniques→variantes into individual options, deduplicating by variante_id */
 function flattenOptions(areas: PrintAreaV2[]): FlatOption[] {
+  const seen = new Set<string>();
   const options: FlatOption[] = [];
   for (const area of areas) {
     for (const tech of area.techniques) {
       for (const variant of tech.variantes) {
+        if (seen.has(variant.variante_id)) continue;
+        seen.add(variant.variante_id);
         options.push({
           key: variant.variante_id,
           techniqueName: tech.nome,
