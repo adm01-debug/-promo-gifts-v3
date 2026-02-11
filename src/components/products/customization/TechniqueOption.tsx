@@ -51,12 +51,25 @@ export function TechniqueOption({
 
   const techLabel = extractTechLabel(areaName);
 
+  // Use technique-specific dimensions from enriched price data when available
+  // Use MIN(technique_limit, physical_area) to show the binding constraint
   const dimensionLabel = useMemo(() => {
-    if (areaMaxWidth > 0 && areaMaxHeight > 0) {
-      return `${areaMaxWidth}×${areaMaxHeight}cm`;
+    const techW = (priceData as any)?.largura_max_tecnica;
+    const techH = (priceData as any)?.altura_max_tecnica;
+    
+    // If we have technique-specific limits, use MIN with physical area
+    const effectiveW = (typeof techW === 'number' && techW > 0)
+      ? Math.min(techW, areaMaxWidth > 0 ? areaMaxWidth : techW)
+      : areaMaxWidth;
+    const effectiveH = (typeof techH === 'number' && techH > 0)
+      ? Math.min(techH, areaMaxHeight > 0 ? areaMaxHeight : techH)
+      : areaMaxHeight;
+    
+    if (effectiveW > 0 && effectiveH > 0) {
+      return `${effectiveW}×${effectiveH}cm`;
     }
     return null;
-  }, [areaMaxWidth, areaMaxHeight]);
+  }, [areaMaxWidth, areaMaxHeight, priceData]);
 
   // Fetch price v1 with area_id
   const fetchPrice = useCallback(async (colors: number) => {
