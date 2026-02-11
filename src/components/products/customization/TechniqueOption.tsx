@@ -60,8 +60,11 @@ export function TechniqueOption({
 
   const label = formatOptionLabel(techniqueName, variant);
 
-  // Dimensions: prefer areaMaxText from pricing table, fallback to variant override or area default
-  const dimensionLabel = areaMaxText || `${variant.override_width ?? areaMaxWidth}×${variant.override_height ?? areaMaxHeight}cm`;
+  // Dimensions: technique-specific only (never fallback to area dimensions)
+  const dimensionLabel = areaMaxText
+    || (variant.override_width != null && variant.override_height != null
+      ? `${variant.override_width}×${variant.override_height}cm`
+      : null);
 
   // Max colors from variant
   const maxColorsForTech = useMemo(() => {
@@ -135,9 +138,11 @@ export function TechniqueOption({
           </div>
           <div>
             <p className="font-medium text-sm text-foreground">{label}</p>
-            <p className="text-xs text-muted-foreground">
-              {dimensionLabel}
-            </p>
+            {dimensionLabel && (
+              <p className="text-xs text-muted-foreground">
+                {dimensionLabel}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1.5">
