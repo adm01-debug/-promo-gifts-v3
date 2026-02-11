@@ -152,6 +152,10 @@ export interface CustomizationPriceV2 {
   
   // PRAZO
   production_days: number | null;
+  
+  // DIMENSÕES MÁXIMAS DA TÉCNICA (enriquecido pela edge function)
+  largura_max_tecnica: number | null;
+  altura_max_tecnica: number | null;
 }
 
 /**

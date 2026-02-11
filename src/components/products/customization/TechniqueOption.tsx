@@ -60,11 +60,18 @@ export function TechniqueOption({
 
   const label = formatOptionLabel(techniqueName, variant);
 
-  // Dimensions: technique-specific only (never fallback to area dimensions)
-  const dimensionLabel = areaMaxText
-    || (variant.override_width != null && variant.override_height != null
-      ? `${variant.override_width}×${variant.override_height}cm`
-      : null);
+  // Dimensions: prefer enriched price data (technique-specific from faixa table),
+  // then areaMaxText from pricing table, then variant overrides
+  const dimensionLabel = useMemo(() => {
+    if (priceData?.largura_max_tecnica && priceData?.altura_max_tecnica) {
+      return `${priceData.largura_max_tecnica}×${priceData.altura_max_tecnica}cm`;
+    }
+    if (areaMaxText) return areaMaxText;
+    if (variant.override_width != null && variant.override_height != null) {
+      return `${variant.override_width}×${variant.override_height}cm`;
+    }
+    return null;
+  }, [priceData, areaMaxText, variant.override_width, variant.override_height]);
 
   // Max colors from variant
   const maxColorsForTech = useMemo(() => {
