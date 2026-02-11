@@ -49,7 +49,6 @@ export function CompanyContactSelector({
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const [cachedSelection, setCachedSelection] = useState<CompanyOption | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Debounce search for server-side queries
@@ -217,14 +216,39 @@ export function CompanyContactSelector({
     return merged.slice(0, 50);
   }, [companies, searchTerm, fuse, serverResults]);
 
-  // Selected company - use cached selection, or find in local/server data
+  // Fetch selected company by ID if not in local cache
+  const { data: fetchedCompany } = useQuery<CompanyOption | null>({
+    queryKey: ["quote-company-by-id", companyId],
+    queryFn: async () => {
+      if (!companyId) return null;
+      const data = await selectCrm<CrmCompany>("companies", {
+        select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+        filters: { id: companyId },
+        limit: 1,
+      });
+      if (data.length === 0) return null;
+      const c = data[0];
+      return {
+        id: c.id,
+        name: getCompanyDisplayName(c),
+        razao_social: c.razao_social,
+        nome_fantasia: c.nome_fantasia,
+        cidade: c.cidade,
+        estado: c.estado,
+        cnpj: c.cnpj,
+      };
+    },
+    enabled: !!companyId,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  // Selected company - find from any source
   const selectedCompany = useMemo(() => {
     if (!companyId) return null;
-    if (cachedSelection?.id === companyId) return cachedSelection;
     return companies?.find((c) => c.id === companyId) 
-      || serverResults?.find((c) => c.id === companyId) 
+      || fetchedCompany
       || null;
-  }, [companyId, companies, serverResults, cachedSelection]);
+  }, [companyId, companies, fetchedCompany]);
 
   // Selected contact
   const selectedContact = useMemo(() => {
@@ -244,9 +268,6 @@ export function CompanyContactSelector({
   }, []);
 
   const handleSelectCompany = (id: string) => {
-    // Cache the selected company so it persists across search changes
-    const found = filteredCompanies.find((c) => c.id === id) || null;
-    setCachedSelection(found);
     onCompanyChange(id);
     onContactChange?.("");
     setIsOpen(false);
