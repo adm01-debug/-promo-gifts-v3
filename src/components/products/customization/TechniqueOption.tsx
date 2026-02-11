@@ -1,10 +1,12 @@
 /**
  * TechniqueOption — Linha de técnica dentro de um LocationCard
  * 
- * Usa fn_get_customization_price_v2 com variante_id quando disponível,
- * fallback para fn_get_customization_price (v1) com area_id.
+ * Fluxo correto: Local → Técnica (este componente) → Tamanho/Variante
  * 
- * Mostra seletor de variantes (tamanho) quando há múltiplas variantes.
+ * Usa fn_get_customization_price_v2 com variante_id.
+ * SEM fallback para v1.
+ * 
+ * Mostra seletor de variantes (tamanho) apenas da técnica correspondente a esta área.
  * Mostra seletor de cores quando price_by_color = true.
  */
 
@@ -32,7 +34,7 @@ interface TechniqueOptionProps {
   isCurved: boolean;
   isSelected: boolean;
   quantity: number;
-  /** v2 techniques with variantes (optional, enables size selector) */
+  /** v2 techniques with variantes */
   techniques?: PrintAreaTechnique[];
   onSelect: (areaId: string, priceData: CustomizationPriceV2 | null) => void;
 }
@@ -43,18 +45,31 @@ function extractTechLabel(areaName: string): string {
   return parts.length > 1 ? parts[1] : areaName;
 }
 
-/** Flatten all variantes from all techniques in an area */
-function flattenVariantes(techniques: PrintAreaTechnique[]): Array<{
-  variant: TechniqueVariant;
-  techniqueName: string;
-}> {
-  const result: Array<{ variant: TechniqueVariant; techniqueName: string }> = [];
-  for (const tech of techniques) {
-    for (const v of tech.variantes) {
-      result.push({ variant: v, techniqueName: tech.nome });
-    }
-  }
-  return result;
+/**
+ * Find the technique matching this area's label.
+ * area_name = "Lado A — Laser" → techLabel = "Laser" → match technique with nome "Laser"
+ */
+function findMatchingTechnique(
+  techniques: PrintAreaTechnique[],
+  techLabel: string
+): PrintAreaTechnique | null {
+  if (!techniques.length) return null;
+
+  const label = techLabel.toLowerCase().trim();
+
+  // Exact match
+  const exact = techniques.find(t => t.nome.toLowerCase().trim() === label);
+  if (exact) return exact;
+
+  // Partial match
+  const partial = techniques.find(t =>
+    t.nome.toLowerCase().includes(label) ||
+    label.includes(t.nome.toLowerCase())
+  );
+  if (partial) return partial;
+
+  // Last resort: first technique
+  return techniques[0];
 }
 
 /** Format variant label with dimensions (only from variant overrides, no fallback) */
@@ -62,7 +77,6 @@ function formatVariantLabel(v: TechniqueVariant): string {
   const w = v.override_width;
   const h = v.override_height;
   const dims = w && h && w > 0 && h > 0 ? ` (${w}×${h}cm)` : '';
-  // Strip technique name prefix if present
   const parts = v.nome.split(' | ');
   const label = parts.length > 1 ? parts[1] : v.nome;
   return `${label}${dims}`;
@@ -87,32 +101,40 @@ export function TechniqueOption({
 
   const techLabel = extractTechLabel(areaName);
 
-  // Flatten available variantes
-  const allVariantes = useMemo(() => {
-    if (!techniques?.length) return [];
-    return flattenVariantes(techniques);
-  }, [techniques]);
+  // Find ONLY the technique matching this area (not all techniques)
+  const matchedTechnique = useMemo(() => {
+    if (!techniques?.length) return null;
+    return findMatchingTechnique(techniques, techLabel);
+  }, [techniques, techLabel]);
 
-  const hasVariantes = allVariantes.length > 0;
-  const showVarianteSelector = hasVariantes && allVariantes.length > 1;
+  // Get variants only from the matched technique
+  const areaVariantes = useMemo(() => {
+    if (!matchedTechnique) return [];
+    return matchedTechnique.variantes.map(v => ({
+      variant: v,
+      techniqueName: matchedTechnique.nome,
+    }));
+  }, [matchedTechnique]);
+
+  const hasVariantes = areaVariantes.length > 0;
+  const showVarianteSelector = hasVariantes && areaVariantes.length > 1;
 
   // Auto-select recommended or first variante
   useEffect(() => {
     if (!hasVariantes) return;
     if (selectedVarianteId) {
-      // Verify current selection still exists
-      const exists = allVariantes.some(v => v.variant.variante_id === selectedVarianteId);
+      const exists = areaVariantes.some(v => v.variant.variante_id === selectedVarianteId);
       if (exists) return;
     }
-    const recommended = allVariantes.find(v => v.variant.is_recommended);
-    setSelectedVarianteId(recommended?.variant.variante_id || allVariantes[0]?.variant.variante_id || null);
-  }, [allVariantes, hasVariantes]); // eslint-disable-line react-hooks/exhaustive-deps
+    const recommended = areaVariantes.find(v => v.variant.is_recommended);
+    setSelectedVarianteId(recommended?.variant.variante_id || areaVariantes[0]?.variant.variante_id || null);
+  }, [areaVariantes, hasVariantes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get current selected variante data
   const selectedVariante = useMemo(() => {
     if (!selectedVarianteId) return null;
-    return allVariantes.find(v => v.variant.variante_id === selectedVarianteId) || null;
-  }, [allVariantes, selectedVarianteId]);
+    return areaVariantes.find(v => v.variant.variante_id === selectedVarianteId) || null;
+  }, [areaVariantes, selectedVarianteId]);
 
   // Determine max colors for this technique/variante
   const maxColorsForTech = useMemo(() => {
@@ -121,8 +143,10 @@ export function TechniqueOption({
       if (mc === 0) return 0; // unlimited / full color
       if (mc > 0) return mc;
     }
-    return getMaxColorsLegacy(areaCode, priceData);
-  }, [selectedVariante, areaCode, priceData]);
+    // No legacy fallback — use variant data only
+    if (priceData?.price_by_color) return 4;
+    return 1;
+  }, [selectedVariante, priceData]);
 
   // Fetch price (v2 only, no v1 fallback)
   const fetchPrice = useCallback(async (colors: number, varianteId: string | null) => {
@@ -169,13 +193,12 @@ export function TechniqueOption({
   // Handle variante change
   const handleVarianteChange = (varianteId: string) => {
     setSelectedVarianteId(varianteId);
-    // Reset colors to 1 when changing variante (max_colors may differ)
     setNumColors(1);
   };
 
   const showColorSelector = isSelected && priceData?.price_by_color && maxColorsForTech > 1;
 
-  // Effective dimensions (from variante or area defaults)
+  // Effective dimensions (from variante overrides only, no area fallback)
   const effectiveWidth = selectedVariante?.variant.override_width ?? maxWidth;
   const effectiveHeight = selectedVariante?.variant.override_height ?? maxHeight;
 
@@ -233,19 +256,19 @@ export function TechniqueOption({
         </div>
       </div>
 
-      {/* Variante/Size selector (when selected and multiple variantes available) */}
+      {/* Variante/Tamanho selector — only variants from the MATCHED technique */}
       {isSelected && showVarianteSelector && (
         <div className="mt-3 pt-3 border-t border-border/50" onClick={e => e.stopPropagation()}>
           <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
             <Ruler className="h-3 w-3" />
-            Variante / Tamanho:
+            Tamanho da gravação:
           </p>
           <Select value={selectedVarianteId || ''} onValueChange={handleVarianteChange}>
             <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="Selecione a variante" />
+              <SelectValue placeholder="Selecione o tamanho" />
             </SelectTrigger>
             <SelectContent>
-              {allVariantes.map(({ variant }) => (
+              {areaVariantes.map(({ variant }) => (
                 <SelectItem key={variant.variante_id} value={variant.variante_id}>
                   <span className="flex items-center gap-1.5">
                     {formatVariantLabel(variant)}
@@ -263,7 +286,7 @@ export function TechniqueOption({
         </div>
       )}
 
-      {/* Single variante info (when only 1 exists but has size override) */}
+      {/* Single variante info */}
       {isSelected && hasVariantes && !showVarianteSelector && selectedVariante?.variant.override_width && (
         <div className="mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground flex items-center gap-1">
           <Ruler className="h-3 w-3" />
@@ -272,7 +295,7 @@ export function TechniqueOption({
         </div>
       )}
 
-      {/* Color selector (only for price_by_color techniques when selected) */}
+      {/* Color selector */}
       {showColorSelector && (
         <div className="mt-3 pt-3 border-t border-border/50" onClick={e => e.stopPropagation()}>
           <p className="text-xs text-muted-foreground mb-2">Nº de cores:</p>
@@ -296,26 +319,4 @@ export function TechniqueOption({
       )}
     </div>
   );
-}
-
-/** Legacy: Determine max colors based on area_code and price data */
-function getMaxColorsLegacy(areaCode: string, priceData: CustomizationPriceV2 | null): number {
-  const MAX_COLORS: Record<string, number> = {
-    'LADO-A': 1,
-    'LADO-B': 1,
-    '360': 1,
-    '360-UV': 1,
-    '360-UV-V': 1,
-    'LADO-A-UV': 1,
-    'LADO-A-SILK': 3,
-    'LADO-B-SILK': 3,
-    '360-SILK': 1,
-  };
-
-  if (MAX_COLORS[areaCode] !== undefined) {
-    return MAX_COLORS[areaCode];
-  }
-
-  if (priceData?.price_by_color) return 4;
-  return 1;
 }
