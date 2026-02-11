@@ -1,13 +1,14 @@
 /**
  * TechniqueOption — Linha de técnica dentro de um LocationCard
  * 
- * Fluxo correto: Local → Técnica (este componente) → Tamanho/Variante
+ * Fluxo correto: Local → Técnica → Tamanho → Cores → Preço
  * 
- * Usa fn_get_customization_price_v2 com variante_id.
- * SEM fallback para v1.
+ * 1. Usuário seleciona a técnica (clica neste componente)
+ * 2. Se houver variantes (tamanhos), exibe seletor de tamanho
+ * 3. Se price_by_color, exibe seletor de cores
+ * 4. Preço é calculado com variante + cores selecionadas
  * 
- * Mostra seletor de variantes (tamanho) apenas da técnica correspondente a esta área.
- * Mostra seletor de cores quando price_by_color = true.
+ * Usa fn_get_customization_price_v2 com variante_id. SEM fallback v1.
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -34,7 +35,6 @@ interface TechniqueOptionProps {
   isCurved: boolean;
   isSelected: boolean;
   quantity: number;
-  /** v2 techniques with variantes */
   techniques?: PrintAreaTechnique[];
   onSelect: (areaId: string, priceData: CustomizationPriceV2 | null) => void;
 }
@@ -45,34 +45,22 @@ function extractTechLabel(areaName: string): string {
   return parts.length > 1 ? parts[1] : areaName;
 }
 
-/**
- * Find the technique matching this area's label.
- * area_name = "Lado A — Laser" → techLabel = "Laser" → match technique with nome "Laser"
- */
+/** Find the technique matching this area's label */
 function findMatchingTechnique(
   techniques: PrintAreaTechnique[],
   techLabel: string
 ): PrintAreaTechnique | null {
   if (!techniques.length) return null;
-
   const label = techLabel.toLowerCase().trim();
-
-  // Exact match
   const exact = techniques.find(t => t.nome.toLowerCase().trim() === label);
   if (exact) return exact;
-
-  // Partial match
   const partial = techniques.find(t =>
-    t.nome.toLowerCase().includes(label) ||
-    label.includes(t.nome.toLowerCase())
+    t.nome.toLowerCase().includes(label) || label.includes(t.nome.toLowerCase())
   );
-  if (partial) return partial;
-
-  // Last resort: first technique
-  return techniques[0];
+  return partial || techniques[0];
 }
 
-/** Format variant label with dimensions (only from variant overrides, no fallback) */
+/** Format variant label with dimensions (only from variant overrides) */
 function formatVariantLabel(v: TechniqueVariant): string {
   const w = v.override_width;
   const h = v.override_height;
@@ -101,7 +89,7 @@ export function TechniqueOption({
 
   const techLabel = extractTechLabel(areaName);
 
-  // Find ONLY the technique matching this area (not all techniques)
+  // Find ONLY the technique matching this area
   const matchedTechnique = useMemo(() => {
     if (!techniques?.length) return null;
     return findMatchingTechnique(techniques, techLabel);
@@ -117,18 +105,26 @@ export function TechniqueOption({
   }, [matchedTechnique]);
 
   const hasVariantes = areaVariantes.length > 0;
-  const showVarianteSelector = hasVariantes && areaVariantes.length > 1;
+  const hasMultipleVariantes = areaVariantes.length > 1;
 
-  // Auto-select recommended or first variante
+  // Auto-select ONLY when there's a single variante (no choice needed)
+  // When multiple, user must pick
   useEffect(() => {
-    if (!hasVariantes) return;
-    if (selectedVarianteId) {
-      const exists = areaVariantes.some(v => v.variant.variante_id === selectedVarianteId);
-      if (exists) return;
+    if (!hasVariantes) {
+      setSelectedVarianteId(null);
+      return;
     }
-    const recommended = areaVariantes.find(v => v.variant.is_recommended);
-    setSelectedVarianteId(recommended?.variant.variante_id || areaVariantes[0]?.variant.variante_id || null);
-  }, [areaVariantes, hasVariantes]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (hasMultipleVariantes) {
+      // Don't auto-select when there are multiple — user must choose
+      if (selectedVarianteId) {
+        const exists = areaVariantes.some(v => v.variant.variante_id === selectedVarianteId);
+        if (!exists) setSelectedVarianteId(null);
+      }
+      return;
+    }
+    // Single variante: auto-select it
+    setSelectedVarianteId(areaVariantes[0].variant.variante_id);
+  }, [areaVariantes, hasVariantes, hasMultipleVariantes]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get current selected variante data
   const selectedVariante = useMemo(() => {
@@ -136,21 +132,23 @@ export function TechniqueOption({
     return areaVariantes.find(v => v.variant.variante_id === selectedVarianteId) || null;
   }, [areaVariantes, selectedVarianteId]);
 
-  // Determine max colors for this technique/variante
+  // Max colors from selected variante
   const maxColorsForTech = useMemo(() => {
     if (selectedVariante) {
       const mc = selectedVariante.variant.max_colors;
-      if (mc === 0) return 0; // unlimited / full color
+      if (mc === 0) return 0;
       if (mc > 0) return mc;
     }
-    // No legacy fallback — use variant data only
     if (priceData?.price_by_color) return 4;
     return 1;
   }, [selectedVariante, priceData]);
 
-  // Fetch price (v2 only, no v1 fallback)
+  // Fetch price (v2 only) — only when variante is selected
   const fetchPrice = useCallback(async (colors: number, varianteId: string | null) => {
-    if (quantity <= 0 || !varianteId) return;
+    if (quantity <= 0 || !varianteId) {
+      setPriceData(null);
+      return;
+    }
     setLoading(true);
     try {
       const result = await invokeExternalRpc<CustomizationPriceV2>(
@@ -161,9 +159,10 @@ export function TechniqueOption({
           p_num_cores: colors,
         }
       );
-
       if (result?.success) {
         setPriceData(result);
+      } else {
+        setPriceData(null);
       }
     } catch {
       setPriceData(null);
@@ -172,35 +171,44 @@ export function TechniqueOption({
     }
   }, [quantity]);
 
-  // Push updated price to parent whenever priceData changes and this technique is selected
+  // Push updated price to parent when priceData changes and this is selected
   useEffect(() => {
-    if (isSelected && priceData) {
+    if (isSelected) {
       onSelect(areaId, priceData);
     }
   }, [priceData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch price on mount and when quantity or variante changes
+  // Fetch price when variante is selected/changed
   useEffect(() => {
-    fetchPrice(numColors, selectedVarianteId);
+    if (selectedVarianteId) {
+      fetchPrice(numColors, selectedVarianteId);
+    } else {
+      setPriceData(null);
+    }
   }, [fetchPrice, selectedVarianteId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Refetch when colors change
   const handleColorChange = (colors: number) => {
     setNumColors(colors);
     fetchPrice(colors, selectedVarianteId);
   };
 
-  // Handle variante change
   const handleVarianteChange = (varianteId: string) => {
     setSelectedVarianteId(varianteId);
     setNumColors(1);
   };
 
-  const showColorSelector = isSelected && priceData?.price_by_color && maxColorsForTech > 1;
+  // Show color selector only after technique selected + variante selected + price loaded
+  const showColorSelector = isSelected && selectedVarianteId && priceData?.price_by_color && maxColorsForTech > 1;
 
-  // Effective dimensions (from variante overrides only, no area fallback)
+  // Show variante selector only when technique is selected and multiple variantes exist
+  const showVarianteSelector = isSelected && hasMultipleVariantes;
+
+  // Effective dimensions
   const effectiveWidth = selectedVariante?.variant.override_width ?? maxWidth;
   const effectiveHeight = selectedVariante?.variant.override_height ?? maxHeight;
+
+  // Whether we're waiting for user to pick a size before showing price
+  const awaitingVarianteSelection = isSelected && hasMultipleVariantes && !selectedVarianteId;
 
   return (
     <div
@@ -212,6 +220,7 @@ export function TechniqueOption({
       )}
       onClick={() => onSelect(areaId, priceData)}
     >
+      {/* Header row: technique name + price */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className={cn(
@@ -245,6 +254,8 @@ export function TechniqueOption({
           <div className="text-right min-w-[80px]">
             {loading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground ml-auto" />
+            ) : awaitingVarianteSelection ? (
+              <span className="text-xs text-muted-foreground italic">selecione tamanho</span>
             ) : priceData ? (
               <span className="text-sm font-semibold text-primary">
                 R$ {priceData.unit_price.toFixed(2)}/un
@@ -256,8 +267,8 @@ export function TechniqueOption({
         </div>
       </div>
 
-      {/* Variante/Tamanho selector — only variants from the MATCHED technique */}
-      {isSelected && showVarianteSelector && (
+      {/* STEP 1: Tamanho/Variante selector (after selecting technique) */}
+      {showVarianteSelector && (
         <div className="mt-3 pt-3 border-t border-border/50" onClick={e => e.stopPropagation()}>
           <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
             <Ruler className="h-3 w-3" />
@@ -286,8 +297,8 @@ export function TechniqueOption({
         </div>
       )}
 
-      {/* Single variante info */}
-      {isSelected && hasVariantes && !showVarianteSelector && selectedVariante?.variant.override_width && (
+      {/* Single variante info (auto-selected, no dropdown needed) */}
+      {isSelected && hasVariantes && !hasMultipleVariantes && selectedVariante?.variant.override_width && (
         <div className="mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground flex items-center gap-1">
           <Ruler className="h-3 w-3" />
           {selectedVariante.variant.nome}
@@ -295,10 +306,13 @@ export function TechniqueOption({
         </div>
       )}
 
-      {/* Color selector */}
+      {/* STEP 2: Color selector (after tamanho is selected + price_by_color) */}
       {showColorSelector && (
         <div className="mt-3 pt-3 border-t border-border/50" onClick={e => e.stopPropagation()}>
-          <p className="text-xs text-muted-foreground mb-2">Nº de cores:</p>
+          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+            <Palette className="h-3 w-3" />
+            Nº de cores:
+          </p>
           <div className="flex gap-1.5">
             {Array.from({ length: maxColorsForTech }, (_, i) => i + 1).map(n => (
               <button
