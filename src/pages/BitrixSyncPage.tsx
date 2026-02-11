@@ -93,7 +93,7 @@ export default function BitrixSyncPage() {
               <Cloud className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Sincronização Bitrix24</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Sincronização CRM</h1>
               <p className="text-muted-foreground">
                 Importe clientes e histórico de compras do seu CRM
               </p>
@@ -184,7 +184,7 @@ export default function BitrixSyncPage() {
                 <div className="flex-1">
                   <p className="font-medium">Sincronizando dados...</p>
                   <p className="text-sm text-muted-foreground">
-                    Buscando empresas e negócios do Bitrix24
+                    Buscando empresas e negócios do CRM
                   </p>
                   <Progress value={undefined} className="mt-2 h-2" />
                 </div>
@@ -214,7 +214,7 @@ export default function BitrixSyncPage() {
             <CardHeader>
               <CardTitle>Clientes Sincronizados</CardTitle>
               <CardDescription>
-                Dados importados do Bitrix24 em {formatDate(syncResult.syncedAt)}
+                Dados importados do CRM em {formatDate(syncResult.syncedAt)}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -359,7 +359,7 @@ export default function BitrixSyncPage() {
               <Database className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-medium mb-2">Nenhum dado no banco</h3>
               <p className="text-muted-foreground mb-4">
-                Clique em "Sincronizar Agora" para importar e salvar dados do Bitrix24
+                Clique em "Sincronizar Agora" para importar e salvar dados do CRM
               </p>
               <Button onClick={handleSync} variant="outline">
                 <RefreshCw className="h-4 w-4 mr-2" />

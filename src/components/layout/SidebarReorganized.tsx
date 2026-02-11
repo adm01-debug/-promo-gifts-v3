@@ -112,7 +112,7 @@ const navGroups: NavGroup[] = [
 ];
 
 const bottomNavItems: NavItem[] = [
-  { icon: Cloud, label: "Bitrix24", href: "/bitrix-sync" },
+  { icon: Cloud, label: "CRM Sync", href: "/bitrix-sync" },
   { icon: User, label: "Meu Perfil", href: "/perfil" },
   { icon: Lock, label: "Segurança", href: "/seguranca" },
   { icon: ShieldCheck, label: "Admin", href: "/admin", adminOnly: true },

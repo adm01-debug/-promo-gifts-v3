@@ -340,7 +340,7 @@ export default function ClientList() {
                 title="Nenhum cliente encontrado"
                 description={
                   clients.length === 0
-                    ? "Sincronize os dados do Bitrix24 para ver os clientes"
+                    ? "Importe os dados do CRM para ver os clientes"
                     : "Tente ajustar sua busca ou filtros"
                 }
                 action={

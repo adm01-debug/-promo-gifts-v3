@@ -52,7 +52,7 @@ export function useBitrixSync() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao buscar clientes";
       setError(message);
-      toast.error("Erro ao buscar clientes do Bitrix24", { description: message });
+      toast.error("Erro ao buscar clientes do CRM", { description: message });
       return [];
     } finally {
       setIsLoading(false);
@@ -87,7 +87,7 @@ export function useBitrixSync() {
     setError(null);
 
     try {
-      toast.info("Iniciando sincronização...", { description: "Buscando dados do Bitrix24 e salvando no banco" });
+      toast.info("Iniciando sincronização...", { description: "Buscando dados do CRM e salvando no banco" });
 
       const { data, error: fnError } = await supabase.functions.invoke("bitrix-sync", {
         body: { action: "sync_full" },
@@ -105,7 +105,7 @@ export function useBitrixSync() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro na sincronização";
       setError(message);
-      toast.error("Erro ao sincronizar com Bitrix24", { description: message });
+      toast.error("Erro ao sincronizar com CRM", { description: message });
       return null;
     } finally {
       setIsSyncing(false);
