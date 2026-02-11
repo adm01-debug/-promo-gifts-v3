@@ -57,11 +57,11 @@ function flattenVariantes(techniques: PrintAreaTechnique[]): Array<{
   return result;
 }
 
-/** Format variant label with dimensions */
-function formatVariantLabel(v: TechniqueVariant, defaultW: number, defaultH: number): string {
-  const w = v.override_width ?? defaultW;
-  const h = v.override_height ?? defaultH;
-  const dims = w > 0 && h > 0 ? ` (${w}×${h}cm)` : '';
+/** Format variant label with dimensions (only from variant overrides, no fallback) */
+function formatVariantLabel(v: TechniqueVariant): string {
+  const w = v.override_width;
+  const h = v.override_height;
+  const dims = w && h && w > 0 && h > 0 ? ` (${w}×${h}cm)` : '';
   // Strip technique name prefix if present
   const parts = v.nome.split(' | ');
   const label = parts.length > 1 ? parts[1] : v.nome;
@@ -124,34 +124,19 @@ export function TechniqueOption({
     return getMaxColorsLegacy(areaCode, priceData);
   }, [selectedVariante, areaCode, priceData]);
 
-  // Fetch price (v2 with variante or v1 with area_id)
+  // Fetch price (v2 only, no v1 fallback)
   const fetchPrice = useCallback(async (colors: number, varianteId: string | null) => {
-    if (quantity <= 0) return;
+    if (quantity <= 0 || !varianteId) return;
     setLoading(true);
     try {
-      let result: CustomizationPriceV2 | null = null;
-
-      if (varianteId) {
-        // V2 flow: use variante_id
-        result = await invokeExternalRpc<CustomizationPriceV2>(
-          'fn_get_customization_price_v2',
-          {
-            p_tecnica_variante_id: varianteId,
-            p_quantidade: quantity,
-            p_num_cores: colors,
-          }
-        );
-      } else {
-        // V1 fallback: use area_id
-        result = await invokeExternalRpc<CustomizationPriceV2>(
-          'fn_get_customization_price',
-          {
-            p_area_id: areaId,
-            p_quantidade: quantity,
-            p_num_cores: colors,
-          }
-        );
-      }
+      const result = await invokeExternalRpc<CustomizationPriceV2>(
+        'fn_get_customization_price_v2',
+        {
+          p_tecnica_variante_id: varianteId,
+          p_quantidade: quantity,
+          p_num_cores: colors,
+        }
+      );
 
       if (result?.success) {
         setPriceData(result);
@@ -161,7 +146,7 @@ export function TechniqueOption({
     } finally {
       setLoading(false);
     }
-  }, [areaId, quantity]);
+  }, [quantity]);
 
   // Push updated price to parent whenever priceData changes and this technique is selected
   useEffect(() => {
@@ -263,7 +248,7 @@ export function TechniqueOption({
               {allVariantes.map(({ variant }) => (
                 <SelectItem key={variant.variante_id} value={variant.variante_id}>
                   <span className="flex items-center gap-1.5">
-                    {formatVariantLabel(variant, maxWidth, maxHeight)}
+                    {formatVariantLabel(variant)}
                     {variant.is_recommended && (
                       <Badge variant="secondary" className="text-[9px] h-4 px-1">⭐</Badge>
                     )}
