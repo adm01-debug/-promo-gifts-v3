@@ -1,13 +1,13 @@
 /**
  * LocationCard — Card colapsável por local físico do produto
  * 
- * Header: {component_name} — {location_name} + dimensão max + nº técnicas
- * Body: lista de TechniqueOption (1 selecionável por card)
+ * Achata todas as combinações técnica+variante em opções individuais.
+ * Ex: Laser tem 2 variantes (Plano, Rotativo) → 2 opções separadas.
  * 
- * Usa forceMount + hidden para evitar remount de TechniqueOptions
- * ao colapsar/expandir, preservando preços já carregados.
+ * Usa forceMount + hidden para preservar preços já carregados.
  */
 
+import { useMemo } from "react";
 import { ChevronDown, ChevronUp, Sparkles, Maximize2 } from "lucide-react";
 import {
   Collapsible,
@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { TechniqueOption } from "./TechniqueOption";
 import type { PrintAreaV2 } from "@/hooks/useGravacaoPriceV2";
+import type { TechniqueVariant } from "@/hooks/useGravacaoPriceV2";
 import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
 
 export interface LocationGroupData {
@@ -30,24 +31,56 @@ export interface LocationGroupData {
   areas: PrintAreaV2[];
 }
 
+/** Flattened technique+variant combo for rendering */
+interface FlatOption {
+  key: string;           // varianteId (unique key)
+  techniqueName: string;
+  variant: TechniqueVariant;
+  areaMaxWidth: number;
+  areaMaxHeight: number;
+  isCurved: boolean;
+}
+
 interface LocationCardProps {
   group: LocationGroupData;
   isExpanded: boolean;
-  selectedAreaId: string | null;
+  selectedOptionKey: string | null;
   quantity: number;
   onToggle: () => void;
-  onSelectArea: (areaId: string, priceData: CustomizationPriceV2 | null) => void;
+  onSelectOption: (optionKey: string, priceData: CustomizationPriceV2 | null) => void;
+}
+
+/** Flatten all areas→techniques→variantes into individual options */
+function flattenOptions(areas: PrintAreaV2[]): FlatOption[] {
+  const options: FlatOption[] = [];
+  for (const area of areas) {
+    for (const tech of area.techniques) {
+      for (const variant of tech.variantes) {
+        options.push({
+          key: variant.variante_id,
+          techniqueName: tech.nome,
+          variant,
+          areaMaxWidth: area.max_width,
+          areaMaxHeight: area.max_height,
+          isCurved: area.is_curved,
+        });
+      }
+    }
+  }
+  return options;
 }
 
 export function LocationCard({
   group,
   isExpanded,
-  selectedAreaId,
+  selectedOptionKey,
   quantity,
   onToggle,
-  onSelectArea,
+  onSelectOption,
 }: LocationCardProps) {
-  const hasSelection = selectedAreaId !== null;
+  const hasSelection = selectedOptionKey !== null;
+
+  const flatOptions = useMemo(() => flattenOptions(group.areas), [group.areas]);
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -86,9 +119,7 @@ export function LocationCard({
                     até {group.maxWidth}×{group.maxHeight}cm
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    · {group.areas.length} técnica
-                    {group.areas.length !== 1 ? "s" : ""} disponíve
-                    {group.areas.length !== 1 ? "is" : "l"}
+                    · {flatOptions.length} opç{flatOptions.length !== 1 ? "ões" : "ão"}
                   </span>
                 </div>
               </div>
@@ -106,19 +137,18 @@ export function LocationCard({
             "px-4 pb-4 space-y-2",
             !isExpanded && "hidden"
           )}>
-            {group.areas.map((area) => (
+            {flatOptions.map((opt) => (
               <TechniqueOption
-                key={area.area_id}
-                areaId={area.area_id}
-                areaCode={area.area_code}
-                areaName={area.area_name}
-                maxWidth={area.max_width}
-                maxHeight={area.max_height}
-                isCurved={area.is_curved}
-                isSelected={selectedAreaId === area.area_id}
+                key={opt.key}
+                optionKey={opt.key}
+                techniqueName={opt.techniqueName}
+                variant={opt.variant}
+                areaMaxWidth={opt.areaMaxWidth}
+                areaMaxHeight={opt.areaMaxHeight}
+                isCurved={opt.isCurved}
+                isSelected={selectedOptionKey === opt.key}
                 quantity={quantity}
-                techniques={area.techniques}
-                onSelect={onSelectArea}
+                onSelect={onSelectOption}
               />
             ))}
           </div>
