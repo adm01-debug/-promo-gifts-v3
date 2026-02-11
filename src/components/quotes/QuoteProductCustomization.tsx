@@ -5,7 +5,7 @@
  * técnicas dinâmicas do BD externo, pricing via RPC.
  */
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import type { QuoteItemPersonalization } from "@/hooks/useQuotes";
 import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
@@ -32,7 +32,7 @@ export function QuoteProductCustomization({
     selections.forEach((sel, groupKey) => {
       if (!sel.price) return;
 
-      const p = sel.price as any;
+      const p: CustomizationPriceV2 = sel.price;
       personalizations.push({
         technique_id: sel.areaId,
         technique_name: p.technique || groupKey,
