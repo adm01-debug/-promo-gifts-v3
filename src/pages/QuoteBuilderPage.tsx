@@ -142,17 +142,23 @@ export default function QuoteBuilderPage() {
   const { data: products } = useQuery({
     queryKey: ["quote-products-promobrind-full"],
     queryFn: async () => {
-      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const { fetchPromobrindProducts, getProductImageUrl } = await import('@/lib/external-db');
       const productsData = await fetchPromobrindProducts(); // Sem limit = paginação automática
       
-      // Mapear para formato esperado
-      return productsData.map(p => ({
-        id: p.id,
-        name: p.name,
-        sku: p.sku,
-        price: p.base_price || 0,
-        images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
-      })) as Product[];
+      // Mapear para formato esperado - usar getProductImageUrl para garantir thumbnail
+      return productsData.map(p => {
+        const imgUrl = getProductImageUrl(p);
+        const images = (p.images && p.images.length > 0) 
+          ? p.images 
+          : (imgUrl ? [imgUrl] : []);
+        return {
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          price: p.sale_price ?? p.base_price ?? 0,
+          images,
+        };
+      }) as Product[];
     },
     staleTime: 10 * 60 * 1000, // 10 min cache
   });
@@ -732,9 +738,17 @@ export default function QuoteBuilderPage() {
                   >
                     {product.images && product.images.length > 0 ? (
                       <img
-                        src={product.images[0]}
+                        src={`${product.images[0]}/thumbnail`}
                         alt={product.name}
-                        className="h-12 w-12 object-cover rounded"
+                        className="h-12 w-12 object-cover rounded bg-white"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (target.src.includes('/thumbnail')) {
+                            target.src = product.images![0];
+                          } else {
+                            target.style.display = 'none';
+                          }
+                        }}
                       />
                     ) : (
                       <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
