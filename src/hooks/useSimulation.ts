@@ -139,7 +139,7 @@ export function useSimulation() {
       const { selectCrm } = await import("@/lib/crm-db");
       const companies = await selectCrm<any>("companies", {
         select: "id, razao_social, nome_fantasia, ramo, nicho, logo_url",
-        filters: { is_active: true },
+        filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
       });

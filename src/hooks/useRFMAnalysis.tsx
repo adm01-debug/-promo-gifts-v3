@@ -159,7 +159,7 @@ export function useRFMAnalysis(config: Partial<RFMConfig> = {}) {
     queryFn: async () => {
       const companies = await selectCrm<CrmCompany>("companies", {
         select: "id, razao_social, nome_fantasia, ultima_compra_em, total_gasto, bitrix_id",
-        filters: { is_active: true },
+        filters: { deleted_at: null },
         limit: 1000,
       });
       return companies.map(c => ({

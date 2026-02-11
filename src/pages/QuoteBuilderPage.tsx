@@ -163,7 +163,7 @@ export default function QuoteBuilderPage() {
       const { getCompanyDisplayName } = await import("@/types/crm");
       const companies = await selectCrm<any>("companies", {
         select: "id, razao_social, nome_fantasia",
-        filters: { is_active: true },
+        filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
       });
