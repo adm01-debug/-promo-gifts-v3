@@ -49,6 +49,7 @@ export function CompanyContactSelector({
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [cachedSelection, setCachedSelection] = useState<CompanyOption | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Debounce search for server-side queries
@@ -216,11 +217,14 @@ export function CompanyContactSelector({
     return merged.slice(0, 50);
   }, [companies, searchTerm, fuse, serverResults]);
 
-  // Selected company
+  // Selected company - use cached selection, or find in local/server data
   const selectedCompany = useMemo(() => {
-    if (!companyId || !companies) return null;
-    return companies.find((c) => c.id === companyId) || null;
-  }, [companyId, companies]);
+    if (!companyId) return null;
+    if (cachedSelection?.id === companyId) return cachedSelection;
+    return companies?.find((c) => c.id === companyId) 
+      || serverResults?.find((c) => c.id === companyId) 
+      || null;
+  }, [companyId, companies, serverResults, cachedSelection]);
 
   // Selected contact
   const selectedContact = useMemo(() => {
@@ -240,6 +244,9 @@ export function CompanyContactSelector({
   }, []);
 
   const handleSelectCompany = (id: string) => {
+    // Cache the selected company so it persists across search changes
+    const found = filteredCompanies.find((c) => c.id === id) || null;
+    setCachedSelection(found);
     onCompanyChange(id);
     onContactChange?.("");
     setIsOpen(false);
