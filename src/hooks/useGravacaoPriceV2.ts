@@ -122,59 +122,51 @@ export function useProductPrintAreasV2(productId: string | null) {
     queryFn: async (): Promise<PrintAreaV2[]> => {
       if (!productId) return [];
 
-      // Try v2 first, fallback to v1
-      try {
-        const result = await invokeExternalRpc<PrintAreaV2[]>(
-          'fn_get_product_print_areas_v2',
-          { p_product_id: productId }
-        );
-        return Array.isArray(result) ? result : [];
-      } catch {
-        // v2 not available — use v1 and map to PrintAreaV2 shape
-        const v1Result = await invokeExternalRpc<Array<{
-          area_id: string;
-          area_code: string;
-          area_name: string;
-          component_name?: string | null;
-          location_name?: string | null;
-          max_width: number;
-          max_height: number;
-          unit?: string;
-          shape?: string;
-          is_curved?: boolean;
-          is_primary?: boolean;
-          display_order?: number;
-          techniques?: Array<{ id: string; nome: string; codigo: string }>;
-        }>>(
-          'fn_get_product_print_areas',
-          { p_product_id: productId }
-        );
+      // Use v1 RPC (fn_get_product_print_areas) and map to PrintAreaV2 shape
+      // v2 RPC does not exist yet in the external database
+      const v1Result = await invokeExternalRpc<Array<{
+        area_id: string;
+        area_code: string;
+        area_name: string;
+        component_name?: string | null;
+        location_name?: string | null;
+        max_width: number;
+        max_height: number;
+        unit?: string;
+        shape?: string;
+        is_curved?: boolean;
+        is_primary?: boolean;
+        display_order?: number;
+        techniques?: Array<{ id: string; nome: string; codigo: string }>;
+      }>>(
+        'fn_get_product_print_areas',
+        { p_product_id: productId }
+      );
 
-        if (!Array.isArray(v1Result)) return [];
+      if (!Array.isArray(v1Result)) return [];
 
-        return v1Result.map(area => ({
-          area_id: area.area_id,
-          area_code: area.area_code,
-          area_name: area.area_name,
-          component_name: area.component_name || null,
-          component_code: null,
-          location_name: area.location_name || null,
-          location_code: null,
-          max_width: area.max_width,
-          max_height: area.max_height,
-          unit: area.unit || 'cm',
-          shape: area.shape || 'rectangle',
-          is_curved: area.is_curved ?? false,
-          is_primary: area.is_primary ?? false,
-          display_order: area.display_order ?? 0,
-          techniques: (area.techniques || []).map(t => ({
-            id: t.id,
-            nome: t.nome,
-            codigo: t.codigo,
-            variantes: [],
-          })),
-        }));
-      }
+      return v1Result.map(area => ({
+        area_id: area.area_id,
+        area_code: area.area_code,
+        area_name: area.area_name,
+        component_name: area.component_name || null,
+        component_code: null,
+        location_name: area.location_name || null,
+        location_code: null,
+        max_width: area.max_width,
+        max_height: area.max_height,
+        unit: area.unit || 'cm',
+        shape: area.shape || 'rectangle',
+        is_curved: area.is_curved ?? false,
+        is_primary: area.is_primary ?? false,
+        display_order: area.display_order ?? 0,
+        techniques: (area.techniques || []).map(t => ({
+          id: t.id,
+          nome: t.nome,
+          codigo: t.codigo,
+          variantes: [],
+        })),
+      }));
     },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
@@ -188,56 +180,48 @@ export function useProductPrintAreasV2(productId: string | null) {
 export async function fetchProductPrintAreasV2(
   productId: string
 ): Promise<PrintAreaV2[]> {
-  try {
-    const result = await invokeExternalRpc<PrintAreaV2[]>(
-      'fn_get_product_print_areas_v2',
-      { p_product_id: productId }
-    );
-    return Array.isArray(result) ? result : [];
-  } catch {
-    // Fallback to v1
-    const v1Result = await invokeExternalRpc<Array<{
-      area_id: string;
-      area_code: string;
-      area_name: string;
-      component_name?: string | null;
-      location_name?: string | null;
-      max_width: number;
-      max_height: number;
-      unit?: string;
-      shape?: string;
-      is_curved?: boolean;
-      is_primary?: boolean;
-      display_order?: number;
-      techniques?: Array<{ id: string; nome: string; codigo: string }>;
-    }>>(
-      'fn_get_product_print_areas',
-      { p_product_id: productId }
-    );
-    if (!Array.isArray(v1Result)) return [];
-    return v1Result.map(area => ({
-      area_id: area.area_id,
-      area_code: area.area_code,
-      area_name: area.area_name,
-      component_name: area.component_name || null,
-      component_code: null,
-      location_name: area.location_name || null,
-      location_code: null,
-      max_width: area.max_width,
-      max_height: area.max_height,
-      unit: area.unit || 'cm',
-      shape: area.shape || 'rectangle',
-      is_curved: area.is_curved ?? false,
-      is_primary: area.is_primary ?? false,
-      display_order: area.display_order ?? 0,
-      techniques: (area.techniques || []).map(t => ({
-        id: t.id,
-        nome: t.nome,
-        codigo: t.codigo,
-        variantes: [],
-      })),
-    }));
-  }
+  // Use v1 RPC directly — v2 does not exist in the external database
+  const v1Result = await invokeExternalRpc<Array<{
+    area_id: string;
+    area_code: string;
+    area_name: string;
+    component_name?: string | null;
+    location_name?: string | null;
+    max_width: number;
+    max_height: number;
+    unit?: string;
+    shape?: string;
+    is_curved?: boolean;
+    is_primary?: boolean;
+    display_order?: number;
+    techniques?: Array<{ id: string; nome: string; codigo: string }>;
+  }>>(
+    'fn_get_product_print_areas',
+    { p_product_id: productId }
+  );
+  if (!Array.isArray(v1Result)) return [];
+  return v1Result.map(area => ({
+    area_id: area.area_id,
+    area_code: area.area_code,
+    area_name: area.area_name,
+    component_name: area.component_name || null,
+    component_code: null,
+    location_name: area.location_name || null,
+    location_code: null,
+    max_width: area.max_width,
+    max_height: area.max_height,
+    unit: area.unit || 'cm',
+    shape: area.shape || 'rectangle',
+    is_curved: area.is_curved ?? false,
+    is_primary: area.is_primary ?? false,
+    display_order: area.display_order ?? 0,
+    techniques: (area.techniques || []).map(t => ({
+      id: t.id,
+      nome: t.nome,
+      codigo: t.codigo,
+      variantes: [],
+    })),
+  }));
 }
 
 // ============================================
