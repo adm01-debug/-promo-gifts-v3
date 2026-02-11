@@ -71,17 +71,19 @@ function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
     }));
 }
 
-/** Count total flattened options across all groups */
+/** Count total unique flattened options across all groups (deduplicated by variante_id) */
 function countTotalOptions(groups: LocationGroupData[]): number {
-  let count = 0;
+  const seen = new Set<string>();
   for (const g of groups) {
     for (const area of g.areas) {
       for (const tech of area.techniques) {
-        count += tech.variantes.length;
+        for (const v of tech.variantes) {
+          seen.add(v.variante_id);
+        }
       }
     }
   }
-  return count;
+  return seen.size;
 }
 
 export function ProductCustomizationOptions({
