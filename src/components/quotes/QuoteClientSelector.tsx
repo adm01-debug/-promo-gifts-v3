@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { useCrmCompanySelector } from "@/hooks/useCrmCompanies";
 
 interface Client {
   id: string;
@@ -37,31 +37,9 @@ interface QuoteClientSelectorProps {
 
 export function QuoteClientSelector({ selectedClient, onClientSelect }: QuoteClientSelectorProps) {
   const [open, setOpen] = useState(false);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    fetchClients();
-  }, []);
-
-  const fetchClients = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("bitrix_clients")
-        .select("id, name, email, phone, ramo, nicho, primary_color_name, primary_color_hex")
-        .order("name")
-        .limit(100);
-
-      if (error) throw error;
-      setClients(data || []);
-    } catch (err) {
-      console.error("Error fetching clients:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: clients = [], isLoading } = useCrmCompanySelector();
 
   // Busca fuzzy de clientes - tolerante a erros de digitação
   const { results: filteredClients } = useClientFuzzySearch(clients, searchQuery);

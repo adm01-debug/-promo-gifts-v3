@@ -132,16 +132,24 @@ export function useSimulation() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch clients
+  // Fetch clients from CRM external
   const { data: clients } = useQuery({
     queryKey: ["simulator-clients"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bitrix_clients")
-        .select("id, name, ramo, nicho, logo_url")
-        .order("name");
-      if (error) throw error;
-      return data as Client[];
+      const { selectCrm } = await import("@/lib/crm-db");
+      const companies = await selectCrm<any>("companies", {
+        select: "id, razao_social, nome_fantasia, ramo, nicho, logo_url",
+        filters: { is_active: true },
+        orderBy: { column: "razao_social", ascending: true },
+        limit: 500,
+      });
+      return companies.map((c: any) => ({
+        id: c.id,
+        name: c.nome_fantasia || c.razao_social,
+        ramo: c.ramo,
+        nicho: c.nicho,
+        logo_url: c.logo_url,
+      })) as Client[];
     },
   });
 

@@ -350,10 +350,14 @@ export function useProductInsights(productId?: string, productSku?: string) {
         const clientIds = [...new Set((orders || []).map(o => o.client_id).filter(Boolean))];
         
         if (clientIds.length > 0) {
-          const { data: clients } = await supabase
-            .from('bitrix_clients')
-            .select('id, name')
-            .in('id', clientIds);
+          const { selectCrm } = await import("@/lib/crm-db");
+          const clients = await selectCrm<any>("companies", {
+            select: "id, razao_social, nome_fantasia",
+            filters: { id: { in: clientIds } },
+          }).then(companies => companies.map((c: any) => ({
+            id: c.id,
+            name: c.nome_fantasia || c.razao_social,
+          })));
 
           // Contar pedidos por cliente
           const clientOrderCounts = (orders || []).reduce((acc, order) => {

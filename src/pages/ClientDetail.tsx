@@ -42,21 +42,24 @@ import { ptBR } from "date-fns/locale";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { selectCrmById } from "@/lib/crm-db";
+import { CrmCompany, getCompanyDisplayName } from "@/types/crm";
 
-interface BitrixClient {
+interface DisplayClient {
   id: string;
-  bitrix_id: string;
   name: string;
   email: string | null;
   phone: string | null;
   address: string | null;
   ramo: string | null;
   nicho: string | null;
+  cnpj: string | null;
   primary_color_name: string | null;
   primary_color_hex: string | null;
   total_spent: number | null;
   last_purchase_date: string | null;
-  synced_at: string;
+  cidade: string | null;
+  estado: string | null;
 }
 
 interface BitrixDeal {
@@ -114,7 +117,7 @@ interface ReminderData {
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [client, setClient] = useState<BitrixClient | null>(null);
+  const [client, setClient] = useState<DisplayClient | null>(null);
   const [deals, setDeals] = useState<BitrixDeal[]>([]);
   const [quotes, setQuotes] = useState<QuoteData[]>([]);
   const [orders, setOrders] = useState<OrderData[]>([]);
@@ -134,30 +137,43 @@ export default function ClientDetail() {
     setIsLoadingDeals(true);
     
     try {
-      // Carregar cliente pelo bitrix_id
-      const { data: clientData, error: clientError } = await supabase
-        .from("bitrix_clients")
-        .select("*")
-        .eq("bitrix_id", id)
-        .maybeSingle();
+      // Carregar empresa do CRM externo por ID
+      const companyData = await selectCrmById<CrmCompany>("companies", id!);
 
-      if (clientError) throw clientError;
-      
-      if (!clientData) {
+      if (!companyData) {
         setClient(null);
         setIsLoading(false);
         setIsLoadingDeals(false);
         return;
       }
 
-      setClient(clientData);
+      const address = [companyData.logradouro, companyData.numero, companyData.bairro, companyData.cidade, companyData.estado]
+        .filter(Boolean)
+        .join(", ");
+
+      setClient({
+        id: companyData.id,
+        name: getCompanyDisplayName(companyData),
+        email: null, // emails vêm dos contatos
+        phone: null, // telefones vêm dos contatos
+        address: address || null,
+        ramo: companyData.ramo,
+        nicho: companyData.nicho,
+        cnpj: companyData.cnpj,
+        primary_color_name: companyData.cor_primaria_nome,
+        primary_color_hex: companyData.cor_primaria_hex,
+        total_spent: companyData.total_gasto,
+        last_purchase_date: companyData.ultima_compra_em,
+        cidade: companyData.cidade,
+        estado: companyData.estado,
+      });
       setIsLoading(false);
 
-      // Carregar deals do cliente
+      // Carregar deals do cliente (ainda do banco local)
       const { data: dealsData, error: dealsError } = await supabase
         .from("bitrix_deals")
         .select("*")
-        .eq("bitrix_client_id", id)
+        .eq("bitrix_client_id", companyData.bitrix_id || id)
         .order("created_at_bitrix", { ascending: false });
 
       if (dealsError) throw dealsError;
@@ -167,7 +183,7 @@ export default function ClientDetail() {
       const { data: quotesData } = await supabase
         .from("quotes")
         .select("*")
-        .eq("client_id", clientData.id)
+        .eq("client_id", companyData.id)
         .order("created_at", { ascending: false });
       setQuotes(quotesData || []);
 
@@ -175,7 +191,7 @@ export default function ClientDetail() {
       const { data: ordersData } = await supabase
         .from("orders")
         .select("*")
-        .eq("client_id", clientData.id)
+        .eq("client_id", companyData.id)
         .order("created_at", { ascending: false });
       setOrders(ordersData || []);
 
@@ -183,7 +199,7 @@ export default function ClientDetail() {
       const { data: conversationsData } = await supabase
         .from("expert_conversations")
         .select("*")
-        .eq("client_id", clientData.id)
+        .eq("client_id", companyData.id)
         .order("created_at", { ascending: false });
       setConversations(conversationsData || []);
 
@@ -191,7 +207,7 @@ export default function ClientDetail() {
       const { data: remindersData } = await supabase
         .from("follow_up_reminders")
         .select("*")
-        .eq("client_id", clientData.id)
+        .eq("client_id", companyData.id)
         .order("reminder_date", { ascending: false });
       setReminders(remindersData || []);
 

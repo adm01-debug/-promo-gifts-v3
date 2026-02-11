@@ -155,16 +155,24 @@ export default function QuoteBuilderPage() {
     staleTime: 10 * 60 * 1000, // 10 min cache
   });
 
-  // Fetch clients
+  // Fetch clients from CRM
   const { data: clients } = useQuery({
     queryKey: ["quote-clients"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bitrix_clients")
-        .select("id, name, email, phone")
-        .order("name");
-      if (error) throw error;
-      return data as Client[];
+      const { selectCrm } = await import("@/lib/crm-db");
+      const { getCompanyDisplayName } = await import("@/types/crm");
+      const companies = await selectCrm<any>("companies", {
+        select: "id, razao_social, nome_fantasia",
+        filters: { is_active: true },
+        orderBy: { column: "razao_social", ascending: true },
+        limit: 500,
+      });
+      return companies.map((c: any) => ({
+        id: c.id,
+        name: c.nome_fantasia || c.razao_social,
+        email: null,
+        phone: null,
+      })) as Client[];
     },
   });
 

@@ -87,9 +87,9 @@ export const PRODUCT_VIEWS = [
   'categories_tree_visual',
 ] as const;
 
-// Tabelas de EMPRESAS/CLIENTES (somente leitura)
+// Tabelas de EMPRESAS/CLIENTES — MIGRADAS para CRM externo (crm-db-bridge)
+// Mantido apenas para referência. Use useCrmCompanies() para acessar dados de clientes.
 export const COMPANY_TABLES = [
-  'bitrix_clients',
   'client_contacts',
   'organizations',
 ] as const;
@@ -297,9 +297,11 @@ export function useExternalTags() {
   return useExternalDatabase<ExternalTag>('tags');
 }
 
-// Empresas/Clientes (somente leitura)
+// Empresas/Clientes — MIGRADO para CRM externo
+// Use useCrmCompanies() de '@/hooks/useCrmCompanies' em vez disso
 export function useExternalCompanies() {
-  return useExternalDatabase<ExternalCompany>('bitrix_clients');
+  console.warn("[DEPRECATED] useExternalCompanies() → use useCrmCompanies() from '@/hooks/useCrmCompanies'");
+  return useExternalDatabase<ExternalCompany>('companies');
 }
 
 export function useExternalClientContacts() {

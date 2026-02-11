@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.commemorative-dates]
 verify_jwt = false
+
+[functions.crm-db-bridge]
+verify_jwt = false

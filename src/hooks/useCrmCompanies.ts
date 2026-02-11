@@ -1,0 +1,113 @@
+/**
+ * Hook para acessar empresas/clientes do CRM externo
+ * Substitui useClients (que usava bitrix_clients)
+ */
+
+import { useQuery } from "@tanstack/react-query";
+import { selectCrm, selectCrmById, searchCrm } from "@/lib/crm-db";
+import { CrmCompany, CrmCompanyFilters, toLegacyClient, getCompanyDisplayName, type LegacyClientFormat } from "@/types/crm";
+
+/**
+ * Lista empresas do CRM com filtros opcionais
+ */
+export function useCrmCompanies(filters?: CrmCompanyFilters) {
+  return useQuery<CrmCompany[]>({
+    queryKey: ["crm-companies", filters],
+    queryFn: async () => {
+      const queryFilters: Record<string, unknown> = {};
+
+      if (filters?.is_active !== undefined) queryFilters.is_active = filters.is_active;
+      if (filters?.ramo) queryFilters.ramo = filters.ramo;
+      if (filters?.nicho) queryFilters.nicho = filters.nicho;
+      if (filters?.status) queryFilters.status = filters.status;
+      if (filters?.cidade) queryFilters.cidade = filters.cidade;
+      if (filters?.estado) queryFilters.estado = filters.estado;
+
+      if (filters?.search) {
+        return searchCrm<CrmCompany>("companies", "razao_social", filters.search, {
+          orderBy: { column: "razao_social", ascending: true },
+          limit: 200,
+        });
+      }
+
+      return selectCrm<CrmCompany>("companies", {
+        filters: Object.keys(queryFilters).length > 0 ? queryFilters : undefined,
+        orderBy: { column: "razao_social", ascending: true },
+        limit: 200,
+      });
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutos
+  });
+}
+
+/**
+ * Busca empresa individual do CRM por ID
+ */
+export function useCrmCompany(id: string | null | undefined) {
+  return useQuery<CrmCompany | null>({
+    queryKey: ["crm-company", id],
+    queryFn: async () => {
+      if (!id) return null;
+      return selectCrmById<CrmCompany>("companies", id);
+    },
+    enabled: !!id,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook de compatibilidade: retorna dados no formato legado (BitrixClient)
+ * Use para migração gradual — componentes que ainda esperam o formato antigo
+ */
+export function useCrmCompaniesLegacy(filters?: CrmCompanyFilters) {
+  const query = useCrmCompanies(filters);
+
+  return {
+    ...query,
+    data: query.data?.map(toLegacyClient) || [],
+  };
+}
+
+/**
+ * Hook de compatibilidade: empresa individual no formato legado
+ */
+export function useCrmCompanyLegacy(id: string | null | undefined) {
+  const query = useCrmCompany(id);
+
+  return {
+    ...query,
+    data: query.data ? toLegacyClient(query.data) : null,
+  };
+}
+
+/**
+ * Busca lista de empresas para seletores (dropdown/combobox)
+ * Retorna apenas campos essenciais para performance
+ */
+export function useCrmCompanySelector() {
+  return useQuery({
+    queryKey: ["crm-companies-selector"],
+    queryFn: async () => {
+      const companies = await selectCrm<CrmCompany>("companies", {
+        select: "id, razao_social, nome_fantasia, ramo, nicho, cor_primaria_nome, cor_primaria_hex, logo_url, cnpj",
+        filters: { is_active: true },
+        orderBy: { column: "razao_social", ascending: true },
+        limit: 500,
+      });
+
+      return companies.map((c) => ({
+        id: c.id,
+        name: getCompanyDisplayName(c),
+        razao_social: c.razao_social,
+        nome_fantasia: c.nome_fantasia,
+        ramo: c.ramo,
+        nicho: c.nicho,
+        primary_color_name: c.cor_primaria_nome,
+        primary_color_hex: c.cor_primaria_hex,
+        logo_url: c.logo_url,
+        cnpj: c.cnpj,
+      }));
+    },
+    staleTime: 15 * 60 * 1000,
+  });
+}

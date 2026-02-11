@@ -573,31 +573,29 @@ export function GlobalSearchPalette() {
       }
 
       if (intent.type === 'client' || intent.type === 'mixed') {
-        let clientQuery = supabase
-          .from("bitrix_clients")
-          .select("id, name, email, ramo");
-
-        if (intent.filters.clientName) {
-          clientQuery = clientQuery.ilike("name", `%${intent.filters.clientName}%`);
-        } else {
-          const keywordSearch = intent.keywords.join('%');
-          if (keywordSearch) {
-            clientQuery = clientQuery.or(`name.ilike.%${keywordSearch}%,email.ilike.%${keywordSearch}%`);
-          }
-        }
-
-        const { data: clients } = await clientQuery.limit(5);
-
-        if (clients) {
-          clients.forEach((c) => {
-            allResults.push({
-              id: c.id,
-              title: c.name,
-              subtitle: c.email || c.ramo || "Cliente",
-              type: "client",
-              href: `/cliente/${c.id}`,
+        try {
+          const { searchCrm } = await import("@/lib/crm-db");
+          const { getCompanyDisplayName } = await import("@/types/crm");
+          
+          const searchTerm = intent.filters.clientName || intent.keywords.join(' ');
+          if (searchTerm) {
+            const companies = await searchCrm<any>("companies", "razao_social", searchTerm, {
+              select: "id, razao_social, nome_fantasia, ramo",
+              limit: 5,
             });
-          });
+
+            companies.forEach((c: any) => {
+              allResults.push({
+                id: c.id,
+                title: c.nome_fantasia || c.razao_social,
+                subtitle: c.ramo || "Empresa",
+                type: "client",
+                href: `/cliente/${c.id}`,
+              });
+            });
+          }
+        } catch (error) {
+          console.error("Error searching clients in CRM:", error);
         }
       }
 

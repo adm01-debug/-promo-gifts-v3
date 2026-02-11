@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import { selectCrm } from "@/lib/crm-db";
+import { CrmCompany, getCompanyDisplayName } from "@/types/crm";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo } from "react";
 
@@ -153,14 +155,20 @@ export function useRFMAnalysis(config: Partial<RFMConfig> = {}) {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
 
   const { data: clients, isLoading: isLoadingClients } = useQuery({
-    queryKey: ["bitrix-clients-rfm"],
+    queryKey: ["crm-companies-rfm"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("bitrix_clients")
-        .select("id, name, last_purchase_date, total_spent");
-
-      if (error) throw error;
-      return data;
+      const companies = await selectCrm<CrmCompany>("companies", {
+        select: "id, razao_social, nome_fantasia, ultima_compra_em, total_gasto, bitrix_id",
+        filters: { is_active: true },
+        limit: 1000,
+      });
+      return companies.map(c => ({
+        id: c.id,
+        name: getCompanyDisplayName(c),
+        last_purchase_date: c.ultima_compra_em,
+        total_spent: c.total_gasto,
+        bitrix_id: c.bitrix_id,
+      }));
     },
   });
 
