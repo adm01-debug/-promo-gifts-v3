@@ -45,7 +45,7 @@ import { useQuotes, type QuoteItem, type QuoteItemPersonalization } from "@/hook
 import { useQuoteTemplates, type QuoteTemplate, type QuoteTemplateItem } from "@/hooks/useQuoteTemplates";
 import { QuoteTemplateSelector } from "@/components/quotes/QuoteTemplateSelector";
 import { SaveAsTemplateButton } from "@/components/quotes/SaveAsTemplateButton";
-import { QuotePersonalizationSelector } from "@/components/quotes/QuotePersonalizationSelector";
+import { QuoteProductCustomization } from "@/components/quotes/QuoteProductCustomization";
 import { CompanyContactSelector } from "@/components/quotes/CompanyContactSelector";
 import { QuoteAutoSave } from "@/components/quotes/QuoteAutoSave";
 import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
@@ -224,7 +224,18 @@ export default function QuoteBuilderPage() {
     setExpandedItems(newExpanded);
   };
 
-  // Add personalization to item
+  // Set all personalizations for an item (from ProductCustomizationOptions)
+  const handlePersonalizationsChange = (index: number, personalizations: QuoteItemPersonalization[]) => {
+    setItems((prev) =>
+      prev.map((item, idx) =>
+        idx === index
+          ? { ...item, personalizations }
+          : item
+      )
+    );
+  };
+
+  // Add personalization to item (legacy compat)
   const handlePersonalizationAdd = (index: number, personalization: QuoteItemPersonalization) => {
     setItems((prev) =>
       prev.map((item, idx) =>
@@ -582,10 +593,11 @@ export default function QuoteBuilderPage() {
                   onTogglePersonalization={toggleExpanded}
                   expandedItems={expandedItems}
                   renderPersonalization={(item, index) => (
-                    <QuotePersonalizationSelector
-                      techniques={techniques}
+                    <QuoteProductCustomization
+                      productId={item.product_id}
                       quantity={item.quantity}
-                      onAdd={(personalization) => handlePersonalizationAdd(index, personalization)}
+                      existingPersonalizations={item.personalizations}
+                      onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
                     />
                   )}
                   formatCurrency={formatCurrency}
