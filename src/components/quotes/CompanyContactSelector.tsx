@@ -140,19 +140,35 @@ export function CompanyContactSelector({
     queryKey: ["quote-companies-search", debouncedSearch],
     queryFn: async () => {
       if (!debouncedSearch || debouncedSearch.length < 2) return [];
-      const results = await searchCrm<CrmCompany>("companies", "razao_social", debouncedSearch, {
-        select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
-        limit: 30,
-      });
-      return results.map((c) => ({
-        id: c.id,
-        name: getCompanyDisplayName(c),
-        razao_social: c.razao_social,
-        nome_fantasia: c.nome_fantasia,
-        cidade: c.cidade,
-        estado: c.estado,
-        cnpj: c.cnpj,
-      }));
+      // Search both razao_social and title for better coverage
+      const [byRazao, byTitle] = await Promise.all([
+        searchCrm<CrmCompany>("companies", "razao_social", debouncedSearch, {
+          select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+          limit: 50,
+        }),
+        searchCrm<CrmCompany>("companies", "title", debouncedSearch, {
+          select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+          limit: 50,
+        }),
+      ]);
+      // Merge and deduplicate
+      const seen = new Set<string>();
+      const merged: CompanyOption[] = [];
+      for (const c of [...byRazao, ...byTitle]) {
+        if (!seen.has(c.id)) {
+          seen.add(c.id);
+          merged.push({
+            id: c.id,
+            name: getCompanyDisplayName(c),
+            razao_social: c.razao_social,
+            nome_fantasia: c.nome_fantasia,
+            cidade: c.cidade,
+            estado: c.estado,
+            cnpj: c.cnpj,
+          });
+        }
+      }
+      return merged;
     },
     enabled: !!debouncedSearch && debouncedSearch.length >= 2,
     staleTime: 2 * 60 * 1000,
@@ -168,18 +184,15 @@ export function CompanyContactSelector({
     });
   }, [companies]);
 
-  // Merge local + server results, deduplicated
+  // Merge server (priority) + local results, deduplicated
   const filteredCompanies = useMemo(() => {
     if (!searchTerm.trim()) return companies?.slice(0, 30) || [];
 
-    // Local fuse results
-    const localResults = fuse
-      ? fuse.search(searchTerm).map((r) => r.item).slice(0, 20)
-      : [];
+    // Server results take priority (they search all 51k+ records)
+    const seen = new Set<string>();
+    const merged: CompanyOption[] = [];
 
-    // Merge with server results
-    const seen = new Set(localResults.map((c) => c.id));
-    const merged = [...localResults];
+    // Add server results first
     if (serverResults) {
       for (const sr of serverResults) {
         if (!seen.has(sr.id)) {
@@ -189,7 +202,18 @@ export function CompanyContactSelector({
       }
     }
 
-    return merged.slice(0, 30);
+    // Fill with local fuse results (for instant feedback before server responds)
+    if (fuse) {
+      const localResults = fuse.search(searchTerm).map((r) => r.item);
+      for (const lr of localResults) {
+        if (!seen.has(lr.id)) {
+          merged.push(lr);
+          seen.add(lr.id);
+        }
+      }
+    }
+
+    return merged.slice(0, 50);
   }, [companies, searchTerm, fuse, serverResults]);
 
   // Selected company
