@@ -4,7 +4,7 @@
  * - Carrega contatos vinculados à empresa selecionada
  */
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Fuse from "fuse.js";
 import { Building2, User, Search, X, ChevronDown, Loader2, Phone, Mail } from "lucide-react";
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { selectCrm } from "@/lib/crm-db";
+import { selectCrm, searchCrm } from "@/lib/crm-db";
 import { getCompanyDisplayName, type CrmCompany, type CrmContact, type CrmContactEmail, type CrmContactPhone } from "@/types/crm";
 
 interface CompanyOption {
@@ -47,8 +47,15 @@ export function CompanyContactSelector({
   onContactChange,
 }: CompanyContactSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search for server-side queries
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Fetch companies
   const { data: companies, isLoading: loadingCompanies } = useQuery<CompanyOption[]>({
@@ -128,7 +135,30 @@ export function CompanyContactSelector({
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fuse.js instance
+  // Server-side search when local Fuse doesn't find enough
+  const { data: serverResults, isLoading: loadingSearch } = useQuery<CompanyOption[]>({
+    queryKey: ["quote-companies-search", debouncedSearch],
+    queryFn: async () => {
+      if (!debouncedSearch || debouncedSearch.length < 2) return [];
+      const results = await searchCrm<CrmCompany>("companies", "razao_social", debouncedSearch, {
+        select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+        limit: 30,
+      });
+      return results.map((c) => ({
+        id: c.id,
+        name: getCompanyDisplayName(c),
+        razao_social: c.razao_social,
+        nome_fantasia: c.nome_fantasia,
+        cidade: c.cidade,
+        estado: c.estado,
+        cnpj: c.cnpj,
+      }));
+    },
+    enabled: !!debouncedSearch && debouncedSearch.length >= 2,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Fuse.js instance for local quick filtering
   const fuse = useMemo(() => {
     if (!companies) return null;
     return new Fuse(companies, {
@@ -138,13 +168,29 @@ export function CompanyContactSelector({
     });
   }, [companies]);
 
-  // Filtered results
+  // Merge local + server results, deduplicated
   const filteredCompanies = useMemo(() => {
-    if (!companies) return [];
-    if (!searchTerm.trim()) return companies.slice(0, 30);
-    if (!fuse) return [];
-    return fuse.search(searchTerm).map((r) => r.item).slice(0, 30);
-  }, [companies, searchTerm, fuse]);
+    if (!searchTerm.trim()) return companies?.slice(0, 30) || [];
+
+    // Local fuse results
+    const localResults = fuse
+      ? fuse.search(searchTerm).map((r) => r.item).slice(0, 20)
+      : [];
+
+    // Merge with server results
+    const seen = new Set(localResults.map((c) => c.id));
+    const merged = [...localResults];
+    if (serverResults) {
+      for (const sr of serverResults) {
+        if (!seen.has(sr.id)) {
+          merged.push(sr);
+          seen.add(sr.id);
+        }
+      }
+    }
+
+    return merged.slice(0, 30);
+  }, [companies, searchTerm, fuse, serverResults]);
 
   // Selected company
   const selectedCompany = useMemo(() => {
@@ -257,9 +303,9 @@ export function CompanyContactSelector({
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
-              ) : filteredCompanies.length === 0 ? (
+              ) : filteredCompanies.length === 0 && !loadingSearch ? (
                 <div className="py-4 text-center text-sm text-muted-foreground">
-                  Nenhuma empresa encontrada
+                  {searchTerm.length >= 2 ? "Nenhuma empresa encontrada" : "Digite para buscar..."}
                 </div>
               ) : (
                 <>
@@ -295,6 +341,13 @@ export function CompanyContactSelector({
                       </div>
                     </button>
                   ))}
+
+                  {loadingSearch && searchTerm.length >= 2 && (
+                    <div className="flex items-center justify-center py-2 text-xs text-muted-foreground gap-1.5">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Buscando no servidor...
+                    </div>
+                  )}
                 </>
               )}
             </div>
