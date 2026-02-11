@@ -104,19 +104,25 @@ export function LocationCard({
             "px-4 pb-4 space-y-2",
             !isExpanded && "hidden"
           )}>
-            {group.areas.map((area) => (
-              <TechniqueOption
-                key={area.area_id}
-                areaId={area.area_id}
-                areaName={area.area_name}
-                areaMaxWidth={area.max_width}
-                areaMaxHeight={area.max_height}
-                isCurved={area.is_curved}
-                isSelected={selectedAreaId === area.area_id}
-                quantity={quantity}
-                onSelect={onSelectArea}
-              />
-            ))}
+            {group.areas.map((area) => {
+              // Flatten all variants from all techniques for this area, deduplicating by variante_id
+              const allVariants = area.techniques?.flatMap(t => t.variantes || []) || [];
+              
+              return (
+                <TechniqueOption
+                  key={area.area_id}
+                  areaId={area.area_id}
+                  areaName={area.area_name}
+                  areaMaxWidth={area.max_width}
+                  areaMaxHeight={area.max_height}
+                  isCurved={area.is_curved}
+                  isSelected={selectedAreaId === area.area_id}
+                  quantity={quantity}
+                  variants={allVariants}
+                  onSelect={onSelectArea}
+                />
+              );
+            })}
           </div>
         </CollapsibleContent>
       </div>
