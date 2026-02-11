@@ -9,7 +9,7 @@ const corsHeaders = {
 // Whitelist de tabelas permitidas
 const ALLOWED_TABLES = [
   "companies",
-  "company_contacts",
+  "contacts",
   "company_addresses",
   "company_social_media",
   "contact_emails",
