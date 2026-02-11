@@ -60,14 +60,18 @@ export function TechniqueOption({
 
   const label = formatOptionLabel(techniqueName, variant);
 
-  // Dimensions: use area max dimensions (from product_print_areas) as primary source
+  // Dimensions: prefer enriched technique-specific dims from pricing table faixas,
+  // then area max text, then area physical limits as fallback
   const dimensionLabel = useMemo(() => {
+    if (priceData?.largura_max_tecnica && priceData?.altura_max_tecnica) {
+      return `${priceData.largura_max_tecnica}×${priceData.altura_max_tecnica}cm`;
+    }
+    if (areaMaxText) return areaMaxText;
     if (areaMaxWidth > 0 && areaMaxHeight > 0) {
       return `${areaMaxWidth}×${areaMaxHeight}cm`;
     }
-    if (areaMaxText) return areaMaxText;
     return null;
-  }, [areaMaxWidth, areaMaxHeight, areaMaxText]);
+  }, [priceData, areaMaxText, areaMaxWidth, areaMaxHeight]);
 
   // Max colors from variant
   const maxColorsForTech = useMemo(() => {

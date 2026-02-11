@@ -489,9 +489,8 @@ serve(async (req) => {
             if (faixaRows?.length) {
               let l = 0, a = 0;
               for (const f of faixaRows) {
-                // Ignorar valores sentinela (>=50 = sem limite real)
-                if (f.largura_max != null && f.largura_max < 50 && f.largura_max > l) l = f.largura_max;
-                if (f.altura_max != null && f.altura_max < 50 && f.altura_max > a) a = f.altura_max;
+                if (f.largura_max != null && f.largura_max > l) l = f.largura_max;
+                if (f.altura_max != null && f.altura_max > a) a = f.altura_max;
               }
               if (l > 0) maxLargura = l;
               if (a > 0) maxAltura = a;
