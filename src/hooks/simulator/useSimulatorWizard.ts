@@ -409,12 +409,16 @@ export function useSimulatorWizard() {
           : state.engravingSpecs.colors;
 
         try {
-          // ★ Usar fn_get_customization_price (v1) com area_id
-          // Funciona para TODAS as 9 áreas (incluindo UV/SILK sem techniques[])
+          // ★ Usar fn_get_customization_price_v2 com variante_id
+          // (v1 está quebrada: referencia ppa.technique_id que não existe)
+          if (!tech.variantId) {
+            allResults.push(createUnavailableResult(tech, 'Sem variante para precificação'));
+            return;
+          }
           const result = await invokeExternalRpc<CustomizationPriceV2>(
-            'fn_get_customization_price',
+            'fn_get_customization_price_v2',
             {
-              p_area_id: tech.printAreaId,
+              p_tecnica_variante_id: tech.variantId,
               p_quantidade: state.quantity,
               p_num_cores: effectiveColors,
             }

@@ -331,10 +331,11 @@ export function useCustomizationPriceLegacy() {
   }, []);
 
   /**
-   * Calcular preço por área (FALLBACK - v1 legacy)
+   * Calcular preço por variante (v2)
+   * NOTA: v1 (fn_get_customization_price com area_id) está quebrada — referencia ppa.technique_id inexistente
    */
   const calculatePrice = useCallback(async (
-    areaId: string,
+    varianteId: string,
     quantidade: number,
     numCores: number = 1
   ): Promise<CustomizationPriceV2 | null> => {
@@ -343,9 +344,9 @@ export function useCustomizationPriceLegacy() {
 
     try {
       const result = await invokeExternalRpc<CustomizationPriceV2>(
-        'fn_get_customization_price',
+        'fn_get_customization_price_v2',
         {
-          p_area_id: areaId,
+          p_tecnica_variante_id: varianteId,
           p_quantidade: quantidade,
           p_num_cores: numCores,
         }

@@ -169,7 +169,7 @@ export function useCustomizationPrice() {
   const [error, setError] = useState<string | null>(null);
 
   const calculatePrice = useCallback(async (
-    areaId: string,
+    varianteId: string,
     quantidade: number,
     numCores: number = 1
   ): Promise<CustomizationPrice | null> => {
@@ -178,9 +178,9 @@ export function useCustomizationPrice() {
 
     try {
       const result = await invokeExternalRpc<CustomizationPrice>(
-        'fn_get_customization_price',
+        'fn_get_customization_price_v2',
         {
-          p_area_id: areaId,
+          p_tecnica_variante_id: varianteId,
           p_quantidade: quantidade,
           p_num_cores: numCores,
         }
