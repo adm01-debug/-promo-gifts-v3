@@ -13,7 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
 import { useOrders } from "@/hooks/useOrders";
-import { generateProposalPDF, downloadPDF } from "@/utils/proposalPdfGenerator";
+import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { QuoteHistoryPanel } from "@/components/quotes/QuoteHistoryPanel";
 import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
@@ -66,36 +66,42 @@ export default function QuoteViewPage() {
     try {
       const proposalData = {
         quoteNumber: quote.quote_number || "",
-        date: quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "",
+        date: quote.created_at ? format(new Date(quote.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "",
         validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : "30 dias",
         client: {
           name: quote.client_name || "Cliente não especificado",
+          email: quote.client_email || undefined,
+          phone: quote.client_phone || undefined,
+          company: quote.client_company || undefined,
         },
         seller: {
           name: user?.email || "Vendedor",
         },
         items: quote.items?.map((item) => ({
           name: item.product_name,
-          sku: item.product_sku || "",
+          sku: item.product_sku || undefined,
           quantity: item.quantity,
           unitPrice: item.unit_price,
-          color: item.color_name,
-          personalization: item.personalizations?.[0] ? {
-            technique: item.personalizations[0].technique_name || "Personalização",
-            colors: item.personalizations[0].colors_count || 1,
-            area: `${item.personalizations[0].area_cm2 || 0} cm²`,
-            unitCost: item.personalizations[0].unit_cost || 0,
-            setupCost: item.personalizations[0].setup_cost || 0,
-          } : undefined,
+          color: item.color_name || undefined,
+          personalizations: item.personalizations?.map((p: any) => ({
+            technique_name: p.technique_name || "Personalização",
+            colors_count: p.colors_count || 1,
+            area_cm2: p.area_cm2 || undefined,
+            unit_cost: p.unit_cost || 0,
+            setup_cost: p.setup_cost || 0,
+            total_cost: p.total_cost || 0,
+          })) || [],
         })) || [],
-        subtotal: quote.subtotal,
-        discount: quote.discount_amount,
-        total: quote.total,
-        notes: quote.notes,
+        subtotal: quote.subtotal || 0,
+        discount: quote.discount_amount || undefined,
+        total: quote.total || 0,
+        notes: quote.notes || undefined,
+        paymentTerms: quote.payment_terms || undefined,
+        deliveryTime: quote.delivery_time || undefined,
       };
 
-      const blob = await generateProposalPDF(proposalData);
-      downloadPDF(blob, `orcamento-${quote.quote_number}.pdf`);
+      const blob = await generateProposalPDFv2(proposalData);
+      downloadPDF(blob, `proposta-${quote.quote_number}.pdf`);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
       console.error("Error generating PDF:", error);
