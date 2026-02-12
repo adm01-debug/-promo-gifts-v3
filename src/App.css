@@ -77,9 +77,10 @@ body {
   }
 }
 
-/* Prevent horizontal scroll - only on body to preserve html scroll container */
+/* Prevent horizontal scroll and ensure body scroll is never locked by modals */
 body {
   overflow-x: hidden;
+  overflow-y: auto !important;
   width: 100%;
 }
 
