@@ -18,22 +18,59 @@ import type {
 // ============================================
 
 /**
- * Busca áreas de um produto diretamente da tabela
+ * Busca áreas de gravação de um produto.
+ * 
+ * NOTA: A tabela 'product_print_areas' NÃO existe no BD externo.
+ * Os dados de personalização ficam no campo JSONB 'personalization_areas'
+ * da tabela 'products'. Enquanto não houver dados populados lá,
+ * retornamos array vazio sem erro.
  */
 async function fetchProductPrintAreas(productId: string): Promise<ProductPrintArea[]> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: {
-      table: 'product_print_areas',
-      operation: 'select',
-      filters: { product_id: productId, is_active: true },
-      orderBy: { column: 'display_order', ascending: true },
-    },
-  });
+  try {
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+      body: {
+        table: 'products',
+        operation: 'select',
+        select: 'id,personalization_areas',
+        filters: { id: productId },
+        limit: 1,
+      },
+    });
 
-  if (error) throw new Error(error.message);
-  if (!data?.success) throw new Error(data?.error || 'Erro ao buscar áreas');
-  
-  return data.data?.records || [];
+    if (error || !data?.success) {
+      console.warn('[usePrintAreas] Erro ao buscar produto:', error?.message || data?.error);
+      return [];
+    }
+
+    const product = data.data?.records?.[0];
+    if (!product) return [];
+
+    // personalization_areas é um JSONB array no produto
+    const areas = product.personalization_areas;
+    if (!Array.isArray(areas) || areas.length === 0) return [];
+
+    // Mapear JSONB para formato esperado
+    return areas.map((area: any, idx: number) => ({
+      id: area.id || `${productId}-area-${idx}`,
+      product_id: productId,
+      area_code: area.area_code || area.code || '',
+      area_name: area.area_name || area.name || `Área ${idx + 1}`,
+      max_width: area.max_width || area.width || 0,
+      max_height: area.max_height || area.height || 0,
+      shape: area.shape || 'rectangle',
+      is_curved: area.is_curved || false,
+      is_primary: area.is_primary || idx === 0,
+      is_active: area.is_active !== false,
+      display_order: area.display_order || idx,
+      component_name: area.component_name || null,
+      location_name: area.location_name || null,
+      unit: area.unit || 'cm',
+      allowed_technique_ids: area.allowed_technique_ids || area.technique_ids || [],
+    }));
+  } catch (err) {
+    console.warn('[usePrintAreas] Exceção ao buscar áreas:', err);
+    return [];
+  }
 }
 
 /**
@@ -185,18 +222,24 @@ export function useHasPrintAreas(productId: string | null) {
     queryFn: async (): Promise<boolean> => {
       if (!productId) return false;
       
-      const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-        body: {
-          table: 'product_print_areas',
-          operation: 'select',
-          filters: { product_id: productId, is_active: true },
-          select: 'id',
-          limit: 1,
-        },
-      });
+      try {
+        const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+          body: {
+            table: 'products',
+            operation: 'select',
+            select: 'id,personalization_areas',
+            filters: { id: productId },
+            limit: 1,
+          },
+        });
 
-      if (error) return false;
-      return (data?.data?.count || 0) > 0;
+        if (error || !data?.success) return false;
+        const product = data.data?.records?.[0];
+        const areas = product?.personalization_areas;
+        return Array.isArray(areas) && areas.length > 0;
+      } catch {
+        return false;
+      }
     },
     enabled: !!productId,
     staleTime: 60000,
