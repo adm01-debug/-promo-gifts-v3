@@ -4,7 +4,10 @@
  * ARQUITETURA DEFINITIVA (v5.9):
  * Cada área de gravação é uma opção de técnica.
  * Preço calculado via fn_get_customization_price com p_area_id.
- * Sem conceito de variantes — cada área TEM sua tabela de preço.
+ * 
+ * Suporta `label` e `variationLabel` para exibição hierárquica:
+ * - label: nome principal (ex: "Laser" ou "Cilíndrica")
+ * - variationLabel: subtítulo (ex: "Cilíndrica" quando label é o grupo)
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -20,6 +23,10 @@ export interface TechniqueOptionProps {
   areaId: string;
   /** Full area_name (e.g., "Lado A — Laser") */
   areaName: string;
+  /** Override label for display (e.g., "Laser" or "Cilíndrica" when nested) */
+  label?: string;
+  /** Variation subtitle (e.g., "Cilíndrica" shown below the main label) */
+  variationLabel?: string;
   /** Area-specific dimensions */
   areaMaxWidth: number;
   areaMaxHeight: number;
@@ -32,12 +39,14 @@ export interface TechniqueOptionProps {
 /** Extract technique label from area_name: "Lado A — Laser" → "Laser" */
 function extractTechLabel(areaName: string): string {
   const parts = areaName.split(' — ');
-  return parts.length > 1 ? parts[1] : areaName;
+  return parts.length > 1 ? parts[parts.length - 1] : areaName;
 }
 
 export function TechniqueOption({
   areaId,
   areaName,
+  label,
+  variationLabel,
   areaMaxWidth,
   areaMaxHeight,
   isCurved,
@@ -49,7 +58,7 @@ export function TechniqueOption({
   const [loading, setLoading] = useState(false);
   const [numColors, setNumColors] = useState(1);
 
-  const techLabel = extractTechLabel(areaName);
+  const displayLabel = label || extractTechLabel(areaName);
 
   // Dimension label
   const dimensionLabel = useMemo(() => {
@@ -114,6 +123,14 @@ export function TechniqueOption({
 
   const showColorSelector = isSelected && priceData?.price_by_color && maxColors > 1;
 
+  // Build subtitle: variation label + dimensions
+  const subtitle = useMemo(() => {
+    const parts: string[] = [];
+    if (variationLabel) parts.push(variationLabel);
+    if (dimensionLabel) parts.push(dimensionLabel);
+    return parts.join(' · ') || null;
+  }, [variationLabel, dimensionLabel]);
+
   return (
     <div
       className={cn(
@@ -136,10 +153,10 @@ export function TechniqueOption({
             {isSelected && <Check className="h-3 w-3" />}
           </div>
           <div>
-            <p className="font-medium text-sm text-foreground">{techLabel}</p>
-            {dimensionLabel && (
+            <p className="font-medium text-sm text-foreground">{displayLabel}</p>
+            {subtitle && (
               <p className="text-xs text-muted-foreground">
-                {dimensionLabel}
+                {subtitle}
               </p>
             )}
           </div>
