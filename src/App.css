@@ -75,14 +75,14 @@ body {
   }
 }
 
-/* Prevent horizontal scroll */
-html, body {
+/* Prevent horizontal scroll - only on body to preserve html scroll container */
+body {
   overflow-x: hidden;
   width: 100%;
 }
 
-/* Smooth transitions for theme changes */
-* {
+/* Smooth transitions for theme changes - scoped to avoid breaking scroll/animations */
+.theme-transition {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: ease-out;
   transition-duration: 0.15s;
