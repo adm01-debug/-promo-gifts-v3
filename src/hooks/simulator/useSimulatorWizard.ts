@@ -1,12 +1,12 @@
 /**
- * useSimulatorWizard v3 - Hook central do simulador
+ * useSimulatorWizard v4 - Hook central do simulador
  * 
- * FLUXO HÍBRIDO v2/v1:
- * 1. fn_get_product_print_areas_v2 → áreas + agrupamento por local físico
- * 2. fn_get_customization_price (v1, area_id) → preço final (funciona para todas as 9 áreas)
+ * ARQUITETURA DEFINITIVA (v5.9):
+ * 1. Buscar áreas via product_print_areas + tabela_preco_gravacao_oficial
+ * 2. Calcular preço via fn_get_customization_price com p_area_id
  * 
- * A v1 de pricing resolve tudo via area_id → customization_price_table_id → preço.
- * NÃO depende de techniques[] (que pode estar vazio para áreas sem allowed_technique_ids).
+ * NÃO usa mais fn_get_customization_price_v2 (eliminada).
+ * NÃO usa mais conceito de variantes (tecnica_variante_id eliminado).
  */
 
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
@@ -14,10 +14,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { fetchProductPrintAreasV2 } from '@/hooks/useGravacaoPriceV2';
-import type { PrintAreaV2 } from '@/hooks/useGravacaoPriceV2';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import { groupPrintAreasToLocations } from '@/lib/print-area-grouping';
-import type { CustomizationPriceV2 } from '@/hooks/useGravacaoV2';
+import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
+import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
 import type {
   SimulatorWizardState,
   WizardAction,
@@ -215,11 +215,6 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
 }
 
 // ============================================
-// HELPER: Agrupamento importado de @/lib/print-area-grouping
-// groupPrintAreasToLocations() agrupa por component_name + location_name
-// ============================================
-
-// ============================================
 // HOOK PRINCIPAL
 // ============================================
 
@@ -227,23 +222,22 @@ export function useSimulatorWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
   // ============================================
-  // QUERY: Buscar áreas + técnicas + variantes (1 call)
+  // QUERY: Buscar áreas + técnicas
   // ============================================
 
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
-    queryKey: ['wizard-locations-v3', state.selectedProduct?.id],
+    queryKey: ['wizard-locations-v4', state.selectedProduct?.id],
     queryFn: async () => {
       if (!state.selectedProduct?.id) return [];
       
       try {
-        // v3: Uma única RPC retorna TUDO
         const areas = await fetchProductPrintAreasV2(state.selectedProduct.id);
         
         if (areas.length > 0) {
           return groupPrintAreasToLocations(areas);
         }
       } catch (err) {
-        console.warn('fn_get_product_print_areas_v2 falhou, tentando fallback local:', err);
+        console.warn('Falha ao buscar áreas do Promobrind:', err);
       }
 
       // Fallback: BD local (para produtos sem dados no Promobrind)
@@ -360,8 +354,8 @@ export function useSimulatorWizard() {
   }, []);
 
   // ============================================
-  // COMPARAÇÃO DE PREÇOS (PASSO 2 do v3)
-  // Variantes já vieram do passo 1 — apenas calcular preço
+  // COMPARAÇÃO DE PREÇOS
+  // Usa fn_get_customization_price com p_area_id
   // ============================================
 
   const fetchComparisonPrices = useCallback(async () => {
@@ -398,29 +392,21 @@ export function useSimulatorWizard() {
           return;
         }
 
-        // Cores efetivas:
-        // - max_colors = 0 → full color (CMYK), enviar 1 (técnica não diferencia por cor)
-        // - max_colors = 1 → monocromática, enviar 1
-        // - max_colors = null → desconhecido (techniques[] vazio), enviar as cores do usuário
-        //   e deixar o v1 decidir se cobra por cor via price_by_color
-        // - max_colors > 1 → enviar as cores do usuário (já validadas no check acima)
+        // Cores efetivas
         const effectiveColors = (tech.maxColors === 0 || tech.maxColors === 1) 
           ? 1 
           : state.engravingSpecs.colors;
 
         try {
-          // ★ Usar fn_get_customization_price_v2 com variante_id
-          // (v1 está quebrada: referencia ppa.technique_id que não existe)
-          if (!tech.variantId) {
-            allResults.push(createUnavailableResult(tech, 'Sem variante para precificação'));
-            return;
-          }
-          const result = await invokeExternalRpc<CustomizationPriceV2>(
-            'fn_get_customization_price_v2',
+          // ★ Usar fn_get_customization_price com p_area_id
+          const result = await invokeExternalRpc<CustomizationPriceResponse>(
+            'fn_get_customization_price',
             {
-              p_tecnica_variante_id: tech.variantId,
+              p_area_id: tech.printAreaId,
               p_quantidade: state.quantity,
               p_num_cores: effectiveColors,
+              p_largura_cm: state.engravingSpecs.width || null,
+              p_altura_cm: state.engravingSpecs.height || null,
             }
           );
 
@@ -429,26 +415,28 @@ export function useSimulatorWizard() {
             return;
           }
 
+          const flat = mapPriceResponseToFlat(result);
+
           allResults.push({
             techniqueId: tech.techniqueId,
-            techniqueName: result.technique || tech.techniqueName,
-            techniqueCode: result.tabela_codigo_curto || tech.techniqueCode,
+            techniqueName: flat.technique || tech.techniqueName,
+            techniqueCode: flat.tabela_codigo_curto || tech.techniqueCode,
             printAreaId: tech.printAreaId,
-            maxColors: tech.maxColors,
+            maxColors: flat.max_cores ?? tech.maxColors,
             isAvailable: true,
-            unitPrice: result.unit_price || 0,
-            setupPrice: result.faturamento_minimo_gravacao || 0,
-            subtotal: result.subtotal_pecas || 0,
-            totalPrice: result.total_price || 0,
-            costPerUnit: state.quantity > 0 ? (result.total_price || 0) / state.quantity : 0,
-            minimumApplied: result.minimum_applied || false,
-            budgetCode: result.codigo_orcamento || '',
-            productionDays: result.production_days ?? null,
-            markupPercent: result.markup_percent || 0,
-            marginPercent: result.margin_percent ?? 0,
-            tierUsed: result.tier_used || 0,
-            tierMinQty: result.tier_min_qty || 0,
-            tierMaxQty: result.tier_max_qty || 0,
+            unitPrice: flat.unit_price,
+            setupPrice: flat.faturamento_minimo_gravacao,
+            subtotal: flat.subtotal_pecas,
+            totalPrice: flat.total_price,
+            costPerUnit: state.quantity > 0 ? flat.total_price / state.quantity : 0,
+            minimumApplied: flat.minimum_applied,
+            budgetCode: flat.codigo_orcamento,
+            productionDays: flat.production_days,
+            markupPercent: flat.markup_percent,
+            marginPercent: flat.margin_percent,
+            tierUsed: flat.tier_used,
+            tierMinQty: flat.tier_min_qty,
+            tierMaxQty: flat.tier_max_qty,
             rawData: result as unknown as Record<string, unknown>,
           });
         } catch (err) {
@@ -621,8 +609,6 @@ export function useSimulatorWizard() {
     const maxColors = state.selectedLocation.availableTechniques
       .map(t => t.maxColors)
       .filter((c): c is number => c !== null && c > 0);
-    // Se nenhuma técnica tem maxColors definido, usar 4 (padrão conservador)
-    // Evita mostrar "até 10 cores" quando o dado real é desconhecido
     return maxColors.length > 0 ? Math.max(...maxColors) : 4;
   }, [state.selectedLocation]);
 
@@ -671,21 +657,15 @@ function createUnavailableResult(
     techniqueCode: string;
     printAreaId: string;
     maxColors: number | null;
-    variantId?: string;
-    variantName?: string;
-    variantCode?: string;
   },
   reason: string
 ): TechniqueComparisonResult {
   return {
     techniqueId: tech.techniqueId,
-    techniqueName: tech.variantName || tech.techniqueName,
-    techniqueCode: tech.variantCode || tech.techniqueCode,
+    techniqueName: tech.techniqueName,
+    techniqueCode: tech.techniqueCode,
     printAreaId: tech.printAreaId,
     maxColors: tech.maxColors,
-    variantId: tech.variantId,
-    variantName: tech.variantName,
-    variantCode: tech.variantCode,
     isAvailable: false,
     unavailableReason: reason,
     unitPrice: 0,

@@ -1,26 +1,22 @@
 /**
  * TechniqueOption — Uma opção de técnica (= 1 área de gravação)
  * 
- * Fluxo de seleção sequencial:
- * 1. Clique seleciona a técnica
- * 2. Seletor de tamanho/variante aparece (obrigatório)
- * 3. Seletor de cores aparece (se price_by_color)
- * 4. Preço final calculado via fn_get_customization_price_v2 com variante_id
- * 
- * Fallback para fn_get_customization_price (v1) com area_id quando
- * não há variantes disponíveis.
+ * ARQUITETURA DEFINITIVA (v5.9):
+ * Cada área de gravação é uma opção de técnica.
+ * Preço calculado via fn_get_customization_price com p_area_id.
+ * Sem conceito de variantes — cada área TEM sua tabela de preço.
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Palette, Check, Loader2, Clock, Ruler } from "lucide-react";
+import { Palette, Check, Loader2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { invokeExternalRpc } from "@/lib/external-rpc";
-import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
-import type { TechniqueVariant } from "@/hooks/useGravacaoPriceV2";
+import type { CustomizationPriceResponse, CustomizationPriceFlat } from "@/hooks/useGravacaoPriceV2";
+import { mapPriceResponseToFlat } from "@/hooks/useGravacaoPriceV2";
 
 export interface TechniqueOptionProps {
-  /** area_id from product_print_areas */
+  /** area_id from product_print_areas (usado como p_area_id na RPC) */
   areaId: string;
   /** Full area_name (e.g., "Lado A — Laser") */
   areaName: string;
@@ -30,34 +26,13 @@ export interface TechniqueOptionProps {
   isCurved: boolean;
   isSelected: boolean;
   quantity: number;
-  /** Technique variants (size/format options) from v2 areas data */
-  variants?: TechniqueVariant[];
-  onSelect: (areaId: string, priceData: CustomizationPriceV2 | null) => void;
+  onSelect: (areaId: string, priceData: CustomizationPriceFlat | null) => void;
 }
 
 /** Extract technique label from area_name: "Lado A — Laser" → "Laser" */
 function extractTechLabel(areaName: string): string {
   const parts = areaName.split(' — ');
   return parts.length > 1 ? parts[1] : areaName;
-}
-
-/** Extract a short size label from variant name */
-function extractVariantSizeLabel(variant: TechniqueVariant): string {
-  // nome format examples: "Fiber Laser | Plana", "Serigrafia UV | Cilíndrica"
-  // The variant often has override dimensions which are more useful
-  const parts = variant.nome.split(' | ');
-  return parts.length > 1 ? parts[1] : variant.nome;
-}
-
-/** Build a display label for a variant including dimensions */
-function getVariantDisplayLabel(variant: TechniqueVariant, areaMaxWidth: number, areaMaxHeight: number): string {
-  const sizeLabel = extractVariantSizeLabel(variant);
-  const w = variant.override_width ?? areaMaxWidth;
-  const h = variant.override_height ?? areaMaxHeight;
-  if (w > 0 && h > 0) {
-    return `${sizeLabel} — ${w}×${h}cm`;
-  }
-  return sizeLabel;
 }
 
 export function TechniqueOption({
@@ -68,86 +43,43 @@ export function TechniqueOption({
   isCurved,
   isSelected,
   quantity,
-  variants = [],
   onSelect,
 }: TechniqueOptionProps) {
-  const [priceData, setPriceData] = useState<CustomizationPriceV2 | null>(null);
+  const [priceData, setPriceData] = useState<CustomizationPriceFlat | null>(null);
   const [loading, setLoading] = useState(false);
   const [numColors, setNumColors] = useState(1);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
 
   const techLabel = extractTechLabel(areaName);
 
-  // Deduplicate variants by variante_id
-  const uniqueVariants = useMemo(() => {
-    if (!variants.length) return [];
-    const seen = new Set<string>();
-    return variants.filter(v => {
-      if (seen.has(v.variante_id)) return false;
-      seen.add(v.variante_id);
-      return true;
-    });
-  }, [variants]);
-
-  const hasVariants = uniqueVariants.length > 0;
-  const selectedVariant = uniqueVariants.find(v => v.variante_id === selectedVariantId) ?? null;
-
-  // Use technique-specific dimensions from enriched price data or selected variant
+  // Dimension label
   const dimensionLabel = useMemo(() => {
-    // If a variant is selected, use its dimensions
-    if (selectedVariant) {
-      const w = selectedVariant.override_width ?? areaMaxWidth;
-      const h = selectedVariant.override_height ?? areaMaxHeight;
-      if (w > 0 && h > 0) return `${w}×${h}cm`;
-    }
-
-    // Otherwise use enriched technique dimensions from priceData
-    const techW = (priceData as any)?.largura_max_tecnica;
-    const techH = (priceData as any)?.altura_max_tecnica;
-    
-    const effectiveW = (typeof techW === 'number' && techW > 0)
-      ? Math.min(techW, areaMaxWidth > 0 ? areaMaxWidth : techW)
-      : areaMaxWidth;
-    const effectiveH = (typeof techH === 'number' && techH > 0)
-      ? Math.min(techH, areaMaxHeight > 0 ? areaMaxHeight : techH)
-      : areaMaxHeight;
-    
-    if (effectiveW > 0 && effectiveH > 0) {
-      return `${effectiveW}×${effectiveH}cm`;
+    if (areaMaxWidth > 0 && areaMaxHeight > 0) {
+      return `${areaMaxWidth}×${areaMaxHeight}cm`;
     }
     return null;
-  }, [areaMaxWidth, areaMaxHeight, priceData, selectedVariant]);
+  }, [areaMaxWidth, areaMaxHeight]);
 
-  // Fetch price with v2 (variant) or v1 (area_id) fallback
-  const fetchPrice = useCallback(async (colors: number, variantId?: string | null) => {
+  // Fetch price via fn_get_customization_price with p_area_id
+  const fetchPrice = useCallback(async (colors: number) => {
     if (quantity <= 0) return;
     setLoading(true);
     try {
-      let result: CustomizationPriceV2 | null = null;
-
-      if (variantId) {
-        // v2 with variante_id
-        result = await invokeExternalRpc<CustomizationPriceV2>(
-          'fn_get_customization_price_v2',
-          {
-            p_tecnica_variante_id: variantId,
-            p_quantidade: quantity,
-            p_num_cores: colors,
-          }
-        );
-        // Map v2 fields to v1 interface for compatibility
-        if (result) {
-          const r = result as any;
-          if (!r.unit_price && r.preco_minimo_unitario) {
-            r.unit_price = r.preco_minimo_unitario;
-          }
+      const result = await invokeExternalRpc<CustomizationPriceResponse>(
+        'fn_get_customization_price',
+        {
+          p_area_id: areaId,
+          p_quantidade: quantity,
+          p_num_cores: colors,
+          p_largura_cm: null,
+          p_altura_cm: null,
         }
-      } else {
-        // No variant available — cannot calculate price
-        // (v1 fn_get_customization_price is broken: references non-existent ppa.technique_id)
-      }
+      );
 
-      setPriceData(result?.success !== false ? result : null);
+      if (result?.success) {
+        setPriceData(mapPriceResponseToFlat(result));
+      } else {
+        setPriceData(null);
+      }
     } catch {
       setPriceData(null);
     } finally {
@@ -155,19 +87,10 @@ export function TechniqueOption({
     }
   }, [quantity, areaId]);
 
-  // When no variants: fetch v1 price on mount / quantity change
+  // Fetch price on mount and when quantity changes
   useEffect(() => {
-    if (!hasVariants) {
-      fetchPrice(numColors);
-    }
-  }, [fetchPrice, hasVariants]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // When variant is selected: fetch v2 price
-  useEffect(() => {
-    if (selectedVariantId && isSelected) {
-      fetchPrice(numColors, selectedVariantId);
-    }
-  }, [selectedVariantId, quantity, numColors]); // eslint-disable-line react-hooks/exhaustive-deps
+    fetchPrice(numColors);
+  }, [fetchPrice]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Push price to parent when it changes and this option is selected
   useEffect(() => {
@@ -176,36 +99,20 @@ export function TechniqueOption({
     }
   }, [priceData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset variant when deselected
-  useEffect(() => {
-    if (!isSelected) {
-      setSelectedVariantId(null);
-    }
-  }, [isSelected]);
-
   const handleColorChange = (colors: number) => {
     setNumColors(colors);
-    fetchPrice(colors, selectedVariantId);
+    fetchPrice(colors);
   };
 
-  const handleVariantSelect = (variantId: string) => {
-    setSelectedVariantId(variantId);
-    // Price will be fetched by the useEffect
-  };
-
-  // Determine max colors from selected variant or priceData
+  // Determine max colors from priceData
   const maxColors = useMemo(() => {
-    if (selectedVariant && selectedVariant.max_colors > 1) return selectedVariant.max_colors;
     if (!priceData) return 1;
     if (!priceData.price_by_color) return 1;
-    const mc = (priceData as any).max_cores;
-    if (typeof mc === 'number' && mc > 1) return mc;
+    if (priceData.max_cores > 1) return priceData.max_cores;
     return 4; // fallback
-  }, [priceData, selectedVariant]);
+  }, [priceData]);
 
   const showColorSelector = isSelected && priceData?.price_by_color && maxColors > 1;
-  const showVariantSelector = isSelected && hasVariants;
-  const needsVariantSelection = hasVariants && !selectedVariantId;
 
   return (
     <div
@@ -258,8 +165,6 @@ export function TechniqueOption({
           <div className="text-right min-w-[80px]">
             {loading ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground ml-auto" />
-            ) : needsVariantSelection && isSelected ? (
-              <span className="text-xs text-muted-foreground">Selecione o tamanho</span>
             ) : priceData ? (
               <span className="text-sm font-semibold text-primary">
                 R$ {priceData.unit_price?.toFixed(2)}/un
@@ -271,65 +176,8 @@ export function TechniqueOption({
         </div>
       </div>
 
-      {/* Variant/Size selector (when selected + has variants) */}
-      {showVariantSelector && (
-        <div className="mt-3 pt-3 border-t border-border/50" onClick={e => e.stopPropagation()}>
-          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-            <Ruler className="h-3 w-3" />
-            Tamanho da gravação:
-          </p>
-          <div className="grid gap-1.5">
-            {uniqueVariants.map(variant => {
-              const isVarSelected = selectedVariantId === variant.variante_id;
-              const displayLabel = getVariantDisplayLabel(variant, areaMaxWidth, areaMaxHeight);
-              
-              return (
-                <button
-                  key={variant.variante_id}
-                  className={cn(
-                    "flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors text-left",
-                    isVarSelected
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary/80 text-secondary-foreground hover:bg-secondary"
-                  )}
-                  onClick={() => handleVariantSelect(variant.variante_id)}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={cn(
-                      "w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center",
-                      isVarSelected
-                        ? "border-primary-foreground bg-primary-foreground/20"
-                        : "border-muted-foreground/50"
-                    )}>
-                      {isVarSelected && <Check className="h-2 w-2" />}
-                    </div>
-                    <span className="font-medium">{displayLabel}</span>
-                  </div>
-                  {variant.is_recommended && (
-                    <Badge variant="outline" className={cn(
-                      "text-[9px] h-4",
-                      isVarSelected && "border-primary-foreground/50 text-primary-foreground"
-                    )}>
-                      ⭐ Recomendado
-                    </Badge>
-                  )}
-                  {!variant.has_pricing && (
-                    <Badge variant="outline" className={cn(
-                      "text-[9px] h-4",
-                      isVarSelected && "border-primary-foreground/50 text-primary-foreground"
-                    )}>
-                      Sob consulta
-                    </Badge>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Color selector (only when selected + variant chosen + price_by_color) */}
-      {showColorSelector && !needsVariantSelection && (
+      {/* Color selector (only when selected + price_by_color) */}
+      {showColorSelector && (
         <div className="mt-3 pt-3 border-t border-border/50" onClick={e => e.stopPropagation()}>
           <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
             <Palette className="h-3 w-3" />

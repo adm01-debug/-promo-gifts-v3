@@ -18,9 +18,8 @@ import { supabase } from '@/integrations/supabase/client';
  * 
  * RPCs permitidas:
  * - fn_get_product_print_areas
- * - fn_get_product_print_areas_v2 (v3 flow - áreas + técnicas + variantes)
- * - fn_get_customization_price
- * - fn_get_customization_price_v2
+ * - fn_get_product_print_areas_v2
+ * - fn_get_customization_price (v5.9 — usa p_area_id, retorna JSON nested)
  * - fn_link_product_print_areas
  * - fn_backfill_product_print_areas
  * - fn_find_fornecedor_price_table

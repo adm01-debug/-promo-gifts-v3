@@ -109,22 +109,20 @@ export interface EngravingLocation {
 
 export interface AvailableTechnique {
   id: string;
-  printAreaId: string; // ID da print area no banco externo (area_id para v1 pricing)
-  techniqueId: string;  // ID MESTRE da técnica (NÃO usar para preço)
+  printAreaId: string; // ID da print area = p_area_id para fn_get_customization_price
+  techniqueId: string;  // Mesmo que printAreaId (cada área = 1 técnica)
   techniqueName: string;
   techniqueCode: string;
   maxColors: number | null;
   isDefault: boolean;
   isCurved?: boolean;
-  // v3: variante inline (do fn_get_product_print_areas_v2)
-  variantId?: string;       // UUID da variante (opcional, para v2 pricing)
-  variantName?: string;     // Nome completo (ex: "Fiber Laser | Plana")
-  variantCode?: string;     // Código da variante
-  hasPricing?: boolean;     // false = "preço sob consulta"
-  isRecommended?: boolean;  // Variante recomendada (⭐)
+  hasPricing?: boolean;     // true se tem customization_price_table_id
   // Dimensões específicas da área (para exibição em cards agrupados)
   areaMaxWidth?: number;
   areaMaxHeight?: number;
+  // Info da tabela de preço (para exibição)
+  grupoTecnica?: string;
+  cobraPorCor?: boolean;
 }
 
 // ============================================
@@ -145,19 +143,14 @@ export interface TechniqueComparisonResult {
   techniqueId: string;
   techniqueName: string;
   techniqueCode: string;
-  printAreaId: string;
+  printAreaId: string; // = p_area_id usado na RPC
   maxColors: number | null;
-  
-  // v2: variante usada no cálculo
-  variantId?: string;
-  variantName?: string;
-  variantCode?: string;
   
   // Status
   isAvailable: boolean;
   unavailableReason?: string;
   
-  // Preços (do RPC fn_get_customization_price_v2)
+  // Preços (do RPC fn_get_customization_price v5.9)
   unitPrice: number;
   setupPrice: number;
   subtotal: number;

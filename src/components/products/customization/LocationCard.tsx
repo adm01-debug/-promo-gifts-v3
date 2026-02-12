@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { TechniqueOption } from "./TechniqueOption";
 import type { PrintAreaV2 } from "@/hooks/useGravacaoPriceV2";
-import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
+import type { CustomizationPriceFlat } from "@/hooks/useGravacaoPriceV2";
 
 export interface LocationGroupData {
   groupKey: string;
@@ -35,7 +35,7 @@ interface LocationCardProps {
   selectedAreaId: string | null;
   quantity: number;
   onToggle: () => void;
-  onSelectArea: (areaId: string, priceData: CustomizationPriceV2 | null) => void;
+  onSelectArea: (areaId: string, priceData: CustomizationPriceFlat | null) => void;
 }
 
 export function LocationCard({
@@ -104,25 +104,19 @@ export function LocationCard({
             "px-4 pb-4 space-y-2",
             !isExpanded && "hidden"
           )}>
-            {group.areas.map((area) => {
-              // Flatten all variants from all techniques for this area, deduplicating by variante_id
-              const allVariants = area.techniques?.flatMap(t => t.variantes || []) || [];
-              
-              return (
-                <TechniqueOption
-                  key={area.area_id}
-                  areaId={area.area_id}
-                  areaName={area.area_name}
-                  areaMaxWidth={area.max_width}
-                  areaMaxHeight={area.max_height}
-                  isCurved={area.is_curved}
-                  isSelected={selectedAreaId === area.area_id}
-                  quantity={quantity}
-                  variants={allVariants}
-                  onSelect={onSelectArea}
-                />
-              );
-            })}
+            {group.areas.map((area) => (
+              <TechniqueOption
+                key={area.area_id}
+                areaId={area.area_id}
+                areaName={area.area_name}
+                areaMaxWidth={area.max_width}
+                areaMaxHeight={area.max_height}
+                isCurved={area.is_curved}
+                isSelected={selectedAreaId === area.area_id}
+                quantity={quantity}
+                onSelect={onSelectArea}
+              />
+            ))}
           </div>
         </CollapsibleContent>
       </div>

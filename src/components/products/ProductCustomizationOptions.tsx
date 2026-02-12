@@ -15,13 +15,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProductPrintAreasV2 } from "@/hooks/useGravacaoPriceV2";
 import { LocationCard, type LocationGroupData } from "./customization/LocationCard";
 import type { PrintAreaV2 } from "@/hooks/useGravacaoPriceV2";
-import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
+import type { CustomizationPriceFlat } from "@/hooks/useGravacaoPriceV2";
 
 interface ProductCustomizationOptionsProps {
   productId: string;
   productSku?: string;
   quantity?: number;
-  onSelectionChange?: (selections: Map<string, { areaId: string; price: CustomizationPriceV2 | null }>) => void;
+  onSelectionChange?: (selections: Map<string, { areaId: string; price: CustomizationPriceFlat | null }>) => void;
 }
 
 /** Group PrintAreaV2[] by component_name + location_name */
@@ -79,7 +79,7 @@ export function ProductCustomizationOptions({
 }: ProductCustomizationOptionsProps) {
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
   // Key: groupKey, Value: { areaId: area_id from product_print_areas, price }
-  const [selectedAreas, setSelectedAreas] = useState<Map<string, { areaId: string; price: CustomizationPriceV2 | null }>>(new Map());
+  const [selectedAreas, setSelectedAreas] = useState<Map<string, { areaId: string; price: CustomizationPriceFlat | null }>>(new Map());
 
   const { data: areas, isLoading } = useProductPrintAreasV2(productId);
 
@@ -92,7 +92,7 @@ export function ProductCustomizationOptions({
     setExpandedGroup(prev => prev === groupKey ? null : groupKey);
   }, []);
 
-  const handleSelectArea = useCallback((groupKey: string, areaId: string, priceData: CustomizationPriceV2 | null) => {
+  const handleSelectArea = useCallback((groupKey: string, areaId: string, priceData: CustomizationPriceFlat | null) => {
     setSelectedAreas(prev => {
       const next = new Map(prev);
       if (next.get(groupKey)?.areaId === areaId) {

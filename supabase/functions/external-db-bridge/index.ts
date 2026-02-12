@@ -490,14 +490,14 @@ serve(async (req) => {
       }
 
       // ============================================
-      // ENRIQUECIMENTO: fn_get_customization_price (v1 e v2)
-      // Adiciona largura_max, altura_max, max_cores da tabela de preços
+      // ENRIQUECIMENTO: fn_get_customization_price (legacy flat response only)
+      // A v5.9 retorna resposta nested completa — não precisa de enriquecimento
       // ============================================
       let enrichedData = rpcData;
+      const isLegacyFlatResponse = rpcData?.success && rpcData?.tabela_codigo && !rpcData?.tabela;
       const shouldEnrich = (
-        (rpcName === 'fn_get_customization_price_v2' || rpcName === 'fn_get_customization_price') 
-        && rpcData?.success 
-        && rpcData?.tabela_codigo
+        (rpcName === 'fn_get_customization_price') 
+        && isLegacyFlatResponse
       );
       if (shouldEnrich) {
         try {

@@ -285,40 +285,81 @@ export function useFaixasPrecoOficial(tabelaPrecoId: string | null) {
 }
 
 /**
- * Hook: Calcula preço de personalização (suporta v1 e v2)
+ * Hook: Calcula preço de personalização via fn_get_customization_price (v5.9)
+ * Usa p_area_id (de product_print_areas) para calcular preço completo.
  * 
- * FLUXO v2:
- * 1. Buscar variantes (category_area_techniques) - use useTecnicaVariants de useGravacaoPriceV2
- * 2. Calcular preço com variante (fn_get_customization_price_v2)
- * 
- * Mantém fallback para fn_get_customization_price (v1, sem variante)
- * 
- * NOTA: Para o fluxo v2 puro (simulador wizard), usar os hooks de useGravacaoPriceV2.ts
+ * Para o fluxo puro do simulador wizard, usar os hooks de useGravacaoPriceV2.ts
  */
 export function useCustomizationPriceLegacy() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**
-   * Calcular preço com variante (PREFERIDO - v2)
+   * Calcular preço por area_id (v5.9)
+   * Usa fn_get_customization_price com p_area_id
    */
-  const calculatePriceWithVariant = useCallback(async (
-    tecnicaVarianteId: string,
+  const calculatePriceByArea = useCallback(async (
+    areaId: string,
     quantidade: number,
-    numCores: number = 1
+    numCores: number = 1,
+    larguraCm?: number | null,
+    alturaCm?: number | null
   ): Promise<CustomizationPriceV2 | null> => {
     setLoading(true);
     setError(null);
 
     try {
-      const result = await invokeExternalRpc<CustomizationPriceV2>(
-        'fn_get_customization_price_v2',
+      const rawResult = await invokeExternalRpc<any>(
+        'fn_get_customization_price',
         {
-          p_tecnica_variante_id: tecnicaVarianteId,
+          p_area_id: areaId,
           p_quantidade: quantidade,
           p_num_cores: numCores,
+          p_largura_cm: larguraCm ?? null,
+          p_altura_cm: alturaCm ?? null,
         }
       );
+      
+      if (!rawResult?.success) {
+        setLoading(false);
+        return null;
+      }
+
+      // Map nested response to flat CustomizationPriceV2
+      const result: CustomizationPriceV2 = {
+        success: true,
+        area_id: rawResult.area?.id || areaId,
+        area_code: rawResult.area?.code || '',
+        area_name: rawResult.area?.name || '',
+        area_order: rawResult.faixa?.ordem || 0,
+        tabela_id: rawResult.tabela?.id || '',
+        tabela_codigo: rawResult.tabela?.codigo_tabela || '',
+        tabela_codigo_curto: rawResult.tabela?.codigo_tabela?.split('-')[0] || '',
+        technique: rawResult.tabela?.nome || '',
+        codigo_orcamento: rawResult.codigo_orcamento || '',
+        quantity: rawResult.parametros?.quantidade || quantidade,
+        num_cores: rawResult.parametros?.num_cores || numCores,
+        tier_used: rawResult.faixa?.ordem || 0,
+        tier_min_qty: rawResult.faixa?.quantidade_minima || 0,
+        tier_max_qty: rawResult.faixa?.quantidade_maxima || 0,
+        cost_base_unit: rawResult.custos?.custo_base_unitario || 0,
+        cost_unit_total: rawResult.custos?.custo_unitario_total || 0,
+        cost_setup: rawResult.custos?.custo_setup_base || 0,
+        cost_total: (rawResult.custos?.custo_unitario_total || 0) * quantidade,
+        markup_percent: rawResult.precos?.markup_percent || 0,
+        preco_minimo_unitario: 0,
+        unit_price: rawResult.precos?.preco_unitario_final || 0,
+        subtotal_pecas: rawResult.precos?.subtotal_pecas || 0,
+        faturamento_minimo_gravacao: rawResult.precos?.faturamento_minimo_gravacao || 0,
+        minimum_applied: rawResult.precos?.aplica_minimo || false,
+        total_price: rawResult.precos?.total_final || 0,
+        margin_percent: rawResult.precos?.markup_percent || 0,
+        price_by_color: rawResult.tabela?.cobra_por_cor || false,
+        setup_by_color: false,
+        production_days: rawResult.faixa?.prazo_dias ?? null,
+        largura_max_tecnica: rawResult.area?.max_width ?? null,
+        altura_max_tecnica: rawResult.area?.max_height ?? null,
+      };
       
       setLoading(false);
       return result;
@@ -330,39 +371,12 @@ export function useCustomizationPriceLegacy() {
     }
   }, []);
 
-  /**
-   * Calcular preço por variante (v2)
-   * NOTA: v1 (fn_get_customization_price com area_id) está quebrada — referencia ppa.technique_id inexistente
-   */
-  const calculatePrice = useCallback(async (
-    varianteId: string,
-    quantidade: number,
-    numCores: number = 1
-  ): Promise<CustomizationPriceV2 | null> => {
-    setLoading(true);
-    setError(null);
+  /** @deprecated Use calculatePriceByArea instead */
+  const calculatePrice = calculatePriceByArea;
+  /** @deprecated Use calculatePriceByArea instead */
+  const calculatePriceWithVariant = calculatePriceByArea;
 
-    try {
-      const result = await invokeExternalRpc<CustomizationPriceV2>(
-        'fn_get_customization_price_v2',
-        {
-          p_tecnica_variante_id: varianteId,
-          p_quantidade: quantidade,
-          p_num_cores: numCores,
-        }
-      );
-      
-      setLoading(false);
-      return result;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
-      setError(message);
-      setLoading(false);
-      return null;
-    }
-  }, []);
-
-  return { calculatePrice, calculatePriceWithVariant, loading, error };
+  return { calculatePrice, calculatePriceByArea, calculatePriceWithVariant, loading, error };
 }
 
 /**
