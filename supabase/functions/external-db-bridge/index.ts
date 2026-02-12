@@ -787,6 +787,12 @@ serve(async (req) => {
         
         if (selectError) {
           console.error('Select error:', selectError);
+          // PGRST205 = table not found in schema cache — return empty results gracefully
+          if ((selectError as any).code === 'PGRST205') {
+            console.warn(`Table '${table}' not found in external DB schema cache, returning empty results`);
+            result = { records: [], count: 0 };
+            break;
+          }
           return new Response(
             JSON.stringify({ error: selectError.message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
