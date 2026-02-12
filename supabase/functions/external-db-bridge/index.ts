@@ -83,20 +83,14 @@ const PRODUCT_TABLES = [
   'customization_price_tiers',
   // ============================================
   // TÉCNICAS DE GRAVAÇÃO - BD EXTERNO PROMOBRIND
-  // IMPORTANTE: Este é o ÚNICO banco de dados!
-  // Não existe BD local para técnicas.
+  // Tabelas REAIS que existem no banco externo
   // ============================================
-  'tecnica_gravacao',                      // Tabela principal de técnicas
-  'tecnica_gravacao_variante',             // Variações de cada técnica (SINGULAR!)
-  'tecnica_faixa_area',                    // Faixas de preço por área (legacy)
-  'tecnica_faixa_pontos',                  // Faixas de preço por pontos (bordado)
-  'tabela_preco_fornecedores_gravacao',    // Tabela de preços (fornecedores - legacy)
   // ============================================
   // SISTEMA DE PREÇOS v2 - ARQUITETURA OFICIAL
   // Implementado em 02/02/2026
   // ============================================
-  'tabela_preco_gravacao_oficial',         // 43 técnicas com configurações (NOVA!)
-  'tabela_preco_gravacao_oficial_faixa',   // 301 faixas de preço (NOVA!)
+  'tabela_preco_gravacao_oficial',         // 43 técnicas com configurações
+  'tabela_preco_gravacao_oficial_faixa',   // 301 faixas de preço
   'organization_markup_customization',     // 59 configurações de markup (v5.1)
   // ============================================
   // SISTEMA DE PREÇOS v2 - VARIANTES POR ÁREA
@@ -489,15 +483,6 @@ serve(async (req) => {
 
       if (rpcError) {
         console.error('RPC error:', rpcError);
-        // 42P01 = relation does not exist — return empty gracefully for print area RPCs
-        if ((rpcError as any).code === '42P01' && 
-            (rpcName === 'fn_get_product_print_areas' || rpcName === 'fn_get_product_print_areas_v2')) {
-          console.warn(`RPC ${rpcName} references missing table, returning empty array`);
-          return new Response(
-            JSON.stringify({ data: [], success: true }),
-            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
         return new Response(
           JSON.stringify({ error: rpcError.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -848,12 +833,6 @@ serve(async (req) => {
         
         if (selectError) {
           console.error('Select error:', selectError);
-          // PGRST205 = table not found in schema cache — return empty results gracefully
-          if ((selectError as any).code === 'PGRST205') {
-            console.warn(`Table '${table}' not found in external DB schema cache, returning empty results`);
-            result = { records: [], count: 0 };
-            break;
-          }
           return new Response(
             JSON.stringify({ error: selectError.message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
