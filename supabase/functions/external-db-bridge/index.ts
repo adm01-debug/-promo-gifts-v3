@@ -14,6 +14,7 @@ type Operation = 'select' | 'insert' | 'update' | 'delete' | 'rpc';
 const ALLOWED_RPCS = [
   'fn_get_product_print_areas',
   'fn_get_product_print_areas_v2',
+  'fn_get_product_customization_options',
   'fn_link_product_print_areas',
   'fn_backfill_product_print_areas',
   'fn_get_customization_price',
