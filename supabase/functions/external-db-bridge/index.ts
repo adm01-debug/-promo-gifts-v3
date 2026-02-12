@@ -489,6 +489,15 @@ serve(async (req) => {
 
       if (rpcError) {
         console.error('RPC error:', rpcError);
+        // 42P01 = relation does not exist — return empty gracefully for print area RPCs
+        if ((rpcError as any).code === '42P01' && 
+            (rpcName === 'fn_get_product_print_areas' || rpcName === 'fn_get_product_print_areas_v2')) {
+          console.warn(`RPC ${rpcName} references missing table, returning empty array`);
+          return new Response(
+            JSON.stringify({ data: [], success: true }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
         return new Response(
           JSON.stringify({ error: rpcError.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

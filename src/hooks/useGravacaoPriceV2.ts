@@ -1,48 +1,41 @@
 /**
- * useGravacaoPriceV2 - Fluxo SIMPLIFICADO de 2 passos para cálculo de preço de gravação
+ * useGravacaoPriceV2 - Fluxo para cálculo de preço de gravação
  * 
- * FLUXO v3 (simplificado):
- * PASSO 1: fn_get_product_print_areas_v2 → áreas + técnicas + VARIANTES (tudo em 1 call)
+ * PASSO 1: Busca áreas de gravação via product_print_areas + tabela_preco_gravacao_oficial
  * PASSO 2: fn_get_customization_price_v2 → cálculo de preço com variante
  * 
- * NÃO USAR (desatualizadas):
- * - fn_get_product_print_areas (v1 — não retorna variantes)
- * - fn_get_customization_price (v1 — usa area_id)
- * - Queries diretas em category_area_techniques
- * 
- * São apenas 2 chamadas. O frontend NÃO precisa consultar tabela intermediária.
+ * NOTA: RPCs fn_get_product_print_areas e v2 referenciam tabela legacy inexistente.
+ * Por isso usamos queries diretas nas tabelas reais.
  */
 
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalRpc } from '@/lib/external-rpc';
+import { invokeExternalDb } from '@/lib/external-db';
 
 // ============================================
-// TYPES - Retorno de fn_get_product_print_areas_v2
+// TYPES
 // ============================================
 
-/** Variante de uma técnica de gravação */
 export interface TechniqueVariant {
-  variante_id: string;     // ★ UUID para fn_get_customization_price_v2
-  nome: string;            // Nome completo (ex: "Fiber Laser | Plana")
-  codigo: string;          // Código (ex: "FIBER_LASER_PLANA")
-  max_colors: number;      // 0 = ilimitado, 1 = mono, >1 = até N cores
-  is_recommended: boolean; // Variante recomendada (⭐)
-  has_pricing: boolean;    // false = "preço sob consulta"
+  variante_id: string;
+  nome: string;
+  codigo: string;
+  max_colors: number;
+  is_recommended: boolean;
+  has_pricing: boolean;
   override_width: number | null;
   override_height: number | null;
   notes: string | null;
 }
 
-/** Técnica mestre com variantes */
 export interface PrintAreaTechnique {
-  id: string;        // ID mestre — NÃO usar para preço
-  nome: string;      // Nome da técnica mestre (ex: "Fiber Laser")
-  codigo: string;    // Código (ex: "LASER")
+  id: string;
+  nome: string;
+  codigo: string;
   variantes: TechniqueVariant[];
 }
 
-/** Área de gravação completa (retorno de fn_get_product_print_areas_v2) */
 export interface PrintAreaV2 {
   area_id: string;
   area_code: string;
@@ -61,185 +54,177 @@ export interface PrintAreaV2 {
   techniques: PrintAreaTechnique[];
 }
 
-// ============================================
-// TYPES - Retorno de fn_get_customization_price_v2
-// ============================================
-
-/**
- * Retorno completo da fn_get_customization_price_v2
- * 
- * REGRAS DE NEGÓCIO:
- * - Markup 115%: custo × 2.15 = preço de venda (já calculado pela função)
- * - Setup = faturamento mínimo (piso): NÃO é somado ao total
- *   Se subtotal < piso → cobra o piso. Senão → cobra o subtotal.
- */
 export interface CustomizationPriceV2Result {
   success: boolean;
-  technique: string;                     // Nome completo para exibir
+  technique: string;
   tabela_codigo: string;
   tabela_codigo_curto: string;
-  codigo_orcamento: string;              // Ref. para orçamento (ex: "SC01-1-02")
+  codigo_orcamento: string;
   quantity: number;
   num_cores: number;
-
-  // Custos base (sem markup)
   cost_base_unit: number;
   cost_unit_total: number;
   cost_setup: number;
   cost_total: number;
-
-  // Markup
-  markup_percent: number;                // Ex: 115.0
+  markup_percent: number;
   preco_minimo_unitario: number;
-
-  // Preços finais (com markup)
-  unit_price: number;                    // Preço unitário de gravação
-  subtotal_pecas: number;                // unit_price × quantidade
-  faturamento_minimo_gravacao: number;   // Piso mínimo
-  minimum_applied: boolean;              // true = cobrou o mínimo
-
-  total_price: number;                   // ★ VALOR FINAL DA GRAVAÇÃO
-
-  // Margem e faixa
+  unit_price: number;
+  subtotal_pecas: number;
+  faturamento_minimo_gravacao: number;
+  minimum_applied: boolean;
+  total_price: number;
   margin_percent: number;
   faixa_utilizada: number;
   prazo_dias: number;
 }
 
 // ============================================
-// PASSO 1: Buscar áreas + técnicas + variantes (1 call = tudo)
+// Interface RAW de product_print_areas
 // ============================================
 
-/**
- * Hook: Busca áreas de gravação de um produto com técnicas E variantes
- * Usa fn_get_product_print_areas_v2 — retorna TUDO em 1 chamada.
- * 
- * Substitui: fn_get_product_print_areas + category_area_techniques
- */
+interface ProductPrintAreaRaw {
+  id: string;
+  product_id: string;
+  area_code: string;
+  area_name: string;
+  component_name: string | null;
+  component_code: string | null;
+  location_name: string | null;
+  location_code: string | null;
+  max_width: number;
+  max_height: number;
+  unit: string;
+  shape: string;
+  is_curved: boolean;
+  is_primary: boolean;
+  display_order: number;
+  is_active: boolean;
+  allowed_technique_ids: string[] | null;
+  customization_price_table_id: string | null;
+}
+
+interface TecnicaOficialRaw {
+  id: string;
+  codigo: string;
+  codigo_curto: string;
+  nome: string;
+  grupo_tecnica: string;
+  nome_grupo: string;
+  max_cores: number;
+  ativo: boolean;
+}
+
+// ============================================
+// PASSO 1: Buscar áreas + técnicas via queries diretas
+// ============================================
+
+async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2[]> {
+  // 1. Buscar áreas do produto
+  const areasResult = await invokeExternalDb<ProductPrintAreaRaw>({
+    table: 'product_print_areas',
+    operation: 'select',
+    filters: { product_id: productId, is_active: true },
+    orderBy: { column: 'display_order', ascending: true },
+    limit: 50,
+  });
+
+  if (!areasResult.records.length) return [];
+
+  // 2. Buscar todas as técnicas ativas (já mapeadas pelo edge function)
+  const techniquesResult = await invokeExternalDb<TecnicaOficialRaw>({
+    table: 'tabela_preco_gravacao_oficial',
+    operation: 'select',
+    filters: { ativo: true },
+    orderBy: { column: 'nome', ascending: true },
+    limit: 100,
+  });
+
+  // Indexar técnicas por grupo_tecnica
+  const techByGroup = new Map<string, TecnicaOficialRaw[]>();
+  const techById = new Map<string, TecnicaOficialRaw>();
+  for (const t of techniquesResult.records) {
+    techById.set(t.id, t);
+    if (!techByGroup.has(t.grupo_tecnica)) {
+      techByGroup.set(t.grupo_tecnica, []);
+    }
+    techByGroup.get(t.grupo_tecnica)!.push(t);
+  }
+
+  // 3. Montar PrintAreaV2 para cada área
+  return areasResult.records.map(area => {
+    const techniques: PrintAreaTechnique[] = [];
+    const allowedGroups = area.allowed_technique_ids || [];
+
+    for (const groupCode of allowedGroups) {
+      const groupTechniques = techByGroup.get(groupCode);
+      if (!groupTechniques?.length) continue;
+
+      // Cada técnica do grupo é uma "variante" no contexto v2
+      const firstTech = groupTechniques[0];
+      techniques.push({
+        id: firstTech.id,
+        nome: firstTech.nome_grupo || firstTech.nome,
+        codigo: groupCode,
+        variantes: groupTechniques.map((t, idx) => ({
+          variante_id: t.id,
+          nome: t.nome,
+          codigo: t.codigo,
+          max_colors: t.max_cores,
+          is_recommended: idx === 0,
+          has_pricing: true,
+          override_width: null,
+          override_height: null,
+          notes: null,
+        })),
+      });
+    }
+
+    return {
+      area_id: area.id,
+      area_code: area.area_code,
+      area_name: area.area_name,
+      component_name: area.component_name,
+      component_code: area.component_code,
+      location_name: area.location_name,
+      location_code: area.location_code,
+      max_width: area.max_width,
+      max_height: area.max_height,
+      unit: area.unit || 'cm',
+      shape: area.shape || 'rectangle',
+      is_curved: area.is_curved ?? false,
+      is_primary: area.is_primary ?? false,
+      display_order: area.display_order ?? 0,
+      techniques,
+    };
+  });
+}
+
 export function useProductPrintAreasV2(productId: string | null) {
   return useQuery({
     queryKey: ['print-areas-v2', productId],
     queryFn: async (): Promise<PrintAreaV2[]> => {
       if (!productId) return [];
-
-      // Use v1 RPC (fn_get_product_print_areas) and map to PrintAreaV2 shape
-      // v2 RPC does not exist yet in the external database
-      const v1Result = await invokeExternalRpc<Array<{
-        area_id: string;
-        area_code: string;
-        area_name: string;
-        component_name?: string | null;
-        location_name?: string | null;
-        max_width: number;
-        max_height: number;
-        unit?: string;
-        shape?: string;
-        is_curved?: boolean;
-        is_primary?: boolean;
-        display_order?: number;
-        techniques?: Array<{ id: string; nome: string; codigo: string }>;
-      }>>(
-        'fn_get_product_print_areas',
-        { p_product_id: productId }
-      );
-
-      if (!Array.isArray(v1Result)) return [];
-
-      return v1Result.map(area => ({
-        area_id: area.area_id,
-        area_code: area.area_code,
-        area_name: area.area_name,
-        component_name: area.component_name || null,
-        component_code: null,
-        location_name: area.location_name || null,
-        location_code: null,
-        max_width: area.max_width,
-        max_height: area.max_height,
-        unit: area.unit || 'cm',
-        shape: area.shape || 'rectangle',
-        is_curved: area.is_curved ?? false,
-        is_primary: area.is_primary ?? false,
-        display_order: area.display_order ?? 0,
-        techniques: (area.techniques || []).map(t => ({
-          id: t.id,
-          nome: t.nome,
-          codigo: t.codigo,
-          variantes: [],
-        })),
-      }));
+      return buildPrintAreasFromTables(productId);
     },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
   });
 }
 
-/**
- * Função standalone para buscar áreas v2 (sem hook)
- * Útil para uso em Promise.all() no simulador
- */
-export async function fetchProductPrintAreasV2(
-  productId: string
-): Promise<PrintAreaV2[]> {
-  // Use v1 RPC directly — v2 does not exist in the external database
-  const v1Result = await invokeExternalRpc<Array<{
-    area_id: string;
-    area_code: string;
-    area_name: string;
-    component_name?: string | null;
-    location_name?: string | null;
-    max_width: number;
-    max_height: number;
-    unit?: string;
-    shape?: string;
-    is_curved?: boolean;
-    is_primary?: boolean;
-    display_order?: number;
-    techniques?: Array<{ id: string; nome: string; codigo: string }>;
-  }>>(
-    'fn_get_product_print_areas',
-    { p_product_id: productId }
-  );
-  if (!Array.isArray(v1Result)) return [];
-  return v1Result.map(area => ({
-    area_id: area.area_id,
-    area_code: area.area_code,
-    area_name: area.area_name,
-    component_name: area.component_name || null,
-    component_code: null,
-    location_name: area.location_name || null,
-    location_code: null,
-    max_width: area.max_width,
-    max_height: area.max_height,
-    unit: area.unit || 'cm',
-    shape: area.shape || 'rectangle',
-    is_curved: area.is_curved ?? false,
-    is_primary: area.is_primary ?? false,
-    display_order: area.display_order ?? 0,
-    techniques: (area.techniques || []).map(t => ({
-      id: t.id,
-      nome: t.nome,
-      codigo: t.codigo,
-      variantes: [],
-    })),
-  }));
+export async function fetchProductPrintAreasV2(productId: string): Promise<PrintAreaV2[]> {
+  return buildPrintAreasFromTables(productId);
 }
 
 // ============================================
-// PASSO 2: Calcular preço com fn_get_customization_price_v2
+// PASSO 2: Calcular preço
 // ============================================
 
 export interface CalculatePriceV2Params {
-  tecnicaVarianteId: string;    // UUID da VARIANTE (passo 1 → variantes[].variante_id)
+  tecnicaVarianteId: string;
   quantidade: number;
-  numCores: number;             // Padrão: 1
+  numCores: number;
 }
 
-/**
- * Hook: Calcula preço de gravação usando fn_get_customization_price_v2
- * 
- * ⚠️ USAR SEMPRE fn_get_customization_price_v2
- * O variante_id vem do passo 1 (fn_get_product_print_areas_v2)
- */
 export function useCustomizationPriceV2() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -273,9 +258,6 @@ export function useCustomizationPriceV2() {
   return { calculatePrice, loading, error };
 }
 
-/**
- * Hook reativo: Calcula preço automaticamente quando parâmetros mudam
- */
 export function useCustomizationPriceReactive(
   varianteId: string | null,
   quantidade: number,
@@ -318,10 +300,6 @@ export function useCustomizationPriceReactive(
   return { price, loading, error };
 }
 
-/**
- * Função standalone para calcular preço v2 (sem hook)
- * Útil para uso em Promise.all() no simulador
- */
 export async function calculateCustomizationPriceV2(
   params: CalculatePriceV2Params
 ): Promise<CustomizationPriceV2Result> {
@@ -339,12 +317,6 @@ export async function calculateCustomizationPriceV2(
 // HELPERS
 // ============================================
 
-/**
- * Regras de UX para cores:
- * - max_colors = 0 → técnica não cobra por cor (ex: UV Digital) → NÃO mostrar seletor
- * - max_colors = 1 → monocromática (ex: Laser) → NÃO mostrar seletor
- * - max_colors > 1 → mostrar seletor de 1 até max_colors cores
- */
 export function getColorSelectorConfig(maxColors: number) {
   if (maxColors === 0) {
     return { showSelector: false, maxValue: 0, label: 'Full Color (sem limite)' };
@@ -355,10 +327,6 @@ export function getColorSelectorConfig(maxColors: number) {
   return { showSelector: true, maxValue: maxColors, label: `Até ${maxColors} cores` };
 }
 
-/**
- * Flatten todas as variantes de todas as técnicas de uma área
- * para uso em comparação de preços
- */
 export function flattenVariantsFromArea(area: PrintAreaV2): Array<{
   techniqueId: string;
   techniqueName: string;
