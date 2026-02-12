@@ -72,55 +72,55 @@ export function usePrintAreas(productId: string | null) {
     queryFn: async (): Promise<PrintAreaWithTechniques[]> => {
       if (!productId) return [];
 
-      try {
-        // Tenta usar a RPC otimizada
-        const result = await invokeExternalRpc<PrintAreaWithTechniques[]>(
-          'fn_get_product_print_areas',
-          { p_product_id: productId }
-        );
-        return result;
-      } catch (rpcError) {
-        console.warn('RPC não disponível, usando fallback:', rpcError);
+      // Busca direta nas tabelas reais (RPC fn_get_product_print_areas referencia coluna inexistente)
+      const areas = await fetchProductPrintAreas(productId);
+      
+      if (!areas.length) return [];
+      
+      // Buscar todas as técnicas ativas
+      const { data: techData, error: techError } = await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'tabela_preco_gravacao_oficial',
+          operation: 'select',
+          filters: { ativo: true },
+          limit: 100,
+        },
+      });
+
+      if (techError) throw new Error(techError.message);
+      if (!techData?.success) throw new Error(techData?.error || 'Erro ao buscar técnicas');
+      
+      const allTechs = techData.data?.records || [];
+      const techById = new Map(allTechs.map((t: any) => [t.id, t]));
+      
+      // Montar resultado
+      return areas.map(area => {
+        const techniques: { id: string; nome: string; codigo: string }[] = [];
+        const allowedIds = (area as any).allowed_technique_ids || [];
         
-        // Fallback: busca manual
-        const areas = await fetchProductPrintAreas(productId);
-        
-        if (!areas.length) return [];
-        
-        // Coletar todos os IDs de técnicas únicos
-        const allTechIds = new Set<string>();
-        areas.forEach(area => {
-          if (area.allowed_technique_ids) {
-            area.allowed_technique_ids.forEach(id => allTechIds.add(id));
+        for (const tid of allowedIds) {
+          const tech = techById.get(tid);
+          if (tech) {
+            techniques.push({ id: tech.id, nome: tech.nome, codigo: tech.codigo });
           }
-        });
-        
-        // Buscar técnicas
-        const techniques = await fetchTechniquesByIds([...allTechIds]);
-        const techMap = new Map(techniques.map(t => [t.id, t]));
-        
-        // Montar resultado
-        return areas.map(area => ({
+        }
+
+        return {
           area_id: area.id,
           area_code: area.area_code || '',
           area_name: area.area_name || '',
-          component_name: area.component_name,
-          location_name: area.location_name,
+          component_name: (area as any).component_name,
+          location_name: (area as any).location_name,
           max_width: area.max_width || 0,
           max_height: area.max_height || 0,
-          unit: area.unit || 'cm',
+          unit: (area as any).unit || 'cm',
           shape: area.shape || 'rectangle',
           is_curved: area.is_curved,
           is_primary: area.is_primary,
           display_order: area.display_order,
-          techniques: (area.allowed_technique_ids || [])
-            .map(id => {
-              const tech = techMap.get(id);
-              return tech ? { id: tech.id, nome: tech.nome, codigo: tech.codigo } : null;
-            })
-            .filter((t): t is NonNullable<typeof t> => t !== null),
-        }));
-      }
+          techniques,
+        };
+      });
     },
     enabled: !!productId,
     staleTime: 60000, // 1 minuto

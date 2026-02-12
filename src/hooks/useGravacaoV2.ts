@@ -196,12 +196,45 @@ export function useProductPrintAreas(productId: string | null) {
     queryFn: async (): Promise<PrintAreaWithTechniques[]> => {
       if (!productId) return [];
 
-      const result = await invokeExternalRpc<PrintAreaWithTechniques[]>(
-        'fn_get_product_print_areas',
-        { p_product_id: productId }
-      );
-      
-      return result || [];
+      // Query direta nas tabelas reais (RPC referencia coluna inexistente ppa.technique_id)
+      const areasResult = await invokeExternalDb<any>({
+        table: 'product_print_areas',
+        operation: 'select',
+        filters: { product_id: productId, is_active: true },
+        orderBy: { column: 'display_order', ascending: true },
+        limit: 50,
+      });
+
+      if (!areasResult.records?.length) return [];
+
+      const techResult = await invokeExternalDb<any>({
+        table: 'tabela_preco_gravacao_oficial',
+        operation: 'select',
+        filters: { ativo: true },
+        limit: 100,
+      });
+
+      const techById = new Map((techResult.records || []).map((t: any) => [t.id, t]));
+
+      return areasResult.records.map((area: any) => {
+        const techniques: { id: string; nome: string; codigo: string }[] = [];
+        for (const tid of (area.allowed_technique_ids || [])) {
+          const tech = techById.get(tid);
+          if (tech) techniques.push({ id: tech.id, nome: tech.nome, codigo: tech.codigo });
+        }
+        return {
+          area_id: area.id,
+          area_code: area.area_code || '',
+          area_name: area.area_name || '',
+          max_width: area.max_width || 0,
+          max_height: area.max_height || 0,
+          shape: area.shape || 'rectangle',
+          is_curved: area.is_curved ?? false,
+          is_primary: area.is_primary ?? false,
+          display_order: area.display_order ?? 0,
+          techniques,
+        };
+      });
     },
     enabled: !!productId,
     staleTime: 60 * 1000,
