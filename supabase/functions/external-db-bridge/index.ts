@@ -219,12 +219,21 @@ function getResourceGroup(tableName: string): ResourceGroup | null {
 // ============================================
 
 /**
- * Compat: várias partes do app antigo ainda chamam a tabela
- * `personalization_techniques`, mas no BD externo a fonte de verdade é
- * `tecnica_gravacao`.
+ * Compat: várias partes do app chamam `personalization_techniques` ou
+ * `tecnica_gravacao`, mas no BD externo a tabela real é
+ * `tabela_preco_gravacao_oficial`.
  */
-function isPersonalizationTechniquesAlias(table: string) {
-  return table === 'personalization_techniques';
+function isTechniqueTableAlias(table: string) {
+  return table === 'personalization_techniques' || table === 'tecnica_gravacao';
+}
+
+/**
+ * Compat: `tecnica_gravacao_variante` não existe mais.
+ * Variantes são linhas na mesma tabela `tabela_preco_gravacao_oficial`
+ * agrupadas por `grupo_tecnica`.
+ */
+function isTechniqueVarianteAlias(table: string) {
+  return table === 'tecnica_gravacao_variante';
 }
 
 /**
@@ -356,12 +365,18 @@ function mapTechniqueFiltersToExternal(filters: Record<string, unknown> | undefi
 }
 
 function mapTechniqueOrderByToExternal(orderBy: { column: string; ascending?: boolean } | undefined) {
-  if (!orderBy) return undefined;
+  if (!orderBy) return { column: 'nome', ascending: true };
   const columnMap: Record<string, string> = {
     name: 'nome',
+    nome: 'nome',
     code: 'codigo',
+    codigo: 'codigo',
     is_active: 'ativo',
+    ativo: 'ativo',
     estimated_days: 'tempo_producao_dias',
+    tempo_producao_dias: 'tempo_producao_dias',
+    ordem_exibicao: 'ordem_grupo',
+    display_order: 'ordem_grupo',
   };
   return {
     ...orderBy,
@@ -370,36 +385,58 @@ function mapTechniqueOrderByToExternal(orderBy: { column: string; ascending?: bo
 }
 
 function mapTechniqueRowToLegacyShape(row: Record<string, unknown>) {
+  // Mapear tabela_preco_gravacao_oficial → shape legacy (tecnica_gravacao / personalization_techniques)
   const codigo = (row.codigo as string | undefined) ?? null;
   const nome = (row.nome as string | undefined) ?? '';
   const descricao = (row.descricao as string | undefined) ?? null;
   const ativo = (row.ativo as boolean | undefined) ?? true;
   const tempo = (row.tempo_producao_dias as number | undefined) ?? null;
-  const maxCoresRaw = row.max_cores as unknown;
-  const maxCores =
-    typeof maxCoresRaw === 'number'
-      ? maxCoresRaw
-      : typeof maxCoresRaw === 'string'
-        ? Number(maxCoresRaw)
-        : null;
+  const maxCores = typeof row.max_cores === 'number' ? row.max_cores : null;
+  const cobraPorCor = (row.cobra_por_cor as boolean | undefined) ?? false;
+  const custoSetup = typeof row.custo_setup === 'number' ? row.custo_setup : 0;
 
-  // Retornar com campos legacy esperados em várias telas
   return {
     ...row,
+    // Campos legacy esperados pelo frontend (tecnica_gravacao shape)
+    codigo: codigo,
+    codigo_interno: (row.codigo_curto as string | undefined) ?? codigo,
+    nome: nome,
+    slug: (row.slug_grupo as string | undefined) ?? '',
+    descricao: descricao,
+    permite_cores: maxCores != null && maxCores > 0,
+    max_cores: maxCores,
+    cobra_por_cor: cobraPorCor,
+    cobra_por_area: false,
+    cobra_por_pontos: false,
+    requer_setup: custoSetup > 0,
+    tipo_setup: custoSetup > 0 ? 'arte_digital' : 'nenhum',
+    tempo_producao_dias: tempo,
+    ordem_exibicao: (row.ordem_grupo as number | undefined) ?? 0,
+    ativo: ativo,
+    // Campos legacy (personalization_techniques shape)
     code: codigo,
     name: nome,
     description: descricao,
     is_active: ativo,
     estimated_days: tempo,
-    requires_color_count: (row.permite_cores as boolean | undefined) ?? null,
-    max_colors: Number.isFinite(maxCores as number) ? (maxCores as number) : null,
-    display_order: (row.ordem_exibicao as number | undefined) ?? null,
-    // Campos que existiam em alguns schemas antigos
-    setup_price: null,
-    handling_price: null,
-    setup_cost: null,
+    requires_color_count: maxCores != null && maxCores > 0,
+    max_colors: maxCores,
+    display_order: (row.ordem_grupo as number | undefined) ?? 0,
+    price_by_color: cobraPorCor,
+    price_by_area: false,
+    setup_cost: custoSetup,
     unit_cost: null,
     min_quantity: null,
+    setup_price: custoSetup,
+    handling_price: (row.custo_manuseio as number | undefined) ?? 0,
+    // Campos extras da tabela real
+    grupo_tecnica: row.grupo_tecnica,
+    nome_grupo: row.nome_grupo,
+    slug_grupo: row.slug_grupo,
+    ordem_grupo: row.ordem_grupo,
+    custo_setup: custoSetup,
+    custo_aplicacao: row.custo_aplicacao,
+    cobra_aplicacao: row.cobra_aplicacao,
   };
 }
 
@@ -551,15 +588,30 @@ serve(async (req) => {
     // ============================================
 
     // Compatibilidade: alias de tabela antiga -> tabela real no BD externo
-    const usingTechniqueAlias = isPersonalizationTechniquesAlias(table);
+    const usingTechniqueAlias = isTechniqueTableAlias(table);
+    const usingVarianteAlias = isTechniqueVarianteAlias(table);
     const usingPriceTableAlias = isCustomizationPriceTablesAlias(table);
     
     if (usingTechniqueAlias) {
-      table = 'tecnica_gravacao';
+      table = 'tabela_preco_gravacao_oficial';
       (body as any).table = table;
       (body as any).filters = mapTechniqueFiltersToExternal((body as any).filters);
       (body as any).orderBy = mapTechniqueOrderByToExternal((body as any).orderBy);
-      // select legacy pode referenciar colunas que não existem; força '*'
+      (body as any).select = '*';
+    }
+
+    if (usingVarianteAlias) {
+      // Variantes agora são linhas na mesma tabela agrupadas por grupo_tecnica.
+      // Para queries com tecnica_gravacao_id, precisamos buscar pelo grupo.
+      table = 'tabela_preco_gravacao_oficial';
+      (body as any).table = table;
+      const varFilters = (body as any).filters as Record<string, unknown> | undefined;
+      if (varFilters?.tecnica_gravacao_id) {
+        // Guardar o ID pai para buscar grupo depois
+        (body as any)._parentTechniqueId = varFilters.tecnica_gravacao_id;
+        delete varFilters.tecnica_gravacao_id;
+      }
+      (body as any).filters = varFilters;
       (body as any).select = '*';
     }
     
@@ -799,10 +851,33 @@ serve(async (req) => {
           );
         }
         
-        // Compat: mapear resposta para shape antigo quando chamarem personalization_techniques
-        if (usingTechniqueAlias && Array.isArray(selectData)) {
-          const mapped = selectData.map((r: any) => mapTechniqueRowToLegacyShape(r));
-          result = { records: mapped, count };
+        // Compat: mapear resposta para shape antigo
+        if ((usingTechniqueAlias || usingVarianteAlias) && Array.isArray(selectData)) {
+          let mappedData = selectData;
+
+          // Para variantes: filtrar por grupo do pai
+          if (usingVarianteAlias && (body as any)._parentTechniqueId) {
+            const parentId = (body as any)._parentTechniqueId;
+            const parent = selectData.find((r: any) => r.id === parentId);
+            if (parent) {
+              // Retornar técnicas do mesmo grupo (excluindo o pai)
+              mappedData = selectData.filter(
+                (r: any) => r.grupo_tecnica === parent.grupo_tecnica && r.id !== parentId
+              );
+            } else {
+              mappedData = [];
+            }
+          }
+
+          const mapped = mappedData.map((r: any) => {
+            const legacy = mapTechniqueRowToLegacyShape(r);
+            // Para variantes, adicionar campo tecnica_gravacao_id
+            if (usingVarianteAlias && (body as any)._parentTechniqueId) {
+              legacy.tecnica_gravacao_id = (body as any)._parentTechniqueId;
+            }
+            return legacy;
+          });
+          result = { records: mapped, count: mapped.length };
         } else if (usingPriceTableAlias && Array.isArray(selectData)) {
           const mapped = selectData.map((r: any) => mapPriceTableRowToLegacyShape(r));
           result = { records: mapped, count };

@@ -94,6 +94,7 @@ export function useTecnicasGravacao() {
   return useQuery({
     queryKey: ['tecnicas-gravacao'],
     queryFn: async (): Promise<TecnicaGravacao[]> => {
+      // tecnica_gravacao é mapeado para tabela_preco_gravacao_oficial no edge function
       const { data, error } = await supabase.functions.invoke('external-db-bridge', {
         body: {
           table: 'tecnica_gravacao',
@@ -108,7 +109,7 @@ export function useTecnicasGravacao() {
       
       return data.data?.records || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
   });
 }
 
