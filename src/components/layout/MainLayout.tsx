@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Header } from "./Header";
+import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { SidebarReorganized } from "./SidebarReorganized";
 import { PageTransition } from "@/components/effects";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
@@ -21,6 +22,9 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Prevent Radix modals from permanently locking page scroll
+  useScrollLockFix();
 
   return (
     <GlobalCommandBar>
