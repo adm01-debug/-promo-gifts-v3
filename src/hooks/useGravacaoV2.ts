@@ -196,16 +196,11 @@ export function useProductPrintAreas(productId: string | null) {
     queryFn: async (): Promise<PrintAreaWithTechniques[]> => {
       if (!productId) return [];
 
-      // Query direta nas tabelas reais (RPC referencia coluna inexistente ppa.technique_id)
-      const areasResult = await invokeExternalDb<any>({
-        table: 'product_print_areas',
-        operation: 'select',
-        filters: { product_id: productId, is_active: true },
-        orderBy: { column: 'display_order', ascending: true },
-        limit: 50,
-      });
-
-      if (!areasResult.records?.length) return [];
+      // Buscar áreas do campo JSONB products.personalization_areas
+      // (tabela product_print_areas NÃO existe no BD externo)
+      const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
+      const areas = await fetchPrintAreasFromProduct(productId);
+      if (!areas.length) return [];
 
       const techResult = await invokeExternalDb<any>({
         table: 'tabela_preco_gravacao_oficial',
@@ -216,7 +211,7 @@ export function useProductPrintAreas(productId: string | null) {
 
       const techById = new Map((techResult.records || []).map((t: any) => [t.id, t]));
 
-      return areasResult.records.map((area: any) => {
+      return areas.map((area) => {
         const techniques: { id: string; nome: string; codigo: string }[] = [];
         for (const tid of (area.allowed_technique_ids || [])) {
           const tech = techById.get(tid);

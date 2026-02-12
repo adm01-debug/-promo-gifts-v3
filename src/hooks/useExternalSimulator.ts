@@ -246,14 +246,10 @@ export function useExternalPrintAreas(productId: string | null) {
     queryFn: async () => {
       if (!productId) return [];
       
-      const result = await invokeExternalDb<ExternalPrintArea>('product_print_areas', 'select', {
-        filters: { 
-          product_id: productId,
-          is_active: true,
-        },
-        orderBy: { column: 'display_order', ascending: true },
-        limit: 100,
-      });
+      // Buscar áreas do campo JSONB products.personalization_areas
+      const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
+      const fetchedAreas = await fetchPrintAreasFromProduct(productId);
+      const result = { records: fetchedAreas as unknown as ExternalPrintArea[] };
 
       // Agrupar por componente > local > técnica
       const grouped: Record<string, GroupedPrintArea> = {};

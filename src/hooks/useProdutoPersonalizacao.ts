@@ -124,16 +124,9 @@ export function useProdutoPersonalizacao(productId: string | null): ProdutoPerso
     queryFn: async (): Promise<ProductTechnique[]> => {
       if (!productId) return [];
 
-      const result = await invokeExternalDb<ExternalPrintArea>({
-        table: 'product_print_areas',
-        operation: 'select',
-        filters: {
-          product_id: productId,
-          is_active: true,
-        },
-        orderBy: { column: 'display_order', ascending: true },
-        limit: 100,
-      });
+      const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
+      const fetchedAreas = await fetchPrintAreasFromProduct(productId);
+      const result = { records: fetchedAreas as unknown as ExternalPrintArea[] };
 
       return result.records.map(transformPrintAreaToTechnique);
     },
@@ -298,16 +291,9 @@ export function useProdutoTecnicas(productId: string | null) {
     queryFn: async (): Promise<ProductTechnique[]> => {
       if (!productId) return [];
 
-      const result = await invokeExternalDb<ExternalPrintArea>({
-        table: 'product_print_areas',
-        operation: 'select',
-        filters: {
-          product_id: productId,
-          is_active: true,
-        },
-        orderBy: { column: 'display_order', ascending: true },
-        limit: 100,
-      });
+      const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
+      const fetchedAreas = await fetchPrintAreasFromProduct(productId);
+      const result = { records: fetchedAreas as unknown as ExternalPrintArea[] };
 
       return result.records.map(transformPrintAreaToTechnique);
     },

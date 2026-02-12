@@ -978,16 +978,10 @@ export interface PromobrindPriceTable {
 export async function fetchPromobrindPrintAreas(
   productId: string
 ): Promise<PromobrindPrintArea[]> {
-  // Busca direta nas tabelas reais (RPC fn_get_product_print_areas referencia coluna inexistente ppa.technique_id)
-  const areasResult = await invokeExternalDb<any>({
-    table: 'product_print_areas',
-    operation: 'select',
-    filters: { product_id: productId, is_active: true },
-    orderBy: { column: 'display_order', ascending: true },
-    limit: 100,
-  });
-
-  const areas = areasResult.records || [];
+  // Buscar áreas do campo JSONB products.personalization_areas
+  // (tabela product_print_areas NÃO existe no BD externo)
+  const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
+  const areas = await fetchPrintAreasFromProduct(productId);
   if (!areas.length) return [];
 
   // Buscar técnicas ativas

@@ -75,19 +75,13 @@ export function useProductPrintAreas(productId: string | null) {
     queryFn: async (): Promise<PrintAreaWithTechniques[]> => {
       if (!productId) return [];
 
-      // Query product_print_areas + tabela_preco_gravacao_oficial directly
-      // (RPC fn_get_product_print_areas references non-existent tecnica_gravacao)
+      // Buscar áreas do campo JSONB products.personalization_areas
+      // (tabela product_print_areas NÃO existe no BD externo)
+      const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
       const { invokeExternalDb } = await import('@/lib/external-db');
       
-      const areasResult = await invokeExternalDb<any>({
-        table: 'product_print_areas',
-        operation: 'select',
-        filters: { product_id: productId, is_active: true },
-        orderBy: { column: 'display_order', ascending: true },
-        limit: 50,
-      });
-
-      if (!areasResult.records.length) return [];
+      const areas = await fetchPrintAreasFromProduct(productId);
+      if (!areas.length) return [];
 
       const techniquesResult = await invokeExternalDb<any>({
         table: 'tabela_preco_gravacao_oficial',
@@ -102,7 +96,7 @@ export function useProductPrintAreas(productId: string | null) {
         techByGroup.get(t.grupo_tecnica)!.push(t);
       }
 
-      return areasResult.records.map((area: any) => {
+      return areas.map((area) => {
         const techniques: { id: string; nome: string; codigo: string }[] = [];
         const allowedGroups = area.allowed_technique_ids || [];
         
