@@ -130,53 +130,57 @@ async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2
 
   if (!areasResult.records.length) return [];
 
-  // 2. Buscar todas as técnicas ativas (já mapeadas pelo edge function)
-  const techniquesResult = await invokeExternalDb<TecnicaOficialRaw>({
-    table: 'tabela_preco_gravacao_oficial',
-    operation: 'select',
-    filters: { ativo: true },
-    orderBy: { column: 'nome', ascending: true },
-    limit: 100,
-  });
-
-  // Indexar técnicas por grupo_tecnica
-  const techByGroup = new Map<string, TecnicaOficialRaw[]>();
-  const techById = new Map<string, TecnicaOficialRaw>();
-  for (const t of techniquesResult.records) {
-    techById.set(t.id, t);
-    if (!techByGroup.has(t.grupo_tecnica)) {
-      techByGroup.set(t.grupo_tecnica, []);
+  // 2. Coletar todos os customization_price_table_id únicos das áreas
+  const priceTableIds = new Set<string>();
+  for (const area of areasResult.records) {
+    if (area.customization_price_table_id) {
+      priceTableIds.add(area.customization_price_table_id);
     }
-    techByGroup.get(t.grupo_tecnica)!.push(t);
   }
 
-  // 3. Montar PrintAreaV2 para cada área
+  // 3. Buscar técnicas ativas e filtrar apenas as referenciadas por este produto
+  const techById = new Map<string, TecnicaOficialRaw>();
+  if (priceTableIds.size > 0) {
+    const techResults = await invokeExternalDb<TecnicaOficialRaw>({
+      table: 'tabela_preco_gravacao_oficial',
+      operation: 'select',
+      filters: { ativo: true },
+      orderBy: { column: 'nome', ascending: true },
+      limit: 100,
+    });
+    // Filtrar client-side apenas as técnicas usadas por este produto
+    for (const t of techResults.records) {
+      if (priceTableIds.has(t.id)) {
+        techById.set(t.id, t);
+      }
+    }
+  }
+
+  // 4. Montar PrintAreaV2 para cada área usando customization_price_table_id
   return areasResult.records.map(area => {
     const techniques: PrintAreaTechnique[] = [];
-    const allowedGroups = area.allowed_technique_ids || [];
+    const priceTableId = area.customization_price_table_id;
 
-    for (const groupCode of allowedGroups) {
-      const groupTechniques = techByGroup.get(groupCode);
-      if (!groupTechniques?.length) continue;
-
-      // Cada técnica do grupo é uma "variante" no contexto v2
-      const firstTech = groupTechniques[0];
-      techniques.push({
-        id: firstTech.id,
-        nome: firstTech.nome_grupo || firstTech.nome,
-        codigo: groupCode,
-        variantes: groupTechniques.map((t, idx) => ({
-          variante_id: t.id,
-          nome: t.nome,
-          codigo: t.codigo,
-          max_colors: t.max_cores,
-          is_recommended: idx === 0,
-          has_pricing: true,
-          override_width: null,
-          override_height: null,
-          notes: null,
-        })),
-      });
+    if (priceTableId) {
+      const tech = techById.get(priceTableId);
+      if (tech) {
+        techniques.push({
+          id: tech.id,
+          nome: tech.nome,
+          codigo: tech.codigo,
+          variantes: [{
+            variante_id: tech.id,
+            nome: tech.nome,
+            codigo: tech.codigo,
+            max_colors: tech.max_cores,
+            is_recommended: true,
+            has_pricing: true,
+            override_width: null,
+            override_height: null,
+            notes: null,
+          }],
+        });
+      }
     }
 
     return {
