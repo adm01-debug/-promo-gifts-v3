@@ -36,7 +36,7 @@ export function ScrollProgressIndicator({
   return (
     <motion.div
       className={cn(
-        "fixed left-0 right-0 z-50 origin-left",
+        "fixed left-0 right-0 z-50 origin-left pointer-events-none",
         position === "top" ? "top-0" : "bottom-0",
         colorClasses[color],
         className

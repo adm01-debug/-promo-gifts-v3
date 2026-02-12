@@ -24,9 +24,11 @@
   }
 }
 
-/* Smooth scrolling */
+/* Smooth scrolling - ensure html is never scroll-locked */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  overflow-y: auto !important;
 }
 
 /* Better focus for accessibility */
