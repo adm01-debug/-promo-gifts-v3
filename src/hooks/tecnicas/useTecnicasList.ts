@@ -3,8 +3,8 @@
  * 
  * ============================================
  * IMPORTANTE: USA SOMENTE O BD EXTERNO PROMOBRIND!
- * Tabelas: tecnica_gravacao, tecnica_gravacao_variante
- * NÃO existe BD local para técnicas.
+ * Tabela real: tabela_preco_gravacao_oficial
+ * O bridge mapeia 'tecnica_gravacao' → tabela real
  * ============================================
  */
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -17,32 +17,59 @@ import type {
   TecnicaFiltros,
 } from '@/types/tecnica-unificada';
 
-// Tipo do BD externo: tecnica_gravacao
-interface TecnicaGravacaoExterno {
+/**
+ * Shape retornado pelo bridge após mapTechniqueRowToLegacyShape
+ * Combina campos legacy + campos reais da tabela_preco_gravacao_oficial
+ */
+interface TecnicaBridgeResponse {
   id: string;
+  // Campos legacy (mapeados pelo bridge)
   codigo: string;
   codigo_interno?: string;
   nome: string;
   slug?: string;
-  descricao?: string;
+  descricao?: string | null;
   permite_cores: boolean;
-  max_cores?: string;
+  max_cores?: number | string | null;
   cobra_por_cor: boolean;
   cobra_por_area: boolean;
   cobra_por_pontos: boolean;
   requer_setup: boolean;
   tipo_setup?: string;
-  tempo_producao_dias?: number;
+  tempo_producao_dias?: number | null;
   ordem_exibicao?: number;
   ativo: boolean;
   created_at?: string;
   updated_at?: string;
+  // Campos extras da tabela real
+  grupo_tecnica?: string;
+  nome_grupo?: string;
+  slug_grupo?: string;
+  ordem_grupo?: number;
+  custo_setup?: number;
+  custo_aplicacao?: number;
+  cobra_aplicacao?: boolean;
+  // Campos legacy (personalization_techniques shape)
+  setup_price?: number;
+  handling_price?: number;
+  setup_cost?: number;
+  min_quantity?: number | null;
+  estimated_days?: number | null;
+  display_order?: number;
+  // Campos da tabela real
+  area_maxima_texto?: string;
+  is_curved?: boolean;
+  aplica_superficie_curva?: boolean;
 }
 
 /**
- * Transforma dados do BD EXTERNO (tecnica_gravacao) para TecnicaUnificada
+ * Transforma resposta do bridge para TecnicaUnificada
  */
-function externalToTecnicaUnificada(row: TecnicaGravacaoExterno): TecnicaUnificada {
+function bridgeToTecnicaUnificada(row: TecnicaBridgeResponse): TecnicaUnificada {
+  const maxCores = typeof row.max_cores === 'string' 
+    ? parseInt(row.max_cores, 10) 
+    : (row.max_cores ?? 0);
+
   return {
     id: row.id,
     codigo: row.codigo || '',
@@ -50,11 +77,11 @@ function externalToTecnicaUnificada(row: TecnicaGravacaoExterno): TecnicaUnifica
     codigoStricker: null,
     nome: row.nome,
     descricao: row.descricao || null,
-    categoria: 'geral',
+    categoria: row.nome_grupo || row.grupo_tecnica || 'geral',
     icone: null,
-    permiteCores: row.permite_cores ?? true,
+    permiteCores: row.permite_cores ?? (maxCores > 0),
     minCores: 1,
-    maxCores: parseInt(row.max_cores || '12', 10),
+    maxCores: maxCores || 0,
     precoPorCor: row.cobra_por_cor ?? false,
     precoCorExtra: 0,
     precoPorArea: row.cobra_por_area ?? false,
@@ -62,15 +89,15 @@ function externalToTecnicaUnificada(row: TecnicaGravacaoExterno): TecnicaUnifica
     areaMinimaCm2: null,
     areaMaximaCm2: null,
     pontosMaximos: null,
-    custoSetup: 0, // Vem das variantes
-    custoManuseio: 0,
+    custoSetup: row.custo_setup ?? row.setup_price ?? 0,
+    custoManuseio: row.handling_price ?? 0,
     multiplicadorCusto: 1,
-    quantidadeMinima: null,
-    prazoEstimado: row.tempo_producao_dias || null,
-    aplicaSuperficieCurva: false,
+    quantidadeMinima: row.min_quantity ?? null,
+    prazoEstimado: row.tempo_producao_dias ?? row.estimated_days ?? null,
+    aplicaSuperficieCurva: row.is_curved ?? row.aplica_superficie_curva ?? false,
     promptSuffix: null,
     ativo: row.ativo ?? true,
-    ordemExibicao: row.ordem_exibicao || 0,
+    ordemExibicao: row.ordem_exibicao ?? row.ordem_grupo ?? row.display_order ?? 0,
     fonte: 'externo',
     criadoEm: row.created_at || '',
     atualizadoEm: row.updated_at || '',
@@ -80,13 +107,13 @@ function externalToTecnicaUnificada(row: TecnicaGravacaoExterno): TecnicaUnifica
 /**
  * Busca técnicas do BD EXTERNO via edge function
  */
-async function fetchTecnicasExterno(): Promise<TecnicaGravacaoExterno[]> {
+async function fetchTecnicasExterno(): Promise<TecnicaBridgeResponse[]> {
   const { data, error } = await supabase.functions.invoke('external-db-bridge', {
     body: {
       table: 'tecnica_gravacao',
       operation: 'select',
       orderBy: { column: 'ordem_exibicao', ascending: true },
-      limit: 100,
+      limit: 200,
     },
   });
 
@@ -103,9 +130,6 @@ async function fetchTecnicasExterno(): Promise<TecnicaGravacaoExterno[]> {
 }
 
 /**
- * Lista completa de técnicas com filtros
- */
-/**
  * Lista completa de técnicas do BD EXTERNO com filtros
  */
 export function useTecnicasList(filtros?: TecnicaFiltros) {
@@ -113,7 +137,7 @@ export function useTecnicasList(filtros?: TecnicaFiltros) {
     queryKey: [...TECNICAS_QUERY_KEYS.lista(), filtros],
     queryFn: async (): Promise<TecnicaUnificada[]> => {
       const rawData = await fetchTecnicasExterno();
-      let tecnicas = rawData.map(externalToTecnicaUnificada);
+      let tecnicas = rawData.map(bridgeToTecnicaUnificada);
 
       // Aplicar filtros
       if (filtros) {
@@ -152,9 +176,6 @@ export function useTecnicasList(filtros?: TecnicaFiltros) {
 }
 
 /**
- * Lista resumida para dropdowns
- */
-/**
  * Lista resumida de técnicas do BD EXTERNO para dropdowns
  */
 export function useTecnicasResumo(apenasAtivas = true) {
@@ -168,25 +189,28 @@ export function useTecnicasResumo(apenasAtivas = true) {
         tecnicas = tecnicas.filter(t => t.ativo);
       }
 
-      return tecnicas.map(t => ({
-        id: t.id,
-        codigo: t.codigo || '',
-        nome: t.nome,
-        categoria: 'geral',
-        permiteCores: t.permite_cores ?? true,
-        maxCores: parseInt(t.max_cores || '12', 10),
-        precoPorCor: t.cobra_por_cor ?? false,
-        precoPorArea: t.cobra_por_area ?? false,
-        ativo: t.ativo ?? true,
-      }));
+      return tecnicas.map(t => {
+        const maxCores = typeof t.max_cores === 'string' 
+          ? parseInt(t.max_cores, 10) 
+          : (t.max_cores ?? 0);
+
+        return {
+          id: t.id,
+          codigo: t.codigo || '',
+          nome: t.nome,
+          categoria: t.nome_grupo || t.grupo_tecnica || 'geral',
+          permiteCores: t.permite_cores ?? (maxCores > 0),
+          maxCores: maxCores,
+          precoPorCor: t.cobra_por_cor ?? false,
+          precoPorArea: t.cobra_por_area ?? false,
+          ativo: t.ativo ?? true,
+        };
+      });
     },
     ...TECNICAS_QUERY_OPTIONS,
   });
 }
 
-/**
- * Técnica por ID
- */
 /**
  * Técnica por ID do BD EXTERNO
  */
@@ -200,27 +224,21 @@ export function useTecnicaById(id: string | undefined) {
         body: {
           table: 'tecnica_gravacao',
           operation: 'select',
-          id,
+          filters: { id },
           limit: 1,
         },
       });
 
-      if (error) {
-        console.error('Erro ao buscar técnica por ID:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       const records = data?.data?.records || [];
-      return records.length > 0 ? externalToTecnicaUnificada(records[0]) : null;
+      return records.length > 0 ? bridgeToTecnicaUnificada(records[0]) : null;
     },
     enabled: !!id,
     ...TECNICAS_QUERY_OPTIONS,
   });
 }
 
-/**
- * Técnica por código
- */
 /**
  * Técnica por código do BD EXTERNO
  */
@@ -239,13 +257,10 @@ export function useTecnicaByCodigo(codigo: string | undefined) {
         },
       });
 
-      if (error) {
-        console.error('Erro ao buscar técnica por código:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       const records = data?.data?.records || [];
-      return records.length > 0 ? externalToTecnicaUnificada(records[0]) : null;
+      return records.length > 0 ? bridgeToTecnicaUnificada(records[0]) : null;
     },
     enabled: !!codigo,
     ...TECNICAS_QUERY_OPTIONS,
@@ -253,12 +268,12 @@ export function useTecnicaByCodigo(codigo: string | undefined) {
 }
 
 /**
- * Lista de categorias únicas
+ * Lista de categorias únicas (baseado em grupo_tecnica/nome_grupo)
  */
 export function useCategoriasTecnicas() {
   const { data: tecnicas = [] } = useTecnicasList({ apenasAtivas: true });
   
-  const categorias = [...new Set(tecnicas.map(t => t.categoria))].sort();
+  const categorias = [...new Set(tecnicas.map(t => t.categoria))].filter(c => c !== 'geral').sort();
   
   return categorias;
 }
