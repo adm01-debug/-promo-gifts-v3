@@ -259,6 +259,17 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
 
       {priceData && !loading && (
         <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
+          {/* Redirect notice */}
+          {priceData.redirected_from && priceData.redirected_to && (
+            <div className="flex items-center gap-1.5 text-xs text-amber-600 bg-amber-500/10 p-2 rounded-md border border-amber-500/20">
+              <AlertCircle className="h-3 w-3 flex-shrink-0" />
+              <span>
+                Redirecionado automaticamente: as dimensões excedem o limite da técnica original. 
+                Usando <strong>{priceData.technique}</strong> (compatível com o formato do produto).
+              </span>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">
