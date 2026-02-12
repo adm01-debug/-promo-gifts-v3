@@ -1,11 +1,13 @@
 /**
  * useGravacaoPriceV2 - Fluxo para cálculo de preço de gravação
  * 
- * PASSO 1: Busca áreas de gravação via product_print_areas + tabela_preco_gravacao_oficial
- * PASSO 2: fn_get_customization_price_v2 → cálculo de preço com variante
+ * ARQUITETURA DEFINITIVA (v5.9):
+ * - product_print_areas: áreas de gravação por produto
+ * - tabela_preco_gravacao_oficial: 50 tabelas de preço (16 grupos)
+ * - fn_get_customization_price: RPC única que calcula preço via p_area_id
  * 
- * NOTA: RPCs fn_get_product_print_areas e v2 referenciam tabela legacy inexistente.
- * Por isso usamos queries diretas nas tabelas reais.
+ * NÃO usa mais fn_get_customization_price_v2 (eliminada).
+ * NÃO usa mais conceito de variantes (tecnica_variante_id eliminado).
  */
 
 import { useState, useCallback, useEffect } from 'react';
@@ -14,27 +16,153 @@ import { invokeExternalRpc } from '@/lib/external-rpc';
 import { invokeExternalDb } from '@/lib/external-db';
 
 // ============================================
-// TYPES
+// TYPES - Nova resposta RPC v5.9
 // ============================================
 
-export interface TechniqueVariant {
-  variante_id: string;
-  nome: string;
-  codigo: string;
-  max_colors: number;
-  is_recommended: boolean;
-  has_pricing: boolean;
-  override_width: number | null;
-  override_height: number | null;
-  notes: string | null;
+/** Resposta completa da fn_get_customization_price (v5.9) */
+export interface CustomizationPriceResponse {
+  success: boolean;
+  codigo_orcamento: string;
+
+  // Redirecionamento 360° (opcional)
+  redirected_from?: string;
+  redirected_to?: string;
+  original_area_id?: string;
+
+  area: {
+    id: string;
+    code: string;
+    name: string;
+    is_curved: boolean;
+    max_width: number;
+    max_height: number;
+    max_colors: number | null;
+  };
+
+  tabela: {
+    id: string;
+    codigo_tabela: string;
+    nome: string;
+    grupo_tecnica: string;
+    cobra_por_cor: boolean;
+    max_cores: number;
+  };
+
+  faixa: {
+    ordem: number;
+    quantidade_minima: number;
+    quantidade_maxima: number;
+    preco_unitario_tabela: number;
+    prazo_dias: number;
+    largura_min: number | null;
+    largura_max: number | null;
+    altura_min: number | null;
+    altura_max: number | null;
+  };
+
+  parametros: {
+    quantidade: number;
+    num_cores: number;
+    largura_cm: number | null;
+    altura_cm: number | null;
+  };
+
+  custos: {
+    custo_base_unitario: number;
+    custo_primeira_cor: number;
+    custo_cores_adicionais: number;
+    custo_unitario_total: number;
+    custo_setup_base: number;
+    custo_manuseio: number;
+    custo_aplicacao: number;
+    custo_termo_transferencia: number;
+    custo_queima_forno: number;
+  };
+
+  precos: {
+    markup_percent: number;
+    preco_unitario_final: number;
+    subtotal_pecas: number;
+    faturamento_minimo_gravacao: number;
+    aplica_minimo: boolean;
+    total_final: number;
+  };
 }
 
-export interface PrintAreaTechnique {
-  id: string;
-  nome: string;
-  codigo: string;
-  variantes: TechniqueVariant[];
+/** Interface flat compatível com o UI existente (mapeada da resposta nested) */
+export interface CustomizationPriceFlat {
+  success: boolean;
+  area_id: string;
+  area_code: string;
+  area_name: string;
+  tabela_id: string;
+  tabela_codigo: string;
+  tabela_codigo_curto: string;
+  technique: string;
+  grupo_tecnica: string;
+  codigo_orcamento: string;
+  quantity: number;
+  num_cores: number;
+  unit_price: number;
+  subtotal_pecas: number;
+  faturamento_minimo_gravacao: number;
+  minimum_applied: boolean;
+  total_price: number;
+  cost_base_unit: number;
+  cost_unit_total: number;
+  cost_setup: number;
+  markup_percent: number;
+  margin_percent: number;
+  price_by_color: boolean;
+  max_cores: number;
+  production_days: number | null;
+  tier_used: number;
+  tier_min_qty: number;
+  tier_max_qty: number;
+  // Redirect info
+  redirected_from?: string;
+  redirected_to?: string;
 }
+
+/** Map nested RPC response to flat interface for UI compatibility */
+export function mapPriceResponseToFlat(resp: CustomizationPriceResponse): CustomizationPriceFlat {
+  return {
+    success: resp.success,
+    area_id: resp.area.id,
+    area_code: resp.area.code,
+    area_name: resp.area.name,
+    tabela_id: resp.tabela.id,
+    tabela_codigo: resp.tabela.codigo_tabela,
+    tabela_codigo_curto: resp.tabela.codigo_tabela.split('-')[0] || resp.tabela.codigo_tabela,
+    technique: resp.tabela.nome,
+    grupo_tecnica: resp.tabela.grupo_tecnica,
+    codigo_orcamento: resp.codigo_orcamento,
+    quantity: resp.parametros.quantidade,
+    num_cores: resp.parametros.num_cores,
+    unit_price: resp.precos.preco_unitario_final,
+    subtotal_pecas: resp.precos.subtotal_pecas,
+    faturamento_minimo_gravacao: resp.precos.faturamento_minimo_gravacao,
+    minimum_applied: resp.precos.aplica_minimo,
+    total_price: resp.precos.total_final,
+    cost_base_unit: resp.custos.custo_base_unitario,
+    cost_unit_total: resp.custos.custo_unitario_total,
+    cost_setup: resp.custos.custo_setup_base,
+    markup_percent: resp.precos.markup_percent,
+    margin_percent: resp.precos.markup_percent, // Usamos markup como proxy
+    price_by_color: resp.tabela.cobra_por_cor,
+    max_cores: resp.tabela.max_cores,
+    production_days: resp.faixa.prazo_dias,
+    tier_used: resp.faixa.ordem,
+    tier_min_qty: resp.faixa.quantidade_minima,
+    tier_max_qty: resp.faixa.quantidade_maxima,
+    redirected_from: resp.redirected_from,
+    redirected_to: resp.redirected_to,
+  };
+}
+
+// ============================================
+// TYPES - Áreas de gravação
+// ============================================
 
 export interface PrintAreaV2 {
   area_id: string;
@@ -51,31 +179,15 @@ export interface PrintAreaV2 {
   is_curved: boolean;
   is_primary: boolean;
   display_order: number;
-  techniques: PrintAreaTechnique[];
-}
-
-export interface CustomizationPriceV2Result {
-  success: boolean;
-  technique: string;
-  tabela_codigo: string;
-  tabela_codigo_curto: string;
-  codigo_orcamento: string;
-  quantity: number;
-  num_cores: number;
-  cost_base_unit: number;
-  cost_unit_total: number;
-  cost_setup: number;
-  cost_total: number;
-  markup_percent: number;
-  preco_minimo_unitario: number;
-  unit_price: number;
-  subtotal_pecas: number;
-  faturamento_minimo_gravacao: number;
-  minimum_applied: boolean;
-  total_price: number;
-  margin_percent: number;
-  faixa_utilizada: number;
-  prazo_dias: number;
+  max_colors: number | null;
+  customization_price_table_id: string | null;
+  allowed_technique_ids: string[] | null;
+  /** Nome da técnica/tabela vinculada */
+  technique_name: string | null;
+  /** Grupo da técnica (LASER, SERIGRAFIA, etc.) */
+  grupo_tecnica: string | null;
+  /** Se a tabela cobra por cor */
+  cobra_por_cor: boolean;
 }
 
 // ============================================
@@ -99,17 +211,18 @@ interface ProductPrintAreaRaw {
   is_primary: boolean;
   display_order: number;
   is_active: boolean;
+  max_colors: number | null;
   allowed_technique_ids: string[] | null;
   customization_price_table_id: string | null;
 }
 
-interface TecnicaOficialRaw {
+interface TabelaOficialRaw {
   id: string;
-  codigo: string;
+  codigo_tabela: string;
   codigo_curto: string;
   nome: string;
   grupo_tecnica: string;
-  nome_grupo: string;
+  cobra_por_cor: boolean;
   max_cores: number;
   ativo: boolean;
 }
@@ -130,7 +243,7 @@ async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2
 
   if (!areasResult.records.length) return [];
 
-  // 2. Coletar todos os customization_price_table_id únicos das áreas
+  // 2. Coletar IDs das tabelas de preço usadas
   const priceTableIds = new Set<string>();
   for (const area of areasResult.records) {
     if (area.customization_price_table_id) {
@@ -138,17 +251,16 @@ async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2
     }
   }
 
-  // 3. Buscar técnicas ativas e filtrar apenas as referenciadas por este produto
-  const techById = new Map<string, TecnicaOficialRaw>();
+  // 3. Buscar tabelas de preço referenciadas
+  const techById = new Map<string, TabelaOficialRaw>();
   if (priceTableIds.size > 0) {
-    const techResults = await invokeExternalDb<TecnicaOficialRaw>({
+    const techResults = await invokeExternalDb<TabelaOficialRaw>({
       table: 'tabela_preco_gravacao_oficial',
       operation: 'select',
       filters: { ativo: true },
       orderBy: { column: 'nome', ascending: true },
       limit: 100,
     });
-    // Filtrar client-side apenas as técnicas usadas por este produto
     for (const t of techResults.records) {
       if (priceTableIds.has(t.id)) {
         techById.set(t.id, t);
@@ -156,32 +268,11 @@ async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2
     }
   }
 
-  // 4. Montar PrintAreaV2 para cada área usando customization_price_table_id
+  // 4. Montar PrintAreaV2 para cada área
   return areasResult.records.map(area => {
-    const techniques: PrintAreaTechnique[] = [];
-    const priceTableId = area.customization_price_table_id;
-
-    if (priceTableId) {
-      const tech = techById.get(priceTableId);
-      if (tech) {
-        techniques.push({
-          id: tech.id,
-          nome: tech.nome,
-          codigo: tech.codigo,
-          variantes: [{
-            variante_id: tech.id,
-            nome: tech.nome,
-            codigo: tech.codigo,
-            max_colors: tech.max_cores,
-            is_recommended: true,
-            has_pricing: true,
-            override_width: null,
-            override_height: null,
-            notes: null,
-          }],
-        });
-      }
-    }
+    const tech = area.customization_price_table_id
+      ? techById.get(area.customization_price_table_id)
+      : undefined;
 
     return {
       area_id: area.id,
@@ -198,7 +289,12 @@ async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2
       is_curved: area.is_curved ?? false,
       is_primary: area.is_primary ?? false,
       display_order: area.display_order ?? 0,
-      techniques,
+      max_colors: area.max_colors ?? tech?.max_cores ?? null,
+      customization_price_table_id: area.customization_price_table_id,
+      allowed_technique_ids: area.allowed_technique_ids,
+      technique_name: tech?.nome ?? null,
+      grupo_tecnica: tech?.grupo_tecnica ?? null,
+      cobra_por_cor: tech?.cobra_por_cor ?? false,
     };
   });
 }
@@ -220,13 +316,15 @@ export async function fetchProductPrintAreasV2(productId: string): Promise<Print
 }
 
 // ============================================
-// PASSO 2: Calcular preço
+// PASSO 2: Calcular preço via fn_get_customization_price
 // ============================================
 
-export interface CalculatePriceV2Params {
-  tecnicaVarianteId: string;
+export interface CalculatePriceParams {
+  areaId: string;
   quantidade: number;
-  numCores: number;
+  numCores?: number;
+  larguraCm?: number | null;
+  alturaCm?: number | null;
 }
 
 export function useCustomizationPriceV2() {
@@ -234,23 +332,26 @@ export function useCustomizationPriceV2() {
   const [error, setError] = useState<string | null>(null);
 
   const calculatePrice = useCallback(async (
-    params: CalculatePriceV2Params
-  ): Promise<CustomizationPriceV2Result | null> => {
+    params: CalculatePriceParams
+  ): Promise<CustomizationPriceFlat | null> => {
     setLoading(true);
     setError(null);
 
     try {
-      const result = await invokeExternalRpc<CustomizationPriceV2Result>(
-        'fn_get_customization_price_v2',
+      const result = await invokeExternalRpc<CustomizationPriceResponse>(
+        'fn_get_customization_price',
         {
-          p_tecnica_variante_id: params.tecnicaVarianteId,
+          p_area_id: params.areaId,
           p_quantidade: params.quantidade,
-          p_num_cores: params.numCores,
+          p_num_cores: params.numCores ?? 1,
+          p_largura_cm: params.larguraCm ?? null,
+          p_altura_cm: params.alturaCm ?? null,
         }
       );
       
       setLoading(false);
-      return result;
+      if (!result?.success) return null;
+      return mapPriceResponseToFlat(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
       setError(message);
@@ -263,16 +364,16 @@ export function useCustomizationPriceV2() {
 }
 
 export function useCustomizationPriceReactive(
-  varianteId: string | null,
+  areaId: string | null,
   quantidade: number,
   numCores: number = 1
 ) {
-  const [price, setPrice] = useState<CustomizationPriceV2Result | null>(null);
+  const [price, setPrice] = useState<CustomizationPriceFlat | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!varianteId || quantidade <= 0) {
+    if (!areaId || quantidade <= 0) {
       setPrice(null);
       return;
     }
@@ -280,41 +381,44 @@ export function useCustomizationPriceReactive(
     setLoading(true);
     setError(null);
 
-    invokeExternalRpc<CustomizationPriceV2Result>(
-      'fn_get_customization_price_v2',
+    invokeExternalRpc<CustomizationPriceResponse>(
+      'fn_get_customization_price',
       {
-        p_tecnica_variante_id: varianteId,
+        p_area_id: areaId,
         p_quantidade: quantidade,
         p_num_cores: numCores,
       }
     )
       .then((data) => {
-        if (data && !data.success) {
-          setError('Erro no cálculo');
+        if (data && data.success) {
+          setPrice(mapPriceResponseToFlat(data));
         } else {
-          setPrice(data);
+          setError('Erro no cálculo');
         }
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Erro ao calcular preço');
       })
       .finally(() => setLoading(false));
-  }, [varianteId, quantidade, numCores]);
+  }, [areaId, quantidade, numCores]);
 
   return { price, loading, error };
 }
 
-export async function calculateCustomizationPriceV2(
-  params: CalculatePriceV2Params
-): Promise<CustomizationPriceV2Result> {
-  return invokeExternalRpc<CustomizationPriceV2Result>(
-    'fn_get_customization_price_v2',
+export async function calculateCustomizationPrice(
+  params: CalculatePriceParams
+): Promise<CustomizationPriceFlat> {
+  const result = await invokeExternalRpc<CustomizationPriceResponse>(
+    'fn_get_customization_price',
     {
-      p_tecnica_variante_id: params.tecnicaVarianteId,
+      p_area_id: params.areaId,
       p_quantidade: params.quantidade,
-      p_num_cores: params.numCores,
+      p_num_cores: params.numCores ?? 1,
+      p_largura_cm: params.larguraCm ?? null,
+      p_altura_cm: params.alturaCm ?? null,
     }
   );
+  return mapPriceResponseToFlat(result);
 }
 
 // ============================================
@@ -329,31 +433,4 @@ export function getColorSelectorConfig(maxColors: number) {
     return { showSelector: false, maxValue: 1, label: '1 cor (fixa)' };
   }
   return { showSelector: true, maxValue: maxColors, label: `Até ${maxColors} cores` };
-}
-
-export function flattenVariantsFromArea(area: PrintAreaV2): Array<{
-  techniqueId: string;
-  techniqueName: string;
-  techniqueCode: string;
-  variant: TechniqueVariant;
-}> {
-  const results: Array<{
-    techniqueId: string;
-    techniqueName: string;
-    techniqueCode: string;
-    variant: TechniqueVariant;
-  }> = [];
-
-  for (const tech of area.techniques) {
-    for (const variant of tech.variantes) {
-      results.push({
-        techniqueId: tech.id,
-        techniqueName: tech.nome,
-        techniqueCode: tech.codigo,
-        variant,
-      });
-    }
-  }
-
-  return results;
 }

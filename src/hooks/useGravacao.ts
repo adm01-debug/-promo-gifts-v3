@@ -169,7 +169,7 @@ export function useCustomizationPrice() {
   const [error, setError] = useState<string | null>(null);
 
   const calculatePrice = useCallback(async (
-    varianteId: string,
+    areaId: string,
     quantidade: number,
     numCores: number = 1
   ): Promise<CustomizationPrice | null> => {
@@ -177,14 +177,36 @@ export function useCustomizationPrice() {
     setError(null);
 
     try {
-      const result = await invokeExternalRpc<CustomizationPrice>(
-        'fn_get_customization_price_v2',
+      const rawResult = await invokeExternalRpc<any>(
+        'fn_get_customization_price',
         {
-          p_tecnica_variante_id: varianteId,
+          p_area_id: areaId,
           p_quantidade: quantidade,
           p_num_cores: numCores,
         }
       );
+      
+      if (!rawResult?.success) {
+        setLoading(false);
+        return null;
+      }
+
+      // Map nested response to flat CustomizationPrice
+      const result: CustomizationPrice = {
+        area_id: rawResult.area?.id || areaId,
+        area_code: rawResult.area?.code || '',
+        area_name: rawResult.area?.name || '',
+        table_code: rawResult.tabela?.codigo_tabela || '',
+        technique: rawResult.tabela?.nome || '',
+        quantity: rawResult.parametros?.quantidade || quantidade,
+        num_cores: rawResult.parametros?.num_cores || numCores,
+        tier_used: rawResult.faixa?.ordem || 0,
+        unit_price: rawResult.precos?.preco_unitario_final || 0,
+        setup_price: rawResult.precos?.faturamento_minimo_gravacao || 0,
+        total_price: rawResult.precos?.total_final || 0,
+        price_by_color: rawResult.tabela?.cobra_por_cor || false,
+        max_colors: rawResult.tabela?.max_cores ?? null,
+      };
       
       setLoading(false);
       return result;
