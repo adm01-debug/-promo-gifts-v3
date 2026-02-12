@@ -65,6 +65,19 @@ export function groupPrintAreasToLocations(areas: PrintAreaV2[]): EngravingLocat
           }
         }
 
+        // Resolve variantId from first technique's first variant
+        let variantId: string | undefined;
+        let variantName: string | undefined;
+        let variantCode: string | undefined;
+        if (area.techniques.length > 0) {
+          const firstVariant = area.techniques[0].variantes?.[0];
+          if (firstVariant) {
+            variantId = firstVariant.variante_id;
+            variantName = firstVariant.nome;
+            variantCode = firstVariant.codigo;
+          }
+        }
+
         return {
           id: area.area_id,
           printAreaId: area.area_id,
@@ -74,7 +87,10 @@ export function groupPrintAreasToLocations(areas: PrintAreaV2[]): EngravingLocat
           maxColors,
           isDefault: area.is_primary,
           isCurved: area.is_curved,
-          hasPricing: true, // v1 funciona para todas as áreas
+          hasPricing: !!variantId, // Only has pricing if we have a variantId for v2
+          variantId,
+          variantName,
+          variantCode,
           // Dimensões específicas desta área/técnica
           areaMaxWidth: area.max_width,
           areaMaxHeight: area.max_height,

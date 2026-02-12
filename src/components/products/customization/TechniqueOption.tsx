@@ -142,16 +142,9 @@ export function TechniqueOption({
             r.unit_price = r.preco_minimo_unitario;
           }
         }
-      } else if (areaId) {
-        // v1 fallback with area_id
-        result = await invokeExternalRpc<CustomizationPriceV2>(
-          'fn_get_customization_price',
-          {
-            p_area_id: areaId,
-            p_quantidade: quantity,
-            p_num_cores: colors,
-          }
-        );
+      } else {
+        // No variant available — cannot calculate price
+        // (v1 fn_get_customization_price is broken: references non-existent ppa.technique_id)
       }
 
       setPriceData(result?.success !== false ? result : null);
