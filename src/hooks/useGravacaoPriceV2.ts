@@ -232,16 +232,14 @@ interface TabelaOficialRaw {
 // ============================================
 
 async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2[]> {
-  // 1. Buscar áreas do produto
-  const areasResult = await invokeExternalDb<ProductPrintAreaRaw>({
-    table: 'product_print_areas',
-    operation: 'select',
-    filters: { product_id: productId, is_active: true },
-    orderBy: { column: 'display_order', ascending: true },
-    limit: 50,
-  });
-
-  if (!areasResult.records.length) return [];
+  // 1. Buscar áreas do produto (campo JSONB products.personalization_areas)
+  const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
+  const fetchedAreas = await fetchPrintAreasFromProduct(productId);
+  
+  if (!fetchedAreas.length) return [];
+  
+  // Cast para interface esperada
+  const areasResult = { records: fetchedAreas as unknown as ProductPrintAreaRaw[] };
 
   // 2. Coletar IDs das tabelas de preço usadas
   const priceTableIds = new Set<string>();
