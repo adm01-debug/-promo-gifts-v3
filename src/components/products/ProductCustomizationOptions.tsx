@@ -1,75 +1,26 @@
 /**
- * ProductCustomizationOptions — Opções de personalização agrupadas por local físico
+ * ProductCustomizationOptions — Seletor de personalização v6
  * 
- * Cada local exibe as áreas de gravação como opções de técnica.
- * Ex: "Corpo — Lado A" mostra: Laser, UV Digital, Serigrafia.
+ * Usa fn_get_product_customization_options para obter locais e técnicas.
+ * Fluxo: Local (tabs) → Técnica (cards) → Dimensões/Cores → Preço.
  * 
- * Seleção: 1 técnica por local, múltiplos locais simultâneos.
- * Pricing: fn_get_customization_price (v1) com area_id.
+ * Briefing v6 (12/02/2026).
  */
 
-import { useState, useMemo, useCallback } from "react";
-import { Paintbrush } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+import { Paintbrush, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProductPrintAreasV2 } from "@/hooks/useGravacaoPriceV2";
-import { LocationCard, type LocationGroupData } from "./customization/LocationCard";
-import type { PrintAreaV2 } from "@/hooks/useGravacaoPriceV2";
-import type { CustomizationPriceFlat } from "@/hooks/useGravacaoPriceV2";
+import { cn } from "@/lib/utils";
+import { useProductCustomizationOptions } from "@/hooks/useProductCustomizationOptions";
+import { LocationPanel } from "./customization/LocationPanel";
+import type { CustomizationPriceResponseV6, PersonalizationItem } from "@/types/customization";
 
 interface ProductCustomizationOptionsProps {
   productId: string;
   productSku?: string;
   quantity?: number;
-  onSelectionChange?: (selections: Map<string, { areaId: string; price: CustomizationPriceFlat | null }>) => void;
-}
-
-/** Group PrintAreaV2[] by component_name + location_name */
-function groupAreasToLocations(areas: PrintAreaV2[]): LocationGroupData[] {
-  if (!areas.length) return [];
-
-  const groups = new Map<string, {
-    componentName: string;
-    locationName: string;
-    locationCode: string;
-    isPrimary: boolean;
-    areas: PrintAreaV2[];
-    displayOrder: number;
-  }>();
-
-  for (const area of areas) {
-    const componentName = area.component_name || 'Principal';
-    const locationName = area.location_name || area.area_name.split(' — ')[0] || area.area_name;
-    const key = `${componentName}|${locationName}`;
-
-    if (!groups.has(key)) {
-      groups.set(key, {
-        componentName,
-        locationName,
-        locationCode: area.location_code || area.area_code,
-        isPrimary: area.is_primary,
-        areas: [],
-        displayOrder: area.display_order,
-      });
-    }
-    const group = groups.get(key)!;
-    group.areas.push(area);
-    group.displayOrder = Math.min(group.displayOrder, area.display_order);
-    if (area.is_primary) group.isPrimary = true;
-  }
-
-  return [...groups.entries()]
-    .sort((a, b) => a[1].displayOrder - b[1].displayOrder)
-    .map(([key, group]) => ({
-      groupKey: key,
-      componentName: group.componentName,
-      locationName: group.locationName,
-      locationCode: group.locationCode,
-      isPrimary: group.isPrimary,
-      maxWidth: Math.max(...group.areas.map(a => a.max_width)),
-      maxHeight: Math.max(...group.areas.map(a => a.max_height)),
-      areas: group.areas.sort((a, b) => a.display_order - b.display_order),
-    }));
+  onSelectionChange?: (personalizations: PersonalizationItem[]) => void;
 }
 
 export function ProductCustomizationOptions({
@@ -77,33 +28,47 @@ export function ProductCustomizationOptions({
   quantity = 100,
   onSelectionChange,
 }: ProductCustomizationOptionsProps) {
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
-  // Key: groupKey, Value: { areaId: area_id from product_print_areas, price }
-  const [selectedAreas, setSelectedAreas] = useState<Map<string, { areaId: string; price: CustomizationPriceFlat | null }>>(new Map());
+  const { data: options, isLoading } = useProductCustomizationOptions(productId);
+  const [activeLocation, setActiveLocation] = useState<string | null>(null);
 
-  const { data: areas, isLoading } = useProductPrintAreasV2(productId);
+  // Track prices per location
+  const pricesRef = useRef<Map<string, PersonalizationItem>>(new Map());
 
-  const groupedLocations = useMemo(() => {
-    if (!areas?.length) return [];
-    return groupAreasToLocations(areas);
-  }, [areas]);
+  const handlePriceCalculated = useCallback((
+    locationCode: string,
+    techniqueId: string,
+    price: CustomizationPriceResponseV6 | null
+  ) => {
+    const location = options?.locations.find(l => l.location_code === locationCode);
+    const technique = location?.options.find(t => t.technique_id === techniqueId);
 
-  const handleToggle = useCallback((groupKey: string) => {
-    setExpandedGroup(prev => prev === groupKey ? null : groupKey);
-  }, []);
+    if (price && technique) {
+      pricesRef.current.set(locationCode, {
+        locationCode,
+        locationName: location?.location_name || locationCode,
+        techniqueId,
+        techniqueName: technique.tecnica_nome,
+        codigoTabela: technique.codigo_tabela,
+        grupoTecnica: technique.grupo_tecnica,
+        width: technique.usa_dimensao ? undefined : undefined, // will come from config panel
+        height: undefined,
+        numberOfColors: price.num_cores,
+        usaDimensao: technique.usa_dimensao,
+        price,
+      });
+    } else {
+      pricesRef.current.delete(locationCode);
+    }
 
-  const handleSelectArea = useCallback((groupKey: string, areaId: string, priceData: CustomizationPriceFlat | null) => {
-    setSelectedAreas(prev => {
-      const next = new Map(prev);
-      if (next.get(groupKey)?.areaId === areaId) {
-        next.delete(groupKey); // Toggle off
-      } else {
-        next.set(groupKey, { areaId, price: priceData });
-      }
-      onSelectionChange?.(next);
-      return next;
-    });
-  }, [onSelectionChange]);
+    // Notify parent
+    const items = Array.from(pricesRef.current.values());
+    onSelectionChange?.(items);
+  }, [options, onSelectionChange]);
+
+  // Set first location as active when data loads
+  if (options?.locations?.length && !activeLocation) {
+    setActiveLocation(options.locations[0].location_code);
+  }
 
   if (isLoading) {
     return (
@@ -112,20 +77,25 @@ export function ProductCustomizationOptions({
           <Skeleton className="h-5 w-5 rounded" />
           <Skeleton className="h-6 w-48" />
         </div>
-        <Skeleton className="h-16 w-full rounded-xl" />
-        <Skeleton className="h-16 w-full rounded-xl" />
-        <Skeleton className="h-16 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-xl" />
       </div>
     );
   }
 
-  if (!groupedLocations.length) return null;
+  if (!options?.locations?.length) {
+    return (
+      <div className="text-center py-4 text-muted-foreground text-sm">
+        Este produto não possui opções de personalização configuradas.
+      </div>
+    );
+  }
 
-  const totalLocations = groupedLocations.length;
-  const totalTechniques = groupedLocations.reduce((sum, g) => sum + g.areas.length, 0);
-  const totalSelected = selectedAreas.size;
-  const totalPrice = [...selectedAreas.values()]
-    .reduce((sum, sel) => sum + (sel.price?.unit_price ?? 0), 0);
+  const locations = options.locations;
+  const currentLocation = locations.find(l => l.location_code === activeLocation);
+  const totalSelected = pricesRef.current.size;
+  const totalPrice = Array.from(pricesRef.current.values())
+    .reduce((sum, p) => sum + (p.price?.total_cobrado ?? 0), 0);
 
   return (
     <div className="space-y-4">
@@ -136,49 +106,64 @@ export function ProductCustomizationOptions({
             <Paintbrush className="h-4 w-4 text-primary" />
           </div>
           <h3 className="font-display text-lg font-semibold text-foreground">
-            Onde deseja personalizar?
+            Personalização
           </h3>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
-            {totalLocations} loca{totalLocations !== 1 ? "is" : "l"}
-          </Badge>
-          <Badge variant="outline" className="text-xs">
-            {totalTechniques} técnica{totalTechniques !== 1 ? "s" : ""}
-          </Badge>
-        </div>
+        <Badge variant="secondary" className="text-xs">
+          {locations.length} loca{locations.length !== 1 ? "is" : "l"}
+        </Badge>
       </div>
 
-      {/* Location Cards */}
-      <div className="space-y-2">
-        {groupedLocations.map((group) => (
-          <LocationCard
-            key={group.groupKey}
-            group={group}
-            isExpanded={expandedGroup === group.groupKey}
-            selectedAreaId={selectedAreas.get(group.groupKey)?.areaId ?? null}
-            quantity={quantity}
-            onToggle={() => handleToggle(group.groupKey)}
-            onSelectArea={(areaId, priceData) =>
-              handleSelectArea(group.groupKey, areaId, priceData)
-            }
-          />
-        ))}
+      {/* Location tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {locations.map((loc) => {
+          const isActive = activeLocation === loc.location_code;
+          const hasPrice = pricesRef.current.has(loc.location_code);
+          return (
+            <button
+              key={loc.location_code}
+              onClick={() => setActiveLocation(loc.location_code)}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all border",
+                isActive
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : hasPrice
+                    ? "bg-primary/10 text-primary border-primary/30"
+                    : "bg-secondary text-secondary-foreground border-border hover:bg-secondary/80"
+              )}
+            >
+              {loc.location_name}
+              {hasPrice && !isActive && (
+                <span className="ml-1.5 text-xs">✓</span>
+              )}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Current location panel */}
+      {currentLocation && (
+        <LocationPanel
+          key={currentLocation.location_code}
+          location={currentLocation}
+          quantity={quantity}
+          onPriceCalculated={handlePriceCalculated}
+        />
+      )}
 
       {/* Summary */}
       {totalSelected > 0 ? (
         <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm">
           <span className="text-foreground font-medium">
-            {totalSelected} loca{totalSelected !== 1 ? "is" : "l"} selecionado{totalSelected !== 1 ? "s" : ""}
+            {totalSelected} loca{totalSelected !== 1 ? "is" : "l"} personalizado{totalSelected !== 1 ? "s" : ""}
           </span>
           <span className="text-primary font-semibold">
-            + R$ {totalPrice.toFixed(2)}/un em gravação
+            Total gravação: R$ {totalPrice.toFixed(2)}
           </span>
         </div>
       ) : (
         <div className="flex items-center justify-center p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
-          Selecione um local e uma técnica para ver o preço de gravação
+          Selecione uma técnica para ver o preço de gravação
         </div>
       )}
     </div>

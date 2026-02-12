@@ -1,0 +1,89 @@
+/**
+ * TechniqueCard — Card de técnica de gravação
+ * 
+ * Mostra nome, grupo, dimensões efetivas, setup e info de cores.
+ * Baseado no briefing v6 (12/02/2026).
+ */
+
+import { Check, Maximize2, DollarSign } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { TechniqueOption } from "@/types/customization";
+
+interface TechniqueCardProps {
+  technique: TechniqueOption;
+  isSelected: boolean;
+  onSelect: (technique: TechniqueOption) => void;
+}
+
+const GROUP_COLORS: Record<string, string> = {
+  LASER: "bg-blue-500/10 text-blue-700 border-blue-200",
+  SERIGRAFIA: "bg-green-500/10 text-green-700 border-green-200",
+  UV_DIGITAL: "bg-purple-500/10 text-purple-700 border-purple-200",
+  SUBLIMACAO: "bg-orange-500/10 text-orange-700 border-orange-200",
+  BORDADO: "bg-rose-500/10 text-rose-700 border-rose-200",
+  TAMPOGRAFIA: "bg-teal-500/10 text-teal-700 border-teal-200",
+  TRANSFER: "bg-amber-500/10 text-amber-700 border-amber-200",
+  HOT_STAMPING: "bg-yellow-500/10 text-yellow-700 border-yellow-200",
+};
+
+function getGroupColor(grupo: string): string {
+  return GROUP_COLORS[grupo] || "bg-muted text-muted-foreground border-border";
+}
+
+export function TechniqueCard({ technique, isSelected, onSelect }: TechniqueCardProps) {
+  const colorLabel = technique.cobra_por_cor
+    ? `até ${technique.max_cores} core${technique.max_cores !== 1 ? 's' : ''}`
+    : 'Full Color';
+
+  return (
+    <button
+      className={cn(
+        "w-full p-3 rounded-lg flex items-start gap-3 transition-all duration-200 border text-left",
+        isSelected
+          ? "bg-primary/10 border-primary/40 ring-1 ring-primary/20"
+          : "bg-secondary/50 border-border/50 hover:bg-secondary/80 hover:border-border"
+      )}
+      onClick={() => onSelect(technique)}
+    >
+      {/* Radio */}
+      <div className={cn(
+        "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors mt-0.5 flex-shrink-0",
+        isSelected
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-muted-foreground/40"
+      )}>
+        {isSelected && <Check className="h-3 w-3" />}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-medium text-sm text-foreground">
+            {technique.tecnica_nome}
+          </span>
+          <Badge variant="outline" className={cn("text-[10px] h-5 border", getGroupColor(technique.grupo_tecnica))}>
+            {technique.grupo_tecnica}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+          <span className="flex items-center gap-1">
+            <Maximize2 className="h-3 w-3" />
+            até {technique.efetiva_largura_max} × {technique.efetiva_altura_max} cm
+          </span>
+          <span>{colorLabel}</span>
+          {technique.custo_setup > 0 && (
+            <span className="flex items-center gap-1">
+              <DollarSign className="h-3 w-3" />
+              Setup: R$ {technique.custo_setup.toFixed(0)}
+            </span>
+          )}
+          {technique.is_curved && (
+            <Badge variant="outline" className="text-[10px] h-4">curvo</Badge>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}

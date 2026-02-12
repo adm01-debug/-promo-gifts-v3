@@ -1,14 +1,14 @@
 /**
  * QuoteProductCustomization — Personalização de produto dentro do orçamento
  * 
- * Reutiliza a lógica do simulador: áreas agrupadas por local físico,
- * técnicas dinâmicas do BD externo, pricing via RPC.
+ * Usa ProductCustomizationOptions v6 com o novo fluxo:
+ * Local → Técnica → Dimensões/Cores → Preço
  */
 
 import { useCallback, useRef } from "react";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import type { QuoteItemPersonalization } from "@/hooks/useQuotes";
-import type { CustomizationPriceV2 } from "@/hooks/useGravacaoV2";
+import type { PersonalizationItem } from "@/types/customization";
 
 interface QuoteProductCustomizationProps {
   productId: string;
@@ -22,33 +22,25 @@ export function QuoteProductCustomization({
   quantity,
   onPersonalizationsChange,
 }: QuoteProductCustomizationProps) {
-  const lastSelectionsRef = useRef<string>("");
+  const lastKeyRef = useRef<string>("");
 
-  const handleSelectionChange = useCallback((
-    selections: Map<string, { areaId: string; price: CustomizationPriceV2 | null }>
-  ) => {
-    const personalizations: QuoteItemPersonalization[] = [];
-
-    selections.forEach((sel, groupKey) => {
-      if (!sel.price) return;
-
-      const p: CustomizationPriceV2 = sel.price;
-      personalizations.push({
-        technique_id: sel.areaId,
-        technique_name: p.technique || groupKey,
-        colors_count: p.num_cores ?? 1,
+  const handleSelectionChange = useCallback((items: PersonalizationItem[]) => {
+    const personalizations: QuoteItemPersonalization[] = items
+      .filter(item => item.price?.success)
+      .map(item => ({
+        technique_id: item.techniqueId,
+        technique_name: item.techniqueName,
+        colors_count: item.numberOfColors,
         positions_count: 1,
-        setup_cost: p.faturamento_minimo_gravacao ?? p.cost_setup ?? 0,
-        unit_cost: p.unit_price ?? 0,
-        total_cost: p.total_price ?? 0,
-        notes: p.codigo_orcamento || undefined,
-      });
-    });
+        setup_cost: item.price!.setup_total,
+        unit_cost: item.price!.preco_unitario,
+        total_cost: item.price!.total_cobrado,
+        notes: `${item.locationName} — ${item.codigoTabela}`,
+      }));
 
-    // Only fire if actually changed to avoid infinite loops
     const key = JSON.stringify(personalizations);
-    if (key !== lastSelectionsRef.current) {
-      lastSelectionsRef.current = key;
+    if (key !== lastKeyRef.current) {
+      lastKeyRef.current = key;
       onPersonalizationsChange(personalizations);
     }
   }, [onPersonalizationsChange]);
