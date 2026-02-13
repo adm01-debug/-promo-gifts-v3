@@ -40,7 +40,7 @@ import {
   useCustomizationPricing, 
   PriceCalculation,
   PriceTier 
-} from '@/hooks/useCustomizationPricing';
+} from '@/hooks/useTecnicasUnificadas';
 import { cn } from '@/lib/utils';
 import {
   Collapsible,
