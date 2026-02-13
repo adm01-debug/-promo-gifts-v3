@@ -273,7 +273,16 @@ export default function QuoteViewPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold mb-2">Cliente</h3>
-                <p className="text-foreground">{quote.client_name || "Não especificado"}</p>
+                <p className="text-foreground font-medium">{quote.client_company || quote.client_name || "Não especificado"}</p>
+                {quote.client_name && quote.client_company && (
+                  <p className="text-sm text-muted-foreground mt-1">Contato: {quote.client_name}</p>
+                )}
+                {quote.client_email && (
+                  <p className="text-sm text-muted-foreground">{quote.client_email}</p>
+                )}
+                {quote.client_phone && (
+                  <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
+                )}
               </div>
               <div>
                 <h3 className="font-semibold mb-2">Vendedor</h3>
