@@ -352,54 +352,58 @@ function NotesSection({ data }: { data: ProposalTemplateData }) {
 /* ─── Footer ─── */
 function FooterSection({ data }: { data: ProposalTemplateData }) {
   return (
-    <div style={{ position: "relative", width: "794px", height: "180px", marginTop: "auto" }}>
-      <svg width="794" height="180" viewBox="0 0 794 180" style={{ position: "absolute", top: 0, left: 0 }}>
-        <polygon points="370,180 395,20 425,20 400,180" fill="#e0e0e0" />
-        <polygon points="395,180 420,20 460,20 435,180" fill={GREEN} />
-        <polygon points="455,60 794,60 794,130 425,130" fill={DARK} />
-        <rect x="480" y="130" width="314" height="50" fill={GREEN} />
-        <polygon points="480,130 505,130 480,165" fill={GREEN_DARK} />
-      </svg>
-
-      <div style={{ position: "relative", zIndex: 10, padding: "0 50px", height: "100%" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "15px", paddingTop: "10px" }}>
+    <div style={{ position: "relative", width: "794px", height: "220px", marginTop: "auto" }}>
+      {/* Left side: contact info */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "380px", zIndex: 10, padding: "15px 0 0 50px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "12px", flexWrap: "wrap" }}>
           <ContactDot color={DARK} text={data.seller.phone || "00-00000-0000"} />
           <ContactDot color={GREEN} text="promobrindes.com" />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "12px" }}>
           <ContactDot color={GREEN} text="comercial01@gmail.com" />
         </div>
 
-        <div style={{ fontSize: "11px", fontWeight: 600, color: "#555", lineHeight: "1.4" }}>
+        <div style={{ fontSize: "11px", fontWeight: 600, color: "#555", lineHeight: "1.5", marginBottom: "6px" }}>
           CNPJ: 36.835.552/0001-67<br />
           Razão Social: Brasil Marcas Industria e Comercio de Brindes LTDA.
         </div>
 
         <div style={{
           fontFamily: "'Montserrat', sans-serif",
-          fontSize: "16px",
+          fontSize: "14px",
           fontWeight: 700,
           color: BLUE,
           fontStyle: "italic",
-          marginTop: "8px",
         }}>
           adm01@promobrindes.com.br
         </div>
+      </div>
 
-        <div style={{ position: "absolute", top: "10px", right: "50px", textAlign: "center" }}>
-          <div style={{
-            fontFamily: "'Sacramento', cursive",
-            fontSize: "34px",
-            color: BLUE,
-            marginBottom: "-5px",
-            transform: "rotate(-3deg)",
-          }}>
-            {data.seller.name}
-          </div>
-          <div style={{ fontWeight: 800, fontSize: "12px", textTransform: "uppercase", marginTop: "5px", color: "#000" }}>
-            {data.seller.name}
-          </div>
-          <div style={{ width: "180px", height: "1px", backgroundColor: "#333", margin: "2px auto" }} />
-          <div style={{ fontSize: "11px", color: "#666" }}>Executivo de Vendas</div>
+      {/* Right side: SVG background + seller signature */}
+      <svg width="794" height="220" viewBox="0 0 794 220" style={{ position: "absolute", top: 0, left: 0 }}>
+        <polygon points="400,220 425,30 455,30 430,220" fill="#e0e0e0" />
+        <polygon points="430,220 455,30 495,30 470,220" fill={GREEN} />
+        <polygon points="490,80 794,80 794,160 460,160" fill={DARK} />
+        <rect x="510" y="160" width="284" height="60" fill={GREEN} />
+        <polygon points="510,160 535,160 510,195" fill={GREEN_DARK} />
+      </svg>
+
+      {/* Seller signature - positioned over the dark bar */}
+      <div style={{ position: "absolute", top: "70px", right: "50px", textAlign: "center", zIndex: 10 }}>
+        <div style={{
+          fontFamily: "'Sacramento', cursive",
+          fontSize: "34px",
+          color: "#fff",
+          marginBottom: "-5px",
+          transform: "rotate(-3deg)",
+        }}>
+          {data.seller.name}
         </div>
+        <div style={{ fontWeight: 800, fontSize: "12px", textTransform: "uppercase", marginTop: "5px", color: "#fff" }}>
+          {data.seller.name}
+        </div>
+        <div style={{ width: "180px", height: "1px", backgroundColor: "#fff", margin: "2px auto" }} />
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.8)" }}>Executivo de Vendas</div>
       </div>
     </div>
   );
