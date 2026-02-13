@@ -162,7 +162,7 @@ export default function QuoteViewPage() {
 
   return (
     <MainLayout>
-      <div className="container py-6 space-y-6 print:py-0">
+      <div className="container py-6 space-y-6 print:py-0 print:max-w-none print:px-0">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">

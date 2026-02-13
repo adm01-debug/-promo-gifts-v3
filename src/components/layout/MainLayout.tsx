@@ -28,40 +28,54 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <GlobalCommandBar>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background print:min-h-0">
         {/* Scroll Progress Indicator */}
-        <ScrollProgressIndicator color="primary" height={3} />
+        <div className="print:hidden">
+          <ScrollProgressIndicator color="primary" height={3} />
+        </div>
         
         {/* Accessibility: Skip links */}
-        <SkipToContent />
+        <div className="print:hidden">
+          <SkipToContent />
+        </div>
         
         {/* Global Enhanced Spotlight Search (Cmd+K) */}
-        <EnhancedSpotlight />
+        <div className="print:hidden">
+          <EnhancedSpotlight />
+        </div>
         
         {/* Onboarding Tour Overlay */}
-        <OnboardingTour />
+        <div className="print:hidden">
+          <OnboardingTour />
+        </div>
         
         <div className="flex">
-          <SidebarReorganized 
-            isOpen={sidebarOpen} 
-            onToggle={() => setSidebarOpen(!sidebarOpen)} 
-          />
-          
-          <div className="flex-1 flex flex-col min-h-screen">
-            <Header 
-              onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
+          <div className="print:hidden">
+            <SidebarReorganized 
+              isOpen={sidebarOpen} 
+              onToggle={() => setSidebarOpen(!sidebarOpen)} 
             />
+          </div>
+          
+          <div className="flex-1 flex flex-col min-h-screen print:min-h-0">
+            <div className="print:hidden">
+              <Header 
+                onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+            </div>
             
             <main 
               id="main-content" 
-              className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 sm:pb-20 lg:pb-6" 
+              className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 sm:pb-20 lg:pb-6 print:p-0 print:pb-0" 
               role="main"
               aria-label="Conteúdo principal"
             >
               {/* Persistent Breadcrumbs */}
-              <PersistentBreadcrumbs className="mb-4" />
+              <div className="print:hidden">
+                <PersistentBreadcrumbs className="mb-4" />
+              </div>
               
               <PageTransition variant="fade-slide" duration={0.25}>
                 {children}
@@ -69,26 +83,36 @@ export function MainLayout({ children }: MainLayoutProps) {
             </main>
             
             {/* Restart Tour Button - fixed position */}
-            <div className="fixed bottom-24 sm:bottom-20 lg:bottom-4 left-3 sm:left-4 z-40">
+            <div className="fixed bottom-24 sm:bottom-20 lg:bottom-4 left-3 sm:left-4 z-40 print:hidden">
               <RestartTourButton />
             </div>
             
             {/* Expert Chat Button - fixed position, adjusted for mobile nav */}
-            <ExpertChatButton />
+            <div className="print:hidden">
+              <ExpertChatButton />
+            </div>
             
             {/* Quick Quote FAB - Desktop only */}
-            <QuickQuoteFAB />
+            <div className="print:hidden">
+              <QuickQuoteFAB />
+            </div>
           </div>
         </div>
         
         {/* Scroll to Top Button */}
-        <ScrollToTopButton threshold={400} />
+        <div className="print:hidden">
+          <ScrollToTopButton threshold={400} />
+        </div>
         
         {/* Floating Compare Bar */}
-        <FloatingCompareBar />
+        <div className="print:hidden">
+          <FloatingCompareBar />
+        </div>
         
         {/* Smart Mobile Bottom Navigation with FAB */}
-        <SmartMobileNav />
+        <div className="print:hidden">
+          <SmartMobileNav />
+        </div>
       </div>
     </GlobalCommandBar>
   );
