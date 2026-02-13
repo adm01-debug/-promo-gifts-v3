@@ -281,7 +281,7 @@ export function CompanyContactSelector({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="contents">
       {/* Company selector */}
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
