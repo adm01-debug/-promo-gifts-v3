@@ -121,9 +121,15 @@ export async function generateProposalPDFv2(data: ProposalDocumentData): Promise
 
   // Logo
   try {
-    const logoB64 = await loadImageAsBase64("/images/promo-brindes-logo.jpg");
+    const logoB64 = await loadImageAsBase64("/images/promo-brindes-logo.png");
     if (logoB64) {
-      doc.addImage(logoB64, "JPEG", margin, 3, 50, 26);
+      // Logo aspect ratio ~2.5:1 (wide). White bg on green banner, centered vertically
+      const logoH = 18;
+      const logoW = logoH * 2.5;
+      const logoY = (32 - logoH) / 2;
+      doc.setFillColor(...WHITE);
+      doc.roundedRect(margin, logoY, logoW + 4, logoH + 2, 1, 1, "F");
+      doc.addImage(logoB64, "PNG", margin + 2, logoY + 1, logoW, logoH);
     }
   } catch {
     // Fallback text if logo fails
