@@ -250,7 +250,7 @@ export default function QuoteViewPage() {
 
         {/* Quote Content */}
         <Card className="print:shadow-none print:border-none">
-          <CardHeader className="print:pb-2">
+          <CardHeader className="hidden print:block print:pb-2">
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="text-2xl font-bold text-primary">PROMO BRINDES</h2>
