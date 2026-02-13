@@ -62,277 +62,246 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
       <div
         ref={ref}
         style={{
-          width: "794px", // A4 width at 96dpi
-          minHeight: "1123px", // A4 height
+          width: "794px",
+          minHeight: "1123px",
           backgroundColor: "#fff",
-          fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+          fontFamily: "'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif",
           color: "#333",
           position: "relative",
-          overflow: "hidden",
+          padding: "40px",
+          boxSizing: "border-box",
         }}
       >
         {/* ═══ HEADER ═══ */}
         <div
           style={{
-            position: "relative",
-            height: "100px",
-            backgroundColor: "#2D8C47",
-            overflow: "hidden",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            marginBottom: "40px",
+            borderBottom: "2px solid #000",
+            paddingBottom: "20px",
           }}
         >
-          {/* Diagonal black triangle */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: 0,
-              height: 0,
-              borderTop: "100px solid #1A1A1A",
-              borderLeft: "160px solid transparent",
-            }}
-          />
           {/* Logo */}
-          <div
-            style={{
-              position: "absolute",
-              top: "12px",
-              left: "30px",
-              backgroundColor: "#fff",
-              borderRadius: "6px",
-              padding: "6px 10px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+          <div style={{ width: "250px" }}>
             <img
               src="/images/promo-brindes-logo.png"
               alt="Promo Brindes"
-              style={{ height: "60px", width: "auto" }}
+              style={{ maxWidth: "100%", height: "auto" }}
               crossOrigin="anonymous"
             />
           </div>
-        </div>
-
-        {/* Gray decorative lines */}
-        <div style={{ height: "3px", background: "linear-gradient(to bottom, #aaa, #ddd)" }} />
-
-        {/* ═══ CLIENT + QUOTE NUMBER ═══ */}
-        <div style={{ padding: "20px 30px 10px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <div style={{ fontSize: "13px", color: "#666" }}>Empresa:</div>
-            <div style={{ fontSize: "22px", fontWeight: 700, color: "#2D8C47", marginTop: "2px" }}>{company}</div>
-            <div style={{ fontSize: "13px", color: "#333", marginTop: "4px" }}>Solicitante: {contact}</div>
-            {data.client.email && (
-              <div style={{ fontSize: "11px", color: "#999", marginTop: "2px" }}>{data.client.email}</div>
-            )}
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <div
+          {/* Title + Meta */}
+          <div style={{ textAlign: "right" }}>
+            <h1
               style={{
-                backgroundColor: "#1A1A1A",
-                color: "#fff",
-                borderRadius: "6px",
-                padding: "10px 24px",
-                fontSize: "20px",
+                margin: "0 0 10px 0",
+                fontSize: "24px",
+                textTransform: "uppercase",
+                color: "#000",
                 fontWeight: 700,
               }}
             >
-              Nº: #{data.quoteNumber}
+              Orçamento
+            </h1>
+            <div style={{ fontSize: "14px", lineHeight: "1.5" }}>
+              <div>N°: #{data.quoteNumber}</div>
+              <div>Data: {data.date}</div>
+              <div>Validade: 15 dias</div>
             </div>
-            <div style={{ fontSize: "13px", color: "#666", marginTop: "6px" }}>
-              Data: {data.date}
+          </div>
+        </div>
+
+        {/* ═══ CLIENT INFO ═══ */}
+        <div
+          style={{
+            backgroundColor: "#f4f4f4",
+            padding: "20px",
+            borderRadius: "4px",
+            marginBottom: "30px",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <div style={{ margin: "0 0 5px 0", fontSize: "12px", color: "#666", textTransform: "uppercase" }}>
+              Empresa
             </div>
+            <div style={{ margin: 0, fontWeight: 700, fontSize: "16px" }}>{company}</div>
+          </div>
+          <div>
+            <div style={{ margin: "0 0 5px 0", fontSize: "12px", color: "#666", textTransform: "uppercase" }}>
+              Solicitante
+            </div>
+            <div style={{ margin: 0, fontWeight: 700, fontSize: "16px" }}>{contact}</div>
           </div>
         </div>
 
         {/* ═══ PRODUCTS TABLE ═══ */}
-        <div style={{ padding: "10px 30px 0" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#2D8C47" }}>
-                <th style={{ ...thStyle, width: "50px", borderTopLeftRadius: "6px" }}></th>
-                <th style={{ ...thStyle, textAlign: "left" }}>Descrição do Produto</th>
-                <th style={{ ...thStyle, width: "60px" }}>Quant.</th>
-                <th style={{ ...thStyle, width: "80px" }}>Valor Uni.</th>
-                <th style={{ ...thStyle, width: "80px" }}>Desconto{"\n"}Unitário</th>
-                <th style={{ ...thStyle, width: "90px", borderTopRightRadius: "6px" }}>Valor Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item, idx) => {
-                const persUnitCost = item.personalizations?.reduce((sum, p) => {
-                  const pTotal = p.total_cost || 0;
-                  return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
-                }, 0) || 0;
-                const allInUnitPrice = item.unitPrice + persUnitCost;
-                const itemDiscount = item.discount || 0;
-                const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px", fontSize: "13px" }}>
+          <thead>
+            <tr>
+              <th style={{ ...thStyle, textAlign: "left" }}>Descrição do Produto</th>
+              <th style={{ ...thStyle, ...colCenter, width: "60px" }}>Quant.</th>
+              <th style={{ ...thStyle, ...colMoney, width: "90px" }}>Valor Uni.</th>
+              <th style={{ ...thStyle, ...colMoney, width: "90px" }}>Desconto Uni.</th>
+              <th style={{ ...thStyle, ...colMoney, width: "100px" }}>Valor Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.items.map((item, idx) => {
+              const persUnitCost = item.personalizations?.reduce((sum, p) => {
+                const pTotal = p.total_cost || 0;
+                return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
+              }, 0) || 0;
+              const allInUnitPrice = item.unitPrice + persUnitCost;
+              const itemDiscount = item.discount || 0;
+              const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
 
-                return (
-                  <tr key={idx} style={{ backgroundColor: idx % 2 === 1 ? "#f8f8f8" : "#fff", borderBottom: "1px solid #e0e0e0" }}>
-                    {/* Image */}
-                    <td style={{ padding: "8px", textAlign: "center", verticalAlign: "top" }}>
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px" }}
-                          crossOrigin="anonymous"
-                        />
-                      ) : (
-                        <div style={{ width: "40px", height: "40px", backgroundColor: "#eee", borderRadius: "4px" }} />
-                      )}
-                    </td>
-                    {/* Description */}
-                    <td style={{ padding: "8px", verticalAlign: "top" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <span style={{ fontWeight: 700, fontSize: "13px" }}>{item.name}</span>
-                        {item.sku && (
-                          <span style={{ color: "#2D8C47", fontWeight: 700, fontSize: "11px", whiteSpace: "nowrap" }}>
-                            Ticket: #{item.sku}
-                          </span>
-                        )}
-                      </div>
-                      {item.description && (
-                        <div style={{ fontSize: "10px", color: "#666", marginTop: "2px", lineHeight: "1.4" }}>
-                          {item.description}
-                        </div>
-                      )}
-                      {/* Gravação + Material */}
-                      <div style={{ marginTop: "4px", fontSize: "10px", color: "#555" }}>
-                        {item.personalizations && item.personalizations.length > 0 ? (
-                          item.personalizations.map((p, pi) => (
-                            <span key={pi}>
-                              <strong>Gravação:</strong> {p.technique_name}
-                              {p.colors_count && p.colors_count > 1 ? ` (${p.colors_count} cores)` : ""}
-                              {(p.material || item.material) && (
-                                <>.  <strong>Material:</strong> {p.material || item.material}</>
-                              )}
-                              {pi < (item.personalizations?.length || 0) - 1 && "  |  "}
-                            </span>
-                          ))
-                        ) : item.color ? (
-                          <span><strong>Cor:</strong> {item.color}</span>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td style={{ ...tdCenter, fontWeight: 700 }}>{item.quantity}.</td>
-                    <td style={{ ...tdRight }}>{fmt(allInUnitPrice)}</td>
-                    <td style={{ ...tdCenter }}>{fmt(itemDiscount)}</td>
-                    <td style={{ ...tdRight, fontWeight: 700 }}>{fmt(total)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+              // Build gravação string
+              const gravacao = item.personalizations?.map((p) => {
+                let s = p.technique_name;
+                if (p.colors_count && p.colors_count > 1) s += ` (${p.colors_count} cores)`;
+                const mat = p.material || item.material;
+                if (mat) s += ` | Material: ${mat}`;
+                return s;
+              }).join(", ");
 
-        {/* ═══ BOTTOM SECTION ═══ */}
-        <div style={{ padding: "20px 30px 0", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          {/* Left: Delivery + Info */}
-          <div style={{ maxWidth: "50%" }}>
-            {data.deliveryTime && (
-              <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>
-                Previsão de Entrega: {data.deliveryTime}
-              </div>
-            )}
-            <div style={{ fontSize: "11px", color: "#999", marginBottom: "14px" }}>
-              Orçamento Válido por 15 dias após o envio
-            </div>
-            <div style={{ fontSize: "13px", fontWeight: 700, marginBottom: "6px" }}>
-              Informações Relevantes:
-            </div>
-            <div style={{ fontSize: "11px", lineHeight: "1.8" }}>
-              - Todos os valores são para produtos já personalizados.<br />
-              - {data.paymentTerms || "Pagamento feito após a entrega (À vista/ Boleto/ Pix)."}
-              <br />
-              - Todos produtos passam por controle de qualidade.
-            </div>
-          </div>
+              return (
+                <tr key={idx} style={{ backgroundColor: idx % 2 === 1 ? "#fafafa" : "#fff" }}>
+                  {/* Description */}
+                  <td style={{ borderBottom: "1px solid #ddd", padding: "12px 8px", verticalAlign: "top" }}>
+                    <strong style={{ display: "block", fontSize: "14px", marginBottom: "4px" }}>
+                      {item.name}
+                    </strong>
+                    {item.sku && (
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          background: "#eee",
+                          padding: "2px 4px",
+                          borderRadius: "3px",
+                          fontSize: "10px",
+                          color: "#555",
+                          display: "inline-block",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        Ticket: #{item.sku}
+                      </span>
+                    )}
+                    {item.description && (
+                      <span style={{ display: "block", color: "#666", fontSize: "11px", marginBottom: "2px", lineHeight: "1.4" }}>
+                        {item.description}
+                      </span>
+                    )}
+                    {gravacao && (
+                      <span style={{ display: "block", color: "#666", fontSize: "11px", lineHeight: "1.4" }}>
+                        Gravação: {gravacao}
+                      </span>
+                    )}
+                    {!gravacao && item.color && (
+                      <span style={{ display: "block", color: "#666", fontSize: "11px", lineHeight: "1.4" }}>
+                        Cor: {item.color}
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ ...tdBase, ...colCenter, fontWeight: 700 }}>{item.quantity}</td>
+                  <td style={{ ...tdBase, ...colMoney }}>{fmt(allInUnitPrice)}</td>
+                  <td style={{ ...tdBase, ...colMoney }}>
+                    {itemDiscount > 0 ? `- ${fmt(itemDiscount)}` : fmt(0)}
+                  </td>
+                  <td style={{ ...tdBase, ...colMoney, fontWeight: 700 }}>{fmt(total)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
 
-          {/* Right: Totals */}
-          <div style={{ textAlign: "right", minWidth: "220px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
+        {/* ═══ TOTALS ═══ */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "40px" }}>
+          <div style={{ width: "300px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #eee" }}>
               <span>Sub Total:</span>
-              <span style={{ fontWeight: 700 }}>{fmt(data.subtotal)}</span>
+              <span>{fmt(data.subtotal)}</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #eee" }}>
               <span>Valor Frete:</span>
-              <span style={{ fontWeight: 700 }}>{data.shippingCost ? fmt(data.shippingCost) : "Cotesia"}</span>
+              <span>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
             </div>
             {data.discount && data.discount > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "4px" }}>
-                <span>Desconto:</span>
-                <span style={{ fontWeight: 700 }}>{fmt(data.discount)}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #eee" }}>
+                <span>Desconto Geral:</span>
+                <span>- {fmt(data.discount)}</span>
               </div>
             )}
-            {/* Grand total box */}
             <div
               style={{
-                border: "3px solid #2D8C47",
-                borderRadius: "8px",
-                padding: "10px 16px",
+                display: "flex",
+                justifyContent: "space-between",
+                borderTop: "2px solid #000",
                 marginTop: "10px",
-                textAlign: "center",
+                paddingTop: "15px",
+                fontSize: "18px",
+                fontWeight: 700,
               }}
             >
-              <div style={{ fontSize: "9px", fontWeight: 700, color: "#2D8C47", letterSpacing: "0.5px" }}>
-                VALOR TOTAL DA PROPOSTA:
-              </div>
-              <div style={{ fontSize: "26px", fontWeight: 700, color: "#2D8C47", marginTop: "2px" }}>
-                {fmt(data.total)}
-              </div>
+              <span>TOTAL:</span>
+              <span>{fmt(data.total)}</span>
             </div>
           </div>
         </div>
 
-        {/* ═══ FOOTER ═══ */}
+        {/* ═══ FOOTER INFO ═══ */}
         <div
           style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: "0 30px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: "12px",
+            color: "#555",
+            borderTop: "1px solid #ddd",
+            paddingTop: "20px",
           }}
         >
-          {/* Seller signature (right) */}
-          <div style={{ textAlign: "right", marginBottom: "16px" }}>
-            <div style={{ fontStyle: "italic", fontSize: "18px", fontWeight: 700 }}>
-              {data.seller.name}
-            </div>
-            <div style={{ borderTop: "1px solid #333", display: "inline-block", paddingTop: "4px", marginTop: "4px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>
-                {data.seller.name}
-              </div>
-              <div style={{ fontSize: "10px", color: "#999" }}>Executivo de Vendas</div>
-            </div>
+          {/* Terms */}
+          <div style={{ maxWidth: "55%" }}>
+            <strong>Informações Relevantes:</strong>
+            <ul style={{ paddingLeft: "20px", margin: "5px 0", lineHeight: "1.8" }}>
+              <li>Todos os valores são para produtos já personalizados.</li>
+              <li>{data.paymentTerms || "Pagamento feito após a entrega (À vista / Boleto / Pix)."}</li>
+              <li>Todos produtos passam por controle de qualidade.</li>
+              {data.deliveryTime && <li>Previsão de Entrega: {data.deliveryTime}.</li>}
+            </ul>
           </div>
+          {/* Company info */}
+          <div style={{ textAlign: "right", lineHeight: "1.8" }}>
+            <strong>Brasil Marcas Industria e Comercio de Brindes LTDA.</strong>
+            <br />
+            CNPJ: 36.835.552/0001-67
+            <br />
+            <br />
+            promobrindes.com
+            <br />
+            comercial01@gmail.com
+            <br />
+            {data.seller.phone || "00-00000-0000"}
+          </div>
+        </div>
 
-          {/* Contact icons row */}
-          <div style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "10px", color: "#555", marginBottom: "10px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#2D8C47" }} />
-              <span>{data.seller.phone || "00-00000-0000"}</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#2D8C47" }} />
-              <span>promobrindes.com</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#2D8C47" }} />
-              <span>comercial01@gmail.com</span>
-            </div>
-          </div>
-
-          {/* CNPJ */}
-          <div style={{ fontSize: "10px", fontWeight: 700, color: "#555", lineHeight: "1.6" }}>
-            CNPJ: 36.835.552/0001-67<br />
-            Razão Social: Brasil Marcas Industria e<br />
-            Comercio de Brindes LTDA.
-          </div>
+        {/* ═══ SIGNATURE ═══ */}
+        <div
+          style={{
+            marginTop: "50px",
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ width: "200px", borderTop: "1px solid #333", marginBottom: "10px" }} />
+          <div style={{ fontWeight: 700 }}>{data.seller.name}</div>
+          <div style={{ fontSize: "12px", color: "#666" }}>Executivo de Vendas</div>
         </div>
       </div>
     );
@@ -343,24 +312,26 @@ ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";
 
 // Shared styles
 const thStyle: React.CSSProperties = {
+  backgroundColor: "#000",
   color: "#fff",
+  textAlign: "left",
+  padding: "12px 8px",
+  textTransform: "uppercase",
+  fontSize: "11px",
   fontWeight: 700,
-  fontSize: "12px",
-  padding: "10px 8px",
-  textAlign: "center",
-  whiteSpace: "pre-line",
 };
 
-const tdCenter: React.CSSProperties = {
-  padding: "8px",
-  textAlign: "center",
+const tdBase: React.CSSProperties = {
+  borderBottom: "1px solid #ddd",
+  padding: "12px 8px",
   verticalAlign: "top",
-  fontSize: "12px",
 };
 
-const tdRight: React.CSSProperties = {
-  padding: "8px",
+const colCenter: React.CSSProperties = {
+  textAlign: "center",
+};
+
+const colMoney: React.CSSProperties = {
   textAlign: "right",
-  verticalAlign: "top",
-  fontSize: "12px",
+  whiteSpace: "nowrap",
 };
