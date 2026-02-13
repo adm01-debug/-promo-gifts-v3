@@ -109,7 +109,7 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         <polygon points="405,125 430,125 405,160" fill={GREEN_DARK} />
       </svg>
 
-      <div style={{ position: "absolute", top: "50%", left: "40px", transform: "translateY(-50%)", width: "280px", zIndex: 10 }}>
+      <div style={{ position: "absolute", top: "50%", left: "40px", transform: "translateY(-50%)", width: "180px", zIndex: 10 }}>
         <img
           src="/images/promo-brindes-logo.png"
           alt="Promo Brindes"
