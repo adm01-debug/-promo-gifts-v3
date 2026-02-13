@@ -140,6 +140,22 @@ const DialogContent = React.forwardRef<
           if (typeof ref === 'function') ref(node);
           else if (ref) ref.current = node;
         }}
+        // Force scroll restoration when dialog closes
+        onCloseAutoFocus={(e) => {
+          // Small delay to let Radix cleanup finish, then force-restore scroll
+          requestAnimationFrame(() => {
+            document.documentElement.removeAttribute('data-scroll-locked');
+            document.body.removeAttribute('data-scroll-locked');
+            for (const el of [document.documentElement, document.body]) {
+              el.style.overflow = '';
+              el.style.overflowY = '';
+              el.style.paddingRight = '';
+              el.style.marginRight = '';
+              el.style.position = '';
+              el.style.pointerEvents = '';
+            }
+          });
+        }}
         className={cn(
           "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
