@@ -610,32 +610,6 @@ export default function QuoteBuilderPage() {
               </CardContent>
             </Card>
 
-            {/* Notes */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Observações</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Observações para o Cliente</Label>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Observações que aparecerão na proposta..."
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Notas Internas</Label>
-                  <Textarea
-                    value={internalNotes}
-                    onChange={(e) => setInternalNotes(e.target.value)}
-                    placeholder="Notas visíveis apenas para a equipe..."
-                    rows={2}
-                  />
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar - Summary */}
