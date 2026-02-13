@@ -270,7 +270,7 @@ export default function QuoteViewPage() {
           <Separator />
           <CardContent className="pt-6 space-y-6">
             {/* Client Info */}
-            <div className="grid md:grid-cols-2 gap-6">
+             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold mb-2">Cliente</h3>
                 {(() => {
@@ -287,9 +287,6 @@ export default function QuoteViewPage() {
                     </>
                   );
                 })()}
-                {quote.client_name && (
-                  <p className="text-sm text-muted-foreground mt-1">Contato: {quote.client_name}</p>
-                )}
                 {quote.client_email && (
                   <p className="text-sm text-muted-foreground">{quote.client_email}</p>
                 )}
@@ -297,9 +294,17 @@ export default function QuoteViewPage() {
                   <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
                 )}
               </div>
-              <div className="hidden print:block">
-                <h3 className="font-semibold mb-2">Vendedor</h3>
-                <p className="text-foreground">{user?.email}</p>
+              <div>
+                {quote.client_name && (
+                  <>
+                    <h3 className="font-semibold mb-2">Contato</h3>
+                    <p className="text-foreground font-medium">{quote.client_name}</p>
+                  </>
+                )}
+                <div className="hidden print:block mt-4">
+                  <h3 className="font-semibold mb-2">Vendedor</h3>
+                  <p className="text-foreground">{user?.email}</p>
+                </div>
               </div>
             </div>
 
