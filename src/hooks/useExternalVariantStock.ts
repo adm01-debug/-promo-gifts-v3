@@ -51,14 +51,14 @@ export function useExternalVariantStock(productId: string | undefined) {
         invokeExternalDb<{
           id: string;
           supplier_code: string | null;
-          url: string | null;
+          url_cdn: string | null;
           is_og_image: boolean | null;
           is_primary: boolean | null;
           image_type: string | null;
         }>({
           table: 'product_images',
           operation: 'select',
-          select: 'id, supplier_code, url, is_og_image, is_primary, image_type',
+          select: 'id, supplier_code, url_cdn, is_og_image, is_primary, image_type',
           filters: { product_id: productId },
           limit: 200,
         }),
@@ -68,12 +68,11 @@ export function useExternalVariantStock(productId: string | undefined) {
       // Priorizar is_og_image (MAIN), excluir tipo 'box'
       const imagesByCode = new Map<string, string>();
       for (const img of imagesResult.records) {
-        if (!img.supplier_code || !img.url) continue;
+        if (!img.supplier_code || !img.url_cdn) continue;
         if (img.image_type === 'box') continue;
         const code = img.supplier_code.toUpperCase();
-        // Priorizar is_og_image
         if (!imagesByCode.has(code) || img.is_og_image) {
-          imagesByCode.set(code, img.url);
+          imagesByCode.set(code, img.url_cdn);
         }
       }
 
