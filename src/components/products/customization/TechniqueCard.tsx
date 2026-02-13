@@ -5,7 +5,7 @@
  * Baseado no briefing v6 (12/02/2026).
  */
 
-import { Check, Maximize2, DollarSign } from "lucide-react";
+import { Check, Maximize2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { TechniqueOption } from "@/types/customization";
@@ -73,12 +73,6 @@ export function TechniqueCard({ technique, isSelected, onSelect }: TechniqueCard
             até {technique.efetiva_largura_max} × {technique.efetiva_altura_max} cm
           </span>
           <span>{colorLabel}</span>
-          {technique.custo_setup > 0 && (
-            <span className="flex items-center gap-1">
-              <DollarSign className="h-3 w-3" />
-              Setup: R$ {technique.custo_setup.toFixed(0)}
-            </span>
-          )}
           {technique.is_curved && (
             <Badge variant="outline" className="text-[10px] h-4">curvo</Badge>
           )}

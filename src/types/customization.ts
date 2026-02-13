@@ -33,7 +33,6 @@ export interface TechniqueOption {
   usa_dimensao: boolean;
   cobra_por_cor: boolean;
   max_cores: number;           // máximo de cores (1-3)
-  custo_setup: number;         // custo fixo de setup (R$)
 }
 
 /** Local de gravação */
@@ -70,14 +69,21 @@ export interface PriceFaixa {
 export interface PriceDetalhes {
   cobra_por_cor: boolean;
   max_cores: number;
-  custo_setup: number;
-  setup_por_cor: boolean;
   is_curved: boolean;
   desconto_2cor: number;       // % desconto para 2ª cor (10)
   desconto_3cor: number;       // % desconto para 3ª cor (15)
 }
 
-/** Resposta de fn_get_customization_price (formato novo) */
+/** Informações de markup (v6.3) */
+export interface MarkupInfo {
+  markup_pct: number;          // % markup aplicado (ex: 115)
+  preco_min_unit: number;      // piso mínimo por unidade (R$)
+  custo_unitario: number;      // custo ANTES do markup
+  custo_setup_tabela: number;  // setup original da tabela
+  setup_proprio: number | null; // setup da organização (prevalece)
+}
+
+/** Resposta de fn_get_customization_price (v6.3) */
 export interface CustomizationPriceResponseV6 {
   success: boolean;
   error?: string;
@@ -91,11 +97,12 @@ export interface CustomizationPriceResponseV6 {
 
   faixa: PriceFaixa;
   detalhes: PriceDetalhes;
+  markup: MarkupInfo;          // (v6.3) info de markup aplicado
 
-  preco_unitario: number;
+  preco_unitario: number;      // preço de VENDA por peça (com markup)
   preco_por_unidade: number;   // alias
-  valor_gravacao: number;      // unitário × qtd (× cores com desconto)
-  setup_total: number;         // custo fixo de setup
+  valor_gravacao: number;      // preco_unitario × qtd
+  setup_total: number;         // setup com markup aplicado
   total_cobrado: number;       // MAX(valor_gravacao, setup_total)
 }
 
