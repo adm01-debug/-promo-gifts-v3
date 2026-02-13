@@ -177,7 +177,7 @@ function ProductsTable({ items }: { items: ProposalItem[] }) {
     <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px" }}>
       <thead>
         <tr>
-          <th style={{ ...thStyle, textAlign: "center", width: "70px" }}>Foto</th>
+          <th style={{ ...thStyle, textAlign: "center", width: "90px" }}>Foto</th>
           <th style={{ ...thStyle, textAlign: "left" }}>Descrição do Produto</th>
           <th style={{ ...thStyle, textAlign: "center", width: "55px" }}>Qtd.</th>
           <th style={{ ...thStyle, textAlign: "right", width: "100px" }}>Unitário</th>
@@ -210,15 +210,15 @@ function ProductRow({ item }: { item: ProposalItem }) {
 
   return (
     <tr style={{ borderBottom: "1px solid #f0f0f0" }}>
-      <td style={{ ...tdStyle, textAlign: "center", padding: "20px 8px", width: "70px" }}>
+      <td style={{ ...tdStyle, textAlign: "center", padding: "20px 8px", width: "90px" }}>
         {item.imageUrl ? (
           <img
             src={item.imageUrl}
             alt={item.name}
             crossOrigin="anonymous"
             style={{
-              width: "60px",
-              height: "60px",
+              width: "80px",
+              height: "80px",
               objectFit: "contain",
               borderRadius: "6px",
               border: "1px solid #eee",
@@ -228,8 +228,8 @@ function ProductRow({ item }: { item: ProposalItem }) {
           />
         ) : (
           <div style={{
-            width: "60px",
-            height: "60px",
+            width: "80px",
+            height: "80px",
             backgroundColor: "#f5f5f5",
             borderRadius: "6px",
             border: "1px solid #eee",
