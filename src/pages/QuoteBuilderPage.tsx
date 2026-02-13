@@ -408,7 +408,7 @@ export default function QuoteBuilderPage() {
 
     const quoteData = {
       client_id: clientId || undefined,
-      client_name: contactInfo?.name || companyInfo?.name || undefined,
+      client_name: contactInfo?.name || undefined,
       client_company: companyWithLocation,
       client_email: contactInfo?.email || undefined,
       client_phone: contactInfo?.phone || undefined,

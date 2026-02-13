@@ -69,13 +69,11 @@ export default function QuoteViewPage() {
         date: quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "",
         validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : "30 dias",
         client: {
-          name: quote.client_name || "Não especificado",
+          name: quote.client_company || quote.client_name || "Não especificado",
           email: quote.client_email || undefined,
           phone: quote.client_phone || undefined,
           company: quote.client_company || undefined,
-          contactName: quote.client_name && quote.client_company && quote.client_name !== quote.client_company
-            ? quote.client_name
-            : undefined,
+          contactName: quote.client_name || undefined,
         },
         seller: {
           name: user?.email || "Vendedor",
@@ -275,8 +273,8 @@ export default function QuoteViewPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold mb-2">Cliente</h3>
-                <p className="text-foreground font-medium">{quote.client_company || quote.client_name || "Não especificado"}</p>
-                {quote.client_name && quote.client_company && (
+                <p className="text-foreground font-medium">{quote.client_company || "Não especificado"}</p>
+                {quote.client_name && (
                   <p className="text-sm text-muted-foreground mt-1">Contato: {quote.client_name}</p>
                 )}
                 {quote.client_email && (
