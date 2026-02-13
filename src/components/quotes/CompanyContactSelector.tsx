@@ -37,6 +37,8 @@ export interface SelectedCompanyInfo {
   id: string;
   name: string;
   cnpj?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 export interface SelectedContactInfo {
@@ -390,7 +392,7 @@ export function CompanyContactSelector({
     onContactChange?.("");
     onContactInfoChange?.(null);
     const found = filteredCompanies.find((c) => c.id === id) || companies?.find((c) => c.id === id);
-    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj } : null);
+    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, cidade: found.cidade || undefined, estado: found.estado || undefined } : null);
     setIsOpen(false);
     setSearchTerm("");
   };
