@@ -50,7 +50,7 @@ interface ExternalSupplierSource {
   supplier_id?: string;
   supplier_sku?: string;
   quantity: number;
-  reserved_quantity: number;
+  reserved_quantity?: number;
   next_quantity_1?: number | null;
   next_date_1?: string | null;
   next_quantity_2?: number | null;
@@ -159,7 +159,7 @@ export function useVariantStock() {
       // 3) Supplier Sources - estoque futuro
       const allSupplierSources = await fetchPaginatedFromBridge<ExternalSupplierSource>(
         'variant_supplier_sources',
-        'id,variant_id,supplier_id,supplier_sku,quantity,reserved_quantity,next_quantity_1,next_date_1,next_quantity_2,next_date_2,next_quantity_3,next_date_3,is_active,updated_at',
+        'id,variant_id,supplier_id,supplier_sku,quantity,next_quantity_1,next_date_1,next_quantity_2,next_date_2,next_quantity_3,next_date_3,is_active,updated_at',
         1000,
         100000,
         { is_active: true }
