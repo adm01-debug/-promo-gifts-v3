@@ -33,11 +33,27 @@ interface ContactOption {
   phone: string | null;
 }
 
+export interface SelectedCompanyInfo {
+  id: string;
+  name: string;
+  cnpj?: string;
+}
+
+export interface SelectedContactInfo {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  cargo?: string;
+}
+
 interface CompanyContactSelectorProps {
   companyId: string;
   contactId?: string;
   onCompanyChange: (companyId: string) => void;
   onContactChange?: (contactId: string) => void;
+  onCompanyInfoChange?: (info: SelectedCompanyInfo | null) => void;
+  onContactInfoChange?: (info: SelectedContactInfo | null) => void;
 }
 
 /** Mini dropdown for contact selection (mirrors company dropdown style) */
@@ -45,10 +61,12 @@ function ContactDropdown({
   contacts,
   contactId,
   onContactChange,
+  onContactInfoChange,
 }: {
   contacts: ContactOption[];
   contactId?: string;
   onContactChange?: (id: string) => void;
+  onContactInfoChange?: (info: SelectedContactInfo | null) => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -108,6 +126,7 @@ function ContactDropdown({
               )}
               onClick={() => {
                 onContactChange?.(contact.id);
+                onContactInfoChange?.({ id: contact.id, name: contact.name, email: contact.email, phone: contact.phone, cargo: contact.cargo });
                 setOpen(false);
               }}
             >
@@ -142,6 +161,8 @@ export function CompanyContactSelector({
   contactId,
   onCompanyChange,
   onContactChange,
+  onCompanyInfoChange,
+  onContactInfoChange,
 }: CompanyContactSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -367,6 +388,9 @@ export function CompanyContactSelector({
   const handleSelectCompany = (id: string) => {
     onCompanyChange(id);
     onContactChange?.("");
+    onContactInfoChange?.(null);
+    const found = filteredCompanies.find((c) => c.id === id) || companies?.find((c) => c.id === id);
+    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj } : null);
     setIsOpen(false);
     setSearchTerm("");
   };
@@ -374,6 +398,8 @@ export function CompanyContactSelector({
   const handleClearCompany = () => {
     onCompanyChange("");
     onContactChange?.("");
+    onCompanyInfoChange?.(null);
+    onContactInfoChange?.(null);
     setSearchTerm("");
   };
 
@@ -565,6 +591,7 @@ export function CompanyContactSelector({
             contacts={contacts}
             contactId={contactId}
             onContactChange={onContactChange}
+            onContactInfoChange={onContactInfoChange}
           />
         )}
       </div>
