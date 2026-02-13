@@ -53,12 +53,10 @@ function fmt(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const PRIMARY = "#003d29";
-const LIGHT_BG = "#f9f9f9";
-const TEXT = "#333333";
-const TEXT_LIGHT = "#666666";
-const TEXT_MUTED = "#999999";
-const BORDER = "#eeeeee";
+const GREEN = "#00c853";
+const GREEN_DARK = "#009e41";
+const DARK = "#333333";
+const BLUE = "#0085ca";
 
 export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalTemplateData }>(
   ({ data }, ref) => {
@@ -72,11 +70,11 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
           width: "794px",
           minHeight: "1123px",
           backgroundColor: "#fff",
-          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-          color: TEXT,
+          fontFamily: "'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif",
+          color: "#333",
           position: "relative",
           boxSizing: "border-box",
-          padding: "40px",
+          overflow: "hidden",
           display: "flex",
           flexDirection: "column",
         }}
@@ -84,14 +82,13 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
         {/* ═══ HEADER ═══ */}
         <HeaderSection data={data} />
 
-        {/* ═══ CLIENT INFO ═══ */}
-        <ClientSection company={company} contact={contact} />
-
-        {/* ═══ PRODUCTS TABLE ═══ */}
-        <ProductsTable items={data.items} />
-
-        {/* ═══ TOTALS ═══ */}
-        <TotalsSection data={data} />
+        {/* ═══ CONTENT ═══ */}
+        <div style={{ padding: "0 50px", flex: 1 }}>
+          <ClientBar company={company} contact={contact} />
+          <ProductsTable items={data.items} />
+          <TotalsSection data={data} />
+          <NotesSection data={data} />
+        </div>
 
         {/* ═══ FOOTER ═══ */}
         <FooterSection data={data} />
@@ -105,49 +102,37 @@ ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";
 /* ─── Header ─── */
 function HeaderSection({ data }: { data: ProposalTemplateData }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderBottom: `3px solid ${PRIMARY}`,
-        paddingBottom: "20px",
-        marginBottom: "30px",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+    <div style={{ position: "relative", width: "794px", height: "160px", marginBottom: "30px" }}>
+      <svg width="794" height="160" viewBox="0 0 794 160" style={{ position: "absolute", top: 0, left: 0 }}>
+        <polygon points="340,0 380,0 420,160 380,160" fill={GREEN} />
+        <polygon points="375,0 794,0 794,125 405,125" fill={DARK} />
+        <polygon points="405,125 430,125 405,160" fill={GREEN_DARK} />
+      </svg>
+
+      <div style={{ position: "absolute", top: "50%", left: "40px", transform: "translateY(-50%)", width: "280px", zIndex: 10 }}>
         <img
           src="/images/promo-brindes-logo.png"
           alt="Promo Brindes"
-          style={{ height: "50px", display: "block" }}
+          style={{ width: "100%", display: "block" }}
           crossOrigin="anonymous"
         />
-        <div
-          style={{
-            fontSize: "24px",
-            fontWeight: "bold",
-            color: PRIMARY,
-          }}
-        >
-          PROMO BRINDES
-        </div>
       </div>
 
-      <div style={{ textAlign: "right" }}>
-        <div
-          style={{
-            color: PRIMARY,
-            fontSize: "22px",
-            fontWeight: 700,
-            textTransform: "uppercase",
-          }}
-        >
-          Proposta Comercial
+      <div style={{ position: "absolute", top: "25px", right: "40px", textAlign: "right", color: "#fff", zIndex: 10 }}>
+        <div style={{
+          fontFamily: "'Montserrat', sans-serif",
+          fontWeight: 800,
+          fontSize: "28px",
+          textTransform: "uppercase",
+          letterSpacing: "1px",
+          margin: "0 0 5px 0",
+        }}>
+          Proposta
         </div>
-        <div style={{ color: TEXT_LIGHT, marginTop: "5px", fontSize: "14px" }}>
+        <div style={{ fontSize: "13px", opacity: 0.9, fontWeight: 300, lineHeight: "1.6" }}>
           Nº: #{data.quoteNumber}
         </div>
-        <div style={{ color: TEXT_LIGHT, marginTop: "3px", fontSize: "14px" }}>
+        <div style={{ fontSize: "13px", opacity: 0.9, fontWeight: 300, lineHeight: "1.6" }}>
           Data: {data.date}
         </div>
       </div>
@@ -155,37 +140,33 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
   );
 }
 
-/* ─── Client Section ─── */
-function ClientSection({ company, contact }: { company: string; contact: string }) {
+/* ─── Client Bar ─── */
+function ClientBar({ company, contact }: { company: string; contact: string }) {
   return (
     <div
       style={{
-        background: LIGHT_BG,
-        padding: "20px",
-        borderRadius: "8px",
+        backgroundColor: "#f5f5f5",
+        borderLeft: `6px solid ${GREEN}`,
+        padding: "20px 25px",
+        display: "flex",
+        justifyContent: "space-between",
         marginBottom: "30px",
       }}
     >
-      <div
-        style={{
-          color: PRIMARY,
-          fontWeight: 700,
-          fontSize: "16px",
-          marginBottom: "10px",
-        }}
-      >
-        👤 Cliente
+      <div>
+        <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: GREEN, textTransform: "uppercase", margin: "0 0 5px 0" }}>
+          Empresa
+        </div>
+        <div style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{company}</div>
       </div>
-      <div style={{ color: TEXT, fontSize: "15px", lineHeight: "1.8" }}>
-        <span>
-          <strong>Empresa:</strong> {company}
-        </span>
-        {contact && (
-          <span style={{ display: "block" }}>
-            <strong>Contato:</strong> {contact}
-          </span>
-        )}
-      </div>
+      {contact && (
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: GREEN, textTransform: "uppercase", margin: "0 0 5px 0" }}>
+            Solicitante
+          </div>
+          <div style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{contact}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -196,11 +177,11 @@ function ProductsTable({ items }: { items: ProposalItem[] }) {
     <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px" }}>
       <thead>
         <tr>
-          <th style={{ ...thStyle, width: "40%", textAlign: "left" }}>Produto</th>
-          <th style={{ ...thStyle, width: "12%", textAlign: "center" }}>Qtd.</th>
-          <th style={{ ...thStyle, width: "16%", textAlign: "right" }}>Preço Unit.</th>
-          <th style={{ ...thStyle, width: "16%", textAlign: "right" }}>Adicional</th>
-          <th style={{ ...thStyle, width: "16%", textAlign: "right" }}>Total</th>
+          <th style={{ ...thStyle, textAlign: "center", width: "90px" }}>Foto</th>
+          <th style={{ ...thStyle, textAlign: "left" }}>Descrição do Produto</th>
+          <th style={{ ...thStyle, textAlign: "center", width: "55px" }}>Qtd.</th>
+          <th style={{ ...thStyle, textAlign: "right", width: "100px" }}>Unitário</th>
+          <th style={{ ...thStyle, textAlign: "right", width: "110px" }}>Total</th>
         </tr>
       </thead>
       <tbody>
@@ -213,7 +194,6 @@ function ProductsTable({ items }: { items: ProposalItem[] }) {
 }
 
 function ProductRow({ item }: { item: ProposalItem }) {
-  const setupCost = item.personalizations?.reduce((sum, p) => sum + (p.setup_cost || 0), 0) || 0;
   const persUnitCost = item.personalizations?.reduce((sum, p) => {
     const pTotal = p.total_cost || 0;
     return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
@@ -222,60 +202,89 @@ function ProductRow({ item }: { item: ProposalItem }) {
   const itemDiscount = item.discount || 0;
   const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
 
-  // Build gravação description
-  const gravacaoLines = item.personalizations?.map((p) => {
+  const gravacao = item.personalizations?.map((p) => {
     let s = p.technique_name;
-    if (p.material) s += ` | Material: ${p.material}`;
+    if (p.material) s += ` | ${p.material}`;
     return s;
-  }) || [];
+  }).join(", ");
 
   return (
-    <tr style={{ borderBottom: `1px solid ${BORDER}` }}>
-      {/* Produto */}
+    <tr style={{ borderBottom: "1px solid #f0f0f0" }}>
+      <td style={{ ...tdStyle, textAlign: "center", padding: "20px 8px", width: "90px" }}>
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            crossOrigin="anonymous"
+            style={{
+              width: "80px",
+              height: "80px",
+              objectFit: "contain",
+              borderRadius: "6px",
+              border: "1px solid #eee",
+              backgroundColor: "#fff",
+              padding: "4px",
+            }}
+          />
+        ) : (
+          <div style={{
+            width: "80px",
+            height: "80px",
+            backgroundColor: "#f5f5f5",
+            borderRadius: "6px",
+            border: "1px solid #eee",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto",
+          }}>
+            <span style={{ fontSize: "9px", color: "#bbb" }}>—</span>
+          </div>
+        )}
+      </td>
       <td style={{ ...tdStyle, verticalAlign: "top" }}>
-        <div style={{ color: PRIMARY, fontWeight: "bold", fontSize: "16px" }}>
+        <span style={{ fontWeight: 800, color: "#000", fontSize: "16px", display: "block", marginBottom: "6px" }}>
           {item.name}
-        </div>
+        </span>
         {item.sku && (
-          <div style={{ color: TEXT_MUTED, fontSize: "12px", marginTop: "3px" }}>
-            Ticket: #{item.sku}
-          </div>
+          <span style={{
+            background: "#f0f0f0",
+            color: "#555",
+            fontSize: "11px",
+            padding: "2px 6px",
+            borderRadius: "4px",
+            marginLeft: "0",
+            fontWeight: 600,
+          }}>
+            #{item.sku}
+          </span>
         )}
-        <div style={{ color: TEXT_LIGHT, fontSize: "13px", marginTop: "5px", lineHeight: "1.6" }}>
-          {item.description && <span>{item.description}<br /></span>}
-          {gravacaoLines.length > 0 && (
-            <span><strong>Gravação:</strong> {gravacaoLines.join(", ")}</span>
-          )}
-          {!gravacaoLines.length && item.color && (
-            <span><strong>Cor:</strong> {item.color}</span>
-          )}
-        </div>
+        {item.description && (
+          <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "6px", lineHeight: "1.5", maxWidth: "450px" }}>
+            {item.description}
+          </span>
+        )}
+        {gravacao && (
+          <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "4px", lineHeight: "1.5" }}>
+            Gravação: {gravacao}
+          </span>
+        )}
+        {!gravacao && item.color && (
+          <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "4px" }}>
+            Cor: {item.color}
+          </span>
+        )}
       </td>
-
-      {/* Qtd */}
-      <td style={{ ...tdStyle, textAlign: "center", fontWeight: 700, fontSize: "15px" }}>
-        {item.quantity}
-      </td>
-
-      {/* Preço Unit */}
-      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 600, fontSize: "15px" }}>
-        {fmt(allInUnitPrice)}
+      <td style={{ ...tdStyle, textAlign: "center", fontWeight: 700, fontSize: "15px" }}>{item.quantity}</td>
+      <td style={{ ...tdStyle, textAlign: "right" }}>
+        <span style={{ fontSize: "15px", fontWeight: 500 }}>{fmt(allInUnitPrice)}</span>
         {itemDiscount > 0 && (
-          <div style={{ fontSize: "11px", color: TEXT_MUTED, marginTop: "3px" }}>
+          <span style={{ display: "block", fontSize: "12px", color: "#888", marginTop: "4px" }}>
             (Desc: {fmt(itemDiscount)})
-          </div>
+          </span>
         )}
       </td>
-
-      {/* Adicional (Setup) */}
-      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 600, fontSize: "15px" }}>
-        {fmt(setupCost)}
-      </td>
-
-      {/* Total */}
-      <td style={{ ...tdStyle, textAlign: "right", fontWeight: "bold", fontSize: "16px", color: PRIMARY }}>
-        {fmt(total)}
-      </td>
+      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 800, fontSize: "16px", color: DARK }}>{fmt(total)}</td>
     </tr>
   );
 }
@@ -283,32 +292,59 @@ function ProductRow({ item }: { item: ProposalItem }) {
 /* ─── Totals ─── */
 function TotalsSection({ data }: { data: ProposalTemplateData }) {
   return (
-    <div
-      style={{
-        background: PRIMARY,
-        color: "#fff",
-        padding: "20px 30px",
-        borderRadius: "8px",
-        textAlign: "right",
-        marginBottom: "30px",
-      }}
-    >
-      {data.shippingCost != null && data.shippingCost > 0 && (
-        <div style={{ opacity: 0.8, fontSize: "14px", marginBottom: "5px" }}>
-          Frete: {fmt(data.shippingCost)}
+    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
+      <div style={{ width: "350px" }}>
+        <div style={totalsRowStyle}>
+          <span>Subtotal:</span>
+          <span style={{ fontWeight: 500 }}>{fmt(data.subtotal)}</span>
         </div>
-      )}
-      {data.discount != null && data.discount > 0 && (
-        <div style={{ opacity: 0.8, fontSize: "14px", marginBottom: "5px" }}>
-          Desconto: - {fmt(data.discount)}
+        <div style={totalsRowStyle}>
+          <span>Frete:</span>
+          <span style={{ fontWeight: 500 }}>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
         </div>
-      )}
-      <div style={{ opacity: 0.8, fontSize: "14px", marginBottom: "5px" }}>
-        TOTAL GERAL
+        {data.discount && data.discount > 0 && (
+          <div style={totalsRowStyle}>
+            <span>Desconto Global:</span>
+            <span style={{ fontWeight: 500 }}>- {fmt(data.discount)}</span>
+          </div>
+        )}
+        <div
+          style={{
+            backgroundColor: GREEN,
+            color: "#fff",
+            padding: "15px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "15px",
+            borderRadius: "6px",
+            boxShadow: "0 4px 10px rgba(0,200,83, 0.2)",
+          }}
+        >
+          <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, textTransform: "uppercase", fontSize: "15px" }}>
+            Valor Total:
+          </span>
+          <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "24px" }}>
+            {fmt(data.total)}
+          </strong>
+        </div>
       </div>
-      <div style={{ fontSize: "28px", fontWeight: 800 }}>
-        {fmt(data.total)}
+    </div>
+  );
+}
+
+/* ─── Notes ─── */
+function NotesSection({ data }: { data: ProposalTemplateData }) {
+  return (
+    <div style={{ marginTop: "50px", fontSize: "12px", color: "#666", lineHeight: "1.6", borderTop: "1px solid #eee", paddingTop: "20px" }}>
+      <div style={{ fontWeight: 700, fontSize: "13px", color: "#333", marginBottom: "8px" }}>
+        Informações Relevantes:
       </div>
+      <div>- Todos os valores são para produtos já personalizados conforme descrição.</div>
+      <div>- {data.paymentTerms || "Pagamento: À vista / Boleto / Pix (após a entrega)."}</div>
+      <div>- Todos produtos passam por controle de qualidade.</div>
+      {data.deliveryTime && <div>- Previsão de Entrega: {data.deliveryTime}.</div>}
+      {data.validUntil && <div>- Validade da Proposta: {data.validUntil}.</div>}
     </div>
   );
 }
@@ -316,43 +352,94 @@ function TotalsSection({ data }: { data: ProposalTemplateData }) {
 /* ─── Footer ─── */
 function FooterSection({ data }: { data: ProposalTemplateData }) {
   return (
-    <div style={{ marginTop: "auto", textAlign: "center", color: TEXT_MUTED, fontSize: "13px", lineHeight: "1.8" }}>
-      <div>
-        {data.validUntil
-          ? `Proposta válida até ${data.validUntil}`
-          : "Proposta válida por 15 dias"}{" "}
-        | Condições sujeitas a alteração
+    <div style={{ position: "relative", width: "794px", height: "220px", marginTop: "auto" }}>
+      {/* Left side: contact info */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "380px", zIndex: 10, padding: "15px 0 0 50px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "12px", flexWrap: "wrap" }}>
+          <ContactDot color={DARK} text={data.seller.phone || "00-00000-0000"} />
+          <ContactDot color={GREEN} text="promobrindes.com" />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "12px" }}>
+          <ContactDot color={GREEN} text="comercial01@gmail.com" />
+        </div>
+
+        <div style={{ fontSize: "11px", fontWeight: 600, color: "#555", lineHeight: "1.5", marginBottom: "6px" }}>
+          CNPJ: 36.835.552/0001-67<br />
+          Razão Social: Brasil Marcas Industria e Comercio de Brindes LTDA.
+        </div>
+
+        <div style={{
+          fontFamily: "'Montserrat', sans-serif",
+          fontSize: "14px",
+          fontWeight: 700,
+          color: BLUE,
+          fontStyle: "italic",
+        }}>
+          adm01@promobrindes.com.br
+        </div>
       </div>
-      {data.paymentTerms && (
-        <div>{data.paymentTerms}</div>
-      )}
-      {data.deliveryTime && (
-        <div>Previsão de Entrega: {data.deliveryTime}</div>
-      )}
-      <div style={{ marginTop: "10px" }}>
-        Vendedor: {data.seller.name}
-        {data.seller.phone && ` | ${data.seller.phone}`}
-        {data.seller.email && ` | ${data.seller.email}`}
-      </div>
-      <div style={{ marginTop: "8px", fontSize: "12px" }}>
-        © {new Date().getFullYear()} - Promo Brindes
+
+      {/* Right side: SVG background + seller signature */}
+      <svg width="794" height="220" viewBox="0 0 794 220" style={{ position: "absolute", top: 0, left: 0 }}>
+        <polygon points="400,220 425,30 455,30 430,220" fill="#e0e0e0" />
+        <polygon points="430,220 455,30 495,30 470,220" fill={GREEN} />
+        <polygon points="490,80 794,80 794,160 460,160" fill={DARK} />
+        <rect x="510" y="160" width="284" height="60" fill={GREEN} />
+        <polygon points="510,160 535,160 510,195" fill={GREEN_DARK} />
+      </svg>
+
+      {/* Seller signature - positioned over the dark bar */}
+      <div style={{ position: "absolute", top: "70px", right: "50px", textAlign: "center", zIndex: 10 }}>
+        <div style={{
+          fontFamily: "'Sacramento', cursive",
+          fontSize: "34px",
+          color: "#fff",
+          marginBottom: "-5px",
+          transform: "rotate(-3deg)",
+        }}>
+          {data.seller.name}
+        </div>
+        <div style={{ fontWeight: 800, fontSize: "12px", textTransform: "uppercase", marginTop: "5px", color: "#fff" }}>
+          {data.seller.name}
+        </div>
+        <div style={{ width: "180px", height: "1px", backgroundColor: "#fff", margin: "2px auto" }} />
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.8)" }}>Executivo de Vendas</div>
       </div>
     </div>
   );
 }
 
-/* ─── Styles ─── */
+function ContactDot({ color, text }: { color: string; text: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "#333" }}>
+      <div style={{ width: "14px", height: "14px", borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
+      <span>{text}</span>
+    </div>
+  );
+}
+
 const thStyle: React.CSSProperties = {
-  backgroundColor: PRIMARY,
+  backgroundColor: GREEN,
   color: "#fff",
-  padding: "15px 10px",
-  fontWeight: 600,
-  fontSize: "14px",
+  padding: "15px 12px",
+  fontSize: "13px",
+  fontFamily: "'Montserrat', sans-serif",
+  fontWeight: 700,
+  textTransform: "uppercase",
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: "15px 10px",
+  padding: "20px 12px",
   fontSize: "15px",
-  color: TEXT,
+  color: "#333",
   verticalAlign: "middle",
+};
+
+const totalsRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  padding: "8px 0",
+  fontSize: "14px",
+  color: "#555",
+  borderBottom: "1px solid #fafafa",
 };
