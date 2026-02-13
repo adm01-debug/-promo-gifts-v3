@@ -1512,19 +1512,50 @@
   }
 }
 
-/* Print Styles for Accessibility */
+/* Print Styles */
 @media print {
-  .sr-only {
-    position: static !important;
-    width: auto !important;
-    height: auto !important;
-    clip: auto !important;
-    white-space: normal !important;
+  /* Hide all layout chrome */
+  header, nav, aside,
+  .fixed, [role="navigation"],
+  .print\\:hidden {
+    display: none !important;
   }
-  
+
+  /* Reset layout for print */
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove flex layout constraints */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  .flex-1 {
+    padding: 0 !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  /* Show print-only content */
+  .print\\:block {
+    display: block !important;
+  }
+
+  /* Hide links suffix for print template */
   a[href]::after {
-    content: " (" attr(href) ")";
-    font-size: 0.8em;
-    color: #666;
+    content: none !important;
+  }
+
+  /* Ensure page fits */
+  @page {
+    margin: 0;
+    size: A4;
   }
 }
