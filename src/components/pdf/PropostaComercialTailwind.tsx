@@ -13,7 +13,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
     return (
       <div
         ref={ref}
-        className="bg-white text-[#333] relative flex flex-col"
+        className="bg-white text-[#333] relative flex flex-col overflow-hidden"
         style={{
           width: "794px",
           height: "1123px",
