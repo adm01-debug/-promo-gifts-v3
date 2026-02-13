@@ -27,9 +27,27 @@ function cleanScrollLockResiduals() {
     el.style.marginRight = '';
     el.style.paddingRight = '';
     el.style.position = '';
+    // Fix inline pointer-events
     if ((el as HTMLElement).style.pointerEvents === 'none') {
       (el as HTMLElement).style.pointerEvents = '';
     }
+    // Fix computed pointer-events (set by classes like block-interactivity-N)
+    const computed = window.getComputedStyle(el);
+    if (computed.pointerEvents === 'none') {
+      (el as HTMLElement).style.pointerEvents = 'auto';
+    }
+  }
+
+  // Remove react-remove-scroll "block-interactivity-*" classes from body
+  // These set pointer-events: none via <style> tag, not inline styles
+  const toRemove: string[] = [];
+  document.body.classList.forEach(cls => {
+    if (cls.startsWith('block-interactivity-')) {
+      toRemove.push(cls);
+    }
+  });
+  if (toRemove.length > 0) {
+    toRemove.forEach(cls => document.body.classList.remove(cls));
   }
 }
 
