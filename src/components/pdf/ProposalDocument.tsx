@@ -502,7 +502,7 @@ export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
         <View style={s.headerRow}>
           <View style={s.brandBlock}>
             <View style={s.brandIcon}>
-              <Text style={s.brandIconText}>🎁</Text>
+              <Text style={s.brandIconText}>PB</Text>
             </View>
             <View>
               <Text style={s.brandName}>Promo Brindes</Text>
@@ -569,9 +569,9 @@ export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
                 <View style={{ marginTop: 4 }}>
                   {item.personalizations.map((p, pIdx) => (
                     <View key={pIdx} style={s.techBadge}>
-                      <Text style={s.techText}>◇ {p.technique_name}</Text>
+                      <Text style={s.techText}>- {p.technique_name}</Text>
                       {p.material && (
-                        <Text style={s.materialText}>▪ {p.material}</Text>
+                        <Text style={s.materialText}>| {p.material}</Text>
                       )}
                       {p.colors_count && p.colors_count > 1 && (
                         <Text style={s.materialText}>({p.colors_count} cores)</Text>
@@ -583,7 +583,7 @@ export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
               {/* Fallback: legacy personalization_type */}
               {(!item.personalizations || item.personalizations.length === 0) && item.color && (
                 <View style={s.techBadge}>
-                  <Text style={s.materialText}>▪ {item.color}</Text>
+                  <Text style={s.materialText}>| {item.color}</Text>
                 </View>
               )}
             </View>
@@ -596,7 +596,7 @@ export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
             
             {/* Discount */}
             <Text style={[item.discount ? s.discountText : s.cellText, s.colDiscount]}>
-              {item.discount ? `-${fmt(item.discount)}` : "—"}
+              {item.discount ? `-${fmt(item.discount)}` : "-"}
             </Text>
             
             {/* Total */}
@@ -616,17 +616,17 @@ export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
             )}
             <Text style={s.conditionsTitle}>Informações Relevantes</Text>
             <View style={s.conditionRow}>
-              <Text style={s.conditionIcon}>✅</Text>
+              <Text style={s.conditionIcon}>•</Text>
               <Text style={s.conditionText}>Valores incluem personalização completa</Text>
             </View>
             {data.paymentTerms && (
               <View style={s.conditionRow}>
-                <Text style={s.conditionIcon}>💳</Text>
+                <Text style={s.conditionIcon}>•</Text>
                 <Text style={s.conditionText}>{data.paymentTerms}</Text>
               </View>
             )}
             <View style={s.conditionRow}>
-              <Text style={s.conditionIcon}>🔍</Text>
+              <Text style={s.conditionIcon}>•</Text>
               <Text style={s.conditionText}>Todos os produtos passam por controle de qualidade</Text>
             </View>
           </View>
@@ -641,7 +641,7 @@ export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
             <View style={s.totalRow}>
               <Text style={s.totalLabel}>Frete</Text>
               <Text style={s.totalValue}>
-                {data.shippingCost ? fmt(data.shippingCost) : "✓ Cortesia"}
+                {data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}
               </Text>
             </View>
 
@@ -678,15 +678,15 @@ export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
         {/* ── TRUST BADGES ── */}
         <View style={s.trustRow}>
           <View style={s.trustBadge}>
-            <Text style={s.conditionIcon}>✅</Text>
+            <Text style={s.conditionIcon}>+</Text>
             <Text style={s.trustText}>+500 empresas atendidas</Text>
           </View>
           <View style={s.trustBadge}>
-            <Text style={s.conditionIcon}>⭐</Text>
-            <Text style={s.trustText}>Referência em brindes corporativos</Text>
+            <Text style={s.conditionIcon}>*</Text>
+            <Text style={s.trustText}>Referencia em brindes corporativos</Text>
           </View>
           <View style={s.trustBadge}>
-            <Text style={s.conditionIcon}>🛡️</Text>
+            <Text style={s.conditionIcon}>+</Text>
             <Text style={s.trustText}>Garantia de qualidade</Text>
           </View>
         </View>
