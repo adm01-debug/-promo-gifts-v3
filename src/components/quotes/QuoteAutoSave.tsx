@@ -193,9 +193,25 @@ export function QuoteAutoSave({
   };
 
   const handleDiscard = () => {
+    // Remove main draft key
     localStorage.removeItem(storageKey);
+    
+    // Remove all version keys (_v*)
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(storageKey + "_v")) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
+    
+    // Reset state so auto-save doesn't immediately re-save
+    initialDataRef.current = JSON.stringify(data);
     setAvailableDraft(null);
     setShowRestorePrompt(false);
+    setStatus("idle");
+    setHasChanges(false);
   };
 
   const getStatusIcon = () => {
