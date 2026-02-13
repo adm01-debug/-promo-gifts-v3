@@ -177,11 +177,12 @@ function ProductsTable({ items }: { items: ProposalItem[] }) {
     <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "30px" }}>
       <thead>
         <tr>
-          <th style={{ ...thStyle, textAlign: "center", width: "90px" }}>Foto</th>
+          <th style={{ ...thStyle, textAlign: "center", width: "80px" }}>Foto</th>
           <th style={{ ...thStyle, textAlign: "left" }}>Descrição do Produto</th>
-          <th style={{ ...thStyle, textAlign: "center", width: "55px" }}>Qtd.</th>
-          <th style={{ ...thStyle, textAlign: "right", width: "100px" }}>Unitário</th>
-          <th style={{ ...thStyle, textAlign: "right", width: "110px" }}>Total</th>
+          <th style={{ ...thStyle, textAlign: "center", width: "50px" }}>Qtd.</th>
+          <th style={{ ...thStyle, textAlign: "right", width: "90px" }}>Unitário</th>
+          <th style={{ ...thStyle, textAlign: "right", width: "80px" }}>Setup</th>
+          <th style={{ ...thStyle, textAlign: "right", width: "100px" }}>Total</th>
         </tr>
       </thead>
       <tbody>
@@ -198,6 +199,7 @@ function ProductRow({ item }: { item: ProposalItem }) {
     const pTotal = p.total_cost || 0;
     return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
   }, 0) || 0;
+  const setupCost = item.personalizations?.reduce((sum, p) => sum + (p.setup_cost || 0), 0) || 0;
   const allInUnitPrice = item.unitPrice + persUnitCost;
   const itemDiscount = item.discount || 0;
   const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
@@ -210,15 +212,15 @@ function ProductRow({ item }: { item: ProposalItem }) {
 
   return (
     <tr style={{ borderBottom: "1px solid #f0f0f0" }}>
-      <td style={{ ...tdStyle, textAlign: "center", padding: "20px 8px", width: "90px" }}>
+      <td style={{ ...tdStyle, textAlign: "center", padding: "20px 8px", width: "80px" }}>
         {item.imageUrl ? (
           <img
             src={item.imageUrl}
             alt={item.name}
             crossOrigin="anonymous"
             style={{
-              width: "80px",
-              height: "80px",
+              width: "70px",
+              height: "70px",
               objectFit: "contain",
               borderRadius: "6px",
               border: "1px solid #eee",
@@ -228,8 +230,8 @@ function ProductRow({ item }: { item: ProposalItem }) {
           />
         ) : (
           <div style={{
-            width: "80px",
-            height: "80px",
+            width: "70px",
+            height: "70px",
             backgroundColor: "#f5f5f5",
             borderRadius: "6px",
             border: "1px solid #eee",
@@ -243,7 +245,7 @@ function ProductRow({ item }: { item: ProposalItem }) {
         )}
       </td>
       <td style={{ ...tdStyle, verticalAlign: "top" }}>
-        <span style={{ fontWeight: 800, color: "#000", fontSize: "16px", display: "block", marginBottom: "6px" }}>
+        <span style={{ fontWeight: 800, color: "#000", fontSize: "15px", display: "block", marginBottom: "6px" }}>
           {item.name}
         </span>
         {item.sku && (
@@ -260,31 +262,34 @@ function ProductRow({ item }: { item: ProposalItem }) {
           </span>
         )}
         {item.description && (
-          <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "6px", lineHeight: "1.5", maxWidth: "450px" }}>
+          <span style={{ display: "block", fontSize: "12px", color: "#555", marginTop: "6px", lineHeight: "1.5", maxWidth: "350px" }}>
             {item.description}
           </span>
         )}
         {gravacao && (
-          <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "4px", lineHeight: "1.5" }}>
+          <span style={{ display: "block", fontSize: "12px", color: "#555", marginTop: "4px", lineHeight: "1.5" }}>
             Gravação: {gravacao}
           </span>
         )}
         {!gravacao && item.color && (
-          <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "4px" }}>
+          <span style={{ display: "block", fontSize: "12px", color: "#555", marginTop: "4px" }}>
             Cor: {item.color}
           </span>
         )}
       </td>
-      <td style={{ ...tdStyle, textAlign: "center", fontWeight: 700, fontSize: "15px" }}>{item.quantity}</td>
+      <td style={{ ...tdStyle, textAlign: "center", fontWeight: 700, fontSize: "14px" }}>{item.quantity}</td>
       <td style={{ ...tdStyle, textAlign: "right" }}>
-        <span style={{ fontSize: "15px", fontWeight: 500 }}>{fmt(allInUnitPrice)}</span>
+        <span style={{ fontSize: "14px", fontWeight: 500 }}>{fmt(allInUnitPrice)}</span>
         {itemDiscount > 0 && (
-          <span style={{ display: "block", fontSize: "12px", color: "#888", marginTop: "4px" }}>
+          <span style={{ display: "block", fontSize: "11px", color: "#888", marginTop: "4px" }}>
             (Desc: {fmt(itemDiscount)})
           </span>
         )}
       </td>
-      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 800, fontSize: "16px", color: DARK }}>{fmt(total)}</td>
+      <td style={{ ...tdStyle, textAlign: "right" }}>
+        <span style={{ fontSize: "14px", fontWeight: 500 }}>{fmt(setupCost)}</span>
+      </td>
+      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 800, fontSize: "15px", color: DARK }}>{fmt(total)}</td>
     </tr>
   );
 }
