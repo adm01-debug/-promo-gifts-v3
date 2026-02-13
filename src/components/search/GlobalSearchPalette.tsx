@@ -576,26 +576,24 @@ export function GlobalSearchPalette() {
       }
 
       if (intent.type === 'quote' || intent.type === 'mixed') {
-        let quoteQuery = supabase
-          .from("quotes")
-          .select("id, quote_number, status, total, client:bitrix_clients(name)");
+        try {
+          const { selectCrm } = await import("@/lib/crm-db");
+          const filters: Record<string, unknown> = {};
+          if (intent.filters.status) {
+            filters.status = intent.filters.status;
+          }
 
-        if (intent.filters.status) {
-          quoteQuery = quoteQuery.eq("status", intent.filters.status as any);
-        }
+          const quotes = await selectCrm<any>("quotes", {
+            filters,
+            orderBy: { column: "created_at", ascending: false },
+            limit: 5,
+          });
 
-        if (intent.filters.clientName) {
-          // Filter by client name in the result
-        }
-
-        const { data: quotes } = await quoteQuery.limit(5);
-
-        if (quotes) {
-          let filteredQuotes = quotes;
+          let filteredQuotes = quotes || [];
           if (intent.filters.clientName) {
             const clientNameLower = intent.filters.clientName.toLowerCase();
-            filteredQuotes = quotes.filter((q: any) => 
-              q.client?.name?.toLowerCase().includes(clientNameLower)
+            filteredQuotes = filteredQuotes.filter((q: any) => 
+              q.client_name?.toLowerCase().includes(clientNameLower)
             );
           }
 
@@ -603,11 +601,13 @@ export function GlobalSearchPalette() {
             allResults.push({
               id: q.id,
               title: q.quote_number,
-              subtitle: `${q.client?.name || "Sem cliente"} • ${q.status} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(q.total || 0)}`,
+              subtitle: `${q.client_name || "Sem cliente"} • ${q.status} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(q.total || 0)}`,
               type: "quote",
               href: `/orcamentos/${q.id}`,
             });
           });
+        } catch (err) {
+          console.error("Error searching quotes in CRM:", err);
         }
       }
 

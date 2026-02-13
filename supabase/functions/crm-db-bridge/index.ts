@@ -17,11 +17,18 @@ const ALLOWED_TABLES = [
   "customers",
   "suppliers",
   "carriers",
+  // Quote tables
+  "quotes",
+  "quote_items",
+  "quote_item_personalizations",
+  "quote_history",
+  "quote_approval_tokens",
+  "quote_templates",
 ];
 
 interface CrmQuery {
   table: string;
-  operation: "select" | "search";
+  operation: "select" | "search" | "insert" | "update" | "delete";
   id?: string;
   filters?: Record<string, unknown>;
   select?: string;
@@ -29,8 +36,10 @@ interface CrmQuery {
   limit?: number;
   offset?: number;
   search?: { column: string; term: string };
-  // Para joins simples
   relations?: string;
+  // Write operations
+  data?: Record<string, unknown> | Record<string, unknown>[];
+  returning?: string;
 }
 
 Deno.serve(async (req) => {
@@ -51,7 +60,7 @@ Deno.serve(async (req) => {
 
     const crm = createClient(CRM_URL, CRM_KEY);
     const body: CrmQuery = await req.json();
-    const { table, operation, id, filters, select, orderBy, limit, offset, search, relations } = body;
+    const { table, operation, id, filters, select, orderBy, limit, offset, search, relations, data, returning } = body;
 
     // Validar tabela
     if (!ALLOWED_TABLES.includes(table)) {
@@ -61,11 +70,125 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ===== INSERT =====
+    if (operation === "insert") {
+      if (!data) {
+        return new Response(
+          JSON.stringify({ error: "Insert requires 'data' field" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      let query = crm.from(table).insert(data as any).select(returning || "*");
+
+      const { data: result, error } = await query;
+
+      if (error) {
+        console.error("CRM insert error:", error);
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ data: result, count: result?.length || 0 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ===== UPDATE =====
+    if (operation === "update") {
+      if (!data) {
+        return new Response(
+          JSON.stringify({ error: "Update requires 'data' field" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      let query = crm.from(table).update(data as any);
+
+      // Apply filters
+      if (id) {
+        query = query.eq("id", id);
+      } else if (filters) {
+        for (const [key, value] of Object.entries(filters)) {
+          if (value === null) {
+            query = query.is(key, null);
+          } else if (typeof value === "object" && value !== null) {
+            const filterObj = value as Record<string, unknown>;
+            if ("eq" in filterObj) query = query.eq(key, filterObj.eq);
+            if ("in" in filterObj) query = query.in(key, filterObj.in as unknown[]);
+            if ("neq" in filterObj) query = query.neq(key, filterObj.neq as string);
+          } else {
+            query = query.eq(key, value);
+          }
+        }
+      }
+
+      const { data: result, error } = await query.select(returning || "*");
+
+      if (error) {
+        console.error("CRM update error:", error);
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ data: result, count: result?.length || 0 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ===== DELETE =====
+    if (operation === "delete") {
+      let query = crm.from(table).delete();
+
+      // Apply filters
+      if (id) {
+        query = query.eq("id", id);
+      } else if (filters) {
+        for (const [key, value] of Object.entries(filters)) {
+          if (value === null) {
+            query = query.is(key, null);
+          } else if (typeof value === "object" && value !== null) {
+            const filterObj = value as Record<string, unknown>;
+            if ("eq" in filterObj) query = query.eq(key, filterObj.eq);
+            if ("in" in filterObj) query = query.in(key, filterObj.in as unknown[]);
+          } else {
+            query = query.eq(key, value);
+          }
+        }
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Delete requires 'id' or 'filters' to prevent mass deletion" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error } = await query;
+
+      if (error) {
+        console.error("CRM delete error:", error);
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ data: null, success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // ===== SELECT =====
     if (operation === "select") {
       const selectFields = select || (relations ? `${select || "*"}, ${relations}` : "*");
       let query = crm.from(table).select(selectFields);
 
-      // Busca por ID
       if (id) {
         const { data, error } = await query.eq("id", id).single();
         if (error) {
@@ -80,7 +203,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Filtros
       if (filters) {
         for (const [key, value] of Object.entries(filters)) {
           if (value === null) {
@@ -102,12 +224,10 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Busca textual
       if (search) {
         query = query.ilike(search.column, `%${search.term}%`);
       }
 
-      // Ordenação
       if (orderBy) {
         if (typeof orderBy === "string") {
           query = query.order(orderBy);
@@ -116,7 +236,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Paginação
       if (limit) query = query.limit(limit);
       if (offset) query = query.range(offset, offset + (limit || 50) - 1);
 
@@ -135,6 +254,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // ===== SEARCH =====
     if (operation === "search") {
       if (!search?.column || !search?.term) {
         return new Response(
@@ -171,7 +291,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ error: `Operation '${operation}' not supported. Use 'select' or 'search'.` }),
+      JSON.stringify({ error: `Operation '${operation}' not supported.` }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

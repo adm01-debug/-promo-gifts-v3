@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface CrmQuery {
   table: string;
-  operation: "select" | "search";
+  operation: "select" | "search" | "insert" | "update" | "delete";
   id?: string;
   filters?: Record<string, unknown>;
   select?: string;
@@ -18,6 +18,8 @@ export interface CrmQuery {
   offset?: number;
   search?: { column: string; term: string };
   relations?: string;
+  data?: Record<string, unknown> | Record<string, unknown>[];
+  returning?: string;
 }
 
 export interface CrmResponse<T> {
@@ -110,4 +112,87 @@ export async function searchCrm<T>(
     ...options,
   });
   return result.data || [];
+}
+
+/**
+ * INSERT no CRM
+ */
+export async function insertCrm<T>(
+  table: string,
+  data: Record<string, unknown> | Record<string, unknown>[],
+  returning?: string
+): Promise<T[]> {
+  const result = await invokeCrmDb<T[]>({
+    table,
+    operation: "insert",
+    data,
+    returning,
+  });
+  return result.data || [];
+}
+
+/**
+ * UPDATE no CRM
+ */
+export async function updateCrm<T>(
+  table: string,
+  id: string,
+  data: Record<string, unknown>,
+  returning?: string
+): Promise<T[]> {
+  const result = await invokeCrmDb<T[]>({
+    table,
+    operation: "update",
+    id,
+    data,
+    returning,
+  });
+  return result.data || [];
+}
+
+/**
+ * UPDATE no CRM com filtros
+ */
+export async function updateCrmByFilter<T>(
+  table: string,
+  filters: Record<string, unknown>,
+  data: Record<string, unknown>,
+  returning?: string
+): Promise<T[]> {
+  const result = await invokeCrmDb<T[]>({
+    table,
+    operation: "update",
+    filters,
+    data,
+    returning,
+  });
+  return result.data || [];
+}
+
+/**
+ * DELETE no CRM
+ */
+export async function deleteCrm(
+  table: string,
+  id: string
+): Promise<void> {
+  await invokeCrmDb({
+    table,
+    operation: "delete",
+    id,
+  });
+}
+
+/**
+ * DELETE no CRM com filtros
+ */
+export async function deleteCrmByFilter(
+  table: string,
+  filters: Record<string, unknown>
+): Promise<void> {
+  await invokeCrmDb({
+    table,
+    operation: "delete",
+    filters,
+  });
 }
