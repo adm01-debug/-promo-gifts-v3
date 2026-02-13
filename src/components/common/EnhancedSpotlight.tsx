@@ -78,16 +78,6 @@ export function EnhancedSpotlight() {
         isQuickAction: true,
       },
       {
-        id: "new-order",
-        title: "Novo Pedido",
-        description: "Registrar novo pedido",
-        icon: <ShoppingCart className="h-4 w-4" />,
-        action: () => navigate("/pedidos"),
-        category: "Ações Rápidas",
-        shortcut: "P",
-        isQuickAction: true,
-      },
-      {
         id: "mockup-quick",
         title: "Gerar Mockup",
         description: "Criar mockup com logo",
@@ -112,14 +102,6 @@ export function EnhancedSpotlight() {
         description: "Gerenciar todos os orçamentos",
         icon: <FileText className="h-4 w-4" />,
         action: () => navigate("/orcamentos"),
-        category: "Navegação",
-      },
-      {
-        id: "orders",
-        title: "Pedidos",
-        description: "Acompanhar pedidos",
-        icon: <ShoppingBag className="h-4 w-4" />,
-        action: () => navigate("/pedidos"),
         category: "Navegação",
       },
       {

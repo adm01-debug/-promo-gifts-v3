@@ -122,40 +122,8 @@ export function useClientFuzzySearch<T extends ClientSearchItem>(
 /**
  * Hook para busca fuzzy de pedidos
  */
-export interface OrderSearchItem {
-  id: string;
-  order_number: string;
-  client?: { name: string } | null;
-  notes?: string | null;
-}
 
-export function useOrderFuzzySearch<T extends OrderSearchItem>(
-  orders: T[],
-  query: string
-): { results: T[]; hasSearch: boolean } {
-  // Pré-processar para incluir nome do cliente como campo plano
-  const enrichedOrders = useMemo(() => 
-    orders.map(o => ({
-      ...o,
-      client_name: o.client?.name || '',
-    })),
-    [orders]
-  );
 
-  const { results, hasSearch } = useGenericFuzzySearch(enrichedOrders, query, [
-    { name: 'order_number' as keyof typeof enrichedOrders[0], weight: 0.5 },
-    { name: 'client_name' as keyof typeof enrichedOrders[0], weight: 0.4 },
-    { name: 'notes' as keyof typeof enrichedOrders[0], weight: 0.1 },
-  ]);
-
-  // Mapear de volta para tipo original (sem client_name extra)
-  const originalResults = useMemo(() => 
-    results.map(({ client_name, ...rest }) => rest as unknown as T),
-    [results]
-  );
-
-  return { results: originalResults, hasSearch };
-}
 
 /**
  * Hook para busca fuzzy de orçamentos

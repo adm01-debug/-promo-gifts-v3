@@ -47,10 +47,6 @@ const QuoteBuilderPage = lazyWithRetry(() => import("./pages/QuoteBuilderPage"))
 const QuoteViewPage = lazyWithRetry(() => import("./pages/QuoteViewPage"));
 const QuotesKanbanPage = lazyWithRetry(() => import("./pages/QuotesKanbanPage"));
 
-// Order Pages
-const OrdersListPage = lazyWithRetry(() => import("./pages/OrdersListPage"));
-const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
-
 // Admin Pages
 const AdminPanel = lazyWithRetry(() => import("./pages/AdminPanel"));
 const ProductRegistrationPage = lazyWithRetry(() => import("./pages/ProductRegistrationPage"));
@@ -163,10 +159,6 @@ const App = () => {
                                         <Route path="/orcamentos/novo" element={<QuoteBuilderPage />} />
                                         <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
                                         <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
-
-                                        {/* Orders */}
-                                        <Route path="/pedidos" element={<OrdersListPage />} />
-                                        <Route path="/pedidos/:id" element={<OrderDetailPage />} />
 
                                         {/* Admin */}
                                         <Route path="/configuracoes" element={<Navigate to="/admin" replace />} />
