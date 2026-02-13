@@ -149,11 +149,12 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
+                  <th style={{ ...thStyle, textAlign: "center", width: "70px" }}>Foto</th>
                   <th style={{ ...thStyle, textAlign: "left" }}>Descrição</th>
-                  <th style={{ ...thStyle, textAlign: "center", width: "55px" }}>Qtd.</th>
-                  <th style={{ ...thStyle, textAlign: "right", width: "90px" }}>Unitário</th>
-                  <th style={{ ...thStyle, textAlign: "right", width: "90px" }}>Desconto</th>
-                  <th style={{ ...thStyle, textAlign: "right", width: "100px" }}>Total</th>
+                  <th style={{ ...thStyle, textAlign: "center", width: "50px" }}>Qtd.</th>
+                  <th style={{ ...thStyle, textAlign: "right", width: "85px" }}>Unitário</th>
+                  <th style={{ ...thStyle, textAlign: "right", width: "85px" }}>Desconto</th>
+                  <th style={{ ...thStyle, textAlign: "right", width: "95px" }}>Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -175,8 +176,39 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
 
                   return (
                     <tr key={idx} style={{ backgroundColor: idx % 2 === 1 ? "#fafafa" : "#fff" }}>
+                      <td style={{ ...tdStyle, textAlign: "center", padding: "6px", width: "70px" }}>
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            crossOrigin="anonymous"
+                            style={{
+                              width: "60px",
+                              height: "60px",
+                              objectFit: "contain",
+                              borderRadius: "4px",
+                              border: "1px solid #eee",
+                              backgroundColor: "#fff",
+                            }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: "60px",
+                            height: "60px",
+                            backgroundColor: "#f5f5f5",
+                            borderRadius: "4px",
+                            border: "1px solid #eee",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            margin: "0 auto",
+                          }}>
+                            <span style={{ fontSize: "9px", color: "#bbb" }}>Sem foto</span>
+                          </div>
+                        )}
+                      </td>
                       <td style={tdStyle}>
-                        <strong style={{ display: "inline", fontSize: "14px", color: "#222" }}>{item.name}</strong>
+                        <strong style={{ display: "inline", fontSize: "13px", color: "#222" }}>{item.name}</strong>
                         {item.sku && (
                           <span style={{
                             fontFamily: "'Courier New', monospace",
@@ -191,17 +223,17 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
                           </span>
                         )}
                         {item.description && (
-                          <span style={{ display: "block", fontSize: "11px", color: "#666", marginTop: "4px", lineHeight: "1.4" }}>
+                          <span style={{ display: "block", fontSize: "11px", color: "#666", marginTop: "3px", lineHeight: "1.4" }}>
                             {item.description}
                           </span>
                         )}
                         {gravacao && (
-                          <span style={{ display: "block", fontSize: "11px", color: "#777", marginTop: "3px" }}>
+                          <span style={{ display: "block", fontSize: "11px", color: "#777", marginTop: "2px" }}>
                             Gravação: {gravacao}{mat ? ` | Material: ${mat}` : ""}
                           </span>
                         )}
                         {!gravacao && item.color && (
-                          <span style={{ display: "block", fontSize: "11px", color: "#777", marginTop: "3px" }}>
+                          <span style={{ display: "block", fontSize: "11px", color: "#777", marginTop: "2px" }}>
                             Cor: {item.color}
                           </span>
                         )}
