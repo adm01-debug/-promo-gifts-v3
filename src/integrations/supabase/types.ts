@@ -2798,15 +2798,7 @@ export type Database = {
           updated_at?: string
           valid_until?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "quotes_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       role_permissions: {
         Row: {
