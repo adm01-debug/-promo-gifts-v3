@@ -40,6 +40,103 @@ interface CompanyContactSelectorProps {
   onContactChange?: (contactId: string) => void;
 }
 
+/** Mini dropdown for contact selection (mirrors company dropdown style) */
+function ContactDropdown({
+  contacts,
+  contactId,
+  onContactChange,
+}: {
+  contacts: ContactOption[];
+  contactId?: string;
+  onContactChange?: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const selected = contacts.find((c) => c.id === contactId) || null;
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        className={cn(
+          "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+          "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "hover:bg-accent/50 transition-colors"
+        )}
+        onClick={() => setOpen(!open)}
+      >
+        <div className={cn("flex items-center gap-2 min-w-0", !selected && "text-muted-foreground")}>
+          {selected ? (
+            <>
+              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
+                <User className="h-3.5 w-3.5" />
+              </div>
+              <span className="truncate font-medium">{selected.name}</span>
+            </>
+          ) : (
+            <span>Selecione um contato</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {selected?.email && (
+            <Badge variant="outline" className="text-xs gap-1 px-1.5">
+              <Mail className="h-3 w-3" />
+              <span className="hidden sm:inline max-w-[120px] truncate">{selected.email}</span>
+            </Badge>
+          )}
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </div>
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-lg max-h-[280px] overflow-y-auto">
+          {contacts.map((contact) => (
+            <button
+              key={contact.id}
+              type="button"
+              className={cn(
+                "flex w-full items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent/50 transition-colors text-left",
+                contactId === contact.id && "bg-accent"
+              )}
+              onClick={() => {
+                onContactChange?.(contact.id);
+                setOpen(false);
+              }}
+            >
+              <div className={cn(
+                "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0",
+                contactId === contact.id ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+              )}>
+                {contactId === contact.id ? <Check className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{contact.name}</p>
+                {contact.cargo && <p className="text-xs text-muted-foreground">{contact.cargo}</p>}
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {contact.email && (
+                  <Badge variant="outline" className="text-xs gap-1 px-1.5">
+                    <Mail className="h-3 w-3" />
+                    <span className="hidden sm:inline max-w-[120px] truncate">{contact.email}</span>
+                  </Badge>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CompanyContactSelector({
   companyId,
   contactId,
@@ -419,74 +516,58 @@ export function CompanyContactSelector({
       </div>
 
       {/* Contact selector - shown only when company is selected */}
-      {companyId && (
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Contato
-          </Label>
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          <User className="h-4 w-4" />
+          Contato
+        </Label>
 
-          {loadingContacts ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Carregando contatos...
+        {!companyId ? (
+          <div className={cn(
+            "flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground"
+          )}>
+            Selecione uma empresa primeiro
+          </div>
+        ) : loadingContacts ? (
+          <div className={cn(
+            "flex h-10 w-full items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground"
+          )}>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Carregando...
+          </div>
+        ) : !contacts || contacts.length === 0 ? (
+          <div className={cn(
+            "flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground"
+          )}>
+            Nenhum contato cadastrado
+          </div>
+        ) : contacts.length === 1 ? (
+          <div className={cn(
+            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+          )}>
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
+                <User className="h-3.5 w-3.5" />
+              </div>
+              <span className="truncate font-medium">{contacts[0].name}</span>
             </div>
-          ) : !contacts || contacts.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-1">
-              Nenhum contato cadastrado para esta empresa
-            </p>
-          ) : (
-            <div className="space-y-1.5">
-              {contacts.map((contact) => (
-                <button
-                  key={contact.id}
-                  type="button"
-                  className={cn(
-                    "flex w-full items-center gap-3 px-3 py-2.5 rounded-md border text-sm text-left transition-all",
-                    contactId === contact.id
-                      ? "border-primary bg-primary/10 ring-2 ring-primary/30 shadow-sm"
-                      : "border-border hover:bg-accent/50"
-                  )}
-                  onClick={() => onContactChange?.(contact.id)}
-                >
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
-                    contactId === contact.id
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-primary/10 text-primary"
-                  )}>
-                    {contactId === contact.id ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <User className="h-4 w-4" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{contact.name}</p>
-                    {contact.cargo && (
-                      <p className="text-xs text-muted-foreground">{contact.cargo}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {contact.email && (
-                      <Badge variant="outline" className="text-xs gap-1 px-1.5">
-                        <Mail className="h-3 w-3" />
-                        <span className="hidden sm:inline max-w-[120px] truncate">{contact.email}</span>
-                      </Badge>
-                    )}
-                    {contact.phone && (
-                      <Badge variant="outline" className="text-xs gap-1 px-1.5">
-                        <Phone className="h-3 w-3" />
-                        <span className="hidden sm:inline">{contact.phone}</span>
-                      </Badge>
-                    )}
-                  </div>
-                </button>
-              ))}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {contacts[0].email && (
+                <Badge variant="outline" className="text-xs gap-1 px-1.5">
+                  <Mail className="h-3 w-3" />
+                  <span className="hidden sm:inline max-w-[120px] truncate">{contacts[0].email}</span>
+                </Badge>
+              )}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          <ContactDropdown
+            contacts={contacts}
+            contactId={contactId}
+            onContactChange={onContactChange}
+          />
+        )}
+      </div>
     </div>
   );
 }
