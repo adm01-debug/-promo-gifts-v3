@@ -361,22 +361,43 @@ export function useQuotes() {
     }
   };
 
-  // Delete quote
+  // Delete quote (manual cascade to avoid RLS blocking)
   const deleteQuote = async (quoteId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from("quotes")
-        .delete()
-        .eq("id", quoteId);
+      // 1. Get quote_items ids for this quote
+      const { data: items } = await supabase
+        .from("quote_items")
+        .select("id")
+        .eq("quote_id", quoteId);
 
+      // 2. Delete personalizations for each item
+      if (items && items.length > 0) {
+        const itemIds = items.map((i) => i.id);
+        await supabase
+          .from("quote_item_personalizations")
+          .delete()
+          .in("quote_item_id", itemIds);
+      }
+
+      // 3. Delete quote_items
+      await supabase.from("quote_items").delete().eq("quote_id", quoteId);
+
+      // 4. Delete history, tokens, reminders
+      await supabase.from("quote_history").delete().eq("quote_id", quoteId);
+      await supabase.from("quote_approval_tokens").delete().eq("quote_id", quoteId);
+      await supabase.from("follow_up_reminders").delete().eq("quote_id", quoteId);
+
+      // 5. Delete the quote itself
+      const { error } = await supabase.from("quotes").delete().eq("id", quoteId);
       if (error) throw error;
 
       toast.success("Orçamento excluído");
       await fetchQuotes();
       return true;
     } catch (err) {
+      console.error("Erro ao excluir orçamento:", err);
       toast.error("Erro ao excluir orçamento");
-    return false;
+      return false;
     }
   };
 
