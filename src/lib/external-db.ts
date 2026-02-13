@@ -92,8 +92,8 @@ export interface PromobrindProduct {
   sku: string;
   /** Preço de venda final (SSOT para exibição no app) */
   sale_price?: number | null;
-  /** Preço base (custo do fornecedor) */
-  base_price: number | null;
+  /** @deprecated Use sale_price */
+  base_price?: number | null;
   image_url: string | null;        // Campo correto do schema
   images: string[] | null;
   primary_image_url: string | null;
@@ -147,7 +147,7 @@ export interface PromobrindProduct {
 // Observação: alguns schemas/views legados podem não ter `sale_price`.
 // Para evitar tela branca, fazemos fallback automático para o select antigo.
 const PRODUCT_SELECT_FIELDS_WITH_SALE =
-  'id, name, sku, sale_price, base_price, image_url, images, primary_image_url, ' +
+  'id, name, sku, sale_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
@@ -155,16 +155,16 @@ const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 const PRODUCT_SELECT_FIELDS_LEGACY =
-  'id, name, sku, base_price, image_url, images, primary_image_url, ' +
+  'id, name, sku, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
   'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
-function shouldFallbackSalePriceSelect(err: unknown) {
+function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
-  return /sale_price/i.test(msg) && /(does not exist|não existe)/i.test(msg);
+  return /(sale_price|base_price)/i.test(msg) && /(does not exist|não existe)/i.test(msg);
 }
 
 /**
@@ -203,7 +203,7 @@ export async function fetchPromobrindProducts(options?: {
         offset: 0,
       });
     } catch (err) {
-      if (!shouldFallbackSalePriceSelect(err)) throw err;
+      if (!shouldFallbackSelect(err)) throw err;
       result = await invokeExternalDb<PromobrindProduct>({
         table: 'products',
         operation: 'select',
@@ -238,7 +238,7 @@ export async function fetchPromobrindProducts(options?: {
           offset,
         });
       } catch (err) {
-        if (!shouldFallbackSalePriceSelect(err)) throw err;
+        if (!shouldFallbackSelect(err)) throw err;
         page = await invokeExternalDb<PromobrindProduct>({
           table: 'products',
           operation: 'select',
@@ -522,7 +522,7 @@ export async function fetchPromobrindProductById(
       limit: 1,
     });
   } catch (err) {
-    if (!shouldFallbackSalePriceSelect(err)) throw err;
+    if (!shouldFallbackSelect(err)) throw err;
     result = await invokeExternalDb<PromobrindProduct>({
       table: 'products',
       operation: 'select',
@@ -785,7 +785,7 @@ export async function fetchPromobrindProductBySku(
       limit: 1,
     });
   } catch (err) {
-    if (!shouldFallbackSalePriceSelect(err)) throw err;
+    if (!shouldFallbackSelect(err)) throw err;
     result = await invokeExternalDb<PromobrindProduct>({
       table: 'products',
       operation: 'select',

@@ -520,9 +520,9 @@ export function GlobalSearchPalette() {
           
           if (intent.filters.priceRange) {
             if (intent.filters.priceRange === 'low') {
-              filteredProducts = filteredProducts.filter(p => (p.base_price || 0) < 50);
+              filteredProducts = filteredProducts.filter(p => ((p as any).sale_price || (p as any).base_price || 0) < 50);
             } else if (intent.filters.priceRange === 'high') {
-              filteredProducts = filteredProducts.filter(p => (p.base_price || 0) > 200);
+              filteredProducts = filteredProducts.filter(p => ((p as any).sale_price || (p as any).base_price || 0) > 200);
             }
           }
 
@@ -545,7 +545,7 @@ export function GlobalSearchPalette() {
             allResults.push({
               id: p.id,
               title: p.name,
-              subtitle: `SKU: ${p.sku} • ${p.category_name || "Sem categoria"} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(p.base_price || 0)}`,
+              subtitle: `SKU: ${p.sku} • ${p.category_name || "Sem categoria"} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((p as any).sale_price || (p as any).base_price || 0)}`,
               type: "product",
               href: `/produto/${p.id}`,
             });
