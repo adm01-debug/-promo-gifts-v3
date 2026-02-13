@@ -361,6 +361,9 @@ export function useQuotes() {
       const updatedQuotes = await updateCrm<any>("quotes", quoteId, {
         client_id: quote.client_id || null,
         client_name: quote.client_name || null,
+        client_email: (quote as any).client_email || null,
+        client_phone: (quote as any).client_phone || null,
+        client_company: (quote as any).client_company || null,
         status: quote.status,
         subtotal,
         discount_percent: quote.discount_percent || 0,

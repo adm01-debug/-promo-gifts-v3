@@ -46,7 +46,7 @@ import { useQuoteTemplates, type QuoteTemplate, type QuoteTemplateItem } from "@
 import { QuoteTemplateSelector } from "@/components/quotes/QuoteTemplateSelector";
 import { SaveAsTemplateButton } from "@/components/quotes/SaveAsTemplateButton";
 import { QuoteProductCustomization } from "@/components/quotes/QuoteProductCustomization";
-import { CompanyContactSelector } from "@/components/quotes/CompanyContactSelector";
+import { CompanyContactSelector, type SelectedCompanyInfo, type SelectedContactInfo } from "@/components/quotes/CompanyContactSelector";
 import { QuoteAutoSave } from "@/components/quotes/QuoteAutoSave";
 import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
 import { QuoteProductColorSelector } from "@/components/quotes/QuoteProductColorSelector";
@@ -86,6 +86,8 @@ export default function QuoteBuilderPage() {
   // Quote state
   const [clientId, setClientId] = useState<string>("");
   const [contactId, setContactId] = useState<string>("");
+  const [companyInfo, setCompanyInfo] = useState<SelectedCompanyInfo | null>(null);
+  const [contactInfo, setContactInfo] = useState<SelectedContactInfo | null>(null);
   const [validUntil, setValidUntil] = useState<string>(
     format(addDays(new Date(), 30), "yyyy-MM-dd")
   );
@@ -400,6 +402,10 @@ export default function QuoteBuilderPage() {
 
     const quoteData = {
       client_id: clientId || undefined,
+      client_name: contactInfo?.name || companyInfo?.name || undefined,
+      client_company: companyInfo?.name || undefined,
+      client_email: contactInfo?.email || undefined,
+      client_phone: contactInfo?.phone || undefined,
       status,
       discount_percent: discountType === "percent" ? discountValue : 0,
       discount_amount: discountType === "amount" ? discountValue : 0,
@@ -567,6 +573,8 @@ export default function QuoteBuilderPage() {
                     contactId={contactId}
                     onCompanyChange={setClientId}
                     onContactChange={setContactId}
+                    onCompanyInfoChange={setCompanyInfo}
+                    onContactInfoChange={setContactInfo}
                   />
 
                   {/* Válido até - será exibido em seção dedicada futuramente */}
