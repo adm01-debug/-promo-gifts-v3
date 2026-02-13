@@ -19,21 +19,21 @@ import {
   Image,
 } from "@react-pdf/renderer";
 
-// ─── Colors (brand orange) ──────────────────────────────
+// ─── Colors (brand green + black) ───────────────────────
 const C = {
-  primary: "#EA580C",
-  primaryDark: "#C2410C",
-  primaryLight: "#FFF7ED",
-  primaryMid: "#FDBA74",
-  dark: "#1C1917",
-  text: "#44403C",
-  muted: "#78716C",
-  light: "#F5F5F4",
-  border: "#D6D3D1",
+  primary: "#16A34A",
+  primaryDark: "#15803D",
+  primaryLight: "#F0FDF4",
+  primaryMid: "#86EFAC",
+  dark: "#111111",
+  text: "#333333",
+  muted: "#666666",
+  light: "#F5F5F5",
+  border: "#D4D4D4",
   white: "#FFFFFF",
   green: "#16A34A",
   greenBg: "#DCFCE7",
-  headerBg: "#292524",
+  headerBg: "#1A1A1A",
 };
 
 // ─── Styles ──────────────────────────────────────────────
