@@ -25,8 +25,6 @@ const ROUTE_PATTERNS: Record<string, RouteContext['section']> = {
   '/produto': 'products',
   '/orcamentos': 'quotes',
   '/pedidos': 'orders',
-  '/clientes': 'clients',
-  '/cliente': 'clients',
   '/colecoes': 'collections',
   '/favoritos': 'products',
   '/admin': 'admin',

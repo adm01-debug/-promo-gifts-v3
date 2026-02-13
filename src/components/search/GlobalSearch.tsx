@@ -55,7 +55,6 @@ const categoryConfig = {
 const quickActions = [
   { id: "new-quote", label: "Novo Orçamento", url: "/orcamentos/novo", icon: FileText },
   { id: "products", label: "Catálogo de Produtos", url: "/filtros", icon: Package },
-  { id: "clients", label: "Lista de Clientes", url: "/clientes", icon: Users },
   { id: "orders", label: "Pedidos", url: "/pedidos", icon: ShoppingCart },
   { id: "dashboard", label: "Dashboard", url: "/bi", icon: TrendingUp },
 ];
@@ -124,14 +123,6 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
         category: "quote",
         url: "/orcamentos/2",
         metadata: { value: "R$ 15.000,00", status: "Pendente" },
-      },
-      {
-        id: "3",
-        title: "Empresa XYZ Ltda",
-        description: "contato@xyz.com.br",
-        category: "client",
-        url: "/clientes/3",
-        metadata: { orders: "12 pedidos", lastPurchase: "há 5 dias" },
       },
     ].filter(r => 
       r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

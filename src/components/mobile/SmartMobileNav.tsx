@@ -33,7 +33,7 @@ const mainNavItems: NavItem[] = [
   // FAB placeholder
   { icon: Plus, label: "Ação", href: "#fab", ariaLabel: "Ação rápida" },
   { icon: FileText, label: "Orçamentos", href: "/orcamentos", ariaLabel: "Gerenciar orçamentos" },
-  { icon: Users, label: "Clientes", href: "/clientes", ariaLabel: "Ver lista de clientes" },
+  { icon: ShoppingCart, label: "Pedidos", href: "/pedidos", ariaLabel: "Ver pedidos" },
 ];
 
 const quickActions: NavItem[] = [
