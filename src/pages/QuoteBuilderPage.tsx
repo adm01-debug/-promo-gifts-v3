@@ -569,17 +569,7 @@ export default function QuoteBuilderPage() {
                     onContactChange={setContactId}
                   />
 
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Válido até
-                    </Label>
-                    <Input
-                      type="date"
-                      value={validUntil}
-                      onChange={(e) => setValidUntil(e.target.value)}
-                    />
-                  </div>
+                  {/* Válido até - será exibido em seção dedicada futuramente */}
                 </div>
               </CardContent>
             </Card>
