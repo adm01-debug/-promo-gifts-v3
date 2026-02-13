@@ -284,7 +284,7 @@ export default function QuoteViewPage() {
                   <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
                 )}
               </div>
-              <div>
+              <div className="hidden print:block">
                 <h3 className="font-semibold mb-2">Vendedor</h3>
                 <p className="text-foreground">{user?.email}</p>
               </div>
