@@ -300,20 +300,9 @@ export function CompanyContactSelector({
               )}
               onClick={() => setIsOpen(true)}
             >
-              <div className={cn("flex flex-col", !selectedCompany && "text-muted-foreground")}>
-                {selectedCompany ? (
-                  <>
-                    <span className="truncate">{selectedCompany.name}</span>
-                    {(selectedCompany.cidade || selectedCompany.estado) && (
-                      <span className="text-xs text-muted-foreground truncate">
-                        {[selectedCompany.cidade, selectedCompany.estado].filter(Boolean).join("/")}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span>Selecione uma empresa</span>
-                )}
-              </div>
+              <span className={cn(!selectedCompany && "text-muted-foreground")}>
+                {selectedCompany ? selectedCompany.name : "Selecione uma empresa"}
+              </span>
               <div className="flex items-center gap-1">
                 {selectedCompany && (
                   <span
