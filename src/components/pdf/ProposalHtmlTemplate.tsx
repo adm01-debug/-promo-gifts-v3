@@ -53,16 +53,11 @@ function fmt(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const GREEN = "#00bf63";
-const DARK = "#333333";
-const DARK_GREEN = "#008f4a";
+const GREEN = "#00bd56";
+const DARK = "#363636";
+const DARK_GREEN = "#008f40";
+const SIG_BLUE = "#0077b6";
 
-/**
- * ProposalHtmlTemplate — html2canvas-compatible
- * 
- * Avoids CSS transforms (skewX/rotate) that html2canvas can't render.
- * Uses SVG polygons for diagonal/geometric shapes instead.
- */
 export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalTemplateData }>(
   ({ data }, ref) => {
     const company = data.client.company || data.client.name;
@@ -75,42 +70,32 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
           width: "794px",
           minHeight: "1123px",
           backgroundColor: "#fff",
-          fontFamily: "'Segoe UI', Helvetica, Arial, sans-serif",
+          fontFamily: "'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif",
           color: "#333",
           position: "relative",
           boxSizing: "border-box",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        {/* ═══ HEADER — SVG-based geometric shapes ═══ */}
-        <div style={{ position: "relative", width: "794px", height: "150px", overflow: "hidden" }}>
-          <svg
-            width="794"
-            height="150"
-            viewBox="0 0 794 150"
-            style={{ position: "absolute", top: 0, left: 0 }}
-          >
-            {/* Green bar left bottom */}
-            <rect x="0" y="120" width="380" height="5" fill={GREEN} />
+        {/* ═══ HEADER (SVG geometric shapes) ═══ */}
+        <div style={{ position: "relative", width: "794px", height: "160px", marginBottom: "30px" }}>
+          <svg width="794" height="160" viewBox="0 0 794 160" style={{ position: "absolute", top: 0, left: 0 }}>
+            {/* Green line bottom-left */}
+            <rect x="0" y="122" width="370" height="3" fill={GREEN} />
             {/* Green diagonal tall block */}
-            <polygon points="340,150 370,0 430,0 400,150" fill={GREEN} />
+            <polygon points="350,0 385,0 425,160 390,160" fill={GREEN} />
             {/* Dark grey skewed block */}
-            <polygon points="390,0 794,0 794,120 360,120" fill={DARK} />
+            <polygon points="380,0 794,0 794,125 410,125" fill={DARK} />
             {/* Green bottom-right strip */}
-            <rect x="400" y="120" width="394" height="30" fill={GREEN} />
-            {/* Green connector diagonal */}
-            <polygon points="370,120 400,120 380,150 350,150" fill={GREEN} />
+            <rect x="410" y="125" width="384" height="35" fill={GREEN} />
+            {/* Fold/shadow triangle */}
+            <polygon points="410,125 435,125 410,160" fill={DARK_GREEN} />
           </svg>
 
-          {/* Logo on top of SVG */}
-          <div
-            style={{
-              position: "absolute",
-              top: "30px",
-              left: "40px",
-              width: "220px",
-              zIndex: 10,
-            }}
-          >
+          {/* Logo */}
+          <div style={{ position: "absolute", top: "50%", left: "40px", transform: "translateY(-50%)", width: "200px", zIndex: 10 }}>
             <img
               src="/images/promo-brindes-logo.png"
               alt="Promo Brindes"
@@ -119,21 +104,12 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
             />
           </div>
 
-          {/* Quote info on dark block */}
-          <div
-            style={{
-              position: "absolute",
-              top: "25px",
-              right: "40px",
-              textAlign: "right",
-              color: "#fff",
-              zIndex: 10,
-            }}
-          >
-            <div style={{ fontSize: "22px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>
+          {/* Quote text on dark block */}
+          <div style={{ position: "absolute", top: "30px", right: "40px", textAlign: "right", color: "#fff", zIndex: 10 }}>
+            <div style={{ fontSize: "22px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 5px 0" }}>
               Orçamento
             </div>
-            <div style={{ fontSize: "12px", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "12px", opacity: 0.9, fontWeight: 300, lineHeight: "1.5" }}>
               Nº: #{data.quoteNumber}<br />
               Data: {data.date}
             </div>
@@ -141,138 +117,135 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
         </div>
 
         {/* ═══ CONTENT ═══ */}
-        <div style={{ padding: "20px 50px 0" }}>
-          {/* Client Info */}
+        <div style={{ padding: "0 40px", flex: 1 }}>
+          {/* Client Box */}
           <div
             style={{
-              backgroundColor: "#f8f8f8",
+              backgroundColor: "#f9f9f9",
               borderLeft: `5px solid ${GREEN}`,
-              padding: "18px 20px",
-              marginBottom: "25px",
+              padding: "20px",
               display: "flex",
               justifyContent: "space-between",
+              marginBottom: "30px",
+              borderRadius: "0 4px 4px 0",
             }}
           >
             <div>
-              <div style={{ fontSize: "11px", color: GREEN, textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
+              <div style={{ color: GREEN, fontSize: "11px", textTransform: "uppercase", fontWeight: 700, margin: "0 0 5px 0" }}>
                 Empresa
               </div>
-              <div style={{ fontWeight: 700, fontSize: "15px", color: "#000" }}>{company}</div>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "#333" }}>{company}</div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "11px", color: GREEN, textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
+              <div style={{ color: GREEN, fontSize: "11px", textTransform: "uppercase", fontWeight: 700, margin: "0 0 5px 0" }}>
                 Solicitante
               </div>
-              <div style={{ fontWeight: 700, fontSize: "15px", color: "#000" }}>{contact}</div>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "#333" }}>{contact}</div>
             </div>
           </div>
 
           {/* Products Table */}
-          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "25px" }}>
-            <thead>
-              <tr>
-                <th style={{ ...thStyle, textAlign: "left" }}>Descrição</th>
-                <th style={{ ...thStyle, textAlign: "center", width: "55px" }}>Qtd.</th>
-                <th style={{ ...thStyle, textAlign: "right", width: "85px" }}>Unitário</th>
-                <th style={{ ...thStyle, textAlign: "right", width: "85px" }}>Desconto</th>
-                <th style={{ ...thStyle, textAlign: "right", width: "95px" }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item, idx) => {
-                const persUnitCost = item.personalizations?.reduce((sum, p) => {
-                  const pTotal = p.total_cost || 0;
-                  return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
-                }, 0) || 0;
-                const allInUnitPrice = item.unitPrice + persUnitCost;
-                const itemDiscount = item.discount || 0;
-                const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
+          <div style={{ marginBottom: "30px" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ ...thStyle, textAlign: "left" }}>Descrição</th>
+                  <th style={{ ...thStyle, textAlign: "center", width: "55px" }}>Qtd.</th>
+                  <th style={{ ...thStyle, textAlign: "right", width: "90px" }}>Unitário</th>
+                  <th style={{ ...thStyle, textAlign: "right", width: "90px" }}>Desconto</th>
+                  <th style={{ ...thStyle, textAlign: "right", width: "100px" }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items.map((item, idx) => {
+                  const persUnitCost = item.personalizations?.reduce((sum, p) => {
+                    const pTotal = p.total_cost || 0;
+                    return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
+                  }, 0) || 0;
+                  const allInUnitPrice = item.unitPrice + persUnitCost;
+                  const itemDiscount = item.discount || 0;
+                  const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
 
-                const gravacao = item.personalizations?.map((p) => {
-                  let s = p.technique_name;
-                  if (p.colors_count && p.colors_count > 1) s += ` (${p.colors_count} cores)`;
-                  return s;
-                }).join(", ");
+                  const gravacao = item.personalizations?.map((p) => {
+                    let s = p.technique_name;
+                    if (p.colors_count && p.colors_count > 1) s += ` (${p.colors_count} cores)`;
+                    return s;
+                  }).join(", ");
+                  const mat = item.personalizations?.[0]?.material || item.material;
 
-                const mat = item.personalizations?.[0]?.material || item.material;
-
-                return (
-                  <tr key={idx} style={{ backgroundColor: idx % 2 === 1 ? "#fafafa" : "#fff" }}>
-                    <td style={{ ...tdStyle, borderBottom: "1px solid #eee" }}>
-                      <span style={{ fontWeight: 700, color: "#000", fontSize: "13px" }}>
-                        {item.name}
-                      </span>
-                      {item.sku && (
-                        <span
-                          style={{
-                            fontFamily: "monospace",
+                  return (
+                    <tr key={idx} style={{ backgroundColor: idx % 2 === 1 ? "#fafafa" : "#fff" }}>
+                      <td style={tdStyle}>
+                        <strong style={{ display: "inline", fontSize: "14px", color: "#222" }}>{item.name}</strong>
+                        {item.sku && (
+                          <span style={{
+                            fontFamily: "'Courier New', monospace",
                             background: "#eee",
-                            padding: "1px 5px",
+                            padding: "2px 5px",
                             borderRadius: "3px",
                             fontSize: "10px",
                             color: "#555",
-                            marginLeft: "6px",
-                          }}
-                        >
-                          #{item.sku}
-                        </span>
-                      )}
-                      {item.description && (
-                        <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "3px", lineHeight: "1.4" }}>
-                          {item.description}
-                        </span>
-                      )}
-                      {gravacao && (
-                        <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "2px" }}>
-                          Gravação: {gravacao}{mat ? ` | ${mat}` : ""}
-                        </span>
-                      )}
-                      {!gravacao && item.color && (
-                        <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "2px" }}>
-                          Cor: {item.color}
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: "center", borderBottom: "1px solid #eee" }}>{item.quantity}</td>
-                    <td style={{ ...tdStyle, textAlign: "right", borderBottom: "1px solid #eee" }}>{fmt(allInUnitPrice)}</td>
-                    <td style={{ ...tdStyle, textAlign: "right", borderBottom: "1px solid #eee" }}>
-                      {itemDiscount > 0 ? fmt(itemDiscount) : fmt(0)}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontWeight: 700, borderBottom: "1px solid #eee" }}>{fmt(total)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                            marginLeft: "8px",
+                          }}>
+                            #{item.sku}
+                          </span>
+                        )}
+                        {item.description && (
+                          <span style={{ display: "block", fontSize: "11px", color: "#666", marginTop: "4px", lineHeight: "1.4" }}>
+                            {item.description}
+                          </span>
+                        )}
+                        {gravacao && (
+                          <span style={{ display: "block", fontSize: "11px", color: "#777", marginTop: "3px" }}>
+                            Gravação: {gravacao}{mat ? ` | Material: ${mat}` : ""}
+                          </span>
+                        )}
+                        {!gravacao && item.color && (
+                          <span style={{ display: "block", fontSize: "11px", color: "#777", marginTop: "3px" }}>
+                            Cor: {item.color}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ ...tdStyle, textAlign: "center", fontWeight: 500 }}>{item.quantity}</td>
+                      <td style={{ ...tdStyle, textAlign: "right" }}>{fmt(allInUnitPrice)}</td>
+                      <td style={{ ...tdStyle, textAlign: "right" }}>{itemDiscount > 0 ? fmt(itemDiscount) : fmt(0)}</td>
+                      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>{fmt(total)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
           {/* Totals */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
-            <div style={{ width: "260px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "13px", borderBottom: "1px solid #f0f0f0" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "25px" }}>
+            <div style={{ width: "280px" }}>
+              <div style={totalsRowStyle}>
                 <span>Subtotal:</span>
-                <span>{fmt(data.subtotal)}</span>
+                <span style={{ fontWeight: 500 }}>{fmt(data.subtotal)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "13px", borderBottom: "1px solid #f0f0f0" }}>
+              <div style={totalsRowStyle}>
                 <span>Frete:</span>
-                <span>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
+                <span style={{ fontWeight: 500 }}>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
               </div>
               {data.discount && data.discount > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "13px", borderBottom: "1px solid #f0f0f0" }}>
+                <div style={totalsRowStyle}>
                   <span>Desconto:</span>
-                  <span>- {fmt(data.discount)}</span>
+                  <span style={{ fontWeight: 500 }}>- {fmt(data.discount)}</span>
                 </div>
               )}
               <div
                 style={{
                   backgroundColor: GREEN,
                   color: "#fff",
-                  padding: "10px 12px",
+                  padding: "12px 14px",
                   borderRadius: "4px",
-                  marginTop: "10px",
+                  marginTop: "12px",
                   fontWeight: 700,
-                  fontSize: "16px",
+                  fontSize: "17px",
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
                 <span>TOTAL:</span>
@@ -281,38 +254,29 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
             </div>
           </div>
 
-          {/* Obs */}
-          <div style={{ fontSize: "11px", color: "#888", fontStyle: "italic", marginBottom: "30px" }}>
-            Obs: {data.paymentTerms || "Pagamento após entrega (Boleto/Pix)."} Validade 15 dias.
-            {data.deliveryTime && ` Previsão de Entrega: ${data.deliveryTime}.`}
+          {/* Notes / Terms */}
+          <div style={{ borderTop: "1px solid #e0e0e0", paddingTop: "15px", marginBottom: "20px" }}>
+            <div style={{ fontWeight: 700, fontSize: "13px", marginBottom: "8px", color: "#333" }}>
+              Informações Relevantes:
+            </div>
+            <ul style={{ paddingLeft: "18px", margin: 0, fontSize: "11px", color: "#555", lineHeight: "1.9" }}>
+              <li>Todos os valores são para produtos já personalizados.</li>
+              <li>{data.paymentTerms || "Pagamento feito após a entrega (À vista / Boleto / Pix)."}</li>
+              <li>Todos produtos passam por controle de qualidade.</li>
+              {data.deliveryTime && <li>Previsão de Entrega: {data.deliveryTime}.</li>}
+            </ul>
           </div>
         </div>
 
-        {/* ═══ FOOTER — SVG-based geometric shapes ═══ */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, width: "794px", height: "180px" }}>
-          {/* Footer content (above shapes) */}
-          <div
-            style={{
-              position: "absolute",
-              top: "10px",
-              left: "50px",
-              zIndex: 10,
-            }}
-          >
+        {/* ═══ FOOTER (SVG geometric shapes) ═══ */}
+        <div style={{ position: "relative", width: "794px", height: "180px", marginTop: "auto" }}>
+          {/* Footer content */}
+          <div style={{ position: "relative", zIndex: 10, padding: "0 40px", height: "100%" }}>
             {/* Contact row */}
-            <div style={{ display: "flex", alignItems: "center", gap: "18px", marginBottom: "12px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700 }}>
-                <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#3c3c3c" }} />
-                <span>{data.seller.phone || "00-00000-0000"}</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700 }}>
-                <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: GREEN }} />
-                <span>promobrindes.com</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700 }}>
-                <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: GREEN }} />
-                <span>comercial01@gmail.com</span>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "18px", marginBottom: "12px", paddingTop: "8px" }}>
+              <ContactDot color="#3c3c3c" text={data.seller.phone || "00-00000-0000"} />
+              <ContactDot color={GREEN} text="promobrindes.com" />
+              <ContactDot color={GREEN} text="comercial01@gmail.com" />
             </div>
             {/* CNPJ */}
             <div style={{ fontSize: "10px", fontWeight: 700, color: "#333", lineHeight: "1.5" }}>
@@ -320,47 +284,34 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
               Razão Social: Brasil Marcas Industria e<br />
               Comercio de Brindes LTDA.
             </div>
+
+            {/* Signature (right) */}
+            <div style={{ position: "absolute", top: "8px", right: "40px", textAlign: "center" }}>
+              <div style={{ fontSize: "30px", color: SIG_BLUE, fontStyle: "italic", fontFamily: "'Sacramento', cursive", marginBottom: "0px" }}>
+                {data.seller.name}
+              </div>
+              <div style={{ width: "180px", height: "2px", backgroundColor: "#000", margin: "2px auto" }} />
+              <div style={{ fontSize: "13px", fontWeight: 900, textTransform: "uppercase", color: "#000", letterSpacing: "0.5px" }}>
+                {data.seller.name}
+              </div>
+              <div style={{ fontSize: "10px", color: "#555" }}>Executivo de Vendas</div>
+            </div>
           </div>
 
-          {/* Signature (right side) */}
-          <div
-            style={{
-              position: "absolute",
-              top: "10px",
-              right: "50px",
-              textAlign: "center",
-              zIndex: 10,
-            }}
-          >
-            <div style={{ fontSize: "28px", color: "#0085ca", fontStyle: "italic", marginBottom: "0px" }}>
-              {data.seller.name}
-            </div>
-            <div style={{ width: "160px", height: "2px", backgroundColor: "#000", margin: "4px auto" }} />
-            <div style={{ fontSize: "12px", fontWeight: 900, textTransform: "uppercase", color: "#000" }}>
-              {data.seller.name}
-            </div>
-            <div style={{ fontSize: "10px", color: "#555" }}>Executivo de Vendas</div>
-          </div>
-
-          {/* SVG geometric footer shapes */}
-          <svg
-            width="794"
-            height="180"
-            viewBox="0 0 794 180"
-            style={{ position: "absolute", top: 0, left: 0 }}
-          >
+          {/* SVG shapes */}
+          <svg width="794" height="180" viewBox="0 0 794 180" style={{ position: "absolute", top: 0, left: 0 }}>
             {/* Black line left */}
-            <rect x="0" y="140" width="400" height="3" fill="#333" />
+            <rect x="0" y="140" width="390" height="3" fill="#333" />
             {/* Light grey diagonal */}
-            <polygon points="380,180 410,80 440,80 410,180" fill="#f2f2f2" />
+            <polygon points="370,180 395,80 425,80 400,180" fill="#f0f0f0" />
             {/* Green diagonal */}
-            <polygon points="410,180 440,80 480,80 450,180" fill={GREEN} />
+            <polygon points="400,180 425,80 465,80 440,180" fill={GREEN} />
             {/* Dark block */}
-            <polygon points="460,100 794,100 794,145 430,145" fill={DARK} />
+            <polygon points="450,100 794,100 794,145 420,145" fill={DARK} />
             {/* Green bottom strip */}
-            <rect x="480" y="145" width="314" height="35" fill={GREEN} />
+            <rect x="470" y="145" width="324" height="35" fill={GREEN} />
             {/* Fold triangle */}
-            <polygon points="480,145 500,145 480,180" fill={DARK_GREEN} />
+            <polygon points="470,145 490,145 470,180" fill={DARK_GREEN} />
           </svg>
         </div>
       </div>
@@ -370,18 +321,38 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
 
 ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";
 
+/* Small helper component for contact dots */
+function ContactDot({ color, text }: { color: string; text: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700, color: "#333" }}>
+      <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
+      <span>{text}</span>
+    </div>
+  );
+}
+
 const thStyle: React.CSSProperties = {
   backgroundColor: GREEN,
   color: "#fff",
-  padding: "10px 8px",
-  fontSize: "11px",
+  padding: "12px 10px",
+  fontSize: "12px",
   textTransform: "uppercase",
   fontWeight: 700,
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: "10px 8px",
-  fontSize: "12px",
+  padding: "12px 10px",
+  borderBottom: "1px solid #eee",
+  fontSize: "13px",
+  color: "#444",
   verticalAlign: "top",
+};
+
+const totalsRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  padding: "7px 0",
+  fontSize: "13px",
+  borderBottom: "1px solid #f0f0f0",
   color: "#444",
 };
