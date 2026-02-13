@@ -12,9 +12,6 @@ import ReactDOM from "react-dom/client";
 import { type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
 import { PropostaComercialTailwind } from "@/components/pdf/PropostaComercialTailwind";
 
-// Re-export types for backward compatibility
-export type { ProposalTemplateData as ProposalDocumentData };
-export type { ProposalItem, ProposalItemPersonalization } from "@/components/pdf/ProposalHtmlTemplate";
 
 export async function generateProposalPDFv2(data: ProposalTemplateData): Promise<Blob> {
   const container = document.createElement("div");
