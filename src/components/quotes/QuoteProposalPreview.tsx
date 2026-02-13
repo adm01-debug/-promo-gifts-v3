@@ -28,7 +28,7 @@ export function QuoteProposalPreview({ proposalData }: QuoteProposalPreviewProps
       {showPreview && (
         <Card className="mt-4 overflow-hidden">
           <CardContent className="p-0">
-            <div className="overflow-auto max-h-[80vh] bg-white">
+            <div className="overflow-auto max-h-[80vh] bg-background">
               <div className="origin-top-left scale-[0.65] md:scale-75 lg:scale-90" style={{ transformOrigin: "top center" }}>
                 <ProposalHtmlTemplate data={proposalData} />
               </div>
