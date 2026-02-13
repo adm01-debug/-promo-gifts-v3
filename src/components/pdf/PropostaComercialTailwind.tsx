@@ -13,7 +13,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
     return (
       <div
         ref={ref}
-        className="bg-white text-[#333] relative overflow-hidden flex flex-col"
+        className="bg-white text-[#333] relative flex flex-col"
         style={{
           width: "794px",
           height: "1123px",
@@ -207,17 +207,21 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                   <span style={{ fontWeight: 500 }}>- {fmt(data.discount)}</span>
                 </div>
               )}
-              <div className="flex justify-between items-center text-white" style={{
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
                 backgroundColor: "#00c853",
+                color: "#ffffff",
                 padding: "12px 18px",
                 marginTop: "10px",
                 borderRadius: "8px",
                 boxShadow: "0 4px 12px rgba(0,200,83, 0.25)",
               }}>
-                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, textTransform: "uppercase", fontSize: "14px" }}>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, textTransform: "uppercase", fontSize: "14px", color: "#ffffff" }}>
                   Valor Total:
                 </span>
-                <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "22px" }}>
+                <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "22px", color: "#ffffff" }}>
                   {fmt(data.total)}
                 </strong>
               </div>
