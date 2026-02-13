@@ -155,15 +155,6 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
         badgeVariant: "default",
       },
       {
-        id: "new-client",
-        label: "Novo Cliente",
-        description: "Cadastrar um novo cliente",
-        icon: <UserPlus className="h-4 w-4" />,
-        action: () => goTo("/clientes/novo", "Novo Cliente"),
-        keywords: ["criar", "cliente", "novo", "customer"],
-        category: "quick",
-      },
-      {
         id: "simulator",
         label: "Abrir Simulador",
         description: "Simular preços de personalização",
@@ -215,15 +206,6 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
         category: "navigation",
         badge: "Novo",
         badgeVariant: "destructive",
-      },
-      {
-        id: "clients",
-        label: "Clientes",
-        description: "Gerenciar clientes",
-        icon: <Users className="h-4 w-4" />,
-        action: () => goTo("/clientes", "Clientes"),
-        keywords: ["clientes", "customers", "contatos"],
-        category: "navigation",
       },
       {
         id: "quotes",

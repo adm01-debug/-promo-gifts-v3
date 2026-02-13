@@ -79,13 +79,6 @@ const quickActions: QuickAction[] = [
     href: "/",
   },
   {
-    id: "clients",
-    title: "Lista de Clientes",
-    description: "Ver todos os clientes",
-    icon: <Users className="h-4 w-4" />,
-    href: "/clientes",
-  },
-  {
     id: "orders",
     title: "Gestão de Pedidos",
     description: "Ver todos os pedidos",
@@ -307,16 +300,6 @@ export function GlobalSearchPalette() {
       return;
     }
     
-    if (/(?:ir para|abrir|mostrar|ver)\s*(?:clientes?)/i.test(lowerTranscript)) {
-      addVoiceCommand(transcript, 'navigation', true);
-      setVoiceCommandAction("Abrindo clientes...");
-      playNavigation();
-      setTimeout(() => {
-        setVoiceOverlayOpen(false);
-        navigate("/clientes");
-      }, 1000);
-      return;
-    }
     
     if (/(?:ir para|abrir|mostrar|ver)\s*(?:favoritos?)/i.test(lowerTranscript)) {
       addVoiceCommand(transcript, 'navigation', true);

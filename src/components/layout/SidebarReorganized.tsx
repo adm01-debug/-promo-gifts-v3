@@ -94,7 +94,6 @@ const navGroups: NavGroup[] = [
     icon: FileText,
     defaultOpen: false,
     items: [
-      { icon: Users, label: "Clientes", href: "/clientes", tourId: "clients" },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes" },
       { icon: ShoppingCart, label: "Pedidos", href: "/pedidos" },
     ],
@@ -112,7 +111,7 @@ const navGroups: NavGroup[] = [
 ];
 
 const bottomNavItems: NavItem[] = [
-  { icon: Cloud, label: "CRM Sync", href: "/bitrix-sync" },
+  
   { icon: User, label: "Meu Perfil", href: "/perfil" },
   { icon: Lock, label: "Segurança", href: "/seguranca" },
   { icon: ShieldCheck, label: "Admin", href: "/admin", adminOnly: true },

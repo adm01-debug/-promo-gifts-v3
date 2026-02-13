@@ -123,14 +123,6 @@ export function EnhancedSpotlight() {
         category: "Navegação",
       },
       {
-        id: "clients",
-        title: "Clientes",
-        description: "Ver clientes do Bitrix",
-        icon: <Users className="h-4 w-4" />,
-        action: () => navigate("/clientes"),
-        category: "Navegação",
-      },
-      {
         id: "collections",
         title: "Coleções",
         description: "Ver suas coleções",

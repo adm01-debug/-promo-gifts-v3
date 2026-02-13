@@ -15,7 +15,7 @@ const routeLabels: Record<string, string> = {
   "/filtros": "Super Filtro",
   "/novidades": "Novidades",
   "/colecoes": "Coleções",
-  "/clientes": "Clientes",
+  
   "/orcamentos": "Orçamentos",
   "/pedidos": "Pedidos",
   "/simulador": "Simulador",

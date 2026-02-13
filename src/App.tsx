@@ -38,9 +38,6 @@ const ComparePage = lazyWithRetry(() => import("./pages/ComparePage"));
 const CollectionsPage = lazyWithRetry(() => import("./pages/CollectionsPage"));
 const CollectionDetailPage = lazyWithRetry(() => import("./pages/CollectionDetailPage"));
 
-// Client Pages
-const ClientDetail = lazyWithRetry(() => import("./pages/ClientDetail"));
-const ClientList = lazyWithRetry(() => import("./pages/ClientList"));
 
 // Quote Pages
 const QuoteTemplatesPage = lazyWithRetry(() => import("./pages/QuoteTemplatesPage"));
@@ -70,9 +67,6 @@ const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
 
 // User Pages
 const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
-
-// Bitrix Integration
-const BitrixSync = lazyWithRetry(() => import("./pages/BitrixSyncPage"));
 
 // Analytics Pages
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
@@ -159,9 +153,6 @@ const App = () => {
                                         <Route path="/colecoes" element={<CollectionsPage />} />
                                         <Route path="/colecoes/:id" element={<CollectionDetailPage />} />
 
-                                        {/* Clients */}
-                                        <Route path="/clientes" element={<ClientList />} />
-                                        <Route path="/clientes/:id" element={<ClientDetail />} />
 
                                         {/* Quotes */}
                                         <Route path="/orcamentos" element={<QuotesListPage />} />
@@ -201,9 +192,6 @@ const App = () => {
                                         {/* User Routes */}
                                         <Route path="/perfil" element={<ProfilePage />} />
                                         <Route path="/seguranca" element={<SecurityPage />} />
-
-                                        {/* Bitrix */}
-                                        <Route path="/bitrix-sync" element={<BitrixSync />} />
 
                                         {/* Analytics */}
                                         <Route path="/bi" element={<BIDashboard />} />

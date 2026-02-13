@@ -24,7 +24,7 @@ import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { QuickFilter } from "@/components/filters/QuickFiltersBar";
-import { ClientFilterModal } from "@/components/clients/ClientFilterModal";
+
 import { CategorySidebarPanel } from "@/components/categories";
 import { SmartSearchInput } from "@/components/search";
 import { useSearch } from "@/hooks/useSearch";
@@ -35,7 +35,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
-import { ClientWithColors } from "@/components/clients/ClientFilterModal";
+
 import { useProducts, type Product } from "@/hooks/useProducts";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useToast } from "@/hooks/use-toast";
@@ -73,8 +73,6 @@ export default function Index() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [selectedClient, setSelectedClient] = useState<ClientWithColors | null>(null);
-  const [clientModalOpen, setClientModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [activeQuickFilterId, setActiveQuickFilterId] = useState<string | undefined>();
   const [isSearching, setIsSearching] = useState(false);
@@ -109,7 +107,7 @@ export default function Index() {
   // Reset pagination when filters change
   useEffect(() => {
     setDisplayCount(ITEMS_PER_PAGE);
-  }, [filters, sortBy, searchQuery, selectedClient, selectedExternalCategory]);
+  }, [filters, sortBy, searchQuery, selectedExternalCategory]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -136,21 +134,6 @@ export default function Index() {
     return count;
   }, [filters]);
 
-  // Get client colors for highlighting
-  const clientColorGroups = useMemo(() => {
-    if (!selectedClient) return [];
-    const colors = [selectedClient.primaryColor, ...selectedClient.secondaryColors];
-    return colors.map((c) => c.group);
-  }, [selectedClient]);
-
-  // Calculate color match score for a product (adaptado para novo formato)
-  const getColorMatchScore = (product: Product): number => {
-    if (!selectedClient) return 0;
-    const clientColors = [selectedClient.primaryColor.group, ...selectedClient.secondaryColors.map((c) => c.group)];
-    const productColors = product.colors?.map((c: any) => c.group || c.name) || [];
-    const matchCount = productColors.filter((c: string) => clientColors.includes(c)).length;
-    return matchCount;
-  };
 
   // Busca fuzzy de produtos - tolerante a erros de digitação
   const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(realProducts, searchQuery);
@@ -274,13 +257,11 @@ export default function Index() {
           new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
         );
         break;
-      case "color-match":
-        result.sort((a, b) => getColorMatchScore(b) - getColorMatchScore(a));
-        break;
+      case "newest":
     }
 
     return result;
-  }, [filters, sortBy, selectedClient, hasFuzzySearch, fuzzySearchResults, realProducts, getColorMatchScore, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
+  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
 
   // Paginated products
   const paginatedProducts = useMemo(() => {
@@ -580,14 +561,6 @@ export default function Index() {
             {/* Separator */}
             <div className="h-6 w-px bg-border/50 mx-1" />
 
-            {/* Client Filter Button */}
-            <div
-              onClick={() => setClientModalOpen(true)}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide cursor-pointer hover:bg-muted/50 transition-colors"
-            >
-              <span className="text-orange"><User className="h-4 w-4" /></span>
-              <span className="text-foreground/70">Filtrar por Cliente</span>
-            </div>
 
             {/* Mobile category toggle */}
             {!isDesktop && (
@@ -609,40 +582,6 @@ export default function Index() {
             )}
           </div>
 
-        {/* Client Filter Section */}
-        {selectedClient && (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary text-primary-foreground">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Filtrando para:</p>
-                    <p className="text-sm text-muted-foreground">{selectedClient.name}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Palette className="h-4 w-4 text-muted-foreground" />
-                    <div className="flex gap-1">
-                      {[selectedClient.primaryColor, ...selectedClient.secondaryColors].map((color, i) => (
-                        <div
-                          key={i}
-                          className="w-6 h-6 rounded-full border-2 border-background shadow-sm"
-                          style={{ backgroundColor: color.hex }}
-                          title={color.name}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedClient(null)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* External Category Filter Badge */}
         {selectedExternalCategory && (
@@ -710,7 +649,7 @@ export default function Index() {
                     <SelectItem value="price-desc">Maior Preço</SelectItem>
                     <SelectItem value="stock">Maior Estoque</SelectItem>
                     <SelectItem value="newest">Novidades</SelectItem>
-                    {selectedClient && <SelectItem value="color-match">Cores Compatíveis</SelectItem>}
+                    
                   </SelectContent>
                 </Select>
               </div>
@@ -873,13 +812,6 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Client Filter Modal */}
-      <ClientFilterModal
-        open={clientModalOpen}
-        onOpenChange={setClientModalOpen}
-        onSelectClient={setSelectedClient}
-        selectedClientId={selectedClient?.id}
-      />
 
       {/* Floating Compare Bar */}
       <FloatingCompareBar />
