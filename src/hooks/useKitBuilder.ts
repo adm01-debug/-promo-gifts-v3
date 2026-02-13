@@ -54,7 +54,7 @@ function transformToKitBox(product: ExternalProductForKit): KitBox | null {
     name: product.name,
     sku: product.sku,
     imageUrl: product.primary_image_url || product.image_url || product.images?.[0] || null,
-    price: product.base_price || 0,
+    price: product.sale_price || product.base_price || 0,
     internalWidth: dimensions.width,
     internalHeight: dimensions.height,
     internalDepth: dimensions.depth,
@@ -71,7 +71,7 @@ function transformToKitItem(product: ExternalProductForKit, category?: string): 
     name: product.name,
     sku: product.sku,
     imageUrl: product.primary_image_url || product.image_url || product.images?.[0] || null,
-    price: product.base_price || 0,
+    price: product.sale_price || product.base_price || 0,
     width: dimensions.width,
     height: dimensions.height,
     depth: dimensions.depth,
@@ -120,7 +120,7 @@ export function useKitBuilder() {
           // Filtra por nome/sku se houver busca
           ...(boxFilters.search ? { name: boxFilters.search } : {}),
         },
-        select: 'id, name, sku, base_price, image_url, primary_image_url, images, dimensions, internal_width_cm, internal_height_cm, internal_length_cm, box_width_cm, box_height_cm, box_length_cm, category_id',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, internal_width_cm, internal_height_cm, internal_length_cm, box_width_cm, box_height_cm, box_length_cm, category_id',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
       });
@@ -152,7 +152,7 @@ export function useKitBuilder() {
           active: true,
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, base_price, image_url, primary_image_url, images, dimensions, box_width_cm, box_height_cm, box_length_cm, category_id',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, box_width_cm, box_height_cm, box_length_cm, category_id',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
       });
