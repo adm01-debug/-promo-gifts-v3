@@ -760,7 +760,7 @@ export default function Index() {
                   isInCompare={isInCompare}
                   onToggleCompare={toggleCompare}
                   canAddToCompare={canAddMore}
-                  highlightColors={clientColorGroups}
+                  highlightColors={[]}
                 />
               ) : (
                 <ProductList
@@ -774,7 +774,7 @@ export default function Index() {
                   isInCompare={isInCompare}
                   onToggleCompare={toggleCompare}
                   canAddToCompare={canAddMore}
-                  highlightColors={clientColorGroups}
+                  highlightColors={[]}
                 />
               )}
 
