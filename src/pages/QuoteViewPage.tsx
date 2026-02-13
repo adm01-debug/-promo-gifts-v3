@@ -113,7 +113,7 @@ export default function QuoteViewPage() {
     setIsGeneratingPDF(true);
     try {
       const blob = await generateProposalPDFv2(proposalData);
-      downloadPDF(blob, `proposta-${quote.quote_number}.pdf`);
+      downloadPDF(blob, `proposta-${quote?.quote_number || "sem-numero"}.pdf`);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -187,7 +187,7 @@ export default function QuoteViewPage() {
             <QuoteConvertToOrder quoteId={id!} status={quote.status} />
             <QuoteWhatsAppShare
               quoteNumber={quote.quote_number}
-              clientPhone={(quote as any).client_phone}
+              clientPhone={quote.client_phone}
               total={quote.total}
               validUntil={quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : undefined}
               approvalLink={approvalLink}
@@ -273,7 +273,7 @@ export default function QuoteViewPage() {
               status={quote.status}
               createdAt={quote.created_at}
               updatedAt={quote.updated_at}
-              clientResponseAt={(quote as any).client_response_at}
+              clientResponseAt={quote.client_response_at}
             />
           </div>
           <QuoteValidityBanner validUntil={quote.valid_until} status={quote.status} />

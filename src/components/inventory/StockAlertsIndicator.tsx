@@ -62,10 +62,10 @@ const StockAlertTrigger = forwardRef<HTMLButtonElement, StockAlertTriggerProps>(
 );
 StockAlertTrigger.displayName = "StockAlertTrigger";
 
-export function StockAlertsIndicator({
+export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndicatorProps>(function StockAlertsIndicator({
   lowStockThreshold = 50,
   criticalStockThreshold = 10,
-}: StockAlertsIndicatorProps) {
+}: StockAlertsIndicatorProps, ref) {
   const [alerts, setAlerts] = useState<StockAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -167,6 +167,7 @@ export function StockAlertsIndicator({
   }
 
   return (
+    <div ref={ref}>
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <StockAlertTrigger totalCount={totalCount} criticalCount={criticalCount} />
@@ -239,5 +240,6 @@ export function StockAlertsIndicator({
         </Card>
       </PopoverContent>
     </Popover>
+    </div>
   );
-}
+});

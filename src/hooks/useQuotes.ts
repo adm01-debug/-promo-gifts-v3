@@ -41,6 +41,9 @@ export interface Quote {
   quote_number?: string;
   client_id?: string;
   client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  client_company?: string;
   seller_id?: string;
   status: "draft" | "pending" | "sent" | "approved" | "rejected" | "expired";
   subtotal: number;
