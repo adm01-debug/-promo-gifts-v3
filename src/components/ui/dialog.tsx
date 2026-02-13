@@ -126,16 +126,9 @@ const DialogContent = React.forwardRef<
     return () => document.removeEventListener('keydown', handleEscape);
   }, [closeOnEscape, isOpen]);
 
-  // Prevent body scroll when open
-  React.useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = originalOverflow;
-      };
-    }
-  }, [isOpen]);
+  // NOTE: Removed manual body overflow lock — Radix Dialog handles scroll lock internally.
+  // The manual implementation caused scroll to permanently break when dialogs
+  // opened/closed in sequence or when other components cleared the overflow.
 
   return (
     <DialogPortal>
