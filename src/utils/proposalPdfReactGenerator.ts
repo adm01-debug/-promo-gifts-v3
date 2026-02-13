@@ -9,7 +9,8 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ProposalHtmlTemplate, type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
+import { type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
+import { PropostaComercialTailwind } from "@/components/pdf/PropostaComercialTailwind";
 
 // Re-export types for backward compatibility
 export type { ProposalTemplateData as ProposalDocumentData };
@@ -32,7 +33,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
     
     await new Promise<void>((resolve) => {
       root.render(
-        React.createElement(ProposalHtmlTemplate, { data, ref: templateRef })
+        React.createElement(PropostaComercialTailwind, { data, ref: templateRef })
       );
     // Wait for render + images to load
       setTimeout(resolve, 1000);
