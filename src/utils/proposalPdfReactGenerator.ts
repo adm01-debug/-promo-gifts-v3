@@ -111,24 +111,29 @@ export async function generateProposalPDFv2(data: ProposalDocumentData): Promise
 
   // ═══ HEADER: Green banner ═══
   doc.setFillColor(...GREEN);
-  doc.rect(0, 0, pw, 28, "F");
+  doc.rect(0, 0, pw, 32, "F");
   // Black accent on right
   doc.setFillColor(...BLACK);
-  doc.rect(pw - 50, 0, 50, 28, "F");
+  doc.rect(pw - 50, 0, 50, 32, "F");
   // Dark green bottom line
   doc.setFillColor(...GREEN_DARK);
-  doc.rect(0, 28, pw, 2, "F");
+  doc.rect(0, 32, pw, 2, "F");
 
-  // Title
-  doc.setFontSize(20);
-  doc.setTextColor(...WHITE);
-  doc.setFont("helvetica", "bolditalic");
-  doc.text("Promo Brindes", margin, 16);
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.text("Brindes Promocionais e Personalizados", margin, 23);
+  // Logo
+  try {
+    const logoB64 = await loadImageAsBase64("/images/promo-brindes-logo.jpg");
+    if (logoB64) {
+      doc.addImage(logoB64, "JPEG", margin, 3, 50, 26);
+    }
+  } catch {
+    // Fallback text if logo fails
+    doc.setFontSize(20);
+    doc.setTextColor(...WHITE);
+    doc.setFont("helvetica", "bolditalic");
+    doc.text("Promo Brindes", margin, 18);
+  }
 
-  y = 40;
+  y = 44;
 
   // ═══ CLIENT + QUOTE INFO ═══
   const company = data.client.company || data.client.name;
