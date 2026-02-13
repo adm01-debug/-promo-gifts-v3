@@ -61,7 +61,7 @@ const BLUE = "#0085ca";
 export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalTemplateData }>(
   ({ data }, ref) => {
     const company = data.client.company || data.client.name;
-    const contact = data.client.contactName || data.client.name;
+    const contact = data.client.contactName || "";
 
     return (
       <div
@@ -161,12 +161,14 @@ function ClientBar({ company, contact }: { company: string; contact: string }) {
         </div>
         <div style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{company}</div>
       </div>
-      <div style={{ textAlign: "right" }}>
-        <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: GREEN, textTransform: "uppercase", margin: "0 0 5px 0" }}>
-          Solicitante
+      {contact && (
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", color: GREEN, textTransform: "uppercase", margin: "0 0 5px 0" }}>
+            Solicitante
+          </div>
+          <div style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{contact}</div>
         </div>
-        <div style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{contact}</div>
-      </div>
+      )}
     </div>
   );
 }

@@ -400,10 +400,16 @@ export default function QuoteBuilderPage() {
       return;
     }
 
+    const companyDisplayName = companyInfo?.name || undefined;
+    const companyLocation = [companyInfo?.cidade, companyInfo?.estado].filter(Boolean).join("/");
+    const companyWithLocation = companyDisplayName && companyLocation
+      ? `${companyDisplayName} | ${companyLocation}`
+      : companyDisplayName;
+
     const quoteData = {
       client_id: clientId || undefined,
       client_name: contactInfo?.name || companyInfo?.name || undefined,
-      client_company: companyInfo?.name || undefined,
+      client_company: companyWithLocation,
       client_email: contactInfo?.email || undefined,
       client_phone: contactInfo?.phone || undefined,
       status,
