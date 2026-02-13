@@ -1,21 +1,19 @@
 /**
- * useSimulatorWizard v4 - Hook central do simulador
+ * useSimulatorWizard v5 - Hook central do simulador
  * 
- * ARQUITETURA DEFINITIVA (v5.9):
- * 1. Buscar áreas via product_print_areas + tabela_preco_gravacao_oficial
+ * ARQUITETURA v6:
+ * 1. Buscar opções via fn_get_product_customization_options (locais + técnicas)
  * 2. Calcular preço via fn_get_customization_price com p_area_id
  * 
- * NÃO usa mais fn_get_customization_price_v2 (eliminada).
- * NÃO usa mais conceito de variantes (tecnica_variante_id eliminado).
+ * Usa tipos de src/types/customization.ts como fonte de dados v6.
  */
 
 import { useReducer, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { fetchProductPrintAreasV2 } from '@/hooks/useGravacaoPriceV2';
 import { invokeExternalRpc } from '@/lib/external-rpc';
-import { groupPrintAreasToLocations } from '@/lib/print-area-grouping';
+import type { CustomizationOptionsResponse, TechniqueOption, GravacaoLocation } from '@/types/customization';
 import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
 import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
 import type {
@@ -27,6 +25,7 @@ import type {
   EngravingSpecs,
   TechniqueComparisonResult,
   Personalization,
+  AvailableTechnique,
 } from '@/types/domain/simulator-wizard';
 import {
   WIZARD_STEPS,
@@ -226,18 +225,22 @@ export function useSimulatorWizard() {
   // ============================================
 
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
-    queryKey: ['wizard-locations-v4', state.selectedProduct?.id],
-    queryFn: async () => {
+    queryKey: ['wizard-locations-v6', state.selectedProduct?.id],
+    queryFn: async (): Promise<EngravingLocation[]> => {
       if (!state.selectedProduct?.id) return [];
       
       try {
-        const areas = await fetchProductPrintAreasV2(state.selectedProduct.id);
-        
-        if (areas.length > 0) {
-          return groupPrintAreasToLocations(areas);
+        // v6: Usar fn_get_product_customization_options
+        const result = await invokeExternalRpc<CustomizationOptionsResponse>(
+          'fn_get_product_customization_options',
+          { p_product_id: state.selectedProduct.id }
+        );
+
+        if (result?.locations?.length) {
+          return mapV6LocationsToWizard(result.locations);
         }
       } catch (err) {
-        console.warn('Falha ao buscar áreas do Promobrind:', err);
+        console.warn('Falha ao buscar opções de personalização v6:', err);
       }
 
       // Fallback: BD local (para produtos sem dados no Promobrind)
@@ -392,22 +395,29 @@ export function useSimulatorWizard() {
           return;
         }
 
-        // Cores efetivas
-        const effectiveColors = (tech.maxColors === 0 || tech.maxColors === 1) 
+        // Cores efetivas: usar v6 cobra_por_cor
+        const cobraPorCor = tech.cobraPorCor !== false;
+        const effectiveColors = (!cobraPorCor || tech.maxColors === 0 || tech.maxColors === 1) 
           ? 1 
           : state.engravingSpecs.colors;
 
         try {
-          // ★ Usar fn_get_customization_price com p_area_id
+          // ★ v6: Enviar dimensões apenas se usa_dimensao === true
+          const usaDimensao = tech.usaDimensao !== false;
+          const rpcParams: Record<string, unknown> = {
+            p_area_id: tech.printAreaId,
+            p_quantidade: state.quantity,
+            p_num_cores: effectiveColors,
+          };
+
+          if (usaDimensao && state.engravingSpecs.width > 0 && state.engravingSpecs.height > 0) {
+            rpcParams.p_largura_cm = state.engravingSpecs.width;
+            rpcParams.p_altura_cm = state.engravingSpecs.height;
+          }
+
           const result = await invokeExternalRpc<CustomizationPriceResponse>(
             'fn_get_customization_price',
-            {
-              p_area_id: tech.printAreaId,
-              p_quantidade: state.quantity,
-              p_num_cores: effectiveColors,
-              p_largura_cm: state.engravingSpecs.width || null,
-              p_altura_cm: state.engravingSpecs.height || null,
-            }
+            rpcParams
           );
 
           if (!result || !result.success) {
@@ -685,3 +695,54 @@ function createUnavailableResult(
 }
 
 export type UseSimulatorWizardReturn = ReturnType<typeof useSimulatorWizard>;
+
+// ============================================
+// v6 MAPPER: GravacaoLocation[] → EngravingLocation[]
+// ============================================
+
+function mapV6LocationsToWizard(locations: GravacaoLocation[]): EngravingLocation[] {
+  return locations
+    .sort((a, b) => a.location_order - b.location_order)
+    .map((loc) => {
+      // Calculate max dimensions from all techniques in this location
+      const maxWidth = Math.max(...loc.options.map(t => t.efetiva_largura_max || t.max_width || 0));
+      const maxHeight = Math.max(...loc.options.map(t => t.efetiva_altura_max || t.max_height || 0));
+
+      const availableTechniques: AvailableTechnique[] = loc.options.map((t) => ({
+        id: t.technique_id,
+        printAreaId: t.technique_id, // p_area_id for fn_get_customization_price
+        techniqueId: t.technique_id,
+        techniqueName: t.tecnica_nome,
+        techniqueCode: t.codigo_tabela,
+        maxColors: t.max_cores,
+        isDefault: false,
+        isCurved: t.is_curved,
+        hasPricing: true, // v6 only returns techniques with pricing
+        areaMaxWidth: t.efetiva_largura_max,
+        areaMaxHeight: t.efetiva_altura_max,
+        grupoTecnica: t.grupo_tecnica,
+        cobraPorCor: t.cobra_por_cor,
+        // v6 fields
+        usaDimensao: t.usa_dimensao,
+        efetivaLarguraMax: t.efetiva_largura_max,
+        efetivaAlturaMax: t.efetiva_altura_max,
+        variacaoLabel: t.variacao_label,
+        shape: t.shape,
+      }));
+
+      return {
+        id: loc.location_code,
+        componentId: loc.location_code,
+        componentCode: loc.location_code,
+        componentName: loc.location_name,
+        locationCode: loc.location_code,
+        locationName: loc.location_name,
+        maxWidthCm: maxWidth,
+        maxHeightCm: maxHeight,
+        maxAreaCm2: null,
+        areaImageUrl: null,
+        isFromGroup: false,
+        availableTechniques,
+      };
+    });
+}
