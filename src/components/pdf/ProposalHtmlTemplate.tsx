@@ -104,14 +104,12 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
   return (
     <div style={{ position: "relative", width: "794px", height: "160px", marginBottom: "30px" }}>
       <svg width="794" height="160" viewBox="0 0 794 160" style={{ position: "absolute", top: 0, left: 0 }}>
-        <rect x="0" y="130" width="360" height="4" fill={GREEN} />
         <polygon points="340,0 380,0 420,160 380,160" fill={GREEN} />
         <polygon points="375,0 794,0 794,125 405,125" fill={DARK} />
-        <rect x="405" y="125" width="389" height="35" fill={GREEN} />
         <polygon points="405,125 430,125 405,160" fill={GREEN_DARK} />
       </svg>
 
-      <div style={{ position: "absolute", top: "50%", left: "50px", transform: "translateY(-50%)", width: "220px", zIndex: 10 }}>
+      <div style={{ position: "absolute", top: "50%", left: "40px", transform: "translateY(-50%)", width: "280px", zIndex: 10 }}>
         <img
           src="/images/promo-brindes-logo.png"
           alt="Promo Brindes"
