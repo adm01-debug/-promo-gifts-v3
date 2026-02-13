@@ -60,15 +60,15 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
         </div>
 
         {/* ═══ CONTENT ═══ */}
-        <div style={{ padding: "0 40px", flex: 1, display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "0 40px", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
           {/* Barra do Cliente */}
           <div className="flex justify-between" style={{
             backgroundColor: "#f5f5f5",
             borderLeft: "5px solid #00c853",
-            padding: "14px 20px",
-            marginTop: "20px",
-            marginBottom: "20px",
+            padding: "10px 20px",
+            marginTop: "14px",
+            marginBottom: "14px",
           }}>
             <div>
               <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: "#00c853", textTransform: "uppercase", margin: "0 0 3px 0" }}>
@@ -191,7 +191,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
           </table>
 
           {/* TOTAIS */}
-          <div className="flex justify-end" style={{ marginTop: "8px" }}>
+          <div className="flex justify-end" style={{ marginTop: "4px" }}>
             <div style={{ width: "320px" }}>
               <div className="flex justify-between" style={{ padding: "6px 0", fontSize: "13px", color: "#555", borderBottom: "1px solid #fafafa" }}>
                 <span>Subtotal:</span>
@@ -225,7 +225,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
           </div>
 
           {/* Notas */}
-          <div style={{ marginTop: "20px", fontSize: "11px", color: "#666", lineHeight: "1.5", borderTop: "1px solid #eee", paddingTop: "14px" }}>
+          <div style={{ marginTop: "12px", fontSize: "11px", color: "#666", lineHeight: "1.5", borderTop: "1px solid #eee", paddingTop: "10px" }}>
             <div style={{ fontWeight: 700, fontSize: "12px", color: "#333", marginBottom: "6px" }}>
               Informações Relevantes:
             </div>
