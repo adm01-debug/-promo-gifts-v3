@@ -10,7 +10,6 @@ export interface ExternalVariantStock {
   color_name: string | null;
   color_hex: string | null;
   stock_quantity: number | null;
-  // Campos de próxima entrada (se existirem no schema do fornecedor)
   next_entry_date: string | null;
   next_entry_quantity: number | null;
   selected_thumbnail: string | null;
@@ -19,7 +18,8 @@ export interface ExternalVariantStock {
 
 /**
  * Busca variantes de um produto do banco externo Promobrind
- * com informações de estoque e cores
+ * com informações de estoque e cores.
+ * Enriquece com imagens da tabela product_images via color_code/supplier_code.
  */
 export function useExternalVariantStock(productId: string | undefined) {
   return useQuery({
@@ -27,36 +27,72 @@ export function useExternalVariantStock(productId: string | undefined) {
     queryFn: async (): Promise<ExternalVariantStock[]> => {
       if (!productId) return [];
 
-      const result = await invokeExternalDb<{
-        id: string;
-        product_id: string;
-        sku: string;
-        supplier_sku: string | null;
-        color_code: string | null;
-        color_name: string | null;
-        color_hex: string | null;
-        stock_quantity: number | null;
-        selected_thumbnail: string | null;
-        images: string[] | null;
-        selected_images: string[] | null;
-      }>({
-        table: 'product_variants',
-        operation: 'select',
-        select: 'id, product_id, sku, supplier_sku, color_code, color_name, color_hex, stock_quantity, selected_thumbnail, images, selected_images',
-        filters: { product_id: productId, is_active: true },
-        limit: 100,
-      });
+      // Buscar variantes e imagens em paralelo
+      const [variantsResult, imagesResult] = await Promise.all([
+        invokeExternalDb<{
+          id: string;
+          product_id: string;
+          sku: string;
+          supplier_sku: string | null;
+          color_code: string | null;
+          color_name: string | null;
+          color_hex: string | null;
+          stock_quantity: number | null;
+          selected_thumbnail: string | null;
+          images: string[] | null;
+          selected_images: string[] | null;
+        }>({
+          table: 'product_variants',
+          operation: 'select',
+          select: 'id, product_id, sku, supplier_sku, color_code, color_name, color_hex, stock_quantity, selected_thumbnail, images, selected_images',
+          filters: { product_id: productId, is_active: true },
+          limit: 100,
+        }),
+        invokeExternalDb<{
+          id: string;
+          supplier_code: string | null;
+          url: string | null;
+          is_og_image: boolean | null;
+          is_primary: boolean | null;
+          image_type: string | null;
+        }>({
+          table: 'product_images',
+          operation: 'select',
+          select: 'id, supplier_code, url, is_og_image, is_primary, image_type',
+          filters: { product_id: productId },
+          limit: 200,
+        }),
+      ]);
 
-      return result.records.map(v => ({
-        ...v,
-        // Por enquanto esses campos não existem no Promobrind,
-        // mas deixamos preparado para quando forem adicionados
-        next_entry_date: null,
-        next_entry_quantity: null,
-        images: v.selected_images?.length ? v.selected_images : v.images,
-      }));
+      // Indexar imagens por supplier_code para lookup rápido
+      // Priorizar is_og_image (MAIN), excluir tipo 'box'
+      const imagesByCode = new Map<string, string>();
+      for (const img of imagesResult.records) {
+        if (!img.supplier_code || !img.url) continue;
+        if (img.image_type === 'box') continue;
+        const code = img.supplier_code.toUpperCase();
+        // Priorizar is_og_image
+        if (!imagesByCode.has(code) || img.is_og_image) {
+          imagesByCode.set(code, img.url);
+        }
+      }
+
+      return variantsResult.records.map(v => {
+        // Imagem da variante: selected_thumbnail > imagem por color_code > selected_images > images
+        const colorImage = v.color_code ? imagesByCode.get(v.color_code.toUpperCase()) : null;
+        const thumbnail = v.selected_thumbnail || colorImage || null;
+        const imgs = v.selected_images?.length ? v.selected_images : v.images;
+
+        return {
+          ...v,
+          next_entry_date: null,
+          next_entry_quantity: null,
+          selected_thumbnail: thumbnail,
+          images: imgs,
+        };
+      });
     },
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000, // 5 min
+    staleTime: 5 * 60 * 1000,
   });
 }
