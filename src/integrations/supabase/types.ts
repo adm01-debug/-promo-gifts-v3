@@ -2803,7 +2803,7 @@ export type Database = {
             foreignKeyName: "quotes_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
-            referencedRelation: "bitrix_clients"
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
