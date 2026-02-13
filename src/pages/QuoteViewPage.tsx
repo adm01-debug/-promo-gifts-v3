@@ -66,13 +66,14 @@ export default function QuoteViewPage() {
     try {
       const proposalData = {
         quoteNumber: quote.quote_number || "",
-        date: quote.created_at ? format(new Date(quote.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "",
+        date: quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "",
         validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : "30 dias",
         client: {
-          name: quote.client_name || "Cliente não especificado",
+          name: quote.client_name || "Nao especificado",
           email: quote.client_email || undefined,
           phone: quote.client_phone || undefined,
           company: quote.client_company || undefined,
+          contactName: quote.client_name || undefined,
         },
         seller: {
           name: user?.email || "Vendedor",
@@ -83,8 +84,9 @@ export default function QuoteViewPage() {
           quantity: item.quantity,
           unitPrice: item.unit_price,
           color: item.color_name || undefined,
+          imageUrl: item.product_image_url || undefined,
           personalizations: item.personalizations?.map((p: any) => ({
-            technique_name: p.technique_name || "Personalização",
+            technique_name: p.technique_name || "Personalizacao",
             colors_count: p.colors_count || 1,
             area_cm2: p.area_cm2 || undefined,
             unit_cost: p.unit_cost || 0,

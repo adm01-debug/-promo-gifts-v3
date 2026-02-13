@@ -1,13 +1,13 @@
 /**
  * ProposalDocument — Template React-PDF para Proposta Comercial
  * 
- * Layout premium baseado no mockup v2 com:
- * - Header com branding
- * - Info do cliente e nº do orçamento
- * - Tabela de produtos com personalização detalhada
- * - Seção de totais (subtotal, frete, desconto, líquido)
- * - Condições e observações
- * - Footer com dados do vendedor e QR code
+ * Layout baseado na proposta real da Promo Brindes com:
+ * - Header com banner laranja e branding
+ * - Dados da empresa + solicitante + nº orçamento
+ * - Tabela de produtos com foto, descrição, técnica e material
+ * - Totais (subtotal, frete, desconto, valor total)
+ * - Condições e informações relevantes
+ * - Footer com dados de contato e assinatura do vendedor
  */
 
 import {
@@ -17,26 +17,23 @@ import {
   View,
   StyleSheet,
   Image,
-  Link,
 } from "@react-pdf/renderer";
 
-// ─── Fonts ───────────────────────────────────────────────
-// Use Helvetica (built-in) to avoid external font loading failures
-// No Font.register needed — Helvetica is available by default in react-pdf
-
-// ─── Colors ──────────────────────────────────────────────
+// ─── Colors (brand orange) ──────────────────────────────
 const C = {
-  primary: "#EA580C",        // Orange 600
-  primaryLight: "#FFF7ED",   // Orange 50
-  primaryMid: "#FDBA74",     // Orange 300
-  dark: "#1C1917",           // Stone 900
-  text: "#44403C",           // Stone 700
-  muted: "#78716C",          // Stone 500
-  light: "#F5F5F4",          // Stone 100
-  border: "#E7E5E4",         // Stone 200
+  primary: "#EA580C",
+  primaryDark: "#C2410C",
+  primaryLight: "#FFF7ED",
+  primaryMid: "#FDBA74",
+  dark: "#1C1917",
+  text: "#44403C",
+  muted: "#78716C",
+  light: "#F5F5F4",
+  border: "#D6D3D1",
   white: "#FFFFFF",
   green: "#16A34A",
-  greenLight: "#F0FDF4",
+  greenBg: "#DCFCE7",
+  headerBg: "#292524",
 };
 
 // ─── Styles ──────────────────────────────────────────────
@@ -46,234 +43,213 @@ const s = StyleSheet.create({
     fontSize: 9,
     color: C.text,
     backgroundColor: C.white,
-    paddingTop: 30,
-    paddingBottom: 60,
-    paddingHorizontal: 35,
+    paddingBottom: 80,
   },
 
-  // Header
-  headerRow: {
+  // ── Top banner ──
+  banner: {
+    backgroundColor: C.primary,
+    height: 70,
+    paddingHorizontal: 35,
+    paddingTop: 18,
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 20,
-  },
-  brandBlock: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
   },
-  brandIcon: {
-    width: 32,
-    height: 32,
-    backgroundColor: C.primary,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  brandIconText: {
-    fontSize: 18,
+  bannerTitle: {
+    fontSize: 24,
+    fontFamily: "Helvetica-Bold",
     color: C.white,
-    textAlign: "center",
+    letterSpacing: 1,
   },
-  brandName: {
-    fontSize: 16,
-    fontWeight: 700,
-    color: C.dark,
-    letterSpacing: -0.3,
-  },
-  brandSub: {
-    fontSize: 8,
-    color: C.muted,
-    marginTop: 1,
-  },
-  quoteInfo: {
-    alignItems: "flex-end",
-  },
-  quoteNumber: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: C.primary,
-  },
-  quoteDate: {
-    fontSize: 8,
-    color: C.muted,
+  bannerSub: {
+    fontSize: 9,
+    color: C.white,
+    opacity: 0.85,
     marginTop: 2,
   },
+  bannerRight: {
+    alignItems: "flex-end",
+  },
+  bannerLabel: {
+    fontSize: 7,
+    color: C.white,
+    opacity: 0.7,
+    textTransform: "uppercase",
+  },
 
-  // Client bar
-  clientBar: {
+  // ── Client section ──
+  clientSection: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: C.primaryLight,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: C.primaryMid,
+    paddingHorizontal: 35,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
   },
-  clientLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  clientAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: C.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  clientAvatarText: {
-    fontSize: 14,
-    fontWeight: 700,
-    color: C.white,
-    textAlign: "center",
-  },
+  clientBlock: {},
   clientLabel: {
-    fontSize: 7,
+    fontSize: 8,
     color: C.muted,
     textTransform: "uppercase",
     letterSpacing: 0.5,
+    marginBottom: 3,
   },
-  clientName: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: C.dark,
+  clientCompany: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    color: C.primary,
+    marginBottom: 2,
   },
   clientContact: {
+    fontSize: 9,
+    color: C.dark,
+  },
+  clientDetail: {
     fontSize: 8,
     color: C.muted,
     marginTop: 1,
   },
-
-  // Divider
-  divider: {
-    height: 1,
-    backgroundColor: C.border,
-    marginVertical: 6,
+  quoteInfoBox: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  quoteNumber: {
+    fontSize: 16,
+    fontFamily: "Helvetica-Bold",
+    color: C.dark,
+  },
+  quoteDate: {
+    fontSize: 9,
+    color: C.muted,
+    marginTop: 3,
   },
 
-  // Table header
+  // ── Table ──
+  tableContainer: {
+    paddingHorizontal: 35,
+    marginTop: 14,
+  },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: C.dark,
-    borderRadius: 6,
-    paddingVertical: 7,
-    paddingHorizontal: 10,
-    marginBottom: 4,
+    backgroundColor: C.headerBg,
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    marginBottom: 2,
   },
   thText: {
     color: C.white,
-    fontSize: 7,
-    fontWeight: 600,
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
 
-  // Table row
   tableRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
   tableRowAlt: {
-    backgroundColor: C.light,
+    backgroundColor: "#FAFAF9",
   },
 
   // Column widths
-  colProduct: { width: "42%" },
+  colImage: { width: 45 },
+  colDesc: { width: "40%", paddingLeft: 6 },
   colQty: { width: "10%", textAlign: "center" },
   colUnit: { width: "15%", textAlign: "right" },
-  colDiscount: { width: "13%", textAlign: "center" },
-  colTotal: { width: "20%", textAlign: "right" },
+  colDiscount: { width: "12%", textAlign: "center" },
+  colTotal: { width: "15%", textAlign: "right" },
 
-  // Product cell
+  productImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 4,
+    objectFit: "contain",
+    backgroundColor: C.light,
+  },
   productName: {
     fontSize: 10,
-    fontWeight: 600,
+    fontFamily: "Helvetica-Bold",
     color: C.dark,
   },
   productSku: {
     fontSize: 7,
-    color: C.muted,
-    fontWeight: 500,
+    color: C.primary,
+    fontFamily: "Helvetica-Bold",
+    marginTop: 1,
   },
   productDesc: {
     fontSize: 7.5,
     color: C.muted,
-    marginTop: 3,
+    marginTop: 2,
     lineHeight: 1.4,
   },
-  techBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 4,
-    gap: 4,
-  },
-  techText: {
-    fontSize: 7,
-    color: C.primary,
-    fontWeight: 500,
-  },
-  materialText: {
-    fontSize: 7,
+  techLine: {
+    fontSize: 7.5,
     color: C.text,
+    marginTop: 3,
   },
-
+  techLabel: {
+    fontFamily: "Helvetica-Bold",
+    color: C.dark,
+  },
+  materialLabel: {
+    fontFamily: "Helvetica-Bold",
+    color: C.dark,
+  },
   cellText: {
     fontSize: 9,
     color: C.dark,
-    fontWeight: 500,
   },
-  discountText: {
-    fontSize: 8,
-    color: C.green,
-    fontWeight: 500,
+  cellTextBold: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: C.dark,
   },
 
-  // Totals
-  totalsSection: {
+  // ── Bottom section ──
+  bottomSection: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 14,
-    gap: 16,
+    paddingHorizontal: 35,
+    marginTop: 18,
+    gap: 20,
   },
-  conditionsBox: {
+  infoColumn: {
     flex: 1,
-    padding: 12,
-    backgroundColor: C.light,
-    borderRadius: 8,
   },
-  conditionsTitle: {
-    fontSize: 9,
-    fontWeight: 700,
+  infoTitle: {
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
     color: C.dark,
     marginBottom: 6,
   },
-  conditionRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
+  infoSubtitle: {
+    fontSize: 9,
+    color: C.muted,
+    marginBottom: 10,
+  },
+  infoSectionTitle: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: C.dark,
+    marginTop: 8,
     marginBottom: 4,
   },
-  conditionIcon: {
-    fontSize: 8,
-    color: C.primary,
-  },
-  conditionText: {
+  infoBullet: {
     fontSize: 8,
     color: C.text,
+    marginBottom: 3,
     lineHeight: 1.4,
-    flex: 1,
   },
 
-  totalsBox: {
+  // ── Totals ──
+  totalsColumn: {
     width: 200,
   },
   totalRow: {
@@ -288,33 +264,41 @@ const s = StyleSheet.create({
   totalValue: {
     fontSize: 9,
     color: C.dark,
-    fontWeight: 500,
   },
   totalDivider: {
-    height: 1.5,
-    backgroundColor: C.dark,
-    marginVertical: 4,
+    height: 2,
+    backgroundColor: C.primary,
+    marginVertical: 6,
+    borderRadius: 1,
+  },
+  grandTotalBox: {
+    backgroundColor: C.primaryLight,
+    borderWidth: 2,
+    borderColor: C.primary,
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    marginTop: 4,
   },
   grandTotalLabel: {
-    fontSize: 11,
-    fontWeight: 700,
-    color: C.dark,
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: C.primaryDark,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   grandTotalValue: {
-    fontSize: 14,
-    fontWeight: 700,
+    fontSize: 18,
+    fontFamily: "Helvetica-Bold",
     color: C.primary,
-  },
-  savingsText: {
-    fontSize: 7.5,
-    color: C.green,
-    marginTop: 4,
-    textAlign: "right",
+    marginTop: 2,
   },
 
-  // Notes
+  // ── Notes ──
   notesBox: {
-    marginTop: 14,
+    marginHorizontal: 35,
+    marginTop: 12,
     padding: 10,
     backgroundColor: C.primaryLight,
     borderRadius: 6,
@@ -323,9 +307,9 @@ const s = StyleSheet.create({
   },
   notesTitle: {
     fontSize: 8,
-    fontWeight: 700,
+    fontFamily: "Helvetica-Bold",
     color: C.primary,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   notesText: {
     fontSize: 8,
@@ -333,79 +317,46 @@ const s = StyleSheet.create({
     lineHeight: 1.5,
   },
 
-  // Footer
+  // ── Footer ──
   footer: {
     position: "absolute",
-    bottom: 20,
-    left: 35,
-    right: 35,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    bottom: 0,
+    left: 0,
+    right: 0,
     borderTopWidth: 1,
     borderTopColor: C.border,
     paddingTop: 10,
+    paddingBottom: 14,
+    paddingHorizontal: 35,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
   },
   footerLeft: {
     gap: 2,
   },
-  footerText: {
-    fontSize: 7,
+  footerContact: {
+    fontSize: 7.5,
     color: C.muted,
   },
-  footerSeller: {
-    fontSize: 8,
-    fontWeight: 600,
-    color: C.dark,
+  footerLegal: {
+    fontSize: 7,
+    color: C.muted,
+    marginTop: 4,
   },
   footerRight: {
     alignItems: "flex-end",
   },
-  footerBrand: {
+  footerSellerName: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: C.dark,
+    textTransform: "uppercase",
+  },
+  footerSellerRole: {
     fontSize: 8,
-    fontWeight: 700,
-    color: C.primary,
-  },
-  footerVersion: {
-    fontSize: 6,
     color: C.muted,
-    marginTop: 2,
-  },
-
-  // Trust badges
-  trustRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-    marginTop: 14,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: C.border,
-  },
-  trustBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  trustText: {
-    fontSize: 7,
-    color: C.muted,
-    fontWeight: 500,
-  },
-
-  // Validity
-  validityBox: {
-    backgroundColor: C.greenLight,
-    borderRadius: 6,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    alignSelf: "flex-end",
-  },
-  validityText: {
-    fontSize: 7,
-    color: C.green,
-    fontWeight: 600,
+    marginTop: 1,
   },
 });
 
@@ -429,6 +380,7 @@ export interface ProposalItem {
   discount?: number;
   color?: string;
   imageUrl?: string;
+  material?: string;
   personalizations?: ProposalItemPersonalization[];
 }
 
@@ -465,233 +417,218 @@ function fmt(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
-}
-
 function itemTotal(item: ProposalItem): number {
   const base = item.quantity * item.unitPrice;
-  const discount = (item.discount || 0) * item.quantity;
-  return base - discount;
+  const discountTotal = (item.discount || 0) * item.quantity;
+  return base - discountTotal;
 }
 
 // ─── Document ────────────────────────────────────────────
 export const ProposalDocument = ({ data }: { data: ProposalDocumentData }) => {
-  const clientDisplay = data.client.company || data.client.name;
-  const initials = getInitials(clientDisplay);
+  const companyName = data.client.company || data.client.name;
+  const contactName = data.client.contactName || data.client.name;
 
   return (
     <Document>
       <Page size="A4" style={s.page}>
-        {/* ── HEADER ── */}
-        <View style={s.headerRow}>
-          <View style={s.brandBlock}>
-            <View style={s.brandIcon}>
-              <Text style={s.brandIconText}>PB</Text>
-            </View>
-            <View>
-              <Text style={s.brandName}>Promo Brindes</Text>
-              <Text style={s.brandSub}>Brindes Promocionais e Personalizados</Text>
-            </View>
+        {/* ── BANNER HEADER ── */}
+        <View style={s.banner}>
+          <View>
+            <Text style={s.bannerTitle}>Promo Brindes</Text>
+            <Text style={s.bannerSub}>Brindes Promocionais e Personalizados</Text>
           </View>
-          <View style={s.quoteInfo}>
-            <Text style={s.quoteNumber}>Nº {data.quoteNumber}</Text>
-            <Text style={s.quoteDate}>{data.date}</Text>
+          <View style={s.bannerRight}>
+            <Text style={s.bannerLabel}>Proposta Comercial</Text>
           </View>
         </View>
 
-        {/* ── CLIENT BAR ── */}
-        <View style={s.clientBar}>
-          <View style={s.clientLeft}>
-            <View style={s.clientAvatar}>
-              <Text style={s.clientAvatarText}>{initials}</Text>
-            </View>
-            <View>
-              <Text style={s.clientLabel}>Proposta para</Text>
-              <Text style={s.clientName}>{clientDisplay}</Text>
-              {data.client.contactName && (
-                <Text style={s.clientContact}>Solicitante: {data.client.contactName}</Text>
-              )}
-              {data.client.email && (
-                <Text style={s.clientContact}>{data.client.email}</Text>
-              )}
-            </View>
+        {/* ── CLIENT + QUOTE INFO ── */}
+        <View style={s.clientSection}>
+          <View style={s.clientBlock}>
+            <Text style={s.clientLabel}>Empresa</Text>
+            <Text style={s.clientCompany}>{companyName}</Text>
+            {contactName !== companyName && (
+              <Text style={s.clientContact}>Solicitante: {contactName}</Text>
+            )}
+            {data.client.email && (
+              <Text style={s.clientDetail}>{data.client.email}</Text>
+            )}
+            {data.client.phone && (
+              <Text style={s.clientDetail}>{data.client.phone}</Text>
+            )}
           </View>
-          {data.validUntil && (
-            <View style={s.validityBox}>
-              <Text style={s.validityText}>Válido até {data.validUntil}</Text>
-            </View>
-          )}
+          <View style={s.quoteInfoBox}>
+            <Text style={s.quoteNumber}>N. {data.quoteNumber}</Text>
+            <Text style={s.quoteDate}>Data: {data.date}</Text>
+            {data.validUntil && (
+              <Text style={s.quoteDate}>Valido ate: {data.validUntil}</Text>
+            )}
+          </View>
         </View>
 
         {/* ── TABLE HEADER ── */}
-        <View style={s.tableHeader}>
-          <Text style={[s.thText, s.colProduct]}>Descrição do Produto</Text>
-          <Text style={[s.thText, s.colQty]}>Qtd</Text>
-          <Text style={[s.thText, s.colUnit]}>Valor Uni.</Text>
-          <Text style={[s.thText, s.colDiscount]}>Desconto</Text>
-          <Text style={[s.thText, s.colTotal]}>Valor Total</Text>
+        <View style={s.tableContainer}>
+          <View style={s.tableHeader}>
+            <View style={s.colImage} />
+            <Text style={[s.thText, s.colDesc]}>Descricao do Produto</Text>
+            <Text style={[s.thText, s.colQty]}>Quant.</Text>
+            <Text style={[s.thText, s.colUnit]}>Valor Uni.</Text>
+            <Text style={[s.thText, s.colDiscount]}>Desconto</Text>
+            <Text style={[s.thText, s.colTotal]}>Valor Total</Text>
+          </View>
+
+          {/* ── TABLE BODY ── */}
+          {data.items.map((item, idx) => (
+            <View
+              key={idx}
+              style={[s.tableRow, idx % 2 === 1 ? s.tableRowAlt : {}]}
+              wrap={false}
+            >
+              {/* Product image */}
+              <View style={s.colImage}>
+                {item.imageUrl ? (
+                  <Image style={s.productImage} src={item.imageUrl} />
+                ) : (
+                  <View style={[s.productImage, { alignItems: "center", justifyContent: "center" }]}>
+                    <Text style={{ fontSize: 16, color: C.muted }}>-</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Description */}
+              <View style={s.colDesc}>
+                <Text style={s.productName}>{item.name}</Text>
+                {item.sku && (
+                  <Text style={s.productSku}>Ticket: #{item.sku}</Text>
+                )}
+                {item.description && (
+                  <Text style={s.productDesc}>{item.description}</Text>
+                )}
+                {/* Technique + Material line */}
+                {item.personalizations && item.personalizations.length > 0 ? (
+                  item.personalizations.map((p, pIdx) => (
+                    <Text key={pIdx} style={s.techLine}>
+                      <Text style={s.techLabel}>Gravacao: </Text>
+                      <Text>{p.technique_name}</Text>
+                      {p.colors_count && p.colors_count > 1 ? (
+                        <Text> ({p.colors_count} cores)</Text>
+                      ) : null}
+                      {(p.material || item.material) ? (
+                        <Text>
+                          {"  "}
+                          <Text style={s.materialLabel}>Material: </Text>
+                          {p.material || item.material}
+                        </Text>
+                      ) : null}
+                    </Text>
+                  ))
+                ) : item.color ? (
+                  <Text style={s.techLine}>
+                    <Text style={s.techLabel}>Cor: </Text>
+                    <Text>{item.color}</Text>
+                    {item.material ? (
+                      <Text>
+                        {"  "}
+                        <Text style={s.materialLabel}>Material: </Text>
+                        {item.material}
+                      </Text>
+                    ) : null}
+                  </Text>
+                ) : null}
+              </View>
+
+              {/* Qty */}
+              <Text style={[s.cellTextBold, s.colQty]}>{item.quantity}</Text>
+
+              {/* Unit price */}
+              <Text style={[s.cellText, s.colUnit]}>{fmt(item.unitPrice)}</Text>
+
+              {/* Discount */}
+              <Text style={[s.cellText, s.colDiscount]}>
+                {item.discount ? fmt(item.discount) : fmt(0)}
+              </Text>
+
+              {/* Total */}
+              <Text style={[s.cellTextBold, s.colTotal]}>{fmt(itemTotal(item))}</Text>
+            </View>
+          ))}
         </View>
 
-        {/* ── TABLE BODY ── */}
-        {data.items.map((item, idx) => (
-          <View
-            key={idx}
-            style={[s.tableRow, idx % 2 === 1 ? s.tableRowAlt : {}]}
-            wrap={false}
-          >
-            {/* Product info */}
-            <View style={s.colProduct}>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
-                <Text style={s.productName}>{item.name}</Text>
-                {item.sku && <Text style={s.productSku}>#{item.sku}</Text>}
-              </View>
-              {item.description && (
-                <Text style={s.productDesc}>{item.description}</Text>
-              )}
-              {/* Personalizations */}
-              {item.personalizations && item.personalizations.length > 0 && (
-                <View style={{ marginTop: 4 }}>
-                  {item.personalizations.map((p, pIdx) => (
-                    <View key={pIdx} style={s.techBadge}>
-                      <Text style={s.techText}>- {p.technique_name}</Text>
-                      {p.material && (
-                        <Text style={s.materialText}>| {p.material}</Text>
-                      )}
-                      {p.colors_count && p.colors_count > 1 && (
-                        <Text style={s.materialText}>({p.colors_count} cores)</Text>
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
-              {/* Fallback: legacy personalization_type */}
-              {(!item.personalizations || item.personalizations.length === 0) && item.color && (
-                <View style={s.techBadge}>
-                  <Text style={s.materialText}>| {item.color}</Text>
-                </View>
-              )}
-            </View>
-
-            {/* Qty */}
-            <Text style={[s.cellText, s.colQty]}>{item.quantity}</Text>
-            
-            {/* Unit price */}
-            <Text style={[s.cellText, s.colUnit]}>{fmt(item.unitPrice)}</Text>
-            
-            {/* Discount */}
-            <Text style={[item.discount ? s.discountText : s.cellText, s.colDiscount]}>
-              {item.discount ? `-${fmt(item.discount)}` : "-"}
-            </Text>
-            
-            {/* Total */}
-            <Text style={[s.cellText, s.colTotal]}>{fmt(itemTotal(item))}</Text>
-          </View>
-        ))}
-
-        {/* ── TOTALS + CONDITIONS ── */}
-        <View style={s.totalsSection}>
-          {/* Left: conditions */}
-          <View style={s.conditionsBox}>
+        {/* ── BOTTOM: INFO + TOTALS ── */}
+        <View style={s.bottomSection}>
+          {/* Left: delivery + conditions */}
+          <View style={s.infoColumn}>
             {data.deliveryTime && (
               <>
-                <Text style={s.conditionsTitle}>Previsão de Entrega</Text>
-                <Text style={[s.conditionText, { marginBottom: 8 }]}>{data.deliveryTime}</Text>
+                <Text style={s.infoTitle}>Previsao de Entrega:</Text>
+                <Text style={s.infoSubtitle}>{data.deliveryTime}</Text>
               </>
             )}
-            <Text style={s.conditionsTitle}>Informações Relevantes</Text>
-            <View style={s.conditionRow}>
-              <Text style={s.conditionIcon}>•</Text>
-              <Text style={s.conditionText}>Valores incluem personalização completa</Text>
-            </View>
-            {data.paymentTerms && (
-              <View style={s.conditionRow}>
-                <Text style={s.conditionIcon}>•</Text>
-                <Text style={s.conditionText}>{data.paymentTerms}</Text>
-              </View>
+            {data.validUntil && (
+              <Text style={s.infoBullet}>Orcamento valido ate {data.validUntil}</Text>
             )}
-            <View style={s.conditionRow}>
-              <Text style={s.conditionIcon}>•</Text>
-              <Text style={s.conditionText}>Todos os produtos passam por controle de qualidade</Text>
-            </View>
+            <Text style={s.infoSectionTitle}>Informacoes Relevantes:</Text>
+            <Text style={s.infoBullet}>- Todos os valores sao para produtos ja personalizados.</Text>
+            {data.paymentTerms ? (
+              <Text style={s.infoBullet}>- {data.paymentTerms}</Text>
+            ) : (
+              <Text style={s.infoBullet}>- Pagamento feito apos a entrega (A vista / Boleto / Pix).</Text>
+            )}
+            <Text style={s.infoBullet}>- Todos produtos passam por controle de qualidade.</Text>
           </View>
 
           {/* Right: totals */}
-          <View style={s.totalsBox}>
+          <View style={s.totalsColumn}>
             <View style={s.totalRow}>
-              <Text style={s.totalLabel}>Sub Total</Text>
+              <Text style={s.totalLabel}>Sub Total:</Text>
               <Text style={s.totalValue}>{fmt(data.subtotal)}</Text>
             </View>
-            
             <View style={s.totalRow}>
-              <Text style={s.totalLabel}>Frete</Text>
+              <Text style={s.totalLabel}>Valor Frete:</Text>
               <Text style={s.totalValue}>
                 {data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}
               </Text>
             </View>
-
             {data.discount && data.discount > 0 && (
               <View style={s.totalRow}>
-                <Text style={s.totalLabel}>Desconto</Text>
-                <Text style={[s.totalValue, { color: C.green }]}>- {fmt(data.discount)}</Text>
+                <Text style={s.totalLabel}>Desconto:</Text>
+                <Text style={[s.totalValue, { color: C.green }]}>{fmt(data.discount)}</Text>
               </View>
             )}
-
             <View style={s.totalDivider} />
-
-            <View style={s.totalRow}>
-              <Text style={s.grandTotalLabel}>Valor Total</Text>
+            <View style={s.grandTotalBox}>
+              <Text style={s.grandTotalLabel}>Valor Total da Proposta:</Text>
               <Text style={s.grandTotalValue}>{fmt(data.total)}</Text>
             </View>
-
-            {data.discount && data.discount > 0 && (
-              <Text style={s.savingsText}>
-                Você economiza {fmt(data.discount)} nesta proposta
-              </Text>
-            )}
           </View>
         </View>
 
         {/* ── NOTES ── */}
         {data.notes && (
           <View style={s.notesBox}>
-            <Text style={s.notesTitle}>Observações</Text>
+            <Text style={s.notesTitle}>Observacoes</Text>
             <Text style={s.notesText}>{data.notes}</Text>
           </View>
         )}
 
-        {/* ── TRUST BADGES ── */}
-        <View style={s.trustRow}>
-          <View style={s.trustBadge}>
-            <Text style={s.conditionIcon}>+</Text>
-            <Text style={s.trustText}>+500 empresas atendidas</Text>
-          </View>
-          <View style={s.trustBadge}>
-            <Text style={s.conditionIcon}>*</Text>
-            <Text style={s.trustText}>Referencia em brindes corporativos</Text>
-          </View>
-          <View style={s.trustBadge}>
-            <Text style={s.conditionIcon}>+</Text>
-            <Text style={s.trustText}>Garantia de qualidade</Text>
-          </View>
-        </View>
-
         {/* ── FOOTER ── */}
         <View style={s.footer} fixed>
           <View style={s.footerLeft}>
-            <Text style={s.footerSeller}>{data.seller.name}</Text>
-            {data.seller.email && <Text style={s.footerText}>{data.seller.email}</Text>}
-            {data.seller.phone && <Text style={s.footerText}>{data.seller.phone}</Text>}
+            <Text style={s.footerContact}>promobrindes.com</Text>
+            <Text style={s.footerContact}>comercial01@gmail.com</Text>
+            {data.seller.phone && (
+              <Text style={s.footerContact}>{data.seller.phone}</Text>
+            )}
+            <Text style={s.footerLegal}>
+              CNPJ: 36.835.552/0001-67
+            </Text>
+            <Text style={s.footerLegal}>
+              Razao Social: Brasil Marcas Industria e Comercio de Brindes LTDA.
+            </Text>
           </View>
           <View style={s.footerRight}>
-            <Text style={s.footerBrand}>Promo Brindes</Text>
-            <Text style={s.footerVersion}>Proposta gerada automaticamente</Text>
+            <Text style={s.footerSellerName}>{data.seller.name}</Text>
+            <Text style={s.footerSellerRole}>Executivo de Vendas</Text>
           </View>
         </View>
       </Page>
