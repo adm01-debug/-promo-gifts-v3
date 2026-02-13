@@ -395,6 +395,11 @@ export default function QuoteBuilderPage() {
 
   // Save quote (create or update)
   const handleSaveQuote = async (status: "draft" | "pending" = "draft") => {
+    console.log("[SAVE DEBUG] contactInfo:", JSON.stringify(contactInfo));
+    console.log("[SAVE DEBUG] companyInfo:", JSON.stringify(companyInfo));
+    console.log("[SAVE DEBUG] contactId:", contactId);
+    console.log("[SAVE DEBUG] clientId:", clientId);
+    
     if (items.length === 0) {
       toast.error("Adicione pelo menos um item ao orçamento");
       return;
