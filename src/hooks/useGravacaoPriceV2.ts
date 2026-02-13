@@ -124,37 +124,81 @@ export interface CustomizationPriceFlat {
   redirected_to?: string;
 }
 
-/** Map nested RPC response to flat interface for UI compatibility */
-export function mapPriceResponseToFlat(resp: CustomizationPriceResponse): CustomizationPriceFlat {
+/** Map nested RPC response to flat interface for UI compatibility.
+ *  Handles BOTH the expected nested format AND the actual flat format
+ *  returned by fn_get_customization_price.
+ */
+export function mapPriceResponseToFlat(resp: any): CustomizationPriceFlat {
+  // Detect format: if resp.area is an object, it's nested; otherwise flat
+  const isNested = resp.area && typeof resp.area === 'object' && resp.area.id;
+
+  if (isNested) {
+    // Nested format (original expected structure)
+    return {
+      success: resp.success,
+      area_id: resp.area.id,
+      area_code: resp.area.code,
+      area_name: resp.area.name,
+      tabela_id: resp.tabela?.id || '',
+      tabela_codigo: resp.tabela?.codigo_tabela || '',
+      tabela_codigo_curto: (resp.tabela?.codigo_tabela || '').split('-')[0] || resp.tabela?.codigo_tabela || '',
+      technique: resp.tabela?.nome || '',
+      grupo_tecnica: resp.tabela?.grupo_tecnica || '',
+      codigo_orcamento: resp.codigo_orcamento || '',
+      quantity: resp.parametros?.quantidade || 0,
+      num_cores: resp.parametros?.num_cores || 1,
+      unit_price: resp.precos?.preco_unitario_final || 0,
+      subtotal_pecas: resp.precos?.subtotal_pecas || 0,
+      faturamento_minimo_gravacao: resp.precos?.faturamento_minimo_gravacao || 0,
+      minimum_applied: resp.precos?.aplica_minimo || false,
+      total_price: resp.precos?.total_final || 0,
+      cost_base_unit: resp.custos?.custo_base_unitario || 0,
+      cost_unit_total: resp.custos?.custo_unitario_total || 0,
+      cost_setup: resp.custos?.custo_setup_base || 0,
+      markup_percent: resp.precos?.markup_percent || 0,
+      margin_percent: resp.precos?.markup_percent || 0,
+      price_by_color: resp.tabela?.cobra_por_cor ?? false,
+      max_cores: resp.tabela?.max_cores ?? 1,
+      production_days: resp.faixa?.prazo_dias ?? null,
+      tier_used: resp.faixa?.ordem || 0,
+      tier_min_qty: resp.faixa?.quantidade_minima || 0,
+      tier_max_qty: resp.faixa?.quantidade_maxima || 0,
+      redirected_from: resp.redirected_from,
+      redirected_to: resp.redirected_to,
+    };
+  }
+
+  // Flat format (actual RPC response from fn_get_customization_price)
+  const tabelaCode = resp.tabela || '';
   return {
-    success: resp.success,
-    area_id: resp.area.id,
-    area_code: resp.area.code,
-    area_name: resp.area.name,
-    tabela_id: resp.tabela.id,
-    tabela_codigo: resp.tabela.codigo_tabela,
-    tabela_codigo_curto: resp.tabela.codigo_tabela.split('-')[0] || resp.tabela.codigo_tabela,
-    technique: resp.tabela.nome,
-    grupo_tecnica: resp.tabela.grupo_tecnica,
-    codigo_orcamento: resp.codigo_orcamento,
-    quantity: resp.parametros.quantidade,
-    num_cores: resp.parametros.num_cores,
-    unit_price: resp.precos.preco_unitario_final,
-    subtotal_pecas: resp.precos.subtotal_pecas,
-    faturamento_minimo_gravacao: resp.precos.faturamento_minimo_gravacao,
-    minimum_applied: resp.precos.aplica_minimo,
-    total_price: resp.precos.total_final,
-    cost_base_unit: resp.custos.custo_base_unitario,
-    cost_unit_total: resp.custos.custo_unitario_total,
-    cost_setup: resp.custos.custo_setup_base,
-    markup_percent: resp.precos.markup_percent,
-    margin_percent: resp.precos.markup_percent, // Usamos markup como proxy
-    price_by_color: resp.tabela.cobra_por_cor,
-    max_cores: resp.tabela.max_cores,
-    production_days: resp.faixa.prazo_dias,
-    tier_used: resp.faixa.ordem,
-    tier_min_qty: resp.faixa.quantidade_minima,
-    tier_max_qty: resp.faixa.quantidade_maxima,
+    success: resp.success ?? true,
+    area_id: resp.area_id || '',
+    area_code: resp.area_code || tabelaCode,
+    area_name: resp.nome_tabela || '',
+    tabela_id: resp.tabela_id || '',
+    tabela_codigo: tabelaCode,
+    tabela_codigo_curto: tabelaCode.split('-')[0] || tabelaCode,
+    technique: resp.nome_tabela || '',
+    grupo_tecnica: resp.grupo_tecnica || '',
+    codigo_orcamento: resp.codigo_orcamento || `${tabelaCode}-${resp.quantidade || 0}`,
+    quantity: resp.quantidade || 0,
+    num_cores: resp.num_cores || 1,
+    unit_price: resp.preco_unitario || resp.preco_por_unidade || 0,
+    subtotal_pecas: resp.valor_gravacao || (resp.preco_unitario || 0) * (resp.quantidade || 0),
+    faturamento_minimo_gravacao: resp.setup_total || resp.markup?.custo_setup_tabela || 0,
+    minimum_applied: (resp.setup_total || 0) > (resp.valor_gravacao || 0),
+    total_price: resp.total_cobrado || resp.valor_gravacao || 0,
+    cost_base_unit: resp.markup?.custo_unitario || 0,
+    cost_unit_total: resp.markup?.custo_unitario || 0,
+    cost_setup: resp.markup?.custo_setup_tabela || 0,
+    markup_percent: resp.markup?.markup_pct || 0,
+    margin_percent: resp.markup?.markup_pct || 0,
+    price_by_color: resp.detalhes?.cobra_por_cor ?? false,
+    max_cores: resp.detalhes?.max_cores ?? 1,
+    production_days: resp.faixa?.prazo_dias ?? resp.prazo_dias ?? null,
+    tier_used: resp.faixa?.faixa_id ? 1 : 0,
+    tier_min_qty: resp.faixa?.qtd_min || 0,
+    tier_max_qty: resp.faixa?.qtd_max || 0,
     redirected_from: resp.redirected_from,
     redirected_to: resp.redirected_to,
   };
