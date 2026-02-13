@@ -27,8 +27,7 @@
 /* Smooth scrolling - ensure html/body are never scroll-locked by modals */
 html, html[data-scroll-locked] {
   scroll-behavior: smooth;
-  overflow-x: hidden;
-  overflow-y: scroll !important;
+  overflow-y: auto !important;
   margin-right: 0 !important;
   position: static !important;
 }
@@ -82,7 +81,7 @@ body {
 /* Prevent horizontal scroll and ensure body scroll is never locked by modals */
 body, body[data-scroll-locked] {
   overflow-x: hidden;
-  overflow-y: scroll !important;
+  overflow-y: auto !important;
   width: 100%;
   margin-right: 0 !important;
   position: static !important;
