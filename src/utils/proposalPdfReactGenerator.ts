@@ -34,8 +34,8 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
       root.render(
         React.createElement(ProposalHtmlTemplate, { data, ref: templateRef })
       );
-      // Wait for render + images to load
-      setTimeout(resolve, 500);
+    // Wait for render + images to load
+      setTimeout(resolve, 1000);
     });
 
     const element = templateRef.current || container.firstElementChild as HTMLElement;

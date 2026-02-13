@@ -851,7 +851,7 @@ serve(async (req) => {
             if (parent) {
               // Retornar técnicas do mesmo grupo (excluindo o pai)
               mappedData = selectData.filter(
-                (r: any) => r.grupo_tecnica === parent.grupo_tecnica && r.id !== parentId
+                (r: any) => (r as any).grupo_tecnica === (parent as any).grupo_tecnica && r.id !== parentId
               );
             } else {
               mappedData = [];
@@ -862,7 +862,7 @@ serve(async (req) => {
             const legacy = mapTechniqueRowToLegacyShape(r);
             // Para variantes, adicionar campo tecnica_gravacao_id
             if (usingVarianteAlias && (body as any)._parentTechniqueId) {
-              legacy.tecnica_gravacao_id = (body as any)._parentTechniqueId;
+              (legacy as any).tecnica_gravacao_id = (body as any)._parentTechniqueId;
             }
             return legacy;
           });
