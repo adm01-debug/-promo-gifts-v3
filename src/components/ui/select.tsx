@@ -79,6 +79,21 @@ const SelectContent = React.forwardRef<
         className,
       )}
       position={position}
+      // Prevent Select from locking page scroll
+      onCloseAutoFocus={(e) => {
+        e.preventDefault();
+        requestAnimationFrame(() => {
+          document.documentElement.removeAttribute('data-scroll-locked');
+          document.body.removeAttribute('data-scroll-locked');
+          for (const el of [document.documentElement, document.body]) {
+            el.style.overflow = '';
+            el.style.overflowY = '';
+            el.style.paddingRight = '';
+            el.style.marginRight = '';
+            el.style.position = '';
+          }
+        });
+      }}
       {...props}
     >
       <SelectScrollUpButton />

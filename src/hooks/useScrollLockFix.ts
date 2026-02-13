@@ -19,7 +19,9 @@ function hasActiveOverlay(): boolean {
   return !!(
     document.querySelector('[data-state="open"][role="dialog"]') ||
     document.querySelector('[data-radix-scroll-area-viewport][data-scroll-locked]') ||
-    document.querySelector('[data-state="open"][data-radix-popper-content-wrapper]')
+    document.querySelector('[data-state="open"][data-radix-popper-content-wrapper]') ||
+    document.querySelector('[data-radix-select-viewport]') ||
+    document.querySelector('[data-radix-popper-content-wrapper] [role="listbox"]')
   );
 }
 
