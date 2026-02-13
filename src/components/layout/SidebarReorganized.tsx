@@ -95,7 +95,6 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes" },
-      { icon: ShoppingCart, label: "Pedidos", href: "/pedidos" },
     ],
   },
   {

@@ -217,15 +217,6 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
         category: "navigation",
       },
       {
-        id: "orders",
-        label: "Pedidos",
-        description: "Ver todos os pedidos",
-        icon: <ShoppingCart className="h-4 w-4" />,
-        action: () => goTo("/pedidos", "Pedidos"),
-        keywords: ["pedidos", "orders", "vendas"],
-        category: "navigation",
-      },
-      {
         id: "techniques",
         label: "Técnicas de Personalização",
         description: "Gerenciar técnicas",

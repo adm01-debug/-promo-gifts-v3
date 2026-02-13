@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Copy, Download, FileText, History, Link2, Loader2, Printer, Share2, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Copy, Download, FileText, History, Link2, Loader2, Printer, Share2 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
-import { useOrders } from "@/hooks/useOrders";
+
 import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { QuoteHistoryPanel } from "@/components/quotes/QuoteHistoryPanel";
@@ -41,7 +41,7 @@ export default function QuoteViewPage() {
   const navigate = useNavigate();
   const { fetchQuote, isLoading } = useQuotes();
   const { user } = useAuth();
-  const { createOrderFromQuote } = useOrders();
+  
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
   const [quote, setQuote] = useState<Quote | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -188,19 +188,6 @@ export default function QuoteViewPage() {
                 </div>
               </SheetContent>
             </Sheet>
-            {quote.status === "approved" && (
-              <Button 
-                size="sm" 
-                onClick={async () => {
-                  const order = await createOrderFromQuote.mutateAsync(quote.id);
-                  if (order) navigate(`/pedidos/${order.id}`);
-                }}
-                disabled={createOrderFromQuote.isPending}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                {createOrderFromQuote.isPending ? "Criando..." : "Criar Pedido"}
-              </Button>
-            )}
             <Button variant="outline" size="sm" onClick={handlePrint}>
               <Printer className="h-4 w-4 mr-2" />
               Imprimir

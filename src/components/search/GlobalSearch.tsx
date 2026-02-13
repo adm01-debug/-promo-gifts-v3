@@ -55,7 +55,6 @@ const categoryConfig = {
 const quickActions = [
   { id: "new-quote", label: "Novo Orçamento", url: "/orcamentos/novo", icon: FileText },
   { id: "products", label: "Catálogo de Produtos", url: "/filtros", icon: Package },
-  { id: "orders", label: "Pedidos", url: "/pedidos", icon: ShoppingCart },
   { id: "dashboard", label: "Dashboard", url: "/bi", icon: TrendingUp },
 ];
 
@@ -206,7 +205,6 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
     { id: "product", label: "Produtos" },
     { id: "quote", label: "Orçamentos" },
     { id: "client", label: "Clientes" },
-    { id: "order", label: "Pedidos" },
   ], []);
 
   return (

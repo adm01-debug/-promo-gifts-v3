@@ -79,13 +79,6 @@ const quickActions: QuickAction[] = [
     href: "/",
   },
   {
-    id: "orders",
-    title: "Gestão de Pedidos",
-    description: "Ver todos os pedidos",
-    icon: <ShoppingCart className="h-4 w-4" />,
-    href: "/pedidos",
-  },
-  {
     id: "quotes",
     title: "Orçamentos",
     description: "Ver todos os orçamentos",
