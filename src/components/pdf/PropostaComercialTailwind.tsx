@@ -1,301 +1,133 @@
 import React, { forwardRef } from "react";
-import type { ProposalTemplateData } from "./ProposalHtmlTemplate";
+import type { ProposalTemplateData, ProposalItem } from "./ProposalHtmlTemplate";
+import { ProposalHeader } from "./proposal/ProposalHeader";
+import { ProposalClientBar } from "./proposal/ProposalClientBar";
+import { ProposalProductTable } from "./proposal/ProposalProductTable";
+import { ProposalTotals } from "./proposal/ProposalTotals";
+import { ProposalNotes } from "./proposal/ProposalNotes";
+import { ProposalFooter } from "./proposal/ProposalFooter";
 
-function fmt(v: number): string {
-  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const PAGE_W = 794;
+const PAGE_H = 1123;
+const FIRST_HEADER_H = 145;
+const CONT_HEADER_H = 60;
+const FULL_FOOTER_H = 140;
+const SIMPLE_FOOTER_H = 40;
+const CONTENT_PAD = 36;
+const CLIENT_BAR_H = 90;
+const TOTALS_H = 160;
+const NOTES_H = 100;
+const TABLE_HEADER_H = 38;
+const ROW_H = 76; // estimated row height
+
+function paginateItems(items: ProposalItem[]) {
+  // First page: header(145) + clientbar(90) + tableheader(38) + footer(40/140) + totals/notes
+  // Available for rows on first page
+  const firstPageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30; // 30 padding
+  const firstPageRows = Math.floor(firstPageAvailable / ROW_H);
+
+  if (items.length <= firstPageRows) {
+    // Everything fits on one page
+    return [items];
+  }
+
+  // Multi-page
+  const pages: ProposalItem[][] = [];
+  let remaining = [...items];
+
+  // First page
+  const fpRows = Math.min(firstPageRows, remaining.length);
+  pages.push(remaining.slice(0, fpRows));
+  remaining = remaining.slice(fpRows);
+
+  // Middle/last pages
+  while (remaining.length > 0) {
+    const contPageAvailable = PAGE_H - CONT_HEADER_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
+    const contPageRows = Math.floor(contPageAvailable / ROW_H);
+
+    // If this is the last chunk, account for totals+notes+full footer
+    if (remaining.length <= contPageRows) {
+      // Check if totals+notes+full footer fit
+      const spaceNeeded = remaining.length * ROW_H + TABLE_HEADER_H + TOTALS_H + NOTES_H + FULL_FOOTER_H + CONT_HEADER_H + 40;
+      if (spaceNeeded <= PAGE_H) {
+        pages.push(remaining);
+        remaining = [];
+      } else {
+        // Split: put some on this page, rest on next with totals
+        const fitRows = Math.floor((PAGE_H - CONT_HEADER_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30) / ROW_H);
+        pages.push(remaining.slice(0, fitRows));
+        remaining = remaining.slice(fitRows);
+      }
+    } else {
+      pages.push(remaining.slice(0, contPageRows));
+      remaining = remaining.slice(contPageRows);
+    }
+  }
+
+  return pages;
 }
 
 export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: ProposalTemplateData }>(
   ({ data }, ref) => {
-    const company = data.client.company || data.client.name;
-    const contact = data.client.contactName || "";
+    const pages = paginateItems(data.items);
+    const totalPages = pages.length;
+    let itemIndex = 0;
 
     return (
-      <div
-        ref={ref}
-        className="bg-white text-[#333] relative flex flex-col overflow-hidden"
-        style={{
-          width: "794px",
-          height: "1123px",
-          fontFamily: "'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif",
-          boxSizing: "border-box",
-        }}
-      >
+      <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: "0px" }}>
+        {pages.map((pageItems, pageIdx) => {
+          const isFirst = pageIdx === 0;
+          const isLast = pageIdx === totalPages - 1;
+          const startIdx = itemIndex;
+          itemIndex += pageItems.length;
 
-        {/* ═══ HEADER ═══ */}
-        <div className="relative" style={{ width: "794px", height: "145px", flexShrink: 0 }}>
-          <svg width="794" height="145" viewBox="0 0 794 145" className="absolute top-0 left-0">
-            <polygon points="340,0 375,0 410,145 370,145" fill="#00c853" />
-            <polygon points="370,0 794,0 794,115 395,115" fill="#333333" />
-            <polygon points="395,115 418,115 395,145" fill="#009e41" />
-          </svg>
-
-          {/* Logo */}
-          <div className="absolute z-10" style={{ top: "50%", left: "36px", transform: "translateY(-50%)", width: "190px" }}>
-            <img
-              src="/images/promo-brindes-logo.png"
-              alt="Promo Brindes"
-              className="w-full block"
-              crossOrigin="anonymous"
-            />
-          </div>
-
-          {/* Texto do Header */}
-          <div className="absolute z-10 text-right text-white" style={{ top: "20px", right: "36px" }}>
-            <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "26px", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 4px 0" }}>
-              Proposta
-            </p>
-            <p style={{ fontSize: "12px", opacity: 0.9, fontWeight: 300, lineHeight: "1.5" }}>
-              Nº: #{data.quoteNumber}
-            </p>
-            <p style={{ fontSize: "12px", opacity: 0.9, fontWeight: 300, lineHeight: "1.5" }}>
-              Data: {data.date}
-            </p>
-            {data.validUntil && (
-              <p style={{ fontSize: "11px", opacity: 0.8, fontWeight: 400, lineHeight: "1.5", marginTop: "2px" }}>
-                Válida até: {data.validUntil}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* ═══ CONTENT ═══ */}
-        <div style={{ padding: "0 36px", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-
-          {/* Barra do Cliente */}
-          <div className="flex justify-between" style={{
-            backgroundColor: "#f5f5f5",
-            borderLeft: "5px solid #00c853",
-            padding: "8px 16px",
-            marginTop: "10px",
-            marginBottom: "10px",
-          }}>
-            <div>
-              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: "#00c853", textTransform: "uppercase", margin: "0 0 3px 0" }}>
-                Empresa
-              </p>
-              <p style={{ fontWeight: 600, fontSize: "15px", color: "#222", margin: 0 }}>{company}</p>
-              {data.client.email && (
-                <p style={{ fontSize: "11px", color: "#666", margin: "2px 0 0 0" }}>{data.client.email}</p>
-              )}
-              {data.client.phone && (
-                <p style={{ fontSize: "11px", color: "#666", margin: "1px 0 0 0" }}>{data.client.phone}</p>
-              )}
-            </div>
-            {contact && (
-              <div className="text-right">
-                <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: "#00c853", textTransform: "uppercase", margin: "0 0 3px 0" }}>
-                  Solicitante
-                </p>
-                <p style={{ fontWeight: 600, fontSize: "15px", color: "#222", margin: 0 }}>{contact}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Tabela de Produtos */}
-          <table className="w-full border-collapse" style={{ marginBottom: "8px" }}>
-            <thead>
-              <tr>
-                <th style={{ ...thBase, textAlign: "center", width: "100px" }}>Foto</th>
-                <th style={{ ...thBase, textAlign: "left" }}>Descrição do Produto</th>
-                <th style={{ ...thBase, textAlign: "center", width: "50px" }}>Qtd.</th>
-                <th style={{ ...thBase, textAlign: "right", width: "95px" }}>Unitário</th>
-                <th style={{ ...thBase, textAlign: "right", width: "100px" }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item, idx) => {
-                const persUnitCost = item.personalizations?.reduce((sum, p) => {
-                  const pTotal = p.total_cost || 0;
-                  return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
-                }, 0) || 0;
-                const allInUnitPrice = item.unitPrice + persUnitCost;
-                const itemDiscount = item.discount || 0;
-                const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
-
-                const gravacao = item.personalizations?.map((p) => {
-                  let s = p.technique_name;
-                  if (p.material) s += ` | ${p.material}`;
-                  return s;
-                }).join(", ");
-
-                return (
-                  <tr key={idx} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td className="text-center align-middle" style={{ padding: "8px 6px", width: "80px" }}>
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name}
-                          crossOrigin="anonymous"
-                          style={{
-                            width: "70px",
-                            height: "70px",
-                            objectFit: "contain",
-                            borderRadius: "6px",
-                            border: "1px solid #eee",
-                            backgroundColor: "#fff",
-                            padding: "3px",
-                          }}
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center mx-auto" style={{
-                          width: "70px",
-                          height: "70px",
-                          backgroundColor: "#f5f5f5",
-                          borderRadius: "6px",
-                          border: "1px solid #eee",
-                        }}>
-                          <span style={{ fontSize: "9px", color: "#bbb" }}>—</span>
-                        </div>
-                      )}
-                    </td>
-                    <td className="align-top" style={{ padding: "8px 10px" }}>
-                      <span className="block" style={{ fontWeight: 800, color: "#000", fontSize: "14px", marginBottom: "2px" }}>
-                        {item.name}
-                      </span>
-                      {item.sku && (
-                        <span style={{ background: "#f0f0f0", color: "#555", fontSize: "10px", padding: "2px 6px", borderRadius: "4px", fontWeight: 600 }}>
-                          #{item.sku}
-                        </span>
-                      )}
-                      {item.description && (
-                        <span className="block" style={{ fontSize: "12px", color: "#555", marginTop: "4px", lineHeight: "1.4", maxWidth: "400px" }}>
-                          {item.description}
-                        </span>
-                      )}
-                      {gravacao && (
-                        <span className="block" style={{ fontSize: "12px", color: "#555", marginTop: "3px", lineHeight: "1.4" }}>
-                          Gravação: {gravacao}
-                        </span>
-                      )}
-                      {!gravacao && item.color && (
-                        <span className="block" style={{ fontSize: "12px", color: "#555", marginTop: "3px" }}>
-                          Cor: {item.color}
-                        </span>
-                      )}
-                    </td>
-                    <td className="text-center align-middle" style={{ padding: "8px 6px", fontWeight: 700, fontSize: "13px" }}>{item.quantity}</td>
-                    <td className="text-right align-middle" style={{ padding: "8px 6px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 500 }}>{fmt(allInUnitPrice)}</span>
-                      {itemDiscount > 0 && (
-                        <span className="block" style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>
-                          (Desc: {fmt(itemDiscount)})
-                        </span>
-                      )}
-                    </td>
-                    <td className="text-right align-middle" style={{ padding: "8px 6px", fontWeight: 800, fontSize: "14px", color: "#333" }}>{fmt(total)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {/* TOTAIS */}
-          <div className="flex justify-end" style={{ marginTop: "2px" }}>
-            <div style={{ width: "320px" }}>
-              <div className="flex justify-between" style={{ padding: "6px 0", fontSize: "13px", color: "#555", borderBottom: "1px solid #fafafa" }}>
-                <span>Subtotal:</span>
-                <span style={{ fontWeight: 500 }}>{fmt(data.subtotal)}</span>
-              </div>
-              <div className="flex justify-between" style={{ padding: "6px 0", fontSize: "13px", color: "#555", borderBottom: "1px solid #fafafa" }}>
-                <span>Frete:</span>
-                <span style={{ fontWeight: 500 }}>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
-              </div>
-              {data.discount && data.discount > 0 && (
-                <div className="flex justify-between" style={{ padding: "6px 0", fontSize: "13px", color: "#555", borderBottom: "1px solid #fafafa" }}>
-                  <span>Desconto Global:</span>
-                  <span style={{ fontWeight: 500 }}>- {fmt(data.discount)}</span>
-                </div>
-              )}
-              <div style={{
+          return (
+            <div
+              key={pageIdx}
+              className="proposal-page"
+              style={{
+                width: `${PAGE_W}px`,
+                height: `${PAGE_H}px`,
+                backgroundColor: "#fff",
+                fontFamily: "'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif",
+                color: "#333",
+                position: "relative",
+                boxSizing: "border-box",
+                overflow: "hidden",
                 display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                backgroundColor: "#00c853",
-                color: "#ffffff",
-                padding: "12px 18px",
-                marginTop: "10px",
-                borderRadius: "8px",
-                boxShadow: "0 4px 12px rgba(0,200,83, 0.25)",
-              }}>
-                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, textTransform: "uppercase", fontSize: "14px", color: "#ffffff" }}>
-                  Valor Total:
-                </span>
-                <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "22px", color: "#ffffff" }}>
-                  {fmt(data.total)}
-                </strong>
+                flexDirection: "column",
+                pageBreakAfter: isLast ? "auto" : "always",
+              }}
+            >
+              <ProposalHeader data={data} isContinuation={!isFirst} />
+
+              <div style={{ padding: `0 ${CONTENT_PAD}px`, flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                {isFirst && <ProposalClientBar data={data} />}
+
+                <ProposalProductTable
+                  items={pageItems}
+                  showHeader={true}
+                  startIndex={startIdx}
+                />
+
+                {isLast && (
+                  <>
+                    <ProposalTotals data={data} />
+                    <ProposalNotes data={data} />
+                  </>
+                )}
               </div>
+
+              <ProposalFooter
+                data={data}
+                isLastPage={isLast}
+                pageNumber={pageIdx + 1}
+                totalPages={totalPages}
+              />
             </div>
-          </div>
+          );
+        })}
 
-          {/* Notas */}
-          <div style={{ marginTop: "8px", fontSize: "10px", color: "#666", lineHeight: "1.4", borderTop: "1px solid #eee", paddingTop: "6px" }}>
-            <div style={{ fontWeight: 700, fontSize: "11px", color: "#333", marginBottom: "4px" }}>
-              Informações Relevantes:
-            </div>
-            <div>- Todos os valores são para produtos já personalizados conforme descrição.</div>
-            <div>- {data.paymentTerms || "Pagamento: À vista / Boleto / Pix (após a entrega)."}</div>
-            <div>- Todos produtos passam por controle de qualidade.</div>
-            {data.deliveryTime && <div>- Previsão de Entrega: {data.deliveryTime}.</div>}
-            {data.validUntil && <div>- Validade da Proposta: {data.validUntil}.</div>}
-          </div>
-        </div>
-
-        {/* ═══ FOOTER ═══ */}
-        <div className="relative" style={{ width: "794px", height: "140px", flexShrink: 0, marginTop: "auto" }}>
-          <svg width="794" height="140" viewBox="0 0 794 140" className="absolute top-0 left-0">
-            <polygon points="360,140 380,10 408,10 388,140" fill="#e0e0e0" />
-            <polygon points="385,140 405,10 441,10 421,140" fill="#00c853" />
-            <polygon points="438,45 794,45 794,100 413,100" fill="#333333" />
-            <rect x="468" y="100" width="326" height="40" fill="#00c853" />
-            <polygon points="468,100 489,100 468,130" fill="#009e41" />
-          </svg>
-
-          <div className="relative z-10 h-full" style={{ padding: "0 40px" }}>
-            {/* Contatos */}
-            <div className="flex items-center gap-4" style={{ paddingTop: "8px", marginBottom: "10px" }}>
-              <ContactDot color="#333333" text={data.seller.phone || "00-00000-0000"} />
-              <ContactDot color="#00c853" text="promobrindes.com" />
-              <ContactDot color="#00c853" text={data.seller.email || "comercial@promobrindes.com.br"} />
-            </div>
-
-            <div style={{ fontSize: "10px", fontWeight: 600, color: "#555", lineHeight: "1.3" }}>
-              CNPJ: 36.835.552/0001-67<br />
-              Razão Social: Brasil Marcas Industria e Comercio de Brindes LTDA.
-            </div>
-
-            <div style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "14px",
-              fontWeight: 700,
-              color: "#0085ca",
-              fontStyle: "italic",
-              marginTop: "6px",
-            }}>
-              adm01@promobrindes.com.br
-            </div>
-
-            {/* Assinatura */}
-            <div className="absolute text-center" style={{ top: "8px", right: "44px" }}>
-              <div style={{
-                fontFamily: "'Sacramento', cursive",
-                fontSize: "30px",
-                color: "#0085ca",
-                marginBottom: "-4px",
-                transform: "rotate(-3deg)",
-              }}>
-                {data.seller.name}
-              </div>
-              <p style={{ fontWeight: 800, fontSize: "11px", textTransform: "uppercase", marginTop: "4px", color: "#000" }}>
-                {data.seller.name}
-              </p>
-              <div style={{ width: "160px", height: "1px", backgroundColor: "#333", margin: "2px auto" }} />
-              <p style={{ fontSize: "10px", color: "#666" }}>Executivo de Vendas</p>
-            </div>
-          </div>
-        </div>
-
-        {/* CSS GLOBAL PARA FONTES */}
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Sacramento&display=swap');
           @media print {
@@ -312,24 +144,5 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
 );
 
 PropostaComercialTailwind.displayName = "PropostaComercialTailwind";
-
-function ContactDot({ color, text }: { color: string; text: string }) {
-  return (
-    <div className="flex items-center gap-2" style={{ fontSize: "12px", fontWeight: 700, color: "#333" }}>
-      <div className="rounded-full flex-shrink-0" style={{ width: "12px", height: "12px", backgroundColor: color }} />
-      <span>{text}</span>
-    </div>
-  );
-}
-
-const thBase: React.CSSProperties = {
-  backgroundColor: "#00c853",
-  color: "#fff",
-  padding: "12px 10px",
-  fontSize: "12px",
-  fontFamily: "'Montserrat', sans-serif",
-  fontWeight: 700,
-  textTransform: "uppercase",
-};
 
 export default PropostaComercialTailwind;

@@ -1,8 +1,8 @@
 /**
  * Proposal PDF Generator v3 — HTML→PDF via html2canvas + jsPDF
  * 
- * Renders a pixel-perfect HTML template offscreen,
- * captures it with html2canvas, and outputs as PDF.
+ * Renders pixel-perfect HTML template offscreen (multi-page),
+ * captures each page with html2canvas, and outputs as PDF.
  */
 
 import { jsPDF } from "jspdf";
@@ -17,7 +17,6 @@ export type { ProposalTemplateData as ProposalDocumentData };
 export type { ProposalItem, ProposalItemPersonalization } from "@/components/pdf/ProposalHtmlTemplate";
 
 export async function generateProposalPDFv2(data: ProposalTemplateData): Promise<Blob> {
-  // Create offscreen container
   const container = document.createElement("div");
   container.style.position = "fixed";
   container.style.top = "-10000px";
@@ -27,7 +26,6 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
   document.body.appendChild(container);
 
   try {
-    // Render React component into the container
     const root = ReactDOM.createRoot(container);
     const templateRef = React.createRef<HTMLDivElement>();
     
@@ -35,15 +33,14 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
       root.render(
         React.createElement(PropostaComercialTailwind, { data, ref: templateRef })
       );
-    // Wait for render + images to load
-      setTimeout(resolve, 1000);
+      setTimeout(resolve, 1200);
     });
 
-    const element = templateRef.current || container.firstElementChild as HTMLElement;
-    if (!element) throw new Error("Failed to render proposal template");
+    const wrapper = templateRef.current || container.firstElementChild as HTMLElement;
+    if (!wrapper) throw new Error("Failed to render proposal template");
 
     // Wait for all images to load
-    const images = element.querySelectorAll("img");
+    const images = wrapper.querySelectorAll("img");
     await Promise.all(
       Array.from(images).map(
         (img) =>
@@ -55,63 +52,35 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
       )
     );
 
-    // Capture with html2canvas
-    const canvas = await html2canvas(element as HTMLElement, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      width: 794,
-      windowWidth: 794,
-    });
+    // Find all page elements
+    const pageElements = wrapper.querySelectorAll(".proposal-page");
+    const pages = pageElements.length > 0 ? Array.from(pageElements) : [wrapper];
 
-    // Convert to PDF (A4)
     const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    
-    const imgData = canvas.toDataURL("image/jpeg", 0.98);
-    const imgWidth = pdfWidth;
-    const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-    // If content is taller than one page, we need multiple pages
-    if (imgHeight <= pdfHeight) {
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
-    } else {
-      // Multi-page: slice the canvas
-      let remainingHeight = canvas.height;
-      let srcY = 0;
-      const pageCanvasHeight = (canvas.width * pdfHeight) / pdfWidth;
-      let pageNum = 0;
+    for (let i = 0; i < pages.length; i++) {
+      if (i > 0) pdf.addPage();
 
-      while (remainingHeight > 0) {
-        if (pageNum > 0) pdf.addPage();
+      const canvas = await html2canvas(pages[i] as HTMLElement, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        width: 794,
+        height: 1123,
+        windowWidth: 794,
+      });
 
-        const sliceHeight = Math.min(remainingHeight, pageCanvasHeight);
-        
-        // Create a slice canvas for this page
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = canvas.width;
-        pageCanvas.height = sliceHeight;
-        const ctx = pageCanvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(canvas, 0, srcY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-        }
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-        const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.98);
-        const pageImgHeight = (sliceHeight * pdfWidth) / canvas.width;
-        pdf.addImage(pageImgData, "JPEG", 0, 0, imgWidth, pageImgHeight);
-
-        srcY += sliceHeight;
-        remainingHeight -= sliceHeight;
-        pageNum++;
-      }
+      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
     }
 
-    // Cleanup
     root.unmount();
-    
     return pdf.output("blob");
   } finally {
     document.body.removeChild(container);
