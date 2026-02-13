@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { selectCrm, insertCrm, updateCrm, updateCrmByFilter, deleteCrm } from "@/lib/crm-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -55,6 +56,18 @@ export interface CreateTemplateInput {
   validity_days?: number;
 }
 
+function transformTemplates(data: any[]): QuoteTemplate[] {
+  return (data || []).map((item) => ({
+    ...item,
+    items_data: Array.isArray(item.items_data)
+      ? item.items_data as unknown as QuoteTemplateItem[]
+      : [],
+    template_data: typeof item.template_data === 'object' && item.template_data !== null
+      ? item.template_data as Record<string, unknown>
+      : {},
+  }));
+}
+
 export function useQuoteTemplates() {
   const [templates, setTemplates] = useState<QuoteTemplate[]>([]);
   const [allTemplates, setAllTemplates] = useState<QuoteTemplate[]>([]);
@@ -75,26 +88,12 @@ export function useQuoteTemplates() {
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
-        .from("quote_templates")
-        .select("*")
-        .order("is_default", { ascending: false })
-        .order("updated_at", { ascending: false });
+      const data = await selectCrm<any>("quote_templates", {
+        orderBy: { column: "updated_at", ascending: false },
+        limit: 200,
+      });
 
-      if (fetchError) throw fetchError;
-
-      // Transform the data to ensure proper typing
-      const transformedData = (data || []).map((item) => ({
-        ...item,
-        items_data: Array.isArray(item.items_data) 
-          ? item.items_data as unknown as QuoteTemplateItem[]
-          : [],
-        template_data: typeof item.template_data === 'object' && item.template_data !== null
-          ? item.template_data as Record<string, unknown>
-          : {},
-      }));
-
-      setTemplates(transformedData);
+      setTemplates(transformTemplates(data));
     } catch (err) {
       console.error("Error fetching quote templates:", err);
       setError("Erro ao carregar templates");
@@ -103,7 +102,6 @@ export function useQuoteTemplates() {
     }
   }, [user]);
 
-  // Fetch all templates (for admins to clone between sellers)
   const fetchAllTemplates = useCallback(async () => {
     if (!user || !isAdmin) {
       setAllTemplates([]);
@@ -111,31 +109,17 @@ export function useQuoteTemplates() {
     }
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from("quote_templates")
-        .select("*")
-        .order("seller_id")
-        .order("updated_at", { ascending: false });
+      const data = await selectCrm<any>("quote_templates", {
+        orderBy: { column: "updated_at", ascending: false },
+        limit: 500,
+      });
 
-      if (fetchError) throw fetchError;
-
-      const transformedData = (data || []).map((item) => ({
-        ...item,
-        items_data: Array.isArray(item.items_data) 
-          ? item.items_data as unknown as QuoteTemplateItem[]
-          : [],
-        template_data: typeof item.template_data === 'object' && item.template_data !== null
-          ? item.template_data as Record<string, unknown>
-          : {},
-      }));
-
-      setAllTemplates(transformedData);
+      setAllTemplates(transformTemplates(data));
     } catch (err) {
       console.error("Error fetching all templates:", err);
     }
   }, [user, isAdmin]);
 
-  // Fetch all sellers (for admin cloning)
   const fetchSellers = useCallback(async () => {
     if (!user || !isAdmin) {
       setSellers([]);
@@ -150,7 +134,6 @@ export function useQuoteTemplates() {
 
       if (fetchError) throw fetchError;
 
-      // Also get emails from auth (via user_roles as a proxy since we can't query auth.users directly)
       const sellersWithInfo = (data || []).map((profile) => ({
         id: profile.user_id,
         full_name: profile.full_name,
@@ -174,35 +157,28 @@ export function useQuoteTemplates() {
     }
 
     try {
-      // If setting as default, unset other defaults first
       if (input.is_default) {
-        await supabase
-          .from("quote_templates")
-          .update({ is_default: false })
-          .eq("seller_id", user.id)
-          .eq("is_default", true);
+        await updateCrmByFilter("quote_templates", 
+          { seller_id: user.id, is_default: true },
+          { is_default: false }
+        );
       }
 
-      const { data, error: insertError } = await supabase
-        .from("quote_templates")
-        .insert({
-          seller_id: user.id,
-          name: input.name,
-          description: input.description || null,
-          is_default: input.is_default || false,
-          items_data: JSON.parse(JSON.stringify(input.items_data || [])),
-          discount_percent: input.discount_percent || 0,
-          discount_amount: input.discount_amount || 0,
-          notes: input.notes || null,
-          internal_notes: input.internal_notes || null,
-          payment_terms: input.payment_terms || null,
-          delivery_time: input.delivery_time || null,
-          validity_days: input.validity_days || 30,
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
+      const inserted = await insertCrm<any>("quote_templates", {
+        seller_id: user.id,
+        name: input.name,
+        description: input.description || null,
+        is_default: input.is_default || false,
+        items_data: JSON.parse(JSON.stringify(input.items_data || [])),
+        template_data: {},
+        discount_percent: input.discount_percent || 0,
+        discount_amount: input.discount_amount || 0,
+        notes: input.notes || null,
+        internal_notes: input.internal_notes || null,
+        payment_terms: input.payment_terms || null,
+        delivery_time: input.delivery_time || null,
+        validity_days: input.validity_days || 30,
+      });
 
       toast({
         title: "Template criado",
@@ -210,7 +186,7 @@ export function useQuoteTemplates() {
       });
 
       await fetchTemplates();
-      return data;
+      return inserted[0] || null;
     } catch (err) {
       console.error("Error creating template:", err);
       toast({
@@ -229,17 +205,13 @@ export function useQuoteTemplates() {
     if (!user) return null;
 
     try {
-      // If setting as default, unset other defaults first
       if (updates.is_default) {
-        await supabase
-          .from("quote_templates")
-          .update({ is_default: false })
-          .eq("seller_id", user.id)
-          .eq("is_default", true)
-          .neq("id", id);
+        await updateCrmByFilter("quote_templates",
+          { seller_id: user.id, is_default: true },
+          { is_default: false }
+        );
       }
 
-      // Prepare update payload, converting items_data to JSON compatible format
       const updatePayload: Record<string, unknown> = {
         ...updates,
         updated_at: new Date().toISOString(),
@@ -248,14 +220,7 @@ export function useQuoteTemplates() {
         updatePayload.items_data = JSON.parse(JSON.stringify(updates.items_data));
       }
 
-      const { data, error: updateError } = await supabase
-        .from("quote_templates")
-        .update(updatePayload)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (updateError) throw updateError;
+      const result = await updateCrm<any>("quote_templates", id, updatePayload);
 
       toast({
         title: "Template atualizado",
@@ -263,7 +228,7 @@ export function useQuoteTemplates() {
       });
 
       await fetchTemplates();
-      return data;
+      return result[0] || null;
     } catch (err) {
       console.error("Error updating template:", err);
       toast({
@@ -279,12 +244,7 @@ export function useQuoteTemplates() {
     if (!user) return false;
 
     try {
-      const { error: deleteError } = await supabase
-        .from("quote_templates")
-        .delete()
-        .eq("id", id);
-
-      if (deleteError) throw deleteError;
+      await deleteCrm("quote_templates", id);
 
       toast({
         title: "Template excluído",
@@ -327,7 +287,6 @@ export function useQuoteTemplates() {
     });
   }, [templates, createTemplate]);
 
-  // Clone template to another seller (admin only)
   const cloneTemplateToSeller = useCallback(async (templateId: string, targetSellerId: string) => {
     if (!user || !isAdmin) {
       toast({
@@ -338,7 +297,6 @@ export function useQuoteTemplates() {
       return null;
     }
 
-    // Find template in allTemplates
     const template = allTemplates.find((t) => t.id === templateId);
     if (!template) {
       toast({
@@ -350,27 +308,21 @@ export function useQuoteTemplates() {
     }
 
     try {
-      const { data, error: insertError } = await supabase
-        .from("quote_templates")
-        .insert({
-          seller_id: targetSellerId,
-          name: `${template.name} (Clonado)`,
-          description: template.description || null,
-          is_default: false,
-          items_data: JSON.parse(JSON.stringify(template.items_data || [])),
-          template_data: JSON.parse(JSON.stringify(template.template_data || {})),
-          discount_percent: template.discount_percent || 0,
-          discount_amount: template.discount_amount || 0,
-          notes: template.notes || null,
-          internal_notes: template.internal_notes || null,
-          payment_terms: template.payment_terms || null,
-          delivery_time: template.delivery_time || null,
-          validity_days: template.validity_days || 30,
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
+      const inserted = await insertCrm<any>("quote_templates", {
+        seller_id: targetSellerId,
+        name: `${template.name} (Clonado)`,
+        description: template.description || null,
+        is_default: false,
+        items_data: JSON.parse(JSON.stringify(template.items_data || [])),
+        template_data: JSON.parse(JSON.stringify(template.template_data || {})),
+        discount_percent: template.discount_percent || 0,
+        discount_amount: template.discount_amount || 0,
+        notes: template.notes || null,
+        internal_notes: template.internal_notes || null,
+        payment_terms: template.payment_terms || null,
+        delivery_time: template.delivery_time || null,
+        validity_days: template.validity_days || 30,
+      });
 
       const targetSeller = sellers.find((s) => s.id === targetSellerId);
       toast({
@@ -379,7 +331,7 @@ export function useQuoteTemplates() {
       });
 
       await fetchAllTemplates();
-      return data;
+      return inserted[0] || null;
     } catch (err) {
       console.error("Error cloning template:", err);
       toast({

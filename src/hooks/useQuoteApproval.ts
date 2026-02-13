@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { insertCrm } from "@/lib/crm-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -18,24 +18,18 @@ export function useQuoteApproval() {
 
     setIsGenerating(true);
     try {
-      // Generate a unique token
       const token = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, "");
       
-      // Calculate expiration date
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + expirationDays);
 
-      // Insert token into database
-      const { error } = await supabase.from("quote_approval_tokens").insert({
+      await insertCrm("quote_approval_tokens", {
         quote_id: quoteId,
         token,
         expires_at: expiresAt.toISOString(),
         created_by: user.id,
       });
 
-      if (error) throw error;
-
-      // Generate the public URL
       const baseUrl = window.location.origin;
       const approvalUrl = `${baseUrl}/aprovar-orcamento?token=${token}`;
 

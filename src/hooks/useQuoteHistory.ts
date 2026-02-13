@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { selectCrm, insertCrm } from "@/lib/crm-db";
 import { useAuth } from "@/contexts/AuthContext";
-import { Json } from "@/integrations/supabase/types";
 
 export interface QuoteHistoryEntry {
   id: string;
@@ -12,7 +11,7 @@ export interface QuoteHistoryEntry {
   old_value?: string | null;
   new_value?: string | null;
   description: string;
-  metadata?: Json;
+  metadata?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -24,13 +23,12 @@ export function useQuoteHistory() {
   const fetchHistory = async (quoteId: string): Promise<QuoteHistoryEntry[]> => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("quote_history")
-        .select("*")
-        .eq("quote_id", quoteId)
-        .order("created_at", { ascending: false });
+      const data = await selectCrm<QuoteHistoryEntry>("quote_history", {
+        filters: { quote_id: quoteId },
+        orderBy: { column: "created_at", ascending: false },
+        limit: 200,
+      });
 
-      if (error) throw error;
       setHistory(data || []);
       return data || [];
     } catch (err) {
@@ -55,18 +53,17 @@ export function useQuoteHistory() {
     if (!user) return false;
 
     try {
-      const { error } = await supabase.from("quote_history").insert({
+      await insertCrm("quote_history", {
         quote_id: quoteId,
         user_id: user.id,
         action,
         description,
-        field_changed: options?.fieldChanged,
-        old_value: options?.oldValue,
-        new_value: options?.newValue,
+        field_changed: options?.fieldChanged || null,
+        old_value: options?.oldValue || null,
+        new_value: options?.newValue || null,
         metadata: options?.metadata || {},
       });
 
-      if (error) throw error;
       return true;
     } catch (err) {
       console.error("Error adding history entry:", err);
