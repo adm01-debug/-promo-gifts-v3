@@ -119,17 +119,25 @@ export async function generateProposalPDFv2(data: ProposalDocumentData): Promise
   doc.setFillColor(...GREEN_DARK);
   doc.rect(0, 32, pw, 2, "F");
 
-  // Logo
+  // Logo - dynamically calculate aspect ratio
   try {
     const logoB64 = await loadImageAsBase64("/images/promo-brindes-logo.png");
     if (logoB64) {
-      // Logo aspect ratio ~2.5:1 (wide). White bg on green banner, centered vertically
-      const logoH = 18;
-      const logoW = logoH * 2.5;
+      // Load image to get real dimensions
+      const img = new Image();
+      img.src = logoB64;
+      await new Promise<void>((resolve) => { img.onload = () => resolve(); img.onerror = () => resolve(); });
+      
+      const realRatio = img.width / img.height;
+      const logoH = 20;
+      const logoW = logoH * realRatio;
       const logoY = (32 - logoH) / 2;
+      const logoX = margin + 2;
+      
+      // White background behind logo
       doc.setFillColor(...WHITE);
-      doc.roundedRect(margin, logoY, logoW + 4, logoH + 2, 1, 1, "F");
-      doc.addImage(logoB64, "PNG", margin + 2, logoY + 1, logoW, logoH);
+      doc.roundedRect(logoX - 2, logoY - 1, logoW + 4, logoH + 2, 2, 2, "F");
+      doc.addImage(logoB64, "PNG", logoX, logoY, logoW, logoH);
     }
   } catch {
     // Fallback text if logo fails
