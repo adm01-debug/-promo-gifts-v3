@@ -56,7 +56,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
 
     // Capture with html2canvas
     const canvas = await html2canvas(element as HTMLElement, {
-      scale: 2,
+      scale: 3, // Ultra high quality
       useCORS: true,
       allowTaint: true,
       logging: false,
@@ -70,13 +70,13 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     
-    const imgData = canvas.toDataURL("image/jpeg", 0.98);
+    const imgData = canvas.toDataURL("image/png");
     const imgWidth = pdfWidth;
     const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
     // If content is taller than one page, we need multiple pages
     if (imgHeight <= pdfHeight) {
-      pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
     } else {
       // Multi-page: slice the canvas
       let remainingHeight = canvas.height;
@@ -98,9 +98,9 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
           ctx.drawImage(canvas, 0, srcY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
         }
 
-        const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.98);
+        const pageImgData = pageCanvas.toDataURL("image/png");
         const pageImgHeight = (sliceHeight * pdfWidth) / canvas.width;
-        pdf.addImage(pageImgData, "JPEG", 0, 0, imgWidth, pageImgHeight);
+        pdf.addImage(pageImgData, "PNG", 0, 0, imgWidth, pageImgHeight);
 
         srcY += sliceHeight;
         remainingHeight -= sliceHeight;
