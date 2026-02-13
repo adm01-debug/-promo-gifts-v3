@@ -273,7 +273,20 @@ export default function QuoteViewPage() {
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold mb-2">Cliente</h3>
-                <p className="text-foreground font-medium">{quote.client_company || "Não especificado"}</p>
+                {(() => {
+                  const company = quote.client_company || "Não especificado";
+                  const parts = company.split(" | ");
+                  const companyName = parts[0];
+                  const cityState = parts[1];
+                  return (
+                    <>
+                      <p className="text-foreground font-bold text-lg">{companyName}</p>
+                      {cityState && (
+                        <p className="text-sm text-muted-foreground">{cityState}</p>
+                      )}
+                    </>
+                  );
+                })()}
                 {quote.client_name && (
                   <p className="text-sm text-muted-foreground mt-1">Contato: {quote.client_name}</p>
                 )}
