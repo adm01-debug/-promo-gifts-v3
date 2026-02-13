@@ -53,10 +53,16 @@ function fmt(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const BRAND_GREEN = "#00bf63";
-const BRAND_DARK = "#333333";
-const SIG_BLUE = "#0085ca";
+const GREEN = "#00bf63";
+const DARK = "#333333";
+const DARK_GREEN = "#008f4a";
 
+/**
+ * ProposalHtmlTemplate — html2canvas-compatible
+ * 
+ * Avoids CSS transforms (skewX/rotate) that html2canvas can't render.
+ * Uses SVG polygons for diagonal/geometric shapes instead.
+ */
 export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalTemplateData }>(
   ({ data }, ref) => {
     const company = data.client.company || data.client.name;
@@ -69,27 +75,42 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
           width: "794px",
           minHeight: "1123px",
           backgroundColor: "#fff",
-          fontFamily: "'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif",
+          fontFamily: "'Segoe UI', Helvetica, Arial, sans-serif",
           color: "#333",
           position: "relative",
           boxSizing: "border-box",
-          display: "flex",
-          flexDirection: "column",
-          paddingBottom: 0,
         }}
       >
-        {/* ═══ HEADER ═══ */}
-        <div
-          style={{
-            position: "relative",
-            height: "160px",
-            width: "100%",
-            marginBottom: "20px",
-            overflow: "hidden",
-          }}
-        >
-          {/* Logo */}
-          <div style={{ position: "absolute", top: "40px", left: "50px", width: "220px", zIndex: 10 }}>
+        {/* ═══ HEADER — SVG-based geometric shapes ═══ */}
+        <div style={{ position: "relative", width: "794px", height: "150px", overflow: "hidden" }}>
+          <svg
+            width="794"
+            height="150"
+            viewBox="0 0 794 150"
+            style={{ position: "absolute", top: 0, left: 0 }}
+          >
+            {/* Green bar left bottom */}
+            <rect x="0" y="120" width="380" height="5" fill={GREEN} />
+            {/* Green diagonal tall block */}
+            <polygon points="340,150 370,0 430,0 400,150" fill={GREEN} />
+            {/* Dark grey skewed block */}
+            <polygon points="390,0 794,0 794,120 360,120" fill={DARK} />
+            {/* Green bottom-right strip */}
+            <rect x="400" y="120" width="394" height="30" fill={GREEN} />
+            {/* Green connector diagonal */}
+            <polygon points="370,120 400,120 380,150 350,150" fill={GREEN} />
+          </svg>
+
+          {/* Logo on top of SVG */}
+          <div
+            style={{
+              position: "absolute",
+              top: "30px",
+              left: "40px",
+              width: "220px",
+              zIndex: 10,
+            }}
+          >
             <img
               src="/images/promo-brindes-logo.png"
               alt="Promo Brindes"
@@ -98,133 +119,63 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
             />
           </div>
 
-          {/* Green bottom line (left) */}
+          {/* Quote info on dark block */}
           <div
             style={{
               position: "absolute",
-              bottom: "30px",
-              left: 0,
-              width: "45%",
-              height: "4px",
-              backgroundColor: BRAND_GREEN,
-              zIndex: 2,
-            }}
-          />
-
-          {/* Green diagonal shape */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: "30px",
-              left: "42%",
-              width: "100px",
-              height: "130px",
-              backgroundColor: BRAND_GREEN,
-              transform: "skewX(-40deg)",
-              zIndex: 2,
-            }}
-          />
-
-          {/* Dark grey block with content */}
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: "-50px",
-              width: "55%",
-              height: "130px",
-              backgroundColor: BRAND_DARK,
-              transform: "skewX(-40deg)",
-              zIndex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              top: "25px",
+              right: "40px",
+              textAlign: "right",
+              color: "#fff",
+              zIndex: 10,
             }}
           >
-            <div
-              style={{
-                transform: "skewX(40deg)",
-                color: "white",
-                textAlign: "right",
-                marginRight: "60px",
-                marginTop: "20px",
-              }}
-            >
-              <div style={{ fontSize: "20px", margin: "0 0 5px 0", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>
-                Orçamento
-              </div>
-              <div style={{ fontSize: "12px", margin: 0, lineHeight: "1.4" }}>
-                Nº: #{data.quoteNumber}
-              </div>
-              <div style={{ fontSize: "12px", margin: 0, lineHeight: "1.4" }}>
-                Data: {data.date}
-              </div>
+            <div style={{ fontSize: "22px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>
+              Orçamento
+            </div>
+            <div style={{ fontSize: "12px", lineHeight: "1.5" }}>
+              Nº: #{data.quoteNumber}<br />
+              Data: {data.date}
             </div>
           </div>
-
-          {/* Green bottom-right strip */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: "30px",
-              right: 0,
-              width: "45%",
-              height: "35px",
-              backgroundColor: BRAND_GREEN,
-              zIndex: 0,
-            }}
-          />
-          {/* Green connector */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: "30px",
-              right: "40%",
-              width: "50px",
-              height: "35px",
-              backgroundColor: BRAND_GREEN,
-              transform: "skewX(-40deg)",
-              zIndex: 0,
-            }}
-          />
         </div>
 
         {/* ═══ CONTENT ═══ */}
-        <div style={{ padding: "0 50px", flex: 1 }}>
+        <div style={{ padding: "20px 50px 0" }}>
           {/* Client Info */}
           <div
             style={{
               backgroundColor: "#f8f8f8",
-              borderLeft: `5px solid ${BRAND_GREEN}`,
-              padding: "20px",
-              marginBottom: "20px",
+              borderLeft: `5px solid ${GREEN}`,
+              padding: "18px 20px",
+              marginBottom: "25px",
               display: "flex",
               justifyContent: "space-between",
             }}
           >
             <div>
-              <div style={{ margin: "0 0 5px 0", color: BRAND_GREEN, fontSize: "11px", textTransform: "uppercase", fontWeight: 700 }}>
+              <div style={{ fontSize: "11px", color: GREEN, textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
                 Empresa
               </div>
-              <div style={{ margin: 0, fontWeight: 700, fontSize: "14px" }}>{company}</div>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "#000" }}>{company}</div>
             </div>
-            <div>
-              <div style={{ margin: "0 0 5px 0", color: BRAND_GREEN, fontSize: "11px", textTransform: "uppercase", fontWeight: 700 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "11px", color: GREEN, textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>
                 Solicitante
               </div>
-              <div style={{ margin: 0, fontWeight: 700, fontSize: "14px" }}>{contact}</div>
+              <div style={{ fontWeight: 700, fontSize: "15px", color: "#000" }}>{contact}</div>
             </div>
           </div>
 
           {/* Products Table */}
-          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "25px" }}>
             <thead>
-              <tr style={{ backgroundColor: BRAND_GREEN, color: "#fff" }}>
-                <th style={thStyle}>Descrição</th>
-                <th style={{ ...thStyle, textAlign: "center", width: "50px" }}>Qtd.</th>
-                <th style={{ ...thStyle, textAlign: "right", width: "80px" }}>Unitário</th>
-                <th style={{ ...thStyle, textAlign: "right", width: "80px" }}>Desconto</th>
-                <th style={{ ...thStyle, textAlign: "right", width: "90px" }}>Total</th>
+              <tr>
+                <th style={{ ...thStyle, textAlign: "left" }}>Descrição</th>
+                <th style={{ ...thStyle, textAlign: "center", width: "55px" }}>Qtd.</th>
+                <th style={{ ...thStyle, textAlign: "right", width: "85px" }}>Unitário</th>
+                <th style={{ ...thStyle, textAlign: "right", width: "85px" }}>Desconto</th>
+                <th style={{ ...thStyle, textAlign: "right", width: "95px" }}>Total</th>
               </tr>
             </thead>
             <tbody>
@@ -246,24 +197,34 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
                 const mat = item.personalizations?.[0]?.material || item.material;
 
                 return (
-                  <tr key={idx} style={{ borderBottom: "1px solid #eee", backgroundColor: idx % 2 === 1 ? "#fafafa" : "#fff" }}>
-                    <td style={tdStyle}>
-                      <span style={{ fontWeight: 700, color: "#000", display: "block" }}>
-                        {item.name}{" "}
-                        {item.sku && (
-                          <span style={{ fontSize: "9px", color: "#777", background: "#eee", padding: "1px 4px", borderRadius: "3px" }}>
-                            #{item.sku}
-                          </span>
-                        )}
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 1 ? "#fafafa" : "#fff" }}>
+                    <td style={{ ...tdStyle, borderBottom: "1px solid #eee" }}>
+                      <span style={{ fontWeight: 700, color: "#000", fontSize: "13px" }}>
+                        {item.name}
                       </span>
+                      {item.sku && (
+                        <span
+                          style={{
+                            fontFamily: "monospace",
+                            background: "#eee",
+                            padding: "1px 5px",
+                            borderRadius: "3px",
+                            fontSize: "10px",
+                            color: "#555",
+                            marginLeft: "6px",
+                          }}
+                        >
+                          #{item.sku}
+                        </span>
+                      )}
                       {item.description && (
-                        <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "3px" }}>
+                        <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "3px", lineHeight: "1.4" }}>
                           {item.description}
                         </span>
                       )}
                       {gravacao && (
                         <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "2px" }}>
-                          Gravação: {gravacao}{mat ? `. Material: ${mat}` : ""}
+                          Gravação: {gravacao}{mat ? ` | ${mat}` : ""}
                         </span>
                       )}
                       {!gravacao && item.color && (
@@ -272,10 +233,12 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
                         </span>
                       )}
                     </td>
-                    <td style={{ ...tdStyle, textAlign: "center" }}>{item.quantity}</td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>{fmt(allInUnitPrice)}</td>
-                    <td style={{ ...tdStyle, textAlign: "right" }}>{itemDiscount > 0 ? fmt(itemDiscount) : fmt(0)}</td>
-                    <td style={{ ...tdStyle, textAlign: "right", fontWeight: 700 }}>{fmt(total)}</td>
+                    <td style={{ ...tdStyle, textAlign: "center", borderBottom: "1px solid #eee" }}>{item.quantity}</td>
+                    <td style={{ ...tdStyle, textAlign: "right", borderBottom: "1px solid #eee" }}>{fmt(allInUnitPrice)}</td>
+                    <td style={{ ...tdStyle, textAlign: "right", borderBottom: "1px solid #eee" }}>
+                      {itemDiscount > 0 ? fmt(itemDiscount) : fmt(0)}
+                    </td>
+                    <td style={{ ...tdStyle, textAlign: "right", fontWeight: 700, borderBottom: "1px solid #eee" }}>{fmt(total)}</td>
                   </tr>
                 );
               })}
@@ -283,30 +246,31 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
           </table>
 
           {/* Totals */}
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <div style={{ width: "250px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: "12px", borderBottom: "1px solid #f0f0f0" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "20px" }}>
+            <div style={{ width: "260px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "13px", borderBottom: "1px solid #f0f0f0" }}>
                 <span>Subtotal:</span>
                 <span>{fmt(data.subtotal)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: "12px", borderBottom: "1px solid #f0f0f0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "13px", borderBottom: "1px solid #f0f0f0" }}>
                 <span>Frete:</span>
                 <span>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
               </div>
               {data.discount && data.discount > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", fontSize: "12px", borderBottom: "1px solid #f0f0f0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "13px", borderBottom: "1px solid #f0f0f0" }}>
                   <span>Desconto:</span>
                   <span>- {fmt(data.discount)}</span>
                 </div>
               )}
               <div
                 style={{
-                  backgroundColor: BRAND_GREEN,
+                  backgroundColor: GREEN,
                   color: "#fff",
-                  padding: "10px",
+                  padding: "10px 12px",
                   borderRadius: "4px",
                   marginTop: "10px",
                   fontWeight: 700,
+                  fontSize: "16px",
                   display: "flex",
                   justifyContent: "space-between",
                 }}
@@ -318,105 +282,86 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
           </div>
 
           {/* Obs */}
-          <div style={{ marginTop: "15px", fontSize: "10px", color: "#666", fontStyle: "italic" }}>
+          <div style={{ fontSize: "11px", color: "#888", fontStyle: "italic", marginBottom: "30px" }}>
             Obs: {data.paymentTerms || "Pagamento após entrega (Boleto/Pix)."} Validade 15 dias.
             {data.deliveryTime && ` Previsão de Entrega: ${data.deliveryTime}.`}
           </div>
         </div>
 
-        {/* ═══ FOOTER ═══ */}
-        <div
-          style={{
-            position: "relative",
-            height: "200px",
-            width: "100%",
-            marginTop: "30px",
-            overflow: "hidden",
-          }}
-        >
-          {/* Footer line (left black) */}
-          <div style={{ position: "absolute", bottom: "20px", left: 0, width: "55%", height: "3px", backgroundColor: "#333", zIndex: 5 }} />
-
-          {/* Geometric shapes */}
-          <div style={{ position: "absolute", bottom: "20px", right: 0, width: "100%", height: "100px", pointerEvents: "none" }}>
-            {/* Light grey diagonal */}
-            <div style={{ position: "absolute", bottom: 0, right: "42%", width: "60px", height: "100%", backgroundColor: "#f2f2f2", transform: "skewX(-40deg)", zIndex: 1 }} />
-            {/* Green diagonal */}
-            <div style={{ position: "absolute", bottom: 0, right: "37%", width: "70px", height: "100%", backgroundColor: BRAND_GREEN, transform: "skewX(-40deg)", zIndex: 2, borderLeft: "3px solid white" }} />
-            {/* Dark block */}
-            <div style={{ position: "absolute", bottom: "20px", right: "-50px", width: "45%", height: "80px", backgroundColor: BRAND_DARK, transform: "skewX(-40deg)", zIndex: 3, borderLeft: "3px solid white" }} />
-            {/* Green bottom strip */}
-            <div style={{ position: "absolute", bottom: 0, right: 0, width: "32%", height: "35px", backgroundColor: BRAND_GREEN, zIndex: 4 }} />
-            {/* Fold triangle */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: "35px",
-                right: "32%",
-                width: 0,
-                height: 0,
-                borderStyle: "solid",
-                borderWidth: "0 0 35px 20px",
-                borderColor: "transparent transparent #008f4a transparent",
-                zIndex: 5,
-              }}
-            />
-          </div>
-
-          {/* Footer content */}
+        {/* ═══ FOOTER — SVG-based geometric shapes ═══ */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, width: "794px", height: "180px" }}>
+          {/* Footer content (above shapes) */}
           <div
             style={{
-              position: "relative",
-              padding: "0 50px",
-              height: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
+              position: "absolute",
+              top: "10px",
+              left: "50px",
+              zIndex: 10,
             }}
           >
-            {/* Left: contacts + CNPJ */}
-            <div style={{ marginBottom: "20px", zIndex: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "15px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontWeight: 700, color: "#333" }}>
-                  <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#3c3c3c", display: "inline-block" }} />
-                  <span>{data.seller.phone || "00-00000-0000"}</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontWeight: 700, color: "#333" }}>
-                  <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: BRAND_GREEN, display: "inline-block" }} />
-                  <span>promobrindes.com</span>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", fontWeight: 700, color: "#333" }}>
-                  <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: BRAND_GREEN, display: "inline-block" }} />
-                  <span>comercial01@gmail.com</span>
-                </div>
+            {/* Contact row */}
+            <div style={{ display: "flex", alignItems: "center", gap: "18px", marginBottom: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700 }}>
+                <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#3c3c3c" }} />
+                <span>{data.seller.phone || "00-00000-0000"}</span>
               </div>
-              <div style={{ fontSize: "11px", color: "#333", fontWeight: 700, lineHeight: "1.4" }}>
-                CNPJ: 36.835.552/0001-67<br />
-                Razão Social: Brasil Marcas Industria e<br />
-                Comercio de Brindes LTDA.
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700 }}>
+                <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: GREEN }} />
+                <span>promobrindes.com</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 700 }}>
+                <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: GREEN }} />
+                <span>comercial01@gmail.com</span>
               </div>
             </div>
-
-            {/* Right: Signature */}
-            <div style={{ position: "absolute", right: "50px", top: "20px", textAlign: "center", zIndex: 10 }}>
-              <div
-                style={{
-                  fontFamily: "'Sacramento', 'Brush Script MT', cursive",
-                  fontSize: "32px",
-                  color: SIG_BLUE,
-                  marginBottom: "-5px",
-                  transform: "rotate(-5deg)",
-                }}
-              >
-                {data.seller.name}
-              </div>
-              <div style={{ fontSize: "14px", fontWeight: 900, textTransform: "uppercase", letterSpacing: "0.5px", color: "#000" }}>
-                {data.seller.name.toUpperCase()}
-              </div>
-              <div style={{ width: "100%", height: "2px", backgroundColor: "#000", margin: "2px 0" }} />
-              <div style={{ fontSize: "11px", color: "#333" }}>Executivo de Vendas</div>
+            {/* CNPJ */}
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#333", lineHeight: "1.5" }}>
+              CNPJ: 36.835.552/0001-67<br />
+              Razão Social: Brasil Marcas Industria e<br />
+              Comercio de Brindes LTDA.
             </div>
           </div>
+
+          {/* Signature (right side) */}
+          <div
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "50px",
+              textAlign: "center",
+              zIndex: 10,
+            }}
+          >
+            <div style={{ fontSize: "28px", color: "#0085ca", fontStyle: "italic", marginBottom: "0px" }}>
+              {data.seller.name}
+            </div>
+            <div style={{ width: "160px", height: "2px", backgroundColor: "#000", margin: "4px auto" }} />
+            <div style={{ fontSize: "12px", fontWeight: 900, textTransform: "uppercase", color: "#000" }}>
+              {data.seller.name}
+            </div>
+            <div style={{ fontSize: "10px", color: "#555" }}>Executivo de Vendas</div>
+          </div>
+
+          {/* SVG geometric footer shapes */}
+          <svg
+            width="794"
+            height="180"
+            viewBox="0 0 794 180"
+            style={{ position: "absolute", top: 0, left: 0 }}
+          >
+            {/* Black line left */}
+            <rect x="0" y="140" width="400" height="3" fill="#333" />
+            {/* Light grey diagonal */}
+            <polygon points="380,180 410,80 440,80 410,180" fill="#f2f2f2" />
+            {/* Green diagonal */}
+            <polygon points="410,180 440,80 480,80 450,180" fill={GREEN} />
+            {/* Dark block */}
+            <polygon points="460,100 794,100 794,145 430,145" fill={DARK} />
+            {/* Green bottom strip */}
+            <rect x="480" y="145" width="314" height="35" fill={GREEN} />
+            {/* Fold triangle */}
+            <polygon points="480,145 500,145 480,180" fill={DARK_GREEN} />
+          </svg>
         </div>
       </div>
     );
@@ -425,17 +370,17 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
 
 ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";
 
-// Shared styles
 const thStyle: React.CSSProperties = {
-  padding: "10px",
-  textAlign: "left",
-  fontSize: "12px",
+  backgroundColor: GREEN,
+  color: "#fff",
+  padding: "10px 8px",
+  fontSize: "11px",
   textTransform: "uppercase",
   fontWeight: 700,
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: "10px",
+  padding: "10px 8px",
   fontSize: "12px",
   verticalAlign: "top",
   color: "#444",
