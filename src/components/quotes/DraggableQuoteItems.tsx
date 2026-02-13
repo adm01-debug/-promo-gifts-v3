@@ -229,11 +229,16 @@ function SortableItem({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-between text-xs hover:bg-muted/50"
+                      className={cn(
+                        "w-full justify-between text-sm font-medium mt-1 rounded-lg border transition-all",
+                        isExpanded
+                          ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
+                          : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
+                      )}
                       onClick={onTogglePersonalization}
                     >
                       <span className="flex items-center gap-2">
-                        <Palette className="h-3.5 w-3.5" />
+                        <Palette className="h-4 w-4" />
                         Personalização
                       </span>
                       {isExpanded ? (
@@ -244,7 +249,7 @@ function SortableItem({
                     </Button>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="pt-2 border-t mt-2">
+                    <div className="pt-3 border-t border-primary/20 mt-2">
                       {renderPersonalization?.()}
                     </div>
                   </CollapsibleContent>
