@@ -16,22 +16,13 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
   Image,
   Link,
 } from "@react-pdf/renderer";
 
 // ─── Fonts ───────────────────────────────────────────────
-Font.register({
-  family: "DM Sans",
-  fonts: [
-    { src: "https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAopxhS23kVg.ttf", fontWeight: 300 },
-    { src: "https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAkJxhS23kVg.ttf", fontWeight: 400 },
-    { src: "https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAzpxhS23kVg.ttf", fontWeight: 500 },
-    { src: "https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAIpthS23kVg.ttf", fontWeight: 600 },
-    { src: "https://fonts.gstatic.com/s/dmsans/v15/rP2tp2ywxg089UriI5-g4vlH9VoD8CmcqZG40F9JadbnoEwAG5thS23kVg.ttf", fontWeight: 700 },
-  ],
-});
+// Use Helvetica (built-in) to avoid external font loading failures
+// No Font.register needed — Helvetica is available by default in react-pdf
 
 // ─── Colors ──────────────────────────────────────────────
 const C = {
@@ -51,7 +42,7 @@ const C = {
 // ─── Styles ──────────────────────────────────────────────
 const s = StyleSheet.create({
   page: {
-    fontFamily: "DM Sans",
+    fontFamily: "Helvetica",
     fontSize: 9,
     color: C.text,
     backgroundColor: C.white,
