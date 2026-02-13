@@ -370,8 +370,8 @@ function mapTechniqueOrderByToExternal(orderBy: { column: string; ascending?: bo
     ativo: 'ativo',
     estimated_days: 'tempo_producao_dias',
     tempo_producao_dias: 'tempo_producao_dias',
-    ordem_exibicao: 'ordem_grupo',
-    display_order: 'ordem_grupo',
+    ordem_exibicao: 'nome',
+    display_order: 'nome',
   };
   return {
     ...orderBy,
@@ -406,7 +406,7 @@ function mapTechniqueRowToLegacyShape(row: Record<string, unknown>) {
     requer_setup: custoSetup > 0,
     tipo_setup: custoSetup > 0 ? 'arte_digital' : 'nenhum',
     tempo_producao_dias: tempo,
-    ordem_exibicao: (row.ordem_grupo as number | undefined) ?? 0,
+    ordem_exibicao: 0,
     ativo: ativo,
     // Campos legacy (personalization_techniques shape)
     code: codigo,
@@ -416,7 +416,7 @@ function mapTechniqueRowToLegacyShape(row: Record<string, unknown>) {
     estimated_days: tempo,
     requires_color_count: maxCores != null && maxCores > 0,
     max_colors: maxCores,
-    display_order: (row.ordem_grupo as number | undefined) ?? 0,
+    display_order: 0,
     price_by_color: cobraPorCor,
     price_by_area: false,
     setup_cost: custoSetup,
@@ -428,7 +428,7 @@ function mapTechniqueRowToLegacyShape(row: Record<string, unknown>) {
     grupo_tecnica: row.grupo_tecnica,
     nome_grupo: row.nome_grupo,
     slug_grupo: row.slug_grupo,
-    ordem_grupo: row.ordem_grupo,
+    ordem_grupo: 0,
     custo_setup: custoSetup,
     custo_aplicacao: row.custo_aplicacao,
     cobra_aplicacao: row.cobra_aplicacao,
