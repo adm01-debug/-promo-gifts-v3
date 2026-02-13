@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useQuotes, Quote } from "@/hooks/useQuotes";
 
 import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
+import { ProposalHtmlTemplate, ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
 import { useAuth } from "@/contexts/AuthContext";
 import { QuoteHistoryPanel } from "@/components/quotes/QuoteHistoryPanel";
 import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
@@ -59,49 +60,52 @@ export default function QuoteViewPage() {
     setQuote(data);
   };
 
+  const proposalData: ProposalTemplateData | null = useMemo(() => {
+    if (!quote) return null;
+    return {
+      quoteNumber: quote.quote_number || "",
+      date: quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "",
+      validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : "30 dias",
+      client: {
+        name: quote.client_company || quote.client_name || "Não especificado",
+        email: quote.client_email || undefined,
+        phone: quote.client_phone || undefined,
+        company: quote.client_company || undefined,
+        contactName: quote.client_name || undefined,
+      },
+      seller: {
+        name: user?.email || "Vendedor",
+      },
+      items: quote.items?.map((item) => ({
+        name: item.product_name,
+        sku: item.product_sku || undefined,
+        quantity: item.quantity,
+        unitPrice: item.unit_price,
+        color: item.color_name || undefined,
+        imageUrl: item.product_image_url || undefined,
+        personalizations: item.personalizations?.map((p: any) => ({
+          technique_name: p.technique_name || "Personalizacao",
+          colors_count: p.colors_count || 1,
+          area_cm2: p.area_cm2 || undefined,
+          unit_cost: p.unit_cost || 0,
+          setup_cost: p.setup_cost || 0,
+          total_cost: p.total_cost || 0,
+        })) || [],
+      })) || [],
+      subtotal: quote.subtotal || 0,
+      discount: quote.discount_amount || undefined,
+      total: quote.total || 0,
+      notes: quote.notes || undefined,
+      paymentTerms: quote.payment_terms || undefined,
+      deliveryTime: quote.delivery_time || undefined,
+    };
+  }, [quote, user]);
+
   const handleDownloadPDF = async () => {
-    if (!quote) return;
+    if (!proposalData) return;
 
     setIsGeneratingPDF(true);
     try {
-      const proposalData = {
-        quoteNumber: quote.quote_number || "",
-        date: quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "",
-        validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : "30 dias",
-        client: {
-          name: quote.client_company || quote.client_name || "Não especificado",
-          email: quote.client_email || undefined,
-          phone: quote.client_phone || undefined,
-          company: quote.client_company || undefined,
-          contactName: quote.client_name || undefined,
-        },
-        seller: {
-          name: user?.email || "Vendedor",
-        },
-        items: quote.items?.map((item) => ({
-          name: item.product_name,
-          sku: item.product_sku || undefined,
-          quantity: item.quantity,
-          unitPrice: item.unit_price,
-          color: item.color_name || undefined,
-          imageUrl: item.product_image_url || undefined,
-          personalizations: item.personalizations?.map((p: any) => ({
-            technique_name: p.technique_name || "Personalizacao",
-            colors_count: p.colors_count || 1,
-            area_cm2: p.area_cm2 || undefined,
-            unit_cost: p.unit_cost || 0,
-            setup_cost: p.setup_cost || 0,
-            total_cost: p.total_cost || 0,
-          })) || [],
-        })) || [],
-        subtotal: quote.subtotal || 0,
-        discount: quote.discount_amount || undefined,
-        total: quote.total || 0,
-        notes: quote.notes || undefined,
-        paymentTerms: quote.payment_terms || undefined,
-        deliveryTime: quote.delivery_time || undefined,
-      };
-
       const blob = await generateProposalPDFv2(proposalData);
       downloadPDF(blob, `proposta-${quote.quote_number}.pdf`);
       toast.success("PDF gerado com sucesso!");
@@ -249,24 +253,7 @@ export default function QuoteViewPage() {
         </div>
 
         {/* Quote Content */}
-        <Card className="print:shadow-none print:border-none">
-          <CardHeader className="hidden print:block print:pb-2">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-2xl font-bold text-primary">PROMO BRINDES</h2>
-                <p className="text-sm text-muted-foreground">Brindes Promocionais e Personalizados</p>
-              </div>
-              <div className="text-right">
-                <CardTitle className="text-lg">Orçamento: {quote.quote_number}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Data: {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy") : "-"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Válido até: {quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy") : "30 dias"}
-                </p>
-              </div>
-            </div>
-          </CardHeader>
+        <Card className="print:hidden">
           <Separator />
           <CardContent className="pt-6 space-y-6">
             {/* Client Info */}
@@ -295,10 +282,6 @@ export default function QuoteViewPage() {
                     <p className="text-foreground font-medium">{quote.client_name}</p>
                   </>
                 )}
-                <div className="hidden print:block mt-4">
-                  <h3 className="font-semibold mb-2">Vendedor</h3>
-                  <p className="text-foreground">{user?.email}</p>
-                </div>
                 {quote.client_email && (
                   <p className="text-sm text-muted-foreground mt-2">{quote.client_email}</p>
                 )}
@@ -414,6 +397,13 @@ export default function QuoteViewPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Print-only: render the same template used for PDF */}
+        {proposalData && (
+          <div className="hidden print:block print:p-0">
+            <ProposalHtmlTemplate data={proposalData} />
+          </div>
+        )}
       </div>
     </MainLayout>
   );
