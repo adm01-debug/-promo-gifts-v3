@@ -24,26 +24,13 @@
   }
 }
 
-/* Smooth scrolling - ensure html is never scroll-locked */
-html {
+/* Smooth scrolling - ensure html/body are never scroll-locked by modals */
+html, html[data-scroll-locked] {
   scroll-behavior: smooth;
   overflow-x: hidden;
-  overflow-y: auto !important;
-}
-
-/* Prevent Radix UI from locking scroll on body */
-html[data-scroll-locked],
-body[data-scroll-locked] {
-  overflow: auto !important;
+  overflow-y: scroll !important;
   margin-right: 0 !important;
-}
-
-body[style*="overflow: hidden"],
-body[style*="overflow:hidden"],
-body[style*="pointer-events: none"],
-body[style*="pointer-events:none"] {
-  overflow: auto !important;
-  pointer-events: auto !important;
+  position: static !important;
 }
 
 /* Better focus for accessibility */
@@ -93,10 +80,12 @@ body {
 }
 
 /* Prevent horizontal scroll and ensure body scroll is never locked by modals */
-body {
+body, body[data-scroll-locked] {
   overflow-x: hidden;
-  overflow-y: auto !important;
+  overflow-y: scroll !important;
   width: 100%;
+  margin-right: 0 !important;
+  position: static !important;
 }
 
 /* Smooth transitions for theme changes - scoped to avoid breaking scroll/animations */
