@@ -49,7 +49,9 @@ import { QuoteProductCustomization } from "@/components/quotes/QuoteProductCusto
 import { CompanyContactSelector } from "@/components/quotes/CompanyContactSelector";
 import { QuoteAutoSave } from "@/components/quotes/QuoteAutoSave";
 import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
+import { QuoteProductColorSelector } from "@/components/quotes/QuoteProductColorSelector";
 import { useAuth } from "@/contexts/AuthContext";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import {
   Collapsible,
   CollapsibleContent,
@@ -98,6 +100,8 @@ export default function QuoteBuilderPage() {
   // Product search modal
   const [productSearchOpen, setProductSearchOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
+  // Color selection step
+  const [selectedProductForColor, setSelectedProductForColor] = useState<Product | null>(null);
 
   // Template applied notification
   const [templateApplied, setTemplateApplied] = useState<string | null>(null);
@@ -260,22 +264,30 @@ export default function QuoteBuilderPage() {
     );
   };
 
-  // Add product to quote
-  const addProduct = useCallback((product: Product) => {
-    const existingIndex = items.findIndex((i) => i.product_id === product.id);
+  // Step 1: Select product → go to color step
+  const handleProductClick = useCallback((product: Product) => {
+    setSelectedProductForColor(product);
+  }, []);
+
+  // Step 2: Color selected → add to quote
+  const addProductWithColor = useCallback((product: Product, variant: ExternalVariantStock | null) => {
+    const colorName = variant?.color_name || undefined;
+    const colorHex = variant?.color_hex || undefined;
+    const imageUrl = variant?.selected_thumbnail
+      || (variant?.images?.length ? variant.images[0] : undefined)
+      || (Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : undefined);
+
+    const existingIndex = items.findIndex(
+      (i) => i.product_id === product.id && i.color_name === colorName
+    );
+
     if (existingIndex >= 0) {
       setItems((prev) =>
         prev.map((item, idx) =>
-          idx === existingIndex
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+          idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
         )
       );
     } else {
-      const imageUrl = Array.isArray(product.images) && product.images.length > 0
-        ? product.images[0]
-        : undefined;
-      
       setItems((prev) => [
         ...prev,
         {
@@ -285,10 +297,13 @@ export default function QuoteBuilderPage() {
           product_image_url: imageUrl,
           quantity: 1,
           unit_price: product.price,
+          color_name: colorName,
+          color_hex: colorHex,
           personalizations: [],
         },
       ]);
     }
+    setSelectedProductForColor(null);
     setProductSearchOpen(false);
     setProductSearch("");
   }, [items]);
@@ -719,63 +734,85 @@ export default function QuoteBuilderPage() {
       </div>
 
       {/* Product Search Dialog */}
-      <Dialog open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+      <Dialog open={productSearchOpen} onOpenChange={(open) => {
+        setProductSearchOpen(open);
+        if (!open) {
+          setSelectedProductForColor(null);
+          setProductSearch("");
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Adicionar Produto</DialogTitle>
-            <DialogDescription>Busque e selecione um produto para adicionar ao orçamento</DialogDescription>
+            <DialogTitle>
+              {selectedProductForColor ? "Selecionar Cor" : "Adicionar Produto"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedProductForColor
+                ? "Escolha a cor desejada para adicionar ao orçamento"
+                : "Busque e selecione um produto para adicionar ao orçamento"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por nome ou SKU..."
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                className="pl-9"
-                autoFocus
+            {selectedProductForColor ? (
+              <QuoteProductColorSelector
+                product={selectedProductForColor}
+                onSelect={(variant) => addProductWithColor(selectedProductForColor, variant)}
+                onBack={() => setSelectedProductForColor(null)}
               />
-            </div>
-            <div className="max-h-96 overflow-y-auto space-y-2">
-              {filteredProducts.length === 0 ? (
-                <p className="text-center py-8 text-muted-foreground">
-                  Nenhum produto encontrado
-                </p>
-              ) : (
-                filteredProducts.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => addProduct(product)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
-                  >
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={`${product.images[0]}/thumbnail`}
-                        alt={product.name}
-                        className="h-12 w-12 object-cover rounded bg-white"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          if (target.src.includes('/thumbnail')) {
-                            target.src = product.images![0];
-                          } else {
-                            target.style.display = 'none';
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
-                        <Package className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{product.name}</p>
-                      <p className="text-sm text-muted-foreground">{product.sku}</p>
-                    </div>
-                    <span className="font-medium">{formatCurrency(product.price)}</span>
-                  </button>
-                ))
-              )}
-            </div>
+            ) : (
+              <>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome ou SKU..."
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    className="pl-9"
+                    autoFocus
+                  />
+                </div>
+                <div className="max-h-96 overflow-y-auto space-y-2">
+                  {filteredProducts.length === 0 ? (
+                    <p className="text-center py-8 text-muted-foreground">
+                      Nenhum produto encontrado
+                    </p>
+                  ) : (
+                    filteredProducts.map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => handleProductClick(product)}
+                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
+                      >
+                        {product.images && product.images.length > 0 ? (
+                          <img
+                            src={`${product.images[0]}/thumbnail`}
+                            alt={product.name}
+                            className="h-12 w-12 object-cover rounded bg-white"
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              if (target.src.includes('/thumbnail')) {
+                                target.src = product.images![0];
+                              } else {
+                                target.style.display = 'none';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
+                            <Package className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{product.name}</p>
+                          <p className="text-sm text-muted-foreground">{product.sku}</p>
+                        </div>
+                        <span className="font-medium">{formatCurrency(product.price)}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
