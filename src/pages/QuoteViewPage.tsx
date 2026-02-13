@@ -287,12 +287,6 @@ export default function QuoteViewPage() {
                     </>
                   );
                 })()}
-                {quote.client_email && (
-                  <p className="text-sm text-muted-foreground">{quote.client_email}</p>
-                )}
-                {quote.client_phone && (
-                  <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
-                )}
               </div>
               <div>
                 {quote.client_name && (
@@ -305,6 +299,12 @@ export default function QuoteViewPage() {
                   <h3 className="font-semibold mb-2">Vendedor</h3>
                   <p className="text-foreground">{user?.email}</p>
                 </div>
+                {quote.client_email && (
+                  <p className="text-sm text-muted-foreground mt-2">{quote.client_email}</p>
+                )}
+                {quote.client_phone && (
+                  <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
+                )}
               </div>
             </div>
 
