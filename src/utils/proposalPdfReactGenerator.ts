@@ -75,12 +75,39 @@ const TEXT = [51, 51, 51] as const;
 const MUTED = [119, 119, 119] as const;
 const WHITE = [255, 255, 255] as const;
 
+// Helper to load image as base64 for jsPDF
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function generateProposalPDFv2(data: ProposalDocumentData): Promise<Blob> {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
   const margin = 20;
   let y = 0;
+
+  // Pre-load product images
+  const imageMap = new Map<number, string>();
+  await Promise.all(
+    data.items.map(async (item, idx) => {
+      if (item.imageUrl) {
+        const b64 = await loadImageAsBase64(item.imageUrl);
+        if (b64) imageMap.set(idx, b64);
+      }
+    })
+  );
 
   // ═══ HEADER: Green banner ═══
   doc.setFillColor(...GREEN);
@@ -148,12 +175,19 @@ export async function generateProposalPDFv2(data: ProposalDocumentData): Promise
   y += 10;
 
   // ═══ PRODUCTS TABLE ═══
-  const tableBody = data.items.map((item) => {
-    const total = item.quantity * item.unitPrice - (item.discount || 0) * item.quantity;
+  // Calculate unit price including personalization
+  const tableBody = data.items.map((item, idx) => {
+    // Personalization cost per unit
+    const persUnitCost = item.personalizations?.reduce((sum, p) => {
+      const pTotal = p.total_cost || 0;
+      return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
+    }, 0) || 0;
+
+    const allInUnitPrice = item.unitPrice + persUnitCost;
+    const total = item.quantity * allInUnitPrice - (item.discount || 0) * item.quantity;
 
     // Build description lines
     let desc = item.name;
-    if (item.description) desc += `\n${item.description}`;
     if (item.sku) desc += `\nTicket: #${item.sku}`;
 
     // Technique + Material
@@ -168,19 +202,20 @@ export async function generateProposalPDFv2(data: ProposalDocumentData): Promise
       desc += `\nCor: ${item.color}`;
     }
 
-    return [
+    return {
       desc,
-      `${item.quantity}.`,
-      fmt(item.unitPrice),
-      fmt(item.discount || 0),
-      fmt(total),
-    ];
+      qty: `${item.quantity}.`,
+      unit: fmt(allInUnitPrice),
+      discount: fmt(item.discount || 0),
+      total: fmt(total),
+      imgIdx: idx,
+    };
   });
 
   autoTable(doc, {
     startY: y,
-    head: [["Descricao do Produto", "Quant.", "Valor Uni.", "Desconto\nUnitario", "Valor Total"]],
-    body: tableBody,
+    head: [["", "Descricao do Produto", "Quant.", "Valor Uni.", "Desconto\nUnitario", "Valor Total"]],
+    body: tableBody.map(r => ["", r.desc, r.qty, r.unit, r.discount, r.total]),
     theme: "plain",
     headStyles: {
       fillColor: [...BLACK] as [number, number, number],
@@ -195,19 +230,32 @@ export async function generateProposalPDFv2(data: ProposalDocumentData): Promise
       cellPadding: 5,
       lineColor: [221, 221, 221],
       lineWidth: 0.3,
+      minCellHeight: 20,
     },
     columnStyles: {
-      0: { cellWidth: 80, halign: "left", fontStyle: "normal" },
-      1: { cellWidth: 18, halign: "center", fontStyle: "bold" },
-      2: { cellWidth: 25, halign: "right" },
-      3: { cellWidth: 22, halign: "center" },
-      4: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+      0: { cellWidth: 18, halign: "center" },
+      1: { cellWidth: 62, halign: "left", fontStyle: "normal" },
+      2: { cellWidth: 18, halign: "center", fontStyle: "bold" },
+      3: { cellWidth: 25, halign: "right" },
+      4: { cellWidth: 22, halign: "center" },
+      5: { cellWidth: 28, halign: "right", fontStyle: "bold" },
     },
     margin: { left: margin, right: margin },
-    didParseCell: (hookData) => {
-      // Style "Ticket" and "Gravacao" lines in the description column
+    didDrawCell: (hookData) => {
+      // Draw product image in first column
       if (hookData.section === "body" && hookData.column.index === 0) {
-        hookData.cell.styles.textColor = [...TEXT] as [number, number, number];
+        const rowIdx = hookData.row.index;
+        const imgData = imageMap.get(tableBody[rowIdx]?.imgIdx);
+        if (imgData) {
+          const cellX = hookData.cell.x + 1;
+          const cellY = hookData.cell.y + 1;
+          const imgSize = Math.min(hookData.cell.height - 2, 16);
+          try {
+            doc.addImage(imgData, "JPEG", cellX, cellY, imgSize, imgSize);
+          } catch {
+            // skip if image fails
+          }
+        }
       }
     },
   });
