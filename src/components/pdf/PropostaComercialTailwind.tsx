@@ -60,15 +60,15 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
         </div>
 
         {/* ═══ CONTENT ═══ */}
-        <div style={{ padding: "0 40px", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ padding: "0 36px", flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
           {/* Barra do Cliente */}
           <div className="flex justify-between" style={{
             backgroundColor: "#f5f5f5",
             borderLeft: "5px solid #00c853",
-            padding: "10px 20px",
-            marginTop: "14px",
-            marginBottom: "14px",
+            padding: "8px 16px",
+            marginTop: "10px",
+            marginBottom: "10px",
           }}>
             <div>
               <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: "#00c853", textTransform: "uppercase", margin: "0 0 3px 0" }}>
@@ -93,7 +93,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
           </div>
 
           {/* Tabela de Produtos */}
-          <table className="w-full border-collapse" style={{ marginBottom: "16px" }}>
+          <table className="w-full border-collapse" style={{ marginBottom: "8px" }}>
             <thead>
               <tr>
                 <th style={{ ...thBase, textAlign: "center", width: "100px" }}>Foto</th>
@@ -121,36 +121,36 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
 
                 return (
                   <tr key={idx} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                    <td className="text-center align-middle" style={{ padding: "14px 6px", width: "100px" }}>
+                    <td className="text-center align-middle" style={{ padding: "8px 6px", width: "80px" }}>
                       {item.imageUrl ? (
                         <img
                           src={item.imageUrl}
                           alt={item.name}
                           crossOrigin="anonymous"
                           style={{
-                            width: "90px",
-                            height: "90px",
+                            width: "70px",
+                            height: "70px",
                             objectFit: "contain",
-                            borderRadius: "8px",
+                            borderRadius: "6px",
                             border: "1px solid #eee",
                             backgroundColor: "#fff",
-                            padding: "4px",
+                            padding: "3px",
                           }}
                         />
                       ) : (
                         <div className="flex items-center justify-center mx-auto" style={{
-                          width: "90px",
-                          height: "90px",
+                          width: "70px",
+                          height: "70px",
                           backgroundColor: "#f5f5f5",
-                          borderRadius: "8px",
+                          borderRadius: "6px",
                           border: "1px solid #eee",
                         }}>
                           <span style={{ fontSize: "9px", color: "#bbb" }}>—</span>
                         </div>
                       )}
                     </td>
-                    <td className="align-top" style={{ padding: "14px 10px" }}>
-                      <span className="block" style={{ fontWeight: 800, color: "#000", fontSize: "15px", marginBottom: "4px" }}>
+                    <td className="align-top" style={{ padding: "8px 10px" }}>
+                      <span className="block" style={{ fontWeight: 800, color: "#000", fontSize: "14px", marginBottom: "2px" }}>
                         {item.name}
                       </span>
                       {item.sku && (
@@ -174,8 +174,8 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                         </span>
                       )}
                     </td>
-                    <td className="text-center align-middle" style={{ padding: "14px 8px", fontWeight: 700, fontSize: "14px" }}>{item.quantity}</td>
-                    <td className="text-right align-middle" style={{ padding: "14px 8px" }}>
+                    <td className="text-center align-middle" style={{ padding: "8px 6px", fontWeight: 700, fontSize: "13px" }}>{item.quantity}</td>
+                    <td className="text-right align-middle" style={{ padding: "8px 6px" }}>
                       <span style={{ fontSize: "14px", fontWeight: 500 }}>{fmt(allInUnitPrice)}</span>
                       {itemDiscount > 0 && (
                         <span className="block" style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>
@@ -183,7 +183,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                         </span>
                       )}
                     </td>
-                    <td className="text-right align-middle" style={{ padding: "14px 8px", fontWeight: 800, fontSize: "15px", color: "#333" }}>{fmt(total)}</td>
+                    <td className="text-right align-middle" style={{ padding: "8px 6px", fontWeight: 800, fontSize: "14px", color: "#333" }}>{fmt(total)}</td>
                   </tr>
                 );
               })}
@@ -191,7 +191,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
           </table>
 
           {/* TOTAIS */}
-          <div className="flex justify-end" style={{ marginTop: "4px" }}>
+          <div className="flex justify-end" style={{ marginTop: "2px" }}>
             <div style={{ width: "320px" }}>
               <div className="flex justify-between" style={{ padding: "6px 0", fontSize: "13px", color: "#555", borderBottom: "1px solid #fafafa" }}>
                 <span>Subtotal:</span>
@@ -229,8 +229,8 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
           </div>
 
           {/* Notas */}
-          <div style={{ marginTop: "12px", fontSize: "11px", color: "#666", lineHeight: "1.5", borderTop: "1px solid #eee", paddingTop: "10px" }}>
-            <div style={{ fontWeight: 700, fontSize: "12px", color: "#333", marginBottom: "6px" }}>
+          <div style={{ marginTop: "8px", fontSize: "10px", color: "#666", lineHeight: "1.4", borderTop: "1px solid #eee", paddingTop: "6px" }}>
+            <div style={{ fontWeight: 700, fontSize: "11px", color: "#333", marginBottom: "4px" }}>
               Informações Relevantes:
             </div>
             <div>- Todos os valores são para produtos já personalizados conforme descrição.</div>
@@ -242,13 +242,13 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
         </div>
 
         {/* ═══ FOOTER ═══ */}
-        <div className="relative" style={{ width: "794px", height: "160px", flexShrink: 0, marginTop: "auto" }}>
-          <svg width="794" height="160" viewBox="0 0 794 160" className="absolute top-0 left-0">
-            <polygon points="360,160 382,10 410,10 388,160" fill="#e0e0e0" />
-            <polygon points="385,160 407,10 443,10 421,160" fill="#00c853" />
-            <polygon points="440,50 794,50 794,115 415,115" fill="#333333" />
-            <rect x="470" y="115" width="324" height="45" fill="#00c853" />
-            <polygon points="470,115 493,115 470,147" fill="#009e41" />
+        <div className="relative" style={{ width: "794px", height: "140px", flexShrink: 0, marginTop: "auto" }}>
+          <svg width="794" height="140" viewBox="0 0 794 140" className="absolute top-0 left-0">
+            <polygon points="360,140 380,10 408,10 388,140" fill="#e0e0e0" />
+            <polygon points="385,140 405,10 441,10 421,140" fill="#00c853" />
+            <polygon points="438,45 794,45 794,100 413,100" fill="#333333" />
+            <rect x="468" y="100" width="326" height="40" fill="#00c853" />
+            <polygon points="468,100 489,100 468,130" fill="#009e41" />
           </svg>
 
           <div className="relative z-10 h-full" style={{ padding: "0 40px" }}>
