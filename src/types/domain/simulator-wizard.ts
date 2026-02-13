@@ -123,6 +123,12 @@ export interface AvailableTechnique {
   // Info da tabela de preço (para exibição)
   grupoTecnica?: string;
   cobraPorCor?: boolean;
+  // v6 fields
+  usaDimensao?: boolean;       // se precisa informar dimensões
+  efetivaLarguraMax?: number;  // MIN(max_width, gravacao_largura_max)
+  efetivaAlturaMax?: number;   // MIN(max_height, gravacao_altura_max)
+  variacaoLabel?: string;      // label da variação
+  shape?: 'rectangle' | 'circle';
 }
 
 // ============================================
