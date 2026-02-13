@@ -1,12 +1,14 @@
 /**
- * Proposal PDF Generator — jsPDF implementation
+ * Proposal PDF Generator — Pixel-perfect replica of Promo Brindes reference
  * 
- * Layout fiel ao PDF de referência da Promo Brindes:
- * - Header verde/preto
- * - Empresa + Solicitante + Nº + Data
- * - Tabela com descrição, técnica, material
- * - Totais com caixa verde "Valor Total da Proposta"
- * - Footer com CNPJ e vendedor
+ * Layout:
+ * - Green header banner with logo + diagonal black accent
+ * - Gray decorative lines below header
+ * - Empresa/Solicitante left, Nº/Data right in black box
+ * - GREEN header table with product images inside description
+ * - Ticket in green, Gravação/Material bold labels
+ * - Totals right, green bordered "VALOR TOTAL DA PROPOSTA" box
+ * - Footer with green circle icons, CNPJ, seller signature
  */
 
 import { jsPDF } from "jspdf";
@@ -67,19 +69,22 @@ function fmt(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-// Colors matching reference PDF
-const GREEN = [45, 140, 71] as const;    // #2D8C47
-const GREEN_DARK = [30, 107, 53] as const;
-const BLACK = [26, 26, 26] as const;
-const TEXT = [51, 51, 51] as const;
-const MUTED = [119, 119, 119] as const;
-const WHITE = [255, 255, 255] as const;
+// Colors from reference PDF
+const GREEN: [number, number, number] = [45, 140, 71];
+const GREEN_DARK: [number, number, number] = [30, 107, 53];
+const BLACK: [number, number, number] = [26, 26, 26];
+const TEXT: [number, number, number] = [51, 51, 51];
+const MUTED: [number, number, number] = [119, 119, 119];
+const WHITE: [number, number, number] = [255, 255, 255];
+const LIGHT_GRAY: [number, number, number] = [230, 230, 230];
+const TABLE_BORDER: [number, number, number] = [200, 200, 200];
 
-// Helper to load image as base64 for jsPDF
 async function loadImageAsBase64(url: string): Promise<string | null> {
   try {
     const response = await fetch(url);
+    if (!response.ok) return null;
     const blob = await response.blob();
+    if (blob.type.includes("text/html")) return null;
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
@@ -91,11 +96,20 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   }
 }
 
+async function getImageDimensions(b64: string): Promise<{ w: number; h: number }> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.width, h: img.height });
+    img.onerror = () => resolve({ w: 1, h: 1 });
+    img.src = b64;
+  });
+}
+
 export async function generateProposalPDFv2(data: ProposalDocumentData): Promise<Blob> {
   const doc = new jsPDF();
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
-  const margin = 20;
+  const margin = 18;
   let y = 0;
 
   // Pre-load product images
@@ -109,311 +123,397 @@ export async function generateProposalPDFv2(data: ProposalDocumentData): Promise
     })
   );
 
-  // ═══ HEADER: Green banner ═══
+  // ═══════════════════════════════════════════════
+  // HEADER: Green banner + diagonal black accent
+  // ═══════════════════════════════════════════════
+  const headerH = 55;
+  
+  // Green background
   doc.setFillColor(...GREEN);
-  doc.rect(0, 0, pw, 32, "F");
-  // Black accent on right
+  doc.rect(0, 0, pw, headerH, "F");
+  
+  // Diagonal black accent (top-right triangle)
   doc.setFillColor(...BLACK);
-  doc.rect(pw - 50, 0, 50, 32, "F");
-  // Dark green bottom line
-  doc.setFillColor(...GREEN_DARK);
-  doc.rect(0, 32, pw, 2, "F");
+  // Triangle: top-right corner
+  const triW = 80;
+  doc.triangle(pw - triW, 0, pw, 0, pw, headerH, "F");
 
-  // Logo - dynamically calculate aspect ratio
+  // Gray decorative lines below header
+  doc.setFillColor(180, 180, 180);
+  doc.rect(0, headerH, pw, 1.5, "F");
+  doc.setFillColor(220, 220, 220);
+  doc.rect(0, headerH + 1.5, pw, 1, "F");
+
+  // Logo
   try {
     const logoB64 = await loadImageAsBase64("/images/promo-brindes-logo.png");
     if (logoB64) {
-      // Load image to get real dimensions
-      const img = new Image();
-      img.src = logoB64;
-      await new Promise<void>((resolve) => { img.onload = () => resolve(); img.onerror = () => resolve(); });
-      
-      const realRatio = img.width / img.height;
-      const logoH = 20;
-      const logoW = logoH * realRatio;
-      const logoY = (32 - logoH) / 2;
-      const logoX = margin + 2;
+      const dims = await getImageDimensions(logoB64);
+      const ratio = dims.w / dims.h;
+      const logoH = 32;
+      const logoW = logoH * ratio;
+      const logoY = (headerH - logoH) / 2;
       
       // White background behind logo
       doc.setFillColor(...WHITE);
-      doc.roundedRect(logoX - 2, logoY - 1, logoW + 4, logoH + 2, 2, 2, "F");
-      doc.addImage(logoB64, "PNG", logoX, logoY, logoW, logoH);
+      doc.roundedRect(margin - 2, logoY - 2, logoW + 6, logoH + 4, 2, 2, "F");
+      doc.addImage(logoB64, "PNG", margin + 1, logoY, logoW, logoH);
     }
   } catch {
-    // Fallback text if logo fails
-    doc.setFontSize(20);
+    doc.setFontSize(28);
     doc.setTextColor(...WHITE);
     doc.setFont("helvetica", "bolditalic");
-    doc.text("Promo Brindes", margin, 18);
+    doc.text("Promo Brindes", margin, 35);
   }
 
-  y = 44;
+  y = headerH + 8;
 
-  // ═══ CLIENT + QUOTE INFO ═══
+  // ═══════════════════════════════════════════════
+  // CLIENT INFO (left) + QUOTE NUMBER (right)
+  // ═══════════════════════════════════════════════
   const company = data.client.company || data.client.name;
   const contact = data.client.contactName || data.client.name;
 
-  doc.setFontSize(9);
+  // Left side: Empresa
+  doc.setFontSize(10);
   doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "normal");
   doc.text("Empresa:", margin, y);
 
-  y += 6;
-  doc.setFontSize(14);
+  y += 7;
+  doc.setFontSize(16);
   doc.setTextColor(...GREEN);
   doc.setFont("helvetica", "bold");
   doc.text(company, margin, y);
 
   y += 6;
-  doc.setFontSize(9);
+  doc.setFontSize(10);
   doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "normal");
   doc.text(`Solicitante: ${contact}`, margin, y);
 
-  if (data.client.email) {
-    y += 5;
-    doc.setFontSize(8);
-    doc.setTextColor(...MUTED);
-    doc.text(data.client.email, margin, y);
-  }
-
-  // Quote number (right)
-  doc.setFontSize(14);
-  doc.setTextColor(...BLACK);
+  // Right side: Nº in black box
+  const boxW = 70;
+  const boxH = 22;
+  const boxX = pw - margin - boxW;
+  const boxY = headerH + 6;
+  
+  doc.setFillColor(...BLACK);
+  doc.roundedRect(boxX, boxY, boxW, boxH, 2, 2, "F");
+  
+  doc.setFontSize(16);
+  doc.setTextColor(...WHITE);
   doc.setFont("helvetica", "bold");
-  doc.text(`N.: #${data.quoteNumber}`, pw - margin, 40, { align: "right" });
+  doc.text(`N\u00BA: #${data.quoteNumber}`, boxX + boxW / 2, boxY + 14, { align: "center" });
 
-  doc.setFontSize(9);
-  doc.setTextColor(...MUTED);
+  // Date below box
+  doc.setFontSize(10);
+  doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "normal");
-  doc.text(`Data: ${data.date}`, pw - margin, 48, { align: "right" });
-  if (data.validUntil) {
-    doc.text(`Valido ate: ${data.validUntil}`, pw - margin, 54, { align: "right" });
-  }
+  doc.text(`Data: ${data.date}`, boxX + boxW / 2, boxY + boxH + 8, { align: "center" });
 
-  y += 10;
+  y += 14;
 
-  // ═══ PRODUCTS TABLE ═══
-  // Calculate unit price including personalization
-  const tableBody = data.items.map((item, idx) => {
-    // Personalization cost per unit
+  // ═══════════════════════════════════════════════
+  // PRODUCTS TABLE - Green header, product images inside desc
+  // ═══════════════════════════════════════════════
+  
+  // Build table data
+  const tableRows: { desc: string[]; qty: string; unit: string; disc: string; total: string; imgIdx: number }[] = [];
+  
+  data.items.forEach((item, idx) => {
+    // Calculate all-inclusive unit price (product + personalization)
     const persUnitCost = item.personalizations?.reduce((sum, p) => {
       const pTotal = p.total_cost || 0;
       return sum + (item.quantity > 0 ? pTotal / item.quantity : 0);
     }, 0) || 0;
-
     const allInUnitPrice = item.unitPrice + persUnitCost;
-    const total = item.quantity * allInUnitPrice - (item.discount || 0) * item.quantity;
+    const itemDiscount = item.discount || 0;
+    const total = item.quantity * allInUnitPrice - itemDiscount * item.quantity;
 
-    // Build description lines
-    let desc = item.name;
-    if (item.sku) desc += `\nTicket: #${item.sku}`;
+    // Line 1: Product name (bold) + Ticket (green, right)
+    const lines: string[] = [];
+    lines.push(item.name);
+    
+    // Line 2: Description
+    if (item.description) lines.push(item.description);
 
-    // Technique + Material
+    // Line 3: Gravação + Material
+    const gravLines: string[] = [];
     if (item.personalizations && item.personalizations.length > 0) {
       item.personalizations.forEach(p => {
-        let line = `Gravacao: ${p.technique_name}`;
-        if (p.colors_count && p.colors_count > 1) line += ` (${p.colors_count} cores)`;
-        if (p.material || item.material) line += `  Material: ${p.material || item.material}`;
-        desc += `\n${line}`;
+        let g = `Gravacao: ${p.technique_name}`;
+        if (p.colors_count && p.colors_count > 1) g += ` (${p.colors_count} cores)`;
+        gravLines.push(g);
+        if (p.material || item.material) {
+          gravLines.push(`Material: ${p.material || item.material}`);
+        }
       });
-    } else if (item.color) {
-      desc += `\nCor: ${item.color}`;
+    } else if (item.material) {
+      gravLines.push(`Material: ${item.material}`);
+    }
+    if (item.color && !item.material) {
+      gravLines.push(`Cor: ${item.color}`);
     }
 
-    return {
-      desc,
+    tableRows.push({
+      desc: lines,
       qty: `${item.quantity}.`,
       unit: fmt(allInUnitPrice),
-      discount: fmt(item.discount || 0),
+      disc: fmt(itemDiscount),
       total: fmt(total),
       imgIdx: idx,
-    };
+    });
+  });
+
+  // Use autoTable for the products
+  const bodyData = tableRows.map(r => {
+    // Join desc lines + ticket + gravação info into one cell text
+    let cellText = r.desc.join("\n");
+    return ["", cellText, r.qty, r.unit, r.disc, r.total];
   });
 
   autoTable(doc, {
     startY: y,
     head: [["", "Descricao do Produto", "Quant.", "Valor Uni.", "Desconto\nUnitario", "Valor Total"]],
-    body: tableBody.map(r => ["", r.desc, r.qty, r.unit, r.discount, r.total]),
+    body: bodyData,
     theme: "plain",
     headStyles: {
-      fillColor: [...BLACK] as [number, number, number],
-      textColor: [...WHITE] as [number, number, number],
+      fillColor: GREEN,
+      textColor: WHITE,
       fontStyle: "bold",
-      fontSize: 8,
+      fontSize: 9,
       halign: "center",
-      cellPadding: 4,
+      cellPadding: 5,
     },
     bodyStyles: {
       fontSize: 8,
-      cellPadding: 5,
-      lineColor: [221, 221, 221],
+      cellPadding: { top: 6, bottom: 6, left: 3, right: 3 },
+      lineColor: TABLE_BORDER,
       lineWidth: 0.3,
-      minCellHeight: 20,
+      minCellHeight: 24,
+      textColor: TEXT,
     },
     columnStyles: {
-      0: { cellWidth: 18, halign: "center" },
-      1: { cellWidth: 62, halign: "left", fontStyle: "normal" },
+      0: { cellWidth: 22, halign: "center" },  // Image column
+      1: { cellWidth: 68, halign: "left" },     // Description
       2: { cellWidth: 18, halign: "center", fontStyle: "bold" },
-      3: { cellWidth: 25, halign: "right" },
+      3: { cellWidth: 22, halign: "right" },
       4: { cellWidth: 22, halign: "center" },
-      5: { cellWidth: 28, halign: "right", fontStyle: "bold" },
+      5: { cellWidth: 25, halign: "right", fontStyle: "bold" },
     },
     margin: { left: margin, right: margin },
+    alternateRowStyles: {
+      fillColor: [248, 248, 248],
+    },
     didDrawCell: (hookData) => {
-      // Draw product image in first column
-      if (hookData.section === "body" && hookData.column.index === 0) {
+      if (hookData.section === "body") {
         const rowIdx = hookData.row.index;
-        const imgData = imageMap.get(tableBody[rowIdx]?.imgIdx);
-        if (imgData) {
-          const cellX = hookData.cell.x + 1;
-          const cellY = hookData.cell.y + 1;
-          const imgSize = Math.min(hookData.cell.height - 2, 16);
-          try {
-            doc.addImage(imgData, "JPEG", cellX, cellY, imgSize, imgSize);
-          } catch {
-            // skip if image fails
+        const row = tableRows[rowIdx];
+        
+        // Draw product image in first column
+        if (hookData.column.index === 0 && row) {
+          const imgData = imageMap.get(row.imgIdx);
+          if (imgData) {
+            const imgSize = Math.min(hookData.cell.height - 4, 18);
+            const cx = hookData.cell.x + (hookData.cell.width - imgSize) / 2;
+            const cy = hookData.cell.y + 2;
+            try {
+              doc.addImage(imgData, "JPEG", cx, cy, imgSize, imgSize);
+            } catch { /* skip */ }
+          }
+        }
+
+        // Draw "Ticket: #SKU" in green on description column
+        if (hookData.column.index === 1 && row) {
+          const item = data.items[row.imgIdx];
+          if (item?.sku) {
+            doc.setFontSize(8);
+            doc.setTextColor(...GREEN);
+            doc.setFont("helvetica", "bold");
+            const ticketText = `Ticket: #${item.sku}`;
+            const ticketX = hookData.cell.x + hookData.cell.width - 3;
+            doc.text(ticketText, ticketX, hookData.cell.y + 10, { align: "right" });
+            doc.setTextColor(...TEXT);
+          }
+
+          // Draw Gravação/Material lines at bottom of cell
+          const persLines: string[] = [];
+          if (item?.personalizations && item.personalizations.length > 0) {
+            item.personalizations.forEach(p => {
+              let line = `Gravacao: ${p.technique_name}.`;
+              if (p.material || item.material) line += `  Material: ${p.material || item.material}`;
+              persLines.push(line);
+            });
+          } else if (item?.material) {
+            persLines.push(`Material: ${item.material}`);
+          } else if (item?.color) {
+            persLines.push(`Cor: ${item.color}`);
+          }
+
+          if (persLines.length > 0) {
+            doc.setFontSize(7);
+            doc.setTextColor(80, 80, 80);
+            doc.setFont("helvetica", "bold");
+            const persY = hookData.cell.y + hookData.cell.height - 4;
+            persLines.forEach((line, i) => {
+              doc.text(line, hookData.cell.x + 3, persY + i * 4);
+            });
           }
         }
       }
     },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 12;
+  y = (doc as any).lastAutoTable.finalY + 15;
 
-  // ═══ BOTTOM LEFT: Delivery + Conditions ═══
-  const leftX = margin;
+  // ═══════════════════════════════════════════════
+  // BOTTOM LEFT: Delivery + Info
+  // ═══════════════════════════════════════════════
   let leftY = y;
 
   if (data.deliveryTime) {
-    doc.setFontSize(11);
+    doc.setFontSize(12);
     doc.setTextColor(...BLACK);
     doc.setFont("helvetica", "bold");
-    doc.text(`Previsao de Entrega: ${data.deliveryTime}`, leftX, leftY);
+    doc.text(`Previsao de Entrega: ${data.deliveryTime}`, margin, leftY);
     leftY += 6;
   }
 
-  if (data.validUntil) {
-    doc.setFontSize(8);
-    doc.setTextColor(...MUTED);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Orcamento Valido por 15 dias apos o envio`, leftX, leftY);
-    leftY += 10;
-  }
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  doc.setFont("helvetica", "normal");
+  doc.text("Orcamento Valido por 15 dias apos o envio", margin, leftY);
+  leftY += 10;
 
-  doc.setFontSize(10);
+  doc.setFontSize(11);
   doc.setTextColor(...BLACK);
   doc.setFont("helvetica", "bold");
-  doc.text("Informacoes Relevantes:", leftX, leftY);
+  doc.text("Informacoes Relevantes:", margin, leftY);
   leftY += 6;
 
-  doc.setFontSize(8);
+  doc.setFontSize(8.5);
   doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "normal");
-  doc.text("- Todos os valores sao para produtos ja personalizados.", leftX, leftY);
+  doc.text("- Todos os valores sao para produtos ja personalizados.", margin, leftY);
   leftY += 5;
-
   if (data.paymentTerms) {
-    doc.text(`- ${data.paymentTerms}`, leftX, leftY);
+    doc.text(`- ${data.paymentTerms}`, margin, leftY);
   } else {
-    doc.text("- Pagamento feito apos a entrega (A vista / Boleto / Pix).", leftX, leftY);
+    doc.text("- Pagamento feito apos a entrega (A vista/ Boleto/ Pix).", margin, leftY);
   }
   leftY += 5;
-  doc.text("- Todos produtos passam por controle de qualidade.", leftX, leftY);
+  doc.text("- Todos produtos passam por controle de qualidade.", margin, leftY);
 
-  // ═══ BOTTOM RIGHT: Totals ═══
-  const rightX = pw - margin - 65;
+  // ═══════════════════════════════════════════════
+  // BOTTOM RIGHT: Totals
+  // ═══════════════════════════════════════════════
+  const rightEdge = pw - margin;
   let rightY = y;
+  const labelsX = rightEdge - 65;
 
-  doc.setFontSize(9);
+  // Sub Total
+  doc.setFontSize(10);
   doc.setTextColor(...TEXT);
   doc.setFont("helvetica", "normal");
-  doc.text("Sub Total:", rightX, rightY);
+  doc.text("Sub Total:", labelsX, rightY);
   doc.setFont("helvetica", "bold");
-  doc.text(fmt(data.subtotal), pw - margin, rightY, { align: "right" });
+  doc.text(fmt(data.subtotal), rightEdge, rightY, { align: "right" });
   rightY += 7;
 
+  // Valor Frete
   doc.setFont("helvetica", "normal");
-  doc.text("Valor Frete:", rightX, rightY);
+  doc.text("Valor Frete:", labelsX, rightY);
   doc.setFont("helvetica", "bold");
-  doc.text(data.shippingCost ? fmt(data.shippingCost) : "Cortesia", pw - margin, rightY, { align: "right" });
+  doc.text(data.shippingCost ? fmt(data.shippingCost) : "Cotesia", rightEdge, rightY, { align: "right" });
   rightY += 7;
 
+  // Desconto
   if (data.discount && data.discount > 0) {
     doc.setFont("helvetica", "normal");
-    doc.text("Desconto:", rightX, rightY);
+    doc.text("Desconto:", labelsX, rightY);
     doc.setFont("helvetica", "bold");
-    doc.text(fmt(data.discount), pw - margin, rightY, { align: "right" });
+    doc.text(fmt(data.discount), rightEdge, rightY, { align: "right" });
     rightY += 7;
   }
 
-  // Grand total box
-  rightY += 4;
-  const boxW = 70;
-  const boxH = 22;
-  const boxX = pw - margin - boxW;
+  // Grand total green box
+  rightY += 5;
+  const totalBoxW = 72;
+  const totalBoxH = 28;
+  const totalBoxX = rightEdge - totalBoxW;
 
   doc.setDrawColor(...GREEN);
-  doc.setLineWidth(1.5);
-  doc.roundedRect(boxX, rightY, boxW, boxH, 3, 3, "S");
+  doc.setLineWidth(2);
+  doc.roundedRect(totalBoxX, rightY, totalBoxW, totalBoxH, 3, 3, "S");
 
   doc.setFontSize(7);
   doc.setTextColor(...GREEN);
   doc.setFont("helvetica", "bold");
-  doc.text("VALOR TOTAL DA PROPOSTA:", boxX + boxW / 2, rightY + 8, { align: "center" });
+  doc.text("VALOR TOTAL DA PROPOSTA:", totalBoxX + totalBoxW / 2, rightY + 9, { align: "center" });
 
-  doc.setFontSize(16);
-  doc.text(fmt(data.total), boxX + boxW / 2, rightY + 18, { align: "center" });
+  doc.setFontSize(18);
+  doc.text(fmt(data.total), totalBoxX + totalBoxW / 2, rightY + 22, { align: "center" });
 
-  // ═══ NOTES ═══
-  if (data.notes) {
-    const notesY = Math.max(leftY, rightY + boxH) + 10;
-    doc.setFillColor(232, 245, 233);
-    doc.setDrawColor(...GREEN);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(margin, notesY, pw - 2 * margin, 20, 2, 2, "FD");
+  // ═══════════════════════════════════════════════
+  // FOOTER
+  // ═══════════════════════════════════════════════
+  const footerY = ph - 40;
 
-    doc.setFontSize(8);
-    doc.setTextColor(...GREEN_DARK);
-    doc.setFont("helvetica", "bold");
-    doc.text("Observacoes", margin + 5, notesY + 6);
-
-    doc.setFontSize(8);
-    doc.setTextColor(...TEXT);
-    doc.setFont("helvetica", "normal");
-    const lines = doc.splitTextToSize(data.notes, pw - 2 * margin - 10);
-    doc.text(lines, margin + 5, notesY + 12);
-  }
-
-  // ═══ FOOTER ═══
-  const footerY = ph - 25;
-  doc.setDrawColor(221, 221, 221);
-  doc.setLineWidth(0.3);
-  doc.line(margin, footerY, pw - margin, footerY);
-
-  // Left: contacts
-  doc.setFontSize(7.5);
-  doc.setTextColor(...MUTED);
-  doc.setFont("helvetica", "normal");
-  doc.text("promobrindes.com", margin, footerY + 6);
-  doc.text("comercial01@gmail.com", margin + 35, footerY + 6);
-  if (data.seller.phone) {
-    doc.text(data.seller.phone, margin + 80, footerY + 6);
-  }
-
-  doc.setFontSize(7);
-  doc.text("CNPJ: 36.835.552/0001-67", margin, footerY + 12);
-  doc.text("Razao Social: Brasil Marcas Industria e Comercio de Brindes LTDA.", margin, footerY + 17);
-
-  // Right: seller
-  doc.setFontSize(10);
+  // Seller signature (right)
+  doc.setFontSize(12);
   doc.setTextColor(...BLACK);
+  doc.setFont("helvetica", "bolditalic");
+  const sellerName = data.seller.name || "Vendedor";
+  doc.text(sellerName, rightEdge, footerY - 2, { align: "right" });
+
+  // Underline
+  doc.setDrawColor(...BLACK);
+  doc.setLineWidth(0.5);
+  const nameW = doc.getTextWidth(sellerName.toUpperCase());
+  
+  doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  doc.text(data.seller.name.toUpperCase(), pw - margin, footerY + 8, { align: "right" });
+  doc.text(sellerName.toUpperCase(), rightEdge, footerY + 6, { align: "right" });
+  const upperW = doc.getTextWidth(sellerName.toUpperCase());
+  doc.line(rightEdge - upperW, footerY + 7, rightEdge, footerY + 7);
+
   doc.setFontSize(8);
   doc.setTextColor(...MUTED);
   doc.setFont("helvetica", "normal");
-  doc.text("Executivo de Vendas", pw - margin, footerY + 14, { align: "right" });
+  doc.text("Executivo de Vendas", rightEdge, footerY + 13, { align: "right" });
+
+  // Footer left: contact info with green circles
+  const circleY = footerY + 6;
+  const circleR = 3;
+
+  // Phone
+  doc.setFillColor(...GREEN);
+  doc.circle(margin + circleR, circleY, circleR, "F");
+  doc.setFontSize(7.5);
+  doc.setTextColor(...TEXT);
+  doc.text(data.seller.phone || "00-00000-0000", margin + circleR * 2 + 3, circleY + 1.5);
+
+  // Website
+  const webX = margin + 45;
+  doc.setFillColor(...GREEN);
+  doc.circle(webX + circleR, circleY, circleR, "F");
+  doc.text("promobrindes.com", webX + circleR * 2 + 3, circleY + 1.5);
+
+  // Email
+  const emailX = margin + 95;
+  doc.setFillColor(...GREEN);
+  doc.circle(emailX + circleR, circleY, circleR, "F");
+  doc.text("comercial01@gmail.com", emailX + circleR * 2 + 3, circleY + 1.5);
+
+  // CNPJ info
+  const cnpjY = footerY + 18;
+  doc.setFontSize(7.5);
+  doc.setTextColor(...TEXT);
+  doc.setFont("helvetica", "bold");
+  doc.text("CNPJ: 36.835.552/0001-67", margin, cnpjY);
+  doc.text("Razao Social: Brasil Marcas Industria e", margin, cnpjY + 5);
+  doc.text("Comercio de Brindes LTDA.", margin, cnpjY + 10);
 
   return doc.output("blob");
 }
