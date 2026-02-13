@@ -21,6 +21,12 @@ import { QuoteQRCode } from "@/components/quotes/QuoteQRCode";
 import { useQuoteApproval } from "@/hooks/useQuoteApproval";
 import { toast } from "sonner";
 
+import { QuoteStatusTimeline } from "@/components/quotes/QuoteStatusTimeline";
+import { QuoteValidityBanner } from "@/components/quotes/QuoteValidityBanner";
+import { QuoteWhatsAppShare } from "@/components/quotes/QuoteWhatsAppShare";
+import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
+import { QuoteProposalPreview } from "@/components/quotes/QuoteProposalPreview";
+
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Rascunho", variant: "secondary" },
   pending: { label: "Pendente", variant: "outline" },
@@ -178,6 +184,14 @@ export default function QuoteViewPage() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={status.variant}>{status.label}</Badge>
+            <QuoteConvertToOrder quoteId={id!} status={quote.status} />
+            <QuoteWhatsAppShare
+              quoteNumber={quote.quote_number}
+              clientPhone={(quote as any).client_phone}
+              total={quote.total}
+              validUntil={quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : undefined}
+              approvalLink={approvalLink}
+            />
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -250,6 +264,19 @@ export default function QuoteViewPage() {
               {isGeneratingPDF ? "Gerando..." : "Baixar PDF"}
             </Button>
           </div>
+        </div>
+
+        {/* Status Timeline + Validity Banner */}
+        <div className="flex flex-col md:flex-row gap-4 items-start print:hidden">
+          <div className="flex-1 bg-card border rounded-lg p-4">
+            <QuoteStatusTimeline
+              status={quote.status}
+              createdAt={quote.created_at}
+              updatedAt={quote.updated_at}
+              clientResponseAt={(quote as any).client_response_at}
+            />
+          </div>
+          <QuoteValidityBanner validUntil={quote.valid_until} status={quote.status} />
         </div>
 
         {/* Quote Content */}
@@ -397,6 +424,9 @@ export default function QuoteViewPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Proposal Preview */}
+        <QuoteProposalPreview proposalData={proposalData} />
 
         {/* Print-only: render the same template used for PDF */}
         {proposalData && (
