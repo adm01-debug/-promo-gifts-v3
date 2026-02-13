@@ -11,7 +11,7 @@ export interface VariantSupplierSource {
   supplier_id: string;
   supplier_sku: string;
   quantity: number;
-  reserved_quantity: number;
+  reserved_quantity?: number;
   // Previsão de reposição 1
   next_quantity_1: number | null;
   next_date_1: string | null;
@@ -127,7 +127,7 @@ export function useProductVariantsWithStock(productId: string | undefined) {
           const sourceResult = await invokeExternalDb<VariantSupplierSource>({
             table: 'variant_supplier_sources',
             operation: 'select',
-            select: 'id, variant_id, supplier_id, supplier_sku, quantity, reserved_quantity, next_quantity_1, next_date_1, next_quantity_2, next_date_2, next_quantity_3, next_date_3, is_active, updated_at',
+            select: 'id, variant_id, supplier_id, supplier_sku, quantity, next_quantity_1, next_date_1, next_quantity_2, next_date_2, next_quantity_3, next_date_3, is_active, updated_at',
             filters: { variant_id: variant.id, is_active: true },
             limit: 1,
           });
@@ -202,8 +202,8 @@ export function processStockEntries(
       colorHex: variant.color_hex || '#CCCCCC',
       thumbnail: variant.selected_thumbnail || variant.images?.[0] || null,
       currentStock: supplierSource.quantity,
-      reservedStock: supplierSource.reserved_quantity,
-      availableStock: Math.max(0, supplierSource.quantity - supplierSource.reserved_quantity),
+      reservedStock: supplierSource.reserved_quantity ?? 0,
+      availableStock: Math.max(0, supplierSource.quantity - (supplierSource.reserved_quantity ?? 0)),
     };
 
     // Adicionar cada entrada de reposição que existe
