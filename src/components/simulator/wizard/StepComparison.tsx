@@ -28,6 +28,9 @@ import {
   RefreshCw,
   MessageCircle,
   Repeat,
+  Undo2,
+  Redo2,
+  Eye,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -35,6 +38,8 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import type { TechniqueComparisonResult } from '@/types/domain/simulator-wizard';
+import { QuantityRangeComparison } from './QuantityRangeComparison';
+import { WizardMockupPreview } from './WizardMockupPreview';
 
 interface StepComparisonProps {
   wizard: UseSimulatorWizardReturn;
@@ -456,6 +461,29 @@ function ConfirmedSummary({
           {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação configurada' : 'gravações configuradas'}
         </h2>
         <p className="text-muted-foreground">O que deseja fazer agora?</p>
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-2 mt-3 justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs"
+            disabled={!wizard.canUndo}
+            onClick={wizard.undo}
+          >
+            <Undo2 className="h-3.5 w-3.5" />
+            Desfazer
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-xs"
+            disabled={!wizard.canRedo}
+            onClick={wizard.redo}
+          >
+            <Redo2 className="h-3.5 w-3.5" />
+            Refazer
+          </Button>
+        </div>
       </motion.div>
 
       {/* Personalizations List */}
@@ -487,13 +515,21 @@ function ConfirmedSummary({
                 </Badge>
               )}
             </div>
-            <div className="text-right shrink-0">
-              <p className="font-bold text-lg text-primary">
-                {formatCurrency(pers.pricing.totalPrice)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {formatCurrency(pers.pricing.costPerUnit)}/un
-              </p>
+            <div className="flex items-center gap-3 shrink-0">
+              {wizard.selectedProduct && (
+                <WizardMockupPreview
+                  personalization={pers}
+                  product={wizard.selectedProduct}
+                />
+              )}
+              <div className="text-right">
+                <p className="font-bold text-lg text-primary">
+                  {formatCurrency(pers.pricing.totalPrice)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatCurrency(pers.pricing.costPerUnit)}/un
+                </p>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -602,6 +638,15 @@ function ConfirmedSummary({
             Recalcular
           </Button>
         </motion.div>
+      )}
+
+      {/* Quantity Range Comparison */}
+      {wizard.personalizations.length > 0 && wizard.selectedProduct && (
+        <QuantityRangeComparison
+          personalizations={wizard.personalizations}
+          currentQuantity={wizard.quantity}
+          productPrice={wizard.effectivePrice}
+        />
       )}
 
       {/* New Simulation */}

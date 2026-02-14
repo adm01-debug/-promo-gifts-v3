@@ -9,7 +9,7 @@
  * Usa tipos de src/types/customization.ts como fonte de dados v6.
  */
 
-import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -35,6 +35,7 @@ import {
 } from '@/types/domain/simulator-wizard';
 import { useWizardPricing } from './useWizardPricing';
 import { useWizardPersistence, loadSession, clearSession } from './useWizardPersistence';
+import { useUndoableReducer } from './useUndoRedo';
 
 // ============================================
 // ESTADO INICIAL
@@ -240,7 +241,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
 
 export function useSimulatorWizard() {
   const savedSession = useRef(loadSession());
-  const [state, dispatch] = useReducer(
+  const { state, dispatch, undo, redo, canUndo, canRedo } = useUndoableReducer(
     wizardReducer,
     initialState,
     (init) => savedSession.current ? { ...init, ...savedSession.current } : init
@@ -487,6 +488,12 @@ export function useSimulatorWizard() {
     hasAvailableLocations,
     totals,
     maxColorsForLocation,
+    // Undo/Redo
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    // Actions
     setStep,
     nextStep,
     previousStep,
