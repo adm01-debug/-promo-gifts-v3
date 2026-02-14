@@ -108,7 +108,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const rowVirtualizer = useVirtualizer({
     count: sortedProducts.length,
     getScrollElement: () => scrollParentRef.current,
-    estimateSize: () => 88,
+    estimateSize: () => 72,
     overscan: 5,
   });
 
@@ -304,10 +304,10 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                     >
                       <div
                         onClick={() => setSelectedProduct(product)}
-                        className="group grid grid-cols-[48px_1fr_auto_36px] sm:grid-cols-[56px_1fr_auto_36px] items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-200 h-full"
+                        className="group flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-200 h-full"
                       >
                         {/* Thumbnail */}
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted overflow-hidden shrink-0">
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-muted overflow-hidden shrink-0">
                           <img
                             src={product.images?.[0] || '/placeholder.svg'}
                             alt={product.name}
@@ -316,47 +316,49 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                           />
                         </div>
 
-                        {/* Info */}
-                        <div className="min-w-0 space-y-0.5">
+                        {/* Info — takes remaining space */}
+                        <div className="flex-1 min-w-0 space-y-0.5">
                           <h4 className="font-medium truncate text-sm leading-tight" title={product.name}>
                             {product.name}
                           </h4>
-                          <p className="text-[11px] text-muted-foreground font-mono tracking-wide">
-                            {product.sku || 'N/A'}
-                          </p>
-                          {/* Color dots inline */}
-                          {product.colors.length > 0 && (
-                            <div className="hidden sm:flex items-center gap-0.5 pt-0.5">
-                              {product.colors.slice(0, 6).map((color, i) => (
-                                <div
-                                  key={i}
-                                  className="w-3 h-3 rounded-full border border-border/50"
-                                  style={{ backgroundColor: color.hex }}
-                                  title={color.name}
-                                />
-                              ))}
-                              {product.colors.length > 6 && (
-                                <span className="text-[9px] text-muted-foreground ml-0.5">+{product.colors.length - 6}</span>
-                              )}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-muted-foreground font-mono tracking-wide">
+                              {product.sku || 'N/A'}
+                            </span>
+                            {/* Color dots inline */}
+                            {product.colors.length > 0 && (
+                              <div className="hidden sm:flex items-center gap-0.5">
+                                {product.colors.slice(0, 4).map((color, i) => (
+                                  <div
+                                    key={i}
+                                    className="w-2.5 h-2.5 rounded-full border border-border/50"
+                                    style={{ backgroundColor: color.hex }}
+                                    title={color.name}
+                                  />
+                                ))}
+                                {product.colors.length > 4 && (
+                                  <span className="text-[9px] text-muted-foreground ml-0.5">+{product.colors.length - 4}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Price column */}
-                        <div className="text-right shrink-0 space-y-0.5">
+                        {/* Price — right aligned, compact */}
+                        <div className="text-right shrink-0 pl-2">
                           <p className="text-sm font-semibold text-primary tabular-nums whitespace-nowrap">
                             {formatCurrency(product.price)}
                           </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            Mín. {product.minQuantity || 1} un.
+                          <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            mín. {product.minQuantity || 1}
                           </p>
                         </div>
 
-                        {/* Quick add */}
+                        {/* Quick add — visible on hover */}
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-9 w-9 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+                          className="h-8 w-8 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
                           onClick={(e) => handleQuickAdd(e, product)}
                           title="Adicionar rápido"
                         >
