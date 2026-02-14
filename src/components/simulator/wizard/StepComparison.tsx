@@ -508,24 +508,24 @@ function ConfirmedSummary({
           <div className="grid grid-cols-[2fr_1.5fr_1fr] gap-3 items-stretch">
             {/* Total Geral — destaque principal */}
             <div className="p-4 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/20">
-              <p className="text-[10px] font-medium tracking-wider text-white/60 mb-1">Total geral</p>
-              <p className="text-3xl font-extrabold tracking-tight text-white">{formatCurrency(wizard.totals.grandTotal)}</p>
+              <p className="text-xs font-semibold tracking-wider text-white/70 mb-1.5">Total geral</p>
+              <p className="text-4xl font-extrabold tracking-tight text-white">{formatCurrency(wizard.totals.grandTotal)}</p>
             </div>
             {/* Por Unidade */}
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10">
-              <p className="text-[10px] font-medium tracking-wider text-white/60 mb-0.5">Por unidade</p>
-              <p className="text-[10px] text-white/40 mb-1">(produto + gravação)</p>
-              <p className="text-xl font-bold text-white">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
+              <p className="text-xs font-semibold tracking-wider text-white/70 mb-0.5">Por unidade</p>
+              <p className="text-[11px] text-white/50 mb-1.5">(produto + gravação)</p>
+              <p className="text-2xl font-bold text-white">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
             </div>
             {/* Prazo */}
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10 flex flex-col justify-between">
-              <p className="text-[10px] font-medium tracking-wider text-white/60 mb-1">Prazo máx.</p>
+              <p className="text-xs font-semibold tracking-wider text-white/70 mb-1.5">Prazo máx.</p>
               {wizard.totals.maxDays > 0 ? (
-                <p className="text-xl font-bold text-white">~{wizard.totals.maxDays}d</p>
+                <p className="text-2xl font-bold text-white">~{wizard.totals.maxDays}d</p>
               ) : (
-                <div className="flex items-center gap-1.5">
-                  <AlertCircle className="h-3.5 w-3.5 text-white/70 shrink-0" />
-                  <p className="text-sm font-semibold text-white">A consultar</p>
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-white/70 shrink-0" />
+                  <p className="text-lg font-bold text-white">A consultar</p>
                 </div>
               )}
             </div>
