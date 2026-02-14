@@ -73,7 +73,7 @@ export function ScrollToTopButton({
   return (
     <motion.button
       className={cn(
-        "fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 p-3 rounded-full",
+        "fixed bottom-24 lg:bottom-6 right-4 lg:right-6 z-30 p-3 rounded-full",
         "bg-primary text-primary-foreground shadow-lg",
         "hover:shadow-xl hover:scale-105 active:scale-95",
         "transition-transform duration-200",

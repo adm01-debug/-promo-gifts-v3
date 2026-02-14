@@ -14,7 +14,10 @@ import {
   Calculator,
   FolderOpen,
   X,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +36,7 @@ const mainNavItems: NavItem[] = [
   // FAB placeholder
   { icon: Plus, label: "Ação", href: "#fab", ariaLabel: "Ação rápida" },
   { icon: FileText, label: "Orçamentos", href: "/orcamentos", ariaLabel: "Gerenciar orçamentos" },
+  { icon: Users, label: "Clientes", href: "/clientes", ariaLabel: "Gerenciar clientes" },
 ];
 
 const quickActions: NavItem[] = [
@@ -41,6 +45,7 @@ const quickActions: NavItem[] = [
   { icon: Calculator, label: "Simulador", href: "/simulador" },
   { icon: Heart, label: "Favoritos", href: "/favoritos" },
   { icon: BarChart3, label: "Dashboard", href: "/bi" },
+  { icon: ShoppingCart, label: "Pedidos", href: "/pedidos" },
 ];
 
 export function SmartMobileNav() {
