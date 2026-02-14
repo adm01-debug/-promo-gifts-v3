@@ -266,6 +266,7 @@ export type WizardAction =
   | { type: 'CANCEL_PERSONALIZATION' }
   | { type: 'SET_CALCULATING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'RECALC_PERSONALIZATION_PRICING'; payload: { personalizationId: string; pricing: Personalization['pricing'] } }
   | { type: 'RESET_WIZARD' };
 
 // ============================================

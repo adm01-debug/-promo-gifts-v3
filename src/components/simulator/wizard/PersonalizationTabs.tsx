@@ -3,8 +3,12 @@
  */
 
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Plus, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
+import { RemovePersonalizationDialog } from './RemovePersonalizationDialog';
+import { formatCurrency } from '@/lib/format';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 
 interface PersonalizationTabsProps {
@@ -44,21 +48,28 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
             onClick={() => wizard.editPersonalization(idx)}
           >
             <span className="font-bold">{idx + 1}.</span>
-            <span className="truncate max-w-[120px]">
+            <span className="truncate max-w-[100px]">
               {pers.location.locationName}
             </span>
+            <Badge variant="secondary" className="text-[9px] h-4 px-1">
+              {formatCurrency(pers.pricing.totalPrice)}
+            </Badge>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0.5 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive"
-            onClick={(e) => {
-              e.stopPropagation();
-              wizard.removePersonalization(pers.id);
-            }}
-          >
-            <X className="h-3 w-3" />
-          </Button>
+          <RemovePersonalizationDialog
+            techniqueName={pers.technique.name}
+            locationName={pers.location.locationName}
+            onConfirm={() => wizard.removePersonalization(pers.id)}
+            trigger={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0.5 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            }
+          />
         </motion.div>
       ))}
 

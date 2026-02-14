@@ -192,7 +192,11 @@ ${persText}
       {/* Results */}
       <div className="space-y-4">
         <AnimatePresence mode="popLayout">
-          {availableResults.map((result, idx) => (
+          {availableResults.map((result, idx) => {
+            const maxPrice = availableResults.length > 1 
+              ? Math.max(...availableResults.map(r => r.totalPrice)) 
+              : 0;
+            return (
             <motion.div
               key={result.techniqueId}
               initial={{ opacity: 0, y: 20 }}
@@ -204,9 +208,11 @@ ${persText}
                 onSelect={handleSelectTechnique}
                 quantity={wizard.quantity}
                 isFirst={idx === 0}
+                maxPrice={maxPrice}
               />
             </motion.div>
-          ))}
+            );
+          })}
         </AnimatePresence>
 
         {/* Unavailable */}
@@ -268,12 +274,17 @@ function ComparisonCard({
   onSelect, 
   quantity,
   isFirst,
+  maxPrice,
 }: { 
   result: TechniqueComparisonResult; 
   onSelect: (r: TechniqueComparisonResult) => void;
   quantity: number;
   isFirst: boolean;
+  maxPrice: number;
 }) {
+  const savingsPercent = maxPrice > 0 && result.totalPrice < maxPrice 
+    ? Math.round(((maxPrice - result.totalPrice) / maxPrice) * 100)
+    : 0;
   return (
     <button
       onClick={() => onSelect(result)}
@@ -301,6 +312,11 @@ function ComparisonCard({
               <Badge variant="secondary" className="gap-1.5">
                 <Zap className="h-3.5 w-3.5" />
                 Mais Rápido
+              </Badge>
+            )}
+            {savingsPercent > 0 && (
+              <Badge variant="outline" className="gap-1 text-green-600 border-green-300 dark:text-green-400 dark:border-green-700">
+                ↓ {savingsPercent}% vs mais caro
               </Badge>
             )}
           </div>

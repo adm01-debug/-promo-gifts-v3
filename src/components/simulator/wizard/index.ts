@@ -10,3 +10,4 @@ export { StepComparison } from './StepComparison';
 export { PersonalizationSummary } from './PersonalizationSummary';
 export { PersonalizationTabs } from './PersonalizationTabs';
 export { ProductColorGrid } from './ProductColorGrid';
+export { RemovePersonalizationDialog } from './RemovePersonalizationDialog';
