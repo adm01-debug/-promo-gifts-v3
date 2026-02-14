@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Copy, Download, FileText, History, Link2, Loader2, MoreHorizontal, Printer, UserPlus } from "lucide-react";
+import { ArrowLeft, Copy, Download, Eye, FileText, History, Link2, Loader2, MoreHorizontal, Printer, UserPlus } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,9 +24,7 @@ import { toast } from "sonner";
 
 import { QuoteStatusTimeline } from "@/components/quotes/QuoteStatusTimeline";
 import { QuoteValidityBanner } from "@/components/quotes/QuoteValidityBanner";
-import { QuoteWhatsAppShare } from "@/components/quotes/QuoteWhatsAppShare";
 import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
-import { QuoteProposalPreview } from "@/components/quotes/QuoteProposalPreview";
 import { QuoteNextActionBanner } from "@/components/quotes/QuoteNextActionBanner";
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
 import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
@@ -223,15 +221,8 @@ export default function QuoteViewPage() {
           </div>
 
           {/* Primary CTAs + Dropdown for secondary (#1) */}
-          <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2">
             <QuoteConvertToOrder quoteId={id!} status={quote.status} />
-            <QuoteWhatsAppShare
-              quoteNumber={quote.quote_number}
-              clientPhone={quote.client_phone}
-              total={quote.total}
-              validUntil={quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : undefined}
-              approvalLink={approvalLink}
-            />
             <PdfGenerationDialog
               proposalData={proposalData}
               quoteNumber={quote.quote_number}
@@ -242,8 +233,8 @@ export default function QuoteViewPage() {
               onShareLink={handleShareLink}
               trigger={
                 <Button className="gap-2">
-                  <FileText className="h-4 w-4" />
-                  Gerar Proposta
+                  <Eye className="h-4 w-4" />
+                  Preview Proposta
                 </Button>
               }
             />
@@ -519,10 +510,6 @@ export default function QuoteViewPage() {
           </CardContent>
         </Card>
 
-        {/* Proposal Preview (#6) — moved up with label */}
-        <div className="print:hidden">
-          <QuoteProposalPreview proposalData={proposalData} />
-        </div>
 
         {/* Print-only: render the same template used for PDF */}
         {proposalData && (
