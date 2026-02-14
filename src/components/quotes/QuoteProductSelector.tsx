@@ -304,7 +304,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                     >
                       <div
                         onClick={() => setSelectedProduct(product)}
-                        className="group grid grid-cols-[48px_1fr_auto_36px] sm:grid-cols-[56px_1fr_auto_36px] items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-150 h-full"
+                        className="group grid grid-cols-[48px_1fr_auto_36px] sm:grid-cols-[56px_1fr_auto_36px] items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-200 h-full"
                       >
                         {/* Thumbnail */}
                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted overflow-hidden shrink-0">
