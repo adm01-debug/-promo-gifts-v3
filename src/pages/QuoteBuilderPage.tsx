@@ -56,6 +56,7 @@ import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
 import { QuoteProductColorSelector } from "@/components/quotes/QuoteProductColorSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { findKnownHex } from "@/hooks/useProducts";
 import {
   Collapsible,
   CollapsibleContent,
@@ -275,11 +276,15 @@ export default function QuoteBuilderPage() {
           sku: p.sku,
           price: p.sale_price ?? p.base_price ?? 0,
           images,
-          colors: (p.colors || []).map((c: any) => ({
-            name: typeof c === 'string' ? c : c.name,
-            hex: typeof c === 'string' ? undefined : c.hex,
-            stock: typeof c === 'string' ? undefined : c.stock,
-          })),
+          colors: (p.colors || []).map((c: any) => {
+            const name = typeof c === 'string' ? c : c.name;
+            const hex = (typeof c === 'string' ? undefined : c.hex) || findKnownHex(name) || undefined;
+            return {
+              name,
+              hex,
+              stock: typeof c === 'string' ? undefined : c.stock,
+            };
+          }),
           minQuantity: p.min_quantity ?? 1,
           totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: any) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
         };
