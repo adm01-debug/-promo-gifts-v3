@@ -76,7 +76,7 @@ export function StepComparison({ wizard }: StepComparisonProps) {
 
   const handleCopyResult = async () => {
     const persText = wizard.personalizations.map((p, idx) => 
-      `${idx + 1}. ${p.technique.name} | ${p.location.locationName} | ${p.specs.colors} cores | ${p.specs.width}×${p.specs.height}cm | ${formatCurrency(p.pricing.totalPrice)} (${formatCurrency(p.pricing.costPerUnit)}/un) | Cód: ${p.pricing.budgetCode}`
+      `${idx + 1}. ${p.technique.name} | ${p.location.locationName} | ${p.specs.colors} ${p.specs.colors === 1 ? 'cor' : 'cores'} | ${p.specs.width}×${p.specs.height}cm | ${formatCurrency(p.pricing.totalPrice)} (${formatCurrency(p.pricing.costPerUnit)}/un) | Cód: ${p.pricing.budgetCode}`
     ).join('\n');
 
     const text = `
@@ -92,7 +92,7 @@ ${persText}
 🎨 Gravações: ${formatCurrency(wizard.totals.customizationTotal)}
 ━━━━━━━━━━━━━━━━━━━━━━
 ✅ TOTAL: ${formatCurrency(wizard.totals.grandTotal)} (${formatCurrency(wizard.totals.grandTotalPerUnit)}/un)
-⏱️ Prazo: ~${wizard.totals.maxDays} dias úteis
+⏱️ Prazo: ${wizard.totals.maxDays > 0 ? `~${wizard.totals.maxDays} dias úteis` : 'A consultar'}
     `.trim();
 
     await navigator.clipboard.writeText(text);
@@ -379,7 +379,7 @@ function ConfirmedSummary({
       `${idx + 1}. ${p.technique.name} | ${p.location.locationName} | ${formatCurrency(p.pricing.totalPrice)}`
     ).join('\n');
 
-    const text = `📦 *SIMULAÇÃO DE PERSONALIZAÇÃO*\n\n🏷️ ${wizard.selectedProduct?.name} (${wizard.selectedProduct?.sku})\n📊 ${wizard.quantity}un × ${formatCurrency(wizard.effectivePrice)}\n\n🎨 *Gravações:*\n${persText}\n\n💰 *TOTAL: ${formatCurrency(wizard.totals.grandTotal)}* (${formatCurrency(wizard.totals.grandTotalPerUnit)}/un)\n⏱️ Prazo: ~${wizard.totals.maxDays} dias úteis`;
+    const text = `📦 *SIMULAÇÃO DE PERSONALIZAÇÃO*\n\n🏷️ ${wizard.selectedProduct?.name} (${wizard.selectedProduct?.sku})\n📊 ${wizard.quantity}un × ${formatCurrency(wizard.effectivePrice)}\n\n🎨 *Gravações:*\n${persText}\n\n💰 *TOTAL: ${formatCurrency(wizard.totals.grandTotal)}* (${formatCurrency(wizard.totals.grandTotalPerUnit)}/un)\n⏱️ Prazo: ${wizard.totals.maxDays > 0 ? `~${wizard.totals.maxDays} dias úteis` : 'A consultar'}`;
     
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -394,50 +394,56 @@ function ConfirmedSummary({
   return (
     <div className="space-y-8">
       {/* Success */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center py-6"
-      >
-        <motion.div 
-          className="relative w-16 h-16 mx-auto mb-4"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-3"
         >
-          <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl" />
-          <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
-            <Check className="h-8 w-8 text-white" />
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <motion.div 
+              className="relative w-10 h-10 shrink-0"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
+            >
+              <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg" />
+              <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
+                <Check className="h-5 w-5 text-white" />
+              </div>
+            </motion.div>
+            <div className="text-left">
+              <h2 className="text-lg font-bold leading-tight">
+                Pronto! O que deseja fazer?
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação' : 'gravações'} configurada{wizard.personalizations.length > 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+          {/* Undo/Redo */}
+          <div className="flex items-center gap-2 justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs h-7"
+              disabled={!wizard.canUndo}
+              onClick={wizard.undo}
+            >
+              <Undo2 className="h-3 w-3" />
+              Desfazer
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-xs h-7"
+              disabled={!wizard.canRedo}
+              onClick={wizard.redo}
+            >
+              <Redo2 className="h-3 w-3" />
+              Refazer
+            </Button>
           </div>
         </motion.div>
-        <h2 className="text-2xl font-bold mb-1">
-          {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação configurada' : 'gravações configuradas'}
-        </h2>
-        <p className="text-muted-foreground">O que deseja fazer agora?</p>
-        {/* Undo/Redo */}
-        <div className="flex items-center gap-2 mt-3 justify-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-xs"
-            disabled={!wizard.canUndo}
-            onClick={wizard.undo}
-          >
-            <Undo2 className="h-3.5 w-3.5" />
-            Desfazer
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-xs"
-            disabled={!wizard.canRedo}
-            onClick={wizard.redo}
-          >
-            <Redo2 className="h-3.5 w-3.5" />
-            Refazer
-          </Button>
-        </div>
-      </motion.div>
 
       {/* Personalizations List */}
       <div className="space-y-3">
@@ -457,14 +463,16 @@ function ConfirmedSummary({
               <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
-                  {pers.location.componentName} • {pers.location.locationName}
+                  {pers.location.componentName === pers.location.locationName 
+                    ? pers.location.locationName 
+                    : `${pers.location.componentName} • ${pers.location.locationName}`}
                 </span>
-                <span>{pers.specs.colors} cores</span>
+                <span>{pers.specs.colors} {pers.specs.colors === 1 ? 'cor' : 'cores'}</span>
                 <span>{pers.specs.width}×{pers.specs.height}cm</span>
               </div>
               {pers.pricing.budgetCode && (
-                <Badge variant="secondary" className="text-xs font-mono mt-2">
-                  {pers.pricing.budgetCode}
+                <Badge variant="secondary" className="text-xs font-mono mt-2 gap-1">
+                  <span className="opacity-60">Cód:</span> {pers.pricing.budgetCode}
                 </Badge>
               )}
             </div>
@@ -497,79 +505,87 @@ function ConfirmedSummary({
       >
         <div className="bg-gradient-to-br from-primary via-primary to-primary/90 p-6 text-primary-foreground">
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
-              <p className="text-sm opacity-80 mb-1">Total Geral</p>
+            <div className="p-4 rounded-xl bg-white/15 backdrop-blur-sm">
+              <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-1.5">Total Geral</p>
               <p className="text-2xl font-bold">{formatCurrency(wizard.totals.grandTotal)}</p>
             </div>
             <div className="p-4 rounded-xl bg-white/20 backdrop-blur-sm border border-white/20">
-              <p className="text-sm opacity-80 mb-1">Por Unidade</p>
+              <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-1.5">Por Unidade</p>
               <p className="text-2xl font-bold">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
             </div>
-            <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm">
-              <p className="text-sm opacity-80 mb-1">Prazo Máx.</p>
-              <p className="text-2xl font-bold">~{wizard.totals.maxDays} dias</p>
+            <div className="p-4 rounded-xl bg-white/15 backdrop-blur-sm">
+              <p className="text-xs font-medium uppercase tracking-wider opacity-70 mb-1.5">Prazo Máx.</p>
+              <p className="text-2xl font-bold">
+                {wizard.totals.maxDays > 0 ? `~${wizard.totals.maxDays} dias` : 'A consultar'}
+              </p>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Actions */}
+      {/* Actions — Primary + Secondary hierarchy */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="flex flex-wrap gap-4 justify-center pt-4"
+        className="space-y-3 pt-4"
       >
-        {wizard.hasAvailableLocations && (
+        {/* Primary actions */}
+        <div className="flex gap-3 justify-center">
+          {wizard.hasAvailableLocations && (
+            <Button 
+              size="lg" 
+              variant="outline" 
+              className="gap-2 h-12 px-6 rounded-xl"
+              onClick={onAddAnother}
+            >
+              <Plus className="h-4 w-4" />
+              Outro Local
+            </Button>
+          )}
+          
           <Button 
             size="lg" 
-            variant="outline" 
-            className="gap-2 h-14 px-6 rounded-xl"
-            onClick={onAddAnother}
+            className="gap-2 h-12 px-8 rounded-xl shadow-lg shadow-primary/25"
+            onClick={onGenerateQuote}
           >
-            <Plus className="h-5 w-5" />
-            Outro Local
+            <FileText className="h-4 w-4" />
+            Gerar Orçamento
           </Button>
-        )}
+        </div>
         
-        <Button 
-          size="lg" 
-          className="gap-2 h-14 px-8 rounded-xl shadow-lg shadow-primary/25"
-          onClick={onGenerateQuote}
-        >
-          <FileText className="h-5 w-5" />
-          Gerar Orçamento
-        </Button>
-        
-        <Button 
-          size="lg" 
-          variant="ghost" 
-          className="gap-2 h-14 px-6"
-          onClick={onCopy}
-        >
-          <Copy className="h-5 w-5" />
-          Copiar
-        </Button>
+        {/* Secondary actions — smaller, muted */}
+        <div className="flex gap-2 justify-center">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="gap-1.5 text-xs text-muted-foreground h-9"
+            onClick={onCopy}
+          >
+            <Copy className="h-3.5 w-3.5" />
+            Copiar
+          </Button>
 
-        <Button 
-          size="lg" 
-          variant="ghost" 
-          className="gap-2 h-14 px-6"
-          onClick={handleShareWhatsApp}
-        >
-          <MessageCircle className="h-5 w-5" />
-          WhatsApp
-        </Button>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="gap-1.5 text-xs text-muted-foreground h-9"
+            onClick={handleShareWhatsApp}
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            WhatsApp
+          </Button>
 
-        <Button 
-          size="lg" 
-          variant="ghost" 
-          className="gap-2 h-14 px-6"
-          onClick={() => setShowDuplicateQty(!showDuplicateQty)}
-        >
-          <Repeat className="h-5 w-5" />
-          Outra Qtd.
-        </Button>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="gap-1.5 text-xs text-muted-foreground h-9"
+            onClick={() => setShowDuplicateQty(!showDuplicateQty)}
+          >
+            <Repeat className="h-3.5 w-3.5" />
+            Outra Qtd.
+          </Button>
+        </div>
       </motion.div>
 
       {/* Duplicate with different quantity */}
