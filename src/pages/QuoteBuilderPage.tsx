@@ -188,6 +188,61 @@ export default function QuoteBuilderPage() {
     window.history.replaceState({}, document.title);
   }, [location.state]);
 
+  // Pre-fill from cart when navigating with state
+  useEffect(() => {
+    const state = location.state as {
+      fromCart?: boolean;
+      cartId?: string;
+      companyId?: string;
+      companyName?: string;
+      companyLocation?: string;
+      items?: Array<{
+        product_id: string;
+        product_name: string;
+        product_sku?: string;
+        product_image_url?: string;
+        unit_price: number;
+        quantity: number;
+        color_name?: string;
+        color_hex?: string;
+      }>;
+    } | null;
+
+    if (!state?.fromCart || !state.items?.length) return;
+
+    // Set company
+    if (state.companyId) {
+      setClientId(state.companyId);
+    }
+
+    // Map cart items to QuoteItem[]
+    const cartItems: QuoteItem[] = state.items.map((i) => ({
+      product_id: i.product_id,
+      product_name: i.product_name,
+      product_sku: i.product_sku || '',
+      product_image_url: i.product_image_url || undefined,
+      quantity: i.quantity,
+      unit_price: i.unit_price,
+      color_name: i.color_name || undefined,
+      color_hex: i.color_hex || undefined,
+      personalizations: [],
+    }));
+
+    setItems(cartItems);
+
+    const companyLabel = state.companyName
+      ? state.companyLocation
+        ? `${state.companyName} – ${state.companyLocation}`
+        : state.companyName
+      : '';
+
+    toast.success(`${cartItems.length} item(ns) importado(s) do carrinho`, {
+      description: companyLabel || undefined,
+    });
+
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
+
   // Fetch products from Promobrind - sem limite para buscar todos
   const { data: products } = useQuery({
     queryKey: ["quote-products-promobrind-full"],
