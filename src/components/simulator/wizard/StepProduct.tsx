@@ -15,6 +15,7 @@ import {
   X, 
   ChevronRight,
   Sparkles,
+  Clock,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,8 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from '@/lib/external-db';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import { ProductColorGrid } from './ProductColorGrid';
+import { useWizardDrafts } from '@/hooks/simulator/useWizardDrafts';
+import { formatCurrency } from '@/lib/format';
 
 interface StepProductProps {
   wizard: UseSimulatorWizardReturn;
@@ -32,6 +35,7 @@ const QUANTITY_PRESETS = [50, 100, 250, 500, 1000];
 
 export function StepProduct({ wizard }: StepProductProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const { drafts } = useWizardDrafts();
 
   // Fetch products - sem limite para buscar todos os produtos do catálogo
   const { data: products, isLoading } = useQuery({
@@ -68,9 +72,7 @@ export function StepProduct({ wizard }: StepProductProps) {
     );
   }, [products, searchTerm]);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
+  // formatCurrency imported from @/lib/format
 
   const handleSelectProduct = (product: typeof filteredProducts[0]) => {
     wizard.selectProduct({
@@ -144,7 +146,31 @@ export function StepProduct({ wizard }: StepProductProps) {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Recent Drafts */}
+      {!wizard.selectedProduct && drafts.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground shrink-0">Recentes:</span>
+          {drafts.slice(0, 4).map((draft) => (
+            <Button
+              key={draft.id}
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs gap-1.5 shrink-0 rounded-lg"
+              onClick={() => {
+                if (draft.product_data) {
+                  wizard.selectProduct(draft.product_data);
+                  wizard.setQuantity(draft.quantity);
+                }
+              }}
+            >
+              <span className="truncate max-w-[120px]">{draft.title}</span>
+              <Badge variant="secondary" className="text-[9px] h-4 px-1">{draft.quantity}un</Badge>
+            </Button>
+          ))}
+        </div>
+      )}
+
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input

@@ -5,8 +5,10 @@
  * ordenadas por custo-benefício. O vendedor escolhe a melhor opção.
  */
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { 
   BarChart3,
   ChevronLeft,
@@ -24,6 +26,8 @@ import {
   Palette,
   Ruler,
   RefreshCw,
+  MessageCircle,
+  Repeat,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -409,6 +413,26 @@ function ConfirmedSummary({
   onGenerateQuote: () => void;
   onCopy: () => void;
 }) {
+  const [showDuplicateQty, setShowDuplicateQty] = useState(false);
+  const [duplicateQty, setDuplicateQty] = useState(wizard.quantity);
+
+  const handleShareWhatsApp = () => {
+    const persText = wizard.personalizations.map((p, idx) => 
+      `${idx + 1}. ${p.technique.name} | ${p.location.locationName} | ${formatCurrency(p.pricing.totalPrice)}`
+    ).join('\n');
+
+    const text = `📦 *SIMULAÇÃO DE PERSONALIZAÇÃO*\n\n🏷️ ${wizard.selectedProduct?.name} (${wizard.selectedProduct?.sku})\n📊 ${wizard.quantity}un × ${formatCurrency(wizard.effectivePrice)}\n\n🎨 *Gravações:*\n${persText}\n\n💰 *TOTAL: ${formatCurrency(wizard.totals.grandTotal)}* (${formatCurrency(wizard.totals.grandTotalPerUnit)}/un)\n⏱️ Prazo: ~${wizard.totals.maxDays} dias úteis`;
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleDuplicate = () => {
+    if (duplicateQty > 0 && duplicateQty !== wizard.quantity) {
+      wizard.setQuantity(duplicateQty);
+      toast.success(`Quantidade alterada para ${duplicateQty}un. Recalcule os preços.`);
+      setShowDuplicateQty(false);
+    }
+  };
   return (
     <div className="space-y-8">
       {/* Success */}
@@ -537,7 +561,48 @@ function ConfirmedSummary({
           <Copy className="h-5 w-5" />
           Copiar
         </Button>
+
+        <Button 
+          size="lg" 
+          variant="ghost" 
+          className="gap-2 h-14 px-6"
+          onClick={handleShareWhatsApp}
+        >
+          <MessageCircle className="h-5 w-5" />
+          WhatsApp
+        </Button>
+
+        <Button 
+          size="lg" 
+          variant="ghost" 
+          className="gap-2 h-14 px-6"
+          onClick={() => setShowDuplicateQty(!showDuplicateQty)}
+        >
+          <Repeat className="h-5 w-5" />
+          Outra Qtd.
+        </Button>
       </motion.div>
+
+      {/* Duplicate with different quantity */}
+      {showDuplicateQty && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="flex items-center justify-center gap-3 p-4 rounded-xl bg-muted/50 border"
+        >
+          <span className="text-sm text-muted-foreground">Nova quantidade:</span>
+          <Input
+            type="number"
+            value={duplicateQty}
+            onChange={(e) => setDuplicateQty(parseInt(e.target.value) || 1)}
+            min={1}
+            className="w-28 h-9 text-center font-bold rounded-lg"
+          />
+          <Button size="sm" onClick={handleDuplicate} disabled={duplicateQty === wizard.quantity || duplicateQty <= 0}>
+            Recalcular
+          </Button>
+        </motion.div>
+      )}
 
       {/* New Simulation */}
       <div className="text-center pt-4">
