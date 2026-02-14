@@ -38,6 +38,7 @@ import {
   BookTemplate,
   ArrowLeft,
   Edit,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
@@ -823,18 +824,25 @@ export default function QuoteBuilderPage() {
           setProductSearch("");
         }
       }}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>
-              {selectedProductForColor ? "Selecionar Cor" : "Adicionar Produto"}
+            <DialogTitle className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Package className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <span className="font-semibold text-base">
+                  {selectedProductForColor ? "Selecionar Cor" : "Adicionar Produto"}
+                </span>
+                <p className="text-xs text-muted-foreground font-normal">
+                  {selectedProductForColor
+                    ? "Escolha a cor desejada para adicionar ao orçamento"
+                    : "Busque e selecione um produto para o orçamento"}
+                </p>
+              </div>
             </DialogTitle>
-            <DialogDescription>
-              {selectedProductForColor
-                ? "Escolha a cor desejada para adicionar ao orçamento"
-                : "Busque e selecione um produto para adicionar ao orçamento"}
-            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex flex-col flex-1 min-h-0 gap-3">
             {selectedProductForColor ? (
               <QuoteProductColorSelector
                 product={selectedProductForColor}
@@ -843,54 +851,80 @@ export default function QuoteBuilderPage() {
               />
             ) : (
               <>
-                <div className="relative">
+                <div className="relative shrink-0">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar por nome ou SKU..."
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
-                    className="pl-9"
+                    className="pl-10 h-11 text-sm border-primary/30 focus-visible:ring-primary/20"
                     autoFocus
                   />
+                  {productSearch && (
+                    <button
+                      onClick={() => setProductSearch("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
-                <div className="max-h-96 overflow-y-auto space-y-2">
+                <p className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                  {filteredProducts.length} produto{filteredProducts.length !== 1 ? 's' : ''} disponíve{filteredProducts.length !== 1 ? 'is' : 'l'}
+                </p>
+                <div className="max-h-[50vh] overflow-y-auto -mx-1 px-1">
                   {filteredProducts.length === 0 ? (
-                    <p className="text-center py-8 text-muted-foreground">
-                      Nenhum produto encontrado
-                    </p>
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium">Nenhum produto encontrado</p>
+                      {productSearch && (
+                        <Button variant="outline" size="sm" className="mt-3" onClick={() => setProductSearch("")}>
+                          Limpar busca
+                        </Button>
+                      )}
+                    </div>
                   ) : (
-                    filteredProducts.map((product) => (
-                      <button
-                        key={product.id}
-                        onClick={() => handleProductClick(product)}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-left"
-                      >
-                        {product.images && product.images.length > 0 ? (
-                          <img
-                            src={`${product.images[0]}/thumbnail`}
-                            alt={product.name}
-                            className="h-12 w-12 object-cover rounded bg-white"
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              if (target.src.includes('/thumbnail')) {
-                                target.src = product.images![0];
-                              } else {
-                                target.style.display = 'none';
-                              }
-                            }}
-                          />
-                        ) : (
-                          <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
-                            <Package className="h-6 w-6 text-muted-foreground" />
+                    <div className="space-y-0.5">
+                      {filteredProducts.map((product) => (
+                        <button
+                          key={product.id}
+                          onClick={() => handleProductClick(product)}
+                          className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border transition-all duration-150 text-left"
+                        >
+                          {product.images && product.images.length > 0 ? (
+                            <img
+                              src={`${product.images[0]}/thumbnail`}
+                              alt={product.name}
+                              className="h-11 w-11 object-cover rounded-lg bg-muted shrink-0"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (target.src.includes('/thumbnail')) {
+                                  target.src = product.images![0];
+                                } else {
+                                  target.style.display = 'none';
+                                }
+                              }}
+                            />
+                          ) : (
+                            <div className="h-11 w-11 bg-muted rounded-lg flex items-center justify-center shrink-0">
+                              <Package className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0 space-y-0.5">
+                            <p className="font-medium truncate text-sm leading-tight">{product.name}</p>
+                            <p className="text-[11px] text-muted-foreground font-mono tracking-wide">{product.sku}</p>
                           </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{product.name}</p>
-                          <p className="text-sm text-muted-foreground">{product.sku}</p>
-                        </div>
-                        <span className="font-medium">{formatCurrency(product.price)}</span>
-                      </button>
-                    ))
+                          <div className="text-right shrink-0 pl-2">
+                            <p className="text-sm font-semibold text-primary tabular-nums whitespace-nowrap">
+                              {formatCurrency(product.price)}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                              mín. {product.minQuantity || 1}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
               </>
