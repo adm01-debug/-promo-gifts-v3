@@ -5,6 +5,7 @@
  */
 
 import { useState, useMemo, useRef } from 'react';
+import Fuse from 'fuse.js';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ import {
   ChevronRight,
   Sparkles,
   Clock,
+  Filter,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -35,13 +37,13 @@ const QUANTITY_PRESETS = [50, 100, 250, 500, 1000];
 
 export function StepProduct({ wizard }: StepProductProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { drafts } = useWizardDrafts();
 
   // Fetch products - sem limite para buscar todos os produtos do catálogo
   const { data: products, isLoading } = useQuery({
     queryKey: ['wizard-products-all'],
     queryFn: async () => {
-      // Sem limit = paginação automática busca todos
       const data = await fetchPromobrindProducts();
       return data
         .filter(p => p.active !== false && p.is_active !== false)
@@ -56,21 +58,60 @@ export function StepProduct({ wizard }: StepProductProps) {
           colors: (p.colors as Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string }>) || [],
         }));
     },
-    staleTime: 10 * 60 * 1000, // 10 min cache para catálogos grandes
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Filter products
+  // Extract unique categories for filter chips
+  const categories = useMemo(() => {
+    if (!products) return [];
+    const cats = new Map<string, number>();
+    products.forEach(p => {
+      if (p.categoryName) {
+        cats.set(p.categoryName, (cats.get(p.categoryName) || 0) + 1);
+      }
+    });
+    return [...cats.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([name, count]) => ({ name, count }));
+  }, [products]);
+
+  // Fuse.js instance for fuzzy search
+  const fuse = useMemo(() => {
+    if (!products) return null;
+    return new Fuse(products, {
+      keys: [
+        { name: 'name', weight: 0.5 },
+        { name: 'sku', weight: 0.3 },
+        { name: 'categoryName', weight: 0.2 },
+      ],
+      threshold: 0.35,
+      ignoreLocation: true,
+      minMatchCharLength: 2,
+    });
+  }, [products]);
+
+  // Filter products with Fuse.js + category
   const filteredProducts = useMemo(() => {
     if (!products) return [];
-    if (!searchTerm.trim()) return products;
     
-    const term = searchTerm.toLowerCase();
-    return products.filter(p => 
-      p.name.toLowerCase().includes(term) ||
-      p.sku.toLowerCase().includes(term) ||
-      p.categoryName?.toLowerCase().includes(term)
-    );
-  }, [products, searchTerm]);
+    let results = products;
+
+    // Category filter
+    if (selectedCategory) {
+      results = results.filter(p => p.categoryName === selectedCategory);
+    }
+
+    // Fuzzy search
+    if (searchTerm.trim() && fuse) {
+      const searchPool = selectedCategory 
+        ? new Fuse(results, { keys: [{ name: 'name', weight: 0.5 }, { name: 'sku', weight: 0.3 }, { name: 'categoryName', weight: 0.2 }], threshold: 0.35, ignoreLocation: true, minMatchCharLength: 2 })
+        : fuse;
+      results = searchPool.search(searchTerm).map(r => r.item);
+    }
+
+    return results;
+  }, [products, searchTerm, selectedCategory, fuse]);
 
   // formatCurrency imported from @/lib/format
 
@@ -174,27 +215,56 @@ export function StepProduct({ wizard }: StepProductProps) {
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
-          placeholder="Pesquisar produtos..."
+          placeholder="Pesquisar por nome, SKU ou categoria..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           className="pl-12 pr-12 h-14 text-base rounded-2xl bg-muted/30 border-0 focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm"
         />
-        {searchTerm && (
+        {(searchTerm || selectedCategory) && (
           <Button
             variant="ghost"
             size="icon"
             className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
-            onClick={() => setSearchTerm('')}
+            onClick={() => { setSearchTerm(''); setSelectedCategory(null); }}
           >
             <X className="h-4 w-4" />
           </Button>
         )}
       </div>
 
+      {/* Category filter chips */}
+      {categories.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <Button
+            variant={selectedCategory === null ? 'default' : 'outline'}
+            size="sm"
+            className="h-7 text-xs shrink-0 rounded-full"
+            onClick={() => setSelectedCategory(null)}
+          >
+            Todos
+          </Button>
+          {categories.map(cat => (
+            <Button
+              key={cat.name}
+              variant={selectedCategory === cat.name ? 'default' : 'outline'}
+              size="sm"
+              className="h-7 text-xs shrink-0 rounded-full gap-1"
+              onClick={() => setSelectedCategory(prev => prev === cat.name ? null : cat.name)}
+            >
+              {cat.name}
+              <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">{cat.count}</Badge>
+            </Button>
+          ))}
+        </div>
+      )}
+
       {/* Results count */}
       {!isLoading && (
         <p className="text-sm text-muted-foreground">
           {filteredProducts.length} produtos encontrados
+          {selectedCategory && <span> em <span className="font-semibold">{selectedCategory}</span></span>}
+          {searchTerm && <span> para "<span className="font-semibold">{searchTerm}</span>"</span>}
         </p>
       )}
 

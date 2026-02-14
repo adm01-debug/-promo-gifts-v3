@@ -17,12 +17,9 @@ import {
   CheckCircle2,
   Layers,
   AlertTriangle,
-  Package,
-  ArrowLeft,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/lib/format';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 
 interface StepLocationProps {
@@ -35,44 +32,6 @@ export function StepLocation({ wizard }: StepLocationProps) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      {/* Context Bar */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-muted/80 to-muted/40 border"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-background overflow-hidden shadow-sm">
-            {wizard.selectedProduct?.imageUrl ? (
-              <img 
-                src={wizard.selectedProduct.imageUrl} 
-                alt={wizard.selectedProduct.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
-          </div>
-          <div>
-            <p className="font-bold">{wizard.selectedProduct?.name}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary" className="text-xs">
-                {wizard.quantity} unidades
-              </Badge>
-              <span className="text-sm text-primary font-semibold">
-                {formatCurrency(wizard.effectivePrice * wizard.quantity)}
-              </span>
-            </div>
-          </div>
-        </div>
-        <Button variant="ghost" size="sm" onClick={wizard.previousStep} className="gap-2">
-          <ArrowLeft className="h-4 w-4" />
-          Alterar
-        </Button>
-      </motion.div>
-
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
