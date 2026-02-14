@@ -42,7 +42,7 @@ interface StockAlertsIndicatorProps {
 // ─── Tab config ──────────────────────────────────────────────
 
 const TABS: { key: NotificationType; label: string; color: string; activeColor: string }[] = [
-  { key: "stock", label: "Zerou", color: "text-orange", activeColor: "bg-orange/10 text-orange border-orange" },
+  { key: "stock", label: "Zerou", color: "text-destructive", activeColor: "bg-destructive/10 text-destructive border-destructive" },
   { key: "new", label: "Novidade", color: "text-blue-500", activeColor: "bg-blue-500/10 text-blue-500 border-blue-500" },
   { key: "restocked", label: "Chegou", color: "text-emerald-500", activeColor: "bg-emerald-500/10 text-emerald-500 border-emerald-500" },
 ];
