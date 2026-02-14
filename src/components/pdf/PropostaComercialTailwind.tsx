@@ -67,8 +67,8 @@ function paginateItems(items: ProposalItem[]) {
   return pages;
 }
 
-export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: ProposalTemplateData }>(
-  ({ data }, ref) => {
+export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: ProposalTemplateData; isDraft?: boolean }>(
+  ({ data, isDraft = false }, ref) => {
     const pages = paginateItems(data.items);
     const totalPages = pages.length;
     let itemIndex = 0;
@@ -99,6 +99,25 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                 pageBreakAfter: isLast ? "auto" : "always",
               }}
             >
+              {/* Watermark for drafts */}
+              {isDraft && (
+                <div style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%) rotate(-35deg)",
+                  fontSize: "80px",
+                  fontWeight: 900,
+                  color: "rgba(200, 0, 0, 0.07)",
+                  letterSpacing: "0.3em",
+                  textTransform: "uppercase",
+                  pointerEvents: "none",
+                  zIndex: 5,
+                  userSelect: "none",
+                }}>
+                  RASCUNHO
+                </div>
+              )}
               <ProposalHeader data={data} isContinuation={!isFirst} />
 
               <div style={{ padding: `0 ${CONTENT_PAD}px`, flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
