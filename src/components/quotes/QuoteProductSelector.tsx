@@ -274,7 +274,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                           loading="lazy"
                         />
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-medium truncate text-sm sm:text-base">{product.name}</h4>
+                          <h4 className="font-medium truncate text-sm sm:text-base" title={product.name}>{product.name}</h4>
                           <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                             <span className="font-mono">{product.sku || 'N/A'}</span>
                             <span className="hidden sm:inline">•</span>
