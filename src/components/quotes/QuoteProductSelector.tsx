@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import Fuse from "fuse.js";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Plus, Search, Package, ShoppingCart, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product, ProductColor } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
@@ -41,6 +42,7 @@ const fuseOptions: Fuse.IFuseOptions<Product> = {
 export function QuoteProductSelector({ onProductAdd, existingProductIds }: QuoteProductSelectorProps) {
   const { products } = useProductsContext();
   const [open, setOpen] = useState(false);
+  const scrollParentRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<ProductColor | null>(null);
@@ -73,6 +75,14 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     if (!debouncedQuery || debouncedQuery.length < 2) return availableProducts;
     return fuse.search(debouncedQuery).map(r => r.item);
   }, [fuse, debouncedQuery, availableProducts]);
+
+  // Virtualizer for large lists
+  const rowVirtualizer = useVirtualizer({
+    count: filteredProducts.length,
+    getScrollElement: () => scrollParentRef.current,
+    estimateSize: () => 88,
+    overscan: 5,
+  });
 
   const handleAddProduct = () => {
     if (!selectedProduct) return;
@@ -175,59 +185,85 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
               )}
             </div>
 
-            <ScrollArea className="flex-1 mt-3 pr-4" style={{ maxHeight: addedCount > 0 ? '320px' : '400px' }}>
-              <div className="space-y-2">
-                {filteredProducts.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>Nenhum produto encontrado</p>
-                    {isSearching && (
-                      <p className="text-xs mt-1">Tente ajustar o termo de busca</p>
-                    )}
-                  </div>
-                ) : (
-                  filteredProducts.map((product) => (
-                    <div
-                      key={product.id}
-                      onClick={() => setSelectedProduct(product)}
-                      className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors"
-                    >
-                      <img
-                        src={product.images?.[0] || '/placeholder.svg'}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded-md"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium truncate">{product.name}</h4>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span className="font-mono text-xs">{product.sku || 'N/A'}</span>
-                          <span>•</span>
-                          <span>{product.category_name || 'Sem categoria'}</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-primary font-semibold">
-                            {formatCurrency(product.price)}
-                          </span>
-                          <Badge variant="secondary" className="text-xs">
-                            Mín. {product.minQuantity || 1} un.
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-1 max-w-[80px] justify-end">
-                        {product.colors.map((color, i) => (
-                          <div
-                            key={i}
-                            className="w-4 h-4 rounded-full border"
-                            style={{ backgroundColor: color.hex }}
-                            title={color.name}
+            <div
+              ref={scrollParentRef}
+              className="flex-1 mt-3 pr-2 overflow-auto"
+              style={{ maxHeight: addedCount > 0 ? '320px' : '400px' }}
+            >
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum produto encontrado</p>
+                  {isSearching && (
+                    <p className="text-xs mt-1">Tente ajustar o termo de busca</p>
+                  )}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    height: `${rowVirtualizer.getTotalSize()}px`,
+                    width: '100%',
+                    position: 'relative',
+                  }}
+                >
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const product = filteredProducts[virtualRow.index];
+                    return (
+                      <div
+                        key={product.id}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: `${virtualRow.size}px`,
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                        className="py-1"
+                      >
+                        <div
+                          onClick={() => setSelectedProduct(product)}
+                          className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors h-full"
+                        >
+                          <img
+                            src={product.images?.[0] || '/placeholder.svg'}
+                            alt={product.name}
+                            className="w-16 h-16 object-cover rounded-md"
+                            loading="lazy"
                           />
-                        ))}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium truncate">{product.name}</h4>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span className="font-mono text-xs">{product.sku || 'N/A'}</span>
+                              <span>•</span>
+                              <span>{product.category_name || 'Sem categoria'}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-primary font-semibold">
+                                {formatCurrency(product.price)}
+                              </span>
+                              <Badge variant="secondary" className="text-xs">
+                                Mín. {product.minQuantity || 1} un.
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-1 max-w-[80px] justify-end">
+                            {product.colors.map((color, i) => (
+                              <div
+                                key={i}
+                                className="w-4 h-4 rounded-full border"
+                                style={{ backgroundColor: color.hex }}
+                                title={color.name}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Sticky footer — visible when items have been added */}
             {addedCount > 0 && (
