@@ -145,7 +145,7 @@ export function CartHeaderButton() {
                           <div
                             key={cart.id}
                             className={cn(
-                              "rounded-xl border transition-all duration-200 cursor-pointer",
+                              "rounded-xl border transition-all duration-200 cursor-pointer group",
                               isActive
                                 ? "border-primary/30 bg-primary/5"
                                 : "border-border/40 hover:border-border/60 hover:bg-muted/30"
