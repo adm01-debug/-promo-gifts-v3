@@ -5,6 +5,7 @@ import { Plus, Minus, Search, Package, ShoppingCart, X, Check } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const [sessionAddedIds, setSessionAddedIds] = useState<string[]>([]);
 
   const debouncedQuery = useDebounce(searchQuery, 300);
+  const isFilterPending = searchQuery.length >= 2 && searchQuery !== debouncedQuery;
 
   const allAddedIds = useMemo(
     () => [...existingProductIds, ...sessionAddedIds],
@@ -198,7 +200,20 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             className="flex-1 mt-3 pr-2 overflow-auto"
             style={{ maxHeight: isMobile ? '60vh' : (addedCount > 0 ? '320px' : '400px') }}
           >
-            {filteredProducts.length === 0 ? (
+            {isFilterPending ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3 rounded-lg border">
+                    <Skeleton className="w-12 h-12 sm:w-16 sm:h-16 rounded-md" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-4 w-1/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredProducts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>Nenhum produto encontrado</p>
