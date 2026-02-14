@@ -23,13 +23,17 @@ interface Props {
 }
 
 export function ProposalProductTable({ items, showHeader = true, startIndex = 0 }: Props) {
+  const hasAnyImage = items.some((item) => !!item.imageUrl);
+
   return (
     <table style={{ width: "100%", borderCollapse: "collapse" }}>
       {showHeader && (
         <thead>
           <tr>
-            <th style={{ ...thBase, textAlign: "center", width: "50px", borderRadius: "6px 0 0 0" }}>#</th>
-            <th style={{ ...thBase, textAlign: "center", width: "80px" }}>Foto</th>
+            <th style={{ ...thBase, textAlign: "center", width: "40px", borderRadius: "6px 0 0 0" }}>#</th>
+            {hasAnyImage && (
+              <th style={{ ...thBase, textAlign: "center", width: "75px" }}>Foto</th>
+            )}
             <th style={{ ...thBase, textAlign: "left" }}>Descrição do Produto</th>
             <th style={{ ...thBase, textAlign: "center", width: "50px" }}>Qtd.</th>
             <th style={{ ...thBase, textAlign: "right", width: "90px" }}>Unitário</th>
@@ -60,42 +64,44 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               borderBottom: "1px solid #eef0f2",
             }}>
               {/* Row number */}
-              <td style={{ padding: "8px 6px", textAlign: "center", verticalAlign: "middle", fontSize: "12px", fontWeight: 700, color: "#999" }}>
+              <td style={{ padding: "8px 6px", textAlign: "center", verticalAlign: "middle", fontSize: "11px", fontWeight: 700, color: "#b0b0b0", fontVariantNumeric: "tabular-nums" }}>
                 {String(startIndex + idx + 1).padStart(2, "0")}
               </td>
-              {/* Image */}
-              <td style={{ padding: "6px", textAlign: "center", verticalAlign: "middle", width: "80px" }}>
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    crossOrigin="anonymous"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      objectFit: "contain",
+              {/* Image — conditional column */}
+              {hasAnyImage && (
+                <td style={{ padding: "6px", textAlign: "center", verticalAlign: "middle", width: "75px" }}>
+                  {item.imageUrl ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      crossOrigin="anonymous"
+                      style={{
+                        width: "56px",
+                        height: "56px",
+                        objectFit: "contain",
+                        borderRadius: "6px",
+                        border: "1px solid #e8e8e8",
+                        backgroundColor: "#fff",
+                        padding: "2px",
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: "56px",
+                      height: "56px",
+                      backgroundColor: "#f5f5f5",
                       borderRadius: "6px",
-                      border: "1px solid #e8e8e8",
-                      backgroundColor: "#fff",
-                      padding: "2px",
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: "60px",
-                    height: "60px",
-                    backgroundColor: "#f0f0f0",
-                    borderRadius: "6px",
-                    border: "1px solid #e8e8e8",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto",
-                  }}>
-                    <span style={{ fontSize: "9px", color: "#bbb" }}>—</span>
-                  </div>
-                )}
-              </td>
+                      border: "1px solid #eee",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      margin: "0 auto",
+                    }}>
+                      <span style={{ fontSize: "9px", color: "#ccc" }}>—</span>
+                    </div>
+                  )}
+                </td>
+              )}
               {/* Description */}
               <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
                 <span style={{ fontWeight: 800, color: "#111", fontSize: "13px", display: "block", marginBottom: "2px", lineHeight: "1.3" }}>
@@ -120,9 +126,24 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                   </span>
                 )}
                 {gravacao && (
-                  <span style={{ display: "block", fontSize: "10px", color: "#00796b", marginTop: "2px", lineHeight: "1.3", fontWeight: 600 }}>
-                    ✦ Gravação: {gravacao}
-                  </span>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    marginTop: "4px",
+                    padding: "3px 7px",
+                    backgroundColor: "#e0f2f1",
+                    borderRadius: "4px",
+                    borderLeft: "3px solid #00796b",
+                    maxWidth: "fit-content",
+                  }}>
+                    <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 700 }}>
+                      ✦ Gravação:
+                    </span>
+                    <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 500 }}>
+                      {gravacao}
+                    </span>
+                  </div>
                 )}
                 {!gravacao && item.color && (
                   <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "2px" }}>
@@ -131,11 +152,11 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                 )}
               </td>
               {/* Qty */}
-              <td style={{ padding: "8px 6px", textAlign: "center", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#222" }}>
+              <td style={{ padding: "8px 6px", textAlign: "center", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#222", fontVariantNumeric: "tabular-nums" }}>
                 {item.quantity}
               </td>
               {/* Unit price */}
-              <td style={{ padding: "8px 6px", textAlign: "right", verticalAlign: "middle" }}>
+              <td style={{ padding: "8px 6px", textAlign: "right", verticalAlign: "middle", fontVariantNumeric: "tabular-nums" }}>
                 <span style={{ fontSize: "13px", fontWeight: 600, color: "#333" }}>{fmt(allInUnitPrice)}</span>
                 {itemDiscount > 0 && (
                   <span style={{ display: "block", fontSize: "10px", color: "#e53935", marginTop: "2px", fontWeight: 600 }}>
@@ -144,7 +165,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                 )}
               </td>
               {/* Total */}
-              <td style={{ padding: "8px 6px", textAlign: "right", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#1a1a1a" }}>
+              <td style={{ padding: "8px 6px", textAlign: "right", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#1a1a1a", fontVariantNumeric: "tabular-nums" }}>
                 {fmt(total)}
               </td>
             </tr>
