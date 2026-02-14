@@ -84,6 +84,23 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     overscan: 5,
   });
 
+  const handleQuickAdd = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation(); // Don't open detail view
+    const item: QuoteItem = {
+      product_id: product.id,
+      product_name: product.name,
+      product_sku: product.sku || '',
+      product_image_url: product.images?.[0] || '',
+      quantity: product.minQuantity || 1,
+      unit_price: product.price,
+      personalizations: [],
+    };
+    onProductAdd(item);
+    setAddedCount(prev => prev + 1);
+    setSessionAddedIds(prev => [...prev, product.id]);
+    toast.success(`"${product.name}" adicionado rapidamente`);
+  };
+
   const handleAddProduct = () => {
     if (!selectedProduct) return;
 
@@ -247,15 +264,29 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                               </Badge>
                             </div>
                           </div>
-                          <div className="flex flex-wrap gap-1 max-w-[80px] justify-end">
-                            {product.colors.map((color, i) => (
-                              <div
-                                key={i}
-                                className="w-4 h-4 rounded-full border"
-                                style={{ backgroundColor: color.hex }}
-                                title={color.name}
-                              />
-                            ))}
+                          <div className="flex flex-col items-end gap-2 shrink-0">
+                            <div className="flex flex-wrap gap-1 max-w-[80px] justify-end">
+                              {product.colors.slice(0, 5).map((color, i) => (
+                                <div
+                                  key={i}
+                                  className="w-4 h-4 rounded-full border"
+                                  style={{ backgroundColor: color.hex }}
+                                  title={color.name}
+                                />
+                              ))}
+                              {product.colors.length > 5 && (
+                                <span className="text-[10px] text-muted-foreground">+{product.colors.length - 5}</span>
+                              )}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                              onClick={(e) => handleQuickAdd(e, product)}
+                              title="Adicionar rápido (qtd mínima, sem cor)"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -263,7 +294,6 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                   })}
                 </div>
               )}
-            </div>
 
             {/* Sticky footer — visible when items have been added */}
             {addedCount > 0 && (
