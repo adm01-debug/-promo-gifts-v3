@@ -3,6 +3,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══ NUCLEAR SCROLL LOCK PREVENTION ═══
+   Radix UI / react-remove-scroll sets data-scroll-locked on html/body
+   and applies overflow:hidden, position:fixed, etc. 
+   This MUST be overridden at the highest specificity level. */
+html[data-scroll-locked],
+body[data-scroll-locked],
+html[data-scroll-locked] body {
+  overflow: visible !important;
+  overflow-y: auto !important;
+  position: static !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  touch-action: auto !important;
+  pointer-events: auto !important;
+}
+
 /* ============================================
    PROMO BRINDES - TASK GIFTS DESIGN SYSTEM
    ============================================ */
