@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Plus, Minus, Search, Package, ShoppingCart, X, Check } from "lucide-react";
@@ -58,6 +58,15 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const [quantity, setQuantity] = useState(1);
   const [addedCount, setAddedCount] = useState(0);
   const [sessionAddedIds, setSessionAddedIds] = useState<string[]>([]);
+  const [scrollState, setScrollState] = useState({ top: false, bottom: true });
+
+  const handleScroll = useCallback(() => {
+    const el = scrollParentRef.current;
+    if (!el) return;
+    const atTop = el.scrollTop > 8;
+    const atBottom = el.scrollTop + el.clientHeight < el.scrollHeight - 8;
+    setScrollState({ top: atTop, bottom: atBottom });
+  }, []);
 
   const debouncedQuery = useDebounce(searchQuery, 300);
   const isFilterPending = searchQuery.length >= 2 && searchQuery !== debouncedQuery;
@@ -194,13 +203,23 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             )}
           </div>
 
-          {/* Virtualized product list */}
-          <div
-            ref={scrollParentRef}
-            className="flex-1 mt-3 pr-2 overflow-auto"
-            style={{ maxHeight: isMobile ? '60vh' : (addedCount > 0 ? '320px' : '400px') }}
-          >
-            {isFilterPending ? (
+          {/* Virtualized product list with fade indicators */}
+          <div className="relative flex-1 mt-3">
+            {/* Top fade */}
+            <div
+              className="pointer-events-none absolute top-0 left-0 right-0 h-6 z-10 transition-opacity duration-200"
+              style={{
+                opacity: scrollState.top ? 1 : 0,
+                background: 'linear-gradient(to bottom, hsl(var(--background)), transparent)',
+              }}
+            />
+            <div
+              ref={scrollParentRef}
+              className="pr-2 overflow-auto h-full"
+              style={{ maxHeight: isMobile ? '60vh' : (addedCount > 0 ? '320px' : '400px') }}
+              onScroll={handleScroll}
+            >
+              {isFilterPending ? (
               <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-4 p-3 rounded-lg border">
@@ -300,6 +319,15 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                 })}
               </div>
             )}
+            </div>
+            {/* Bottom fade */}
+            <div
+              className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 z-10 transition-opacity duration-200"
+              style={{
+                opacity: scrollState.bottom ? 1 : 0,
+                background: 'linear-gradient(to top, hsl(var(--background)), transparent)',
+              }}
+            />
           </div>
 
           {/* Sticky footer */}
