@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Palette } from "lucide-react";
+import { Palette, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
+import { QuickAddToQuote } from "./QuickAddToQuote";
 import type { Category } from "@/data/mockData";
 
 interface ProductCategoryBadgesProps {
@@ -17,6 +18,7 @@ interface ProductCategoryBadgesProps {
   productSku?: string;
   productPrice?: number;
   productImageUrl?: string | null;
+  productMinQuantity?: number;
   showPersonalizationLink?: boolean;
 }
 
@@ -35,6 +37,7 @@ export function ProductCategoryBadges({
   productSku,
   productPrice,
   productImageUrl,
+  productMinQuantity,
   showPersonalizationLink = true,
 }: ProductCategoryBadgesProps) {
   const navigate = useNavigate();
@@ -129,6 +132,19 @@ export function ProductCategoryBadges({
             Simular preço de personalização
           </TooltipContent>
         </Tooltip>
+      )}
+
+      {/* Botão ORÇAR - verde com ícone de carrinho */}
+      {productId && (
+        <QuickAddToQuote
+          productId={productId}
+          productName={productName || ''}
+          productSku={productSku}
+          productImageUrl={productImageUrl || undefined}
+          productPrice={productPrice || 0}
+          minQuantity={productMinQuantity || 1}
+          variant="badge"
+        />
       )}
     </div>
   );

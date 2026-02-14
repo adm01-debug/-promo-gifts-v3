@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Check, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,7 @@ interface QuickAddToQuoteProps {
   productPrice?: number;
   minQuantity?: number;
   className?: string;
-  variant?: "icon" | "button";
+  variant?: "icon" | "button" | "badge";
 }
 
 export function QuickAddToQuote({ 
@@ -53,7 +54,22 @@ export function QuickAddToQuote({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        {variant === "icon" ? (
+        {variant === "badge" ? (
+          <Badge
+            variant="outline"
+            className={cn(
+              "px-2.5 py-1 text-sm font-medium cursor-pointer",
+              "border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500/20",
+              "text-emerald-500 hover:text-emerald-400",
+              "transition-all duration-200 hover:scale-105 hover:border-emerald-500",
+              className
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
+            <span className="text-xs">Orçar</span>
+          </Badge>
+        ) : variant === "icon" ? (
           <Button
             variant="secondary"
             size="icon"
