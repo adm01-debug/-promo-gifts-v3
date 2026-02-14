@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2 } from "lucide-react";
+import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart } from "lucide-react";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { toast } from "sonner";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { QuickAddToQuote } from "./QuickAddToQuote";
 import { ProductQuickView } from "./ProductQuickView";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { NoveltyBadge } from "./NoveltyBadge";
@@ -340,6 +341,18 @@ export function ProductCard({
               </TooltipTrigger>
               <TooltipContent side="left">Compartilhar</TooltipContent>
             </Tooltip>
+
+            {/* Add to Cart */}
+            <QuickAddToQuote
+              productId={product.id}
+              productName={product.name}
+              productSku={product.sku}
+              productImageUrl={product.og_image_url || product.images[0]}
+              productPrice={product.price}
+              minQuantity={product.minQuantity || 1}
+              variant="icon"
+              className="h-11 w-11 min-h-[44px] min-w-[44px]"
+            />
           </div>
         </div>
 
