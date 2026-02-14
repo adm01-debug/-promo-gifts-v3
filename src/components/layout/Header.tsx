@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
 
-import { FollowUpRemindersPopover } from "@/components/reminders/FollowUpRemindersPopover";
+
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
 import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
 import { useIsScrolled } from "@/hooks/useScroll";
@@ -136,10 +136,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             <span className="sr-only">Alternar tema</span>
           </Button>
 
-          {/* Follow-up Reminders */}
-          <div className="hidden md:block" data-tour="notifications">
-            <FollowUpRemindersPopover />
-          </div>
 
           {/* Seller Cart - visible on all screens */}
           <CartHeaderButton />
