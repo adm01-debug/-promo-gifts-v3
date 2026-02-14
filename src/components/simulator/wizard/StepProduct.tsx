@@ -147,8 +147,8 @@ export function StepProduct({ wizard }: StepProductProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Virtualizer for large product lists
-  const ITEM_HEIGHT = 88;
-  const ROW_GAP = 8;
+  const ITEM_HEIGHT = 100;
+  const ROW_GAP = 12;
   const COLUMNS = 3;
   const rowCount = Math.ceil(filteredProducts.length / COLUMNS);
   
@@ -325,9 +325,8 @@ export function StepProduct({ wizard }: StepProductProps) {
                     transform: `translateY(${virtualRow.start}px)`,
                     display: 'grid',
                     gridTemplateColumns: 'repeat(3, 1fr)',
-                    gap: '8px',
+                    gap: `${ROW_GAP}px`,
                   }}
-                  className="sm:grid-cols-2 lg:grid-cols-3"
                 >
                   {rowProducts.map((product) => {
                     const isSelected = wizard.selectedProduct?.id === product.id;
