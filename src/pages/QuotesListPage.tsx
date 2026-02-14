@@ -213,8 +213,6 @@ export default function QuotesListPage() {
     <MainLayout>
       <TooltipProvider>
         <div className="space-y-5">
-          {/* Single Breadcrumb */}
-          <DynamicBreadcrumbs />
 
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
