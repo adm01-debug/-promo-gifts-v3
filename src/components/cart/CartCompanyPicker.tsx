@@ -19,8 +19,7 @@ interface CompanyItem {
   name: string;
   razao_social: string;
   nome_fantasia: string | null;
-  cidade: string | null;
-  estado: string | null;
+  ramo: string | null;
   logo_url: string | null;
 }
 
@@ -51,7 +50,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
     queryKey: ["cart-companies-local"],
     queryFn: async () => {
       const companies = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, cidade, estado, logo_url",
+        select: "id, razao_social, nome_fantasia, title, logo_url, ramo_atividade",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
@@ -61,8 +60,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
         name: getCompanyDisplayName(c),
         razao_social: c.razao_social,
         nome_fantasia: c.nome_fantasia || null,
-        cidade: c.cidade || null,
-        estado: c.estado || null,
+        ramo: c.ramo_atividade || null,
         logo_url: c.logo_url || null,
       }));
     },
@@ -83,8 +81,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
         name: getCompanyDisplayName(c),
         razao_social: c.razao_social,
         nome_fantasia: c.nome_fantasia || null,
-        cidade: c.cidade || null,
-        estado: c.estado || null,
+        ramo: c.ramo_atividade || null,
         logo_url: c.logo_url || null,
       }));
     },
@@ -120,9 +117,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
     const input: CreateCartInput = {
       company_id: company.id,
       company_name: company.name,
-      company_location: company.cidade && company.estado 
-        ? `${company.cidade}/${company.estado}` 
-        : company.cidade || company.estado || undefined,
+      company_location: company.ramo || undefined,
       company_logo_url: company.logo_url || undefined,
     };
     await createCart(input);
@@ -182,9 +177,9 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
               )}
               <div className="min-w-0 flex-1">
                 <p className="text-sm truncate font-medium">{company.name}</p>
-                {(company.cidade || company.estado) && (
+                {company.ramo && (
                   <p className="text-[10px] text-muted-foreground truncate">
-                    {[company.cidade, company.estado].filter(Boolean).join("/")}
+                    {company.ramo}
                   </p>
                 )}
               </div>
