@@ -749,15 +749,18 @@ export default function QuoteBuilderPage() {
             </CardContent>
           </Card>
 
-          {/* Resumo — inline footer after items */}
-          <Card className="sticky bottom-0 z-10 border-t-2 border-primary/30 shadow-lg backdrop-blur-sm bg-card/95">
-            <CardContent className="py-4">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                {/* Totals section */}
-                <div className="flex flex-wrap items-center gap-x-8 gap-y-2 flex-1">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>Subtotal</span>
-                    <span className="font-semibold text-foreground tabular-nums">{formatCurrency(subtotal)}</span>
+          {/* Resumo — card abaixo dos itens */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Resumo</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Left: Totals */}
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-semibold tabular-nums">{formatCurrency(subtotal)}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -781,40 +784,29 @@ export default function QuoteBuilderPage() {
                       value={discountValue || ""}
                       onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
                       placeholder="Desconto"
-                      className="w-28 h-9"
+                      className="h-9"
                     />
                   </div>
 
                   {discountAmount > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-destructive">
+                    <div className="flex justify-between text-sm text-destructive">
                       <span>Desconto</span>
                       <span className="font-semibold tabular-nums">-{formatCurrency(discountAmount)}</span>
                     </div>
                   )}
 
-                  <Separator orientation="vertical" className="h-8 hidden md:block" />
+                  <Separator />
 
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold">Total</span>
-                    <span className="text-xl font-bold text-primary tabular-nums">{formatCurrency(total)}</span>
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-lg">Total</span>
+                    <span className="font-bold text-2xl text-primary tabular-nums">{formatCurrency(total)}</span>
                   </div>
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Right: Actions */}
+                <div className="flex flex-col justify-end gap-2">
                   <Button
-                    variant="outline"
-                    onClick={() => handleSaveQuote("draft")}
-                    disabled={quotesLoading || items.length === 0}
-                  >
-                    {quotesLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    {isEditMode ? "Salvar" : "Rascunho"}
-                  </Button>
-                  <Button
+                    className="w-full"
                     onClick={() => handleSaveQuote("pending")}
                     disabled={quotesLoading || items.length === 0}
                   >
@@ -824,6 +816,19 @@ export default function QuoteBuilderPage() {
                       <Send className="h-4 w-4 mr-2" />
                     )}
                     {isEditMode ? "Salvar e Enviar" : "Criar e Enviar"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => handleSaveQuote("draft")}
+                    disabled={quotesLoading || items.length === 0}
+                  >
+                    {quotesLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {isEditMode ? "Salvar Alterações" : "Salvar Rascunho"}
                   </Button>
                 </div>
               </div>
