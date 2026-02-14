@@ -147,14 +147,15 @@ export function StepProduct({ wizard }: StepProductProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
   // Virtualizer for large product lists
-  const ITEM_HEIGHT = 80;
+  const ITEM_HEIGHT = 88;
+  const ROW_GAP = 8;
   const COLUMNS = 3;
   const rowCount = Math.ceil(filteredProducts.length / COLUMNS);
   
   const virtualizer = useVirtualizer({
     count: rowCount,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => ITEM_HEIGHT + 12, // height + gap
+    estimateSize: () => ITEM_HEIGHT + ROW_GAP,
     overscan: 5,
   });
 
@@ -289,7 +290,7 @@ export function StepProduct({ wizard }: StepProductProps) {
       )}
 
       {/* Products Grid - Virtualized */}
-      <div ref={parentRef} className="h-[520px] overflow-auto pr-2 rounded-xl">
+      <div ref={parentRef} className="h-[520px] overflow-auto pr-2 rounded-xl" style={{ contain: 'strict' }}>
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map(i => (
@@ -320,10 +321,13 @@ export function StepProduct({ wizard }: StepProductProps) {
                     top: 0,
                     left: 0,
                     width: '100%',
-                    height: `${virtualRow.size}px`,
+                    height: `${ITEM_HEIGHT}px`,
                     transform: `translateY(${virtualRow.start}px)`,
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '8px',
                   }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-3"
+                  className="sm:grid-cols-2 lg:grid-cols-3"
                 >
                   {rowProducts.map((product) => {
                     const isSelected = wizard.selectedProduct?.id === product.id;
