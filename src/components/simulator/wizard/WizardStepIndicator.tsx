@@ -51,15 +51,32 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
           />
         </div>
         <div className="flex justify-between mt-2 px-1">
-          {WIZARD_STEPS.map((step, idx) => (
-            <div
-              key={step}
-              className={cn(
-                'w-2.5 h-2.5 rounded-full transition-colors',
-                idx <= currentIndex ? 'bg-primary' : 'bg-muted-foreground/30'
-              )}
-            />
-          ))}
+          {WIZARD_STEPS.map((step, idx) => {
+            const Icon = STEP_ICONS[step];
+            const config = WIZARD_STEP_CONFIG[step];
+            const isActive = idx <= currentIndex;
+            return (
+              <div key={step} className="flex flex-col items-center gap-1">
+                <div className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center transition-colors',
+                  idx === currentIndex ? 'bg-primary text-primary-foreground' :
+                  isActive ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground/40'
+                )}>
+                  {idx < currentIndex ? (
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  ) : (
+                    <Icon className="h-3 w-3" />
+                  )}
+                </div>
+                <span className={cn(
+                  'text-[10px] font-medium',
+                  idx === currentIndex ? 'text-primary' : 'text-muted-foreground/60'
+                )}>
+                  {config.shortLabel.slice(0, 5)}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
