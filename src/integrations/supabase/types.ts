@@ -3026,6 +3026,42 @@ export type Database = {
         }
         Relationships: []
       }
+      simulator_wizard_drafts: {
+        Row: {
+          created_at: string
+          id: string
+          personalizations: Json
+          product_data: Json
+          quantity: number
+          title: string
+          updated_at: string
+          user_id: string
+          wizard_step: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          personalizations?: Json
+          product_data: Json
+          quantity?: number
+          title?: string
+          updated_at?: string
+          user_id: string
+          wizard_step?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          personalizations?: Json
+          product_data?: Json
+          quantity?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+          wizard_step?: string
+        }
+        Relationships: []
+      }
       store_rewards: {
         Row: {
           category: string

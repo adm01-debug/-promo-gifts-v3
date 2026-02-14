@@ -2,10 +2,11 @@
  * SimuladorWizard v2 - Produto → Local → Specs → Comparativo
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useSimulatorWizard } from "@/hooks/simulator/useSimulatorWizard";
+import { useWizardDrafts } from "@/hooks/simulator/useWizardDrafts";
 import { 
   WizardStepIndicator, 
   StepProduct, 
@@ -16,9 +17,29 @@ import {
   PersonalizationTabs,
 } from "@/components/simulator/wizard";
 import { MobilePersonalizationSummary } from "@/components/simulator/wizard/MobilePersonalizationSummary";
-import { Calculator } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Calculator, Save, FolderOpen, Trash2, Loader2, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import type { SelectedProduct } from "@/types/domain/simulator-wizard";
 
 interface PreSelectedProductState {
@@ -34,7 +55,10 @@ export default function SimuladorWizard() {
   const location = useLocation();
   const navigate = useNavigate();
   const wizard = useSimulatorWizard();
+  const { drafts, saveDraft, saveDraftPending, deleteDraft, isLoading: draftsLoading } = useWizardDrafts();
   const hasProcessedPreSelection = useRef(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [draftTitle, setDraftTitle] = useState('');
 
   useEffect(() => {
     if (hasProcessedPreSelection.current) return;
@@ -80,7 +104,24 @@ export default function SimuladorWizard() {
     toast.success('Redirecionando para o orçamento...');
   };
 
+  const handleSaveDraft = () => {
+    const title = draftTitle.trim() || `${wizard.selectedProduct?.name || 'Rascunho'} - ${wizard.quantity}un`;
+    saveDraft(title, wizard);
+    setSaveDialogOpen(false);
+    setDraftTitle('');
+  };
+
+  const handleLoadDraft = (draft: typeof drafts[0]) => {
+    if (draft.product_data) {
+      wizard.selectProduct(draft.product_data);
+      wizard.setQuantity(draft.quantity);
+      // Personalizations will be restored via the product selection flow
+      toast.success(`Rascunho "${draft.title}" carregado`);
+    }
+  };
+
   return (
+    <>
     <MainLayout>
       <div className="min-h-[calc(100vh-8rem)]">
         {/* Compact Header */}
@@ -88,15 +129,87 @@ export default function SimuladorWizard() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center gap-3 mb-6 px-1"
+          className="flex items-center justify-between gap-3 mb-6 px-1"
         >
-          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-            <Calculator className="h-5 w-5 text-primary-foreground" />
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
+              <Calculator className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="font-display text-xl font-bold tracking-tight">
+                Simulador de Personalização
+              </h1>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display text-xl font-bold tracking-tight">
-              Simulador de Personalização
-            </h1>
+
+          {/* Draft Actions */}
+          <div className="flex items-center gap-2">
+            {wizard.selectedProduct && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setDraftTitle(`${wizard.selectedProduct?.name} - ${wizard.quantity}un`);
+                  setSaveDialogOpen(true);
+                }}
+              >
+                <Save className="h-4 w-4" />
+                <span className="hidden sm:inline">Salvar</span>
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <FolderOpen className="h-4 w-4" />
+                  <span className="hidden sm:inline">Rascunhos</span>
+                  {drafts.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
+                      {drafts.length}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-72">
+                {draftsLoading ? (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : drafts.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    Nenhum rascunho salvo
+                  </div>
+                ) : (
+                  drafts.map((draft) => (
+                    <DropdownMenuItem
+                      key={draft.id}
+                      className="flex items-start justify-between gap-2 p-3"
+                      onClick={() => handleLoadDraft(draft)}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{draft.title}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Clock className="h-3 w-3" />
+                          {format(new Date(draft.updated_at), "dd/MM HH:mm", { locale: ptBR })}
+                          <span>• {draft.quantity}un</span>
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 shrink-0 text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteDraft(draft.id);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuItem>
+                  ))
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </motion.div>
 
@@ -173,5 +286,35 @@ export default function SimuladorWizard() {
         )}
       </div>
     </MainLayout>
+
+    {/* Save Draft Dialog */}
+    <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Salvar Rascunho</DialogTitle>
+          <DialogDescription>
+            Salve o estado atual para continuar depois.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Input
+            placeholder="Nome do rascunho..."
+            value={draftTitle}
+            onChange={(e) => setDraftTitle(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSaveDraft()}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveDraft} disabled={saveDraftPending} className="gap-2">
+            {saveDraftPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Salvar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
