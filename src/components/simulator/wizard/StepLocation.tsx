@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 
 interface StepLocationProps {
@@ -31,10 +32,6 @@ interface StepLocationProps {
 export function StepLocation({ wizard }: StepLocationProps) {
   // Usa locais filtrados (exclui locais já usados em personalizações)
   const { availableLocationsFiltered, selectedLocation, locationsLoading, personalizations } = wizard;
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">

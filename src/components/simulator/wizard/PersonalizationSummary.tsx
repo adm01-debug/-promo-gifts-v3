@@ -4,7 +4,7 @@
  * Exibe produto, personalizações confirmadas e totais consolidados
  */
 
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
+import { formatCurrency } from '@/lib/format';
 import { RemovePersonalizationDialog } from './RemovePersonalizationDialog';
 import {
   DropdownMenu,
@@ -57,13 +58,7 @@ export function PersonalizationSummary({
   const usedLocationIds = new Set(personalizations.map(p => p.location.id));
   const unusedLocations = availableLocations.filter(loc => !usedLocationIds.has(loc.id));
 
-  const formatCurrency = useCallback((value: number) => {
-    return new Intl.NumberFormat('pt-BR', { 
-      style: 'currency', 
-      currency: 'BRL',
-      minimumFractionDigits: 2,
-    }).format(value);
-  }, []);
+
 
   if (!selectedProduct) return null;
 

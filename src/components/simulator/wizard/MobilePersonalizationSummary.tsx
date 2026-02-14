@@ -15,6 +15,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { formatCurrency } from '@/lib/format';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import { PersonalizationSummary } from './PersonalizationSummary';
 
@@ -34,8 +35,7 @@ export function MobilePersonalizationSummary({
 
   if (personalizations.length === 0) return null;
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  // formatCurrency imported from @/lib/format
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50">

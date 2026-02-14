@@ -12,6 +12,7 @@ import { Loader2, BarChart3, Plus, X, TrendingDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { invokeExternalRpc } from '@/lib/external-rpc';
+import { formatCurrency } from '@/lib/format';
 import type { CustomizationPriceResponse } from '@/hooks/useGravacaoPriceV2';
 import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
 import type { Personalization } from '@/types/domain/simulator-wizard';
@@ -32,8 +33,7 @@ interface QuantityResult {
 
 const DEFAULT_QUANTITIES = [50, 100, 250, 500, 1000];
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+// formatCurrency imported from @/lib/format
 
 export function QuantityRangeComparison({
   personalizations,
