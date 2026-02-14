@@ -5,7 +5,7 @@
  * ordenadas por custo-benefício. O vendedor escolhe a melhor opção.
  */
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -49,14 +49,38 @@ interface StepComparisonProps {
 export function StepComparison({ wizard }: StepComparisonProps) {
   const navigate = useNavigate();
   const { comparisonResults, selectedComparison, selectedLocation, engravingSpecs } = wizard;
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
   const availableResults = comparisonResults.filter(r => r.isAvailable);
   const unavailableResults = comparisonResults.filter(r => !r.isAvailable);
 
-  const handleSelectTechnique = (result: TechniqueComparisonResult) => {
+  const toggleTechnique = useCallback((result: TechniqueComparisonResult) => {
     if (!result.isAvailable) return;
-    wizard.confirmTechnique(result);
-  };
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(result.techniqueId)) {
+        next.delete(result.techniqueId);
+      } else {
+        next.add(result.techniqueId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(() => {
+    if (selectedIds.size === availableResults.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(availableResults.map(r => r.techniqueId)));
+    }
+  }, [selectedIds.size, availableResults]);
+
+  const handleConfirmSelected = useCallback(() => {
+    const selected = availableResults.filter(r => selectedIds.has(r.techniqueId));
+    if (selected.length === 0) return;
+    selected.forEach(result => wizard.confirmTechnique(result));
+    setSelectedIds(new Set());
+  }, [availableResults, selectedIds, wizard]);
 
   const handleAddAnother = () => {
     wizard.startNewPersonalization();
@@ -143,13 +167,21 @@ ${persText}
             <p className="text-muted-foreground">
               {availableResults.length} {availableResults.length === 1 ? 'opção disponível' : 'opções disponíveis'}
               {unavailableResults.length > 0 && ` • ${unavailableResults.length} indisponível`}
+              {selectedIds.size > 0 && ` • ${selectedIds.size} selecionada${selectedIds.size > 1 ? 's' : ''}`}
             </p>
           </div>
         </div>
-        <Button variant="ghost" size="sm" className="gap-2" onClick={() => wizard.setStep('specs')}>
-          <RefreshCw className="h-4 w-4" />
-          Alterar Specs
-        </Button>
+        <div className="flex items-center gap-2">
+          {availableResults.length > 1 && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={handleSelectAll}>
+              {selectedIds.size === availableResults.length ? 'Desmarcar Todas' : 'Selecionar Todas'}
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => wizard.setStep('specs')}>
+            <RefreshCw className="h-4 w-4" />
+            Alterar Specs
+          </Button>
+        </div>
       </div>
 
       {/* Results */}
@@ -168,10 +200,11 @@ ${persText}
             >
               <ComparisonCard 
                 result={result} 
-                onSelect={handleSelectTechnique}
+                onSelect={toggleTechnique}
                 quantity={wizard.quantity}
                 isFirst={idx === 0}
                 maxPrice={maxPrice}
+                isSelected={selectedIds.has(result.techniqueId)}
               />
             </motion.div>
             );
@@ -212,6 +245,33 @@ ${persText}
         )}
       </div>
 
+      {/* Confirm Selection Bar */}
+      <AnimatePresence>
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="sticky bottom-4 z-10"
+          >
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-primary text-primary-foreground shadow-2xl shadow-primary/30">
+              <p className="font-semibold">
+                {selectedIds.size} técnica{selectedIds.size > 1 ? 's' : ''} selecionada{selectedIds.size > 1 ? 's' : ''}
+              </p>
+              <Button 
+                size="lg" 
+                variant="secondary" 
+                className="gap-2 font-bold"
+                onClick={handleConfirmSelected}
+              >
+                <Check className="h-5 w-5" />
+                Confirmar Seleção
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Navigation */}
       <motion.div 
         initial={{ opacity: 0 }}
@@ -238,12 +298,14 @@ function ComparisonCard({
   quantity,
   isFirst,
   maxPrice,
+  isSelected,
 }: { 
   result: TechniqueComparisonResult; 
   onSelect: (r: TechniqueComparisonResult) => void;
   quantity: number;
   isFirst: boolean;
   maxPrice: number;
+  isSelected: boolean;
 }) {
   const savingsPercent = maxPrice > 0 && result.totalPrice < maxPrice 
     ? Math.round(((maxPrice - result.totalPrice) / maxPrice) * 100)
@@ -254,10 +316,21 @@ function ComparisonCard({
       className={cn(
         'w-full p-6 rounded-2xl text-left transition-all duration-300 group',
         'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
-        isFirst && 'ring-2 ring-primary/30 shadow-lg'
+        isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
+        !isSelected && isFirst && 'ring-1 ring-primary/20'
       )}
     >
       <div className="flex items-start justify-between gap-6">
+        {/* Checkbox indicator */}
+        <div className={cn(
+          'mt-1 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all',
+          isSelected 
+            ? 'bg-primary border-primary' 
+            : 'border-muted-foreground/30 group-hover:border-primary/50'
+        )}>
+          {isSelected && <Check className="h-4 w-4 text-primary-foreground" />}
+        </div>
+
         {/* Left: Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap mb-2">
@@ -331,8 +404,8 @@ function ComparisonCard({
           </div>
         </div>
 
-        {/* Right: Total Price + CTA */}
-        <div className="text-right shrink-0 flex flex-col items-end gap-3">
+        {/* Right: Total Price */}
+        <div className="text-right shrink-0">
           <div className="p-4 rounded-2xl bg-muted/50 group-hover:bg-primary/5 transition-colors">
             <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Total</p>
             <p className="text-3xl font-bold text-primary">
@@ -346,10 +419,6 @@ function ComparisonCard({
                 Setup: {formatCurrency(result.setupPrice)}
               </p>
             )}
-          </div>
-          <div className="flex items-center gap-2 text-primary font-medium text-sm sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-            <Check className="h-4 w-4" />
-            Selecionar
           </div>
         </div>
       </div>
