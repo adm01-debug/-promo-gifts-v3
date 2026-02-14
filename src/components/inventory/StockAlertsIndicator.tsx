@@ -118,7 +118,7 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
         const allProducts = await fetchPromobrindProducts({ limit: 500 });
 
         const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
         const items: NotificationItem[] = [];
 
@@ -143,11 +143,11 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
           });
         }
 
-        // ── 2) New products (created in last 24h) ──
+        // ── 2) New products (created in last 7 days) ──
         for (const p of allProducts) {
           if (p.created_at) {
             const created = new Date(p.created_at);
-            if (created >= oneDayAgo) {
+            if (created >= sevenDaysAgo) {
               items.push({
                 id: `new-${p.id}`,
                 productId: p.id,
@@ -160,7 +160,7 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
           }
         }
 
-        // ── 3) Restocked (stock > 0, updated in last 24h, updated != created → implies change) ──
+        // ── 3) Restocked (stock > 0, updated in last 7 days, updated != created → implies change) ──
         for (const p of allProducts) {
           const stock = p.stock_quantity ?? 0;
           if (stock > 0 && p.updated_at && p.created_at) {
@@ -168,7 +168,7 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
             const created = new Date(p.created_at);
             // Only flag if updated recently AND update is significantly after creation (>1h diff)
             if (
-              updated >= oneDayAgo &&
+              updated >= sevenDaysAgo &&
               updated.getTime() - created.getTime() > 3600_000
             ) {
               // Heuristic: only low-stock items that got restocked are interesting
