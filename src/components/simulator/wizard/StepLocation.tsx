@@ -97,7 +97,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
           )}
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <AnimatePresence mode="popLayout">
             {availableLocationsFiltered.map((location, idx) => {
               const isSelected = selectedLocation?.id === location.id;
@@ -105,96 +105,63 @@ export function StepLocation({ wizard }: StepLocationProps) {
               return (
                 <motion.button
                   key={location.id}
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -16 }}
-                  transition={{ delay: idx * 0.05 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ delay: idx * 0.04 }}
                   onClick={() => wizard.selectLocation(location)}
                   className={cn(
-                    'w-full p-6 rounded-2xl text-left transition-all duration-300 group',
+                    'w-full p-4 rounded-xl text-left transition-all duration-200 group',
                     isSelected
-                      ? 'bg-primary/5 ring-2 ring-primary shadow-xl shadow-primary/10'
-                      : 'bg-card border hover:border-primary/30 hover:shadow-lg'
+                      ? 'bg-primary/10 ring-2 ring-primary shadow-lg shadow-primary/10'
+                      : 'bg-card border hover:border-primary/30 hover:shadow-md'
                   )}
                 >
-                  <div className="flex items-start gap-5">
-                    {/* Icon / Image */}
-                    <div className={cn(
-                      'w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 transition-all',
-                      isSelected 
-                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/25' 
-                        : 'bg-muted group-hover:bg-primary/10'
-                    )}>
-                      {location.areaImageUrl ? (
-                        <img
-                          src={location.areaImageUrl}
-                          alt={location.locationName}
-                          className="w-full h-full object-cover rounded-2xl"
-                        />
-                      ) : (
-                        <MapPin className="h-6 w-6" />
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <h4 className="font-bold text-lg">{location.componentName}</h4>
-                        {isSelected && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                          >
-                            <CheckCircle2 className="h-5 w-5 text-primary" />
-                          </motion.div>
-                        )}
-                      </div>
-                      
-                      <Badge variant="secondary" className="text-xs font-normal mb-3">
-                        {location.locationName}
-                      </Badge>
-
-                      {/* Dimensions */}
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1.5">
-                          <Ruler className="h-4 w-4" />
-                          {location.maxWidthCm || '–'}×{location.maxHeightCm || '–'}cm
-                        </span>
-                        {location.maxAreaCm2 && (
-                          <span className="flex items-center gap-1.5">
-                            <Maximize2 className="h-4 w-4" />
-                            {location.maxAreaCm2}cm²
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Techniques */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {location.availableTechniques.slice(0, 3).map(tech => (
-                          <Badge
-                            key={tech.id}
-                            variant="outline"
-                            className="text-[10px] h-6 gap-1 font-normal"
-                          >
-                            <Palette className="h-3 w-3" />
-                            {tech.techniqueName}
-                          </Badge>
-                        ))}
-                        {location.availableTechniques.length > 3 && (
-                          <Badge variant="outline" className="text-[10px] h-6">
-                            +{location.availableTechniques.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-
-                      {location.isFromGroup && (
-                        <Badge variant="secondary" className="mt-3 text-[10px] gap-1">
-                          <Layers className="h-3 w-3" />
-                          Regra de Grupo
-                        </Badge>
-                      )}
-                    </div>
+                  {/* Top: Name + Check */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <h4 className="font-bold text-base truncate">{location.componentName}</h4>
+                    {isSelected && (
+                      <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                        <CheckCircle2 className="h-4.5 w-4.5 text-primary shrink-0" />
+                      </motion.div>
+                    )}
                   </div>
+
+                  {/* Location badge + Dimensions inline */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <Badge variant="secondary" className="text-[10px] h-5 font-normal">
+                      {location.locationName}
+                    </Badge>
+                    <span className="flex items-center gap-1">
+                      <Ruler className="h-3 w-3" />
+                      {location.maxWidthCm || '–'}×{location.maxHeightCm || '–'}cm
+                    </span>
+                  </div>
+
+                  {/* Techniques as compact pills */}
+                  <div className="flex flex-wrap gap-1">
+                    {location.availableTechniques.slice(0, 3).map(tech => (
+                      <span
+                        key={tech.id}
+                        className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground"
+                      >
+                        <Palette className="h-2.5 w-2.5" />
+                        {tech.techniqueName}
+                      </span>
+                    ))}
+                    {location.availableTechniques.length > 3 && (
+                      <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground">
+                        +{location.availableTechniques.length - 3}
+                      </span>
+                    )}
+                  </div>
+
+                  {location.isFromGroup && (
+                    <Badge variant="secondary" className="mt-2 text-[9px] gap-1">
+                      <Layers className="h-2.5 w-2.5" />
+                      Grupo
+                    </Badge>
+                  )}
                 </motion.button>
               );
             })}
