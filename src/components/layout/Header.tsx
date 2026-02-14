@@ -114,7 +114,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           <Button 
             variant="ghost" 
             size="icon" 
-            className="md:hidden h-8 w-8 sm:h-9 sm:w-9 hover:bg-orange/10 hover:text-orange"
+            className="md:hidden h-9 w-9 hover:bg-orange/10 hover:text-orange"
             onClick={() => {
               const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
               document.dispatchEvent(event);
@@ -123,70 +123,78 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             <Search className="h-4 w-4" />
           </Button>
 
-          {/* Theme toggle */}
+          {/* Theme toggle - hidden on mobile, accessible from sidebar */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handleToggleTheme}
-            className="relative h-8 w-8 sm:h-9 sm:w-9 hover:bg-orange/10 hover:text-orange"
+            className="relative h-8 w-8 sm:h-9 sm:w-9 hover:bg-orange/10 hover:text-orange hidden md:flex"
           >
             <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-3.5 w-3.5 sm:h-4 sm:w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Alternar tema</span>
           </Button>
 
-          {/* Follow-up Reminders & Notifications */}
+          {/* Follow-up Reminders & Notifications - single bell on mobile */}
           <div className="flex items-center gap-1" data-tour="notifications">
-            <FollowUpRemindersPopover />
+            <div className="hidden md:block">
+              <FollowUpRemindersPopover />
+            </div>
             <NotificationCenter />
           </div>
 
-          {/* Stock Alerts */}
-          <StockAlertsIndicator />
+          {/* Stock Alerts - hidden on mobile */}
+          <div className="hidden md:block">
+            <StockAlertsIndicator />
+          </div>
 
-          {/* Favorites */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-9 w-9 hover:bg-orange/10 hover:text-orange"
-                onClick={() => navigate("/favoritos")}
-              >
-                <Heart className="h-4 w-4" />
-                {favoriteCount > 0 && (
-                  <Badge 
-                    className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground"
-                  >
-                    {favoriteCount > 99 ? "99+" : favoriteCount}
-                  </Badge>
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-card border-border">Meus Favoritos</TooltipContent>
-          </Tooltip>
+          {/* Favorites - hidden on mobile, accessible from bottom nav */}
+          <div className="hidden md:block">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative h-9 w-9 hover:bg-orange/10 hover:text-orange"
+                  onClick={() => navigate("/favoritos")}
+                >
+                  <Heart className="h-4 w-4" />
+                  {favoriteCount > 0 && (
+                    <Badge 
+                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground"
+                    >
+                      {favoriteCount > 99 ? "99+" : favoriteCount}
+                    </Badge>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-card border-border">Meus Favoritos</TooltipContent>
+            </Tooltip>
+          </div>
 
-          {/* Compare */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-9 w-9 hover:bg-orange/10 hover:text-orange"
-                onClick={() => navigate("/comparar")}
-              >
-                <GitCompare className="h-4 w-4" />
-                {compareCount > 0 && (
-                  <Badge 
-                    className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground"
-                  >
-                    {compareCount > 4 ? "4" : compareCount}
-                  </Badge>
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-card border-border">Comparar Produtos</TooltipContent>
-          </Tooltip>
+          {/* Compare - hidden on mobile */}
+          <div className="hidden md:block">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative h-9 w-9 hover:bg-orange/10 hover:text-orange"
+                  onClick={() => navigate("/comparar")}
+                >
+                  <GitCompare className="h-4 w-4" />
+                  {compareCount > 0 && (
+                    <Badge 
+                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground"
+                    >
+                      {compareCount > 4 ? "4" : compareCount}
+                    </Badge>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-card border-border">Comparar Produtos</TooltipContent>
+            </Tooltip>
+          </div>
 
           {/* Divider */}
           <div className="h-6 w-px bg-border mx-1 hidden sm:block" />

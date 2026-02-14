@@ -82,13 +82,13 @@ export function MainLayout({ children }: MainLayoutProps) {
               </PageTransition>
             </main>
             
-            {/* Restart Tour Button - fixed position */}
-            <div className="fixed bottom-24 sm:bottom-20 lg:bottom-4 left-3 sm:left-4 z-40 print:hidden">
+            {/* Restart Tour Button - hidden on mobile, shown on desktop */}
+            <div className="fixed bottom-4 left-4 z-40 print:hidden hidden lg:block">
               <RestartTourButton />
             </div>
             
-            {/* Expert Chat Button - fixed position, adjusted for mobile nav */}
-            <div className="print:hidden">
+            {/* Expert Chat Button - hidden on mobile (accessible from FAB menu) */}
+            <div className="print:hidden hidden lg:block">
               <ExpertChatButton />
             </div>
             
@@ -99,7 +99,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           </div>
         </div>
         
-        {/* Scroll to Top Button */}
+        {/* Scroll to Top Button - adjusted position for mobile nav */}
         <div className="print:hidden">
           <ScrollToTopButton threshold={400} />
         </div>
