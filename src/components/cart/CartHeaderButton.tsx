@@ -2,7 +2,7 @@
  * CartHeaderButton - Ícone de carrinho no header com popover de resumo
  */
 
-import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser, Minus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -13,6 +13,10 @@ import { CartCompanyPicker } from "./CartCompanyPicker";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+function formatCurrency(value: number) {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 export function CartHeaderButton() {
   const navigate = useNavigate();
@@ -27,6 +31,7 @@ export function CartHeaderButton() {
     setActiveCartId,
     deleteCart,
     removeItem,
+    updateItemQuantity,
   } = useSellerCartContext();
 
   return (
@@ -54,7 +59,7 @@ export function CartHeaderButton() {
       </Tooltip>
 
       <PopoverContent
-        className="w-[380px] p-0 rounded-xl border-border/50 shadow-xl overflow-hidden"
+        className="w-[420px] p-0 rounded-xl border-border/50 shadow-xl overflow-hidden"
         align="end"
         sideOffset={8}
         onCloseAutoFocus={() => setShowPicker(false)}
@@ -137,10 +142,14 @@ export function CartHeaderButton() {
                 </div>
               ) : (
                 <>
-                  <ScrollArea className="max-h-[400px]">
+                  <ScrollArea className="max-h-[440px]">
                     <div className="p-3 space-y-2">
                       {carts.map((cart) => {
                         const isActive = cart.id === activeCartId;
+                        const cartSubtotal = cart.items.reduce(
+                          (sum, item) => sum + item.product_price * item.quantity,
+                          0
+                        );
                         return (
                           <div
                             key={cart.id}
@@ -176,9 +185,11 @@ export function CartHeaderButton() {
                                 )}>
                                   {cart.company_name}
                                 </p>
-                                <p className="text-[11px] text-muted-foreground mt-0.5">
-                                  {cart.company_location || "Sem localização"}
-                                </p>
+                                {cart.company_location && (
+                                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                                    {cart.company_location}
+                                  </p>
+                                )}
                               </div>
 
                               <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -230,31 +241,72 @@ export function CartHeaderButton() {
 
                             {/* Items list — only for active cart */}
                             {isActive && cart.items.length > 0 && (
-                              <div className="border-t border-border/30 px-3 py-2 space-y-1">
+                              <div className="border-t border-border/30 px-3 py-2 space-y-1.5">
                                 {cart.items.slice(0, 5).map((item) => (
                                   <div
                                     key={item.id}
-                                    className="flex items-center gap-2.5 py-1 px-1.5 rounded-md hover:bg-background/60 group/item transition-colors"
+                                    className="flex items-start gap-2.5 py-1.5 px-1.5 rounded-lg hover:bg-background/60 group/item transition-colors"
                                   >
                                     {item.product_image_url ? (
                                       <img
                                         src={item.product_image_url}
                                         alt=""
-                                        className="w-7 h-7 rounded-md object-contain bg-background border border-border/30 flex-shrink-0 p-0.5"
+                                        className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 flex-shrink-0 p-0.5 mt-0.5"
                                       />
                                     ) : (
-                                      <div className="w-7 h-7 rounded-md bg-muted/40 flex-shrink-0 flex items-center justify-center">
-                                        <Package className="h-3 w-3 text-muted-foreground/50" />
+                                      <div className="w-9 h-9 rounded-lg bg-muted/40 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                        <Package className="h-3.5 w-3.5 text-muted-foreground/50" />
                                       </div>
                                     )}
-                                    <span className="text-xs truncate flex-1 text-foreground/80 leading-tight">
-                                      {item.product_name}
-                                    </span>
-                                    <span className="text-[10px] text-muted-foreground flex-shrink-0 tabular-nums font-medium bg-muted/50 rounded px-1.5 py-0.5">
-                                      ×{item.quantity}
-                                    </span>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                      {/* Product name - 2 lines */}
+                                      <p className="text-xs text-foreground/90 leading-tight line-clamp-2">
+                                        {item.product_name}
+                                      </p>
+                                      {/* Price + Qty stepper row */}
+                                      <div className="flex items-center justify-between mt-1.5 gap-2">
+                                        <span className="text-[11px] font-semibold text-primary tabular-nums">
+                                          {formatCurrency(item.product_price)}
+                                        </span>
+                                        {/* Qty stepper */}
+                                        <div className="flex items-center gap-0 border border-border/50 rounded-md overflow-hidden">
+                                          <button
+                                            className="h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (item.quantity <= 1) {
+                                                removeItem(item.id);
+                                              } else {
+                                                updateItemQuantity(item.id, item.quantity - 1);
+                                              }
+                                            }}
+                                          >
+                                            {item.quantity <= 1 ? (
+                                              <Trash2 className="h-3 w-3 text-destructive" />
+                                            ) : (
+                                              <Minus className="h-3 w-3" />
+                                            )}
+                                          </button>
+                                          <span className="h-6 min-w-[28px] flex items-center justify-center text-[11px] font-bold tabular-nums bg-muted/20 border-x border-border/30">
+                                            {item.quantity}
+                                          </span>
+                                          <button
+                                            className="h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              updateItemQuantity(item.id, item.quantity + 1);
+                                            }}
+                                          >
+                                            <Plus className="h-3 w-3" />
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Remove button */}
                                     <button
-                                      className="h-5 w-5 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 rounded"
+                                      className="h-5 w-5 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 rounded mt-0.5"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         removeItem(item.id);
@@ -277,40 +329,55 @@ export function CartHeaderButton() {
                     </div>
                   </ScrollArea>
 
-                  {/* CTA Footer */}
-                  {activeCart && activeCart.items.length > 0 && (
-                    <div className="p-3 border-t border-border/40">
-                      <Button
-                        variant="orange"
-                        className="w-full gap-2 text-xs h-10 rounded-lg font-semibold"
-                        onClick={() => {
-                          setOpen(false);
-                          navigate("/orcamentos/novo", {
-                            state: {
-                              fromCart: true,
-                              cartId: activeCart.id,
-                              companyId: activeCart.company_id,
-                              companyName: activeCart.company_name,
-                              companyLocation: activeCart.company_location,
-                              items: activeCart.items.map(i => ({
-                                product_id: i.product_id,
-                                product_name: i.product_name,
-                                product_sku: i.product_sku,
-                                product_image_url: i.product_image_url,
-                                unit_price: i.product_price,
-                                quantity: i.quantity,
-                                color_name: i.color_name,
-                                color_hex: i.color_hex,
-                              })),
-                            },
-                          });
-                        }}
-                      >
-                        <ArrowRight className="h-3.5 w-3.5" />
-                        Gerar Orçamento
-                      </Button>
-                    </div>
-                  )}
+                  {/* CTA Footer with subtotal */}
+                  {activeCart && activeCart.items.length > 0 && (() => {
+                    const subtotal = activeCart.items.reduce(
+                      (sum, item) => sum + item.product_price * item.quantity,
+                      0
+                    );
+                    return (
+                      <div className="p-3 border-t border-border/40 space-y-2">
+                        {/* Subtotal */}
+                        <div className="flex items-center justify-between px-1">
+                          <span className="text-xs text-muted-foreground">
+                            Subtotal ({activeCart.items.length} {activeCart.items.length === 1 ? "item" : "itens"})
+                          </span>
+                          <span className="text-sm font-bold text-foreground tabular-nums">
+                            {formatCurrency(subtotal)}
+                          </span>
+                        </div>
+                        <Button
+                          variant="orange"
+                          className="w-full gap-2 text-xs h-10 rounded-lg font-semibold"
+                          onClick={() => {
+                            setOpen(false);
+                            navigate("/orcamentos/novo", {
+                              state: {
+                                fromCart: true,
+                                cartId: activeCart.id,
+                                companyId: activeCart.company_id,
+                                companyName: activeCart.company_name,
+                                companyLocation: activeCart.company_location,
+                                items: activeCart.items.map(i => ({
+                                  product_id: i.product_id,
+                                  product_name: i.product_name,
+                                  product_sku: i.product_sku,
+                                  product_image_url: i.product_image_url,
+                                  unit_price: i.product_price,
+                                  quantity: i.quantity,
+                                  color_name: i.color_name,
+                                  color_hex: i.color_hex,
+                                })),
+                              },
+                            });
+                          }}
+                        >
+                          <ArrowRight className="h-3.5 w-3.5" />
+                          Gerar Orçamento
+                        </Button>
+                      </div>
+                    );
+                  })()}
                 </>
               )}
             </motion.div>
