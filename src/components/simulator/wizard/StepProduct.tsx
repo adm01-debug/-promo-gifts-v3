@@ -1,14 +1,13 @@
 /**
  * StepProduct - Passo 1: Seleção de Produto + Quantidade
  * 
- * Design: Layout premium com cards elegantes e espaçamento generoso
+ * Design: Layout premium com virtualização para 15k+ produtos
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Package, 
@@ -16,11 +15,11 @@ import {
   X, 
   ChevronRight,
   Sparkles,
-  Tag,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from '@/lib/external-db';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import { ProductColorGrid } from './ProductColorGrid';
@@ -85,6 +84,19 @@ export function StepProduct({ wizard }: StepProductProps) {
       colors: product.colors,
     });
   };
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  // Virtualizer for large product lists
+  const ITEM_HEIGHT = 80;
+  const COLUMNS = 3;
+  const rowCount = Math.ceil(filteredProducts.length / COLUMNS);
+  
+  const virtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ITEM_HEIGHT + 12, // height + gap
+    overscan: 5,
+  });
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -160,12 +172,12 @@ export function StepProduct({ wizard }: StepProductProps) {
         </p>
       )}
 
-      {/* Products Grid - 3 columns */}
-      <ScrollArea className="h-[520px] pr-4">
+      {/* Products Grid - Virtualized */}
+      <div ref={parentRef} className="h-[520px] overflow-auto pr-2 rounded-xl">
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+              <Skeleton key={i} className="h-20 w-full rounded-2xl" />
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
@@ -177,80 +189,93 @@ export function StepProduct({ wizard }: StepProductProps) {
             <p className="text-sm mt-1">Tente outro termo de busca</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <AnimatePresence mode="popLayout">
-              {filteredProducts.slice(0, 60).map((product, idx) => {
-                const isSelected = wizard.selectedProduct?.id === product.id;
-                
-                return (
-                  <motion.button
-                    key={product.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: idx * 0.015 }}
-                    onClick={() => handleSelectProduct(product)}
-                    className={cn(
-                      'w-full p-4 rounded-2xl text-left transition-all duration-300',
-                      'flex items-center gap-4 group',
-                      isSelected 
-                        ? 'bg-primary/10 ring-2 ring-primary shadow-lg shadow-primary/10'
-                        : 'bg-card hover:bg-muted/60 hover:shadow-md border border-transparent hover:border-border/50'
-                    )}
-                  >
-                    {/* Image */}
-                    <div className={cn(
-                      'w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden transition-transform',
-                      'bg-gradient-to-br from-muted to-muted/50',
-                      'group-hover:scale-105'
-                    )}>
-                      {product.imageUrl ? (
-                        <img 
-                          src={product.imageUrl} 
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="h-5 w-5 text-muted-foreground/40" />
+          <div
+            style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const startIdx = virtualRow.index * COLUMNS;
+              const rowProducts = filteredProducts.slice(startIdx, startIdx + COLUMNS);
+
+              return (
+                <div
+                  key={virtualRow.key}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-3"
+                >
+                  {rowProducts.map((product) => {
+                    const isSelected = wizard.selectedProduct?.id === product.id;
+                    
+                    return (
+                      <button
+                        key={product.id}
+                        onClick={() => handleSelectProduct(product)}
+                        className={cn(
+                          'w-full p-4 rounded-2xl text-left transition-all duration-200',
+                          'flex items-center gap-4 group',
+                          isSelected 
+                            ? 'bg-primary/10 ring-2 ring-primary shadow-lg shadow-primary/10'
+                            : 'bg-card hover:bg-muted/60 hover:shadow-md border border-transparent hover:border-border/50'
+                        )}
+                      >
+                        {/* Image */}
+                        <div className={cn(
+                          'w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden transition-transform',
+                          'bg-gradient-to-br from-muted to-muted/50',
+                          'group-hover:scale-105'
+                        )}>
+                          {product.imageUrl ? (
+                            <img 
+                              src={product.imageUrl} 
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="h-5 w-5 text-muted-foreground/40" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm line-clamp-2 leading-tight">
-                        {product.name}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <Badge variant="secondary" className="text-[10px] font-mono h-5">
-                          {product.sku}
-                        </Badge>
-                      </div>
-                    </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm line-clamp-2 leading-tight">
+                            {product.name}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <Badge variant="secondary" className="text-[10px] font-mono h-5">
+                              {product.sku}
+                            </Badge>
+                          </div>
+                        </div>
 
-                    {/* Price & Check */}
-                    <div className="text-right shrink-0">
-                      <p className="text-base font-bold text-primary">
-                        {formatCurrency(product.price)}
-                      </p>
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="w-5 h-5 rounded-full bg-primary flex items-center justify-center mt-1 ml-auto"
-                        >
-                          <Sparkles className="h-3 w-3 text-primary-foreground" />
-                        </motion.div>
-                      )}
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </AnimatePresence>
+                        {/* Price & Check */}
+                        <div className="text-right shrink-0">
+                          <p className="text-base font-bold text-primary">
+                            {formatCurrency(product.price)}
+                          </p>
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center mt-1 ml-auto">
+                              <Sparkles className="h-3 w-3 text-primary-foreground" />
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       {/* Bottom CTA - only when product selected */}
       {wizard.selectedProduct && (

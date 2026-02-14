@@ -15,7 +15,8 @@ import {
   PersonalizationSummary,
   PersonalizationTabs,
 } from "@/components/simulator/wizard";
-import { Calculator, Sparkles } from "lucide-react";
+import { MobilePersonalizationSummary } from "@/components/simulator/wizard/MobilePersonalizationSummary";
+import { Calculator } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import type { SelectedProduct } from "@/types/domain/simulator-wizard";
@@ -82,41 +83,20 @@ export default function SimuladorWizard() {
   return (
     <MainLayout>
       <div className="min-h-[calc(100vh-8rem)]">
-        {/* Hero Header */}
+        {/* Compact Header */}
         <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative mb-8"
+          transition={{ duration: 0.3 }}
+          className="flex items-center gap-3 mb-6 px-1"
         >
-          <div className="absolute inset-0 -z-10 overflow-hidden">
-            <div className="absolute -top-40 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-            <div className="absolute -top-20 right-10 w-72 h-72 bg-accent/10 rounded-full blur-3xl" />
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
+            <Calculator className="h-5 w-5 text-primary-foreground" />
           </div>
-
-          <div className="text-center py-6">
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.1, type: "spring" }}
-              className="inline-flex items-center gap-3 mb-3"
-            >
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl" />
-                <div className="relative p-3 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-                  <Calculator className="h-6 w-6 text-primary-foreground" />
-                </div>
-              </div>
-              <div className="text-left">
-                <h1 className="font-display text-2xl font-bold tracking-tight">
-                  Simulador
-                </h1>
-                <p className="text-primary font-medium text-sm flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  Personalização
-                </p>
-              </div>
-            </motion.div>
+          <div>
+            <h1 className="font-display text-xl font-bold tracking-tight">
+              Simulador de Personalização
+            </h1>
           </div>
         </motion.div>
 
@@ -182,6 +162,15 @@ export default function SimuladorWizard() {
             </motion.aside>
           )}
         </div>
+
+        {/* Mobile Summary Bottom Bar */}
+        {showSidebar && (
+          <MobilePersonalizationSummary
+            wizard={wizard}
+            onAddNew={handleAddNewPersonalization}
+            onGenerateQuote={handleGenerateQuote}
+          />
+        )}
       </div>
     </MainLayout>
   );

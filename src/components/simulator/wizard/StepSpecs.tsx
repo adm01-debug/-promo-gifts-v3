@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -175,8 +176,6 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   )}
                 >
                   {num} {num === 1 ? 'cor' : 'cores'}
-                  {num === 2 && ' (-10%)'}
-                  {num === 3 && ' (-15%)'}
                 </Button>
               ))}
             </div>
@@ -229,10 +228,42 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
             </div>
 
             {/* Width */}
-            <div className="space-y-3 mb-5">
-              <div className="flex justify-between text-sm">
+            <div className="space-y-2 mb-5">
+              <div className="flex justify-between items-center text-sm">
                 <Label className="font-medium">Largura</Label>
-                <span className="font-bold text-primary">{engravingSpecs.width}cm</span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg"
+                    onClick={() => wizard.updateSpecs({ width: Math.max(0.5, engravingSpecs.width - 0.5) })}
+                    disabled={engravingSpecs.width <= 0.5}
+                  >
+                    −
+                  </Button>
+                  <Input
+                    type="number"
+                    value={engravingSpecs.width}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      if (!isNaN(v) && v >= 0.5 && v <= maxWidth) wizard.updateSpecs({ width: v });
+                    }}
+                    min={0.5}
+                    max={maxWidth}
+                    step={0.5}
+                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg"
+                    onClick={() => wizard.updateSpecs({ width: Math.min(maxWidth, engravingSpecs.width + 0.5) })}
+                    disabled={engravingSpecs.width >= maxWidth}
+                  >
+                    +
+                  </Button>
+                  <span className="text-xs text-muted-foreground ml-1">cm</span>
+                </div>
               </div>
               <Slider
                 value={[engravingSpecs.width]}
@@ -240,14 +271,47 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                 max={maxWidth}
                 step={0.5}
                 onValueChange={([value]) => wizard.updateSpecs({ width: value })}
+                className="opacity-60"
               />
             </div>
 
             {/* Height */}
-            <div className="space-y-3 mb-5">
-              <div className="flex justify-between text-sm">
+            <div className="space-y-2 mb-5">
+              <div className="flex justify-between items-center text-sm">
                 <Label className="font-medium">Altura</Label>
-                <span className="font-bold text-primary">{engravingSpecs.height}cm</span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg"
+                    onClick={() => wizard.updateSpecs({ height: Math.max(0.5, engravingSpecs.height - 0.5) })}
+                    disabled={engravingSpecs.height <= 0.5}
+                  >
+                    −
+                  </Button>
+                  <Input
+                    type="number"
+                    value={engravingSpecs.height}
+                    onChange={(e) => {
+                      const v = parseFloat(e.target.value);
+                      if (!isNaN(v) && v >= 0.5 && v <= maxHeight) wizard.updateSpecs({ height: v });
+                    }}
+                    min={0.5}
+                    max={maxHeight}
+                    step={0.5}
+                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg"
+                    onClick={() => wizard.updateSpecs({ height: Math.min(maxHeight, engravingSpecs.height + 0.5) })}
+                    disabled={engravingSpecs.height >= maxHeight}
+                  >
+                    +
+                  </Button>
+                  <span className="text-xs text-muted-foreground ml-1">cm</span>
+                </div>
               </div>
               <Slider
                 value={[engravingSpecs.height]}
@@ -255,8 +319,20 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                 max={maxHeight}
                 step={0.5}
                 onValueChange={([value]) => wizard.updateSpecs({ height: value })}
+                className="opacity-60"
               />
             </div>
+
+            {/* Área Máxima shortcut */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mb-4 gap-2 text-xs"
+              onClick={() => wizard.updateSpecs({ width: maxWidth, height: maxHeight })}
+            >
+              <Ruler className="h-3 w-3" />
+              Área Máxima ({maxWidth}×{maxHeight}cm)
+            </Button>
 
             {/* Area */}
             <div className={cn(
@@ -284,7 +360,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
 
       {/* Compatibility info */}
       {compatibleCount < techniques.length && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-700 dark:text-amber-400">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-warning/10 border border-warning/20 text-sm text-warning-foreground">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>
             Com {engravingSpecs.colors} {engravingSpecs.colors === 1 ? 'cor' : 'cores'}, apenas {compatibleCount} de {techniques.length} técnicas serão compatíveis.

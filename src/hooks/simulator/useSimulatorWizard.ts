@@ -8,7 +8,7 @@
  * Usa tipos de src/types/customization.ts como fonte de dados v6.
  */
 
-import { useReducer, useCallback, useMemo, useEffect } from 'react';
+import { useReducer, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -88,9 +88,11 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         quantity: action.payload,
         comparisonResults: [],
         selectedComparison: null,
-        personalizations: [],
-        currentPersonalizationIndex: 0,
-        isEditingPersonalization: false,
+        // Manter personalizações — serão recalculadas via efeito
+        personalizations: state.personalizations.map(p => ({
+          ...p,
+          pricing: { ...p.pricing, _needsRecalc: true } as any,
+        })),
       };
     
     case 'SET_AVAILABLE_LOCATIONS':
@@ -204,6 +206,16 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
     
     case 'SET_ERROR':
       return { ...state, error: action.payload };
+
+    case 'RECALC_PERSONALIZATION_PRICING': {
+      const { personalizationId, pricing } = action.payload;
+      return {
+        ...state,
+        personalizations: state.personalizations.map(p =>
+          p.id === personalizationId ? { ...p, pricing } : p
+        ),
+      };
+    }
     
     case 'RESET_WIZARD':
       return initialState;
@@ -214,11 +226,60 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
 }
 
 // ============================================
+// PERSISTÊNCIA (localStorage)
+// ============================================
+
+const STORAGE_KEY = 'simulator_wizard_session';
+
+function saveSession(state: SimulatorWizardState) {
+  try {
+    const toSave = {
+      selectedProduct: state.selectedProduct,
+      quantity: state.quantity,
+      personalizations: state.personalizations,
+      currentStep: state.currentStep,
+      savedAt: Date.now(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch { /* quota exceeded or private mode */ }
+}
+
+function loadSession(): Partial<SimulatorWizardState> | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    // Expire after 2 hours
+    if (Date.now() - saved.savedAt > 2 * 60 * 60 * 1000) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return {
+      selectedProduct: saved.selectedProduct,
+      quantity: saved.quantity,
+      personalizations: saved.personalizations || [],
+      currentStep: saved.selectedProduct ? saved.currentStep || 'location' : 'product',
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearSession() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+// ============================================
 // HOOK PRINCIPAL
 // ============================================
 
 export function useSimulatorWizard() {
-  const [state, dispatch] = useReducer(wizardReducer, initialState);
+  const savedSession = useRef(loadSession());
+  const [state, dispatch] = useReducer(
+    wizardReducer,
+    initialState,
+    (init) => savedSession.current ? { ...init, ...savedSession.current } : init
+  );
 
   // ============================================
   // QUERY: Buscar áreas + técnicas
@@ -303,6 +364,88 @@ export function useSimulatorWizard() {
   }, [locationsData]);
 
   // ============================================
+  // EFEITO: Recalcular preços ao mudar quantidade
+  // ============================================
+
+  const recalcTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  
+  useEffect(() => {
+    const persToRecalc = state.personalizations.filter(
+      (p) => (p.pricing as any)?._needsRecalc === true
+    );
+    if (persToRecalc.length === 0) return;
+
+    if (recalcTimerRef.current) clearTimeout(recalcTimerRef.current);
+
+    recalcTimerRef.current = setTimeout(async () => {
+      for (const pers of persToRecalc) {
+        try {
+          // Find the technique info from available locations
+          const tech = state.availableLocations
+            .flatMap(loc => loc.availableTechniques)
+            .find(t => t.printAreaId === pers.technique.id);
+
+          const usaDimensao = tech?.usaDimensao !== false;
+          const cobraPorCor = tech?.cobraPorCor !== false;
+          const effectiveColors = (!cobraPorCor || (tech?.maxColors ?? 0) <= 1) ? 1 : pers.specs.colors;
+
+          const rpcParams: Record<string, unknown> = {
+            p_area_id: pers.technique.id,
+            p_quantidade: state.quantity,
+            p_num_cores: effectiveColors,
+          };
+
+          if (usaDimensao && pers.specs.width > 0 && pers.specs.height > 0) {
+            rpcParams.p_largura_cm = pers.specs.width;
+            rpcParams.p_altura_cm = pers.specs.height;
+          }
+
+          const result = await invokeExternalRpc<CustomizationPriceResponse>(
+            'fn_get_customization_price',
+            rpcParams
+          );
+
+          if (result?.success) {
+            const flat = mapPriceResponseToFlat(result);
+            dispatch({
+              type: 'RECALC_PERSONALIZATION_PRICING',
+              payload: {
+                personalizationId: pers.id,
+                pricing: {
+                  unitPrice: flat.unit_price,
+                  setupPrice: flat.faturamento_minimo_gravacao,
+                  subtotal: flat.subtotal_pecas,
+                  totalPrice: flat.total_price,
+                  costPerUnit: state.quantity > 0 ? flat.total_price / state.quantity : 0,
+                  budgetCode: flat.codigo_orcamento,
+                  productionDays: flat.production_days,
+                },
+              },
+            });
+          }
+        } catch (err) {
+          console.warn(`Erro ao recalcular preço para ${pers.technique.name}:`, err);
+        }
+      }
+      toast.success('Preços recalculados para nova tiragem!');
+    }, 600);
+
+    return () => {
+      if (recalcTimerRef.current) clearTimeout(recalcTimerRef.current);
+    };
+  }, [state.personalizations, state.quantity, state.availableLocations]);
+
+  // ============================================
+  // PERSISTÊNCIA: salvar sessão a cada mudança relevante
+  // ============================================
+
+  useEffect(() => {
+    if (state.selectedProduct) {
+      saveSession(state);
+    }
+  }, [state.selectedProduct, state.quantity, state.personalizations, state.currentStep]);
+
+  // ============================================
   // ACTIONS
   // ============================================
 
@@ -337,12 +480,11 @@ export function useSimulatorWizard() {
 
   const setQuantity = useCallback((quantity: number) => {
     const newQty = Math.max(1, quantity);
-    if (state.personalizations.length > 0 && newQty !== state.quantity) {
-      toast.warning('Quantidade alterada — gravações recalculadas', {
-        description: 'As personalizações anteriores foram removidas pois os preços mudam com a tiragem.',
-      });
-    }
+    const hasPersonalizations = state.personalizations.length > 0;
     dispatch({ type: 'SET_QUANTITY', payload: newQty });
+    if (hasPersonalizations && newQty !== state.quantity) {
+      toast.info('Recalculando preços para nova tiragem...', { duration: 2000 });
+    }
   }, [state.personalizations.length, state.quantity]);
 
   const selectLocation = useCallback((location: EngravingLocation | null) => {
@@ -557,6 +699,7 @@ export function useSimulatorWizard() {
 
   const resetWizard = useCallback(() => {
     dispatch({ type: 'RESET_WIZARD' });
+    clearSession();
   }, []);
 
   // ============================================

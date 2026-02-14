@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
+import { RemovePersonalizationDialog } from './RemovePersonalizationDialog';
 
 interface PersonalizationSummaryProps {
   wizard: UseSimulatorWizardReturn;
@@ -166,14 +167,11 @@ export function PersonalizationSummary({
                               >
                                 <Edit2 className="h-3 w-3" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-destructive hover:text-destructive"
-                                onClick={() => wizard.removePersonalization(pers.id)}
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
+                              <RemovePersonalizationDialog
+                                techniqueName={pers.technique.name}
+                                locationName={pers.location.locationName}
+                                onConfirm={() => wizard.removePersonalization(pers.id)}
+                              />
                             </div>
                           </div>
                         </div>
