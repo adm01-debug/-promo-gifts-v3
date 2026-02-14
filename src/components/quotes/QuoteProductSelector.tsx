@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import Fuse from "fuse.js";
-import { Plus, Search, Package, ShoppingCart, X } from "lucide-react";
+import { Plus, Search, Package, ShoppingCart, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product, ProductColor } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
 import { useDebounce } from "@/hooks/useDebounce";
+import { toast } from "sonner";
 
 interface QuoteProductSelectorProps {
   onProductAdd: (item: QuoteItem) => void;
@@ -44,13 +45,21 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedColor, setSelectedColor] = useState<ProductColor | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [addedCount, setAddedCount] = useState(0);
+  const [sessionAddedIds, setSessionAddedIds] = useState<string[]>([]);
 
   const debouncedQuery = useDebounce(searchQuery, 300);
 
+  // Combine existing + session-added IDs to hide already-added products
+  const allAddedIds = useMemo(
+    () => [...existingProductIds, ...sessionAddedIds],
+    [existingProductIds, sessionAddedIds]
+  );
+
   // Products not yet in quote
   const availableProducts = useMemo(
-    () => products.filter(p => !existingProductIds.includes(p.id)),
-    [products, existingProductIds]
+    () => products.filter(p => !allAddedIds.includes(p.id)),
+    [products, allAddedIds]
   );
 
   // Fuse index — only rebuild when available products change
@@ -81,8 +90,14 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     };
 
     onProductAdd(item);
-    resetSelection();
-    setOpen(false);
+    setAddedCount(prev => prev + 1);
+    setSessionAddedIds(prev => [...prev, selectedProduct.id]);
+    toast.success(`"${selectedProduct.name}" adicionado ao orçamento`);
+    
+    // Go back to list (multi-add) instead of closing
+    setSelectedProduct(null);
+    setSelectedColor(null);
+    setQuantity(1);
   };
 
   const resetSelection = () => {
@@ -90,6 +105,13 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     setSelectedColor(null);
     setQuantity(1);
     setSearchQuery("");
+    setAddedCount(0);
+    setSessionAddedIds([]);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    resetSelection();
   };
 
   const formatCurrency = (value: number) => {
@@ -110,18 +132,24 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
           Adicionar Produto
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[80vh]">
+      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
             Selecionar Produto
+            {addedCount > 0 && (
+              <Badge variant="default" className="ml-2 gap-1">
+                <Check className="h-3 w-3" />
+                {addedCount} adicionado{addedCount !== 1 ? 's' : ''}
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
 
         {!selectedProduct ? (
-          <>
+          <div className="flex flex-col flex-1 min-h-0">
             {/* Search with clear button and result counter */}
-            <div className="space-y-2">
+            <div className="space-y-2 shrink-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -147,7 +175,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
               )}
             </div>
 
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="flex-1 mt-3 pr-4" style={{ maxHeight: addedCount > 0 ? '320px' : '400px' }}>
               <div className="space-y-2">
                 {filteredProducts.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -200,7 +228,20 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                 )}
               </div>
             </ScrollArea>
-          </>
+
+            {/* Sticky footer — visible when items have been added */}
+            {addedCount > 0 && (
+              <div className="shrink-0 mt-3 pt-3 border-t flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">{addedCount}</span> produto{addedCount !== 1 ? 's' : ''} adicionado{addedCount !== 1 ? 's' : ''} ao orçamento
+                </p>
+                <Button onClick={handleClose} className="gap-2">
+                  <Check className="h-4 w-4" />
+                  Concluir
+                </Button>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="space-y-6">
             {/* Selected Product Info */}
