@@ -348,7 +348,6 @@ export function CartHeaderButton() {
                         </div>
                         <Button
                           className="w-full gap-2 text-xs h-10 rounded-lg font-semibold bg-emerald-500 hover:bg-emerald-600 text-white"
-                          className="w-full gap-2 text-xs h-10 rounded-lg font-semibold"
                           onClick={() => {
                             setOpen(false);
                             navigate("/orcamentos/novo", {
