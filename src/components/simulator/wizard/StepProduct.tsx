@@ -23,7 +23,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from '@/lib/external-db';
+import { fetchPromobrindProducts, fetchPromobrindCategories, getProductPrice, getProductImageUrl } from '@/lib/external-db';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import { ProductColorGrid } from './ProductColorGrid';
 import { useWizardDrafts } from '@/hooks/simulator/useWizardDrafts';
@@ -40,25 +40,42 @@ export function StepProduct({ wizard }: StepProductProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const { drafts } = useWizardDrafts();
 
+  // Fetch categories for name resolution
+  const { data: categoriesMap } = useQuery({
+    queryKey: ['wizard-categories'],
+    queryFn: async () => {
+      const cats = await fetchPromobrindCategories();
+      const map = new Map<string, string>();
+      cats.forEach(c => map.set(c.id, c.name));
+      return map;
+    },
+    staleTime: 30 * 60 * 1000,
+  });
+
   // Fetch products - sem limite para buscar todos os produtos do catálogo
   const { data: products, isLoading } = useQuery({
-    queryKey: ['wizard-products-all'],
+    queryKey: ['wizard-products-all', categoriesMap ? 'ready' : 'pending'],
     queryFn: async () => {
       const data = await fetchPromobrindProducts();
       return data
         .filter(p => p.active !== false && p.is_active !== false)
-        .map(p => ({
-          id: p.id,
-          name: p.name,
-          sku: p.sku,
-          price: getProductPrice(p),
-          imageUrl: getProductImageUrl(p),
-          categoryName: p.category_id || null,
-          brand: p.brand || null,
-          colors: (p.colors as Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string }>) || [],
-        }));
+        .map(p => {
+          const catId = p.category_id || null;
+          const catName = catId && categoriesMap ? (categoriesMap.get(catId) || null) : null;
+          return {
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            price: getProductPrice(p),
+            imageUrl: getProductImageUrl(p),
+            categoryName: catName,
+            brand: p.brand || null,
+            colors: (p.colors as Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string }>) || [],
+          };
+        });
     },
     staleTime: 10 * 60 * 1000,
+    enabled: !!categoriesMap,
   });
 
   // Extract unique categories for filter chips
