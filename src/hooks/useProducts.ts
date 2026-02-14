@@ -177,7 +177,7 @@ const KNOWN_COLOR_HEX: Record<string, string> = {
 };
 
 // Busca hex em mapeamento conhecido
-function findKnownHex(colorName: string): string | null {
+export function findKnownHex(colorName: string): string | null {
   if (!colorName) return null;
   const nameLower = colorName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
   
