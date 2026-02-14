@@ -129,40 +129,38 @@ export default function SimuladorWizard() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex items-center justify-between gap-3 mb-6 px-1"
+          className="flex items-center justify-between gap-3 mb-4 px-1"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25">
-              <Calculator className="h-5 w-5 text-primary-foreground" />
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/25">
+              <Calculator className="h-4 w-4 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="font-display text-xl font-bold tracking-tight">
-                Simulador de Personalização
-              </h1>
-            </div>
+            <h1 className="font-display text-lg font-bold tracking-tight">
+              Simulador
+            </h1>
           </div>
 
           {/* Draft Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {wizard.selectedProduct && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="gap-2"
+                className="gap-1.5 h-8 px-2.5"
                 onClick={() => {
                   setDraftTitle(`${wizard.selectedProduct?.name} - ${wizard.quantity}un`);
                   setSaveDialogOpen(true);
                 }}
               >
-                <Save className="h-4 w-4" />
-                <span className="hidden sm:inline">Salvar</span>
+                <Save className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs">Salvar</span>
               </Button>
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <FolderOpen className="h-4 w-4" />
-                  <span className="hidden sm:inline">Rascunhos</span>
+                <Button variant="ghost" size="sm" className="gap-1.5 h-8 px-2.5">
+                  <FolderOpen className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-xs">Rascunhos</span>
                   {drafts.length > 0 && (
                     <Badge variant="secondary" className="text-[10px] h-4 px-1.5">
                       {drafts.length}
