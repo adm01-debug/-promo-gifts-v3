@@ -3,7 +3,7 @@
  * Combines: Theme, Notifications, Stock Alerts, etc. into a single menu for mobile
  */
 import { 
-  Sun, Moon, Bell, Package, Settings, MoreHorizontal, 
+  Sun, Moon, Package, Settings, MoreHorizontal, 
   HelpCircle, Palette, Shield
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -24,13 +24,11 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderActionsMenuProps {
-  notificationCount?: number;
   reminderCount?: number;
   stockAlertCount?: number;
 }
 
 export function HeaderActionsMenu({ 
-  notificationCount = 0, 
   reminderCount = 0,
   stockAlertCount = 0 
 }: HeaderActionsMenuProps) {
@@ -38,7 +36,7 @@ export function HeaderActionsMenu({
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
 
-  const totalCount = notificationCount + reminderCount + stockAlertCount;
+  const totalCount = reminderCount + stockAlertCount;
 
   return (
     <DropdownMenu>
@@ -97,20 +95,6 @@ export function HeaderActionsMenu({
         </DropdownMenuSub>
 
         <DropdownMenuSeparator className="bg-border" />
-
-        {/* Notifications */}
-        <DropdownMenuItem 
-          onClick={() => navigate("/notificacoes")}
-          className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
-        >
-          <Bell className="h-4 w-4 mr-2" />
-          Notificações
-          {notificationCount > 0 && (
-            <Badge className="ml-auto bg-destructive text-destructive-foreground text-xs">
-              {notificationCount}
-            </Badge>
-          )}
-        </DropdownMenuItem>
 
         {/* Stock Alerts */}
         <DropdownMenuItem 
