@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef } from "react";
 import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Plus, Search, Package, ShoppingCart, X, Check } from "lucide-react";
+import { Plus, Minus, Search, Package, ShoppingCart, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -342,18 +342,42 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             </div>
           </div>
 
-          {/* Quantity */}
+          {/* Quantity Stepper */}
           <div>
             <label className="text-sm font-medium mb-2 block">
               Quantidade (mínimo: {selectedProduct.minQuantity || 1})
             </label>
-            <Input
-              type="number"
-              min={selectedProduct.minQuantity || 1}
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(selectedProduct.minQuantity || 1, parseInt(e.target.value) || 0))}
-              className="w-32"
-            />
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                onClick={() => setQuantity(prev => Math.max(selectedProduct.minQuantity || 1, prev - 1))}
+                disabled={quantity <= (selectedProduct.minQuantity || 1)}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <Input
+                type="number"
+                min={selectedProduct.minQuantity || 1}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(selectedProduct.minQuantity || 1, parseInt(e.target.value) || 0))}
+                className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                onClick={() => setQuantity(prev => prev + 1)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {quantity < (selectedProduct.minQuantity || 1) && (
+              <p className="text-xs text-destructive mt-1">
+                Quantidade mínima: {selectedProduct.minQuantity || 1} unidades
+              </p>
+            )}
           </div>
 
           {/* Summary */}
