@@ -251,8 +251,9 @@ export function StepProduct({ wizard }: StepProductProps) {
 
       {/* Category filter chips */}
       {categories.length > 0 && (
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <div className="relative">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none pr-8">
+            <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Button
             variant={selectedCategory === null ? 'default' : 'outline'}
             size="sm"
@@ -273,6 +274,8 @@ export function StepProduct({ wizard }: StepProductProps) {
               <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">{cat.count}</Badge>
             </Button>
           ))}
+          </div>
+          <div className="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
         </div>
       )}
 
