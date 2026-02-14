@@ -693,79 +693,71 @@ export default function QuoteBuilderPage() {
           </Card>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Client and Date */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Informações do Orçamento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <CompanyContactSelector
-                    companyId={clientId}
-                    contactId={contactId}
-                    onCompanyChange={setClientId}
-                    onContactChange={setContactId}
-                    onCompanyInfoChange={setCompanyInfo}
-                    onContactInfoChange={setContactInfo}
-                  />
-
-                  {/* Válido até - será exibido em seção dedicada futuramente */}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Items with Personalization */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">Itens do Orçamento</CardTitle>
-                  <CardDescription>
-                    {items.length} {items.length === 1 ? "item" : "itens"} adicionados
-                  </CardDescription>
-                </div>
-                <Button onClick={() => setProductSearchOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Produto
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <DraggableQuoteItems
-                  items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
-                  onReorder={(reorderedItems) => setItems(reorderedItems)}
-                  onUpdateQuantity={updateItemQuantity}
-                  onUpdatePrice={updateItemPrice}
-                  onRemove={removeItem}
-                  onTogglePersonalization={toggleExpanded}
-                  expandedItems={expandedItems}
-                  renderPersonalization={(item, index) => (
-                    <QuoteProductCustomization
-                      productId={item.product_id}
-                      quantity={item.quantity}
-                      existingPersonalizations={item.personalizations}
-                      onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
-                    />
-                  )}
-                  formatCurrency={formatCurrency}
+        <div className="space-y-6">
+          {/* Client and Date */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Informações do Orçamento</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <CompanyContactSelector
+                  companyId={clientId}
+                  contactId={contactId}
+                  onCompanyChange={setClientId}
+                  onContactChange={setContactId}
+                  onCompanyInfoChange={setCompanyInfo}
+                  onContactInfoChange={setContactInfo}
                 />
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-          </div>
+          {/* Items with Personalization */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Itens do Orçamento</CardTitle>
+                <CardDescription>
+                  {items.length} {items.length === 1 ? "item" : "itens"} adicionados
+                </CardDescription>
+              </div>
+              <Button onClick={() => setProductSearchOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Produto
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <DraggableQuoteItems
+                items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
+                onReorder={(reorderedItems) => setItems(reorderedItems)}
+                onUpdateQuantity={updateItemQuantity}
+                onUpdatePrice={updateItemPrice}
+                onRemove={removeItem}
+                onTogglePersonalization={toggleExpanded}
+                expandedItems={expandedItems}
+                renderPersonalization={(item, index) => (
+                  <QuoteProductCustomization
+                    productId={item.product_id}
+                    quantity={item.quantity}
+                    existingPersonalizations={item.personalizations}
+                    onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
+                  />
+                )}
+                formatCurrency={formatCurrency}
+              />
+            </CardContent>
+          </Card>
 
-          {/* Sidebar - Summary */}
-          <div className="space-y-6">
-            <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-lg">Resumo</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+          {/* Resumo — inline footer after items */}
+          <Card className="sticky bottom-0 z-10 border-t-2 border-primary/30 shadow-lg backdrop-blur-sm bg-card/95">
+            <CardContent className="py-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                {/* Totals section */}
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-2 flex-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>Subtotal</span>
-                    <span>{formatCurrency(subtotal)}</span>
+                    <span className="font-semibold text-foreground tabular-nums">{formatCurrency(subtotal)}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -773,7 +765,7 @@ export default function QuoteBuilderPage() {
                       value={discountType}
                       onValueChange={(v) => setDiscountType(v as "percent" | "amount")}
                     >
-                      <SelectTrigger className="w-24">
+                      <SelectTrigger className="w-20 h-9">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -789,27 +781,40 @@ export default function QuoteBuilderPage() {
                       value={discountValue || ""}
                       onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
                       placeholder="Desconto"
+                      className="w-28 h-9"
                     />
                   </div>
 
                   {discountAmount > 0 && (
-                    <div className="flex justify-between text-sm text-destructive">
+                    <div className="flex items-center gap-2 text-sm text-destructive">
                       <span>Desconto</span>
-                      <span>-{formatCurrency(discountAmount)}</span>
+                      <span className="font-semibold tabular-nums">-{formatCurrency(discountAmount)}</span>
                     </div>
                   )}
 
-                  <Separator />
+                  <Separator orientation="vertical" className="h-8 hidden md:block" />
 
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>{formatCurrency(total)}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold">Total</span>
+                    <span className="text-xl font-bold text-primary tabular-nums">{formatCurrency(total)}</span>
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-4">
+                {/* Action buttons */}
+                <div className="flex items-center gap-2 shrink-0">
                   <Button
-                    className="w-full"
+                    variant="outline"
+                    onClick={() => handleSaveQuote("draft")}
+                    disabled={quotesLoading || items.length === 0}
+                  >
+                    {quotesLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 mr-2" />
+                    )}
+                    {isEditMode ? "Salvar" : "Rascunho"}
+                  </Button>
+                  <Button
                     onClick={() => handleSaveQuote("pending")}
                     disabled={quotesLoading || items.length === 0}
                   >
@@ -820,23 +825,10 @@ export default function QuoteBuilderPage() {
                     )}
                     {isEditMode ? "Salvar e Enviar" : "Criar e Enviar"}
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => handleSaveQuote("draft")}
-                    disabled={quotesLoading || items.length === 0}
-                  >
-                    {quotesLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    {isEditMode ? "Salvar Alterações" : "Salvar Rascunho"}
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
