@@ -2987,6 +2987,98 @@ export type Database = {
           },
         ]
       }
+      seller_cart_items: {
+        Row: {
+          cart_id: string
+          color_hex: string | null
+          color_name: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          product_id: string
+          product_image_url: string | null
+          product_name: string
+          product_price: number
+          product_sku: string | null
+          quantity: number
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          cart_id: string
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          product_image_url?: string | null
+          product_name: string
+          product_price?: number
+          product_sku?: string | null
+          quantity?: number
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cart_id?: string
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          product_image_url?: string | null
+          product_name?: string
+          product_price?: number
+          product_sku?: string | null
+          quantity?: number
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "seller_carts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_carts: {
+        Row: {
+          company_id: string
+          company_location: string | null
+          company_logo_url: string | null
+          company_name: string
+          created_at: string
+          id: string
+          seller_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          company_location?: string | null
+          company_logo_url?: string | null
+          company_name: string
+          created_at?: string
+          id?: string
+          seller_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          company_location?: string | null
+          company_logo_url?: string | null
+          company_name?: string
+          created_at?: string
+          id?: string
+          seller_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seller_gamification: {
         Row: {
           coins: number

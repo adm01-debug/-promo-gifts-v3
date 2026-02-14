@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { useSellerCartContext } from "@/contexts/SellerCartContext";
 
 interface QuickAddToQuoteProps {
   productId: string;
   productName: string;
+  productSku?: string;
+  productImageUrl?: string;
+  productPrice?: number;
   minQuantity?: number;
   className?: string;
   variant?: "icon" | "button";
@@ -16,7 +19,10 @@ interface QuickAddToQuoteProps {
 
 export function QuickAddToQuote({ 
   productId, 
-  productName, 
+  productName,
+  productSku,
+  productImageUrl,
+  productPrice = 0,
   minQuantity = 1,
   className,
   variant = "button"
@@ -24,18 +30,24 @@ export function QuickAddToQuote({
   const [quantity, setQuantity] = useState(minQuantity);
   const [isOpen, setIsOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+  const { activeCart, addToActiveCart } = useSellerCartContext();
 
   const handleAddToQuote = () => {
-    // TODO: Integrar com contexto de orçamento
-    setIsAdded(true);
-    toast.success(`${productName} adicionado ao orçamento`, {
-      description: `Quantidade: ${quantity} unidades`,
+    addToActiveCart({
+      product_id: productId,
+      product_name: productName,
+      product_sku: productSku,
+      product_image_url: productImageUrl,
+      product_price: productPrice,
+      quantity,
     });
     
+    setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
       setIsOpen(false);
-    }, 1500);
+      setQuantity(minQuantity);
+    }, 1200);
   };
 
   return (
@@ -69,8 +81,18 @@ export function QuickAddToQuote({
       <PopoverContent className="w-64 p-4" align="end" onClick={(e) => e.stopPropagation()}>
         <div className="space-y-4">
           <div>
-            <h4 className="font-medium text-sm mb-1">Adicionar ao orçamento</h4>
+            <h4 className="font-medium text-sm mb-1">Adicionar ao carrinho</h4>
             <p className="text-xs text-muted-foreground line-clamp-1">{productName}</p>
+            {activeCart && (
+              <p className="text-[10px] text-primary mt-1 font-medium truncate">
+                → {activeCart.company_name}
+              </p>
+            )}
+            {!activeCart && (
+              <p className="text-[10px] text-destructive mt-1">
+                Nenhum carrinho ativo
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -106,7 +128,7 @@ export function QuickAddToQuote({
           <Button
             className="w-full gap-2"
             onClick={handleAddToQuote}
-            disabled={isAdded}
+            disabled={isAdded || !activeCart}
           >
             {isAdded ? (
               <>
@@ -115,8 +137,8 @@ export function QuickAddToQuote({
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4" />
-                Adicionar ao Orçamento
+                <ShoppingCart className="h-4 w-4" />
+                Adicionar ao Carrinho
               </>
             )}
           </Button>

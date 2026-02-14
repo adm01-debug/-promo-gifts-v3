@@ -22,6 +22,7 @@ import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicato
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { FollowUpRemindersPopover } from "@/components/reminders/FollowUpRemindersPopover";
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
+import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
 import { useIsScrolled } from "@/hooks/useScroll";
 import { cn } from "@/lib/utils";
 
@@ -142,6 +143,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             </div>
             <NotificationCenter />
           </div>
+
+          {/* Seller Cart - visible on all screens */}
+          <CartHeaderButton />
 
           {/* Stock Alerts - hidden on mobile */}
           <div className="hidden md:block">
