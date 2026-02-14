@@ -504,28 +504,28 @@ function ConfirmedSummary({
         transition={{ delay: 0.2 }}
         className="rounded-2xl overflow-hidden shadow-xl"
       >
-        <div className="bg-gradient-to-br from-primary via-primary to-primary/90 p-6 text-primary-foreground">
+        <div className="bg-gradient-to-br from-primary via-primary to-primary/90 p-5 text-primary-foreground">
           <div className="grid grid-cols-[2fr_1.5fr_1fr] gap-3 items-stretch">
             {/* Total Geral — destaque principal */}
-            <div className="p-4 rounded-xl bg-white/20 backdrop-blur-sm border border-white/25 shadow-lg shadow-black/10">
-              <p className="text-[10px] font-medium tracking-wider opacity-60 mb-1">Total geral</p>
-              <p className="text-3xl font-extrabold tracking-tight">{formatCurrency(wizard.totals.grandTotal)}</p>
+            <div className="p-4 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/20">
+              <p className="text-[10px] font-medium tracking-wider text-white/60 mb-1">Total geral</p>
+              <p className="text-3xl font-extrabold tracking-tight text-white">{formatCurrency(wizard.totals.grandTotal)}</p>
             </div>
-            {/* Por Unidade — hierarquia secundária */}
-            <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10">
-              <p className="text-[10px] font-medium tracking-wider opacity-60 mb-1">Por unidade</p>
-              <p className="text-[10px] opacity-50 mb-0.5">(produto + gravação)</p>
-              <p className="text-xl font-bold">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
+            {/* Por Unidade */}
+            <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10">
+              <p className="text-[10px] font-medium tracking-wider text-white/60 mb-0.5">Por unidade</p>
+              <p className="text-[10px] text-white/40 mb-1">(produto + gravação)</p>
+              <p className="text-xl font-bold text-white">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
             </div>
-            {/* Prazo — com ícone contextual */}
-            <div className="p-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 flex flex-col justify-between">
-              <p className="text-[10px] font-medium tracking-wider opacity-60 mb-1">Prazo máx.</p>
+            {/* Prazo */}
+            <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10 flex flex-col justify-between">
+              <p className="text-[10px] font-medium tracking-wider text-white/60 mb-1">Prazo máx.</p>
               {wizard.totals.maxDays > 0 ? (
-                <p className="text-xl font-bold">~{wizard.totals.maxDays}d</p>
+                <p className="text-xl font-bold text-white">~{wizard.totals.maxDays}d</p>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <AlertCircle className="h-3.5 w-3.5 opacity-70 shrink-0" />
-                  <p className="text-sm font-semibold">A consultar</p>
+                  <AlertCircle className="h-3.5 w-3.5 text-white/70 shrink-0" />
+                  <p className="text-sm font-semibold text-white">A consultar</p>
                 </div>
               )}
             </div>
