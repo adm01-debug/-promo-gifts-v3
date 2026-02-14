@@ -169,8 +169,8 @@ export function PdfGenerationDialog({
         <div className="flex-1 overflow-hidden">
           {stage === "preview" && (
             <div className="flex flex-col h-full">
-              {/* Preview area */}
-              <div className="flex-1 overflow-auto bg-muted/30 p-4">
+              {/* Preview area — scrollable */}
+              <div className="flex-1 overflow-auto bg-muted/30 p-4" style={{ maxHeight: "calc(90vh - 160px)" }}>
                 <div className="mx-auto" style={{ maxWidth: "794px" }}>
                   <div className="relative bg-white rounded-lg shadow-lg overflow-hidden">
                     {/* Watermark for drafts */}
@@ -190,31 +190,29 @@ export function PdfGenerationDialog({
                         </span>
                       </div>
                     )}
-                    <div 
-                      className="origin-top-left"
-                      style={{ 
-                        transform: "scale(0.65)",
-                        transformOrigin: "top left",
-                        width: "794px",
-                        marginBottom: "-35%",
-                      }}
-                    >
-                      <ProposalHtmlTemplate data={proposalData} />
-                    </div>
+                    <ProposalHtmlTemplate data={proposalData} />
                   </div>
                 </div>
               </div>
 
-              {/* Generate CTA */}
-              <div className="px-6 py-4 border-t border-border bg-card flex items-center justify-between">
+              {/* Actions footer */}
+              <div className="px-6 py-4 border-t border-border bg-card flex items-center justify-between gap-3">
                 <p className="text-sm text-muted-foreground">
                   <Eye className="h-4 w-4 inline-block mr-1" />
                   Confira o layout antes de gerar
                 </p>
-                <Button size="lg" className="gap-2 px-8" onClick={handleGenerate}>
-                  <FileText className="h-4 w-4" />
-                  Gerar PDF
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button size="lg" className="gap-2 px-8" onClick={handleGenerate}>
+                    <FileText className="h-4 w-4" />
+                    Gerar PDF
+                  </Button>
+                  {onWhatsApp && (
+                    <Button size="lg" variant="outline" className="gap-2 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10" onClick={onWhatsApp}>
+                      <MessageCircle className="h-4 w-4" />
+                      WhatsApp
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           )}
