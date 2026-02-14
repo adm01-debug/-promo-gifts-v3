@@ -116,6 +116,10 @@ export interface PromobrindProduct {
   dimensions?: string | null;
   min_quantity?: number | null;
   
+  // Timestamps
+  created_at?: string | null;
+  updated_at?: string | null;
+  
   // Dimensões físicas
   height_cm?: number | null;
   width_cm?: number | null;
@@ -150,7 +154,7 @@ const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
+  'materials, dimensions, min_quantity, created_at, updated_at, height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
   'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
@@ -158,7 +162,7 @@ const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
+  'materials, dimensions, min_quantity, created_at, updated_at, height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
   'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
