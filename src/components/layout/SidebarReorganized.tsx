@@ -186,7 +186,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
       return (
         <Tooltip key={item.href} delayDuration={0}>
           <TooltipTrigger asChild>
-            {linkContent}
+            <div>{linkContent}</div>
           </TooltipTrigger>
           <TooltipContent side="right" className="bg-card border-border">
             {item.label}
