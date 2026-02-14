@@ -205,15 +205,6 @@ export default function QuoteViewPage() {
   return (
     <MainLayout>
       <div className="container py-6 space-y-6 pb-24 md:pb-6 print:py-0 print:max-w-none print:px-0">
-        {/* Breadcrumb with quote number (#10) */}
-        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground print:hidden">
-          <button onClick={() => navigate("/")} className="hover:text-foreground transition-colors">Início</button>
-          <span>›</span>
-          <button onClick={() => navigate("/orcamentos")} className="hover:text-foreground transition-colors">Orçamentos</button>
-          <span>›</span>
-          <span className="text-foreground font-medium">{quote.quote_number || "Novo"}</span>
-        </nav>
-
         {/* Header — Reorganized (#1) */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">
