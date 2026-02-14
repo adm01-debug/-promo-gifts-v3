@@ -189,12 +189,15 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
               ))}
             </div>
 
-            <p className="text-sm text-muted-foreground mt-4">
-              {engravingSpecs.colors === 1 
-                ? '1 cor de gravação' 
-                : `${engravingSpecs.colors} cores com desconto progressivo`
-              }
-            </p>
+            {estimate && !priceLoading && engravingSpecs.colors > 1 ? (
+              <p className="text-sm text-muted-foreground mt-4">
+                {engravingSpecs.colors} cores • Estimativa: <span className="font-semibold text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.unitPrice)}/un</span>
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-4">
+                {engravingSpecs.colors === 1 ? '1 cor de gravação' : `${engravingSpecs.colors} cores selecionadas`}
+              </p>
+            )}
           </motion.div>
         ) : (
           <motion.div
@@ -430,24 +433,31 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
           <ChevronLeft className="h-5 w-5" />
           Voltar
         </Button>
-        <Button
-          disabled={wizard.isCalculating || areaExceeded}
-          onClick={handleCompare}
-          size="lg"
-          className="gap-3 min-w-[220px] h-14 rounded-xl shadow-lg shadow-primary/25 text-base"
-        >
-          {wizard.isCalculating ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Calculando...
-            </>
-          ) : (
-            <>
-              <BarChart3 className="h-5 w-5" />
-              Comparar Técnicas
-            </>
+        <div className="flex flex-col items-end gap-1">
+          <Button
+            disabled={wizard.isCalculating || areaExceeded}
+            onClick={handleCompare}
+            size="lg"
+            className="gap-3 min-w-[220px] h-14 rounded-xl shadow-lg shadow-primary/25 text-base"
+          >
+            {wizard.isCalculating ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Calculando...
+              </>
+            ) : (
+              <>
+                <BarChart3 className="h-5 w-5" />
+                Comparar {techniques.length} Técnica{techniques.length !== 1 ? 's' : ''}
+              </>
+            )}
+          </Button>
+          {estimate && !priceLoading && (
+            <p className="text-[11px] text-muted-foreground/70">
+              A partir de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.unitPrice)}/un
+            </p>
           )}
-        </Button>
+        </div>
       </motion.div>
     </div>
   );

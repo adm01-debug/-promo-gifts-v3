@@ -48,11 +48,11 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
             onClick={() => wizard.editPersonalization(idx)}
           >
             <span className="font-bold">{idx + 1}.</span>
-            <span className="truncate max-w-[100px]">
+            <span className="truncate max-w-[80px]">
               {pers.location.locationName}
             </span>
-            <Badge variant="secondary" className="text-[9px] h-4 px-1">
-              {formatCurrency(pers.pricing.totalPrice)}
+            <Badge variant="secondary" className="text-[9px] h-4 px-1 gap-0.5">
+              {pers.technique.name.split(' ')[0]} • {formatCurrency(pers.pricing.totalPrice)}
             </Badge>
           </Button>
           <RemovePersonalizationDialog
