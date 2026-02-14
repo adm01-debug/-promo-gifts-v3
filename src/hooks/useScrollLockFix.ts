@@ -9,12 +9,27 @@ import { useEffect } from "react";
  */
 
 function hasActiveOverlay(): boolean {
-  return !!(
-    document.querySelector('[data-state="open"][role="dialog"]') ||
-    document.querySelector('[data-state="open"][role="alertdialog"]') ||
-    document.querySelector('[data-state="open"][role="listbox"]') ||
-    document.querySelector('[data-radix-select-content-wrapper]')
-  );
+  // Check if there's a truly visible overlay blocking the page
+  const openDialogs = document.querySelectorAll('[data-state="open"][role="dialog"], [data-state="open"][role="alertdialog"]');
+  
+  // Only count dialogs that are actually visible (not hidden or zero-size)
+  for (const dialog of openDialogs) {
+    const rect = (dialog as HTMLElement).getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      return true;
+    }
+  }
+  
+  // Check for open select content wrappers
+  const selectWrapper = document.querySelector('[data-radix-select-content-wrapper]');
+  if (selectWrapper) {
+    const rect = (selectWrapper as HTMLElement).getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      return true;
+    }
+  }
+  
+  return false;
 }
 
 function cleanScrollLockResiduals() {
@@ -94,7 +109,7 @@ export function useScrollLockFix() {
       if (!hasActiveOverlay()) {
         cleanScrollLockResiduals();
       }
-    }, 2000);
+    }, 500);
 
     return () => {
       document.removeEventListener('wheel', captureWheelHandler, { capture: true } as EventListenerOptions);
