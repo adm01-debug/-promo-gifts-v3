@@ -1533,7 +1533,7 @@ html[data-scroll-locked] body {
   /* Hide all layout chrome */
   header, nav, aside,
   .fixed, [role="navigation"],
-  .print\\:hidden {
+  .print\:hidden {
     display: none !important;
   }
 
@@ -1542,6 +1542,7 @@ html[data-scroll-locked] body {
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
+    color: black !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -1560,7 +1561,7 @@ html[data-scroll-locked] body {
   }
 
   /* Show print-only content */
-  .print\\:block {
+  .print\:block {
     display: block !important;
   }
 
@@ -1569,9 +1570,91 @@ html[data-scroll-locked] body {
     content: none !important;
   }
 
-  /* Ensure page fits */
+  /* ── Page Setup ── */
   @page {
-    margin: 0;
+    margin: 15mm;
     size: A4;
+
+    @bottom-center {
+      content: "Página " counter(page) " de " counter(pages);
+      font-size: 9px;
+      color: #999;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    @bottom-right {
+      content: "Impresso em " attr(data-print-date);
+      font-size: 9px;
+      color: #999;
+      font-family: 'Roboto', sans-serif;
+    }
+  }
+
+  /* ── Table print improvements ── */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  table thead tr {
+    background: none !important;
+    border-bottom: 2px solid #333 !important;
+  }
+
+  table thead th {
+    color: #333 !important;
+    font-weight: 600 !important;
+    padding: 8px 12px !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  table tbody tr {
+    border-bottom: 1px solid #ddd !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  table tbody td {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    color: #333 !important;
+  }
+
+  /* Tabular nums for monetary values */
+  table td:last-child,
+  table td:nth-last-child(2),
+  table td:nth-last-child(3) {
+    font-variant-numeric: tabular-nums !important;
+  }
+
+  /* ── Totals block — high contrast ── */
+  .print\:block [style*="background"],
+  .bg-muted\/50,
+  .bg-muted {
+    background: #f9f9f9 !important;
+  }
+
+  /* Force all text to black in print */
+  .text-primary,
+  .text-emerald-600,
+  .text-emerald-400,
+  .text-orange-500,
+  .text-amber-500 {
+    color: #000 !important;
+  }
+
+  /* ── Break avoidance ── */
+  .rounded-lg,
+  .border,
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* ── Ensure page fits ── */
+  * {
+    box-shadow: none !important;
   }
 }

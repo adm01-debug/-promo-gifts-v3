@@ -348,10 +348,12 @@ export default function QuoteViewPage() {
         </div>
 
         {/* Next Action Banner (#8) */}
-        <QuoteNextActionBanner 
-          status={quote.status} 
-          onSendWhatsApp={handleWhatsAppShare}
-        />
+        <div className="print:hidden">
+          <QuoteNextActionBanner 
+            status={quote.status} 
+            onSendWhatsApp={handleWhatsAppShare}
+          />
+        </div>
 
         {/* Status Timeline + Validity Banner */}
         <div className="flex flex-col md:flex-row gap-4 items-start print:hidden">
@@ -390,7 +392,7 @@ export default function QuoteViewPage() {
                     );
                   })()
                 ) : (
-                  <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30">
+                  <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30 print:hidden">
                     <UserPlus className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">Nenhum cliente vinculado</p>
@@ -527,7 +529,9 @@ export default function QuoteViewPage() {
         </Card>
 
         {/* Proposal Preview (#6) — moved up with label */}
-        <QuoteProposalPreview proposalData={proposalData} />
+        <div className="print:hidden">
+          <QuoteProposalPreview proposalData={proposalData} />
+        </div>
 
         {/* Print-only: render the same template used for PDF */}
         {proposalData && (
