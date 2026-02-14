@@ -322,15 +322,6 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
         category: "settings",
       },
       {
-        id: "notifications",
-        label: "Notificações",
-        description: "Ver todas as notificações",
-        icon: <Bell className="h-4 w-4" />,
-        action: () => goTo("/notificacoes", "Notificações"),
-        keywords: ["notificações", "notifications", "alertas"],
-        category: "settings",
-      },
-      {
         id: "theme-toggle",
         label: actualTheme === "dark" ? "Modo Claro" : "Modo Escuro",
         description: "Alternar tema do sistema",

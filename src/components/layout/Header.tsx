@@ -19,7 +19,7 @@ import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
 
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
-import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+
 import { FollowUpRemindersPopover } from "@/components/reminders/FollowUpRemindersPopover";
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
 import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
@@ -136,12 +136,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             <span className="sr-only">Alternar tema</span>
           </Button>
 
-          {/* Follow-up Reminders & Notifications - single bell on mobile */}
-          <div className="flex items-center gap-1" data-tour="notifications">
-            <div className="hidden md:block">
-              <FollowUpRemindersPopover />
-            </div>
-            <NotificationCenter />
+          {/* Follow-up Reminders */}
+          <div className="hidden md:block" data-tour="notifications">
+            <FollowUpRemindersPopover />
           </div>
 
           {/* Seller Cart - visible on all screens */}
