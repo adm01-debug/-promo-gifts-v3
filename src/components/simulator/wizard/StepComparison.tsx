@@ -30,7 +30,6 @@ import {
   Repeat,
   Undo2,
   Redo2,
-  Eye,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';

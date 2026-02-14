@@ -15,6 +15,8 @@ import {
   StepComparison,
   PersonalizationSummary,
   PersonalizationTabs,
+  WizardContextBar,
+  SimulatorErrorBoundary,
 } from "@/components/simulator/wizard";
 import { MobilePersonalizationSummary } from "@/components/simulator/wizard/MobilePersonalizationSummary";
 import { Button } from "@/components/ui/button";
@@ -215,6 +217,18 @@ export default function SimuladorWizard() {
         <div className={`flex gap-6 ${showSidebar ? 'lg:pr-80' : ''}`}>
           {/* Main Content */}
           <div className="flex-1 min-w-0">
+            {/* Context Bar */}
+            {isInPersonalizationFlow && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="mb-4"
+              >
+                <WizardContextBar wizard={wizard} />
+              </motion.div>
+            )}
+
             {/* Step Indicator */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -241,19 +255,24 @@ export default function SimuladorWizard() {
             )}
 
             {/* Step Content */}
-            <motion.div 
-              key={wizard.currentStep}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="pb-16"
+            <SimulatorErrorBoundary
+              onReset={wizard.resetWizard}
+              onGoBack={() => wizard.setStep('product')}
             >
-              {wizard.currentStep === 'product' && <StepProduct wizard={wizard} />}
-              {wizard.currentStep === 'location' && <StepLocation wizard={wizard} />}
-              {wizard.currentStep === 'specs' && <StepSpecs wizard={wizard} />}
-              {wizard.currentStep === 'comparison' && <StepComparison wizard={wizard} />}
-            </motion.div>
+              <motion.div 
+                key={wizard.currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="pb-16"
+              >
+                {wizard.currentStep === 'product' && <StepProduct wizard={wizard} />}
+                {wizard.currentStep === 'location' && <StepLocation wizard={wizard} />}
+                {wizard.currentStep === 'specs' && <StepSpecs wizard={wizard} />}
+                {wizard.currentStep === 'comparison' && <StepComparison wizard={wizard} />}
+              </motion.div>
+            </SimulatorErrorBoundary>
           </div>
 
           {/* Sidebar - Resumo */}
