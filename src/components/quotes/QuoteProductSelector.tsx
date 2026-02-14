@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Plus, Search, Package, ShoppingCart } from "lucide-react";
+import { useState, useMemo } from "react";
+import Fuse from "fuse.js";
+import { Plus, Search, Package, ShoppingCart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,11 +15,27 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product, ProductColor } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface QuoteProductSelectorProps {
   onProductAdd: (item: QuoteItem) => void;
   existingProductIds: string[];
 }
+
+// Fuse.js config — same pattern as simulator ProductSearch
+const fuseOptions: Fuse.IFuseOptions<Product> = {
+  keys: [
+    { name: 'name', weight: 0.45 },
+    { name: 'sku', weight: 0.3 },
+    { name: 'category_name', weight: 0.15 },
+    { name: 'brand', weight: 0.1 },
+  ],
+  threshold: 0.4,
+  distance: 100,
+  includeScore: true,
+  minMatchCharLength: 2,
+  ignoreLocation: true,
+};
 
 export function QuoteProductSelector({ onProductAdd, existingProductIds }: QuoteProductSelectorProps) {
   const { products } = useProductsContext();
@@ -28,12 +45,25 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const [selectedColor, setSelectedColor] = useState<ProductColor | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  const filteredProducts = products.filter(product =>
-    !existingProductIds.includes(product.id) &&
-    (product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-     (product.sku || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-     (product.category_name || '').toLowerCase().includes(searchQuery.toLowerCase()))
+  const debouncedQuery = useDebounce(searchQuery, 300);
+
+  // Products not yet in quote
+  const availableProducts = useMemo(
+    () => products.filter(p => !existingProductIds.includes(p.id)),
+    [products, existingProductIds]
   );
+
+  // Fuse index — only rebuild when available products change
+  const fuse = useMemo(
+    () => new Fuse(availableProducts, fuseOptions),
+    [availableProducts]
+  );
+
+  // Fuzzy filtered results
+  const filteredProducts = useMemo(() => {
+    if (!debouncedQuery || debouncedQuery.length < 2) return availableProducts;
+    return fuse.search(debouncedQuery).map(r => r.item);
+  }, [fuse, debouncedQuery, availableProducts]);
 
   const handleAddProduct = () => {
     if (!selectedProduct) return;
@@ -66,6 +96,9 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   };
 
+  const isSearching = debouncedQuery.length >= 2;
+  const resultCount = filteredProducts.length;
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {
       setOpen(isOpen);
@@ -87,21 +120,42 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
 
         {!selectedProduct ? (
           <>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar produto por nome, SKU ou categoria..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
+            {/* Search with clear button and result counter */}
+            <div className="space-y-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nome, SKU, categoria ou marca..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-10"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              {isSearching && (
+                <p className="text-xs text-muted-foreground px-1">
+                  {resultCount} produto{resultCount !== 1 ? 's' : ''} encontrado{resultCount !== 1 ? 's' : ''}
+                </p>
+              )}
             </div>
 
             <ScrollArea className="h-[400px] pr-4">
               <div className="space-y-2">
                 {filteredProducts.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    Nenhum produto encontrado
+                    <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum produto encontrado</p>
+                    {isSearching && (
+                      <p className="text-xs mt-1">Tente ajustar o termo de busca</p>
+                    )}
                   </div>
                 ) : (
                   filteredProducts.map((product) => (
@@ -118,7 +172,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium truncate">{product.name}</h4>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>{product.sku || 'N/A'}</span>
+                          <span className="font-mono text-xs">{product.sku || 'N/A'}</span>
                           <span>•</span>
                           <span>{product.category_name || 'Sem categoria'}</span>
                         </div>
@@ -131,8 +185,8 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                           </Badge>
                         </div>
                       </div>
-                      <div className="flex gap-1">
-                        {product.colors.slice(0, 5).map((color, i) => (
+                      <div className="flex flex-wrap gap-1 max-w-[80px] justify-end">
+                        {product.colors.map((color, i) => (
                           <div
                             key={i}
                             className="w-4 h-4 rounded-full border"
@@ -140,11 +194,6 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                             title={color.name}
                           />
                         ))}
-                        {product.colors.length > 5 && (
-                          <span className="text-xs text-muted-foreground">
-                            +{product.colors.length - 5}
-                          </span>
-                        )}
                       </div>
                     </div>
                   ))
