@@ -24,19 +24,17 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderActionsMenuProps {
-  reminderCount?: number;
   stockAlertCount?: number;
 }
 
 export function HeaderActionsMenu({ 
-  reminderCount = 0,
   stockAlertCount = 0 
 }: HeaderActionsMenuProps) {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
 
-  const totalCount = reminderCount + stockAlertCount;
+  const totalCount = stockAlertCount;
 
   return (
     <DropdownMenu>
