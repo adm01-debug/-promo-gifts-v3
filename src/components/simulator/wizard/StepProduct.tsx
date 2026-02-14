@@ -17,7 +17,6 @@ import {
   ChevronRight,
   Sparkles,
   Clock,
-  Filter,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -37,7 +36,7 @@ const QUANTITY_PRESETS = [50, 100, 250, 500, 1000];
 
 export function StepProduct({ wizard }: StepProductProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  
   const { drafts } = useWizardDrafts();
 
   // Fetch categories for name resolution
@@ -78,20 +77,7 @@ export function StepProduct({ wizard }: StepProductProps) {
     enabled: !!categoriesMap,
   });
 
-  // Extract unique categories for filter chips
-  const categories = useMemo(() => {
-    if (!products) return [];
-    const cats = new Map<string, number>();
-    products.forEach(p => {
-      if (p.categoryName) {
-        cats.set(p.categoryName, (cats.get(p.categoryName) || 0) + 1);
-      }
-    });
-    return [...cats.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 12)
-      .map(([name, count]) => ({ name, count }));
-  }, [products]);
+  // Categories removed - filter was confusing during tests
 
   // Fuse.js instance for fuzzy search
   const fuse = useMemo(() => {
@@ -108,27 +94,16 @@ export function StepProduct({ wizard }: StepProductProps) {
     });
   }, [products]);
 
-  // Filter products with Fuse.js + category
+  // Filter products with Fuse.js
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     
-    let results = products;
-
-    // Category filter
-    if (selectedCategory) {
-      results = results.filter(p => p.categoryName === selectedCategory);
-    }
-
-    // Fuzzy search
     if (searchTerm.trim() && fuse) {
-      const searchPool = selectedCategory 
-        ? new Fuse(results, { keys: [{ name: 'name', weight: 0.5 }, { name: 'sku', weight: 0.3 }, { name: 'categoryName', weight: 0.2 }], threshold: 0.35, ignoreLocation: true, minMatchCharLength: 2 })
-        : fuse;
-      results = searchPool.search(searchTerm).map(r => r.item);
+      return fuse.search(searchTerm).map(r => r.item);
     }
 
-    return results;
-  }, [products, searchTerm, selectedCategory, fuse]);
+    return products;
+  }, [products, searchTerm, fuse]);
 
   // formatCurrency imported from @/lib/format
 
@@ -238,53 +213,23 @@ export function StepProduct({ wizard }: StepProductProps) {
           onChange={e => setSearchTerm(e.target.value)}
           className="pl-12 pr-12 h-14 text-base rounded-2xl bg-muted/30 border-0 focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm"
         />
-        {(searchTerm || selectedCategory) && (
+        {searchTerm && (
           <Button
             variant="ghost"
             size="icon"
             className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
-            onClick={() => { setSearchTerm(''); setSelectedCategory(null); }}
+            onClick={() => setSearchTerm('')}
           >
             <X className="h-4 w-4" />
           </Button>
         )}
       </div>
 
-      {/* Category filter chips */}
-      {categories.length > 0 && (
-        <div className="relative">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none pr-8">
-            <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-          <Button
-            variant={selectedCategory === null ? 'default' : 'outline'}
-            size="sm"
-            className="h-7 text-xs shrink-0 rounded-full"
-            onClick={() => setSelectedCategory(null)}
-          >
-            Todos
-          </Button>
-          {categories.map(cat => (
-            <Button
-              key={cat.name}
-              variant={selectedCategory === cat.name ? 'default' : 'outline'}
-              size="sm"
-              className="h-7 text-xs shrink-0 rounded-full gap-1"
-              onClick={() => setSelectedCategory(prev => prev === cat.name ? null : cat.name)}
-            >
-              {cat.name}
-              <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">{cat.count}</Badge>
-            </Button>
-          ))}
-          </div>
-          <div className="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-        </div>
-      )}
 
       {/* Results count */}
       {!isLoading && (
         <p className="text-sm text-muted-foreground">
           {filteredProducts.length} produtos encontrados
-          {selectedCategory && <span> em <span className="font-semibold">{selectedCategory}</span></span>}
           {searchTerm && <span> para "<span className="font-semibold">{searchTerm}</span>"</span>}
         </p>
       )}
