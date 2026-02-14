@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
+import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
 
 interface QuickAddToQuoteProps {
   productId: string;
@@ -31,6 +32,7 @@ export function QuickAddToQuote({
   const [quantity, setQuantity] = useState(minQuantity);
   const [isOpen, setIsOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
+  const [showCompanyPicker, setShowCompanyPicker] = useState(false);
   const { activeCart, addToActiveCart } = useSellerCartContext();
 
   const handleAddToQuote = () => {
@@ -51,8 +53,22 @@ export function QuickAddToQuote({
     }, 1200);
   };
 
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (open && !activeCart) {
+      setShowCompanyPicker(true);
+    }
+    if (!open) {
+      setShowCompanyPicker(false);
+    }
+  };
+
+  const handleCompanyCreated = () => {
+    setShowCompanyPicker(false);
+  };
+
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         {variant === "badge" ? (
           <Badge
@@ -90,75 +106,79 @@ export function QuickAddToQuote({
             onClick={(e) => e.stopPropagation()}
           >
             <Plus className="h-4 w-4" />
-            Adicionar
+            Orçar
           </Button>
         )}
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-4" align="end" onClick={(e) => e.stopPropagation()}>
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-medium text-sm mb-1">Adicionar ao carrinho</h4>
-            <p className="text-xs text-muted-foreground line-clamp-1">{productName}</p>
-            {activeCart && (
-              <p className="text-[10px] text-primary mt-1 font-medium truncate">
-                → {activeCart.company_name}
-              </p>
-            )}
-            {!activeCart && (
-              <p className="text-[10px] text-destructive mt-1">
-                Nenhum carrinho ativo
-              </p>
-            )}
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm text-muted-foreground">Quantidade</label>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setQuantity(Math.max(minQuantity, quantity - 10))}
-              >
-                -
-              </Button>
-              <Input
-                type="number"
-                min={minQuantity}
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
-                className="h-8 text-center"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setQuantity(quantity + 10)}
-              >
-                +
-              </Button>
+      <PopoverContent className="w-72 p-4" align="end" onClick={(e) => e.stopPropagation()}>
+        {/* Step 1: Pick company if no active cart */}
+        {showCompanyPicker && !activeCart ? (
+          <CartCompanyPicker
+            onCreated={handleCompanyCreated}
+            onCancel={() => setIsOpen(false)}
+          />
+        ) : (
+          /* Step 2: Add product to cart */
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-sm mb-1">Adicionar ao carrinho</h4>
+              <p className="text-xs text-muted-foreground line-clamp-1">{productName}</p>
+              {activeCart && (
+                <p className="text-[10px] text-primary mt-1 font-medium truncate">
+                  → {activeCart.company_name}
+                </p>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
+            
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Quantidade</label>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setQuantity(Math.max(minQuantity, quantity - 10))}
+                >
+                  -
+                </Button>
+                <Input
+                  type="number"
+                  min={minQuantity}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
+                  className="h-8 text-center"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setQuantity(quantity + 10)}
+                >
+                  +
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
+            </div>
+            
+            <Button
+              className="w-full gap-2"
+              onClick={handleAddToQuote}
+              disabled={isAdded || !activeCart}
+            >
+              {isAdded ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Adicionado!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  Adicionar ao Carrinho
+                </>
+              )}
+            </Button>
           </div>
-          
-          <Button
-            className="w-full gap-2"
-            onClick={handleAddToQuote}
-            disabled={isAdded || !activeCart}
-          >
-            {isAdded ? (
-              <>
-                <Check className="h-4 w-4" />
-                Adicionado!
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="h-4 w-4" />
-                Adicionar ao Carrinho
-              </>
-            )}
-          </Button>
-        </div>
+        )}
       </PopoverContent>
     </Popover>
   );
