@@ -1,7 +1,8 @@
 /**
- * PersonalizationSummary - Resumo lateral das personalizações v3
+ * PersonalizationSummary - Resumo lateral das personalizações v4
  * 
- * UX otimizado: hierarquia visual clara, sem truncamentos, ações legíveis
+ * UX: preços nunca truncados, nomes abreviados, agrupamento por local,
+ * ações compactas (ícones), código orçamento discreto, CTA premium.
  */
 
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import {
   FileText,
   Copy,
   Trash2,
+  MoreHorizontal,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
@@ -32,6 +34,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import type { Personalization } from '@/types/domain/simulator-wizard';
+import { useMemo } from 'react';
 
 interface PersonalizationSummaryProps {
   wizard: UseSimulatorWizardReturn;
@@ -40,10 +44,30 @@ interface PersonalizationSummaryProps {
   showAddButton?: boolean;
 }
 
-/** Deduplica "Lado A • Lado A" → "Lado A" */
-function formatLocation(componentName: string, locationName: string): string {
-  if (componentName === locationName) return componentName;
-  return `${componentName} • ${locationName}`;
+/** Extrai nome curto do grupo de técnica (antes do " | ") */
+function shortTechniqueName(name: string): { group: string; variation?: string } {
+  const parts = name.split(/\s*\|\s*/);
+  if (parts.length >= 2) {
+    return { group: parts[0].trim(), variation: parts.slice(1).join(' | ').trim() };
+  }
+  return { group: name };
+}
+
+/** Agrupa personalizações por locationName */
+function groupByLocation(personalizations: Personalization[]) {
+  const groups: { locationName: string; componentName: string; items: { pers: Personalization; originalIndex: number }[] }[] = [];
+  
+  personalizations.forEach((pers, idx) => {
+    const key = pers.location.locationName;
+    let group = groups.find(g => g.locationName === key);
+    if (!group) {
+      group = { locationName: key, componentName: pers.location.componentName, items: [] };
+      groups.push(group);
+    }
+    group.items.push({ pers, originalIndex: idx });
+  });
+  
+  return groups;
 }
 
 export function PersonalizationSummary({ 
@@ -65,6 +89,7 @@ export function PersonalizationSummary({
 
   const usedLocationIds = new Set(personalizations.map(p => p.location.id));
   const unusedLocations = availableLocations.filter(loc => !usedLocationIds.has(loc.id));
+  const locationGroups = useMemo(() => groupByLocation(personalizations), [personalizations]);
 
   if (!selectedProduct) return null;
 
@@ -98,7 +123,7 @@ export function PersonalizationSummary({
               </div>
             </div>
 
-            {/* Gravações */}
+            {/* Gravações — agrupadas por local */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
@@ -126,113 +151,42 @@ export function PersonalizationSummary({
                   </motion.div>
                 ) : (
                   <div className="space-y-2">
-                    {personalizations.map((pers, idx) => {
-                      const isActive = isEditingPersonalization && currentPersonalizationIndex === idx;
-                      return (
-                        <motion.div
-                          key={pers.id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          className={`
-                            p-3 rounded-xl border transition-all
-                            ${isActive
-                              ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10' 
-                              : 'bg-card hover:bg-muted/30 border-border/60'
-                            }
-                          `}
-                        >
-                          {/* Row 1: Técnica + Preço */}
-                          <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0 font-bold">
-                                {idx + 1}
-                              </Badge>
-                              <span className="text-xs font-semibold text-primary truncate">
-                                {pers.technique.name}
-                              </span>
-                            </div>
-                            <span className="font-bold text-sm whitespace-nowrap">
-                              {formatCurrency(pers.pricing.totalPrice)}
+                    {locationGroups.map((group) => (
+                      <div key={group.locationName} className="space-y-1">
+                        {/* Location header — shown once per group */}
+                        {locationGroups.length > 1 && (
+                          <div className="flex items-center gap-1.5 px-1 pt-1">
+                            <MapPin className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                              {group.locationName}
                             </span>
                           </div>
+                        )}
 
-                          {/* Row 2: Local */}
-                          <p className="text-[11px] text-muted-foreground leading-tight mb-1.5">
-                            {formatLocation(pers.location.componentName, pers.location.locationName)}
-                          </p>
+                        {group.items.map(({ pers, originalIndex: idx }) => {
+                          const isActive = isEditingPersonalization && currentPersonalizationIndex === idx;
+                          const { group: techGroup, variation } = shortTechniqueName(pers.technique.name);
 
-                          {/* Row 3: Specs */}
-                          <div className="flex flex-wrap items-center gap-1 mb-2">
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                              {pers.specs.colors} {pers.specs.colors === 1 ? 'cor' : 'cores'}
-                            </Badge>
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">
-                              {pers.specs.width}×{pers.specs.height}cm
-                            </Badge>
-                            {pers.pricing.budgetCode && (
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0 h-4 cursor-help">
-                                    {pers.pricing.budgetCode}
-                                  </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-xs">
-                                  Código de referência para orçamento
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
-
-                          {/* Row 4: Actions — labeled buttons */}
-                          <div className="flex items-center gap-1.5 border-t border-border/30 pt-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
-                              onClick={() => wizard.editPersonalization(idx)}
-                            >
-                              <Pencil className="h-3 w-3" />
-                              Editar
-                            </Button>
-
-                            {unusedLocations.length > 0 && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                    Duplicar
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="min-w-[160px]">
-                                  {unusedLocations.map(loc => (
-                                    <DropdownMenuItem
-                                      key={loc.id}
-                                      onClick={() => wizard.duplicatePersonalization(pers.id, loc.id)}
-                                    >
-                                      <MapPin className="h-3 w-3 mr-2" />
-                                      {loc.locationName}
-                                    </DropdownMenuItem>
-                                  ))}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
-
-                            <div className="ml-auto">
-                              <RemovePersonalizationDialog
-                                techniqueName={pers.technique.name}
-                                locationName={pers.location.locationName}
-                                onConfirm={() => wizard.removePersonalization(pers.id)}
-                              />
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                          return (
+                            <PersonalizationRow
+                              key={pers.id}
+                              pers={pers}
+                              idx={idx}
+                              isActive={isActive}
+                              techGroup={techGroup}
+                              techVariation={variation}
+                              showLocation={locationGroups.length <= 1}
+                              locationName={pers.location.locationName}
+                              componentName={pers.location.componentName}
+                              unusedLocations={unusedLocations}
+                              onEdit={() => wizard.editPersonalization(idx)}
+                              onDuplicate={(locId) => wizard.duplicatePersonalization(pers.id, locId)}
+                              onRemove={() => wizard.removePersonalization(pers.id)}
+                            />
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 )}
               </AnimatePresence>
@@ -254,8 +208,8 @@ export function PersonalizationSummary({
         </ScrollArea>
       </div>
 
-      {/* Footer fixo */}
-      <div className="shrink-0 pt-3 mt-3 border-t border-border/50">
+      {/* Footer fixo — separado visualmente */}
+      <div className="shrink-0 pt-3 mt-3 border-t border-border/50 space-y-3">
         {/* Total */}
         <div className="flex items-baseline justify-between gap-2">
           <div>
@@ -269,18 +223,169 @@ export function PersonalizationSummary({
           </span>
         </div>
 
-        {/* CTA */}
+        {/* CTA Premium */}
         {onGenerateQuote && personalizations.length > 0 && (
           <Button
-            size="default"
-            className="w-full mt-3 gap-2"
+            size="lg"
+            className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
             onClick={onGenerateQuote}
           >
-            <FileText className="h-4 w-4" />
+            <FileText className="h-5 w-5" />
             Gerar Orçamento
           </Button>
         )}
       </div>
     </div>
+  );
+}
+
+/* ─── Compact Row Component ─── */
+
+interface PersonalizationRowProps {
+  pers: Personalization;
+  idx: number;
+  isActive: boolean;
+  techGroup: string;
+  techVariation?: string;
+  showLocation: boolean;
+  locationName: string;
+  componentName: string;
+  unusedLocations: { id: string; locationName: string }[];
+  onEdit: () => void;
+  onDuplicate: (locationId: string) => void;
+  onRemove: () => void;
+}
+
+function PersonalizationRow({
+  pers,
+  idx,
+  isActive,
+  techGroup,
+  techVariation,
+  showLocation,
+  locationName,
+  componentName,
+  unusedLocations,
+  onEdit,
+  onDuplicate,
+  onRemove,
+}: PersonalizationRowProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className={`
+        p-2.5 rounded-xl border transition-all
+        ${isActive
+          ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10' 
+          : 'bg-card hover:bg-muted/30 border-border/60'
+        }
+      `}
+    >
+      {/* Row 1: Number + Technique + Price (never truncated) */}
+      <div className="flex items-start gap-1.5 mb-1">
+        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0 font-bold mt-0.5">
+          {idx + 1}
+        </Badge>
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-semibold text-primary block leading-tight">
+            {techGroup}
+          </span>
+          {techVariation && (
+            <span className="text-[10px] text-muted-foreground leading-tight">
+              {techVariation}
+            </span>
+          )}
+        </div>
+        {/* Price — always visible, never truncated */}
+        <span className="font-bold text-sm text-foreground whitespace-nowrap shrink-0 tabular-nums">
+          {formatCurrency(pers.pricing.totalPrice)}
+        </span>
+      </div>
+
+      {/* Row 2: Location (only if single group) + Specs */}
+      <div className="flex flex-wrap items-center gap-1 ml-7">
+        {showLocation && (
+          <span className="text-[10px] text-muted-foreground mr-1">
+            {componentName === locationName ? locationName : `${componentName} • ${locationName}`}
+          </span>
+        )}
+        <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
+          {pers.specs.colors} {pers.specs.colors === 1 ? 'cor' : 'cores'}
+        </Badge>
+        <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
+          {pers.specs.width}×{pers.specs.height}cm
+        </Badge>
+        {/* Budget code — discrete tooltip */}
+        {pers.pricing.budgetCode && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="ghost" className="text-[9px] font-mono px-1 py-0 h-3.5 cursor-help text-muted-foreground/60 hover:text-muted-foreground">
+                ⌘
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs font-mono">
+              {pers.pricing.budgetCode}
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+
+      {/* Row 3: Compact icon actions via ⋯ menu */}
+      <div className="flex items-center gap-0.5 ml-7 mt-1.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+              onClick={onEdit}
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">Editar</TooltipContent>
+        </Tooltip>
+
+        {unusedLocations.length > 0 && (
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Duplicar</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="min-w-[160px]">
+              {unusedLocations.map(loc => (
+                <DropdownMenuItem
+                  key={loc.id}
+                  onClick={() => onDuplicate(loc.id)}
+                >
+                  <MapPin className="h-3 w-3 mr-2" />
+                  {loc.locationName}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        <div className="ml-auto">
+          <RemovePersonalizationDialog
+            techniqueName={techGroup}
+            locationName={locationName}
+            onConfirm={onRemove}
+          />
+        </div>
+      </div>
+    </motion.div>
   );
 }
