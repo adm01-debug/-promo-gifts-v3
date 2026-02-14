@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Copy, Download, FileText, History, Link2, Loader2, Printer, Share2 } from "lucide-react";
+import { ArrowLeft, Copy, Download, FileText, History, Link2, Loader2, MoreHorizontal, Printer, UserPlus } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
 
 import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
@@ -26,6 +27,8 @@ import { QuoteValidityBanner } from "@/components/quotes/QuoteValidityBanner";
 import { QuoteWhatsAppShare } from "@/components/quotes/QuoteWhatsAppShare";
 import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
 import { QuoteProposalPreview } from "@/components/quotes/QuoteProposalPreview";
+import { QuoteNextActionBanner } from "@/components/quotes/QuoteNextActionBanner";
+import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Rascunho", variant: "secondary" },
@@ -37,10 +40,7 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
 };
 
 function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 export default function QuoteViewPage() {
@@ -53,6 +53,7 @@ export default function QuoteViewPage() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [approvalLink, setApprovalLink] = useState<string | null>(null);
+  const whatsAppRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (id) {
@@ -109,7 +110,6 @@ export default function QuoteViewPage() {
 
   const handleDownloadPDF = async () => {
     if (!proposalData) return;
-
     setIsGeneratingPDF(true);
     try {
       const blob = await generateProposalPDFv2(proposalData);
@@ -134,6 +134,41 @@ export default function QuoteViewPage() {
       setApprovalLink(link);
     }
   };
+
+  const handleWhatsAppShare = () => {
+    const lines = [
+      `📋 *Proposta Comercial ${quote?.quote_number || ""}*`,
+      "",
+      `💰 Valor Total: *${formatCurrency(quote?.total || 0)}*`,
+    ];
+    if (quote?.valid_until) {
+      lines.push(`📅 Válida até: ${format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR })}`);
+    }
+    if (approvalLink) {
+      lines.push("", `✅ Aprovar proposta: ${approvalLink}`);
+    }
+    lines.push("", "Qualquer dúvida, estou à disposição! 😊");
+    const message = encodeURIComponent(lines.join("\n"));
+    const phone = quote?.client_phone?.replace(/\D/g, "") || "";
+    const url = phone ? `https://wa.me/55${phone}?text=${message}` : `https://wa.me/?text=${message}`;
+    window.open(url, "_blank");
+    toast.success("WhatsApp aberto!");
+  };
+
+  const handleShareLink = async () => {
+    if (approvalLink) {
+      await copyToClipboard(approvalLink);
+    } else {
+      const link = await generateApprovalLink(id!);
+      if (link) {
+        setApprovalLink(link);
+        await copyToClipboard(link);
+      }
+    }
+  };
+
+  // Check if any items have personalizations
+  const hasPersonalizations = quote?.items?.some(item => item.personalizations && item.personalizations.length > 0);
 
   if (isLoading) {
     return (
@@ -168,22 +203,35 @@ export default function QuoteViewPage() {
 
   return (
     <MainLayout>
-      <div className="container py-6 space-y-6 print:py-0 print:max-w-none print:px-0">
-        {/* Header */}
+      <div className="container py-6 space-y-6 pb-24 md:pb-6 print:py-0 print:max-w-none print:px-0">
+        {/* Breadcrumb with quote number (#10) */}
+        <nav className="flex items-center gap-1.5 text-sm text-muted-foreground print:hidden">
+          <button onClick={() => navigate("/")} className="hover:text-foreground transition-colors">Início</button>
+          <span>›</span>
+          <button onClick={() => navigate("/orcamentos")} className="hover:text-foreground transition-colors">Orçamentos</button>
+          <span>›</span>
+          <span className="text-foreground font-medium">{quote.quote_number || "Novo"}</span>
+        </nav>
+
+        {/* Header — Reorganized (#1) */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate("/orcamentos")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Orçamento {quote.quote_number}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold">Orçamento {quote.quote_number}</h1>
+                <Badge variant={status.variant}>{status.label}</Badge>
+              </div>
               <p className="text-muted-foreground">
                 Criado em {quote.created_at ? format(new Date(quote.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "-"}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={status.variant}>{status.label}</Badge>
+
+          {/* Primary CTAs + Dropdown for secondary (#1) */}
+          <div className="hidden md:flex items-center gap-2">
             <QuoteConvertToOrder quoteId={id!} status={quote.status} />
             <QuoteWhatsAppShare
               quoteNumber={quote.quote_number}
@@ -192,79 +240,106 @@ export default function QuoteViewPage() {
               validUntil={quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : undefined}
               approvalLink={approvalLink}
             />
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <History className="h-4 w-4 mr-2" />
-                  Histórico
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Histórico de Alterações</SheetTitle>
-                </SheetHeader>
-                <div className="mt-6">
-                  <QuoteHistoryPanel quoteId={id!} />
-                </div>
-              </SheetContent>
-            </Sheet>
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              Imprimir
-            </Button>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Link2 className="h-4 w-4 mr-2" />
-                  Link Aprovação
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80" align="end">
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium mb-1">Link de Aprovação</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Gere um link para o cliente aprovar ou rejeitar este orçamento.
-                    </p>
-                  </div>
-                  {approvalLink ? (
-                    <div className="space-y-2">
-                      <div className="p-2 bg-muted rounded text-xs break-all font-mono">
-                        {approvalLink}
-                      </div>
-                      <Button 
-                        size="sm" 
-                        className="w-full"
-                        onClick={() => copyToClipboard(approvalLink)}
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copiar Link
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={handleGenerateApprovalLink}
-                      disabled={isGenerating}
-                    >
-                      {isGenerating ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Link2 className="h-4 w-4 mr-2" />
-                      )}
-                      {isGenerating ? "Gerando..." : "Gerar Link"}
-                    </Button>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
             <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
-              <Download className="h-4 w-4 mr-2" />
+              {isGeneratingPDF ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
               {isGeneratingPDF ? "Gerando..." : "Baixar PDF"}
             </Button>
+
+            {/* Secondary actions dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <History className="h-4 w-4 mr-2" />
+                      Histórico
+                    </DropdownMenuItem>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Histórico de Alterações</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-6">
+                      <QuoteHistoryPanel quoteId={id!} />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                <DropdownMenuItem onClick={handlePrint}>
+                  <Printer className="h-4 w-4 mr-2" />
+                  Imprimir
+                </DropdownMenuItem>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Link2 className="h-4 w-4 mr-2" />
+                      Link de Aprovação
+                    </DropdownMenuItem>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="end">
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-medium mb-1">Link de Aprovação</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Gere um link para o cliente aprovar ou rejeitar este orçamento.
+                        </p>
+                      </div>
+                      {approvalLink ? (
+                        <div className="space-y-2">
+                          <div className="p-2 bg-muted rounded text-xs break-all font-mono">
+                            {approvalLink}
+                          </div>
+                          {/* QR Code inline (#9) */}
+                          <div className="flex justify-center py-2">
+                            <QuoteQRCode
+                              approvalLink={approvalLink}
+                              quoteNumber={quote.quote_number}
+                              size={140}
+                              showActions={false}
+                              className="border-0 shadow-none p-0"
+                            />
+                          </div>
+                          <Button 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => copyToClipboard(approvalLink)}
+                          >
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copiar Link
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button 
+                          size="sm" 
+                          className="w-full"
+                          onClick={handleGenerateApprovalLink}
+                          disabled={isGenerating}
+                        >
+                          {isGenerating ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Link2 className="h-4 w-4 mr-2" />
+                          )}
+                          {isGenerating ? "Gerando..." : "Gerar Link"}
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+
+        {/* Next Action Banner (#8) */}
+        <QuoteNextActionBanner 
+          status={quote.status} 
+          onSendWhatsApp={handleWhatsAppShare}
+        />
 
         {/* Status Timeline + Validity Banner */}
         <div className="flex flex-col md:flex-row gap-4 items-start print:hidden">
@@ -283,44 +358,54 @@ export default function QuoteViewPage() {
         <Card className="print:hidden">
           <Separator />
           <CardContent className="pt-6 space-y-6">
-            {/* Client Info */}
-             <div className="grid md:grid-cols-2 gap-6">
+            {/* Client Info (#2) */}
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <h3 className="font-semibold mb-2">Cliente</h3>
-                {(() => {
-                  const company = quote.client_company || "Não especificado";
-                  const parts = company.split(" | ");
-                  const companyName = parts[0];
-                  const cityState = parts[1];
-                  return (
-                    <>
-                      <p className="text-foreground font-bold text-lg">{companyName}</p>
-                      {cityState && (
-                        <p className="text-sm text-muted-foreground">{cityState}</p>
-                      )}
-                    </>
-                  );
-                })()}
+                {quote.client_company || quote.client_name ? (
+                  (() => {
+                    const company = quote.client_company || "Não especificado";
+                    const parts = company.split(" | ");
+                    const companyName = parts[0];
+                    const cityState = parts[1];
+                    return (
+                      <>
+                        <p className="text-foreground font-bold text-lg">{companyName}</p>
+                        {cityState && (
+                          <p className="text-sm text-muted-foreground">{cityState}</p>
+                        )}
+                      </>
+                    );
+                  })()
+                ) : (
+                  <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30">
+                    <UserPlus className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Nenhum cliente vinculado</p>
+                      <p className="text-xs text-muted-foreground/70">Edite o orçamento para vincular um cliente</p>
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
-                {quote.client_name && (
+                {quote.client_name ? (
                   <>
                     <h3 className="font-semibold mb-2">Contato</h3>
                     <p className="text-foreground font-medium">{quote.client_name}</p>
+                    {quote.client_email && (
+                      <p className="text-sm text-muted-foreground mt-2">{quote.client_email}</p>
+                    )}
+                    {quote.client_phone && (
+                      <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
+                    )}
                   </>
-                )}
-                {quote.client_email && (
-                  <p className="text-sm text-muted-foreground mt-2">{quote.client_email}</p>
-                )}
-                {quote.client_phone && (
-                  <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
-                )}
+                ) : null}
               </div>
             </div>
 
             <Separator />
 
-            {/* Items Table */}
+            {/* Items Table (#3) */}
             <div>
               <h3 className="font-semibold mb-4">Itens do Orçamento</h3>
               <div className="overflow-x-auto">
@@ -329,7 +414,9 @@ export default function QuoteViewPage() {
                     <tr className="bg-muted">
                       <th className="text-left p-3 font-medium">Produto</th>
                       <th className="text-left p-3 font-medium">SKU</th>
-                      <th className="text-left p-3 font-medium">Personalização</th>
+                      {hasPersonalizations && (
+                        <th className="text-left p-3 font-medium">Personalização</th>
+                      )}
                       <th className="text-center p-3 font-medium">Qtd</th>
                       <th className="text-right p-3 font-medium">Unitário</th>
                       <th className="text-right p-3 font-medium">Total</th>
@@ -351,7 +438,7 @@ export default function QuoteViewPage() {
                                 <img 
                                   src={item.product_image_url} 
                                   alt={item.product_name}
-                                  className="w-12 h-12 object-cover rounded print:hidden"
+                                  className="w-14 h-14 object-cover rounded border border-border print:hidden"
                                 />
                               )}
                               <div>
@@ -371,13 +458,15 @@ export default function QuoteViewPage() {
                             </div>
                           </td>
                           <td className="p-3 text-muted-foreground">{item.product_sku || "-"}</td>
-                          <td className="p-3">
-                            {personalization ? (
-                              <span className="text-sm">
-                                {personalization.technique_name} ({personalization.colors_count || 1} cor{(personalization.colors_count || 1) > 1 ? "es" : ""})
-                              </span>
-                            ) : "-"}
-                          </td>
+                          {hasPersonalizations && (
+                            <td className="p-3">
+                              {personalization ? (
+                                <span className="text-sm">
+                                  {personalization.technique_name} ({personalization.colors_count || 1} cor{(personalization.colors_count || 1) > 1 ? "es" : ""})
+                                </span>
+                              ) : "-"}
+                            </td>
+                          )}
                           <td className="p-3 text-center">{item.quantity}</td>
                           <td className="p-3 text-right">{formatCurrency(item.unit_price)}</td>
                           <td className="p-3 text-right font-medium">{formatCurrency(itemTotal)}</td>
@@ -391,21 +480,21 @@ export default function QuoteViewPage() {
 
             <Separator />
 
-            {/* Totals */}
+            {/* Totals — Highlighted (#4) */}
             <div className="flex justify-end">
-              <div className="w-full max-w-xs space-y-2">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
+              <div className="w-full max-w-sm bg-muted/50 rounded-lg p-4 space-y-2 border">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal:</span>
                   <span>{formatCurrency(quote.subtotal)}</span>
                 </div>
                 {quote.discount_amount > 0 && (
-                  <div className="flex justify-between text-green-600">
+                  <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
                     <span>Desconto{quote.discount_percent ? ` (${quote.discount_percent}%)` : ""}:</span>
                     <span>-{formatCurrency(quote.discount_amount)}</span>
                   </div>
                 )}
                 <Separator />
-                <div className="flex justify-between text-lg font-bold">
+                <div className="flex justify-between text-xl font-bold pt-1">
                   <span>Total:</span>
                   <span className="text-primary">{formatCurrency(quote.total)}</span>
                 </div>
@@ -425,7 +514,7 @@ export default function QuoteViewPage() {
           </CardContent>
         </Card>
 
-        {/* Proposal Preview */}
+        {/* Proposal Preview (#6) — moved up with label */}
         <QuoteProposalPreview proposalData={proposalData} />
 
         {/* Print-only: render the same template used for PDF */}
@@ -435,6 +524,14 @@ export default function QuoteViewPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile Action Bar (#7) */}
+      <QuoteMobileActionBar
+        onDownloadPDF={handleDownloadPDF}
+        onWhatsApp={handleWhatsAppShare}
+        onShare={handleShareLink}
+        isGeneratingPDF={isGeneratingPDF}
+      />
     </MainLayout>
   );
 }
