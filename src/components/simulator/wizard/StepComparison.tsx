@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
@@ -43,10 +44,6 @@ import { WizardMockupPreview } from './WizardMockupPreview';
 interface StepComparisonProps {
   wizard: UseSimulatorWizardReturn;
 }
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-};
 
 export function StepComparison({ wizard }: StepComparisonProps) {
   const navigate = useNavigate();
