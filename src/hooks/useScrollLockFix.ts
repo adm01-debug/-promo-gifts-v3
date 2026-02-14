@@ -1,19 +1,14 @@
 import { useEffect } from "react";
 
 /**
- * Nuclear scroll-lock prevention v5.
+ * Scroll-lock cleanup — simplified v6.
  * 
- * react-remove-scroll blocks scroll via:
- *   1. CSS: data-scroll-locked, overflow:hidden on html/body
- *   2. JS: wheel/touchmove listeners that call preventDefault()
+ * The CSS override in index.css (outside @layer) handles the visual unlock
+ * with !important rules on data-scroll-locked elements.
  * 
- * Strategy:
- *   Layer 1 — CSS in index.css (outside @layer) with !important
- *   Layer 2 — MutationObserver: strips residual attributes/styles
- *   Layer 3 — Capture-phase wheel/touchmove: when no overlay is open,
- *             re-dispatch a clone of the event and stop the original,
- *             bypassing react-remove-scroll entirely.
- *   Layer 4 — Periodic cleanup safety net
+ * This hook only does DOM cleanup via MutationObserver:
+ * removes residual data-scroll-locked attributes and inline styles
+ * after Radix overlays close.
  */
 
 function hasActiveOverlay(): boolean {
@@ -36,13 +31,11 @@ function hasActiveOverlay(): boolean {
   return false;
 }
 
-function forceUnlock() {
+function cleanup() {
   if (hasActiveOverlay()) return;
 
   for (const el of [document.documentElement, document.body]) {
-    if (el.hasAttribute('data-scroll-locked')) {
-      el.removeAttribute('data-scroll-locked');
-    }
+    el.removeAttribute('data-scroll-locked');
 
     const s = el.style;
     if (s.overflow === 'hidden') s.overflow = '';
@@ -69,9 +62,8 @@ function forceUnlock() {
 
 export function useScrollLockFix() {
   useEffect(() => {
-    // ── Layer 2: MutationObserver ──
     const observer = new MutationObserver(() => {
-      requestAnimationFrame(forceUnlock);
+      requestAnimationFrame(cleanup);
     });
 
     observer.observe(document.documentElement, {
@@ -83,65 +75,13 @@ export function useScrollLockFix() {
       attributeFilter: ['style', 'data-scroll-locked', 'class'],
     });
 
-    // ── Layer 3: Capture-phase scroll event interception ──
-    // CRITICAL: passive MUST be false so we can call preventDefault/stopPropagation
-    // when needed to override react-remove-scroll's listeners.
-    const interceptWheel = (e: WheelEvent) => {
-      if (!hasActiveOverlay()) {
-        const isLocked = 
-          document.documentElement.hasAttribute('data-scroll-locked') ||
-          document.body.hasAttribute('data-scroll-locked') ||
-          document.body.style.overflow === 'hidden' ||
-          document.documentElement.style.overflow === 'hidden';
-
-        if (isLocked) {
-          e.stopImmediatePropagation();
-          forceUnlock();
-        }
-      }
-    };
-
-    const interceptTouch = (e: TouchEvent) => {
-      if (!hasActiveOverlay()) {
-        const isLocked = 
-          document.documentElement.hasAttribute('data-scroll-locked') ||
-          document.body.hasAttribute('data-scroll-locked') ||
-          document.body.style.overflow === 'hidden' ||
-          document.documentElement.style.overflow === 'hidden';
-
-        if (isLocked) {
-          e.stopImmediatePropagation();
-          forceUnlock();
-        }
-      }
-    };
-
-    // passive: false is REQUIRED for stopImmediatePropagation to work
-    document.addEventListener('wheel', interceptWheel, { capture: true, passive: false });
-    document.addEventListener('touchmove', interceptTouch, { capture: true, passive: false });
-
-    // ── Event-based cleanup ──
-    const debouncedUnlock = () => requestAnimationFrame(forceUnlock);
-    document.addEventListener('focusin', debouncedUnlock, { passive: true });
-    document.addEventListener('click', debouncedUnlock, { passive: true, capture: true });
-    document.addEventListener('transitionend', debouncedUnlock, { passive: true });
-    document.addEventListener('animationend', debouncedUnlock, { passive: true });
-
     // Safety net
-    const interval = setInterval(forceUnlock, 500);
-
-    // Initial cleanup
-    forceUnlock();
+    const interval = setInterval(cleanup, 500);
+    cleanup();
 
     return () => {
       observer.disconnect();
       clearInterval(interval);
-      document.removeEventListener('wheel', interceptWheel, { capture: true } as any);
-      document.removeEventListener('touchmove', interceptTouch, { capture: true } as any);
-      document.removeEventListener('focusin', debouncedUnlock);
-      document.removeEventListener('click', debouncedUnlock);
-      document.removeEventListener('transitionend', debouncedUnlock);
-      document.removeEventListener('animationend', debouncedUnlock);
     };
   }, []);
 }
