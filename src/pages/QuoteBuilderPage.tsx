@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -75,6 +75,7 @@ interface Client {
 
 export default function QuoteBuilderPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id: quoteId } = useParams();
   const [searchParams] = useSearchParams();
   const isEditMode = Boolean(quoteId);
@@ -143,6 +144,49 @@ export default function QuoteBuilderPage() {
       });
     }
   }, [isEditMode, quoteId]);
+
+  // Pre-fill from simulator when navigating with state
+  useEffect(() => {
+    const state = location.state as { fromSimulator?: boolean; simulationData?: any } | null;
+    if (!state?.fromSimulator || !state.simulationData) return;
+
+    const { product, quantity, personalizations } = state.simulationData;
+    if (!product) return;
+
+    // Map simulator personalizations to QuoteItemPersonalization[]
+    const quotePersonalizations: QuoteItemPersonalization[] = (personalizations || []).map((p: any) => ({
+      technique_id: p.technique?.id || '',
+      technique_name: p.technique?.name || '',
+      colors_count: p.specs?.colors || 1,
+      positions_count: 1,
+      area_cm2: (p.specs?.width || 0) * (p.specs?.height || 0),
+      setup_cost: p.pricing?.setupPrice || 0,
+      unit_cost: p.pricing?.unitPrice || 0,
+      total_cost: p.pricing?.totalPrice || 0,
+    }));
+
+    const newItem: QuoteItem = {
+      product_id: product.id,
+      product_name: product.name,
+      product_sku: product.sku || '',
+      product_image_url: product.imageUrl || undefined,
+      quantity: quantity || 1,
+      unit_price: product.price || 0,
+      personalizations: quotePersonalizations,
+    };
+
+    setItems([newItem]);
+
+    // Auto-expand personalization panel if there are personalizations
+    if (quotePersonalizations.length > 0) {
+      setExpandedItems(new Set([0]));
+    }
+
+    toast.success(`Produto "${product.name}" importado do simulador com ${quotePersonalizations.length} gravação(ões)`);
+
+    // Clear the state to prevent re-import on re-render
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
 
   // Fetch products from Promobrind - sem limite para buscar todos
   const { data: products } = useQuery({
