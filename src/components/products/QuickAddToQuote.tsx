@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Check, ShoppingCart } from "lucide-react";
+import { Plus, Check, ShoppingCart, X, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -120,8 +120,14 @@ export function QuickAddToQuote({
         ) : (
           /* Step 2: Add product to cart */
           <div className="space-y-4">
-            <div>
-              <h4 className="font-medium text-sm mb-1">Adicionar ao carrinho</h4>
+            <div className="relative">
+              <h4 className="font-medium text-sm mb-1 pr-6">Adicionar ao carrinho</h4>
+              <button
+                className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
               <p className="text-xs text-muted-foreground line-clamp-1">{productName}</p>
               {activeCart && (
                 <p className="text-[10px] text-primary mt-1 font-medium truncate">
