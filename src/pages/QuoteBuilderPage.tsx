@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams, useLocation } from "react-rout
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { cn } from "@/lib/utils";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,8 @@ import {
   ArrowLeft,
   Edit,
   X,
+  AlertTriangle,
+  PackageCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
@@ -62,6 +65,7 @@ import {
 interface ProductColor {
   name: string;
   hex?: string;
+  stock?: number;
 }
 
 interface Product {
@@ -72,6 +76,7 @@ interface Product {
   images: string[] | null;
   colors?: ProductColor[];
   minQuantity?: number;
+  totalStock?: number;
 }
 
 interface Client {
@@ -273,8 +278,10 @@ export default function QuoteBuilderPage() {
           colors: (p.colors || []).map((c: any) => ({
             name: typeof c === 'string' ? c : c.name,
             hex: typeof c === 'string' ? undefined : c.hex,
+            stock: typeof c === 'string' ? undefined : c.stock,
           })),
           minQuantity: p.min_quantity ?? 1,
+          totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: any) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
         };
       }) as Product[];
     },
@@ -897,65 +904,108 @@ export default function QuoteBuilderPage() {
                     </div>
                   ) : (
                     <div className="space-y-0.5">
-                      {filteredProducts.map((product) => (
-                        <button
-                          key={product.id}
-                          onClick={() => handleProductClick(product)}
-                          className="group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border transition-all duration-150 text-left"
-                        >
-                          {product.images && product.images.length > 0 ? (
-                            <img
-                              src={`${product.images[0]}/thumbnail`}
-                              alt={product.name}
-                              className="h-11 w-11 object-cover rounded-lg bg-muted shrink-0"
-                              onError={(e) => {
-                                const target = e.currentTarget;
-                                if (target.src.includes('/thumbnail')) {
-                                  target.src = product.images![0];
-                                } else {
-                                  target.style.display = 'none';
-                                }
-                              }}
-                            />
-                          ) : (
-                            <div className="h-11 w-11 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                              <Package className="h-5 w-5 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0 space-y-0.5">
-                            <p className="font-medium truncate text-sm leading-tight">{product.name}</p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[11px] text-muted-foreground font-mono tracking-wide">{product.sku}</span>
-                              {/* Color swatches inline */}
-                              {product.colors && product.colors.length > 0 && (
-                                <div className="flex items-center gap-0.5">
-                                  {product.colors.slice(0, 5).map((color, i) => (
-                                    <div
-                                      key={i}
-                                      className="w-2.5 h-2.5 rounded-full border border-border/50"
-                                      style={{ backgroundColor: color.hex || '#CCC' }}
-                                      title={color.name}
-                                    />
-                                  ))}
-                                  {product.colors.length > 5 && (
-                                    <span className="text-[9px] text-muted-foreground ml-0.5">+{product.colors.length - 5}</span>
-                                  )}
+                      {filteredProducts.map((product) => {
+                        const stock = product.totalStock ?? 0;
+                        const isOutOfStock = stock === 0;
+                        const isLowStock = stock > 0 && stock < 100;
+                        const formatStock = (qty: number) => qty >= 1000 ? `${(qty / 1000).toFixed(1)}k` : qty.toString();
+
+                        return (
+                          <button
+                            key={product.id}
+                            onClick={() => handleProductClick(product)}
+                            className={cn(
+                              "group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all duration-150 text-left",
+                              isOutOfStock
+                                ? "border-destructive/20 bg-destructive/5 hover:bg-destructive/10 opacity-75"
+                                : isLowStock
+                                  ? "border-amber-500/20 hover:bg-accent/60 hover:border-amber-500/40"
+                                  : "border-transparent hover:bg-accent/60 hover:border-border"
+                            )}
+                          >
+                            {/* Thumbnail */}
+                            <div className="relative shrink-0">
+                              {product.images && product.images.length > 0 ? (
+                                <img
+                                  src={`${product.images[0]}/thumbnail`}
+                                  alt={product.name}
+                                  className="h-11 w-11 object-cover rounded-lg bg-muted"
+                                  onError={(e) => {
+                                    const target = e.currentTarget;
+                                    if (target.src.includes('/thumbnail')) {
+                                      target.src = product.images![0];
+                                    } else {
+                                      target.style.display = 'none';
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-11 w-11 bg-muted rounded-lg flex items-center justify-center">
+                                  <Package className="h-5 w-5 text-muted-foreground" />
+                                </div>
+                              )}
+                              {/* Stock status dot */}
+                              {isOutOfStock && (
+                                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive flex items-center justify-center">
+                                  <X className="h-2.5 w-2.5 text-destructive-foreground" />
+                                </div>
+                              )}
+                              {isLowStock && (
+                                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+                                  <AlertTriangle className="h-2.5 w-2.5 text-white" />
                                 </div>
                               )}
                             </div>
-                          </div>
-                          <div className="text-right shrink-0 pl-2">
-                            <p className="text-sm font-semibold text-primary tabular-nums whitespace-nowrap">
-                              {formatCurrency(product.price)}
-                            </p>
-                            <p className="text-[10px] text-muted-foreground whitespace-nowrap">
-                              {product.colors && product.colors.length > 0
-                                ? `${product.colors.length} cor${product.colors.length !== 1 ? 'es' : ''}`
-                                : `mín. ${product.minQuantity || 1}`}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0 space-y-0.5">
+                              <p className="font-medium truncate text-sm leading-tight">{product.name}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] text-muted-foreground font-mono tracking-wide">{product.sku}</span>
+                                {/* Color swatches inline */}
+                                {product.colors && product.colors.length > 0 && (
+                                  <div className="flex items-center gap-0.5">
+                                    {product.colors.slice(0, 5).map((color, i) => (
+                                      <div
+                                        key={i}
+                                        className="w-2.5 h-2.5 rounded-full border border-border/50"
+                                        style={{ backgroundColor: color.hex || '#CCC' }}
+                                        title={`${color.name}${color.stock !== undefined ? ` — ${color.stock} un` : ''}`}
+                                        />
+                                    ))}
+                                    {product.colors.length > 5 && (
+                                      <span className="text-[9px] text-muted-foreground ml-0.5">+{product.colors.length - 5}</span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Price + Stock badge */}
+                            <div className="text-right shrink-0 pl-2 space-y-0.5">
+                              <p className="text-sm font-semibold text-primary tabular-nums whitespace-nowrap">
+                                {formatCurrency(product.price)}
+                              </p>
+                              {isOutOfStock ? (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-destructive whitespace-nowrap">
+                                  <AlertTriangle className="h-2.5 w-2.5" />
+                                  Sem estoque
+                                </span>
+                              ) : isLowStock ? (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-amber-600 whitespace-nowrap">
+                                  <AlertTriangle className="h-2.5 w-2.5" />
+                                  {formatStock(stock)} un
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground whitespace-nowrap">
+                                  <PackageCheck className="h-2.5 w-2.5 text-green-600" />
+                                  {formatStock(stock)} un
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
