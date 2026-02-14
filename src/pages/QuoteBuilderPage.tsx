@@ -59,12 +59,19 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
+interface ProductColor {
+  name: string;
+  hex?: string;
+}
+
 interface Product {
   id: string;
   name: string;
   sku: string;
   price: number;
   images: string[] | null;
+  colors?: ProductColor[];
+  minQuantity?: number;
 }
 
 interface Client {
@@ -263,6 +270,11 @@ export default function QuoteBuilderPage() {
           sku: p.sku,
           price: p.sale_price ?? p.base_price ?? 0,
           images,
+          colors: (p.colors || []).map((c: any) => ({
+            name: typeof c === 'string' ? c : c.name,
+            hex: typeof c === 'string' ? undefined : c.hex,
+          })),
+          minQuantity: p.min_quantity ?? 1,
         };
       }) as Product[];
     },
@@ -912,14 +924,34 @@ export default function QuoteBuilderPage() {
                           )}
                           <div className="flex-1 min-w-0 space-y-0.5">
                             <p className="font-medium truncate text-sm leading-tight">{product.name}</p>
-                            <p className="text-[11px] text-muted-foreground font-mono tracking-wide">{product.sku}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] text-muted-foreground font-mono tracking-wide">{product.sku}</span>
+                              {/* Color swatches inline */}
+                              {product.colors && product.colors.length > 0 && (
+                                <div className="flex items-center gap-0.5">
+                                  {product.colors.slice(0, 5).map((color, i) => (
+                                    <div
+                                      key={i}
+                                      className="w-2.5 h-2.5 rounded-full border border-border/50"
+                                      style={{ backgroundColor: color.hex || '#CCC' }}
+                                      title={color.name}
+                                    />
+                                  ))}
+                                  {product.colors.length > 5 && (
+                                    <span className="text-[9px] text-muted-foreground ml-0.5">+{product.colors.length - 5}</span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <div className="text-right shrink-0 pl-2">
                             <p className="text-sm font-semibold text-primary tabular-nums whitespace-nowrap">
                               {formatCurrency(product.price)}
                             </p>
                             <p className="text-[10px] text-muted-foreground whitespace-nowrap">
-                              mín. {product.minQuantity || 1}
+                              {product.colors && product.colors.length > 0
+                                ? `${product.colors.length} cor${product.colors.length !== 1 ? 'es' : ''}`
+                                : `mín. ${product.minQuantity || 1}`}
                             </p>
                           </div>
                         </button>
