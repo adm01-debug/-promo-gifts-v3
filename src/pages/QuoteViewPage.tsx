@@ -29,6 +29,7 @@ import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
 import { QuoteProposalPreview } from "@/components/quotes/QuoteProposalPreview";
 import { QuoteNextActionBanner } from "@/components/quotes/QuoteNextActionBanner";
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
+import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Rascunho", variant: "secondary" },
@@ -112,7 +113,7 @@ export default function QuoteViewPage() {
     if (!proposalData) return;
     setIsGeneratingPDF(true);
     try {
-      const blob = await generateProposalPDFv2(proposalData);
+      const blob = await generateProposalPDFv2(proposalData, { isDraft: quote?.status === "draft" });
       downloadPDF(blob, `proposta-${quote?.quote_number || "sem-numero"}.pdf`);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
@@ -240,10 +241,21 @@ export default function QuoteViewPage() {
               validUntil={quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : undefined}
               approvalLink={approvalLink}
             />
-            <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
-              {isGeneratingPDF ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
-              {isGeneratingPDF ? "Gerando..." : "Baixar PDF"}
-            </Button>
+            <PdfGenerationDialog
+              proposalData={proposalData}
+              quoteNumber={quote.quote_number}
+              quoteStatus={quote.status}
+              clientPhone={quote.client_phone}
+              approvalLink={approvalLink}
+              onWhatsApp={handleWhatsAppShare}
+              onShareLink={handleShareLink}
+              trigger={
+                <Button className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Gerar Proposta
+                </Button>
+              }
+            />
 
             {/* Secondary actions dropdown */}
             <DropdownMenu>

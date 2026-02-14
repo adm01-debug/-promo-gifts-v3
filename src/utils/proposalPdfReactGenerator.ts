@@ -13,7 +13,7 @@ import { type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate
 import { PropostaComercialTailwind } from "@/components/pdf/PropostaComercialTailwind";
 
 
-export async function generateProposalPDFv2(data: ProposalTemplateData): Promise<Blob> {
+export async function generateProposalPDFv2(data: ProposalTemplateData, options?: { isDraft?: boolean }): Promise<Blob> {
   const container = document.createElement("div");
   container.style.position = "fixed";
   container.style.top = "-10000px";
@@ -28,7 +28,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData): Promise
     
     await new Promise<void>((resolve) => {
       root.render(
-        React.createElement(PropostaComercialTailwind, { data, ref: templateRef })
+        React.createElement(PropostaComercialTailwind, { data, ref: templateRef, isDraft: options?.isDraft || false })
       );
       setTimeout(resolve, 1200);
     });
