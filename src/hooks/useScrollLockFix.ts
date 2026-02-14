@@ -4,15 +4,14 @@ import { useEffect } from "react";
  * Previne que react-remove-scroll (usado internamente pelo Radix Dialog/Select/Popover)
  * trave o scroll da página via JavaScript.
  *
- * Solução: capture-phase wheel listener com stopImmediatePropagation
- * para impedir que react-remove-scroll receba o evento quando não há overlay ativo.
+ * Estratégia: MutationObserver + cleanup periódico para remover atributos residuais
+ * quando nenhum overlay está ativo. Evita interceptar touchmove para não interferir
+ * com o scroll nativo em dispositivos móveis.
  */
 
 function hasActiveOverlay(): boolean {
-  // Check if there's a truly visible overlay blocking the page
+  // Check dialogs that are actually visible (not hidden or zero-size)
   const openDialogs = document.querySelectorAll('[data-state="open"][role="dialog"], [data-state="open"][role="alertdialog"]');
-  
-  // Only count dialogs that are actually visible (not hidden or zero-size)
   for (const dialog of openDialogs) {
     const rect = (dialog as HTMLElement).getBoundingClientRect();
     if (rect.width > 0 && rect.height > 0) {
@@ -37,24 +36,28 @@ function cleanScrollLockResiduals() {
     if (el.hasAttribute('data-scroll-locked')) {
       el.removeAttribute('data-scroll-locked');
     }
-    el.style.overflow = '';
-    el.style.overflowY = '';
-    el.style.marginRight = '';
-    el.style.paddingRight = '';
-    el.style.position = '';
+    
+    const style = el.style;
+    if (style.overflow) style.overflow = '';
+    if (style.overflowY) style.overflowY = '';
+    if (style.marginRight) style.marginRight = '';
+    if (style.paddingRight) style.paddingRight = '';
+    if (style.position === 'fixed' || style.position === 'relative') style.position = '';
+    
+    // Fix touch-action that may block mobile scroll
+    if (style.touchAction === 'none') style.touchAction = '';
+    
     // Fix inline pointer-events
-    if ((el as HTMLElement).style.pointerEvents === 'none') {
-      (el as HTMLElement).style.pointerEvents = '';
-    }
+    if (style.pointerEvents === 'none') style.pointerEvents = '';
+    
     // Fix computed pointer-events (set by classes like block-interactivity-N)
     const computed = window.getComputedStyle(el);
     if (computed.pointerEvents === 'none') {
-      (el as HTMLElement).style.pointerEvents = 'auto';
+      style.pointerEvents = 'auto';
     }
   }
 
   // Remove react-remove-scroll "block-interactivity-*" classes from body
-  // These set pointer-events: none via <style> tag, not inline styles
   const toRemove: string[] = [];
   document.body.classList.forEach(cls => {
     if (cls.startsWith('block-interactivity-')) {
@@ -68,31 +71,19 @@ function cleanScrollLockResiduals() {
 
 export function useScrollLockFix() {
   useEffect(() => {
-    // ═══ 1. Capture-phase wheel/touch handler ═══
+    // ═══ 1. Capture-phase wheel handler (desktop only) ═══
     // react-remove-scroll listens on bubble phase with {passive: false}
-    // and calls preventDefault(). By intercepting in CAPTURE phase and calling
-    // stopImmediatePropagation, we prevent it from ever receiving the event.
+    // and calls preventDefault(). Intercept in CAPTURE phase to prevent it.
     const captureWheelHandler = (e: WheelEvent) => {
       if (!hasActiveOverlay()) {
-        // No overlay active — scroll must work.
-        // Stop react-remove-scroll from blocking this event.
-        e.stopImmediatePropagation();
-        // Also clean any residual lock attributes
-        cleanScrollLockResiduals();
-      }
-    };
-
-    const captureTouchHandler = (e: TouchEvent) => {
-      if (!hasActiveOverlay()) {
         e.stopImmediatePropagation();
         cleanScrollLockResiduals();
       }
     };
 
-    // MUST be non-passive to allow stopImmediatePropagation to take full effect
-    // before react-remove-scroll's listeners
+    // Only intercept wheel events (desktop scroll).
+    // Do NOT intercept touchmove — it breaks native mobile scrolling.
     document.addEventListener('wheel', captureWheelHandler, { capture: true, passive: false });
-    document.addEventListener('touchmove', captureTouchHandler, { capture: true, passive: false });
 
     // ═══ 2. MutationObserver — cleanup de atributos residuais ═══
     const observer = new MutationObserver(() => {
@@ -102,7 +93,7 @@ export function useScrollLockFix() {
     });
 
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style', 'data-scroll-locked'] });
-    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'data-scroll-locked'] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'data-scroll-locked', 'class'] });
 
     // ═══ 3. Periodic cleanup — último recurso ═══
     const interval = setInterval(() => {
@@ -111,9 +102,18 @@ export function useScrollLockFix() {
       }
     }, 500);
 
+    // ═══ 4. Focus/visibility change cleanup ═══
+    // When user switches tabs and comes back, clean any stale locks
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !hasActiveOverlay()) {
+        cleanScrollLockResiduals();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       document.removeEventListener('wheel', captureWheelHandler, { capture: true } as EventListenerOptions);
-      document.removeEventListener('touchmove', captureTouchHandler, { capture: true } as EventListenerOptions);
+      document.removeEventListener('visibilitychange', handleVisibility);
       observer.disconnect();
       clearInterval(interval);
     };
