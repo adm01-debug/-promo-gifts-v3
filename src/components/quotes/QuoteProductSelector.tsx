@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Plus, Minus, Search, Package, ShoppingCart, X, Check } from "lucide-react";
+import { Plus, Minus, Search, Package, ShoppingCart, X, Check, ArrowUpDown, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +58,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const [quantity, setQuantity] = useState(1);
   const [addedCount, setAddedCount] = useState(0);
   const [sessionAddedIds, setSessionAddedIds] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'default' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'>('default');
   const [scrollState, setScrollState] = useState({ top: false, bottom: true });
 
   const handleScroll = useCallback(() => {
@@ -91,8 +92,21 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     return fuse.search(debouncedQuery).map(r => r.item);
   }, [fuse, debouncedQuery, availableProducts]);
 
+  // Sorted results
+  const sortedProducts = useMemo(() => {
+    if (sortBy === 'default') return filteredProducts;
+    const sorted = [...filteredProducts];
+    switch (sortBy) {
+      case 'name-asc': return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'name-desc': return sorted.sort((a, b) => b.name.localeCompare(a.name));
+      case 'price-asc': return sorted.sort((a, b) => a.price - b.price);
+      case 'price-desc': return sorted.sort((a, b) => b.price - a.price);
+      default: return sorted;
+    }
+  }, [filteredProducts, sortBy]);
+
   const rowVirtualizer = useVirtualizer({
-    count: filteredProducts.length,
+    count: sortedProducts.length,
     getScrollElement: () => scrollParentRef.current,
     estimateSize: () => 88,
     overscan: 5,
@@ -155,7 +169,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const isSearching = debouncedQuery.length >= 2;
-  const resultCount = filteredProducts.length;
+  const resultCount = sortedProducts.length;
 
   // --- Shared header ---
   const headerContent = (
@@ -196,11 +210,24 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                 </button>
               )}
             </div>
-            {isSearching && (
-              <p className="text-xs text-muted-foreground px-1">
-                {resultCount} produto{resultCount !== 1 ? 's' : ''} encontrado{resultCount !== 1 ? 's' : ''}
-              </p>
-            )}
+            <div className="flex items-center justify-between px-1">
+              {isSearching ? (
+                <p className="text-xs text-muted-foreground">
+                  {resultCount} produto{resultCount !== 1 ? 's' : ''} encontrado{resultCount !== 1 ? 's' : ''}
+                </p>
+              ) : <span />}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                className="text-xs border rounded-md px-2 py-1 bg-background text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <option value="default">Relevância</option>
+                <option value="name-asc">Nome A→Z</option>
+                <option value="name-desc">Nome Z→A</option>
+                <option value="price-asc">Menor preço</option>
+                <option value="price-desc">Maior preço</option>
+              </select>
+            </div>
           </div>
 
           {/* Virtualized product list with fade indicators */}
@@ -232,12 +259,17 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                   </div>
                 ))}
               </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Nenhum produto encontrado</p>
+            ) : sortedProducts.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <SearchX className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                <p className="font-medium text-base">Nenhum produto encontrado</p>
                 {isSearching && (
-                  <p className="text-xs mt-1">Tente ajustar o termo de busca</p>
+                  <p className="text-xs mt-1.5">Tente ajustar o termo de busca</p>
+                )}
+                {searchQuery && (
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => setSearchQuery("")}>
+                    Limpar busca
+                  </Button>
                 )}
               </div>
             ) : (
@@ -249,7 +281,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                 }}
               >
                 {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                  const product = filteredProducts[virtualRow.index];
+                  const product = sortedProducts[virtualRow.index];
                   return (
                     <div
                       key={product.id}
@@ -265,7 +297,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                     >
                       <div
                         onClick={() => setSelectedProduct(product)}
-                        className="flex items-center gap-3 sm:gap-4 p-3 rounded-lg border hover:bg-accent cursor-pointer transition-colors h-full min-h-[48px]"
+                        className="flex items-center gap-3 sm:gap-4 p-3 rounded-lg border hover:bg-accent hover:border-primary/30 hover:shadow-sm cursor-pointer transition-all duration-150 h-full min-h-[48px]"
                       >
                         <img
                           src={product.images?.[0] || '/placeholder.svg'}
