@@ -31,6 +31,7 @@ import {
   Repeat,
   Undo2,
   Redo2,
+  ChevronDown,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -245,7 +246,7 @@ ${persText}
         )}
       </div>
 
-      {/* Confirm Selection Bar */}
+      {/* Confirm Selection Bar — #3: accumulated summary + #5: distinct color */}
       <AnimatePresence>
         {selectedIds.size > 0 && (
           <motion.div
@@ -254,14 +255,22 @@ ${persText}
             exit={{ opacity: 0, y: 20 }}
             className="sticky bottom-4 z-10"
           >
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-primary text-primary-foreground shadow-2xl shadow-primary/30">
-              <p className="font-semibold">
-                {selectedIds.size} técnica{selectedIds.size > 1 ? 's' : ''} selecionada{selectedIds.size > 1 ? 's' : ''}
-              </p>
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-2xl shadow-emerald-900/40 border border-emerald-500/30">
+              <div>
+                <p className="font-bold text-base">
+                  {selectedIds.size} técnica{selectedIds.size > 1 ? 's' : ''} selecionada{selectedIds.size > 1 ? 's' : ''}
+                </p>
+                <p className="text-sm text-emerald-100/80">
+                  Total combinado: {formatCurrency(
+                    availableResults
+                      .filter(r => selectedIds.has(r.techniqueId))
+                      .reduce((sum, r) => sum + r.totalPrice, 0)
+                  )}
+                </p>
+              </div>
               <Button 
                 size="lg" 
-                variant="secondary" 
-                className="gap-2 font-bold"
+                className="gap-2 font-bold bg-white text-emerald-700 hover:bg-emerald-50 shadow-lg"
                 onClick={handleConfirmSelected}
               >
                 <Check className="h-5 w-5" />
@@ -307,122 +316,159 @@ function ComparisonCard({
   maxPrice: number;
   isSelected: boolean;
 }) {
+  const [showDetails, setShowDetails] = useState(false);
+  const isBestValue = result.isCheapest;
   const savingsPercent = maxPrice > 0 && result.totalPrice < maxPrice 
     ? Math.round(((maxPrice - result.totalPrice) / maxPrice) * 100)
     : 0;
+
   return (
-    <button
-      onClick={() => onSelect(result)}
-      className={cn(
-        'w-full p-6 rounded-2xl text-left transition-all duration-300 group',
-        'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
-        isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
-        !isSelected && isFirst && 'ring-1 ring-primary/20'
+    <div className="relative">
+      {/* #1: Premium highlight for best value */}
+      {isBestValue && !isSelected && (
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-amber-500/40 via-primary/30 to-amber-500/40 blur-sm pointer-events-none" />
       )}
-    >
-      <div className="flex items-start justify-between gap-6">
-        {/* Checkbox indicator */}
-        <div className={cn(
-          'mt-1 w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all',
-          isSelected 
-            ? 'bg-primary border-primary' 
-            : 'border-muted-foreground/30 group-hover:border-primary/50'
-        )}>
-          {isSelected && <Check className="h-4 w-4 text-primary-foreground" />}
-        </div>
+      <button
+        onClick={() => onSelect(result)}
+        className={cn(
+          'relative w-full p-6 rounded-2xl text-left transition-all duration-300 group',
+          'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
+          isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
+          !isSelected && isBestValue && 'ring-2 ring-amber-500/50 border-amber-500/30 shadow-lg shadow-amber-500/10',
+          !isSelected && !isBestValue && isFirst && 'ring-1 ring-primary/20'
+        )}
+      >
+        <div className="flex items-start justify-between gap-5">
+          {/* #2: Bigger checkbox (32px) with animation */}
+          <motion.div 
+            className={cn(
+              'mt-0.5 w-8 h-8 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all',
+              isSelected 
+                ? 'bg-primary border-primary' 
+                : 'border-muted-foreground/30 group-hover:border-primary/50'
+            )}
+            animate={isSelected ? { scale: [1, 1.15, 1] } : {}}
+            transition={{ duration: 0.25 }}
+          >
+            {isSelected && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              >
+                <Check className="h-5 w-5 text-primary-foreground" />
+              </motion.div>
+            )}
+          </motion.div>
 
-        {/* Left: Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 flex-wrap mb-2">
-            <h4 className="font-bold text-xl">{result.techniqueName}</h4>
-            <Badge variant="outline" className="text-xs font-mono">
-              {result.techniqueCode}
-            </Badge>
-            {result.isCheapest && (
-              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1.5 shadow-lg shadow-amber-500/25">
-                <Trophy className="h-3.5 w-3.5" />
-                Mais Barato
+          {/* Left: Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap mb-1">
+              <h4 className="font-bold text-xl">{result.techniqueName}</h4>
+              <Badge variant="outline" className="text-xs font-mono">
+                {result.techniqueCode}
               </Badge>
-            )}
-            {result.isFastest && (
-              <Badge variant="secondary" className="gap-1.5">
-                <Zap className="h-3.5 w-3.5" />
-                Mais Rápido
-              </Badge>
-            )}
-            {savingsPercent > 0 && (
-              <Badge variant="outline" className="gap-1 text-green-600 border-green-300 dark:text-green-400 dark:border-green-700">
-                ↓ {savingsPercent}% vs mais caro
-              </Badge>
-            )}
-          </div>
-
-          {/* Stats Row */}
-          <div className="flex items-center gap-6 mt-4">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-primary/10">
-                <DollarSign className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <span className="font-bold text-lg">{formatCurrency(result.unitPrice)}</span>
-                <span className="text-muted-foreground text-sm">/un</span>
-              </div>
+              {/* #1: Larger trophy for best value */}
+              {isBestValue && (
+                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
+                  <Trophy className="h-4 w-4" />
+                  Melhor Custo-Benefício
+                </Badge>
+              )}
+              {result.isFastest && (
+                <Badge variant="secondary" className="gap-1.5">
+                  <Zap className="h-3.5 w-3.5" />
+                  Mais Rápido
+                </Badge>
+              )}
+              {savingsPercent > 0 && (
+                <Badge variant="outline" className="gap-1 text-emerald-600 border-emerald-400 dark:text-emerald-400 dark:border-emerald-700">
+                  ↓ {savingsPercent}% vs mais caro
+                </Badge>
+              )}
             </div>
-            {result.productionDays && (
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-muted">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <span className="font-bold">{result.productionDays}</span>
-                  <span className="text-muted-foreground text-sm"> dias</span>
-                </div>
+
+            {/* #6: Unit price PROMINENT */}
+            <div className="flex items-center gap-6 mt-3">
+              <div className="flex items-baseline gap-1.5">
+                <DollarSign className="h-5 w-5 text-primary self-center" />
+                <span className="font-extrabold text-2xl text-primary">{formatCurrency(result.unitPrice)}</span>
+                <span className="text-muted-foreground text-sm font-medium">/un</span>
               </div>
-            )}
+              {result.productionDays && (
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span className="font-semibold">{result.productionDays}</span>
+                  <span className="text-sm">dias</span>
+                </div>
+              )}
+            </div>
+
+            {/* #4: Collapsible technical badges */}
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowDetails(!showDetails); }}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showDetails && "rotate-180")} />
+                Detalhes técnicos
+              </button>
+              <AnimatePresence>
+                {showDetails && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {result.budgetCode && (
+                        <Badge variant="secondary" className="text-xs font-mono gap-1">
+                          📋 {result.budgetCode}
+                        </Badge>
+                      )}
+                      {result.minimumApplied && (
+                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700">
+                          Faturamento mínimo aplicado
+                        </Badge>
+                      )}
+                      {result.maxColors !== null && (
+                        <Badge variant="outline" className="text-xs">
+                          Máx {result.maxColors} cores
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        Faixa {result.tierUsed} ({result.tierMinQty}-{result.tierMaxQty || '∞'} un.)
+                      </Badge>
+                      {result.setupPrice > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          Setup: {formatCurrency(result.setupPrice)}
+                        </Badge>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            {result.budgetCode && (
-              <Badge variant="secondary" className="text-xs font-mono gap-1">
-                📋 {result.budgetCode}
-              </Badge>
-            )}
-            {result.minimumApplied && (
-              <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">
-                Faturamento mínimo aplicado
-              </Badge>
-            )}
-            {result.maxColors !== null && (
-              <Badge variant="outline" className="text-xs">
-                Máx {result.maxColors} cores
-              </Badge>
-            )}
-            <Badge variant="outline" className="text-xs">
-              Faixa {result.tierUsed} ({result.tierMinQty}-{result.tierMaxQty || '∞'} un.)
-            </Badge>
-          </div>
-        </div>
-
-        {/* Right: Total Price */}
-        <div className="text-right shrink-0">
-          <div className="p-4 rounded-2xl bg-muted/50 group-hover:bg-primary/5 transition-colors">
-            <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">Total</p>
-            <p className="text-3xl font-bold text-primary">
-              {formatCurrency(result.totalPrice)}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {formatCurrency(result.costPerUnit)}/un
-            </p>
-            {result.setupPrice > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Setup: {formatCurrency(result.setupPrice)}
+          {/* Right: Total Price — #6: secondary to unit price */}
+          <div className="text-right shrink-0">
+            <div className="p-4 rounded-2xl bg-muted/50 group-hover:bg-primary/5 transition-colors min-w-[140px]">
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Total</p>
+              <p className="text-2xl font-bold text-primary">
+                {formatCurrency(result.totalPrice)}
               </p>
-            )}
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatCurrency(result.costPerUnit)}/un
+              </p>
+            </div>
           </div>
         </div>
-      </div>
-    </button>
+      </button>
+    </div>
   );
 }
 
