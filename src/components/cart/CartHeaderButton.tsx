@@ -349,11 +349,12 @@ export function CartHeaderButton() {
                         <Button
                           className="w-full gap-2 text-xs h-10 rounded-lg font-semibold bg-emerald-500 hover:bg-emerald-600 text-white"
                           onClick={() => {
+                            const cartIdToDelete = activeCart.id;
                             setOpen(false);
                             navigate("/orcamentos/novo", {
                               state: {
                                 fromCart: true,
-                                cartId: activeCart.id,
+                                cartId: cartIdToDelete,
                                 companyId: activeCart.company_id,
                                 companyName: activeCart.company_name,
                                 companyLocation: activeCart.company_location,
@@ -369,6 +370,7 @@ export function CartHeaderButton() {
                                 })),
                               },
                             });
+                            deleteCart(cartIdToDelete);
                           }}
                         >
                           <ArrowRight className="h-3.5 w-3.5" />
