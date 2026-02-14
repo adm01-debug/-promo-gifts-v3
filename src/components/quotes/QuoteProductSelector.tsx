@@ -173,13 +173,20 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
 
   // --- Shared header ---
   const headerContent = (
-    <div className="flex items-center gap-2">
-      <Package className="h-5 w-5" />
-      Selecionar Produto
+    <div className="flex items-center justify-between w-full">
+      <div className="flex items-center gap-2.5">
+        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Package className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <span className="font-semibold text-base">Adicionar Produto</span>
+          <p className="text-xs text-muted-foreground font-normal">Busque e selecione um produto para o orçamento</p>
+        </div>
+      </div>
       {addedCount > 0 && (
-        <Badge variant="default" className="ml-2 gap-1">
+        <Badge variant="default" className="gap-1 shrink-0">
           <Check className="h-3 w-3" />
-          {addedCount} adicionado{addedCount !== 1 ? 's' : ''}
+          {addedCount}
         </Badge>
       )}
     </div>
@@ -191,14 +198,14 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
       {!selectedProduct ? (
         <div className="flex flex-col flex-1 min-h-0">
           {/* Search */}
-          <div className="space-y-2 shrink-0">
+          <div className="space-y-2.5 shrink-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nome, SKU, categoria ou marca..."
+                placeholder="Buscar por nome ou SKU..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 h-11 text-sm border-primary/30 focus-visible:ring-primary/20"
                 autoFocus={!isMobile}
               />
               {searchQuery && (
@@ -210,16 +217,16 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                 </button>
               )}
             </div>
-            <div className="flex items-center justify-between px-1">
-              {isSearching ? (
-                <p className="text-xs text-muted-foreground">
-                  {resultCount} produto{resultCount !== 1 ? 's' : ''} encontrado{resultCount !== 1 ? 's' : ''}
-                </p>
-              ) : <span />}
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] text-muted-foreground tabular-nums">
+                {isSearching
+                  ? `${resultCount} resultado${resultCount !== 1 ? 's' : ''}`
+                  : `${availableProducts.length} produtos disponíveis`}
+              </p>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="text-xs border rounded-md px-2 py-1 bg-background text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                className="text-[11px] border rounded-md px-2 py-1 bg-background text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 <option value="default">Relevância</option>
                 <option value="name-asc">Nome A→Z</option>
@@ -293,58 +300,68 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
                         height: `${virtualRow.size}px`,
                         transform: `translateY(${virtualRow.start}px)`,
                       }}
-                      className="py-1"
+                      className="py-0.5"
                     >
                       <div
                         onClick={() => setSelectedProduct(product)}
-                        className="flex items-center gap-3 sm:gap-4 p-3 rounded-lg border hover:bg-accent hover:border-primary/30 hover:shadow-sm cursor-pointer transition-all duration-150 h-full min-h-[48px]"
+                        className="group grid grid-cols-[48px_1fr_auto_36px] sm:grid-cols-[56px_1fr_auto_36px] items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-150 h-full"
                       >
-                        <img
-                          src={product.images?.[0] || '/placeholder.svg'}
-                          alt={product.name}
-                          className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded-md"
-                          loading="lazy"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium truncate text-sm sm:text-base" title={product.name}>{product.name}</h4>
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <span className="font-mono">{product.sku || 'N/A'}</span>
-                            <span className="hidden sm:inline">•</span>
-                            <span className="hidden sm:inline">{product.category_name || 'Sem categoria'}</span>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-primary font-semibold text-sm">
-                              {formatCurrency(product.price)}
-                            </span>
-                            <Badge variant="secondary" className="text-xs">
-                              Mín. {product.minQuantity || 1}
-                            </Badge>
-                          </div>
+                        {/* Thumbnail */}
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted overflow-hidden shrink-0">
+                          <img
+                            src={product.images?.[0] || '/placeholder.svg'}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
                         </div>
-                        <div className="flex flex-col items-end gap-2 shrink-0">
-                          <div className="hidden sm:flex flex-wrap gap-1 max-w-[80px] justify-end">
-                            {product.colors.slice(0, 5).map((color, i) => (
-                              <div
-                                key={i}
-                                className="w-4 h-4 rounded-full border"
-                                style={{ backgroundColor: color.hex }}
-                                title={color.name}
-                              />
-                            ))}
-                            {product.colors.length > 5 && (
-                              <span className="text-[10px] text-muted-foreground">+{product.colors.length - 5}</span>
-                            )}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 sm:h-7 sm:w-7 p-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                            onClick={(e) => handleQuickAdd(e, product)}
-                            title="Adicionar rápido (qtd mínima, sem cor)"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
+
+                        {/* Info */}
+                        <div className="min-w-0 space-y-0.5">
+                          <h4 className="font-medium truncate text-sm leading-tight" title={product.name}>
+                            {product.name}
+                          </h4>
+                          <p className="text-[11px] text-muted-foreground font-mono tracking-wide">
+                            {product.sku || 'N/A'}
+                          </p>
+                          {/* Color dots inline */}
+                          {product.colors.length > 0 && (
+                            <div className="hidden sm:flex items-center gap-0.5 pt-0.5">
+                              {product.colors.slice(0, 6).map((color, i) => (
+                                <div
+                                  key={i}
+                                  className="w-3 h-3 rounded-full border border-border/50"
+                                  style={{ backgroundColor: color.hex }}
+                                  title={color.name}
+                                />
+                              ))}
+                              {product.colors.length > 6 && (
+                                <span className="text-[9px] text-muted-foreground ml-0.5">+{product.colors.length - 6}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
+
+                        {/* Price column */}
+                        <div className="text-right shrink-0 space-y-0.5">
+                          <p className="text-sm font-semibold text-primary tabular-nums whitespace-nowrap">
+                            {formatCurrency(product.price)}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground">
+                            Mín. {product.minQuantity || 1} un.
+                          </p>
+                        </div>
+
+                        {/* Quick add */}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-9 w-9 p-0 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary hover:bg-primary/10 transition-all shrink-0"
+                          onClick={(e) => handleQuickAdd(e, product)}
+                          title="Adicionar rápido"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   );
@@ -515,7 +532,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
       if (!isOpen) resetSelection();
     }}>
       <DialogTrigger asChild>{triggerButton}</DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col gap-4">
         <DialogHeader>
           <DialogTitle>{headerContent}</DialogTitle>
         </DialogHeader>
