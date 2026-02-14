@@ -70,8 +70,8 @@ export function PersistentBreadcrumbs({
       
       if (isUuid || isNumericId) {
         const prevPart = pathParts[index - 1];
-        // For product detail pages, skip the UUID — "Detalhe do Produto" already covers it
-        if (prevPart === "produto" || prevPart === "produtos") {
+        // For detail pages, skip the UUID — parent label already covers it
+        if (prevPart === "produto" || prevPart === "produtos" || prevPart === "orcamentos") {
           return; // Skip UUID in breadcrumb
         }
         // For other routes with IDs, show a short label
@@ -84,7 +84,7 @@ export function PersistentBreadcrumbs({
         const nextIsSkippedId = nextPart && (
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextPart) ||
           /^\d+$/.test(nextPart)
-        ) && (part === "produto" || part === "produtos");
+        ) && (part === "produto" || part === "produtos" || part === "orcamentos");
         
         const isLastVisible = index >= pathParts.length - 1 || nextIsSkippedId;
         
