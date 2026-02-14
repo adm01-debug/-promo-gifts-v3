@@ -11,7 +11,6 @@ import {
   Layers,
   Sparkles,
 } from "lucide-react";
-import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { KitComposition } from "@/components/products/KitComposition";
@@ -208,6 +207,7 @@ export default function ProductDetail() {
                 productSku={product.sku}
                 productPrice={product.price}
                 productImageUrl={product.images?.[0]}
+                productMinQuantity={product.minQuantity || 1}
               />
 
               {/* Status Badges - Compact on mobile */}
@@ -420,15 +420,6 @@ export default function ProductDetail() {
 
             {/* Actions - Desktop only */}
             <div className="hidden md:flex items-center gap-3 pt-4 border-t border-border">
-              <QuickAddToQuote
-                productId={product.id}
-                productName={product.name}
-                productSku={product.sku}
-                productImageUrl={product.images?.[0]}
-                productPrice={product.price}
-                minQuantity={product.minQuantity || 1}
-                variant="button"
-              />
 
               <ShareActions product={product} />
               
