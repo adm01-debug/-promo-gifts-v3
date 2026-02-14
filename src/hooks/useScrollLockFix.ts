@@ -1,44 +1,36 @@
 import { useEffect } from "react";
 
 /**
- * Nuclear scroll-lock prevention v3.
+ * Nuclear scroll-lock prevention v4.
  * 
- * react-remove-scroll (used by Radix Dialog/DropdownMenu/Select) sets
- * data-scroll-locked, overflow:hidden, position:fixed on html/body.
- * Sometimes these persist after the overlay closes.
+ * react-remove-scroll (Radix Dialog/DropdownMenu/Select) blocks scroll via:
+ *   1. CSS: data-scroll-locked, overflow:hidden, position:fixed on html/body
+ *   2. JS: wheel/touchmove event listeners that call preventDefault()
  * 
- * Strategy:
- * 1. MutationObserver watches for style/attribute changes
- * 2. On any mutation, if no active overlay → force unlock
- * 3. Also listens to transitionend, animationend, focusin, click
- *    (these fire after Radix finishes its close animation)
- * 4. Periodic safety net every 500ms
+ * Strategy (3 layers):
+ *   Layer 1 — CSS: index.css overrides with !important (already in place)
+ *   Layer 2 — MutationObserver: removes residual attributes/styles after close
+ *   Layer 3 — Capture-phase interception: when no overlay is open,
+ *             stopImmediatePropagation on wheel/touchmove so react-remove-scroll's
+ *             preventDefault() never fires, allowing native scroll.
  */
 
 function hasActiveOverlay(): boolean {
-  // Check for open Radix dialogs/alerts
-  const openDialogs = document.querySelectorAll(
-    '[data-state="open"][role="dialog"], [data-state="open"][role="alertdialog"]'
-  );
-  for (const dialog of openDialogs) {
-    const rect = (dialog as HTMLElement).getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) return true;
+  const selectors = [
+    '[data-state="open"][role="dialog"]',
+    '[data-state="open"][role="alertdialog"]',
+    '[data-radix-select-content-wrapper]',
+    '[vaul-drawer][data-state="open"]',
+    '[data-state="open"][data-vaul-drawer]',
+  ];
+
+  for (const sel of selectors) {
+    const el = document.querySelector(sel);
+    if (el) {
+      const rect = (el as HTMLElement).getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) return true;
+    }
   }
-
-  // Check for open Radix select/combobox content
-  const selectContent = document.querySelector('[data-radix-select-content-wrapper]');
-  if (selectContent) {
-    const rect = (selectContent as HTMLElement).getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) return true;
-  }
-
-  // Check for vaul drawer
-  const drawer = document.querySelector('[vaul-drawer][data-state="open"]');
-  if (drawer) return true;
-
-  // Check for open Sheet (which uses Dialog internally)
-  const sheets = document.querySelectorAll('[data-state="open"][data-vaul-drawer]');
-  if (sheets.length > 0) return true;
 
   return false;
 }
@@ -46,41 +38,40 @@ function hasActiveOverlay(): boolean {
 function forceUnlock() {
   if (hasActiveOverlay()) return;
 
-  const targets = [document.documentElement, document.body];
-  for (const el of targets) {
-    // Remove the data attribute that react-remove-scroll uses
+  for (const el of [document.documentElement, document.body]) {
     if (el.hasAttribute('data-scroll-locked')) {
       el.removeAttribute('data-scroll-locked');
     }
 
-    // Clear inline styles that lock scrolling
-    const style = el.style;
-    if (style.overflow === 'hidden') style.overflow = '';
-    if (style.overflowY === 'hidden') style.overflowY = '';
-    if (style.position === 'fixed') style.position = '';
-    if (style.marginRight) style.marginRight = '';
-    if (style.paddingRight) style.paddingRight = '';
-    if (style.touchAction === 'none') style.touchAction = '';
-    if (style.pointerEvents === 'none') style.pointerEvents = '';
-    
-    // Also clear top offset that position:fixed sometimes sets
-    if (style.top && style.position !== 'fixed') style.top = '';
-    if (style.width === '100%' && el === document.body) style.width = '';
+    const s = el.style;
+    if (s.overflow === 'hidden') s.overflow = '';
+    if (s.overflowY === 'hidden') s.overflowY = '';
+    if (s.position === 'fixed') s.position = '';
+    if (s.marginRight) s.marginRight = '';
+    if (s.paddingRight) s.paddingRight = '';
+    if (s.touchAction === 'none') s.touchAction = '';
+    if (s.pointerEvents === 'none') s.pointerEvents = '';
+    if (s.top && s.position !== 'fixed') s.top = '';
+    if (s.width === '100%' && el === document.body) s.width = '';
   }
 
-  // Remove react-remove-scroll block-interactivity classes
+  // Remove block-interactivity classes
   document.body.classList.forEach(cls => {
     if (cls.startsWith('block-interactivity-')) {
       document.body.classList.remove(cls);
     }
   });
+
+  // Force pointer-events if computed is none
+  if (getComputedStyle(document.body).pointerEvents === 'none') {
+    document.body.style.pointerEvents = 'auto';
+  }
 }
 
 export function useScrollLockFix() {
   useEffect(() => {
-    // MutationObserver for attribute changes on html and body
+    // ── Layer 2: MutationObserver ──
     const observer = new MutationObserver(() => {
-      // Small delay to let Radix finish its cleanup
       requestAnimationFrame(forceUnlock);
     });
 
@@ -93,18 +84,39 @@ export function useScrollLockFix() {
       attributeFilter: ['style', 'data-scroll-locked', 'class'],
     });
 
-    // Event-based cleanup — fires when overlays finish closing
+    // ── Layer 3: Capture-phase scroll event interception ──
+    // react-remove-scroll adds wheel/touchmove listeners that call preventDefault().
+    // We intercept BEFORE them (capture phase) and stopImmediatePropagation
+    // when no overlay is active, so native scroll proceeds unblocked.
+    const interceptScroll = (e: Event) => {
+      if (!hasActiveOverlay()) {
+        // Check if scroll is currently locked (residual state)
+        const isLocked = 
+          document.documentElement.hasAttribute('data-scroll-locked') ||
+          document.body.hasAttribute('data-scroll-locked') ||
+          document.body.style.overflow === 'hidden' ||
+          document.documentElement.style.overflow === 'hidden';
+
+        if (isLocked) {
+          // Stop react-remove-scroll from calling preventDefault
+          e.stopImmediatePropagation();
+          // Also clean up the lock
+          forceUnlock();
+        }
+      }
+    };
+
+    document.addEventListener('wheel', interceptScroll, { capture: true, passive: true });
+    document.addEventListener('touchmove', interceptScroll, { capture: true, passive: true });
+
+    // ── Event-based cleanup ──
     const debouncedUnlock = () => requestAnimationFrame(forceUnlock);
-    
-    // focusin fires when focus returns to the main page after dialog closes
     document.addEventListener('focusin', debouncedUnlock, { passive: true });
-    // Click anywhere after a dialog closed
     document.addEventListener('click', debouncedUnlock, { passive: true, capture: true });
-    // After CSS transitions/animations (Radix uses these for open/close)
     document.addEventListener('transitionend', debouncedUnlock, { passive: true });
     document.addEventListener('animationend', debouncedUnlock, { passive: true });
 
-    // Safety net interval — less frequent since we have event-based cleanup
+    // Safety net
     const interval = setInterval(forceUnlock, 500);
 
     // Initial cleanup
@@ -113,6 +125,8 @@ export function useScrollLockFix() {
     return () => {
       observer.disconnect();
       clearInterval(interval);
+      document.removeEventListener('wheel', interceptScroll, { capture: true } as any);
+      document.removeEventListener('touchmove', interceptScroll, { capture: true } as any);
       document.removeEventListener('focusin', debouncedUnlock);
       document.removeEventListener('click', debouncedUnlock);
       document.removeEventListener('transitionend', debouncedUnlock);
