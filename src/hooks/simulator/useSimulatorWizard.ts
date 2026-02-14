@@ -141,6 +141,10 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       return { ...state, personalizations: newPersonalizations };
     }
 
+    case 'REMOVE_ALL_PERSONALIZATIONS': {
+      return { ...state, personalizations: [] };
+    }
+
     case 'UPDATE_PERSONALIZATION': {
       const { index: editIndex, personalization: updatedPers } = action.payload;
       const updatedPersonalizations = [...state.personalizations];
@@ -387,6 +391,11 @@ export function useSimulatorWizard() {
     toast.info('Gravação removida');
   }, []);
 
+  const removeAllPersonalizations = useCallback(() => {
+    dispatch({ type: 'REMOVE_ALL_PERSONALIZATIONS' });
+    toast.info('Todas as gravações removidas');
+  }, []);
+
   const editPersonalization = useCallback((index: number) => {
     dispatch({ type: 'EDIT_PERSONALIZATION', payload: index });
   }, []);
@@ -504,6 +513,7 @@ export function useSimulatorWizard() {
     fetchComparisonPrices,
     confirmTechnique,
     removePersonalization,
+    removeAllPersonalizations,
     editPersonalization,
     startNewPersonalization,
     cancelPersonalization,

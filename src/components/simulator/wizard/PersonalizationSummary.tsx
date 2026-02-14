@@ -19,6 +19,17 @@ import {
   Trash2,
   MoreHorizontal,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import { formatCurrency } from '@/lib/format';
@@ -129,11 +140,52 @@ export function PersonalizationSummary({
                 <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                   Gravações ({personalizations.length})
                 </span>
-                {personalizations.length > 0 && (
-                  <span className="font-semibold text-sm text-primary whitespace-nowrap">
-                    {formatCurrency(totals.customizationTotal)}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {personalizations.length > 1 && (
+                    <AlertDialog>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Remover todas</TooltipContent>
+                      </Tooltip>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="flex items-center gap-2">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                            Remover todas as gravações?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Todas as <strong>{personalizations.length} gravações</strong> serão removidas. 
+                            Você precisará configurá-las novamente se quiser adicioná-las de volta.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => wizard.removeAllPersonalizations()}
+                          >
+                            Remover todas
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                  {personalizations.length > 0 && (
+                    <span className="font-semibold text-sm text-primary whitespace-nowrap">
+                      {formatCurrency(totals.customizationTotal)}
+                    </span>
+                  )}
+                </div>
               </div>
 
               <AnimatePresence mode="popLayout">
