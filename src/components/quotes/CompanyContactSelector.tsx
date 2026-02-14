@@ -20,8 +20,7 @@ interface CompanyOption {
   name: string;
   razao_social: string;
   nome_fantasia: string | null;
-  cidade: string | null;
-  estado: string | null;
+  ramo_atividade: string | null;
   cnpj: string | null;
 }
 
@@ -37,8 +36,7 @@ export interface SelectedCompanyInfo {
   id: string;
   name: string;
   cnpj?: string;
-  cidade?: string;
-  estado?: string;
+  ramo_atividade?: string;
 }
 
 export interface SelectedContactInfo {
@@ -182,7 +180,7 @@ export function CompanyContactSelector({
     queryKey: ["quote-companies-selector"],
     queryFn: async () => {
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
@@ -192,8 +190,7 @@ export function CompanyContactSelector({
         name: getCompanyDisplayName(c),
         razao_social: c.razao_social,
         nome_fantasia: c.nome_fantasia,
-        cidade: c.cidade,
-        estado: c.estado,
+        ramo_atividade: (c as any).ramo_atividade || null,
         cnpj: c.cnpj,
       }));
     },
@@ -263,11 +260,11 @@ export function CompanyContactSelector({
       // Search both razao_social and title for better coverage
       const [byRazao, byTitle] = await Promise.all([
         searchCrm<CrmCompany>("companies", "razao_social", debouncedSearch, {
-          select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+          select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
           limit: 50,
         }),
         searchCrm<CrmCompany>("companies", "title", debouncedSearch, {
-          select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+          select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
           limit: 50,
         }),
       ]);
@@ -282,8 +279,7 @@ export function CompanyContactSelector({
             name: getCompanyDisplayName(c),
             razao_social: c.razao_social,
             nome_fantasia: c.nome_fantasia,
-            cidade: c.cidade,
-            estado: c.estado,
+            ramo_atividade: (c as any).ramo_atividade || null,
             cnpj: c.cnpj,
           });
         }
@@ -298,7 +294,7 @@ export function CompanyContactSelector({
   const fuse = useMemo(() => {
     if (!companies) return null;
     return new Fuse(companies, {
-      keys: ["name", "razao_social", "nome_fantasia", "cnpj", "cidade"],
+      keys: ["name", "razao_social", "nome_fantasia", "cnpj", "ramo_atividade"],
       threshold: 0.4,
       distance: 100,
     });
@@ -342,7 +338,7 @@ export function CompanyContactSelector({
     queryFn: async () => {
       if (!companyId) return null;
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, cidade, estado, cnpj",
+        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
         filters: { id: companyId },
         limit: 1,
       });
@@ -353,8 +349,7 @@ export function CompanyContactSelector({
         name: getCompanyDisplayName(c),
         razao_social: c.razao_social,
         nome_fantasia: c.nome_fantasia,
-        cidade: c.cidade,
-        estado: c.estado,
+        ramo_atividade: (c as any).ramo_atividade || null,
         cnpj: c.cnpj,
       };
     },
@@ -392,7 +387,7 @@ export function CompanyContactSelector({
     onContactChange?.("");
     onContactInfoChange?.(null);
     const found = filteredCompanies.find((c) => c.id === id) || companies?.find((c) => c.id === id);
-    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, cidade: found.cidade || undefined, estado: found.estado || undefined } : null);
+    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: found.ramo_atividade || undefined } : null);
     setIsOpen(false);
     setSearchTerm("");
   };
@@ -429,9 +424,9 @@ export function CompanyContactSelector({
                 {selectedCompany ? (
                   <>
                     <span className="truncate">{selectedCompany.name}</span>
-                    {(selectedCompany.cidade || selectedCompany.estado) && (
+                    {selectedCompany.ramo_atividade && (
                       <span className="text-xs text-muted-foreground truncate">
-                        {[selectedCompany.cidade, selectedCompany.estado].filter(Boolean).join("/")}
+                        {selectedCompany.ramo_atividade}
                       </span>
                     )}
                   </>
@@ -521,9 +516,9 @@ export function CompanyContactSelector({
                     >
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{company.name}</p>
-                        {(company.cidade || company.estado) && (
+                        {company.ramo_atividade && (
                           <p className="text-xs text-muted-foreground truncate">
-                            {[company.cidade, company.estado].filter(Boolean).join("/")}
+                            {company.ramo_atividade}
                           </p>
                         )}
                       </div>
