@@ -508,77 +508,81 @@ function ConfirmedSummary({
     }
   };
   return (
-    <div className="space-y-8">
-      {/* Success */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center py-3"
-        >
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <motion.div 
-              className="relative w-10 h-10 shrink-0"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
-            >
-              <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg" />
-              <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
-                <Check className="h-5 w-5 text-white" />
-              </div>
-            </motion.div>
-            <div className="text-left">
-              <h2 className="text-lg font-bold leading-tight">
-                Pronto! O que deseja fazer?
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação' : 'gravações'} configurada{wizard.personalizations.length > 1 ? 's' : ''}
-              </p>
+    <div className="space-y-6">
+      {/* #4: Assertive message instead of vague question */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center justify-between"
+      >
+        <div className="flex items-center gap-3">
+          <motion.div 
+            className="relative w-10 h-10 shrink-0"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
+          >
+            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg" />
+            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
+              <Check className="h-5 w-5 text-white" />
             </div>
+          </motion.div>
+          <div>
+            <h2 className="text-lg font-bold leading-tight">
+              {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação pronta' : 'gravações prontas'}
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Revise abaixo e gere o orçamento
+            </p>
           </div>
-          {/* Undo/Redo */}
-          <div className="flex items-center gap-2 justify-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-xs h-7"
-              disabled={!wizard.canUndo}
-              onClick={wizard.undo}
-            >
-              <Undo2 className="h-3 w-3" />
-              Desfazer
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-xs h-7"
-              disabled={!wizard.canRedo}
-              onClick={wizard.redo}
-            >
-              <Redo2 className="h-3 w-3" />
-              Refazer
-            </Button>
-          </div>
-        </motion.div>
+        </div>
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-7" disabled={!wizard.canUndo} onClick={wizard.undo}>
+            <Undo2 className="h-3 w-3" /> Desfazer
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-7" disabled={!wizard.canRedo} onClick={wizard.redo}>
+            <Redo2 className="h-3 w-3" /> Refazer
+          </Button>
+        </div>
+      </motion.div>
 
-      {/* Personalizations List */}
-      <div className="space-y-3">
+      {/* #1: Compact table-like rows instead of sparse cards */}
+      <div className="rounded-xl border overflow-hidden divide-y divide-border">
         {wizard.personalizations.map((pers, idx) => (
           <motion.div
             key={pers.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 * idx }}
-            className="flex items-center gap-5 p-5 rounded-xl bg-card border"
+            transition={{ delay: 0.05 * idx }}
+            className="flex items-center gap-4 px-4 py-3 bg-card hover:bg-muted/30 transition-colors"
           >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-primary shrink-0">
+            {/* Index */}
+            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center font-bold text-sm text-primary shrink-0">
               {idx + 1}
             </div>
+
+            {/* #5: Thumbnail mockup inline */}
+            {wizard.selectedProduct && (
+              <WizardMockupPreview
+                personalization={pers}
+                product={wizard.selectedProduct}
+              />
+            )}
+
+            {/* Info — compact */}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold">{pers.technique.name}</p>
-              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-sm truncate">{pers.technique.name}</span>
+                {pers.pricing.budgetCode && (
+                  <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0 h-4 shrink-0">
+                    {pers.pricing.budgetCode}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
                 <span className="flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" />
+                  <MapPin className="h-3 w-3" />
                   {pers.location.componentName === pers.location.locationName 
                     ? pers.location.locationName 
                     : `${pers.location.componentName} • ${pers.location.locationName}`}
@@ -586,33 +590,18 @@ function ConfirmedSummary({
                 <span>{pers.specs.colors} {pers.specs.colors === 1 ? 'cor' : 'cores'}</span>
                 <span>{pers.specs.width}×{pers.specs.height}cm</span>
               </div>
-              {pers.pricing.budgetCode && (
-                <Badge variant="secondary" className="text-xs font-mono mt-2 gap-1">
-                  <span className="opacity-60">Cód:</span> {pers.pricing.budgetCode}
-                </Badge>
-              )}
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              {wizard.selectedProduct && (
-                <WizardMockupPreview
-                  personalization={pers}
-                  product={wizard.selectedProduct}
-                />
-              )}
-              <div className="text-right">
-                <p className="font-bold text-lg text-primary">
-                  {formatCurrency(pers.pricing.totalPrice)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatCurrency(pers.pricing.costPerUnit)}/un
-                </p>
-              </div>
+
+            {/* Price — compact */}
+            <div className="text-right shrink-0">
+              <p className="font-bold text-base text-primary">{formatCurrency(pers.pricing.totalPrice)}</p>
+              <p className="text-[11px] text-muted-foreground">{formatCurrency(pers.pricing.costPerUnit)}/un</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Totals */}
+      {/* Totals — with #6 tooltip on "A consultar" */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -621,26 +610,27 @@ function ConfirmedSummary({
       >
         <div className="bg-gradient-to-br from-primary via-primary to-primary/90 p-5 text-primary-foreground">
           <div className="grid grid-cols-[2fr_1.5fr_1fr] gap-3 items-stretch">
-            {/* Total Geral — destaque principal */}
             <div className="p-4 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/20">
               <p className="text-xs font-semibold tracking-wider text-white/70 mb-1.5">Total geral</p>
               <p className="text-4xl font-extrabold tracking-tight text-white">{formatCurrency(wizard.totals.grandTotal)}</p>
             </div>
-            {/* Por Unidade */}
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10">
               <p className="text-xs font-semibold tracking-wider text-white/70 mb-0.5">Por unidade</p>
               <p className="text-[11px] text-white/50 mb-1.5">(produto + gravação)</p>
               <p className="text-2xl font-bold text-white">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
             </div>
-            {/* Prazo */}
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10 flex flex-col justify-between">
               <p className="text-xs font-semibold tracking-wider text-white/70 mb-1.5">Prazo máx.</p>
               {wizard.totals.maxDays > 0 ? (
                 <p className="text-2xl font-bold text-white">~{wizard.totals.maxDays}d</p>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="group relative flex items-center gap-2 cursor-help">
                   <AlertCircle className="h-4 w-4 text-white/70 shrink-0" />
                   <p className="text-lg font-bold text-white">A consultar</p>
+                  {/* #6: Tooltip explaining "A consultar" */}
+                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 rounded-lg bg-black/90 text-white text-xs w-48 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-10">
+                    Prazo depende da confirmação do fornecedor para esta técnica e quantidade.
+                  </div>
                 </div>
               )}
             </div>
@@ -648,67 +638,37 @@ function ConfirmedSummary({
         </div>
       </motion.div>
 
-      {/* Actions — Primary + Secondary hierarchy */}
+      {/* #3: CTA "Gerar Orçamento" PREMIUM — biggest, fixed visual weight */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="space-y-3 pt-4"
+        className="space-y-3 pt-2"
       >
-        {/* Primary actions */}
-        <div className="flex gap-3 justify-center">
+        <Button 
+          size="lg" 
+          className="w-full gap-3 h-14 text-base font-bold rounded-xl shadow-xl shadow-primary/30 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+          onClick={onGenerateQuote}
+        >
+          <FileText className="h-5 w-5" />
+          Gerar Orçamento
+        </Button>
+        
+        {/* Secondary row */}
+        <div className="flex gap-2 justify-center">
           {wizard.hasAvailableLocations && (
-            <Button 
-              size="lg" 
-              variant="outline" 
-              className="gap-2 h-12 px-6 rounded-xl"
-              onClick={onAddAnother}
-            >
-              <Plus className="h-4 w-4" />
-              Outro Local
+            <Button size="sm" variant="outline" className="gap-1.5 text-xs h-9 rounded-lg" onClick={onAddAnother}>
+              <Plus className="h-3.5 w-3.5" /> Outro Local
             </Button>
           )}
-          
-          <Button 
-            size="lg" 
-            className="gap-2 h-12 px-8 rounded-xl shadow-lg shadow-primary/25"
-            onClick={onGenerateQuote}
-          >
-            <FileText className="h-4 w-4" />
-            Gerar Orçamento
+          <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-muted-foreground h-9" onClick={onCopy}>
+            <Copy className="h-3.5 w-3.5" /> Copiar
           </Button>
-        </div>
-        
-        {/* Secondary actions — smaller, muted */}
-        <div className="flex gap-2 justify-center">
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="gap-1.5 text-xs text-muted-foreground h-9"
-            onClick={onCopy}
-          >
-            <Copy className="h-3.5 w-3.5" />
-            Copiar
+          <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-muted-foreground h-9" onClick={handleShareWhatsApp}>
+            <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
           </Button>
-
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="gap-1.5 text-xs text-muted-foreground h-9"
-            onClick={handleShareWhatsApp}
-          >
-            <MessageCircle className="h-3.5 w-3.5" />
-            WhatsApp
-          </Button>
-
-          <Button 
-            size="sm" 
-            variant="ghost" 
-            className="gap-1.5 text-xs text-muted-foreground h-9"
-            onClick={() => setShowDuplicateQty(!showDuplicateQty)}
-          >
-            <Repeat className="h-3.5 w-3.5" />
-            Outra Qtd.
+          <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-muted-foreground h-9" onClick={() => setShowDuplicateQty(!showDuplicateQty)}>
+            <Repeat className="h-3.5 w-3.5" /> Outra Qtd.
           </Button>
         </div>
       </motion.div>
@@ -744,12 +704,8 @@ function ConfirmedSummary({
       )}
 
       {/* New Simulation */}
-      <div className="text-center pt-4">
-        <Button 
-          variant="link" 
-          className="text-muted-foreground"
-          onClick={wizard.resetWizard}
-        >
+      <div className="text-center pt-2">
+        <Button variant="link" className="text-muted-foreground" onClick={wizard.resetWizard}>
           Iniciar nova simulação
         </Button>
       </div>
