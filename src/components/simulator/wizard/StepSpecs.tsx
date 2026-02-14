@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   SlidersHorizontal, 
   Palette, 
@@ -21,12 +22,11 @@ import {
   AlertTriangle,
   BarChart3,
   Loader2,
-  Package,
-  MapPin,
   Info,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 
 interface StepSpecsProps {
@@ -98,45 +98,6 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      {/* Context Bar */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-muted/80 to-muted/40 border"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-xl bg-background overflow-hidden shadow-sm">
-            {wizard.selectedProduct?.imageUrl ? (
-              <img 
-                src={wizard.selectedProduct.imageUrl} 
-                alt={wizard.selectedProduct.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-6 w-6 text-muted-foreground" />
-              </div>
-            )}
-          </div>
-          <div className="flex gap-6 text-sm">
-            <div>
-              <p className="text-muted-foreground text-xs uppercase">Produto</p>
-              <p className="font-semibold truncate max-w-[150px]">{wizard.selectedProduct?.name}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs uppercase">Local</p>
-              <p className="font-semibold flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 text-primary" />
-                {selectedLocation.componentName} • {selectedLocation.locationName}
-              </p>
-            </div>
-          </div>
-        </div>
-        <Badge variant="secondary" className="text-sm px-3 py-1">
-          {wizard.quantity} un.
-        </Badge>
-      </motion.div>
-
       {/* Header */}
       <div className="flex items-center gap-4">
         <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
@@ -191,7 +152,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
 
             {estimate && !priceLoading && engravingSpecs.colors > 1 ? (
               <p className="text-sm text-muted-foreground mt-4">
-                {engravingSpecs.colors} cores • Estimativa: <span className="font-semibold text-primary">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.unitPrice)}/un</span>
+                {engravingSpecs.colors} cores • Estimativa: <span className="font-semibold text-primary">{formatCurrency(estimate.unitPrice)}/un</span>
               </p>
             ) : (
               <p className="text-sm text-muted-foreground mt-4">
@@ -401,7 +362,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   </div>
                 ) : estimate ? (
                   <p className="text-sm">
-                    <span className="font-bold text-primary text-lg">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.unitPrice)}</span>
+                    <span className="font-bold text-primary text-lg">{formatCurrency(estimate.unitPrice)}</span>
                     <span className="text-muted-foreground">/un via {estimate.cheapestName}</span>
                   </p>
                 ) : null}
@@ -410,7 +371,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
             {estimate && (
               <div className="text-right">
                 <p className="font-bold text-primary">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.totalPrice)}
+                  {formatCurrency(estimate.totalPrice)}
                 </p>
                 <p className="text-xs text-muted-foreground">total gravação</p>
               </div>
@@ -454,7 +415,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
           </Button>
           {estimate && !priceLoading && (
             <p className="text-[11px] text-muted-foreground/70">
-              A partir de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.unitPrice)}/un
+              A partir de {formatCurrency(estimate.unitPrice)}/un
             </p>
           )}
         </div>

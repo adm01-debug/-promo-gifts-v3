@@ -131,49 +131,6 @@ ${persText}
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      {/* Context Bar */}
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-muted/80 to-muted/40 border"
-      >
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Package className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground text-xs uppercase">Produto</p>
-              <p className="font-semibold truncate max-w-[120px]">{wizard.selectedProduct?.name}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs uppercase">Local</p>
-              <p className="font-semibold flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {selectedLocation?.locationName}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs uppercase">Cores</p>
-              <p className="font-semibold flex items-center gap-1">
-                <Palette className="h-3 w-3" />
-                {engravingSpecs.colors}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground text-xs uppercase">Tamanho</p>
-              <p className="font-semibold flex items-center gap-1">
-                <Ruler className="h-3 w-3" />
-                {engravingSpecs.width}×{engravingSpecs.height}cm
-              </p>
-            </div>
-          </div>
-        </div>
-        <Badge variant="secondary" className="text-sm px-3 py-1">
-          {wizard.quantity} un.
-        </Badge>
-      </motion.div>
-
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -389,7 +346,7 @@ function ComparisonCard({
               </p>
             )}
           </div>
-          <div className="flex items-center gap-2 text-primary font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-2 text-primary font-medium text-sm sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <Check className="h-4 w-4" />
             Selecionar
           </div>
