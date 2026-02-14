@@ -6,6 +6,7 @@
  */
 
 import { useMemo } from 'react';
+import { useLivePricePreview } from '@/hooks/simulator/useLivePricePreview';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,7 @@ import {
   SlidersHorizontal, 
   Palette, 
   Ruler,
+  DollarSign,
   ChevronLeft,
   AlertTriangle,
   BarChart3,
@@ -33,6 +35,13 @@ interface StepSpecsProps {
 
 export function StepSpecs({ wizard }: StepSpecsProps) {
   const { selectedLocation, engravingSpecs } = wizard;
+
+  // Live price preview
+  const { estimate, isLoading: priceLoading } = useLivePricePreview({
+    selectedLocation,
+    engravingSpecs,
+    quantity: wizard.quantity,
+  });
 
   // v6: Analyze techniques to determine which fields to show
   const techniques = selectedLocation?.availableTechniques || [];
@@ -366,6 +375,48 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
             Com {engravingSpecs.colors} {engravingSpecs.colors === 1 ? 'cor' : 'cores'}, apenas {compatibleCount} de {techniques.length} técnicas serão compatíveis.
           </span>
         </div>
+      )}
+
+      {/* Live Price Preview */}
+      {(estimate || priceLoading) && !areaExceeded && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-primary/10">
+                <DollarSign className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wide">Estimativa de preço</p>
+                {priceLoading ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    <span className="text-sm text-muted-foreground">Calculando...</span>
+                  </div>
+                ) : estimate ? (
+                  <p className="text-sm">
+                    <span className="font-bold text-primary text-lg">{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.unitPrice)}</span>
+                    <span className="text-muted-foreground">/un via {estimate.cheapestName}</span>
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            {estimate && (
+              <div className="text-right">
+                <p className="font-bold text-primary">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(estimate.totalPrice)}
+                </p>
+                <p className="text-xs text-muted-foreground">total gravação</p>
+              </div>
+            )}
+          </div>
+          <p className="text-[10px] text-muted-foreground/70 mt-2">
+            * Estimativa baseada na técnica mais acessível. Clique em "Comparar" para ver todas.
+          </p>
+        </motion.div>
       )}
 
       {/* Navigation */}

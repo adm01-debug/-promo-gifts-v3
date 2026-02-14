@@ -17,10 +17,17 @@ import {
   Sparkles,
   Edit2,
   FileText,
+  Copy,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import { RemovePersonalizationDialog } from './RemovePersonalizationDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface PersonalizationSummaryProps {
   wizard: UseSimulatorWizardReturn;
@@ -43,7 +50,12 @@ export function PersonalizationSummary({
     currentPersonalizationIndex,
     isEditingPersonalization,
     totals,
+    availableLocations,
   } = wizard;
+
+  // Locations not yet used (for duplication targets)
+  const usedLocationIds = new Set(personalizations.map(p => p.location.id));
+  const unusedLocations = availableLocations.filter(loc => !usedLocationIds.has(loc.id));
 
   const formatCurrency = useCallback((value: number) => {
     return new Intl.NumberFormat('pt-BR', { 
@@ -167,6 +179,26 @@ export function PersonalizationSummary({
                               >
                                 <Edit2 className="h-3 w-3" />
                               </Button>
+                              {unusedLocations.length > 0 && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                                      <Copy className="h-3 w-3" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="min-w-[160px]">
+                                    {unusedLocations.map(loc => (
+                                      <DropdownMenuItem
+                                        key={loc.id}
+                                        onClick={() => wizard.duplicatePersonalization(pers.id, loc.id)}
+                                      >
+                                        <MapPin className="h-3 w-3 mr-2" />
+                                        {loc.locationName}
+                                      </DropdownMenuItem>
+                                    ))}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
                               <RemovePersonalizationDialog
                                 techniqueName={pers.technique.name}
                                 locationName={pers.location.locationName}

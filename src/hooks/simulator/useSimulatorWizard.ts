@@ -1,9 +1,10 @@
 /**
- * useSimulatorWizard v5 - Hook central do simulador
+ * useSimulatorWizard v6 - Hook central do simulador (refatorado)
  * 
- * ARQUITETURA v6:
- * 1. Buscar opções via fn_get_product_customization_options (locais + técnicas)
- * 2. Calcular preço via fn_get_customization_price com p_area_id
+ * Delegações:
+ * - useWizardPricing: comparação de preços e recálculo
+ * - useWizardPersistence: localStorage session
+ * - useWizardDrafts: database drafts (usado externamente)
  * 
  * Usa tipos de src/types/customization.ts como fonte de dados v6.
  */
@@ -14,8 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { CustomizationOptionsResponse, TechniqueOption, GravacaoLocation } from '@/types/customization';
-import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
-import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
 import type {
   SimulatorWizardState,
   WizardAction,
@@ -23,7 +22,6 @@ import type {
   SelectedProduct,
   EngravingLocation,
   EngravingSpecs,
-  TechniqueComparisonResult,
   Personalization,
   AvailableTechnique,
 } from '@/types/domain/simulator-wizard';
@@ -35,6 +33,8 @@ import {
   isStepComplete,
   canNavigateToStep,
 } from '@/types/domain/simulator-wizard';
+import { useWizardPricing } from './useWizardPricing';
+import { useWizardPersistence, loadSession, clearSession } from './useWizardPersistence';
 
 // ============================================
 // ESTADO INICIAL
@@ -49,11 +49,7 @@ const initialState: SimulatorWizardState = {
   isEditingPersonalization: false,
   availableLocations: [],
   selectedLocation: null,
-  engravingSpecs: {
-    colors: 1,
-    width: 5,
-    height: 5,
-  },
+  engravingSpecs: { colors: 1, width: 5, height: 5 },
   comparisonResults: [],
   selectedComparison: null,
   isCalculating: false,
@@ -68,7 +64,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
   switch (action.type) {
     case 'SET_STEP':
       return { ...state, currentStep: action.payload };
-    
+
     case 'SELECT_PRODUCT':
       return {
         ...state,
@@ -81,23 +77,22 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         comparisonResults: [],
         selectedComparison: null,
       };
-    
+
     case 'SET_QUANTITY':
-      return { 
-        ...state, 
+      return {
+        ...state,
         quantity: action.payload,
         comparisonResults: [],
         selectedComparison: null,
-        // Manter personalizações — serão recalculadas via efeito
         personalizations: state.personalizations.map(p => ({
           ...p,
           pricing: { ...p.pricing, _needsRecalc: true } as any,
         })),
       };
-    
+
     case 'SET_AVAILABLE_LOCATIONS':
       return { ...state, availableLocations: action.payload };
-    
+
     case 'SELECT_LOCATION':
       return {
         ...state,
@@ -110,7 +105,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
           height: Math.min(5, action.payload?.maxHeightCm || 50),
         },
       };
-    
+
     case 'UPDATE_SPECS':
       return {
         ...state,
@@ -118,10 +113,10 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         comparisonResults: [],
         selectedComparison: null,
       };
-    
+
     case 'SET_COMPARISON_RESULTS':
       return { ...state, comparisonResults: action.payload };
-    
+
     case 'SELECT_COMPARISON':
       return { ...state, selectedComparison: action.payload };
 
@@ -142,10 +137,7 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
       const newPersonalizations = state.personalizations
         .filter(p => p.id !== action.payload)
         .map((p, idx) => ({ ...p, index: idx + 1 }));
-      return {
-        ...state,
-        personalizations: newPersonalizations,
-      };
+      return { ...state, personalizations: newPersonalizations };
     }
 
     case 'UPDATE_PERSONALIZATION': {
@@ -167,7 +159,6 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
     case 'EDIT_PERSONALIZATION': {
       const pers = state.personalizations[action.payload];
       if (!pers) return state;
-      
       return {
         ...state,
         currentPersonalizationIndex: action.payload,
@@ -200,10 +191,10 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         selectedComparison: null,
         currentStep: state.personalizations.length > 0 ? 'comparison' : 'product',
       };
-    
+
     case 'SET_CALCULATING':
       return { ...state, isCalculating: action.payload };
-    
+
     case 'SET_ERROR':
       return { ...state, error: action.payload };
 
@@ -216,57 +207,31 @@ function wizardReducer(state: SimulatorWizardState, action: WizardAction): Simul
         ),
       };
     }
-    
+
+    case 'DUPLICATE_PERSONALIZATION': {
+      const { sourceId, targetLocation } = action.payload;
+      const source = state.personalizations.find(p => p.id === sourceId);
+      if (!source) return state;
+      const newPers = {
+        ...source,
+        id: `pers-${Date.now()}`,
+        index: state.personalizations.length + 1,
+        location: targetLocation,
+        pricing: { ...source.pricing, _needsRecalc: true } as any,
+      };
+      return {
+        ...state,
+        personalizations: [...state.personalizations, newPers],
+        currentStep: 'comparison' as const,
+      };
+    }
+
     case 'RESET_WIZARD':
       return initialState;
-    
+
     default:
       return state;
   }
-}
-
-// ============================================
-// PERSISTÊNCIA (localStorage)
-// ============================================
-
-const STORAGE_KEY = 'simulator_wizard_session';
-
-function saveSession(state: SimulatorWizardState) {
-  try {
-    const toSave = {
-      selectedProduct: state.selectedProduct,
-      quantity: state.quantity,
-      personalizations: state.personalizations,
-      currentStep: state.currentStep,
-      savedAt: Date.now(),
-    };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  } catch { /* quota exceeded or private mode */ }
-}
-
-function loadSession(): Partial<SimulatorWizardState> | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const saved = JSON.parse(raw);
-    // Expire after 2 hours
-    if (Date.now() - saved.savedAt > 2 * 60 * 60 * 1000) {
-      localStorage.removeItem(STORAGE_KEY);
-      return null;
-    }
-    return {
-      selectedProduct: saved.selectedProduct,
-      quantity: saved.quantity,
-      personalizations: saved.personalizations || [],
-      currentStep: saved.selectedProduct ? saved.currentStep || 'location' : 'product',
-    };
-  } catch {
-    return null;
-  }
-}
-
-function clearSession() {
-  localStorage.removeItem(STORAGE_KEY);
 }
 
 // ============================================
@@ -282,16 +247,15 @@ export function useSimulatorWizard() {
   );
 
   // ============================================
-  // QUERY: Buscar áreas + técnicas
+  // QUERY: Buscar áreas + técnicas (v6)
   // ============================================
 
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
     queryKey: ['wizard-locations-v6', state.selectedProduct?.id],
     queryFn: async (): Promise<EngravingLocation[]> => {
       if (!state.selectedProduct?.id) return [];
-      
+
       try {
-        // v6: Usar fn_get_product_customization_options
         const result = await invokeExternalRpc<CustomizationOptionsResponse>(
           'fn_get_product_customization_options',
           { p_product_id: state.selectedProduct.id }
@@ -304,7 +268,7 @@ export function useSimulatorWizard() {
         console.warn('Falha ao buscar opções de personalização v6:', err);
       }
 
-      // Fallback: BD local (para produtos sem dados no Promobrind)
+      // Fallback: BD local
       const { data: productLocations, error: prodError } = await supabase
         .from('product_components')
         .select(`
@@ -364,86 +328,11 @@ export function useSimulatorWizard() {
   }, [locationsData]);
 
   // ============================================
-  // EFEITO: Recalcular preços ao mudar quantidade
+  // SUB-HOOKS
   // ============================================
 
-  const recalcTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  
-  useEffect(() => {
-    const persToRecalc = state.personalizations.filter(
-      (p) => (p.pricing as any)?._needsRecalc === true
-    );
-    if (persToRecalc.length === 0) return;
-
-    if (recalcTimerRef.current) clearTimeout(recalcTimerRef.current);
-
-    recalcTimerRef.current = setTimeout(async () => {
-      for (const pers of persToRecalc) {
-        try {
-          // Find the technique info from available locations
-          const tech = state.availableLocations
-            .flatMap(loc => loc.availableTechniques)
-            .find(t => t.printAreaId === pers.technique.id);
-
-          const usaDimensao = tech?.usaDimensao !== false;
-          const cobraPorCor = tech?.cobraPorCor !== false;
-          const effectiveColors = (!cobraPorCor || (tech?.maxColors ?? 0) <= 1) ? 1 : pers.specs.colors;
-
-          const rpcParams: Record<string, unknown> = {
-            p_area_id: pers.technique.id,
-            p_quantidade: state.quantity,
-            p_num_cores: effectiveColors,
-          };
-
-          if (usaDimensao && pers.specs.width > 0 && pers.specs.height > 0) {
-            rpcParams.p_largura_cm = pers.specs.width;
-            rpcParams.p_altura_cm = pers.specs.height;
-          }
-
-          const result = await invokeExternalRpc<CustomizationPriceResponse>(
-            'fn_get_customization_price',
-            rpcParams
-          );
-
-          if (result?.success) {
-            const flat = mapPriceResponseToFlat(result);
-            dispatch({
-              type: 'RECALC_PERSONALIZATION_PRICING',
-              payload: {
-                personalizationId: pers.id,
-                pricing: {
-                  unitPrice: flat.unit_price,
-                  setupPrice: flat.faturamento_minimo_gravacao,
-                  subtotal: flat.subtotal_pecas,
-                  totalPrice: flat.total_price,
-                  costPerUnit: state.quantity > 0 ? flat.total_price / state.quantity : 0,
-                  budgetCode: flat.codigo_orcamento,
-                  productionDays: flat.production_days,
-                },
-              },
-            });
-          }
-        } catch (err) {
-          console.warn(`Erro ao recalcular preço para ${pers.technique.name}:`, err);
-        }
-      }
-      toast.success('Preços recalculados para nova tiragem!');
-    }, 600);
-
-    return () => {
-      if (recalcTimerRef.current) clearTimeout(recalcTimerRef.current);
-    };
-  }, [state.personalizations, state.quantity, state.availableLocations]);
-
-  // ============================================
-  // PERSISTÊNCIA: salvar sessão a cada mudança relevante
-  // ============================================
-
-  useEffect(() => {
-    if (state.selectedProduct) {
-      saveSession(state);
-    }
-  }, [state.selectedProduct, state.quantity, state.personalizations, state.currentStep]);
+  const { fetchComparisonPrices, confirmTechnique } = useWizardPricing({ state, dispatch });
+  useWizardPersistence(state);
 
   // ============================================
   // ACTIONS
@@ -466,16 +355,12 @@ export function useSimulatorWizard() {
 
   const previousStep = useCallback(() => {
     const prev = getPreviousStep(state.currentStep);
-    if (prev) {
-      dispatch({ type: 'SET_STEP', payload: prev });
-    }
+    if (prev) dispatch({ type: 'SET_STEP', payload: prev });
   }, [state.currentStep]);
 
   const selectProduct = useCallback((product: SelectedProduct | null) => {
     dispatch({ type: 'SELECT_PRODUCT', payload: product });
-    if (product) {
-      dispatch({ type: 'SET_STEP', payload: 'location' });
-    }
+    if (product) dispatch({ type: 'SET_STEP', payload: 'location' });
   }, []);
 
   const setQuantity = useCallback((quantity: number) => {
@@ -489,186 +374,12 @@ export function useSimulatorWizard() {
 
   const selectLocation = useCallback((location: EngravingLocation | null) => {
     dispatch({ type: 'SELECT_LOCATION', payload: location });
-    if (location) {
-      dispatch({ type: 'SET_STEP', payload: 'specs' });
-    }
+    if (location) dispatch({ type: 'SET_STEP', payload: 'specs' });
   }, []);
 
   const updateSpecs = useCallback((specs: Partial<EngravingSpecs>) => {
     dispatch({ type: 'UPDATE_SPECS', payload: specs });
   }, []);
-
-  // ============================================
-  // COMPARAÇÃO DE PREÇOS
-  // Usa fn_get_customization_price com p_area_id
-  // ============================================
-
-  const fetchComparisonPrices = useCallback(async () => {
-    if (!state.selectedLocation) {
-      toast.error('Selecione um local primeiro');
-      return;
-    }
-
-    const techniques = state.selectedLocation.availableTechniques;
-    if (techniques.length === 0) {
-      toast.warning('Nenhuma técnica disponível para este local');
-      return;
-    }
-
-    dispatch({ type: 'SET_CALCULATING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
-
-    try {
-      const allResults: TechniqueComparisonResult[] = [];
-
-      const promises = techniques.map(async (tech) => {
-        // Técnica sem pricing → "Preço sob consulta"
-        if (tech.hasPricing === false) {
-          allResults.push(createUnavailableResult(tech, 'Preço sob consulta'));
-          return;
-        }
-
-        // Verificar se cores excedem o máximo da técnica
-        if (tech.maxColors !== null && tech.maxColors > 0 && state.engravingSpecs.colors > tech.maxColors) {
-          allResults.push(createUnavailableResult(
-            tech,
-            `Máximo ${tech.maxColors} ${tech.maxColors === 1 ? 'cor' : 'cores'}`
-          ));
-          return;
-        }
-
-        // Cores efetivas: usar v6 cobra_por_cor
-        const cobraPorCor = tech.cobraPorCor !== false;
-        const effectiveColors = (!cobraPorCor || tech.maxColors === 0 || tech.maxColors === 1) 
-          ? 1 
-          : state.engravingSpecs.colors;
-
-        try {
-          // ★ v6: Enviar dimensões apenas se usa_dimensao === true
-          const usaDimensao = tech.usaDimensao !== false;
-          const rpcParams: Record<string, unknown> = {
-            p_area_id: tech.printAreaId,
-            p_quantidade: state.quantity,
-            p_num_cores: effectiveColors,
-          };
-
-          if (usaDimensao && state.engravingSpecs.width > 0 && state.engravingSpecs.height > 0) {
-            rpcParams.p_largura_cm = state.engravingSpecs.width;
-            rpcParams.p_altura_cm = state.engravingSpecs.height;
-          }
-
-          const result = await invokeExternalRpc<CustomizationPriceResponse>(
-            'fn_get_customization_price',
-            rpcParams
-          );
-
-          if (!result || !result.success) {
-            allResults.push(createUnavailableResult(tech, 'Erro no cálculo de preço'));
-            return;
-          }
-
-          const flat = mapPriceResponseToFlat(result);
-
-          allResults.push({
-            techniqueId: tech.techniqueId,
-            techniqueName: flat.technique || tech.techniqueName,
-            techniqueCode: flat.tabela_codigo_curto || tech.techniqueCode,
-            printAreaId: tech.printAreaId,
-            maxColors: flat.max_cores ?? tech.maxColors,
-            isAvailable: true,
-            unitPrice: flat.unit_price,
-            setupPrice: flat.faturamento_minimo_gravacao,
-            subtotal: flat.subtotal_pecas,
-            totalPrice: flat.total_price,
-            costPerUnit: state.quantity > 0 ? flat.total_price / state.quantity : 0,
-            minimumApplied: flat.minimum_applied,
-            budgetCode: flat.codigo_orcamento,
-            productionDays: flat.production_days,
-            markupPercent: flat.markup_percent,
-            marginPercent: flat.margin_percent,
-            tierUsed: flat.tier_used,
-            tierMinQty: flat.tier_min_qty,
-            tierMaxQty: flat.tier_max_qty,
-            rawData: result as unknown as Record<string, unknown>,
-          });
-        } catch (err) {
-          console.warn(`Erro ao calcular preço para ${tech.techniqueName}:`, err);
-          allResults.push(createUnavailableResult(tech, 'Erro ao calcular preço'));
-        }
-      });
-
-      await Promise.all(promises);
-      
-      // Encontrar mais barato e mais rápido entre os disponíveis
-      const available = allResults.filter(r => r.isAvailable);
-      if (available.length > 0) {
-        const cheapest = [...available].sort((a, b) => a.totalPrice - b.totalPrice)[0];
-        const fastest = [...available].sort((a, b) => 
-          (a.productionDays || 999) - (b.productionDays || 999)
-        )[0];
-        
-        allResults.forEach(r => {
-          if (r.isAvailable) {
-            r.isCheapest = r.printAreaId === cheapest.printAreaId;
-            r.isFastest = r.printAreaId === fastest.printAreaId && available.length > 1;
-          }
-        });
-      }
-
-      // Ordenar: disponíveis primeiro (por preço), depois indisponíveis
-      const sorted = [
-        ...available.sort((a, b) => a.totalPrice - b.totalPrice),
-        ...allResults.filter(r => !r.isAvailable),
-      ];
-
-      dispatch({ type: 'SET_COMPARISON_RESULTS', payload: sorted });
-      dispatch({ type: 'SET_STEP', payload: 'comparison' });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Erro ao comparar técnicas';
-      dispatch({ type: 'SET_ERROR', payload: message });
-      toast.error(message);
-    } finally {
-      dispatch({ type: 'SET_CALCULATING', payload: false });
-    }
-  }, [state.selectedLocation, state.quantity, state.engravingSpecs]);
-
-  // Confirmar técnica selecionada → cria personalização
-  const confirmTechnique = useCallback((comparison: TechniqueComparisonResult) => {
-    if (!state.selectedLocation || !comparison.isAvailable) return;
-
-    dispatch({ type: 'SELECT_COMPARISON', payload: comparison });
-
-    const personalization: Personalization = {
-      id: `pers-${Date.now()}`,
-      index: state.isEditingPersonalization 
-        ? state.currentPersonalizationIndex + 1 
-        : state.personalizations.length + 1,
-      location: state.selectedLocation,
-      technique: {
-        id: comparison.techniqueId,
-        code: comparison.techniqueCode,
-        name: comparison.techniqueName,
-      },
-      specs: { ...state.engravingSpecs },
-      pricing: {
-        unitPrice: comparison.unitPrice,
-        setupPrice: comparison.setupPrice,
-        subtotal: comparison.subtotal,
-        totalPrice: comparison.totalPrice,
-        costPerUnit: comparison.costPerUnit,
-        budgetCode: comparison.budgetCode,
-        productionDays: comparison.productionDays,
-      },
-    };
-
-    if (state.isEditingPersonalization) {
-      dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { index: state.currentPersonalizationIndex, personalization } });
-      toast.success(`Gravação ${personalization.index} atualizada`);
-    } else {
-      dispatch({ type: 'ADD_PERSONALIZATION', payload: personalization });
-      toast.success(`${comparison.techniqueName} adicionada`);
-    }
-  }, [state]);
 
   const removePersonalization = useCallback((id: string) => {
     dispatch({ type: 'REMOVE_PERSONALIZATION', payload: id });
@@ -680,22 +391,33 @@ export function useSimulatorWizard() {
   }, []);
 
   const startNewPersonalization = useCallback(() => {
-    const usedLocationIds = new Set(
-      state.personalizations.map(p => p.location.id)
-    );
+    const usedLocationIds = new Set(state.personalizations.map(p => p.location.id));
     const availableCount = state.availableLocations.filter(loc => !usedLocationIds.has(loc.id)).length;
-    
     if (availableCount === 0) {
       toast.warning('Todos os locais já foram personalizados');
       return;
     }
-    
     dispatch({ type: 'START_NEW_PERSONALIZATION' });
   }, [state.personalizations, state.availableLocations]);
 
   const cancelPersonalization = useCallback(() => {
     dispatch({ type: 'CANCEL_PERSONALIZATION' });
   }, []);
+
+  const duplicatePersonalization = useCallback((sourceId: string, targetLocationId: string) => {
+    const targetLocation = state.availableLocations.find(loc => loc.id === targetLocationId);
+    if (!targetLocation) {
+      toast.error('Local de destino não encontrado');
+      return;
+    }
+    const usedLocationIds = new Set(state.personalizations.map(p => p.location.id));
+    if (usedLocationIds.has(targetLocationId)) {
+      toast.warning('Este local já possui uma personalização');
+      return;
+    }
+    dispatch({ type: 'DUPLICATE_PERSONALIZATION', payload: { sourceId, targetLocation } });
+    toast.success(`Personalização duplicada para ${targetLocation.locationName}`);
+  }, [state.availableLocations, state.personalizations]);
 
   const resetWizard = useCallback(() => {
     dispatch({ type: 'RESET_WIZARD' });
@@ -706,42 +428,28 @@ export function useSimulatorWizard() {
   // COMPUTED VALUES
   // ============================================
 
-  const effectivePrice = useMemo(() => {
-    return state.selectedProduct?.price || 0;
-  }, [state.selectedProduct]);
+  const effectivePrice = useMemo(() => state.selectedProduct?.price || 0, [state.selectedProduct]);
 
   const stepProgress = useMemo(() => {
-    const currentIndex = getStepIndex(state.currentStep);
-    return ((currentIndex + 1) / WIZARD_STEPS.length) * 100;
+    return ((getStepIndex(state.currentStep) + 1) / WIZARD_STEPS.length) * 100;
   }, [state.currentStep]);
 
-  const canProceed = useMemo(() => {
-    return isStepComplete(state.currentStep, state);
-  }, [state]);
-
-  const canGoBack = useMemo(() => {
-    return getStepIndex(state.currentStep) > 0;
-  }, [state.currentStep]);
+  const canProceed = useMemo(() => isStepComplete(state.currentStep, state), [state]);
+  const canGoBack = useMemo(() => getStepIndex(state.currentStep) > 0, [state.currentStep]);
 
   const availableLocationsFiltered = useMemo(() => {
-    const usedLocationIds = new Set(
-      state.personalizations.map(p => p.location.id)
-    );
-    
+    const usedLocationIds = new Set(state.personalizations.map(p => p.location.id));
     if (state.isEditingPersonalization && state.personalizations[state.currentPersonalizationIndex]) {
       const currentLocationId = state.personalizations[state.currentPersonalizationIndex].location.id;
       return state.availableLocations.filter(
         loc => !usedLocationIds.has(loc.id) || loc.id === currentLocationId
       );
     }
-    
     return state.availableLocations.filter(loc => !usedLocationIds.has(loc.id));
   }, [state.availableLocations, state.personalizations, state.isEditingPersonalization, state.currentPersonalizationIndex]);
 
   const hasAvailableLocations = useMemo(() => {
-    const usedLocationIds = new Set(
-      state.personalizations.map(p => p.location.id)
-    );
+    const usedLocationIds = new Set(state.personalizations.map(p => p.location.id));
     return state.availableLocations.filter(loc => !usedLocationIds.has(loc.id)).length > 0;
   }, [state.availableLocations, state.personalizations]);
 
@@ -753,7 +461,6 @@ export function useSimulatorWizard() {
     const maxDays = state.personalizations.length > 0
       ? Math.max(...state.personalizations.map(p => p.pricing.productionDays || 0))
       : 0;
-    
     return { productTotal, customizationTotal, grandTotal, grandTotalPerUnit, maxDays };
   }, [effectivePrice, state.quantity, state.personalizations]);
 
@@ -793,47 +500,10 @@ export function useSimulatorWizard() {
     editPersonalization,
     startNewPersonalization,
     cancelPersonalization,
+    duplicatePersonalization,
     resetWizard,
     isStepComplete: (step: WizardStep) => isStepComplete(step, state),
     canNavigateToStep: (step: WizardStep) => canNavigateToStep(step, state),
-  };
-}
-
-// ============================================
-// HELPERS
-// ============================================
-
-function createUnavailableResult(
-  tech: {
-    techniqueId: string;
-    techniqueName: string;
-    techniqueCode: string;
-    printAreaId: string;
-    maxColors: number | null;
-  },
-  reason: string
-): TechniqueComparisonResult {
-  return {
-    techniqueId: tech.techniqueId,
-    techniqueName: tech.techniqueName,
-    techniqueCode: tech.techniqueCode,
-    printAreaId: tech.printAreaId,
-    maxColors: tech.maxColors,
-    isAvailable: false,
-    unavailableReason: reason,
-    unitPrice: 0,
-    setupPrice: 0,
-    subtotal: 0,
-    totalPrice: 0,
-    costPerUnit: 0,
-    minimumApplied: false,
-    budgetCode: '',
-    productionDays: null,
-    markupPercent: 0,
-    marginPercent: 0,
-    tierUsed: 0,
-    tierMinQty: 0,
-    tierMaxQty: 0,
   };
 }
 
@@ -847,25 +517,23 @@ function mapV6LocationsToWizard(locations: GravacaoLocation[]): EngravingLocatio
   return locations
     .sort((a, b) => a.location_order - b.location_order)
     .map((loc) => {
-      // Calculate max dimensions from all techniques in this location
       const maxWidth = Math.max(...loc.options.map(t => t.efetiva_largura_max || t.max_width || 0));
       const maxHeight = Math.max(...loc.options.map(t => t.efetiva_altura_max || t.max_height || 0));
 
       const availableTechniques: AvailableTechnique[] = loc.options.map((t) => ({
         id: t.technique_id,
-        printAreaId: t.technique_id, // p_area_id for fn_get_customization_price
+        printAreaId: t.technique_id,
         techniqueId: t.technique_id,
         techniqueName: t.tecnica_nome,
         techniqueCode: t.codigo_tabela,
         maxColors: t.max_cores,
         isDefault: false,
         isCurved: t.is_curved,
-        hasPricing: true, // v6 only returns techniques with pricing
+        hasPricing: true,
         areaMaxWidth: t.efetiva_largura_max,
         areaMaxHeight: t.efetiva_altura_max,
         grupoTecnica: t.grupo_tecnica,
         cobraPorCor: t.cobra_por_cor,
-        // v6 fields
         usaDimensao: t.usa_dimensao,
         efetivaLarguraMax: t.efetiva_largura_max,
         efetivaAlturaMax: t.efetiva_altura_max,
