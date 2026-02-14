@@ -18,8 +18,9 @@ interface Props {
 }
 
 export function ProposalFooter({ data, isLastPage, pageNumber, totalPages }: Props) {
+  const printDate = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
   if (!isLastPage) {
-    // Simple footer with page number for non-last pages
     return (
       <div style={{ width: "794px", height: "40px", flexShrink: 0, marginTop: "auto", position: "relative" }}>
         <svg width="794" height="40" viewBox="0 0 794 40" style={{ position: "absolute", top: 0, left: 0 }}>
@@ -28,7 +29,7 @@ export function ProposalFooter({ data, isLastPage, pageNumber, totalPages }: Pro
         </svg>
         <div style={{ position: "relative", zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 36px", height: "40px" }}>
           <span style={{ fontSize: "10px", color: "#aaa" }}>promobrindes.com</span>
-          <span style={{ fontSize: "10px", color: "#aaa" }}>
+          <span style={{ fontSize: "10px", color: "#aaa", fontVariantNumeric: "tabular-nums" }}>
             Página {pageNumber} de {totalPages}
           </span>
         </div>
@@ -61,7 +62,7 @@ export function ProposalFooter({ data, isLastPage, pageNumber, totalPages }: Pro
           adm01@promobrindes.com.br
         </div>
 
-        {/* Assinatura */}
+        {/* Assinatura do vendedor */}
         <div style={{ position: "absolute", top: "8px", right: "44px", textAlign: "center" }}>
           <div style={{ fontFamily: "'Sacramento', cursive", fontSize: "28px", color: "#0085ca", marginBottom: "-4px", transform: "rotate(-3deg)" }}>
             {data.seller.name}
@@ -73,9 +74,10 @@ export function ProposalFooter({ data, isLastPage, pageNumber, totalPages }: Pro
           <p style={{ fontSize: "9px", color: "#666", margin: "2px 0 0 0" }}>Executivo de Vendas</p>
         </div>
 
-        {/* Page number */}
-        <div style={{ position: "absolute", bottom: "4px", left: "40px", fontSize: "9px", color: "#999" }}>
-          Página {pageNumber} de {totalPages}
+        {/* Page number + print date */}
+        <div style={{ position: "absolute", bottom: "4px", left: "40px", fontSize: "8px", color: "#999", display: "flex", gap: "16px", fontVariantNumeric: "tabular-nums" }}>
+          <span>Página {pageNumber} de {totalPages}</span>
+          <span>Impresso em: {printDate}</span>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import type { ProposalTemplateData } from "../ProposalHtmlTemplate";
 interface Props {
   data: ProposalTemplateData;
   isContinuation?: boolean;
+  quoteNumber?: string;
 }
 
 export function ProposalHeader({ data, isContinuation }: Props) {
@@ -21,11 +22,14 @@ export function ProposalHeader({ data, isContinuation }: Props) {
             style={{ height: "32px", display: "block" }}
             crossOrigin="anonymous"
           />
-          <div style={{ textAlign: "right", color: "#fff" }}>
+          <div style={{ textAlign: "right", color: "#fff", display: "flex", alignItems: "center", gap: "16px" }}>
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", opacity: 0.7 }}>
+              Continuação
+            </span>
             <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px" }}>
               Proposta #{data.quoteNumber}
             </span>
-            <span style={{ fontSize: "11px", opacity: 0.7, marginLeft: "16px" }}>
+            <span style={{ fontSize: "11px", opacity: 0.7 }}>
               {data.date}
             </span>
           </div>
@@ -35,28 +39,25 @@ export function ProposalHeader({ data, isContinuation }: Props) {
   }
 
   return (
-    <div style={{ position: "relative", width: "794px", height: "145px", flexShrink: 0 }}>
-      <svg width="794" height="145" viewBox="0 0 794 145" style={{ position: "absolute", top: 0, left: 0 }}>
-        <polygon points="340,0 375,0 410,145 370,145" fill="#00c853" />
-        <polygon points="370,0 794,0 794,115 395,115" fill="#333333" />
-        <polygon points="395,115 418,115 395,145" fill="#009e41" />
+    <div style={{ position: "relative", width: "794px", height: "120px", flexShrink: 0 }}>
+      <svg width="794" height="120" viewBox="0 0 794 120" style={{ position: "absolute", top: 0, left: 0 }}>
+        <polygon points="310,0 342,0 378,120 340,120" fill="#00c853" />
+        <polygon points="337,0 794,0 794,95 366,95" fill="#333333" />
+        <polygon points="366,95 386,95 366,120" fill="#009e41" />
       </svg>
-      <div style={{ position: "absolute", zIndex: 10, top: "50%", left: "36px", transform: "translateY(-50%)", width: "190px" }}>
+      <div style={{ position: "absolute", zIndex: 10, top: "50%", left: "36px", transform: "translateY(-50%)", width: "170px" }}>
         <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", display: "block" }} crossOrigin="anonymous" />
       </div>
-      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#fff", top: "20px", right: "36px" }}>
-        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "26px", textTransform: "uppercase", letterSpacing: "1px", margin: "0 0 4px 0" }}>
-          Proposta
+      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#fff", top: "14px", right: "36px" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "22px", textTransform: "uppercase", letterSpacing: "2px", margin: "0 0 3px 0" }}>
+          Proposta Comercial
         </p>
-        <p style={{ fontSize: "12px", opacity: 0.9, fontWeight: 300, lineHeight: "1.5", margin: 0 }}>
-          Nº: #{data.quoteNumber}
-        </p>
-        <p style={{ fontSize: "12px", opacity: 0.9, fontWeight: 300, lineHeight: "1.5", margin: 0 }}>
-          Data: {data.date}
+        <p style={{ fontSize: "11px", opacity: 0.9, fontWeight: 400, lineHeight: "1.5", margin: 0, fontVariantNumeric: "tabular-nums" }}>
+          Nº #{data.quoteNumber} • {data.date}
         </p>
         {data.validUntil && (
-          <p style={{ fontSize: "11px", opacity: 0.8, fontWeight: 400, lineHeight: "1.5", marginTop: "2px" }}>
-            Válida até: {data.validUntil}
+          <p style={{ fontSize: "10px", opacity: 0.7, fontWeight: 400, lineHeight: "1.5", marginTop: "2px" }}>
+            Válida até {data.validUntil}
           </p>
         )}
       </div>
