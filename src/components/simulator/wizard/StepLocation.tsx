@@ -106,12 +106,12 @@ export function StepLocation({ wizard }: StepLocationProps) {
           <p className="font-bold text-xl mb-2">
             {personalizations.length > 0 
               ? 'Todos os locais já foram personalizados!' 
-              : 'Nenhum local configurado'}
+              : 'Nenhuma área cadastrada'}
           </p>
           <p className="text-muted-foreground max-w-md">
             {personalizations.length > 0 
               ? `Você já configurou ${personalizations.length} personalização(ões). Finalize a simulação ou remova uma gravação existente.`
-              : 'Este produto não possui áreas de personalização cadastradas no sistema.'}
+              : 'Este produto ainda não possui áreas de personalização configuradas. Solicite o cadastro ao time de operações ou escolha outro produto do catálogo.'}
           </p>
           {personalizations.length > 0 ? (
             <Button 
@@ -122,10 +122,22 @@ export function StepLocation({ wizard }: StepLocationProps) {
               Ver Resultado Final
             </Button>
           ) : (
-            <Button variant="outline" className="mt-6 gap-2" onClick={wizard.previousStep}>
-              <ChevronLeft className="h-4 w-4" />
-              Escolher outro produto
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <Button variant="outline" className="gap-2" onClick={wizard.previousStep}>
+                <ChevronLeft className="h-4 w-4" />
+                Escolher outro produto
+              </Button>
+              <Button 
+                variant="secondary" 
+                className="gap-2"
+                onClick={() => {
+                  const msg = encodeURIComponent(`Olá! Preciso do cadastro de áreas de personalização para o produto: ${wizard.selectedProduct?.name} (${wizard.selectedProduct?.sku})`);
+                  window.open(`https://wa.me/?text=${msg}`, '_blank');
+                }}
+              >
+                📩 Solicitar Cadastro
+              </Button>
+            </div>
           )}
         </motion.div>
       ) : (
