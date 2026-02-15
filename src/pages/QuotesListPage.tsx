@@ -95,6 +95,7 @@ export default function QuotesListPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([]);
   
 
   // ── KPIs ──
@@ -174,6 +175,13 @@ export default function QuotesListPage() {
       await deleteQuote(deleteConfirmId);
       setDeleteConfirmId(null);
     }
+  };
+
+  const handleBulkDelete = async () => {
+    for (const id of bulkDeleteIds) {
+      await deleteQuote(id);
+    }
+    setBulkDeleteIds([]);
   };
 
   if (isLoading) {
@@ -347,6 +355,7 @@ export default function QuotesListPage() {
               <QuotesConfigurableList
                 quotes={filteredQuotes}
                 onDelete={(id) => setDeleteConfirmId(id)}
+                onBulkDelete={(ids) => setBulkDeleteIds(ids)}
                 onDuplicate={(id) => duplicateQuote(id)}
               />
             )}
@@ -366,6 +375,24 @@ export default function QuotesListPage() {
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
                 Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Bulk Delete Confirmation Dialog */}
+        <AlertDialog open={bulkDeleteIds.length > 0} onOpenChange={() => setBulkDeleteIds([])}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar Exclusão em Massa</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir <strong>{bulkDeleteIds.length}</strong> orçamento(s)? Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground">
+                Excluir {bulkDeleteIds.length} orçamento(s)
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
