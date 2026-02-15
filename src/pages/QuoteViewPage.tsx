@@ -437,10 +437,10 @@ export default function QuoteViewPage() {
                   </thead>
                   <tbody>
                     {quote.items?.map((item, index) => {
-                      const personalization = item.personalizations?.[0];
-                      const personalizationCost = personalization 
-                        ? (personalization.unit_cost || 0) * item.quantity + (personalization.setup_cost || 0)
-                        : 0;
+                      const allPersonalizations = item.personalizations || [];
+                      const personalizationCost = allPersonalizations.reduce(
+                        (acc, p) => acc + ((p.unit_cost || 0) * item.quantity + (p.setup_cost || 0)), 0
+                      );
                       const itemTotal = item.quantity * item.unit_price + personalizationCost;
 
                       return (
@@ -476,19 +476,23 @@ export default function QuoteViewPage() {
                           <td className="p-3 text-muted-foreground font-mono text-sm">{item.product_sku || "-"}</td>
                           {hasPersonalizations && (
                             <td className="p-3">
-                              {personalization ? (
-                                <div className="space-y-0.5">
-                                  <span className="text-sm font-medium">
-                                    {personalization.technique_name}
-                                  </span>
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    {personalization.width_cm && personalization.height_cm && (
-                                      <span>{personalization.width_cm}x{personalization.height_cm}cm</span>
-                                    )}
-                                    <span>
-                                      {personalization.colors_count || 1} cor{(personalization.colors_count || 1) > 1 ? "es" : ""}
-                                    </span>
-                                  </div>
+                              {allPersonalizations.length > 0 ? (
+                                <div className="space-y-1.5">
+                                  {allPersonalizations.map((p: any, pIdx: number) => (
+                                    <div key={pIdx} className={`space-y-0.5 ${pIdx > 0 ? 'pt-1.5 border-t border-border/30' : ''}`}>
+                                      <span className="text-sm font-medium">
+                                        {p.technique_name}
+                                      </span>
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        {p.width_cm && p.height_cm && (
+                                          <span>{p.width_cm}x{p.height_cm}cm</span>
+                                        )}
+                                        <span>
+                                          {p.colors_count || 1} cor{(p.colors_count || 1) > 1 ? "es" : ""}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               ) : "-"}
                             </td>
@@ -517,8 +521,9 @@ export default function QuoteViewPage() {
                       <span className="text-muted-foreground">Personalização:</span>
                       <span>{formatCurrency(
                         (quote.items || []).reduce((acc, item) => {
-                          const p = item.personalizations?.[0];
-                          return acc + (p ? (p.unit_cost || 0) * item.quantity + (p.setup_cost || 0) : 0);
+                          return acc + (item.personalizations || []).reduce(
+                            (pAcc, p) => pAcc + ((p.unit_cost || 0) * item.quantity + (p.setup_cost || 0)), 0
+                          );
                         }, 0)
                       )}</span>
                     </div>
