@@ -58,7 +58,6 @@ interface MockupConfigPanelProps {
 
 export function MockupConfigPanel({
   techniques,
-  techniques,
   selectedProduct,
   selectedTechnique,
   selectedClient,
