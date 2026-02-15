@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -334,8 +335,9 @@ export default function QuotesListPage() {
             </Select>
           </div>
 
-          {/* Quotes List — Compact */}
-          <div className="grid gap-2">
+          {/* Quotes List — 4 Columns with Scroll */}
+          <ScrollArea className="h-[calc(100vh-320px)] min-h-[400px]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {filteredQuotes.length === 0 ? (
               <EmptyState
                 variant="quotes"
@@ -365,90 +367,80 @@ export default function QuotesListPage() {
                       className="card-interactive cursor-pointer hover:border-primary/30 transition-all duration-200"
                       onClick={() => navigate(`/orcamentos/${quote.id}`)}
                     >
-                      <CardContent className="px-4 py-3">
-                        <div className="flex items-center justify-between gap-3">
-                          {/* Left: number + status + client */}
-                          <div className="flex-1 min-w-0 flex items-center gap-3">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-semibold text-sm text-foreground whitespace-nowrap">
-                                  #{quote.quote_number}
-                                </h3>
-                                <Badge
-                                  variant="outline"
-                                  className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
-                                >
-                                  {statusConfig[quote.status]?.label}
-                                </Badge>
-                                {validity?.urgent && (
-                                  <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded ${validity.bgColor} ${validity.color}`}>
-                                    <AlertTriangle className="h-3 w-3" />
-                                    {validity.label}
-                                  </span>
-                                )}
-                              </div>
-                              {hasClient ? (
-                                <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                                  {quote.client_company || quote.client_name}
-                                </p>
-                              ) : (
-                                <button
-                                  className="text-xs text-primary/70 hover:text-primary mt-0.5 flex items-center gap-1 transition-colors"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/orcamentos/${quote.id}/editar`);
-                                  }}
-                                >
-                                  <UserPlus className="h-3 w-3" />
-                                  Vincular cliente
-                                </button>
-                              )}
-                            </div>
+                      <CardContent className="p-4 space-y-3">
+                        {/* Header: number + status */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <h3 className="font-semibold text-sm text-foreground whitespace-nowrap">
+                              #{quote.quote_number}
+                            </h3>
+                            <Badge
+                              variant="outline"
+                              className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
+                            >
+                              {statusConfig[quote.status]?.label}
+                            </Badge>
                           </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Visualizar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Duplicar
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => setDeleteConfirmId(quote.id!)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
 
-                          {/* Right: value + validity + actions */}
-                          <div className="flex items-center gap-4">
-                            <div className="hidden sm:block text-right">
-                              <p className="font-bold text-sm text-foreground">
-                                {formatCurrency(quote.total || 0)}
-                              </p>
-                              {validity && !validity.urgent && (
-                                <p className={`text-[10px] ${validity.color}`}>
-                                  {validity.label}
-                                </p>
-                              )}
-                            </div>
+                        {/* Client */}
+                        {hasClient ? (
+                          <p className="text-xs text-muted-foreground truncate">
+                            {quote.client_company || quote.client_name}
+                          </p>
+                        ) : (
+                          <button
+                            className="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/orcamentos/${quote.id}/editar`);
+                            }}
+                          >
+                            <UserPlus className="h-3 w-3" />
+                            Vincular cliente
+                          </button>
+                        )}
 
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Visualizar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
-                                  <Copy className="h-4 w-4 mr-2" />
-                                  Duplicar
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => setDeleteConfirmId(quote.id!)}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                        {/* Value + validity */}
+                        <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                          <p className="font-bold text-sm text-foreground">
+                            {formatCurrency(quote.total || 0)}
+                          </p>
+                          {validity && (
+                            <p className={`text-[10px] ${validity.color} ${validity.urgent ? validity.bgColor + ' px-1.5 py-0.5 rounded' : ''}`}>
+                              {validity.urgent && <AlertTriangle className="h-3 w-3 inline mr-0.5" />}
+                              {validity.label}
+                            </p>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -457,6 +449,7 @@ export default function QuotesListPage() {
               })
             )}
           </div>
+          </ScrollArea>
         </div>
 
         {/* Delete Confirmation Dialog */}
