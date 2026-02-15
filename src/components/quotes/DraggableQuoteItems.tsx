@@ -113,12 +113,17 @@ function SortableItem({
     >
       <Card
         className={cn(
-          "transition-all duration-200",
+          "transition-all duration-200 overflow-hidden",
           isDragging && "opacity-50 shadow-2xl ring-2 ring-primary",
-          "hover:shadow-md"
+          "hover:shadow-md",
+          isExpanded && "max-h-[calc(100vh-12rem)] flex flex-col"
         )}
       >
-        <CardContent className="p-4">
+        {/* Product header — sticky when personalization is open */}
+        <div className={cn(
+          "p-4 bg-card z-10",
+          isExpanded && "sticky top-0 border-b border-border/50 shadow-sm"
+        )}>
           <div className="flex items-start gap-3">
             {/* Drag Handle */}
             <button
@@ -221,43 +226,47 @@ function SortableItem({
                   <p className="font-semibold text-sm">{formatCurrency(itemTotal)}</p>
                 </div>
               </div>
-
-              {/* Personalization Toggle */}
-              {onTogglePersonalization && (
-                <Collapsible open={isExpanded}>
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "w-full justify-between text-sm font-medium mt-1 rounded-lg border transition-all",
-                        isExpanded
-                          ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
-                          : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
-                      )}
-                      onClick={onTogglePersonalization}
-                    >
-                      <span className="flex items-center gap-2">
-                        <Palette className="h-4 w-4" />
-                        Personalização
-                      </span>
-                      {isExpanded ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="pt-3 border-t border-primary/20 mt-2">
-                      {renderPersonalization?.()}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              )}
             </div>
           </div>
-        </CardContent>
+        </div>
+
+        {/* Personalization — scrollable area */}
+        <div className={cn(isExpanded && "overflow-y-auto flex-1 min-h-0")}>
+          <div className="px-4 pb-4">
+            {onTogglePersonalization && (
+              <Collapsible open={isExpanded}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "w-full justify-between text-sm font-medium rounded-lg border transition-all",
+                      isExpanded
+                        ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
+                        : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
+                    )}
+                    onClick={onTogglePersonalization}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Palette className="h-4 w-4" />
+                      Personalização
+                    </span>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="pt-3 border-t border-primary/20 mt-2">
+                    {renderPersonalization?.()}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </div>
+        </div>
       </Card>
     </motion.div>
   );
