@@ -102,6 +102,17 @@ export function useFilteredTechniques(
       return [];
     }
 
+    // RPC returned successfully but product has NO configured areas -> fallback to all techniques
+    if (customizationData.locations.length === 0) {
+      return techniques.map(t => ({
+        ...t,
+        maxWidth: null,
+        maxHeight: null,
+        areaName: null,
+        locationName: null,
+      }));
+    }
+
     // Extract all unique techniques from all locations
     // Use a map keyed by tecnica_nome to deduplicate, keeping the best dimensions
     const techniqueMap = new Map<string, {
