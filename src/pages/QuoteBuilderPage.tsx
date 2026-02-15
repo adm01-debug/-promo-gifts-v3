@@ -43,6 +43,7 @@ import {
   AlertTriangle,
   PackageCheck,
   ShoppingCart,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
@@ -137,6 +138,9 @@ export default function QuoteBuilderPage() {
   // Personalization expanded states
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
+  // Active item for personalization (middle column)
+  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
+
   // Load existing quote data when editing
   useEffect(() => {
     if (isEditMode && quoteId) {
@@ -198,6 +202,7 @@ export default function QuoteBuilderPage() {
     };
 
     setItems([newItem]);
+    setActiveItemIndex(0);
 
     // Auto-expand personalization panel if there are personalizations
     if (quotePersonalizations.length > 0) {
@@ -421,21 +426,26 @@ export default function QuoteBuilderPage() {
           idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
         )
       );
+      setActiveItemIndex(existingIndex);
     } else {
-      setItems((prev) => [
-        ...prev,
-        {
-          product_id: product.id,
-          product_name: product.name,
-          product_sku: product.sku,
-          product_image_url: imageUrl,
-          quantity: 1,
-          unit_price: product.price,
-          color_name: colorName,
-          color_hex: colorHex,
-          personalizations: [],
-        },
-      ]);
+      setItems((prev) => {
+        const newItems = [
+          ...prev,
+          {
+            product_id: product.id,
+            product_name: product.name,
+            product_sku: product.sku,
+            product_image_url: imageUrl,
+            quantity: 1,
+            unit_price: product.price,
+            color_name: colorName,
+            color_hex: colorHex,
+            personalizations: [],
+          },
+        ];
+        setActiveItemIndex(newItems.length - 1);
+        return newItems;
+      });
     }
     setSelectedProductForColor(null);
     setProductSearchOpen(false);
@@ -806,15 +816,17 @@ export default function QuoteBuilderPage() {
             </div>
           </div>
 
-          {/* COL 2 — Itens do Orçamento */}
+          {/* COL 2 — Personalização do Item Ativo */}
           <div className="lg:col-span-5">
             <div className="sticky top-24">
               <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
                 <div className="flex items-center justify-between p-4 pb-3">
                   <div>
-                    <h3 className="font-semibold text-sm">Itens do Orçamento</h3>
+                    <h3 className="font-semibold text-sm">Personalização</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {items.length} {items.length === 1 ? "item" : "itens"} adicionados
+                      {activeItemIndex !== null && items[activeItemIndex]
+                        ? items[activeItemIndex].product_name
+                        : "Selecione um item no resumo"}
                     </p>
                   </div>
                   <Button size="sm" onClick={() => setProductSearchOpen(true)}>
@@ -823,24 +835,24 @@ export default function QuoteBuilderPage() {
                   </Button>
                 </div>
                 <div className="px-4 pb-4 overflow-y-auto max-h-[calc(100vh-10rem)]">
-                  <DraggableQuoteItems
-                    items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
-                    onReorder={(reorderedItems) => setItems(reorderedItems)}
-                    onUpdateQuantity={updateItemQuantity}
-                    onUpdatePrice={updateItemPrice}
-                    onRemove={removeItem}
-                    onTogglePersonalization={toggleExpanded}
-                    expandedItems={expandedItems}
-                    renderPersonalization={(item, index) => (
-                      <QuoteProductCustomization
-                        productId={item.product_id}
-                        quantity={item.quantity}
-                        existingPersonalizations={item.personalizations}
-                        onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
-                      />
-                    )}
-                    formatCurrency={formatCurrency}
-                  />
+                  {activeItemIndex !== null && items[activeItemIndex] ? (
+                    <QuoteProductCustomization
+                      productId={items[activeItemIndex].product_id}
+                      quantity={items[activeItemIndex].quantity}
+                      existingPersonalizations={items[activeItemIndex].personalizations}
+                      onPersonalizationsChange={(personalizations) =>
+                        handlePersonalizationsChange(activeItemIndex, personalizations)
+                      }
+                    />
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium text-sm">Nenhum item selecionado</p>
+                      <p className="text-xs mt-1">
+                        Adicione um produto ou clique em um item no resumo
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -850,7 +862,7 @@ export default function QuoteBuilderPage() {
           <div className="lg:col-span-4">
             <div className="sticky top-24">
               <div className="flex flex-col rounded-2xl border border-border/50 bg-card shadow-xl overflow-hidden">
-                {/* Header — igual Simulador */}
+                {/* Header */}
                 <div className="flex items-center gap-2 p-4 pb-3 shrink-0">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <ShoppingCart className="h-4 w-4 text-primary" />
@@ -858,7 +870,7 @@ export default function QuoteBuilderPage() {
                   <h3 className="font-semibold text-base">Resumo</h3>
                 </div>
 
-                {/* Scrollable Content */}
+                {/* Scrollable Content — Product Cards */}
                 <div className="flex-1 min-h-0 px-4 overflow-y-auto max-h-[50vh]">
                   <div className="space-y-3 pr-1">
                     {items.length === 0 ? (
@@ -871,32 +883,99 @@ export default function QuoteBuilderPage() {
                     ) : (
                       items.map((item, idx) => {
                         const persTotal = calculateItemPersonalizationTotal(item);
+                        const itemTotal = calculateItemTotal(item);
+                        const isActive = activeItemIndex === idx;
                         return (
-                          <div key={idx} className="space-y-2">
-                            {/* Produto — bg-muted/50 rounded-lg igual Simulador */}
-                            <div className="p-3 rounded-lg bg-muted/50">
-                              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                                Produto
-                              </span>
-                              <p className="text-sm font-medium leading-tight mb-1.5 mt-1">
-                                {item.product_name}
-                              </p>
-                              <div className="flex items-baseline justify-between text-xs text-muted-foreground gap-2">
-                                <span className="shrink-0">{item.quantity} un. × {formatCurrency(item.unit_price)}</span>
-                                <span className="font-semibold text-foreground whitespace-nowrap">
+                          <div
+                            key={idx}
+                            className={cn(
+                              "rounded-xl border transition-all cursor-pointer",
+                              isActive
+                                ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
+                                : "border-border/60 bg-muted/30 hover:border-border"
+                            )}
+                            onClick={() => setActiveItemIndex(idx)}
+                          >
+                            {/* Product Card Header */}
+                            <div className="p-3 space-y-2">
+                              <div className="flex items-start gap-3">
+                                {/* Thumbnail */}
+                                <div className="shrink-0">
+                                  {item.product_image_url ? (
+                                    <img
+                                      src={item.product_image_url}
+                                      alt={item.product_name}
+                                      className="w-12 h-12 object-cover rounded-lg bg-muted"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                                      <Package className="h-5 w-5 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                </div>
+                                {/* Info */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium leading-tight truncate">
+                                    {item.product_name}
+                                  </p>
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-mono">
+                                      {item.product_sku}
+                                    </Badge>
+                                    {item.color_name && (
+                                      <div className="flex items-center gap-1">
+                                        <div
+                                          className="w-2.5 h-2.5 rounded-full border border-border/50"
+                                          style={{ backgroundColor: item.color_hex || '#CCC' }}
+                                        />
+                                        <span className="text-[10px] text-muted-foreground">{item.color_name}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                {/* Remove */}
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeItem(idx);
+                                    if (activeItemIndex === idx) setActiveItemIndex(null);
+                                    else if (activeItemIndex !== null && activeItemIndex > idx) setActiveItemIndex(activeItemIndex - 1);
+                                  }}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+
+                              {/* Qty × Price = Subtotal */}
+                              <div className="flex items-center gap-2 text-xs">
+                                <span className="text-muted-foreground">Qtd:</span>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  value={item.quantity}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => updateItemQuantity(idx, parseInt(e.target.value) || 1)}
+                                  className="w-16 h-7 text-xs"
+                                />
+                                <span className="text-muted-foreground">×</span>
+                                <span className="font-medium">{formatCurrency(item.unit_price)}</span>
+                                <span className="ml-auto font-semibold text-foreground whitespace-nowrap tabular-nums">
                                   {formatCurrency(item.quantity * item.unit_price)}
                                 </span>
                               </div>
                             </div>
 
-                            {/* Gravações — igual Simulador */}
+                            {/* Gravações — if any */}
                             {item.personalizations && item.personalizations.length > 0 && (
-                              <div>
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                              <div className="px-3 pb-3 pt-0">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
                                     Gravações ({item.personalizations.length})
                                   </span>
-                                  <span className="font-semibold text-sm text-primary whitespace-nowrap">
+                                  <span className="font-semibold text-xs text-primary whitespace-nowrap tabular-nums">
                                     {formatCurrency(persTotal)}
                                   </span>
                                 </div>
@@ -904,33 +983,19 @@ export default function QuoteBuilderPage() {
                                   {item.personalizations.map((p, pIdx) => (
                                     <div
                                       key={pIdx}
-                                      className="p-2.5 rounded-xl border bg-card hover:bg-muted/30 border-border/60 transition-all"
+                                      className="flex items-center justify-between gap-1 px-2 py-1 rounded-lg border border-border/40 bg-card text-xs"
                                     >
-                                      {/* Row 1: Number + Technique + Price */}
-                                      <div className="flex items-start gap-1.5 mb-1">
-                                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0 font-bold mt-0.5">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 shrink-0 font-bold">
                                           {pIdx + 1}
                                         </Badge>
-                                        <span className="text-xs font-semibold text-primary flex-1 min-w-0 leading-tight">
+                                        <span className="text-primary font-medium truncate text-[11px]">
                                           {p.technique_name}
                                         </span>
-                                        <span className="font-bold text-sm text-foreground whitespace-nowrap shrink-0 tabular-nums">
-                                          {formatCurrency(p.total_cost || 0)}
-                                        </span>
                                       </div>
-                                      {/* Row 2: Specs badges */}
-                                      <div className="flex flex-wrap items-center gap-1 ml-7">
-                                        {p.colors_count && (
-                                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
-                                            {p.colors_count} {p.colors_count === 1 ? 'cor' : 'cores'}
-                                          </Badge>
-                                        )}
-                                        {p.area_cm2 && p.area_cm2 > 0 && (
-                                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
-                                            {Math.round(p.area_cm2)}cm²
-                                          </Badge>
-                                        )}
-                                      </div>
+                                      <span className="font-bold text-foreground whitespace-nowrap shrink-0 tabular-nums">
+                                        {formatCurrency(p.total_cost || 0)}
+                                      </span>
                                     </div>
                                   ))}
                                 </div>
