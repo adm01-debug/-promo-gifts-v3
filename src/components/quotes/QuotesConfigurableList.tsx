@@ -73,12 +73,12 @@ export interface ColumnDef {
 }
 
 const ALL_COLUMNS: ColumnDef[] = [
-  { id: "quote_number", label: "Nº Orçamento", width: "200px" },
+  { id: "status", label: "Status", width: "110px" },
   { id: "client", label: "Empresa", width: "1fr", required: true },
-  { id: "contact", label: "Contato", width: "180px" },
-  { id: "status", label: "Status", width: "120px" },
+  { id: "contact", label: "Contato", width: "160px" },
+  { id: "date", label: "Data", width: "110px" },
   { id: "value", label: "Valor", width: "140px", align: "right" },
-  { id: "date", label: "Data", width: "100px", align: "right" },
+  { id: "quote_number", label: "Nº Orçamento", width: "200px" },
 ];
 
 const statusConfig: Record<Quote["status"], { label: string; className?: string }> = {
@@ -372,7 +372,7 @@ export function QuotesConfigurableList({
         {/* Header */}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div
-            className="grid gap-2 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold border-b border-primary/80 sticky top-0 z-10"
+            className="grid gap-4 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold border-b border-primary/80 sticky top-0 z-10"
             style={{ gridTemplateColumns: gridTemplate }}
           >
             <div className="flex items-center justify-center">
@@ -395,7 +395,7 @@ export function QuotesConfigurableList({
         {paginatedQuotes.map((quote) => (
           <div
             key={quote.id}
-            className={`grid gap-2 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors ${
+            className={`grid gap-4 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors ${
               isSelected(quote.id!) || allPagesSelected ? "bg-primary/5" : ""
             }`}
             style={{ gridTemplateColumns: gridTemplate }}
