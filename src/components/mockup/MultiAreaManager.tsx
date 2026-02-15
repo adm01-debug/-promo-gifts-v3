@@ -614,7 +614,8 @@ export function MultiAreaManager({
               </Button>
             )}
 
-            {/* Quick add buttons */}
+            {/* Quick add buttons — hidden when areas come from DB */}
+            {!hasDbLocations && (
             <div className="flex flex-wrap gap-1">
               {DEFAULT_AREA_NAMES.filter(
                 (name) => !areas.some((a) => a.name === name)
@@ -644,6 +645,7 @@ export function MultiAreaManager({
                   </Button>
                 ))}
             </div>
+            )}
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
