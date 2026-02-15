@@ -115,6 +115,13 @@ export default function QuoteBuilderPage() {
   const [quoteNumber, setQuoteNumber] = useState<string>("");
   const [currentStatus, setCurrentStatus] = useState<string>("draft");
 
+  // Commercial fields
+  const [paymentTerms, setPaymentTerms] = useState<string>("");
+  const [deliveryTime, setDeliveryTime] = useState<string>("");
+  const [shippingType, setShippingType] = useState<string>("");
+  const [shippingCost, setShippingCost] = useState<number>(0);
+  const [priority, setPriority] = useState<string>("");
+
   // Product search modal
   const [productSearchOpen, setProductSearchOpen] = useState(false);
   const [productSearch, setProductSearch] = useState("");
@@ -548,6 +555,11 @@ export default function QuoteBuilderPage() {
       notes: notes || undefined,
       internal_notes: internalNotes || undefined,
       valid_until: validUntil || undefined,
+      payment_terms: paymentTerms || undefined,
+      delivery_time: deliveryTime || undefined,
+      shipping_type: shippingType || undefined,
+      shipping_cost: shippingType === "fob_pre" ? shippingCost : undefined,
+      priority: priority || undefined,
     };
 
     let result;
@@ -697,7 +709,7 @@ export default function QuoteBuilderPage() {
         <div className="grid gap-4 lg:grid-cols-12">
           {/* COL 1 — Empresa + Contato (fixa) */}
           <div className="lg:col-span-3">
-            <div className="sticky top-24 space-y-4">
+            <div className="sticky top-24 space-y-3 overflow-y-auto max-h-[calc(100vh-7rem)] pr-1">
               <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-4">
                 <h3 className="font-semibold text-sm flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />
@@ -711,6 +723,89 @@ export default function QuoteBuilderPage() {
                   onCompanyInfoChange={setCompanyInfo}
                   onContactInfoChange={setContactInfo}
                 />
+              </div>
+
+              {/* Condições Comerciais */}
+              <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <Package className="h-4 w-4 text-primary" />
+                  Condições
+                </h3>
+
+                {/* Prazo Pagamento */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Prazo | Pagamento</Label>
+                  <Select value={paymentTerms} onValueChange={setPaymentTerms}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="21_dias">21 dias | A partir da entrega</SelectItem>
+                      <SelectItem value="28_dias">28 dias | A partir da entrega</SelectItem>
+                      <SelectItem value="50_50">50% entrada / 50% após entrega</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Prazo Entrega */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Prazo | Entrega</Label>
+                  <Select value={deliveryTime} onValueChange={setDeliveryTime}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="14_dias">14 dias | Após aprovação</SelectItem>
+                      <SelectItem value="21_dias">21 dias | Após aprovação</SelectItem>
+                      <SelectItem value="28_dias">28 dias | Após aprovação</SelectItem>
+                      <SelectItem value="45_dias">45 dias | Após aprovação</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Frete */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Frete</Label>
+                  <Select value={shippingType} onValueChange={setShippingType}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cif">CIF | Frete grátis</SelectItem>
+                      <SelectItem value="fob">FOB | Repassado ao cliente</SelectItem>
+                      <SelectItem value="fob_pre">FOB | Valor pré negociado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {shippingType === "fob_pre" && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <span className="text-xs text-muted-foreground">R$</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        value={shippingCost || ""}
+                        onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
+                        placeholder="0,00"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Prioridade */}
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Prioridade</Label>
+                  <Select value={priority} onValueChange={setPriority}>
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="alta">🔴 Alta prioridade</SelectItem>
+                      <SelectItem value="media">🟡 Média prioridade</SelectItem>
+                      <SelectItem value="baixa">🟢 Baixa prioridade</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           </div>
