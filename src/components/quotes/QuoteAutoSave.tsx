@@ -135,7 +135,7 @@ export function QuoteAutoSave({
         id: quoteId || "new",
         data: dataRef.current,
         savedAt: new Date().toISOString(),
-        version: (availableDraft?.version || 0) + 1,
+        version: Date.now(),
       };
       
       // Salvar draft atual
@@ -152,7 +152,6 @@ export function QuoteAutoSave({
       });
       
       setLastSaved(new Date());
-      setAvailableDraft(newDraft);
       setStatus("saved");
       
       // Reset para idle após 2s
@@ -163,7 +162,7 @@ export function QuoteAutoSave({
       console.error("Erro ao salvar draft:", error);
       setStatus("error");
     }
-  }, [storageKey, quoteId, availableDraft]);
+  }, [storageKey, quoteId]);
 
   const handleDiscard = () => {
     localStorage.removeItem(storageKey);
@@ -244,11 +243,6 @@ export function QuoteAutoSave({
             {lastSaved && (
               <p className="text-muted-foreground">
                 Último salvamento: {format(lastSaved, "HH:mm:ss", { locale: ptBR })}
-              </p>
-            )}
-            {availableDraft && (
-              <p className="text-muted-foreground">
-                Versão {availableDraft.version}
               </p>
             )}
           </div>
