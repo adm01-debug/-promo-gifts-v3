@@ -30,7 +30,6 @@ interface QuoteAutoSaveProps {
   quoteId?: string;
   data: any;
   onChange?: (hasUnsavedChanges: boolean) => void;
-  onRestore?: (data: any) => void;
   debounceMs?: number;
   className?: string;
 }
@@ -49,8 +48,6 @@ export function QuoteAutoSave({
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showRestorePrompt, setShowRestorePrompt] = useState(false);
-  const [availableDraft, setAvailableDraft] = useState<QuoteDraft | null>(null);
   
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dataRef = useRef(data);
@@ -59,27 +56,10 @@ export function QuoteAutoSave({
   // Storage key único para este orçamento
   const storageKey = `${STORAGE_KEY_PREFIX}${quoteId || "new"}`;
 
-  // Verificar se há draft salvo ao montar
+  // Salvar estado inicial para comparação
   useEffect(() => {
-    const storedDraft = localStorage.getItem(storageKey);
-    if (storedDraft) {
-      try {
-        const draft: QuoteDraft = JSON.parse(storedDraft);
-        setAvailableDraft(draft);
-        
-        // Se é um novo orçamento e tem draft, mostrar prompt
-        if (!quoteId && draft.data && Object.keys(draft.data).length > 0) {
-          setShowRestorePrompt(true);
-        }
-      } catch {
-        // Draft inválido, remover
-        localStorage.removeItem(storageKey);
-      }
-    }
-    
-    // Salvar estado inicial para comparação
     initialDataRef.current = JSON.stringify(data);
-  }, [storageKey, quoteId]);
+  }, [storageKey]);
 
   // Detectar mudanças
   useEffect(() => {
@@ -185,18 +165,9 @@ export function QuoteAutoSave({
     }
   }, [storageKey, quoteId, availableDraft]);
 
-  const handleRestore = () => {
-    if (availableDraft?.data) {
-      onRestore?.(availableDraft.data);
-      setShowRestorePrompt(false);
-    }
-  };
-
   const handleDiscard = () => {
-    // Remove main draft key
     localStorage.removeItem(storageKey);
     
-    // Remove all version keys (_v*)
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -206,12 +177,8 @@ export function QuoteAutoSave({
     }
     keysToRemove.forEach((key) => localStorage.removeItem(key));
     
-    // Reset state so auto-save doesn't immediately re-save
     initialDataRef.current = JSON.stringify(data);
-    setAvailableDraft(null);
-    setShowRestorePrompt(false);
     setStatus("idle");
-    setHasChanges(false);
   };
 
   const getStatusIcon = () => {
@@ -246,45 +213,6 @@ export function QuoteAutoSave({
 
   return (
     <>
-      {/* Prompt de restauração */}
-      <AnimatePresence>
-        {showRestorePrompt && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
-          >
-            <div className="bg-card border border-border rounded-xl shadow-2xl p-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Cloud className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 space-y-2">
-                  <p className="font-medium text-sm">Rascunho encontrado</p>
-                  <p className="text-xs text-muted-foreground">
-                    Você tem um orçamento não finalizado de{" "}
-                    {availableDraft?.savedAt && format(
-                      new Date(availableDraft.savedAt),
-                      "dd/MM 'às' HH:mm",
-                      { locale: ptBR }
-                    )}
-                  </p>
-                  <div className="flex gap-2 pt-2">
-                    <Button size="sm" onClick={handleRestore}>
-                      Restaurar
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={handleDiscard}>
-                      Descartar
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Indicador de status */}
       <Tooltip>
         <TooltipTrigger asChild>
