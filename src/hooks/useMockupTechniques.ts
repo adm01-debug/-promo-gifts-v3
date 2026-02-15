@@ -81,9 +81,15 @@ export function useFilteredTechniques(
       }));
     }
 
-    // No print areas loaded yet or empty -> return empty (forces user to wait)
+    // No print areas data or empty -> show all techniques (product may not have areas configured)
     if (!printAreas || printAreas.length === 0) {
-      return [];
+      return techniques.map(t => ({
+        ...t,
+        maxWidth: null,
+        maxHeight: null,
+        areaName: null,
+        locationName: null,
+      }));
     }
 
     // Extract technique terms from area_name: "Location — Technique"
