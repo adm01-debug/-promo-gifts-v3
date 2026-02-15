@@ -1,24 +1,36 @@
 /**
  * MockupProductSelector — Product selector for mockup generator
  * 
- * Replicates exact same visual and logic as QuoteProductSelector
- * but simplified (no color selection, no quantity, just product pick).
+ * Replicates exact same visual and logic as QuoteProductSelector + QuoteProductColorSelector.
+ * Flow: Search products -> Select product -> Choose color/variant -> Confirmed.
  */
 
 import { useState, useMemo, useRef, useCallback } from "react";
 import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Search, Package, X, SearchX } from "lucide-react";
+import { Search, Package, X, SearchX, ArrowLeft, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { useProductsContext } from "@/contexts/ProductsContext";
-import { Product } from "@/hooks/useProducts";
+import { Product, ProductColor } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useExternalVariantStock, type ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+
+export interface MockupProductSelection {
+  product: Product;
+  variant: ExternalVariantStock | null;
+  colorName?: string;
+  colorHex?: string;
+  /** Image URL to use for the mockup (variant-specific if available) */
+  imageUrl: string;
+}
 
 interface MockupProductSelectorProps {
-  selectedProduct: Product | null;
-  onSelect: (product: Product | null) => void;
+  selection: MockupProductSelection | null;
+  onSelect: (selection: MockupProductSelection | null) => void;
   disabled?: boolean;
 }
 
@@ -37,12 +49,15 @@ const fuseOptions: Fuse.IFuseOptions<Product> = {
   ignoreLocation: true,
 };
 
-export function MockupProductSelector({ selectedProduct, onSelect, disabled }: MockupProductSelectorProps) {
+export function MockupProductSelector({ selection, onSelect, disabled }: MockupProductSelectorProps) {
   const { products } = useProductsContext();
   const scrollParentRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<'default' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'>('default');
   const [scrollState, setScrollState] = useState({ top: false, bottom: true });
+  
+  // Internal state: product picked but color not yet chosen
+  const [pendingProduct, setPendingProduct] = useState<Product | null>(null);
 
   const handleScroll = useCallback(() => {
     const el = scrollParentRef.current;
@@ -90,29 +105,68 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
   const isSearching = debouncedQuery.length >= 2;
   const resultCount = sortedProducts.length;
 
-  // If a product is selected, show compact card
-  if (selectedProduct) {
+  const handleProductPick = (product: Product) => {
+    setPendingProduct(product);
+    setSearchQuery("");
+  };
+
+  const handleColorSelect = (variant: ExternalVariantStock | null, product: Product) => {
+    const imageUrl = variant?.selected_thumbnail
+      ? `${variant.selected_thumbnail}/thumbnail`
+      : product.images?.[0] || '/placeholder.svg';
+    
+    onSelect({
+      product,
+      variant,
+      colorName: variant?.color_name ?? undefined,
+      colorHex: variant?.color_hex ?? undefined,
+      imageUrl,
+    });
+    setPendingProduct(null);
+  };
+
+  const handleClear = () => {
+    onSelect(null);
+    setPendingProduct(null);
+    setSearchQuery("");
+  };
+
+  // ─── State: Product + Color confirmed ──────────────────────────────
+  if (selection) {
     return (
       <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
         <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden shrink-0">
           <img
-            src={selectedProduct.images?.[0] || '/placeholder.svg'}
-            alt={selectedProduct.name}
+            src={selection.imageUrl}
+            alt={selection.product.name}
             className="w-full h-full object-cover"
             loading="lazy"
           />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium truncate text-sm">{selectedProduct.name}</h4>
-          <span className="text-[11px] text-muted-foreground font-mono tracking-wide">
-            {selectedProduct.sku || 'N/A'}
-          </span>
+          <h4 className="font-medium truncate text-sm">{selection.product.name}</h4>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground font-mono tracking-wide">
+              {selection.product.sku || 'N/A'}
+            </span>
+            {selection.colorName && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-1">
+                {selection.colorHex && (
+                  <div
+                    className="w-2.5 h-2.5 rounded-full border border-border/50"
+                    style={{ backgroundColor: selection.colorHex }}
+                  />
+                )}
+                {selection.colorName}
+              </Badge>
+            )}
+          </div>
         </div>
         <Button
           size="icon"
           variant="ghost"
           className="h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive"
-          onClick={() => onSelect(null)}
+          onClick={handleClear}
           disabled={disabled}
         >
           <X className="h-3.5 w-3.5" />
@@ -121,7 +175,18 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
     );
   }
 
-  // Product list — identical layout to QuoteProductSelector
+  // ─── State: Product picked, choosing color ─────────────────────────
+  if (pendingProduct) {
+    return (
+      <ColorSelector
+        product={pendingProduct}
+        onSelect={(variant) => handleColorSelect(variant, pendingProduct)}
+        onBack={() => setPendingProduct(null)}
+      />
+    );
+  }
+
+  // ─── State: Product list (search) ──────────────────────────────────
   return (
     <div className="flex flex-col border rounded-lg overflow-hidden" style={{ maxHeight: '420px' }}>
       {/* Search */}
@@ -166,7 +231,6 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
 
       {/* Virtualized product list */}
       <div className="relative flex-1 min-h-0">
-        {/* Top fade */}
         <div
           className="pointer-events-none absolute top-0 left-0 right-0 h-6 z-10 transition-opacity duration-200"
           style={{
@@ -215,7 +279,6 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
             >
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const product = sortedProducts[virtualRow.index];
-                const isSelected = selectedProduct?.id === product.id;
                 return (
                   <div
                     key={product.id}
@@ -230,10 +293,8 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
                     className="py-0.5 px-1"
                   >
                     <div
-                      onClick={() => onSelect(product)}
-                      className={`group flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-200 h-full ${
-                        isSelected ? 'bg-primary/10 border-primary' : ''
-                      }`}
+                      onClick={() => handleProductPick(product)}
+                      className="group flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-200 h-full"
                     >
                       {/* Thumbnail */}
                       <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden shrink-0">
@@ -254,7 +315,6 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
                           <span className="text-[11px] text-muted-foreground font-mono tracking-wide">
                             {product.sku || 'N/A'}
                           </span>
-                          {/* Color dots inline */}
                           {product.colors.length > 0 && (
                             <div className="flex items-center gap-0.5">
                               {product.colors.slice(0, 4).map((color, i) => (
@@ -273,7 +333,7 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
                         </div>
                       </div>
 
-                      {/* Price */}
+                      {/* Price + Stock */}
                       <div className="text-right shrink-0 pl-2">
                         <p className="text-sm font-semibold text-primary tabular-nums whitespace-nowrap">
                           {formatCurrency(product.price)}
@@ -295,7 +355,6 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
             </div>
           )}
         </div>
-        {/* Bottom fade */}
         <div
           className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 z-10 transition-opacity duration-200"
           style={{
@@ -303,6 +362,163 @@ export function MockupProductSelector({ selectedProduct, onSelect, disabled }: M
             background: 'linear-gradient(to top, hsl(var(--background)), transparent)',
           }}
         />
+      </div>
+    </div>
+  );
+}
+
+// ─── Color Selector Sub-component ────────────────────────────────────
+
+function ColorSelector({
+  product,
+  onSelect,
+  onBack,
+}: {
+  product: Product;
+  onSelect: (variant: ExternalVariantStock | null) => void;
+  onBack: () => void;
+}) {
+  const { data: variants, isLoading } = useExternalVariantStock(product.id);
+
+  const sortedVariants = useMemo(() => {
+    if (!variants) return [];
+    return [...variants].sort((a, b) => {
+      const aStock = a.stock_quantity ?? 0;
+      const bStock = b.stock_quantity ?? 0;
+      if (aStock > 0 && bStock === 0) return -1;
+      if (aStock === 0 && bStock > 0) return 1;
+      return (a.color_name ?? '').localeCompare(b.color_name ?? '');
+    });
+  }, [variants]);
+
+  const totalStock = useMemo(() => {
+    return sortedVariants.reduce((sum, v) => sum + (v.stock_quantity ?? 0), 0);
+  }, [sortedVariants]);
+
+  const formatStock = (qty: number) => {
+    if (qty >= 1000) return `${(qty / 1000).toFixed(1)}k`;
+    return qty.toString();
+  };
+
+  // No variants: auto-select without color
+  if (!isLoading && (!variants || variants.length === 0)) {
+    // Use effect-like behavior: call onSelect(null) after render
+    setTimeout(() => onSelect(null), 0);
+    return (
+      <div className="flex items-center gap-3 p-3 rounded-lg border bg-card animate-pulse">
+        <Skeleton className="w-11 h-11 rounded-lg" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="border rounded-lg p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border rounded-lg p-4 space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
+        </Button>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm truncate">{product.name}</p>
+          <p className="text-xs text-muted-foreground font-mono">{product.sku}</p>
+        </div>
+        <Badge variant="outline" className="text-xs gap-1">
+          <Package className="h-3 w-3" />
+          {formatStock(totalStock)} total
+        </Badge>
+      </div>
+
+      {/* No color option */}
+      <button
+        onClick={() => onSelect(null)}
+        className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-colors text-left text-sm text-muted-foreground"
+      >
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 via-green-400 to-blue-400 border border-border shrink-0" />
+        <span>Adicionar sem cor específica</span>
+      </button>
+
+      {/* Color grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-72 overflow-y-auto pr-1">
+        {sortedVariants.map((variant) => {
+          const stock = variant.stock_quantity ?? 0;
+          const isOutOfStock = stock === 0;
+          const isLowStock = stock > 0 && stock < 100;
+
+          return (
+            <button
+              key={variant.id}
+              onClick={() => onSelect(variant)}
+              className={cn(
+                'relative flex items-center gap-2.5 p-3 rounded-lg border transition-all text-left',
+                'hover:border-primary/50 hover:bg-accent',
+                isOutOfStock
+                  ? 'opacity-60 border-border bg-muted/30'
+                  : 'border-border bg-card'
+              )}
+            >
+              {variant.selected_thumbnail ? (
+                <img
+                  src={`${variant.selected_thumbnail}/thumbnail`}
+                  alt={variant.color_name ?? ''}
+                  className="w-10 h-10 rounded-md object-cover border border-border shrink-0"
+                  onError={(e) => {
+                    const t = e.currentTarget;
+                    if (t.src.includes('/thumbnail')) {
+                      t.src = variant.selected_thumbnail!;
+                    } else {
+                      t.style.display = 'none';
+                    }
+                  }}
+                />
+              ) : (
+                <div
+                  className="w-10 h-10 rounded-md border border-border shrink-0"
+                  style={{ backgroundColor: variant.color_hex || '#CCC' }}
+                />
+              )}
+
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">
+                  {variant.color_name || 'Sem nome'}
+                </p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  {isOutOfStock ? (
+                    <span className="text-[10px] text-destructive flex items-center gap-0.5">
+                      <AlertTriangle className="h-2.5 w-2.5" />
+                      Sem estoque
+                    </span>
+                  ) : (
+                    <span className={cn(
+                      'text-[10px] font-medium',
+                      isLowStock ? 'text-amber-600' : 'text-green-600'
+                    )}>
+                      <Package className="h-2.5 w-2.5 inline mr-0.5" />
+                      {formatStock(stock)} un
+                    </span>
+                  )}
+                </div>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
