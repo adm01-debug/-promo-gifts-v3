@@ -477,9 +477,19 @@ export default function QuoteViewPage() {
                           {hasPersonalizations && (
                             <td className="p-3">
                               {personalization ? (
-                                <span className="text-sm" title={`${personalization.technique_name} (${personalization.colors_count || 1} cor${(personalization.colors_count || 1) > 1 ? "es" : ""})`}>
-                                  {personalization.technique_name} ({personalization.colors_count || 1} cor{(personalization.colors_count || 1) > 1 ? "es" : ""})
-                                </span>
+                                <div className="space-y-0.5">
+                                  <span className="text-sm font-medium">
+                                    {personalization.technique_name}
+                                  </span>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    {personalization.width_cm && personalization.height_cm && (
+                                      <span>{personalization.width_cm}x{personalization.height_cm}cm</span>
+                                    )}
+                                    <span>
+                                      {personalization.colors_count || 1} cor{(personalization.colors_count || 1) > 1 ? "es" : ""}
+                                    </span>
+                                  </div>
+                                </div>
                               ) : "-"}
                             </td>
                           )}
