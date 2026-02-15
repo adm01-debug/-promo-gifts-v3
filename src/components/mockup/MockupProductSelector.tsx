@@ -141,6 +141,17 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
             alt={selection.product.name}
             className="w-full h-full object-cover"
             loading="lazy"
+            onError={(e) => {
+              const t = e.currentTarget;
+              // If /thumbnail variant failed, try without it
+              if (t.src.includes('/thumbnail')) {
+                t.src = t.src.replace('/thumbnail', '');
+              } else if (selection.product.images?.[0]) {
+                t.src = selection.product.images[0];
+              } else {
+                t.src = '/placeholder.svg';
+              }
+            }}
           />
         </div>
         <div className="flex-1 min-w-0">
