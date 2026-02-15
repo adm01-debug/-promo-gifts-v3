@@ -42,6 +42,7 @@ import {
   X,
   AlertTriangle,
   PackageCheck,
+  ShoppingCart,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
@@ -750,90 +751,106 @@ export default function QuoteBuilderPage() {
             </Card>
           </div>
 
-          {/* RIGHT COLUMN — Resumo (estilo Simulador) */}
+          {/* RIGHT COLUMN — Resumo (idêntico ao Simulador) */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-4">
-              {/* Resumo Card — Dark theme like Simulator */}
-              <div className="rounded-2xl border border-border/50 bg-card dark:bg-black/60 backdrop-blur-sm shadow-xl overflow-hidden">
-                {/* Header */}
-                <div className="px-5 pt-5 pb-3 flex items-center gap-2.5">
-                  <div className="p-1.5 rounded-lg bg-primary/15">
-                    <FileText className="h-4 w-4 text-primary" />
+            <div className="sticky top-24">
+              <div className="flex flex-col rounded-2xl border border-border/50 bg-card shadow-xl overflow-hidden">
+                {/* Header — igual Simulador */}
+                <div className="flex items-center gap-2 p-4 pb-3 shrink-0">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <ShoppingCart className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="font-semibold text-base">Resumo</span>
+                  <h3 className="font-semibold text-base">Resumo</h3>
                 </div>
 
-                {/* Items summary */}
-                <div className="px-5 space-y-3">
-                  {items.length === 0 ? (
-                    <div className="py-8 text-center text-muted-foreground">
-                      <Package className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                      <p className="text-sm">Nenhum item adicionado</p>
-                    </div>
-                  ) : (
-                    items.map((item, idx) => {
-                      const itemTotal = calculateItemTotal(item);
-                      const persTotal = calculateItemPersonalizationTotal(item);
-                      return (
-                        <div key={idx} className="rounded-xl border border-border/40 bg-muted/30 p-3 space-y-2">
-                          <div className="flex items-start gap-2.5">
-                            {item.product_image_url && (
-                              <img
-                                src={`${item.product_image_url}/thumbnail`}
-                                alt={item.product_name}
-                                className="h-10 w-10 rounded-lg object-cover bg-muted shrink-0"
-                                onError={(e) => {
-                                  const target = e.currentTarget;
-                                  if (target.src.includes('/thumbnail')) {
-                                    target.src = item.product_image_url!;
-                                  } else {
-                                    target.style.display = 'none';
-                                  }
-                                }}
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <Badge variant="outline" className="text-[10px] mb-1 font-normal">PRODUTO</Badge>
-                              <p className="text-sm font-medium leading-tight truncate">{item.product_name}</p>
-                              <div className="flex items-center justify-between mt-1">
-                                <span className="text-xs text-muted-foreground">
-                                  {item.quantity} un. × {formatCurrency(item.unit_price)}
-                                </span>
-                                <span className="text-sm font-semibold tabular-nums">
+                {/* Scrollable Content */}
+                <div className="flex-1 min-h-0 px-4 overflow-y-auto max-h-[50vh]">
+                  <div className="space-y-3 pr-1">
+                    {items.length === 0 ? (
+                      <div className="p-4 rounded-lg border border-dashed border-muted-foreground/30 text-center">
+                        <Package className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
+                        <p className="text-xs text-muted-foreground">
+                          Nenhum item adicionado
+                        </p>
+                      </div>
+                    ) : (
+                      items.map((item, idx) => {
+                        const persTotal = calculateItemPersonalizationTotal(item);
+                        return (
+                          <div key={idx} className="space-y-2">
+                            {/* Produto — bg-muted/50 rounded-lg igual Simulador */}
+                            <div className="p-3 rounded-lg bg-muted/50">
+                              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                                Produto
+                              </span>
+                              <p className="text-sm font-medium leading-tight mb-1.5 mt-1">
+                                {item.product_name}
+                              </p>
+                              <div className="flex items-baseline justify-between text-xs text-muted-foreground gap-2">
+                                <span className="shrink-0">{item.quantity} un. × {formatCurrency(item.unit_price)}</span>
+                                <span className="font-semibold text-foreground whitespace-nowrap">
                                   {formatCurrency(item.quantity * item.unit_price)}
                                 </span>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Personalizations */}
-                          {item.personalizations && item.personalizations.length > 0 && (
-                            <div className="pt-1 border-t border-border/30 space-y-1.5">
-                              <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                                  Gravações ({item.personalizations.length})
-                                </span>
-                                <span className="text-xs font-semibold text-primary tabular-nums">
-                                  {formatCurrency(persTotal)}
-                                </span>
-                              </div>
-                              {item.personalizations.map((p, pIdx) => (
-                                <div key={pIdx} className="flex items-center justify-between text-xs">
-                                  <span className="text-muted-foreground truncate mr-2">{p.technique_name}</span>
-                                  <span className="tabular-nums shrink-0">{formatCurrency(p.total_cost || 0)}</span>
+                            {/* Gravações — igual Simulador */}
+                            {item.personalizations && item.personalizations.length > 0 && (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                                    Gravações ({item.personalizations.length})
+                                  </span>
+                                  <span className="font-semibold text-sm text-primary whitespace-nowrap">
+                                    {formatCurrency(persTotal)}
+                                  </span>
                                 </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
+                                <div className="space-y-1">
+                                  {item.personalizations.map((p, pIdx) => (
+                                    <div
+                                      key={pIdx}
+                                      className="p-2.5 rounded-xl border bg-card hover:bg-muted/30 border-border/60 transition-all"
+                                    >
+                                      {/* Row 1: Number + Technique + Price */}
+                                      <div className="flex items-start gap-1.5 mb-1">
+                                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 shrink-0 font-bold mt-0.5">
+                                          {pIdx + 1}
+                                        </Badge>
+                                        <span className="text-xs font-semibold text-primary flex-1 min-w-0 leading-tight">
+                                          {p.technique_name}
+                                        </span>
+                                        <span className="font-bold text-sm text-foreground whitespace-nowrap shrink-0 tabular-nums">
+                                          {formatCurrency(p.total_cost || 0)}
+                                        </span>
+                                      </div>
+                                      {/* Row 2: Specs badges */}
+                                      <div className="flex flex-wrap items-center gap-1 ml-7">
+                                        {p.colors_count && (
+                                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
+                                            {p.colors_count} {p.colors_count === 1 ? 'cor' : 'cores'}
+                                          </Badge>
+                                        )}
+                                        {p.area_cm2 && p.area_cm2 > 0 && (
+                                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
+                                            {Math.round(p.area_cm2)}cm²
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
 
                 {/* Discount */}
                 {items.length > 0 && (
-                  <div className="px-5 pt-3 space-y-2">
+                  <div className="px-4 pt-3 space-y-2">
                     <div className="flex items-center gap-2">
                       <Select
                         value={discountType}
@@ -867,35 +884,34 @@ export default function QuoteBuilderPage() {
                   </div>
                 )}
 
-                {/* Total */}
-                <div className="px-5 py-4 mt-3 border-t border-border/40">
-                  <div className="flex items-end justify-between">
+                {/* Footer fixo — Total + CTA (igual Simulador) */}
+                <div className="shrink-0 pt-3 mt-3 border-t border-border/50 px-4 pb-4 space-y-3">
+                  {/* Total */}
+                  <div className="flex items-baseline justify-between gap-2">
                     <div>
-                      <span className="text-sm font-bold">Total</span>
+                      <span className="font-bold text-base">Total</span>
                       {items.length > 0 && (
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                        <p className="text-[11px] text-muted-foreground">
                           ≈{formatCurrency(items.reduce((s, i) => s + i.quantity, 0) > 0 ? total / items.reduce((s, i) => s + i.quantity, 0) : 0)}/un.
                         </p>
                       )}
                     </div>
-                    <span className="text-2xl font-bold text-primary tabular-nums">
+                    <span className="font-bold text-xl text-primary whitespace-nowrap tabular-nums">
                       {formatCurrency(total)}
                     </span>
                   </div>
-                </div>
 
-                {/* CTA Buttons */}
-                <div className="px-5 pb-5 space-y-2">
+                  {/* CTA Premium — gradient igual Simulador */}
                   <Button
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                     size="lg"
+                    className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
                     onClick={() => handleSaveQuote("pending")}
                     disabled={quotesLoading || items.length === 0}
                   >
                     {quotesLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      <Send className="h-4 w-4 mr-2" />
+                      <Send className="h-5 w-5" />
                     )}
                     {isEditMode ? "Salvar e Enviar" : "Criar e Enviar"}
                   </Button>
