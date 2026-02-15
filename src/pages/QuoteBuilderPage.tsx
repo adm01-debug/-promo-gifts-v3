@@ -820,14 +820,12 @@ export default function QuoteBuilderPage() {
           <div className="lg:col-span-5">
             <div className="sticky top-24 flex flex-col max-h-[calc(100vh-7rem)]">
               <div className="rounded-2xl border border-border/50 bg-card overflow-hidden flex flex-col flex-1 min-h-0">
-                {/* Fixed header: title + add button */}
+                {/* Header: title + add button */}
                 <div className="flex items-center justify-between p-4 pb-3 shrink-0">
                   <div>
-                    <h3 className="font-semibold text-sm">Personalização</h3>
+                    <h3 className="font-semibold text-sm">Itens do Orçamento</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {activeItemIndex !== null && items[activeItemIndex]
-                        ? items[activeItemIndex].product_name
-                        : "Selecione um item no resumo"}
+                      {items.length} item(ns) adicionado(s)
                     </p>
                   </div>
                   <Button size="sm" onClick={() => setProductSearchOpen(true)}>
@@ -836,84 +834,50 @@ export default function QuoteBuilderPage() {
                   </Button>
                 </div>
 
-                {activeItemIndex !== null && items[activeItemIndex] ? (
-                  <>
-                    {/* Fixed product card — always visible */}
-                    <div className="px-4 pb-3 shrink-0">
-                      <div className="p-3 rounded-xl border border-border/60 bg-muted/40">
-                        <div className="flex items-start gap-3">
-                          {items[activeItemIndex].product_image_url ? (
-                            <img
-                              src={items[activeItemIndex].product_image_url}
-                              alt={items[activeItemIndex].product_name}
-                              className="w-14 h-14 object-cover rounded-lg bg-muted shrink-0"
-                            />
-                          ) : (
-                            <div className="w-14 h-14 bg-muted rounded-lg flex items-center justify-center shrink-0">
-                              <Package className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold leading-tight truncate">
-                              {items[activeItemIndex].product_name}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-mono">
-                                {items[activeItemIndex].product_sku}
-                              </Badge>
-                              {items[activeItemIndex].color_name && (
-                                <div className="flex items-center gap-1">
-                                  <div
-                                    className="w-2.5 h-2.5 rounded-full border border-border/50"
-                                    style={{ backgroundColor: items[activeItemIndex].color_hex || '#CCC' }}
-                                  />
-                                  <span className="text-[10px] text-muted-foreground">{items[activeItemIndex].color_name}</span>
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 mt-2 text-xs">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-muted-foreground">Qtd:</span>
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  value={items[activeItemIndex].quantity}
-                                  onChange={(e) => updateItemQuantity(activeItemIndex, parseInt(e.target.value) || 1)}
-                                  className="w-16 h-7 text-xs"
-                                />
-                              </div>
-                              <span className="text-muted-foreground">Preço:</span>
-                              <span className="font-medium">{formatCurrency(items[activeItemIndex].unit_price)}</span>
-                              <span className="ml-auto font-bold text-sm text-primary tabular-nums">
-                                Subtotal {formatCurrency(items[activeItemIndex].quantity * items[activeItemIndex].unit_price)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                {/* Scrollable items list */}
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
+                  {items.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium text-sm">Nenhum item adicionado</p>
+                      <p className="text-xs mt-1">
+                        Pesquise e adicione produtos ao orçamento
+                      </p>
                     </div>
-
-                    {/* Scrollable personalization area */}
-                    <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
-                      <QuoteProductCustomization
-                        productId={items[activeItemIndex].product_id}
-                        quantity={items[activeItemIndex].quantity}
-                        existingPersonalizations={items[activeItemIndex].personalizations}
-                        onPersonalizationsChange={(personalizations) =>
-                          handlePersonalizationsChange(activeItemIndex, personalizations)
-                        }
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground px-4">
-                    <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                    <p className="font-medium text-sm">Nenhum item selecionado</p>
-                    <p className="text-xs mt-1">
-                      Adicione um produto ou clique em um item no resumo
-                    </p>
-                  </div>
-                )}
+                  ) : (
+                    <DraggableQuoteItems
+                      items={items}
+                      onReorder={(reordered) => setItems(reordered)}
+                      onUpdateQuantity={updateItemQuantity}
+                      onUpdatePrice={updateItemPrice}
+                      onRemove={removeItem}
+                      onTogglePersonalization={(index) => {
+                        setActiveItemIndex(index);
+                        setExpandedItems((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(index)) {
+                            next.delete(index);
+                          } else {
+                            next.add(index);
+                          }
+                          return next;
+                        });
+                      }}
+                      expandedItems={expandedItems}
+                      renderPersonalization={(item, index) => (
+                        <QuoteProductCustomization
+                          productId={item.product_id}
+                          quantity={item.quantity}
+                          existingPersonalizations={item.personalizations}
+                          onPersonalizationsChange={(personalizations) =>
+                            handlePersonalizationsChange(index, personalizations)
+                          }
+                        />
+                      )}
+                      formatCurrency={formatCurrency}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>
