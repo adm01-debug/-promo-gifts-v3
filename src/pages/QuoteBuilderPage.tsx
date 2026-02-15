@@ -1031,14 +1031,7 @@ export default function QuoteBuilderPage() {
                               {/* Qty × Price = Subtotal */}
                               <div className="flex items-center gap-2 text-xs">
                                 <span className="text-muted-foreground">Qtd:</span>
-                                <Input
-                                  type="number"
-                                  min={1}
-                                  value={item.quantity}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onChange={(e) => updateItemQuantity(idx, parseInt(e.target.value) || 1)}
-                                  className="w-16 h-7 text-xs"
-                                />
+                                <span className="font-medium">{item.quantity}</span>
                                 <span className="text-muted-foreground">×</span>
                                 <span className="font-medium">{formatCurrency(item.unit_price)}</span>
                                 <span className="ml-auto font-semibold text-foreground whitespace-nowrap tabular-nums">
