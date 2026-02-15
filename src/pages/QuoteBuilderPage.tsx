@@ -818,9 +818,10 @@ export default function QuoteBuilderPage() {
 
           {/* COL 2 — Produto Ativo + Personalização */}
           <div className="lg:col-span-5">
-            <div className="sticky top-24">
-              <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
-                <div className="flex items-center justify-between p-4 pb-3">
+            <div className="sticky top-24 flex flex-col max-h-[calc(100vh-7rem)]">
+              <div className="rounded-2xl border border-border/50 bg-card overflow-hidden flex flex-col flex-1 min-h-0">
+                {/* Fixed header: title + add button */}
+                <div className="flex items-center justify-between p-4 pb-3 shrink-0">
                   <div>
                     <h3 className="font-semibold text-sm">Personalização</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -834,11 +835,12 @@ export default function QuoteBuilderPage() {
                     Produto
                   </Button>
                 </div>
-                <div className="px-4 pb-4 overflow-y-auto max-h-[calc(100vh-10rem)]">
-                  {activeItemIndex !== null && items[activeItemIndex] ? (
-                    <>
-                      {/* Product card — visible while this item is active */}
-                      <div className="p-3 rounded-xl border border-border/60 bg-muted/40 mb-4">
+
+                {activeItemIndex !== null && items[activeItemIndex] ? (
+                  <>
+                    {/* Fixed product card — always visible */}
+                    <div className="px-4 pb-3 shrink-0">
+                      <div className="p-3 rounded-xl border border-border/60 bg-muted/40">
                         <div className="flex items-start gap-3">
                           {items[activeItemIndex].product_image_url ? (
                             <img
@@ -889,8 +891,10 @@ export default function QuoteBuilderPage() {
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Personalization config */}
+                    {/* Scrollable personalization area */}
+                    <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
                       <QuoteProductCustomization
                         productId={items[activeItemIndex].product_id}
                         quantity={items[activeItemIndex].quantity}
@@ -899,17 +903,17 @@ export default function QuoteBuilderPage() {
                           handlePersonalizationsChange(activeItemIndex, personalizations)
                         }
                       />
-                    </>
-                  ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                      <p className="font-medium text-sm">Nenhum item selecionado</p>
-                      <p className="text-xs mt-1">
-                        Adicione um produto ou clique em um item no resumo
-                      </p>
                     </div>
-                  )}
-                </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground px-4">
+                    <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                    <p className="font-medium text-sm">Nenhum item selecionado</p>
+                    <p className="text-xs mt-1">
+                      Adicione um produto ou clique em um item no resumo
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
