@@ -135,6 +135,7 @@ function SortableHeaderCell({ column }: { column: ColumnDef }) {
 interface QuotesConfigurableListProps {
   quotes: Quote[];
   onDelete: (id: string) => void;
+  onBulkDelete: (ids: string[]) => void;
   onDuplicate: (id: string) => void;
 }
 
@@ -143,6 +144,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 export function QuotesConfigurableList({
   quotes,
   onDelete,
+  onBulkDelete,
   onDuplicate,
 }: QuotesConfigurableListProps) {
   const navigate = useNavigate();
@@ -308,7 +310,7 @@ export function QuotesConfigurableList({
               size="sm"
               className="text-xs gap-1.5"
               onClick={() => {
-                effectiveSelectedIds.forEach((id) => onDelete(id));
+                onBulkDelete([...effectiveSelectedIds]);
                 handleClearSelection();
               }}
             >
