@@ -368,7 +368,7 @@ export function QuotesConfigurableList({
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border overflow-hidden">
+      <div className="rounded-lg border border-border overflow-x-hidden overflow-y-auto max-h-[calc(100vh-420px)]">
         {/* Header */}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div
