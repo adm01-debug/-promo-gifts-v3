@@ -66,7 +66,6 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
-import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 
 // ── Status config with semantic colors ──
 const statusConfig: Record<
