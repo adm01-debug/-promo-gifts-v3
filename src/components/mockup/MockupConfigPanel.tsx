@@ -16,6 +16,7 @@ import { Wand2 } from "lucide-react";
 import { ProductSearchCombobox } from "./ProductSearchCombobox";
 import { TechniqueTooltip } from "./TechniqueTooltip";
 import { GenerateButton } from "./GenerateButton";
+import { MockupClientSelector } from "./MockupClientSelector";
 import type { PersonalizationArea } from "./MultiAreaManager";
 
 interface Product {
@@ -31,24 +32,28 @@ interface Technique {
   code: string | null;
 }
 
-interface Client {
+export interface MockupClient {
   id: string;
   name: string;
+  razao_social?: string;
+  nome_fantasia?: string;
+  ramo?: string;
+  logo_url?: string;
+  cnpj?: string;
 }
 
 interface MockupConfigPanelProps {
   products: Product[];
   techniques: Technique[];
-  clients: Client[];
   selectedProduct: Product | null;
   selectedTechnique: Technique | null;
-  selectedClient: Client | null;
+  selectedClient: MockupClient | null;
   isLoadingData: boolean;
   isLoading: boolean;
   personalizationAreas: PersonalizationArea[];
   onProductSelect: (product: Product | null) => void;
   onTechniqueSelect: (technique: Technique | null) => void;
-  onClientSelect: (client: Client | null) => void;
+  onClientSelect: (client: MockupClient | null) => void;
   onGenerate: () => void;
   onReset: () => void;
   /** Techniques filtered by product's print areas */
@@ -58,7 +63,6 @@ interface MockupConfigPanelProps {
 export function MockupConfigPanel({
   products,
   techniques,
-  clients,
   selectedProduct,
   selectedTechnique,
   selectedClient,
@@ -73,7 +77,7 @@ export function MockupConfigPanel({
   filteredTechniques,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
-  const stepsRemaining = [!selectedProduct, !selectedTechnique, !hasLogo].filter(Boolean).length;
+  const stepsRemaining = [!selectedClient, !selectedProduct, !selectedTechnique, !hasLogo].filter(Boolean).length;
 
   return (
     <Card>
@@ -98,38 +102,22 @@ export function MockupConfigPanel({
 
         {!isLoadingData && (
           <>
-            {/* Client Selection */}
+            {/* Client Selection — required, from external CRM */}
             <div className="space-y-2">
-              <Label>Cliente (opcional)</Label>
-              <Select
-                value={selectedClient?.id || "none"}
-                onValueChange={(value) => {
-                  if (value === "none") {
-                    onClientSelect(null);
-                  } else {
-                    const client = clients.find((c) => c.id === value);
-                    onClientSelect(client || null);
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Associar a um cliente..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum cliente</SelectItem>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">1</span>
+                Empresa <span className="text-destructive">*</span>
+              </Label>
+              <MockupClientSelector
+                selectedClient={selectedClient}
+                onClientSelect={onClientSelect}
+              />
             </div>
 
             {/* Product Selection */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">1</span>
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">2</span>
                 Produto
               </Label>
               <ProductSearchCombobox
@@ -142,7 +130,7 @@ export function MockupConfigPanel({
             {/* Technique Selection — filtered by product */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">2</span>
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">3</span>
                 Técnica de Personalização
                 {selectedTechnique && (
                   <TechniqueTooltip technique={selectedTechnique}>
@@ -201,9 +189,9 @@ export function MockupConfigPanel({
               <GenerateButton
                 onClick={onGenerate}
                 isLoading={isLoading}
-                isReady={!!(selectedProduct && selectedTechnique && hasLogo)}
+                isReady={!!(selectedClient && selectedProduct && selectedTechnique && hasLogo)}
                 stepsRemaining={stepsRemaining}
-                disabled={!selectedProduct || !selectedTechnique || !hasLogo || isLoading}
+                disabled={!selectedClient || !selectedProduct || !selectedTechnique || !hasLogo || isLoading}
                 className="flex-1"
               />
               <Tooltip>
