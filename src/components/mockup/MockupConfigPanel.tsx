@@ -133,7 +133,7 @@ export function MockupConfigPanel({
               <Select
                 value={selectedTechnique?.id || ""}
                 onValueChange={(value) => {
-                  const technique = techniques.find((t) => t.id === value);
+                  const technique = filteredTechniques.find((t) => t.id === value);
                   onTechniqueSelect(technique || null);
                 }}
               >
