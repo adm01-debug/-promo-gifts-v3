@@ -17,7 +17,7 @@ import type { TechniqueOption, CustomizationPriceResponseV6 } from "@/types/cust
 interface ConfigurationPanelV6Props {
   technique: TechniqueOption;
   quantity: number;
-  onPriceCalculated: (techniqueId: string, price: CustomizationPriceResponseV6 | null) => void;
+  onPriceCalculated: (techniqueId: string, price: CustomizationPriceResponseV6 | null, dimensions?: { width?: number; height?: number }) => void;
 }
 
 export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }: ConfigurationPanelV6Props) {
@@ -56,7 +56,8 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
 
   // Notify parent when price changes
   useEffect(() => {
-    onPriceCalculated(technique.technique_id, price);
+    const dims = technique.usa_dimensao ? { width: larguraNum, height: alturaNum } : undefined;
+    onPriceCalculated(technique.technique_id, price, dims);
   }, [price, technique.technique_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

@@ -14,7 +14,7 @@ import type { TechniqueOption, GravacaoLocation, CustomizationPriceResponseV6 } 
 interface LocationPanelProps {
   location: GravacaoLocation;
   quantity: number;
-  onPriceCalculated: (locationCode: string, techniqueId: string, price: CustomizationPriceResponseV6 | null) => void;
+  onPriceCalculated: (locationCode: string, techniqueId: string, price: CustomizationPriceResponseV6 | null, dimensions?: { width?: number; height?: number }) => void;
 }
 
 /** Agrupa técnicas por grupo_tecnica */
@@ -42,8 +42,8 @@ export function LocationPanel({ location, quantity, onPriceCalculated }: Locatio
     }
   }, [selectedTechnique, location.location_code, onPriceCalculated]);
 
-  const handlePriceCalculated = useCallback((techniqueId: string, price: CustomizationPriceResponseV6 | null) => {
-    onPriceCalculated(location.location_code, techniqueId, price);
+  const handlePriceCalculated = useCallback((techniqueId: string, price: CustomizationPriceResponseV6 | null, dimensions?: { width?: number; height?: number }) => {
+    onPriceCalculated(location.location_code, techniqueId, price, dimensions);
   }, [location.location_code, onPriceCalculated]);
 
   return (

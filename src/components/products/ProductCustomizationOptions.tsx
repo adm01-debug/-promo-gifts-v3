@@ -37,7 +37,8 @@ export function ProductCustomizationOptions({
   const handlePriceCalculated = useCallback((
     locationCode: string,
     techniqueId: string,
-    price: CustomizationPriceResponseV6 | null
+    price: CustomizationPriceResponseV6 | null,
+    dimensions?: { width?: number; height?: number }
   ) => {
     const location = options?.locations.find(l => l.location_code === locationCode);
     const technique = location?.options.find(t => t.technique_id === techniqueId);
@@ -50,8 +51,8 @@ export function ProductCustomizationOptions({
         techniqueName: technique.tecnica_nome,
         codigoTabela: technique.codigo_tabela,
         grupoTecnica: technique.grupo_tecnica,
-        width: technique.usa_dimensao ? undefined : undefined, // will come from config panel
-        height: undefined,
+        width: dimensions?.width,
+        height: dimensions?.height,
         numberOfColors: price.num_cores,
         usaDimensao: technique.usa_dimensao,
         price,
