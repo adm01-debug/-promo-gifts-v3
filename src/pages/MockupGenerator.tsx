@@ -1,21 +1,14 @@
 /**
- * MockupGenerator — Refactored v2
+ * MockupGenerator — Refactored v3
  * 
- * Broken into subcomponents:
- * - MockupConfigPanel: Client/Product/Technique selection
- * - MockupHistoryPanel: History grid with filters
- * - LogoPositionEditor: Interactive canvas
- * - MultiAreaManager: Multi-area support
- * - GeneratingOverlay: Loading state
- * - MockupWizard: Progress stepper
- * 
- * Fixes applied:
- * - Draft save error (stripped base64 from JSONB)
- * - Techniques filtered by product
- * - hasPositioned wizard fix
- * - addXp removed (was undefined)
- * - Share via WhatsApp
- * - Date filter in history
+ * Fixes applied in v3:
+ * - hasPositioned logic fixed (tracks user interaction, not position values)
+ * - Download works cross-origin via fetch+blob
+ * - Logo uploaded to storage bucket instead of base64 in DB
+ * - seller_id filter in fetchHistory
+ * - Confetti removed (handled by MockupResultCard)
+ * - Tab switching via state instead of querySelector
+ * - Drag-and-drop logo upload support
  */
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -55,7 +48,7 @@ import { GenerateFAB } from "@/components/mockup/GenerateButton";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useFilteredTechniques } from "@/hooks/useMockupTechniques";
-import confetti from "canvas-confetti";
+import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -161,14 +154,17 @@ export default function MockupGenerator() {
   const [showDraftRestoredNotice, setShowDraftRestoredNotice] = useState(false);
   const isRestoringDraft = useRef(false);
 
+  // Tab state (replaces fragile querySelector)
+  const [activeTab, setActiveTab] = useState("generator");
+
+  // Track if user has interacted with positioning (not just default values)
+  const [hasUserInteractedPosition, setHasUserInteractedPosition] = useState(false);
+
   // ─── Derived state ──────────────────────────────────────────────────
 
   const activeArea = personalizationAreas.find(a => a.id === activeAreaId) || personalizationAreas[0];
   const filteredTechniques = useFilteredTechniques(techniques, selectedProduct);
   const hasLogo = personalizationAreas.some(a => !!a.logoPreview);
-  const hasUserPositioned = personalizationAreas.some(a =>
-    a.logoPreview && (a.positionX !== 50 || a.positionY !== 50 || a.logoWidth !== 5 || a.logoHeight !== 3)
-  );
 
   // ─── Effects ────────────────────────────────────────────────────────
 
@@ -294,10 +290,17 @@ export default function MockupGenerator() {
   const fetchHistory = async () => {
     setIsLoadingHistory(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("generated_mockups")
         .select(`id, product_id, product_name, product_sku, technique_id, technique_name, mockup_url, logo_url, position_x, position_y, logo_width_cm, logo_height_cm, created_at, client_id, bitrix_clients(name)`)
         .order("created_at", { ascending: false });
+
+      // RLS should handle this, but add explicit filter for defense-in-depth
+      if (user?.id) {
+        query = query.eq("seller_id", user.id);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       setMockupHistory(data || []);
     } catch (error) {
@@ -307,6 +310,13 @@ export default function MockupGenerator() {
     }
   };
 
+  // Refetch history when user changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchHistory();
+    }
+  }, [user?.id]);
+
   // ─── Handlers ───────────────────────────────────────────────────────
 
   const updateActiveArea = useCallback((updates: Partial<PersonalizationArea>) => {
@@ -314,6 +324,10 @@ export default function MockupGenerator() {
     setPersonalizationAreas(prev =>
       prev.map(area => area.id === activeAreaId ? { ...area, ...updates } : area)
     );
+    // Track that user has interacted with position/size
+    if ('positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates) {
+      setHasUserInteractedPosition(true);
+    }
   }, [activeAreaId]);
 
   const handleAreaLogoUpload = useCallback((areaId: string, file: File) => {
@@ -352,6 +366,24 @@ export default function MockupGenerator() {
   const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea) => {
     if (!user || !selectedProduct || !selectedTechnique || !area.logoPreview) return;
     try {
+      // Upload logo to storage bucket instead of saving base64 in DB
+      let logoUrl = area.logoPreview;
+      
+      // Only upload if it's base64 data (not already a URL)
+      if (area.logoPreview.startsWith("data:")) {
+        const uploadedUrl = await uploadLogoToStorage(
+          user.id,
+          area.logoPreview,
+          `${selectedProduct.sku || "product"}-${selectedTechnique.code || "tech"}`
+        );
+        if (uploadedUrl) {
+          logoUrl = uploadedUrl;
+        } else {
+          console.warn("[MockupGenerator] Logo upload to storage failed, skipping logo_url save");
+          logoUrl = ""; // Don't save base64 in DB
+        }
+      }
+
       const { error } = await supabase.from("generated_mockups").insert({
         seller_id: user.id,
         client_id: selectedClient?.id || null,
@@ -360,7 +392,7 @@ export default function MockupGenerator() {
         product_sku: selectedProduct.sku,
         technique_id: selectedTechnique.id,
         technique_name: selectedTechnique.name,
-        logo_url: area.logoPreview,
+        logo_url: logoUrl,
         mockup_url: mockupUrl,
         position_x: area.positionX,
         position_y: area.positionY,
@@ -420,7 +452,7 @@ export default function MockupGenerator() {
       if (response.data?.mockupUrl) {
         setGeneratedMockup(response.data.mockupUrl);
         await saveMockupToHistory(response.data.mockupUrl, primaryArea);
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        // Confetti is handled by MockupResultCard - no duplicate here
         showMockupSuccessToast({
           mockupUrl: response.data.mockupUrl,
           productName: selectedProduct.name,
@@ -440,15 +472,13 @@ export default function MockupGenerator() {
     }
   };
 
-  const downloadMockup = (url?: string) => {
+  // Cross-origin safe download using fetch+blob
+  const downloadMockup = async (url?: string) => {
     const mockupUrl = url || generatedMockup;
     if (!mockupUrl) return;
-    const link = document.createElement("a");
-    link.href = mockupUrl;
-    link.download = `mockup-${selectedProduct?.sku || "produto"}-${selectedTechnique?.name || "tecnica"}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
+    const fileName = `mockup-${selectedProduct?.sku || "produto"}-${selectedTechnique?.name || "tecnica"}.png`;
+    await downloadImageFromUrl(mockupUrl, fileName);
   };
 
   const deleteMockup = async () => {
@@ -475,6 +505,7 @@ export default function MockupGenerator() {
     setActiveAreaId(null);
     setGeneratedMockup(null);
     setGenerationError(null);
+    setHasUserInteractedPosition(false);
     clearDraft();
   };
 
@@ -505,9 +536,10 @@ export default function MockupGenerator() {
     setPersonalizationAreas([restoredArea]);
     setActiveAreaId(restoredArea.id);
     setGeneratedMockup(null);
+    setHasUserInteractedPosition(false);
 
-    const generatorTab = document.querySelector('[data-state="inactive"][value="generator"]') as HTMLButtonElement | null;
-    generatorTab?.click();
+    // Switch to generator tab via state (no fragile querySelector)
+    setActiveTab("generator");
     toast.success("Configurações carregadas!");
   };
 
@@ -516,7 +548,7 @@ export default function MockupGenerator() {
     hasProduct: !!selectedProduct,
     hasTechnique: !!selectedTechnique,
     hasLogo,
-    hasPositioned: hasUserPositioned,
+    hasPositioned: hasUserInteractedPosition,
     hasGenerated: !!generatedMockup,
   });
 
@@ -604,7 +636,7 @@ export default function MockupGenerator() {
           hasProduct={!!selectedProduct}
           hasTechnique={!!selectedTechnique}
           hasLogo={hasLogo}
-          hasPositioned={hasUserPositioned}
+          hasPositioned={hasUserInteractedPosition}
           hasGenerated={!!generatedMockup}
         />
 
@@ -632,8 +664,8 @@ export default function MockupGenerator() {
           </Alert>
         )}
 
-        {/* Tabs */}
-        <Tabs defaultValue="generator" className="space-y-4">
+        {/* Tabs — controlled via state */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="generator" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" /> Gerar Mockup
