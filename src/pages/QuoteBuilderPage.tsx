@@ -993,20 +993,39 @@ export default function QuoteBuilderPage() {
                                     )}
                                   </div>
                                 </div>
-                                {/* Remove */}
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeItem(idx);
-                                    if (activeItemIndex === idx) setActiveItemIndex(null);
-                                    else if (activeItemIndex !== null && activeItemIndex > idx) setActiveItemIndex(activeItemIndex - 1);
-                                  }}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
+                                {/* Edit + Remove */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn(
+                                      "h-6 w-6 shrink-0",
+                                      isActive
+                                        ? "text-primary hover:text-primary hover:bg-primary/10"
+                                        : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                                    )}
+                                    title="Editar item"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveItemIndex(idx);
+                                    }}
+                                  >
+                                    <Edit className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeItem(idx);
+                                      if (activeItemIndex === idx) setActiveItemIndex(null);
+                                      else if (activeItemIndex !== null && activeItemIndex > idx) setActiveItemIndex(activeItemIndex - 1);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
                               </div>
 
                               {/* Qty × Price = Subtotal */}
