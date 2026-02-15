@@ -341,7 +341,7 @@ export function DraggableQuoteItems({
         items={itemsWithIds.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="space-y-3">
+        <div className="space-y-5">
           <AnimatePresence>
             {itemsWithIds.map((item, index) => (
               <SortableItem
