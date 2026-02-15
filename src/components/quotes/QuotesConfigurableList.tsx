@@ -1,5 +1,5 @@
 /**
- * QuotesConfigurableList - Lista de orçamentos com colunas reordenáveis e configuráveis
+ * QuotesConfigurableList - Lista de orçamentos com colunas reordenáveis, paginação e seleção em massa
  */
 
 import { useState, useMemo, useCallback } from "react";
@@ -20,6 +20,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   MoreVertical,
   Eye,
   Trash2,
@@ -29,6 +36,10 @@ import {
   AlertTriangle,
   Settings2,
   GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -58,7 +69,7 @@ export interface ColumnDef {
   label: string;
   width: string;
   align?: "left" | "right" | "center";
-  required?: boolean; // Can't be hidden
+  required?: boolean;
 }
 
 const ALL_COLUMNS: ColumnDef[] = [
@@ -70,10 +81,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "date", label: "Data", width: "100px", align: "right" },
 ];
 
-const statusConfig: Record<
-  Quote["status"],
-  { label: string; className?: string }
-> = {
+const statusConfig: Record<Quote["status"], { label: string; className?: string }> = {
   draft: { label: "Rascunho", className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
   pending: { label: "Pendente", className: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
   sent: { label: "Enviado", className: "bg-primary/15 text-primary border-primary/30" },
@@ -87,7 +95,6 @@ function getValidityInfo(validUntil: string | undefined | null) {
   const date = new Date(validUntil);
   const days = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const expired = days < 0;
-
   if (expired) return { label: "Vencido", color: "text-red-400", bgColor: "bg-red-500/10", urgent: true };
   if (days <= 3) return { label: `${days}d restante(s)`, color: "text-red-400", bgColor: "bg-red-500/10", urgent: true };
   if (days <= 7) return { label: `${days}d restantes`, color: "text-yellow-400", bgColor: "bg-yellow-500/10", urgent: true };
@@ -112,7 +119,7 @@ function SortableHeaderCell({ column }: { column: ColumnDef }) {
     <div
       ref={setNodeRef}
       style={style}
-    className={`flex items-center gap-1 select-none cursor-grab active:cursor-grabbing ${
+      className={`flex items-center gap-1 select-none cursor-grab active:cursor-grabbing ${
         column.align === "right" ? "justify-end" : ""
       }`}
       {...attributes}
@@ -131,15 +138,54 @@ interface QuotesConfigurableListProps {
   onDuplicate: (id: string) => void;
 }
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+
 export function QuotesConfigurableList({
   quotes,
   onDelete,
   onDuplicate,
 }: QuotesConfigurableListProps) {
   const navigate = useNavigate();
-  const { selectedIds, selectedCount, toggleItem, toggleAll, clearSelection, isSelected, isAllSelected, isSomeSelected } = useBulkSelection(quotes as (Quote & { id: string })[]);
 
-  // Column state: order + visibility
+  // ── Pagination ──
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  const totalPages = Math.max(1, Math.ceil(quotes.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const paginatedQuotes = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return quotes.slice(start, start + pageSize);
+  }, [quotes, safePage, pageSize]);
+
+  // ── Bulk selection (operates on paginated items) ──
+  const { selectedIds, selectedCount, toggleItem, toggleAll, clearSelection, isSelected, isAllSelected } =
+    useBulkSelection(paginatedQuotes as (Quote & { id: string })[]);
+
+  // "Select ALL across all pages" state
+  const [allPagesSelected, setAllPagesSelected] = useState(false);
+  const showSelectAllBanner = isAllSelected && quotes.length > paginatedQuotes.length && !allPagesSelected;
+
+  const handleSelectAllPages = () => {
+    setAllPagesSelected(true);
+  };
+
+  const handleClearSelection = () => {
+    clearSelection();
+    setAllPagesSelected(false);
+  };
+
+  const effectiveSelectedCount = allPagesSelected ? quotes.length : selectedCount;
+  const effectiveSelectedIds = allPagesSelected ? quotes.map((q) => q.id!) : selectedIds;
+
+  // Reset allPagesSelected when page/selection changes
+  const handleToggleAll = () => {
+    setAllPagesSelected(false);
+    toggleAll();
+  };
+
+  // ── Column state ──
   const [columnOrder, setColumnOrder] = useState<string[]>(ALL_COLUMNS.map((c) => c.id));
   const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(new Set());
 
@@ -173,19 +219,22 @@ export function QuotesConfigurableList({
   const toggleColumn = useCallback((colId: string) => {
     setHiddenColumns((prev) => {
       const next = new Set(prev);
-      if (next.has(colId)) {
-        next.delete(colId);
-      } else {
-        next.add(colId);
-      }
+      if (next.has(colId)) next.delete(colId);
+      else next.add(colId);
       return next;
     });
   }, []);
 
+  // Reset page when pageSize changes
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value));
+    setCurrentPage(1);
+    handleClearSelection();
+  };
+
   // ── Cell renderer ──
   const renderCell = (quote: Quote, columnId: string) => {
     const hasClient = !!quote.client_name || !!quote.client_company;
-
     switch (columnId) {
       case "quote_number":
         return (
@@ -201,28 +250,20 @@ export function QuotesConfigurableList({
         ) : (
           <button
             className="text-xs text-primary/70 hover:text-primary flex items-center gap-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/orcamentos/${quote.id}/editar`);
-            }}
+            onClick={(e) => { e.stopPropagation(); navigate(`/orcamentos/${quote.id}/editar`); }}
           >
             <UserPlus className="h-3 w-3" /> Vincular cliente
           </button>
         );
       case "contact":
         return quote.client_name && quote.client_company ? (
-          <span className="text-xs text-muted-foreground truncate">
-            {quote.client_name}
-          </span>
+          <span className="text-xs text-muted-foreground truncate">{quote.client_name}</span>
         ) : (
           <span className="text-xs text-muted-foreground/50">—</span>
         );
       case "status":
         return (
-          <Badge
-            variant="outline"
-            className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
-          >
+          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}>
             {statusConfig[quote.status]?.label}
           </Badge>
         );
@@ -236,18 +277,14 @@ export function QuotesConfigurableList({
                 {validity.label}
               </span>
             )}
-            <span className="text-sm font-bold text-foreground">
-              {formatCurrency(quote.total || 0)}
-            </span>
+            <span className="text-sm font-bold text-foreground">{formatCurrency(quote.total || 0)}</span>
           </div>
         );
       }
       case "date":
         return (
           <span className="text-xs text-muted-foreground text-right block">
-            {quote.created_at
-              ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR })
-              : "—"}
+            {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
           </span>
         );
       default:
@@ -258,26 +295,47 @@ export function QuotesConfigurableList({
   return (
     <div className="space-y-2">
       {/* Bulk action bar */}
-      {selectedCount > 0 && (
-        <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/30 rounded-lg">
-          <span className="text-sm font-medium text-foreground">
-            {selectedCount} selecionado(s)
-          </span>
-          <Button
-            variant="destructive"
-            size="sm"
-            className="text-xs gap-1.5"
-            onClick={() => {
-              selectedIds.forEach((id) => onDelete(id));
-              clearSelection();
-            }}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Excluir selecionados
-          </Button>
-          <Button variant="ghost" size="sm" className="text-xs" onClick={clearSelection}>
-            Limpar seleção
-          </Button>
+      {effectiveSelectedCount > 0 && (
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/30 rounded-lg">
+            <span className="text-sm font-medium text-foreground">
+              {allPagesSelected
+                ? `Todos os ${effectiveSelectedCount} orçamentos selecionados`
+                : `${effectiveSelectedCount} selecionado(s) nesta página`}
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="text-xs gap-1.5"
+              onClick={() => {
+                effectiveSelectedIds.forEach((id) => onDelete(id));
+                handleClearSelection();
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Excluir selecionados
+            </Button>
+            <Button variant="ghost" size="sm" className="text-xs" onClick={handleClearSelection}>
+              Limpar seleção
+            </Button>
+          </div>
+
+          {/* "Select ALL across all pages" banner */}
+          {showSelectAllBanner && (
+            <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground">
+              <span>
+                Todos os <strong className="text-foreground">{paginatedQuotes.length}</strong> orçamentos desta página estão selecionados.
+              </span>
+              <Button
+                variant="link"
+                size="sm"
+                className="text-xs text-primary p-0 h-auto"
+                onClick={handleSelectAllPages}
+              >
+                Selecionar todos os {quotes.length} orçamentos
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -294,10 +352,7 @@ export function QuotesConfigurableList({
             <p className="text-xs font-medium text-muted-foreground mb-2">Exibir colunas</p>
             <div className="space-y-2">
               {ALL_COLUMNS.map((col) => (
-                <label
-                  key={col.id}
-                  className="flex items-center gap-2 text-sm cursor-pointer"
-                >
+                <label key={col.id} className="flex items-center gap-2 text-sm cursor-pointer">
                   <Checkbox
                     checked={!hiddenColumns.has(col.id)}
                     onCheckedChange={() => toggleColumn(col.id)}
@@ -307,26 +362,23 @@ export function QuotesConfigurableList({
                 </label>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground mt-3">
-              Arraste os cabeçalhos para reordenar
-            </p>
+            <p className="text-[10px] text-muted-foreground mt-3">Arraste os cabeçalhos para reordenar</p>
           </PopoverContent>
         </Popover>
       </div>
 
       {/* Table */}
       <div className="rounded-lg border border-border overflow-hidden">
-        {/* Header with DnD */}
+        {/* Header */}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div
             className="grid gap-2 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold border-b border-primary/80 sticky top-0 z-10"
             style={{ gridTemplateColumns: gridTemplate }}
           >
-            {/* Select all checkbox */}
             <div className="flex items-center justify-center">
               <Checkbox
                 checked={isAllSelected}
-                onCheckedChange={toggleAll}
+                onCheckedChange={handleToggleAll}
                 className="border-primary-foreground/50 data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary"
               />
             </div>
@@ -340,20 +392,28 @@ export function QuotesConfigurableList({
         </DndContext>
 
         {/* Rows */}
-        {quotes.map((quote) => (
+        {paginatedQuotes.map((quote) => (
           <div
             key={quote.id}
             className={`grid gap-2 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors ${
-              isSelected(quote.id!) ? "bg-primary/5" : ""
+              isSelected(quote.id!) || allPagesSelected ? "bg-primary/5" : ""
             }`}
             style={{ gridTemplateColumns: gridTemplate }}
             onClick={() => navigate(`/orcamentos/${quote.id}`)}
           >
-            {/* Row checkbox */}
             <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
               <Checkbox
-                checked={isSelected(quote.id!)}
-                onCheckedChange={() => toggleItem(quote.id!)}
+                checked={isSelected(quote.id!) || allPagesSelected}
+                onCheckedChange={() => {
+                  if (allPagesSelected) {
+                    setAllPagesSelected(false);
+                    // select all on page except this one
+                    toggleAll();
+                    toggleItem(quote.id!);
+                  } else {
+                    toggleItem(quote.id!);
+                  }
+                }}
               />
             </div>
             {visibleColumns.map((col) => (
@@ -385,6 +445,42 @@ export function QuotesConfigurableList({
             </DropdownMenu>
           </div>
         ))}
+      </div>
+
+      {/* Pagination Footer */}
+      <div className="flex items-center justify-between px-2 py-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Exibindo</span>
+          <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span>de {quotes.length} resultado(s)</span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-muted-foreground mr-2">
+            Página {safePage} de {totalPages}
+          </span>
+          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage(1)}>
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage((p) => p - 1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage(totalPages)}>
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
