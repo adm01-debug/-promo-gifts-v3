@@ -47,7 +47,7 @@ import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 import { GenerateFAB } from "@/components/mockup/GenerateButton";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
-import { useFilteredTechniques, type TechniqueWithLimits } from "@/hooks/useMockupTechniques";
+import { useFilteredTechniques, useProductCustomizationOptionsForMockup, type TechniqueWithLimits } from "@/hooks/useMockupTechniques";
 import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import type { Product } from "@/hooks/useProducts";
@@ -157,7 +157,38 @@ export default function MockupGenerator() {
   const activeArea = personalizationAreas.find(a => a.id === activeAreaId) || personalizationAreas[0];
   const selectedProduct = productSelection?.product ?? null;
   const filteredTechniques = useFilteredTechniques(techniques, selectedProduct);
+  const { data: customizationOptions } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
   const hasLogo = personalizationAreas.some(a => !!a.logoPreview);
+
+  // Product locations from DB for the MultiAreaManager
+  const productLocations = useMemo(() => {
+    if (!customizationOptions?.locations?.length) return null;
+    return customizationOptions.locations.map(loc => ({
+      code: loc.location_code,
+      name: loc.location_name,
+      order: loc.location_order,
+    }));
+  }, [customizationOptions]);
+
+  // When product changes and we have real locations, auto-populate areas
+  useEffect(() => {
+    if (!productLocations || isRestoringDraft.current) return;
+    const newAreas: PersonalizationArea[] = productLocations
+      .sort((a, b) => a.order - b.order)
+      .map(loc => ({
+        id: crypto.randomUUID(),
+        name: loc.name,
+        positionX: 50,
+        positionY: 50,
+        logoWidth: 5,
+        logoHeight: 3,
+        logoPreview: null,
+      }));
+    if (newAreas.length > 0) {
+      setPersonalizationAreas(newAreas);
+      setActiveAreaId(newAreas[0].id);
+    }
+  }, [productLocations]);
 
   // ─── Effects ────────────────────────────────────────────────────────
 
@@ -699,6 +730,7 @@ export default function MockupGenerator() {
                 onAreasChange={setPersonalizationAreas}
                 onActiveAreaChange={setActiveAreaId}
                 onLogoUpload={handleAreaLogoUpload}
+                productLocations={productLocations}
               />
 
               {/* Right panel: Position Editor + Result */}

@@ -57,6 +57,8 @@ interface MockupConfigPanelProps {
   onAreasChange: (areas: PersonalizationArea[]) => void;
   onActiveAreaChange: (id: string) => void;
   onLogoUpload: (areaId: string, file: File) => void;
+  /** Real product locations from DB — if provided, locks areas to these */
+  productLocations: { code: string; name: string; order: number }[] | null;
 }
 
 export function MockupConfigPanel({
@@ -77,6 +79,7 @@ export function MockupConfigPanel({
   onAreasChange,
   onActiveAreaChange,
   onLogoUpload,
+  productLocations,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
   const stepsRemaining = [!selectedClient, !productSelection, !selectedTechnique, !hasLogo].filter(Boolean).length;
@@ -201,6 +204,7 @@ export function MockupConfigPanel({
                 onAreasChange={onAreasChange}
                 onActiveAreaChange={onActiveAreaChange}
                 onLogoUpload={onLogoUpload}
+                productLocations={productLocations}
               />
             </div>
 

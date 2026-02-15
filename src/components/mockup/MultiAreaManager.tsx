@@ -51,6 +51,8 @@ interface MultiAreaManagerProps {
   onAreasChange: (areas: PersonalizationArea[]) => void;
   onActiveAreaChange: (areaId: string | null) => void;
   onLogoUpload: (areaId: string, file: File) => void;
+  /** When provided, areas are locked to these DB locations (no add/remove/templates) */
+  productLocations?: { code: string; name: string; order: number }[] | null;
 }
 
 interface ProductTemplate {
@@ -142,7 +144,9 @@ export function MultiAreaManager({
   onAreasChange,
   onActiveAreaChange,
   onLogoUpload,
+  productLocations,
 }: MultiAreaManagerProps) {
+  const hasDbLocations = !!productLocations && productLocations.length > 0;
   const [isExpanded, setIsExpanded] = useState(true);
   const [customTemplates, setCustomTemplates] = useState<ProductTemplate[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -341,7 +345,9 @@ export function MultiAreaManager({
           <CardDescription className="text-xs">
             {isDraggingOver
               ? "🎯 Solte a imagem para aplicar como logo"
-              : "Adicione múltiplas áreas para personalizar (ex: frente, verso). Arraste um logo aqui!"}
+              : hasDbLocations
+                ? `${areas.length} ${areas.length === 1 ? 'local configurado' : 'locais configurados'} para este produto`
+                : "Adicione múltiplas áreas para personalizar (ex: frente, verso). Arraste um logo aqui!"}
           </CardDescription>
         </CardHeader>
 
@@ -374,22 +380,31 @@ export function MultiAreaManager({
                     {index + 1}
                   </div>
                   
-                  {/* Area name input */}
+                  {/* Area name — read-only when from DB */}
                   <div className="flex-1 min-w-0">
-                    <Input
-                      value={area.name}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        updateAreaName(area.id, e.target.value);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className={cn(
-                        "h-7 text-sm border-0 bg-transparent p-0 focus-visible:ring-0",
+                    {hasDbLocations ? (
+                      <span className={cn(
+                        "text-sm block truncate",
                         activeAreaId === area.id && "font-medium"
-                      )}
-                      placeholder="Nome da área"
-                      aria-label={`Nome da área ${index + 1}`}
-                    />
+                      )}>
+                        {area.name}
+                      </span>
+                    ) : (
+                      <Input
+                        value={area.name}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          updateAreaName(area.id, e.target.value);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className={cn(
+                          "h-7 text-sm border-0 bg-transparent p-0 focus-visible:ring-0",
+                          activeAreaId === area.id && "font-medium"
+                        )}
+                        placeholder="Nome da área"
+                        aria-label={`Nome da área ${index + 1}`}
+                      />
+                    )}
                   </div>
 
                   {/* Logo indicator with hover effect */}
@@ -435,8 +450,8 @@ export function MultiAreaManager({
                     <span>{area.positionY}%</span>
                   </div>
 
-                  {/* Remove button with improved visibility */}
-                  {areas.length > 1 && (
+                  {/* Remove button — hidden when areas come from DB */}
+                  {!hasDbLocations && areas.length > 1 && (
                     <Button
                       variant="ghost"
                       size="icon"
@@ -457,8 +472,8 @@ export function MultiAreaManager({
               ))}
             </div>
 
-            {/* Template selector and action buttons */}
-            <div className="flex gap-2">
+            {/* Template selector and action buttons — hidden when areas come from DB */}
+            {!hasDbLocations && (<div className="flex gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex-1">
@@ -585,7 +600,7 @@ export function MultiAreaManager({
                 <Plus className="h-4 w-4 mr-1" />
                 Adicionar
               </Button>
-            </div>
+            </div>)}
             
             {areas.length > 1 && activeAreaHasLogo && (
               <Button
