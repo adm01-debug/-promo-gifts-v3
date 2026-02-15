@@ -22,6 +22,10 @@ interface Technique {
   id: string;
   name: string;
   code: string | null;
+  maxWidth?: number | null;
+  maxHeight?: number | null;
+  areaName?: string | null;
+  locationName?: string | null;
 }
 
 export interface MockupClient {
@@ -149,7 +153,12 @@ export function MockupConfigPanel({
                           <SelectItem value={technique.id} className="cursor-pointer">
                             <div className="flex items-center gap-2">
                               <Paintbrush className="h-3.5 w-3.5 text-primary" />
-                              {technique.name}
+                              <span>{technique.name}</span>
+                              {technique.maxWidth && technique.maxHeight ? (
+                                <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
+                                  {technique.maxWidth}×{technique.maxHeight}cm
+                                </span>
+                              ) : null}
                             </div>
                           </SelectItem>
                         </TechniqueTooltip>
