@@ -336,7 +336,7 @@ export default function QuotesListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex border border-border rounded-md">
+            <div className="flex border border-border rounded-md ml-auto">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="icon"
