@@ -13,12 +13,10 @@ interface Technique {
   code: string | null;
 }
 
-interface Product {
+interface ProductLike {
   id: string;
-  name: string;
-  sku: string;
-  images: unknown;
   personalization_areas?: any[];
+  [key: string]: any;
 }
 
 /**
@@ -27,7 +25,7 @@ interface Product {
  */
 export function useFilteredTechniques(
   techniques: Technique[],
-  selectedProduct: Product | null
+  selectedProduct: ProductLike | null
 ): Technique[] {
   return useMemo(() => {
     if (!selectedProduct || !techniques.length) return techniques;
