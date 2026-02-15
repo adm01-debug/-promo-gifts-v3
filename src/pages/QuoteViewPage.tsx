@@ -407,7 +407,7 @@ export default function QuoteViewPage() {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-muted">
+                    <tr className="bg-primary text-primary-foreground">
                       <th className="text-left p-3 font-medium">Produto</th>
                       <th className="text-left p-3 font-medium">SKU</th>
                       {hasPersonalizations && (
