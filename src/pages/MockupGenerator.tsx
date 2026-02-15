@@ -11,7 +11,7 @@
  * - Drag-and-drop logo upload support
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,16 +49,10 @@ import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useFilteredTechniques } from "@/hooks/useMockupTechniques";
 import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
+import { useProductsContext } from "@/contexts/ProductsContext";
+import type { Product } from "@/hooks/useProducts";
 
 // ─── Types ───────────────────────────────────────────────────────────
-
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  images: unknown;
-  personalization_areas?: any[];
-}
 
 interface Technique {
   id: string;
@@ -120,9 +114,9 @@ const createDefaultArea = (): PersonalizationArea => ({
 export default function MockupGenerator() {
   const { user } = useAuth();
   const { saveDraft, loadDraft, clearDraft, isSaving: isDraftSaving, lastSaved, error: draftError } = useMockupDraft();
+  const { products } = useProductsContext();
 
   // Data state
-  const [products, setProducts] = useState<Product[]>([]);
   const [techniques, setTechniques] = useState<Technique[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -243,35 +237,17 @@ export default function MockupGenerator() {
 
   const fetchData = async () => {
     try {
-      const { fetchPromobrindProducts, getProductImageUrl } = await import("@/lib/external-db");
-
-      const [productsData, techniquesRes] = await Promise.all([
-        fetchPromobrindProducts(),
-        supabase.functions.invoke("external-db-bridge", {
-          body: {
-            table: "personalization_techniques",
-            operation: "select",
-            filters: { is_active: true },
-            orderBy: { column: "name", ascending: true },
-            limit: 100,
-          },
-        }),
-      ]);
-
-      const techniquesData = techniquesRes.data?.data?.records || techniquesRes.data?.records || [];
-
-      const mappedProducts = productsData.map((p: any) => {
-        const imageUrl = getProductImageUrl(p);
-        return {
-          id: p.id,
-          name: p.name,
-          sku: p.sku,
-          images: imageUrl ? [imageUrl] : (Array.isArray(p.images) ? p.images : []),
-          personalization_areas: p.personalization_areas || [],
-        };
+      const techniquesRes = await supabase.functions.invoke("external-db-bridge", {
+        body: {
+          table: "personalization_techniques",
+          operation: "select",
+          filters: { is_active: true },
+          orderBy: { column: "name", ascending: true },
+          limit: 100,
+        },
       });
 
-      setProducts(mappedProducts);
+      const techniquesData = techniquesRes.data?.data?.records || techniquesRes.data?.records || [];
       setTechniques(techniquesData);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -344,9 +320,8 @@ export default function MockupGenerator() {
   }, []);
 
   const getProductImage = (): string | null => {
-    if (!selectedProduct?.images) return null;
-    const images = Array.isArray(selectedProduct.images) ? selectedProduct.images : [];
-    return images.length > 0 ? String(images[0]) : null;
+    if (!selectedProduct?.images?.length) return null;
+    return selectedProduct.images[0] || null;
   };
 
   const getTechniquePrompt = (technique: Technique): string => {
@@ -678,7 +653,6 @@ export default function MockupGenerator() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Config Panel */}
               <MockupConfigPanel
-                products={products}
                 techniques={techniques}
                 selectedProduct={selectedProduct}
                 selectedTechnique={selectedTechnique}

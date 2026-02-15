@@ -13,18 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Wand2 } from "lucide-react";
-import { ProductSearchCombobox } from "./ProductSearchCombobox";
 import { TechniqueTooltip } from "./TechniqueTooltip";
 import { GenerateButton } from "./GenerateButton";
 import { MockupClientSelector } from "./MockupClientSelector";
+import { MockupProductSelector } from "./MockupProductSelector";
 import type { PersonalizationArea } from "./MultiAreaManager";
+import type { Product } from "@/hooks/useProducts";
 
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  images: unknown;
-}
+// Product type imported from useProducts
 
 interface Technique {
   id: string;
@@ -43,7 +39,7 @@ export interface MockupClient {
 }
 
 interface MockupConfigPanelProps {
-  products: Product[];
+  techniques: Technique[];
   techniques: Technique[];
   selectedProduct: Product | null;
   selectedTechnique: Technique | null;
@@ -61,7 +57,7 @@ interface MockupConfigPanelProps {
 }
 
 export function MockupConfigPanel({
-  products,
+  techniques,
   techniques,
   selectedProduct,
   selectedTechnique,
@@ -120,8 +116,7 @@ export function MockupConfigPanel({
                 <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">2</span>
                 Produto
               </Label>
-              <ProductSearchCombobox
-                products={products}
+              <MockupProductSelector
                 selectedProduct={selectedProduct}
                 onSelect={onProductSelect}
               />
