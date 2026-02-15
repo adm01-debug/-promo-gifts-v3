@@ -47,7 +47,7 @@ import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 import { GenerateFAB } from "@/components/mockup/GenerateButton";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
-import { useFilteredTechniques } from "@/hooks/useMockupTechniques";
+import { useFilteredTechniques, type TechniqueWithLimits } from "@/hooks/useMockupTechniques";
 import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import type { Product } from "@/hooks/useProducts";
