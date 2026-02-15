@@ -33,6 +33,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Quote } from "@/hooks/useQuotes";
+import { useBulkSelection } from "@/hooks/useBulkSelection";
 import {
   DndContext,
   closestCenter,
@@ -136,6 +137,7 @@ export function QuotesConfigurableList({
   onDuplicate,
 }: QuotesConfigurableListProps) {
   const navigate = useNavigate();
+  const { selectedIds, selectedCount, toggleItem, toggleAll, clearSelection, isSelected, isAllSelected, isSomeSelected } = useBulkSelection(quotes as (Quote & { id: string })[]);
 
   // Column state: order + visibility
   const [columnOrder, setColumnOrder] = useState<string[]>(ALL_COLUMNS.map((c) => c.id));
@@ -147,7 +149,7 @@ export function QuotesConfigurableList({
   );
 
   const gridTemplate = useMemo(
-    () => [...visibleColumns.map((c) => c.width), "44px"].join(" "),
+    () => ["40px", ...visibleColumns.map((c) => c.width), "44px"].join(" "),
     [visibleColumns]
   );
 
@@ -255,6 +257,30 @@ export function QuotesConfigurableList({
 
   return (
     <div className="space-y-2">
+      {/* Bulk action bar */}
+      {selectedCount > 0 && (
+        <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/30 rounded-lg">
+          <span className="text-sm font-medium text-foreground">
+            {selectedCount} selecionado(s)
+          </span>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="text-xs gap-1.5"
+            onClick={() => {
+              selectedIds.forEach((id) => onDelete(id));
+              clearSelection();
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Excluir selecionados
+          </Button>
+          <Button variant="ghost" size="sm" className="text-xs" onClick={clearSelection}>
+            Limpar seleção
+          </Button>
+        </div>
+      )}
+
       {/* Column settings button */}
       <div className="flex justify-end">
         <Popover>
@@ -296,6 +322,14 @@ export function QuotesConfigurableList({
             className="grid gap-2 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold border-b border-primary/80 sticky top-0 z-10"
             style={{ gridTemplateColumns: gridTemplate }}
           >
+            {/* Select all checkbox */}
+            <div className="flex items-center justify-center">
+              <Checkbox
+                checked={isAllSelected}
+                onCheckedChange={toggleAll}
+                className="border-primary-foreground/50 data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary"
+              />
+            </div>
             <SortableContext items={visibleColumns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
               {visibleColumns.map((col) => (
                 <SortableHeaderCell key={col.id} column={col} />
@@ -309,10 +343,19 @@ export function QuotesConfigurableList({
         {quotes.map((quote) => (
           <div
             key={quote.id}
-            className="grid gap-2 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors"
+            className={`grid gap-2 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors ${
+              isSelected(quote.id!) ? "bg-primary/5" : ""
+            }`}
             style={{ gridTemplateColumns: gridTemplate }}
             onClick={() => navigate(`/orcamentos/${quote.id}`)}
           >
+            {/* Row checkbox */}
+            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              <Checkbox
+                checked={isSelected(quote.id!)}
+                onCheckedChange={() => toggleItem(quote.id!)}
+              />
+            </div>
             {visibleColumns.map((col) => (
               <div key={col.id} className={col.align === "right" ? "text-right" : ""}>
                 {renderCell(quote, col.id)}
