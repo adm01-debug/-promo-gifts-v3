@@ -214,9 +214,9 @@ export function useMockupWizardStep(state: {
   hasGenerated: boolean;
 }): number {
   if (state.hasGenerated) return 5;
-  if (state.hasLogo && state.hasPositioned) return 4;
-  if (state.hasLogo) return 4;
-  if (state.hasTechnique) return 3;
-  if (state.hasProduct) return 2;
-  return 1;
+  if (state.hasLogo && state.hasPositioned) return 5; // Ready to generate
+  if (state.hasLogo) return 4; // Needs positioning
+  if (state.hasTechnique) return 3; // Needs logo
+  if (state.hasProduct) return 2; // Needs technique
+  return 1; // Needs product
 }

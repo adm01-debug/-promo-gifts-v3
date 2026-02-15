@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -147,6 +147,8 @@ export function MultiAreaManager({
   const [customTemplates, setCustomTemplates] = useState<ProductTemplate[]>([]);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState("");
+  const [pendingTemplate, setPendingTemplate] = useState<ProductTemplate | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
 
   // Load custom templates from localStorage
   useEffect(() => {
@@ -204,6 +206,16 @@ export function MultiAreaManager({
   };
 
   const applyTemplate = (template: ProductTemplate) => {
+    // If areas have logos, confirm before replacing
+    const hasAnyLogo = areas.some(a => a.logoPreview);
+    if (hasAnyLogo) {
+      setPendingTemplate(template);
+      return;
+    }
+    doApplyTemplate(template);
+  };
+
+  const doApplyTemplate = (template: ProductTemplate) => {
     const newAreas: PersonalizationArea[] = template.areas.map((area) => ({
       ...area,
       id: crypto.randomUUID(),
@@ -211,6 +223,7 @@ export function MultiAreaManager({
     }));
     onAreasChange(newAreas);
     onActiveAreaChange(newAreas[0]?.id || null);
+    setPendingTemplate(null);
     toast.success(`Template "${template.name}" aplicado com ${template.areas.length} áreas`);
   };
 
@@ -280,7 +293,33 @@ export function MultiAreaManager({
   const activeAreaHasLogo = areas.find((a) => a.id === activeAreaId)?.logoPreview;
 
   return (
-    <Card>
+    <Card
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDraggingOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsDraggingOver(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file && file.type.startsWith("image/")) {
+          const targetAreaId = activeAreaId || areas[0]?.id;
+          if (targetAreaId) {
+            onLogoUpload(targetAreaId, file);
+            toast.success(`Logo aplicado na área "${areas.find(a => a.id === targetAreaId)?.name || "ativa"}"`);
+          }
+        }
+      }}
+      className={cn(
+        "transition-all duration-200",
+        isDraggingOver && "ring-2 ring-primary border-primary bg-primary/5"
+      )}
+    >
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CardHeader className="pb-3">
           <CollapsibleTrigger asChild>
@@ -300,7 +339,9 @@ export function MultiAreaManager({
             </div>
           </CollapsibleTrigger>
           <CardDescription className="text-xs">
-            Adicione múltiplas áreas para personalizar (ex: frente, verso)
+            {isDraggingOver
+              ? "🎯 Solte a imagem para aplicar como logo"
+              : "Adicione múltiplas áreas para personalizar (ex: frente, verso). Arraste um logo aqui!"}
           </CardDescription>
         </CardHeader>
 
@@ -629,6 +670,26 @@ export function MultiAreaManager({
             <Button onClick={saveAsCustomTemplate}>
               <Save className="h-4 w-4 mr-1" />
               Salvar Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Apply Confirmation Dialog */}
+      <Dialog open={!!pendingTemplate} onOpenChange={(open) => !open && setPendingTemplate(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Substituir áreas atuais?</DialogTitle>
+            <DialogDescription>
+              Você tem logos carregados nas áreas atuais. Aplicar o template "{pendingTemplate?.name}" irá substituir todas as áreas e remover os logos.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingTemplate(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={() => pendingTemplate && doApplyTemplate(pendingTemplate)}>
+              Substituir Áreas
             </Button>
           </DialogFooter>
         </DialogContent>
