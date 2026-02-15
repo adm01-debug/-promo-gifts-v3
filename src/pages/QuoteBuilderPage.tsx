@@ -711,10 +711,6 @@ export default function QuoteBuilderPage() {
           <div className="lg:col-span-3">
             <div className="sticky top-24 space-y-3 overflow-y-auto max-h-[calc(100vh-7rem)] pr-1">
               <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-4">
-                <h3 className="font-semibold text-sm flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  Informações
-                </h3>
                 <CompanyContactSelector
                   companyId={clientId}
                   contactId={contactId}
