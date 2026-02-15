@@ -51,6 +51,7 @@ import { useFilteredTechniques } from "@/hooks/useMockupTechniques";
 import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import type { Product } from "@/hooks/useProducts";
+import type { MockupProductSelection } from "@/components/mockup/MockupProductSelector";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -121,7 +122,7 @@ export default function MockupGenerator() {
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Selection state
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productSelection, setProductSelection] = useState<MockupProductSelection | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
   const [selectedClient, setSelectedClient] = useState<MockupClient | null>(null);
 
@@ -154,6 +155,7 @@ export default function MockupGenerator() {
   // ─── Derived state ──────────────────────────────────────────────────
 
   const activeArea = personalizationAreas.find(a => a.id === activeAreaId) || personalizationAreas[0];
+  const selectedProduct = productSelection?.product ?? null;
   const filteredTechniques = useFilteredTechniques(techniques, selectedProduct);
   const hasLogo = personalizationAreas.some(a => !!a.logoPreview);
 
@@ -191,7 +193,11 @@ export default function MockupGenerator() {
         if (draft && (draft.productId || draft.techniqueId || draft.personalizationAreas.some(a => a.logoPreview))) {
           if (draft.productId) {
             const product = products.find(p => p.id === draft.productId);
-            if (product) setSelectedProduct(product);
+            if (product) setProductSelection({
+              product,
+              variant: null,
+              imageUrl: product.images?.[0] || '/placeholder.svg',
+            });
           }
           if (draft.techniqueId) {
             const technique = techniques.find(t => t.id === draft.techniqueId);
@@ -221,8 +227,8 @@ export default function MockupGenerator() {
   useEffect(() => {
     if (!hasDraftRestored || isRestoringDraft.current) return;
     const draftData: MockupDraftData = {
-      productId: selectedProduct?.id || null,
-      productName: selectedProduct?.name || null,
+      productId: productSelection?.product?.id || null,
+      productName: productSelection?.product?.name || null,
       techniqueId: selectedTechnique?.id || null,
       techniqueName: selectedTechnique?.name || null,
       clientId: selectedClient?.id || null,
@@ -231,7 +237,7 @@ export default function MockupGenerator() {
       updatedAt: new Date().toISOString(),
     };
     saveDraft(draftData);
-  }, [selectedProduct, selectedTechnique, selectedClient, personalizationAreas, saveDraft, hasDraftRestored]);
+  }, [productSelection, selectedTechnique, selectedClient, personalizationAreas, saveDraft, hasDraftRestored]);
 
   // ─── Data fetching ──────────────────────────────────────────────────
 
@@ -320,6 +326,8 @@ export default function MockupGenerator() {
   }, []);
 
   const getProductImage = (): string | null => {
+    // Use variant-specific image if available, fallback to product image
+    if (productSelection?.imageUrl) return productSelection.imageUrl;
     if (!selectedProduct?.images?.length) return null;
     return selectedProduct.images[0] || null;
   };
@@ -377,7 +385,7 @@ export default function MockupGenerator() {
 
   const generateMockup = async () => {
     const areasWithLogos = personalizationAreas.filter(a => a.logoPreview);
-    if (!selectedClient || !selectedProduct || !selectedTechnique || areasWithLogos.length === 0) {
+    if (!selectedClient || !productSelection || !selectedTechnique || areasWithLogos.length === 0) {
       toast.error("Selecione empresa, produto, técnica e faça upload de pelo menos um logo");
       return;
     }
@@ -471,7 +479,7 @@ export default function MockupGenerator() {
   };
 
   const resetForm = () => {
-    setSelectedProduct(null);
+    setProductSelection(null);
     setSelectedTechnique(null);
     setSelectedClient(null);
     setPersonalizationAreas([createDefaultArea()]);
@@ -492,7 +500,15 @@ export default function MockupGenerator() {
     const product = mockup.product_id ? products.find(p => p.id === mockup.product_id) : null;
     const technique = mockup.technique_id ? techniques.find(t => t.id === mockup.technique_id) : null;
 
-    setSelectedProduct(product || null);
+    if (product) {
+      setProductSelection({
+        product,
+        variant: null,
+        imageUrl: product.images?.[0] || '/placeholder.svg',
+      });
+    } else {
+      setProductSelection(null);
+    }
     setSelectedTechnique(technique || null);
     // Restore client from history metadata (no local lookup needed)
     setSelectedClient(mockup.client_id ? { id: mockup.client_id, name: (mockup as any).bitrix_clients?.name || "Cliente" } : null);
@@ -654,15 +670,15 @@ export default function MockupGenerator() {
               {/* Config Panel */}
               <MockupConfigPanel
                 techniques={techniques}
-                selectedProduct={selectedProduct}
+                productSelection={productSelection}
                 selectedTechnique={selectedTechnique}
                 selectedClient={selectedClient}
                 isLoadingData={isLoadingData}
                 isLoading={isLoading}
                 personalizationAreas={personalizationAreas}
                 filteredTechniques={filteredTechniques}
-                onProductSelect={(p) => {
-                  setSelectedProduct(p);
+                onProductSelect={(sel) => {
+                  setProductSelection(sel);
                   setGeneratedMockup(null);
                 }}
                 onTechniqueSelect={(t) => {

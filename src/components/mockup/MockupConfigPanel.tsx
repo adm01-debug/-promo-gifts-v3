@@ -11,16 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import { Wand2 } from "lucide-react";
 import { TechniqueTooltip } from "./TechniqueTooltip";
 import { GenerateButton } from "./GenerateButton";
 import { MockupClientSelector } from "./MockupClientSelector";
-import { MockupProductSelector } from "./MockupProductSelector";
+import { MockupProductSelector, type MockupProductSelection } from "./MockupProductSelector";
 import type { PersonalizationArea } from "./MultiAreaManager";
-import type { Product } from "@/hooks/useProducts";
-
-// Product type imported from useProducts
 
 interface Technique {
   id: string;
@@ -40,25 +36,23 @@ export interface MockupClient {
 
 interface MockupConfigPanelProps {
   techniques: Technique[];
-  techniques: Technique[];
-  selectedProduct: Product | null;
+  productSelection: MockupProductSelection | null;
   selectedTechnique: Technique | null;
   selectedClient: MockupClient | null;
   isLoadingData: boolean;
   isLoading: boolean;
   personalizationAreas: PersonalizationArea[];
-  onProductSelect: (product: Product | null) => void;
+  onProductSelect: (selection: MockupProductSelection | null) => void;
   onTechniqueSelect: (technique: Technique | null) => void;
   onClientSelect: (client: MockupClient | null) => void;
   onGenerate: () => void;
   onReset: () => void;
-  /** Techniques filtered by product's print areas */
   filteredTechniques: Technique[];
 }
 
 export function MockupConfigPanel({
   techniques,
-  selectedProduct,
+  productSelection,
   selectedTechnique,
   selectedClient,
   isLoadingData,
@@ -72,7 +66,7 @@ export function MockupConfigPanel({
   filteredTechniques,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
-  const stepsRemaining = [!selectedClient, !selectedProduct, !selectedTechnique, !hasLogo].filter(Boolean).length;
+  const stepsRemaining = [!selectedClient, !productSelection, !selectedTechnique, !hasLogo].filter(Boolean).length;
 
   return (
     <Card>
@@ -109,14 +103,14 @@ export function MockupConfigPanel({
               />
             </div>
 
-            {/* Product Selection */}
+            {/* Product Selection with color/variant */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">2</span>
                 Produto
               </Label>
               <MockupProductSelector
-                selectedProduct={selectedProduct}
+                selection={productSelection}
                 onSelect={onProductSelect}
               />
             </div>
@@ -135,7 +129,6 @@ export function MockupConfigPanel({
               <Select
                 value={selectedTechnique?.id || ""}
                 onValueChange={(value) => {
-                  // Search in both filtered and full list to handle edge cases
                   const technique = techniques.find((t) => t.id === value);
                   onTechniqueSelect(technique || null);
                 }}
@@ -146,9 +139,9 @@ export function MockupConfigPanel({
                 <SelectContent>
                   {filteredTechniques.length > 0 ? (
                     <>
-                      {selectedProduct && filteredTechniques.length < techniques.length && (
+                      {productSelection && filteredTechniques.length < techniques.length && (
                         <div className="px-2 py-1.5 text-[10px] text-muted-foreground bg-muted/50">
-                          Técnicas compatíveis com {selectedProduct.name}
+                          Técnicas compatíveis com {productSelection.product.name}
                         </div>
                       )}
                       {filteredTechniques.map((technique) => (
@@ -164,14 +157,14 @@ export function MockupConfigPanel({
                     </>
                   ) : (
                     <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                      {selectedProduct
+                      {productSelection
                         ? "Nenhuma técnica disponível para este produto"
                         : "Selecione um produto primeiro"}
                     </div>
                   )}
                 </SelectContent>
               </Select>
-              {selectedProduct && filteredTechniques.length > 0 && filteredTechniques.length < techniques.length && (
+              {productSelection && filteredTechniques.length > 0 && filteredTechniques.length < techniques.length && (
                 <p className="text-[10px] text-muted-foreground">
                   {filteredTechniques.length} de {techniques.length} técnicas compatíveis
                 </p>
@@ -183,9 +176,9 @@ export function MockupConfigPanel({
               <GenerateButton
                 onClick={onGenerate}
                 isLoading={isLoading}
-                isReady={!!(selectedClient && selectedProduct && selectedTechnique && hasLogo)}
+                isReady={!!(selectedClient && productSelection && selectedTechnique && hasLogo)}
                 stepsRemaining={stepsRemaining}
-                disabled={!selectedClient || !selectedProduct || !selectedTechnique || !hasLogo || isLoading}
+                disabled={!selectedClient || !productSelection || !selectedTechnique || !hasLogo || isLoading}
                 className="flex-1"
               />
               <Tooltip>
