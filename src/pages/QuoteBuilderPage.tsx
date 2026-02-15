@@ -1057,13 +1057,23 @@ export default function QuoteBuilderPage() {
                                       key={pIdx}
                                       className="flex items-center justify-between gap-1 px-2 py-1 rounded-lg border border-border/40 bg-card text-xs"
                                     >
-                                      <div className="flex items-center gap-1.5 min-w-0">
+                                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                         <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 shrink-0 font-bold">
                                           {pIdx + 1}
                                         </Badge>
-                                        <span className="text-primary font-medium truncate text-[11px]">
-                                          {p.technique_name}
-                                        </span>
+                                        <div className="min-w-0">
+                                          <span className="text-primary font-medium truncate text-[11px] block">
+                                            {p.technique_name}
+                                          </span>
+                                          <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground">
+                                            {p.width_cm && p.height_cm && (
+                                              <span>{p.width_cm}×{p.height_cm}cm</span>
+                                            )}
+                                            {p.personalized_quantity && (
+                                              <span>• {p.personalized_quantity} pç(s)</span>
+                                            )}
+                                          </div>
+                                        </div>
                                       </div>
                                       <span className="font-bold text-foreground whitespace-nowrap shrink-0 tabular-nums">
                                         {formatCurrency(p.total_cost || 0)}

@@ -30,6 +30,9 @@ export interface QuoteItemPersonalization {
   colors_count?: number;
   positions_count?: number;
   area_cm2?: number;
+  width_cm?: number;
+  height_cm?: number;
+  personalized_quantity?: number;
   setup_cost?: number;
   unit_cost?: number;
   total_cost?: number;
