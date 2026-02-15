@@ -165,7 +165,7 @@ export function QuotesConfigurableList({
 
   // "Select ALL across all pages" state
   const [allPagesSelected, setAllPagesSelected] = useState(false);
-  const showSelectAllBanner = isAllSelected && quotes.length > paginatedQuotes.length && !allPagesSelected;
+  const showSelectAllBanner = isAllSelected && quotes.length > 0 && !allPagesSelected;
 
   const handleSelectAllPages = () => {
     setAllPagesSelected(true);
