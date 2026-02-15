@@ -1119,7 +1119,7 @@ export default function QuoteBuilderPage() {
                     ) : (
                       <Send className="h-5 w-5" />
                     )}
-                    {isEditMode ? "Salvar e Enviar" : "Criar e Enviar"}
+                    {isEditMode ? "Salvar" : "Criar"}
                   </Button>
                   <Button
                     variant="outline"
