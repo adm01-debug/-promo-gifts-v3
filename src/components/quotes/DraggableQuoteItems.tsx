@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -228,45 +228,42 @@ function SortableItem({
               </div>
             </div>
           </div>
+
+          {/* Personalization toggle — inside sticky header */}
+          {onTogglePersonalization && (
+            <div className="mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "w-full justify-between text-sm font-medium rounded-lg border transition-all",
+                  isExpanded
+                    ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
+                    : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
+                )}
+                onClick={onTogglePersonalization}
+              >
+                <span className="flex items-center gap-2">
+                  <Palette className="h-4 w-4" />
+                  Personalização
+                </span>
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Personalization — scrollable area */}
-        <div className={cn(isExpanded && "overflow-y-auto flex-1 min-h-0")}>
-          <div className="px-4 pb-4">
-            {onTogglePersonalization && (
-              <Collapsible open={isExpanded}>
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "w-full justify-between text-sm font-medium rounded-lg border transition-all",
-                      isExpanded
-                        ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
-                        : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
-                    )}
-                    onClick={onTogglePersonalization}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Palette className="h-4 w-4" />
-                      Personalização
-                    </span>
-                    {isExpanded ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="pt-3 border-t border-primary/20 mt-2">
-                    {renderPersonalization?.()}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
+        {/* Personalization content — scrollable area */}
+        {isExpanded && renderPersonalization && (
+          <div className="overflow-y-auto flex-1 min-h-0">
+            <div className="px-4 pb-4 pt-3 border-t border-primary/20">
+              {renderPersonalization()}
+            </div>
           </div>
-        </div>
       </Card>
     </motion.div>
   );
