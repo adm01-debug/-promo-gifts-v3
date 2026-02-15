@@ -29,7 +29,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface QuoteItem {
@@ -261,9 +260,10 @@ function SortableItem({
         {isExpanded && renderPersonalization && (
           <div className="overflow-y-auto flex-1 min-h-0">
             <div className="px-4 pb-4 pt-3 border-t border-primary/20">
-              {renderPersonalization()}
+            {renderPersonalization()}
             </div>
           </div>
+        )}
       </Card>
     </motion.div>
   );
