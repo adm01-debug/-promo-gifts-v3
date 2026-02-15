@@ -4,15 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,23 +31,15 @@ import {
 import {
   FileText,
   Plus,
-  MoreVertical,
-  Eye,
-  Trash2,
   Search,
   Filter,
   BookTemplate,
-  Copy,
-  Edit,
   ArrowUpDown,
-  UserPlus,
   AlertTriangle,
   CheckCircle2,
   Clock,
   TrendingUp,
   DollarSign,
-  LayoutGrid,
-  List,
 } from "lucide-react";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
 import Fuse from "fuse.js";
@@ -111,7 +95,7 @@ export default function QuotesListPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  
 
   // ── KPIs ──
   const kpis = useMemo(() => {
@@ -337,27 +321,9 @@ export default function QuotesListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex border border-border rounded-md ml-auto">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="icon"
-                className="h-9 w-9 rounded-r-none"
-                onClick={() => setViewMode("grid")}
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="icon"
-                className="h-9 w-9 rounded-l-none"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
 
-          {/* Quotes List — 4 Columns with Scroll */}
+          {/* Quotes List */}
           <ScrollArea className="h-[calc(100vh-320px)] min-h-[400px]">
             {filteredQuotes.length === 0 ? (
               <EmptyState
@@ -377,91 +343,7 @@ export default function QuotesListPage() {
                     : undefined
                 }
               />
-            ) : viewMode === "grid" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {filteredQuotes.map((quote, index) => {
-                  const validity = getValidityInfo(quote.valid_until);
-                  const hasClient = !!quote.client_name || !!quote.client_company;
-
-                  return (
-                    <FadeInView key={quote.id} delay={index * 0.03}>
-                      <Card
-                        className="card-interactive cursor-pointer hover:border-primary/30 transition-all duration-200"
-                        onClick={() => navigate(`/orcamentos/${quote.id}`)}
-                      >
-                        <CardContent className="p-4 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 flex-wrap min-w-0">
-                              <h3 className="font-semibold text-sm text-foreground whitespace-nowrap">
-                                #{quote.quote_number}
-                              </h3>
-                              <Badge
-                                variant="outline"
-                                className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
-                              >
-                                {statusConfig[quote.status]?.label}
-                              </Badge>
-                            </div>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                                  <Eye className="h-4 w-4 mr-2" /> Visualizar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                                  <Edit className="h-4 w-4 mr-2" /> Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
-                                  <Copy className="h-4 w-4 mr-2" /> Duplicar
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteConfirmId(quote.id!)}>
-                                  <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-
-                          {hasClient ? (
-                            <p className="text-xs text-muted-foreground truncate">
-                              {quote.client_company || quote.client_name}
-                            </p>
-                          ) : (
-                            <button
-                              className="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/orcamentos/${quote.id}/editar`);
-                              }}
-                            >
-                              <UserPlus className="h-3 w-3" />
-                              Vincular cliente
-                            </button>
-                          )}
-
-                          <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                            <p className="font-bold text-sm text-foreground">
-                              {formatCurrency(quote.total || 0)}
-                            </p>
-                            {validity && (
-                              <p className={`text-[10px] ${validity.color} ${validity.urgent ? validity.bgColor + ' px-1.5 py-0.5 rounded' : ''}`}>
-                                {validity.urgent && <AlertTriangle className="h-3 w-3 inline mr-0.5" />}
-                                {validity.label}
-                              </p>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </FadeInView>
-                  );
-                })}
-              </div>
             ) : (
-              /* ── List View ── */
               <QuotesConfigurableList
                 quotes={filteredQuotes}
                 onDelete={(id) => setDeleteConfirmId(id)}
