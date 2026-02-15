@@ -2,7 +2,7 @@
  * MockupConfigPanel — Configuration form for mockup generation
  * 
  * Extracted from MockupGenerator.tsx to reduce god-component size.
- * Handles: Client, Product, Technique selection + Generate button.
+ * Handles: Client, Product, Technique selection + Areas + Generate button.
  */
 
 import { Loader2, Paintbrush, RefreshCw, Info } from "lucide-react";
@@ -16,7 +16,7 @@ import { TechniqueTooltip } from "./TechniqueTooltip";
 import { GenerateButton } from "./GenerateButton";
 import { MockupClientSelector } from "./MockupClientSelector";
 import { MockupProductSelector, type MockupProductSelection } from "./MockupProductSelector";
-import type { PersonalizationArea } from "./MultiAreaManager";
+import { MultiAreaManager, type PersonalizationArea } from "./MultiAreaManager";
 
 interface Technique {
   id: string;
@@ -52,6 +52,11 @@ interface MockupConfigPanelProps {
   onGenerate: () => void;
   onReset: () => void;
   filteredTechniques: Technique[];
+  // Multi-area props
+  activeAreaId: string | null;
+  onAreasChange: (areas: PersonalizationArea[]) => void;
+  onActiveAreaChange: (id: string) => void;
+  onLogoUpload: (areaId: string, file: File) => void;
 }
 
 export function MockupConfigPanel({
@@ -68,6 +73,10 @@ export function MockupConfigPanel({
   onGenerate,
   onReset,
   filteredTechniques,
+  activeAreaId,
+  onAreasChange,
+  onActiveAreaChange,
+  onLogoUpload,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
   const stepsRemaining = [!selectedClient, !productSelection, !selectedTechnique, !hasLogo].filter(Boolean).length;
@@ -178,6 +187,21 @@ export function MockupConfigPanel({
                   {filteredTechniques.length} de {techniques.length} técnicas compatíveis
                 </p>
               )}
+            </div>
+
+            {/* Áreas de Personalização — step 4 */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">4</span>
+                Áreas de Personalização
+              </Label>
+              <MultiAreaManager
+                areas={personalizationAreas}
+                activeAreaId={activeAreaId}
+                onAreasChange={onAreasChange}
+                onActiveAreaChange={onActiveAreaChange}
+                onLogoUpload={onLogoUpload}
+              />
             </div>
 
             {/* Action Buttons */}

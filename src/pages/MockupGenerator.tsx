@@ -695,17 +695,14 @@ export default function MockupGenerator() {
                 onClientSelect={setSelectedClient}
                 onGenerate={generateMockup}
                 onReset={resetForm}
+                activeAreaId={activeAreaId}
+                onAreasChange={setPersonalizationAreas}
+                onActiveAreaChange={setActiveAreaId}
+                onLogoUpload={handleAreaLogoUpload}
               />
 
-              {/* Right panel: Areas + Position Editor + Result */}
+              {/* Right panel: Position Editor + Result */}
               <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-                <MultiAreaManager
-                  areas={personalizationAreas}
-                  activeAreaId={activeAreaId}
-                  onAreasChange={setPersonalizationAreas}
-                  onActiveAreaChange={setActiveAreaId}
-                  onLogoUpload={handleAreaLogoUpload}
-                />
 
                 {selectedProduct && getProductImage() && activeArea ? (
                   <LogoPositionEditor
