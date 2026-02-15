@@ -54,11 +54,11 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
     technique.usa_dimensao,
   );
 
-  // Notify parent when price changes
+  // Notify parent when price or dimensions change
   useEffect(() => {
     const dims = technique.usa_dimensao ? { width: larguraNum, height: alturaNum } : undefined;
     onPriceCalculated(technique.technique_id, price, dims);
-  }, [price, technique.technique_id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [price, technique.technique_id, larguraNum, alturaNum]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="space-y-4 p-4 rounded-lg bg-secondary/30 border border-border/50">
