@@ -70,9 +70,9 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
         logoPreview: null, // Don't persist huge base64 in DB
       }));
 
-      // Only persist the first logo separately (if small enough, truncate if > 500KB)
+      // Only persist URL references in logo_data (never base64)
       const firstLogo = data.personalizationAreas.find(a => a.logoPreview)?.logoPreview || null;
-      const safeLogoData = firstLogo && firstLogo.length < 500_000 ? firstLogo : null;
+      const safeLogoData = firstLogo && firstLogo.startsWith("http") ? firstLogo : null;
 
       const { error: upsertError } = await supabase
         .from("mockup_drafts")
