@@ -1,14 +1,14 @@
 /**
- * useMockupTechniques — Filter techniques by product's REAL print areas
+ * useMockupTechniques — Filter techniques by product using fn_get_product_customization_options RPC
  * 
- * Fetches personalization_areas from the external DB via fetchPrintAreasFromProduct,
- * extracts technique names from area_name ("Location — Technique"),
- * and returns only matching techniques + their dimension limits.
+ * When a product is selected, fetches its REAL customization options from the external DB
+ * and returns ONLY the techniques that are configured for that product.
+ * NO FALLBACKS — if the product has no techniques, returns empty.
  */
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPrintAreasFromProduct, type PrintAreaFromProduct } from "@/lib/fetch-print-areas";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 
 interface Technique {
   id: string;
@@ -17,60 +17,76 @@ interface Technique {
 }
 
 export interface TechniqueWithLimits extends Technique {
-  /** Max width in cm from the print area */
+  /** Max width in cm */
   maxWidth: number | null;
-  /** Max height in cm from the print area */
+  /** Max height in cm */
   maxHeight: number | null;
-  /** Area name from the product (e.g., "Lado A — Laser") */
+  /** Area name (e.g., "Lado A — Fiber Laser | Plana") */
   areaName: string | null;
-  /** Location extracted from area_name */
+  /** Location name (e.g., "Lado A") */
   locationName: string | null;
 }
 
+/** Shape of each option inside a location from the RPC */
+interface CustomizationOption {
+  technique_id: string;
+  tecnica_nome: string;
+  codigo_tabela: string;
+  grupo_tecnica: string;
+  max_width: number;
+  max_height: number;
+  efetiva_largura_max: number;
+  efetiva_altura_max: number;
+  max_cores: number;
+  cobra_por_cor: boolean;
+  custo_setup: number;
+  is_curved: boolean;
+  usa_dimensao: boolean;
+  variacao_label: string;
+  shape: string;
+}
+
+interface CustomizationLocation {
+  location_code: string;
+  location_name: string;
+  location_order: number;
+  options: CustomizationOption[];
+}
+
+interface CustomizationResponse {
+  product_id: string;
+  locations: CustomizationLocation[];
+}
+
 /**
- * Fetches product print areas from external DB.
+ * Fetches product customization options from external DB via RPC.
  */
-export function useProductPrintAreas(productId: string | undefined) {
+export function useProductCustomizationOptionsForMockup(productId: string | undefined) {
   return useQuery({
-    queryKey: ['mockup-print-areas', productId],
-    queryFn: () => fetchPrintAreasFromProduct(productId!),
+    queryKey: ['mockup-customization-options', productId],
+    queryFn: () => invokeExternalRpc<CustomizationResponse>(
+      'fn_get_product_customization_options',
+      { p_product_id: productId! }
+    ),
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
   });
 }
 
 /**
- * Known mapping of technique name fragments to technique codes/names
- * to improve fuzzy matching between area_name and personalization_techniques.
- */
-const TECHNIQUE_ALIASES: Record<string, string[]> = {
-  'laser': ['fiber laser', 'laser fibra', 'co2 laser', 'laser co2', 'laser uv'],
-  'serigrafia': ['silk', 'serigrafia têxtil', 'serigrafia vinílica', 'serigrafia vinil'],
-  'uv digital': ['uv digital', 'impressão uv'],
-  'sublimação': ['sublimacao', 'sublimação'],
-  'bordado': ['bordado'],
-  'tampografia': ['tampografia'],
-  'hot stamping': ['hot stamping'],
-  'transfer': ['transfer', 'dtf'],
-  'adesivo': ['adesivo resinado', 'adesivo vinil'],
-  'filme de recorte': ['filme de recorte', 'recorte'],
-  'etiqueta': ['etiqueta'],
-  'decalque': ['decalque'],
-  'emborrachado': ['emborrachado'],
-};
-
-/**
- * Filters techniques list to only those compatible with the product's print areas.
- * Returns TechniqueWithLimits[] including dimension constraints.
+ * Filters techniques to ONLY those available for the selected product.
+ * Uses fn_get_product_customization_options RPC — NO FALLBACKS.
+ * 
+ * Returns unique techniques with dimension limits from the best (largest) area.
  */
 export function useFilteredTechniques(
   techniques: Technique[],
   selectedProduct: { id: string } | null
 ): TechniqueWithLimits[] {
-  const { data: printAreas } = useProductPrintAreas(selectedProduct?.id);
+  const { data: customizationData } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
 
   return useMemo(() => {
-    // No product or no techniques -> return all without limits
+    // No product selected -> return all techniques without limits
     if (!selectedProduct || !techniques.length) {
       return techniques.map(t => ({
         ...t,
@@ -81,95 +97,59 @@ export function useFilteredTechniques(
       }));
     }
 
-    // No print areas data or empty -> show all techniques (product may not have areas configured)
-    if (!printAreas || printAreas.length === 0) {
-      return techniques.map(t => ({
-        ...t,
-        maxWidth: null,
-        maxHeight: null,
-        areaName: null,
-        locationName: null,
-      }));
-    }
-
-    // Extract technique terms from area_name: "Location — Technique"
-    const areasByTechnique = new Map<string, PrintAreaFromProduct>();
-    for (const area of printAreas) {
-      if (!area.is_active) continue;
-      const areaName = area.area_name || '';
-      const parts = areaName.split(' — ');
-      if (parts.length > 1) {
-        const techPart = parts[1].trim().toLowerCase();
-        // Store with the best (largest) dimensions
-        const existing = areasByTechnique.get(techPart);
-        if (!existing || (area.max_width * area.max_height) > (existing.max_width * existing.max_height)) {
-          areasByTechnique.set(techPart, area);
-        }
-      }
-    }
-
-    if (areasByTechnique.size === 0) {
+    // No customization data yet (loading) -> return empty to avoid showing wrong list
+    if (!customizationData?.locations) {
       return [];
     }
 
-    // Match techniques against extracted area technique names
-    const filtered: TechniqueWithLimits[] = [];
-    const matchedAreaKeys = new Set<string>();
+    // Extract all unique techniques from all locations
+    // Use a map keyed by tecnica_nome to deduplicate, keeping the best dimensions
+    const techniqueMap = new Map<string, {
+      option: CustomizationOption;
+      locationName: string;
+    }>();
 
-    for (const technique of techniques) {
-      const tName = technique.name.toLowerCase();
-      const tCode = (technique.code || '').toLowerCase();
-
-      let bestMatch: { area: PrintAreaFromProduct; areaKey: string } | null = null;
-
-      for (const [areaKey, area] of areasByTechnique.entries()) {
-        // Direct substring match
-        if (
-          tName.includes(areaKey) || areaKey.includes(tName) ||
-          (tCode && (areaKey.includes(tCode) || tCode.includes(areaKey)))
-        ) {
-          bestMatch = { area, areaKey };
-          break;
+    for (const location of customizationData.locations) {
+      for (const option of location.options) {
+        const key = option.tecnica_nome;
+        const existing = techniqueMap.get(key);
+        
+        const area = option.efetiva_largura_max * option.efetiva_altura_max;
+        const existingArea = existing 
+          ? existing.option.efetiva_largura_max * existing.option.efetiva_altura_max 
+          : 0;
+        
+        if (!existing || area > existingArea) {
+          techniqueMap.set(key, {
+            option,
+            locationName: location.location_name,
+          });
         }
-
-        // Check via aliases
-        for (const [baseKey, aliases] of Object.entries(TECHNIQUE_ALIASES)) {
-          const areaMatchesBase = areaKey.includes(baseKey) || aliases.some(a => areaKey.includes(a));
-          const techMatchesBase = tName.includes(baseKey) || aliases.some(a => tName.includes(a));
-          if (areaMatchesBase && techMatchesBase) {
-            // More specific match: check if the specific variant matches
-            // e.g., "Fiber Laser | Plana" should match area "Laser" but also area "Fiber Laser"
-            bestMatch = { area, areaKey };
-            break;
-          }
-        }
-        if (bestMatch) break;
-      }
-
-      if (bestMatch) {
-        const locationParts = bestMatch.area.area_name?.split(' — ');
-        filtered.push({
-          ...technique,
-          maxWidth: bestMatch.area.max_width || null,
-          maxHeight: bestMatch.area.max_height || null,
-          areaName: bestMatch.area.area_name || null,
-          locationName: locationParts?.[0]?.trim() || null,
-        });
-        matchedAreaKeys.add(bestMatch.areaKey);
       }
     }
 
-    // If filtering yields nothing (data mismatch), return all as fallback
-    if (filtered.length === 0) {
-      return techniques.map(t => ({
-        ...t,
-        maxWidth: null,
-        maxHeight: null,
-        areaName: null,
-        locationName: null,
-      }));
+    if (techniqueMap.size === 0) {
+      return [];
     }
 
-    return filtered;
-  }, [techniques, selectedProduct, printAreas]);
+    // Build the result — use technique_id from the RPC as the ID
+    const result: TechniqueWithLimits[] = [];
+    
+    for (const [techName, { option, locationName }] of techniqueMap.entries()) {
+      result.push({
+        id: option.technique_id,
+        name: option.tecnica_nome,
+        code: option.codigo_tabela || null,
+        maxWidth: option.efetiva_largura_max || null,
+        maxHeight: option.efetiva_altura_max || null,
+        areaName: `${locationName} — ${option.tecnica_nome}`,
+        locationName,
+      });
+    }
+
+    // Sort by name
+    result.sort((a, b) => a.name.localeCompare(b.name));
+
+    return result;
+  }, [techniques, selectedProduct, customizationData]);
 }
