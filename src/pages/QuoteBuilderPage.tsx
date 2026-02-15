@@ -693,14 +693,15 @@ export default function QuoteBuilderPage() {
           </Card>
         )}
 
-        <div className="space-y-6">
-          {/* Client and Date */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informações do Orçamento</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* LEFT COLUMN — Empresa, Contato, Itens */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Client and Date */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Informações do Orçamento</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <CompanyContactSelector
                   companyId={clientId}
                   contactId={contactId}
@@ -709,104 +710,185 @@ export default function QuoteBuilderPage() {
                   onCompanyInfoChange={setCompanyInfo}
                   onContactInfoChange={setContactInfo}
                 />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Items with Personalization */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Itens do Orçamento</CardTitle>
-                <CardDescription>
-                  {items.length} {items.length === 1 ? "item" : "itens"} adicionados
-                </CardDescription>
-              </div>
-              <Button onClick={() => setProductSearchOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Produto
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <DraggableQuoteItems
-                items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
-                onReorder={(reorderedItems) => setItems(reorderedItems)}
-                onUpdateQuantity={updateItemQuantity}
-                onUpdatePrice={updateItemPrice}
-                onRemove={removeItem}
-                onTogglePersonalization={toggleExpanded}
-                expandedItems={expandedItems}
-                renderPersonalization={(item, index) => (
-                  <QuoteProductCustomization
-                    productId={item.product_id}
-                    quantity={item.quantity}
-                    existingPersonalizations={item.personalizations}
-                    onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
-                  />
-                )}
-                formatCurrency={formatCurrency}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Resumo — card abaixo dos itens */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Resumo</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                {/* Left: Totals */}
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-semibold tabular-nums">{formatCurrency(subtotal)}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Select
-                      value={discountType}
-                      onValueChange={(v) => setDiscountType(v as "percent" | "amount")}
-                    >
-                      <SelectTrigger className="w-20 h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="percent">%</SelectItem>
-                        <SelectItem value="amount">R$</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={discountType === "percent" ? 1 : 0.01}
-                      max={discountType === "percent" ? 100 : undefined}
-                      value={discountValue || ""}
-                      onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
-                      placeholder="Desconto"
-                      className="h-9"
+            {/* Items with Personalization */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Itens do Orçamento</CardTitle>
+                  <CardDescription>
+                    {items.length} {items.length === 1 ? "item" : "itens"} adicionados
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setProductSearchOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Produto
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <DraggableQuoteItems
+                  items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
+                  onReorder={(reorderedItems) => setItems(reorderedItems)}
+                  onUpdateQuantity={updateItemQuantity}
+                  onUpdatePrice={updateItemPrice}
+                  onRemove={removeItem}
+                  onTogglePersonalization={toggleExpanded}
+                  expandedItems={expandedItems}
+                  renderPersonalization={(item, index) => (
+                    <QuoteProductCustomization
+                      productId={item.product_id}
+                      quantity={item.quantity}
+                      existingPersonalizations={item.personalizations}
+                      onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
                     />
-                  </div>
-
-                  {discountAmount > 0 && (
-                    <div className="flex justify-between text-sm text-destructive">
-                      <span>Desconto</span>
-                      <span className="font-semibold tabular-nums">-{formatCurrency(discountAmount)}</span>
-                    </div>
                   )}
+                  formatCurrency={formatCurrency}
+                />
+              </CardContent>
+            </Card>
+          </div>
 
-                  <Separator />
+          {/* RIGHT COLUMN — Resumo (estilo Simulador) */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-4">
+              {/* Resumo Card — Dark theme like Simulator */}
+              <div className="rounded-2xl border border-border/50 bg-card dark:bg-black/60 backdrop-blur-sm shadow-xl overflow-hidden">
+                {/* Header */}
+                <div className="px-5 pt-5 pb-3 flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-primary/15">
+                    <FileText className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="font-semibold text-base">Resumo</span>
+                </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-lg">Total</span>
-                    <span className="font-bold text-2xl text-primary tabular-nums">{formatCurrency(total)}</span>
+                {/* Items summary */}
+                <div className="px-5 space-y-3">
+                  {items.length === 0 ? (
+                    <div className="py-8 text-center text-muted-foreground">
+                      <Package className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">Nenhum item adicionado</p>
+                    </div>
+                  ) : (
+                    items.map((item, idx) => {
+                      const itemTotal = calculateItemTotal(item);
+                      const persTotal = calculateItemPersonalizationTotal(item);
+                      return (
+                        <div key={idx} className="rounded-xl border border-border/40 bg-muted/30 p-3 space-y-2">
+                          <div className="flex items-start gap-2.5">
+                            {item.product_image_url && (
+                              <img
+                                src={`${item.product_image_url}/thumbnail`}
+                                alt={item.product_name}
+                                className="h-10 w-10 rounded-lg object-cover bg-muted shrink-0"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  if (target.src.includes('/thumbnail')) {
+                                    target.src = item.product_image_url!;
+                                  } else {
+                                    target.style.display = 'none';
+                                  }
+                                }}
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <Badge variant="outline" className="text-[10px] mb-1 font-normal">PRODUTO</Badge>
+                              <p className="text-sm font-medium leading-tight truncate">{item.product_name}</p>
+                              <div className="flex items-center justify-between mt-1">
+                                <span className="text-xs text-muted-foreground">
+                                  {item.quantity} un. × {formatCurrency(item.unit_price)}
+                                </span>
+                                <span className="text-sm font-semibold tabular-nums">
+                                  {formatCurrency(item.quantity * item.unit_price)}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Personalizations */}
+                          {item.personalizations && item.personalizations.length > 0 && (
+                            <div className="pt-1 border-t border-border/30 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+                                  Gravações ({item.personalizations.length})
+                                </span>
+                                <span className="text-xs font-semibold text-primary tabular-nums">
+                                  {formatCurrency(persTotal)}
+                                </span>
+                              </div>
+                              {item.personalizations.map((p, pIdx) => (
+                                <div key={pIdx} className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground truncate mr-2">{p.technique_name}</span>
+                                  <span className="tabular-nums shrink-0">{formatCurrency(p.total_cost || 0)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Discount */}
+                {items.length > 0 && (
+                  <div className="px-5 pt-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={discountType}
+                        onValueChange={(v) => setDiscountType(v as "percent" | "amount")}
+                      >
+                        <SelectTrigger className="w-16 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="percent">%</SelectItem>
+                          <SelectItem value="amount">R$</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={discountType === "percent" ? 1 : 0.01}
+                        max={discountType === "percent" ? 100 : undefined}
+                        value={discountValue || ""}
+                        onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                        placeholder="Desconto"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between text-xs text-destructive">
+                        <span>Desconto aplicado</span>
+                        <span className="font-semibold tabular-nums">-{formatCurrency(discountAmount)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="px-5 py-4 mt-3 border-t border-border/40">
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <span className="text-sm font-bold">Total</span>
+                      {items.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          ≈{formatCurrency(items.reduce((s, i) => s + i.quantity, 0) > 0 ? total / items.reduce((s, i) => s + i.quantity, 0) : 0)}/un.
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-2xl font-bold text-primary tabular-nums">
+                      {formatCurrency(total)}
+                    </span>
                   </div>
                 </div>
 
-                {/* Right: Actions */}
-                <div className="flex flex-col justify-end gap-2">
+                {/* CTA Buttons */}
+                <div className="px-5 pb-5 space-y-2">
                   <Button
-                    className="w-full"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                    size="lg"
                     onClick={() => handleSaveQuote("pending")}
                     disabled={quotesLoading || items.length === 0}
                   >
@@ -832,8 +914,45 @@ export default function QuoteBuilderPage() {
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Validity + Notes (compact) */}
+              <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5" />
+                    Válido até
+                  </Label>
+                  <Input
+                    type="date"
+                    value={validUntil}
+                    onChange={(e) => setValidUntil(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Observações (cliente)</Label>
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Condições de pagamento, prazo..."
+                    rows={2}
+                    className="text-sm resize-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Notas internas</Label>
+                  <Textarea
+                    value={internalNotes}
+                    onChange={(e) => setInternalNotes(e.target.value)}
+                    placeholder="Anotações internas..."
+                    rows={2}
+                    className="text-sm resize-none bg-muted/50"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
