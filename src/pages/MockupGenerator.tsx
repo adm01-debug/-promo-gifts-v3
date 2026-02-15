@@ -66,10 +66,8 @@ interface Technique {
   code: string | null;
 }
 
-interface Client {
-  id: string;
-  name: string;
-}
+// Client type imported from MockupConfigPanel
+import type { MockupClient } from "@/components/mockup/MockupConfigPanel";
 
 interface GeneratedMockup {
   id: string;
@@ -126,13 +124,12 @@ export default function MockupGenerator() {
   // Data state
   const [products, setProducts] = useState<Product[]>([]);
   const [techniques, setTechniques] = useState<Technique[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Selection state
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClient] = useState<MockupClient | null>(null);
 
   // Multi-area
   const [personalizationAreas, setPersonalizationAreas] = useState<PersonalizationArea[]>([createDefaultArea()]);
@@ -206,9 +203,8 @@ export default function MockupGenerator() {
             const technique = techniques.find(t => t.id === draft.techniqueId);
             if (technique) setSelectedTechnique(technique);
           }
-          if (draft.clientId) {
-            const client = clients.find(c => c.id === draft.clientId);
-            if (client) setSelectedClient(client);
+          if (draft.clientId && draft.clientName) {
+            setSelectedClient({ id: draft.clientId, name: draft.clientName });
           }
           if (draft.personalizationAreas.length > 0) {
             setPersonalizationAreas(draft.personalizationAreas);
@@ -225,7 +221,7 @@ export default function MockupGenerator() {
       }
     };
     restoreDraft();
-  }, [isLoadingData, products, techniques, clients, loadDraft, hasDraftRestored]);
+  }, [isLoadingData, products, techniques, loadDraft, hasDraftRestored]);
 
   // Auto-save
   useEffect(() => {
@@ -249,7 +245,7 @@ export default function MockupGenerator() {
     try {
       const { fetchPromobrindProducts, getProductImageUrl } = await import("@/lib/external-db");
 
-      const [productsData, techniquesRes, clientsRes] = await Promise.all([
+      const [productsData, techniquesRes] = await Promise.all([
         fetchPromobrindProducts(),
         supabase.functions.invoke("external-db-bridge", {
           body: {
@@ -260,7 +256,6 @@ export default function MockupGenerator() {
             limit: 100,
           },
         }),
-        supabase.from("bitrix_clients").select("id, name").order("name"),
       ]);
 
       const techniquesData = techniquesRes.data?.data?.records || techniquesRes.data?.records || [];
@@ -278,7 +273,6 @@ export default function MockupGenerator() {
 
       setProducts(mappedProducts);
       setTechniques(techniquesData);
-      setClients(clientsRes.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Erro ao carregar dados");
@@ -408,8 +402,8 @@ export default function MockupGenerator() {
 
   const generateMockup = async () => {
     const areasWithLogos = personalizationAreas.filter(a => a.logoPreview);
-    if (!selectedProduct || !selectedTechnique || areasWithLogos.length === 0) {
-      toast.error("Selecione produto, técnica e faça upload de pelo menos um logo");
+    if (!selectedClient || !selectedProduct || !selectedTechnique || areasWithLogos.length === 0) {
+      toast.error("Selecione empresa, produto, técnica e faça upload de pelo menos um logo");
       return;
     }
     const productImage = getProductImage();
@@ -522,11 +516,11 @@ export default function MockupGenerator() {
   const loadFromHistory = (mockup: GeneratedMockup) => {
     const product = mockup.product_id ? products.find(p => p.id === mockup.product_id) : null;
     const technique = mockup.technique_id ? techniques.find(t => t.id === mockup.technique_id) : null;
-    const client = mockup.client_id ? clients.find(c => c.id === mockup.client_id) : null;
 
     setSelectedProduct(product || null);
     setSelectedTechnique(technique || null);
-    setSelectedClient(client || null);
+    // Restore client from history metadata (no local lookup needed)
+    setSelectedClient(mockup.client_id ? { id: mockup.client_id, name: (mockup as any).bitrix_clients?.name || "Cliente" } : null);
 
     const restoredArea: PersonalizationArea = {
       id: crypto.randomUUID(),
@@ -686,7 +680,6 @@ export default function MockupGenerator() {
               <MockupConfigPanel
                 products={products}
                 techniques={techniques}
-                clients={clients}
                 selectedProduct={selectedProduct}
                 selectedTechnique={selectedTechnique}
                 selectedClient={selectedClient}
@@ -761,7 +754,7 @@ export default function MockupGenerator() {
             <MockupHistoryPanel
               mockupHistory={mockupHistory}
               isLoading={isLoadingHistory}
-              clients={clients}
+              clients={[]}
               techniques={techniques}
               onLoadFromHistory={loadFromHistory}
               onDownload={downloadMockup}
