@@ -92,7 +92,7 @@ export function useCrmCompanySelector() {
     queryKey: ["crm-companies-selector"],
     queryFn: async () => {
       const companies = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, ramo_atividade, logo_url, cnpj, is_customer, is_supplier, cidade, estado",
+        select: "id, razao_social, nome_fantasia, title, ramo_atividade, logo_url, cnpj, is_customer, is_supplier",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
