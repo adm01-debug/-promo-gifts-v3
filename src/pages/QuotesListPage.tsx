@@ -65,6 +65,8 @@ import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { EmptyState } from "@/components/common/EmptyState";
 import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
+import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
+import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 
 // ── Status config with semantic colors ──
 const statusConfig: Record<
@@ -461,78 +463,11 @@ export default function QuotesListPage() {
               </div>
             ) : (
               /* ── List View ── */
-              <div className="rounded-lg border border-border overflow-hidden">
-                <div className="grid grid-cols-[1fr_1fr_120px_140px_100px_44px] gap-2 px-4 py-2.5 bg-muted/50 text-xs font-medium text-muted-foreground border-b border-border">
-                  <span>Nº Orçamento</span>
-                  <span>Cliente / Empresa</span>
-                  <span>Status</span>
-                  <span className="text-right">Valor</span>
-                  <span className="text-right">Data</span>
-                  <span />
-                </div>
-                {filteredQuotes.map((quote, index) => {
-                  const validity = getValidityInfo(quote.valid_until);
-                  const hasClient = !!quote.client_name || !!quote.client_company;
-
-                  return (
-                    <div
-                      key={quote.id}
-                      className="grid grid-cols-[1fr_1fr_120px_140px_100px_44px] gap-2 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors"
-                      onClick={() => navigate(`/orcamentos/${quote.id}`)}
-                    >
-                      <span className="font-semibold text-sm text-foreground truncate">
-                        #{quote.quote_number}
-                      </span>
-                      <span className="text-sm text-muted-foreground truncate">
-                        {hasClient ? (quote.client_company || quote.client_name) : (
-                          <button
-                            className="text-xs text-primary/70 hover:text-primary flex items-center gap-1"
-                            onClick={(e) => { e.stopPropagation(); navigate(`/orcamentos/${quote.id}/editar`); }}
-                          >
-                            <UserPlus className="h-3 w-3" /> Vincular cliente
-                          </button>
-                        )}
-                      </span>
-                      <span>
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
-                        >
-                          {statusConfig[quote.status]?.label}
-                        </Badge>
-                      </span>
-                      <span className="text-sm font-bold text-foreground text-right">
-                        {formatCurrency(quote.total || 0)}
-                      </span>
-                      <span className="text-xs text-muted-foreground text-right">
-                        {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
-                      </span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                            <Eye className="h-4 w-4 mr-2" /> Visualizar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                            <Edit className="h-4 w-4 mr-2" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
-                            <Copy className="h-4 w-4 mr-2" /> Duplicar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteConfirmId(quote.id!)}>
-                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  );
-                })}
-              </div>
+              <QuotesConfigurableList
+                quotes={filteredQuotes}
+                onDelete={(id) => setDeleteConfirmId(id)}
+                onDuplicate={(id) => duplicateQuote(id)}
+              />
             )}
           </ScrollArea>
         </div>
