@@ -54,6 +54,8 @@ import {
   Clock,
   TrendingUp,
   DollarSign,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
 import Fuse from "fuse.js";
@@ -108,6 +110,7 @@ export default function QuotesListPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   // ── KPIs ──
   const kpis = useMemo(() => {
@@ -333,11 +336,28 @@ export default function QuotesListPage() {
                 ))}
               </SelectContent>
             </Select>
+            <div className="flex border border-border rounded-md">
+              <Button
+                variant={viewMode === "grid" ? "default" : "ghost"}
+                size="icon"
+                className="h-9 w-9 rounded-r-none"
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "ghost"}
+                size="icon"
+                className="h-9 w-9 rounded-l-none"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Quotes List — 4 Columns with Scroll */}
           <ScrollArea className="h-[calc(100vh-320px)] min-h-[400px]">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {filteredQuotes.length === 0 ? (
               <EmptyState
                 variant="quotes"
@@ -356,99 +376,164 @@ export default function QuotesListPage() {
                     : undefined
                 }
               />
-            ) : (
-              filteredQuotes.map((quote, index) => {
-                const validity = getValidityInfo(quote.valid_until);
-                const hasClient = !!quote.client_name || !!quote.client_company;
+            ) : viewMode === "grid" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {filteredQuotes.map((quote, index) => {
+                  const validity = getValidityInfo(quote.valid_until);
+                  const hasClient = !!quote.client_name || !!quote.client_company;
 
-                return (
-                  <FadeInView key={quote.id} delay={index * 0.03}>
-                    <Card
-                      className="card-interactive cursor-pointer hover:border-primary/30 transition-all duration-200"
+                  return (
+                    <FadeInView key={quote.id} delay={index * 0.03}>
+                      <Card
+                        className="card-interactive cursor-pointer hover:border-primary/30 transition-all duration-200"
+                        onClick={() => navigate(`/orcamentos/${quote.id}`)}
+                      >
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 flex-wrap min-w-0">
+                              <h3 className="font-semibold text-sm text-foreground whitespace-nowrap">
+                                #{quote.quote_number}
+                              </h3>
+                              <Badge
+                                variant="outline"
+                                className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
+                              >
+                                {statusConfig[quote.status]?.label}
+                              </Badge>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                                  <Eye className="h-4 w-4 mr-2" /> Visualizar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                                  <Edit className="h-4 w-4 mr-2" /> Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
+                                  <Copy className="h-4 w-4 mr-2" /> Duplicar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-destructive" onClick={() => setDeleteConfirmId(quote.id!)}>
+                                  <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+
+                          {hasClient ? (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {quote.client_company || quote.client_name}
+                            </p>
+                          ) : (
+                            <button
+                              className="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/orcamentos/${quote.id}/editar`);
+                              }}
+                            >
+                              <UserPlus className="h-3 w-3" />
+                              Vincular cliente
+                            </button>
+                          )}
+
+                          <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                            <p className="font-bold text-sm text-foreground">
+                              {formatCurrency(quote.total || 0)}
+                            </p>
+                            {validity && (
+                              <p className={`text-[10px] ${validity.color} ${validity.urgent ? validity.bgColor + ' px-1.5 py-0.5 rounded' : ''}`}>
+                                {validity.urgent && <AlertTriangle className="h-3 w-3 inline mr-0.5" />}
+                                {validity.label}
+                              </p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </FadeInView>
+                  );
+                })}
+              </div>
+            ) : (
+              /* ── List View ── */
+              <div className="rounded-lg border border-border overflow-hidden">
+                <div className="grid grid-cols-[1fr_1fr_120px_140px_100px_44px] gap-2 px-4 py-2.5 bg-muted/50 text-xs font-medium text-muted-foreground border-b border-border">
+                  <span>Nº Orçamento</span>
+                  <span>Cliente / Empresa</span>
+                  <span>Status</span>
+                  <span className="text-right">Valor</span>
+                  <span className="text-right">Data</span>
+                  <span />
+                </div>
+                {filteredQuotes.map((quote, index) => {
+                  const validity = getValidityInfo(quote.valid_until);
+                  const hasClient = !!quote.client_name || !!quote.client_company;
+
+                  return (
+                    <div
+                      key={quote.id}
+                      className="grid grid-cols-[1fr_1fr_120px_140px_100px_44px] gap-2 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors"
                       onClick={() => navigate(`/orcamentos/${quote.id}`)}
                     >
-                      <CardContent className="p-4 space-y-3">
-                        {/* Header: number + status */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-wrap min-w-0">
-                            <h3 className="font-semibold text-sm text-foreground whitespace-nowrap">
-                              #{quote.quote_number}
-                            </h3>
-                            <Badge
-                              variant="outline"
-                              className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
-                            >
-                              {statusConfig[quote.status]?.label}
-                            </Badge>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                                <Eye className="h-4 w-4 mr-2" />
-                                Visualizar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
-                                <Copy className="h-4 w-4 mr-2" />
-                                Duplicar
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => setDeleteConfirmId(quote.id!)}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-
-                        {/* Client */}
-                        {hasClient ? (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {quote.client_company || quote.client_name}
-                          </p>
-                        ) : (
+                      <span className="font-semibold text-sm text-foreground truncate">
+                        #{quote.quote_number}
+                      </span>
+                      <span className="text-sm text-muted-foreground truncate">
+                        {hasClient ? (quote.client_company || quote.client_name) : (
                           <button
-                            className="text-xs text-primary/70 hover:text-primary flex items-center gap-1 transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/orcamentos/${quote.id}/editar`);
-                            }}
+                            className="text-xs text-primary/70 hover:text-primary flex items-center gap-1"
+                            onClick={(e) => { e.stopPropagation(); navigate(`/orcamentos/${quote.id}/editar`); }}
                           >
-                            <UserPlus className="h-3 w-3" />
-                            Vincular cliente
+                            <UserPlus className="h-3 w-3" /> Vincular cliente
                           </button>
                         )}
-
-                        {/* Value + validity */}
-                        <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                          <p className="font-bold text-sm text-foreground">
-                            {formatCurrency(quote.total || 0)}
-                          </p>
-                          {validity && (
-                            <p className={`text-[10px] ${validity.color} ${validity.urgent ? validity.bgColor + ' px-1.5 py-0.5 rounded' : ''}`}>
-                              {validity.urgent && <AlertTriangle className="h-3 w-3 inline mr-0.5" />}
-                              {validity.label}
-                            </p>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </FadeInView>
-                );
-              })
+                      </span>
+                      <span>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}
+                        >
+                          {statusConfig[quote.status]?.label}
+                        </Badge>
+                      </span>
+                      <span className="text-sm font-bold text-foreground text-right">
+                        {formatCurrency(quote.total || 0)}
+                      </span>
+                      <span className="text-xs text-muted-foreground text-right">
+                        {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
+                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                            <Eye className="h-4 w-4 mr-2" /> Visualizar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                            <Edit className="h-4 w-4 mr-2" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => duplicateQuote(quote.id!)}>
+                            <Copy className="h-4 w-4 mr-2" /> Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteConfirmId(quote.id!)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-          </div>
           </ScrollArea>
         </div>
 
