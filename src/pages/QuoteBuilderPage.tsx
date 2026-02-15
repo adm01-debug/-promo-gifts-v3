@@ -931,42 +931,6 @@ export default function QuoteBuilderPage() {
                 </div>
               </div>
 
-              {/* Validity + Notes (compact) */}
-              <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <Calendar className="h-3.5 w-3.5" />
-                    Válido até
-                  </Label>
-                  <Input
-                    type="date"
-                    value={validUntil}
-                    onChange={(e) => setValidUntil(e.target.value)}
-                    min={new Date().toISOString().split("T")[0]}
-                    className="h-9"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Observações (cliente)</Label>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Condições de pagamento, prazo..."
-                    rows={2}
-                    className="text-sm resize-none"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Notas internas</Label>
-                  <Textarea
-                    value={internalNotes}
-                    onChange={(e) => setInternalNotes(e.target.value)}
-                    placeholder="Anotações internas..."
-                    rows={2}
-                    className="text-sm resize-none bg-muted/50"
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </div>
