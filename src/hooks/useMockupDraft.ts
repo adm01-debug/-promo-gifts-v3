@@ -63,6 +63,17 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
     setError(null);
     
     try {
+      // Strip base64 logos from areas to prevent JSONB size overflow
+      // Logos are preserved in localStorage only
+      const areasWithoutLogos = data.personalizationAreas.map(a => ({
+        ...a,
+        logoPreview: null, // Don't persist huge base64 in DB
+      }));
+
+      // Only persist the first logo separately (if small enough, truncate if > 500KB)
+      const firstLogo = data.personalizationAreas.find(a => a.logoPreview)?.logoPreview || null;
+      const safeLogoData = firstLogo && firstLogo.length < 500_000 ? firstLogo : null;
+
       const { error: upsertError } = await supabase
         .from("mockup_drafts")
         .upsert({
@@ -74,8 +85,8 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
           technique_name: data.techniqueName,
           client_id: data.clientId || null,
           client_name: data.clientName,
-          personalization_areas: data.personalizationAreas,
-          logo_data: data.personalizationAreas.find(a => a.logoPreview)?.logoPreview || null,
+          personalization_areas: areasWithoutLogos as unknown as any,
+          logo_data: safeLogoData,
           updated_at: new Date().toISOString(),
         }, {
           onConflict: "user_id,draft_key",
