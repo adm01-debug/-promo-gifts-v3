@@ -61,8 +61,9 @@ export interface ColumnDef {
 }
 
 const ALL_COLUMNS: ColumnDef[] = [
-  { id: "quote_number", label: "Nº Orçamento", width: "1fr", required: true },
-  { id: "client", label: "Cliente / Empresa", width: "1fr" },
+  { id: "quote_number", label: "Nº Orçamento", width: "200px" },
+  { id: "client", label: "Empresa", width: "1fr", required: true },
+  { id: "contact", label: "Contato", width: "180px" },
   { id: "status", label: "Status", width: "120px" },
   { id: "value", label: "Valor", width: "140px", align: "right" },
   { id: "date", label: "Data", width: "100px", align: "right" },
@@ -110,13 +111,13 @@ function SortableHeaderCell({ column }: { column: ColumnDef }) {
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-1 select-none cursor-grab active:cursor-grabbing ${
+    className={`flex items-center gap-1 select-none cursor-grab active:cursor-grabbing ${
         column.align === "right" ? "justify-end" : ""
       }`}
       {...attributes}
       {...listeners}
     >
-      <GripVertical className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+      <GripVertical className="h-3 w-3 opacity-50 shrink-0" />
       <span>{column.label}</span>
     </div>
   );
@@ -186,13 +187,13 @@ export function QuotesConfigurableList({
     switch (columnId) {
       case "quote_number":
         return (
-          <span className="font-semibold text-sm text-foreground truncate">
+          <span className="text-xs text-muted-foreground truncate font-mono">
             #{quote.quote_number}
           </span>
         );
       case "client":
         return hasClient ? (
-          <span className="text-sm text-muted-foreground truncate">
+          <span className="text-sm font-semibold text-foreground truncate">
             {quote.client_company || quote.client_name}
           </span>
         ) : (
@@ -205,6 +206,14 @@ export function QuotesConfigurableList({
           >
             <UserPlus className="h-3 w-3" /> Vincular cliente
           </button>
+        );
+      case "contact":
+        return quote.client_name && quote.client_company ? (
+          <span className="text-xs text-muted-foreground truncate">
+            {quote.client_name}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground/50">—</span>
         );
       case "status":
         return (
@@ -284,7 +293,7 @@ export function QuotesConfigurableList({
         {/* Header with DnD */}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div
-            className="grid gap-2 px-4 py-2.5 bg-muted/50 text-xs font-medium text-muted-foreground border-b border-border"
+            className="grid gap-2 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold border-b border-primary/80 sticky top-0 z-10"
             style={{ gridTemplateColumns: gridTemplate }}
           >
             <SortableContext items={visibleColumns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
