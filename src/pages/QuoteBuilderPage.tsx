@@ -834,7 +834,7 @@ export default function QuoteBuilderPage() {
                   </Button>
                 </div>
 
-                {/* Scrollable items list */}
+                {/* Scrollable items list — shows only the active item */}
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
                   {items.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
@@ -844,38 +844,56 @@ export default function QuoteBuilderPage() {
                         Pesquise e adicione produtos ao orçamento
                       </p>
                     </div>
+                  ) : activeItemIndex !== null && items[activeItemIndex] ? (
+                    (() => {
+                      const item = items[activeItemIndex];
+                      const idx = activeItemIndex;
+                      return (
+                        <div className="space-y-3">
+                          <DraggableQuoteItems
+                            items={[item]}
+                            onReorder={() => {}}
+                            onUpdateQuantity={(_, qty) => updateItemQuantity(idx, qty)}
+                            onUpdatePrice={(_, price) => updateItemPrice(idx, price)}
+                            onRemove={() => {
+                              removeItem(idx);
+                              setActiveItemIndex(null);
+                            }}
+                            onTogglePersonalization={() => {
+                              setExpandedItems((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(idx)) {
+                                  next.delete(idx);
+                                } else {
+                                  next.add(idx);
+                                }
+                                return next;
+                              });
+                            }}
+                            expandedItems={new Set(expandedItems.has(idx) ? [0] : [])}
+                            renderPersonalization={() => (
+                              <QuoteProductCustomization
+                                productId={item.product_id}
+                                quantity={item.quantity}
+                                existingPersonalizations={item.personalizations}
+                                onPersonalizationsChange={(personalizations) =>
+                                  handlePersonalizationsChange(idx, personalizations)
+                                }
+                              />
+                            )}
+                            formatCurrency={formatCurrency}
+                          />
+                        </div>
+                      );
+                    })()
                   ) : (
-                    <DraggableQuoteItems
-                      items={items}
-                      onReorder={(reordered) => setItems(reordered)}
-                      onUpdateQuantity={updateItemQuantity}
-                      onUpdatePrice={updateItemPrice}
-                      onRemove={removeItem}
-                      onTogglePersonalization={(index) => {
-                        setActiveItemIndex(index);
-                        setExpandedItems((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(index)) {
-                            next.delete(index);
-                          } else {
-                            next.add(index);
-                          }
-                          return next;
-                        });
-                      }}
-                      expandedItems={expandedItems}
-                      renderPersonalization={(item, index) => (
-                        <QuoteProductCustomization
-                          productId={item.product_id}
-                          quantity={item.quantity}
-                          existingPersonalizations={item.personalizations}
-                          onPersonalizationsChange={(personalizations) =>
-                            handlePersonalizationsChange(index, personalizations)
-                          }
-                        />
-                      )}
-                      formatCurrency={formatCurrency}
-                    />
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Package className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                      <p className="font-medium text-sm">Selecione um item no resumo</p>
+                      <p className="text-xs mt-1">
+                        Ou adicione um novo produto
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
