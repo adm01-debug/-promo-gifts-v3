@@ -20,7 +20,8 @@ serve(async (req) => {
 
     const { 
       productImageUrl, 
-      logoBase64, 
+      logoBase64,
+      logoUrl,
       techniqueName,
       techniquePrompt,
       positionX, 
@@ -30,7 +31,10 @@ serve(async (req) => {
       productName 
     } = await req.json();
 
-    if (!productImageUrl || !logoBase64) {
+    // Accept either base64 data or a URL for the logo
+    const logoImageSrc = logoBase64 || logoUrl;
+
+    if (!productImageUrl || !logoImageSrc) {
       return new Response(
         JSON.stringify({ error: "Product image and logo are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -95,7 +99,7 @@ Keep the product photography style consistent - same background, lighting, and o
               {
                 type: "image_url",
                 image_url: {
-                  url: logoBase64
+                  url: logoImageSrc
                 }
               }
             ]

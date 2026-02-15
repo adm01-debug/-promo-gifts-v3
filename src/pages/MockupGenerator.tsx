@@ -426,10 +426,14 @@ export default function MockupGenerator() {
       const techniquePrompt = getTechniquePrompt(selectedTechnique);
       const primaryArea = areasWithLogos[0];
 
+      // If logoPreview is a URL (from history), pass it as logoUrl; if base64, pass as logoBase64
+      const isLogoUrl = primaryArea.logoPreview?.startsWith("http");
+
       const response = await supabase.functions.invoke("generate-mockup", {
         body: {
           productImageUrl: productImage,
-          logoBase64: primaryArea.logoPreview,
+          logoBase64: isLogoUrl ? undefined : primaryArea.logoPreview,
+          logoUrl: isLogoUrl ? primaryArea.logoPreview : undefined,
           techniqueName: selectedTechnique.name,
           techniquePrompt,
           positionX: primaryArea.positionX,
@@ -536,7 +540,8 @@ export default function MockupGenerator() {
     setPersonalizationAreas([restoredArea]);
     setActiveAreaId(restoredArea.id);
     setGeneratedMockup(null);
-    setHasUserInteractedPosition(false);
+    // Position was already set from history — mark as interacted
+    setHasUserInteractedPosition(true);
 
     // Switch to generator tab via state (no fragile querySelector)
     setActiveTab("generator");
