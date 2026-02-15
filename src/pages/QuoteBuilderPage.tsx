@@ -694,15 +694,15 @@ export default function QuoteBuilderPage() {
           </Card>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* LEFT COLUMN — Empresa, Contato, Itens */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Client and Date */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Informações do Orçamento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-12">
+          {/* COL 1 — Empresa + Contato (fixa) */}
+          <div className="lg:col-span-3">
+            <div className="sticky top-24 space-y-4">
+              <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-4">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Informações
+                </h3>
                 <CompanyContactSelector
                   companyId={clientId}
                   contactId={contactId}
@@ -711,48 +711,52 @@ export default function QuoteBuilderPage() {
                   onCompanyInfoChange={setCompanyInfo}
                   onContactInfoChange={setContactInfo}
                 />
-              </CardContent>
-            </Card>
-
-            {/* Items with Personalization */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">Itens do Orçamento</CardTitle>
-                  <CardDescription>
-                    {items.length} {items.length === 1 ? "item" : "itens"} adicionados
-                  </CardDescription>
-                </div>
-                <Button onClick={() => setProductSearchOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Produto
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <DraggableQuoteItems
-                  items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
-                  onReorder={(reorderedItems) => setItems(reorderedItems)}
-                  onUpdateQuantity={updateItemQuantity}
-                  onUpdatePrice={updateItemPrice}
-                  onRemove={removeItem}
-                  onTogglePersonalization={toggleExpanded}
-                  expandedItems={expandedItems}
-                  renderPersonalization={(item, index) => (
-                    <QuoteProductCustomization
-                      productId={item.product_id}
-                      quantity={item.quantity}
-                      existingPersonalizations={item.personalizations}
-                      onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
-                    />
-                  )}
-                  formatCurrency={formatCurrency}
-                />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
-          {/* RIGHT COLUMN — Resumo (idêntico ao Simulador) */}
-          <div className="lg:col-span-1">
+          {/* COL 2 — Itens do Orçamento */}
+          <div className="lg:col-span-5">
+            <div className="sticky top-24">
+              <div className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+                <div className="flex items-center justify-between p-4 pb-3">
+                  <div>
+                    <h3 className="font-semibold text-sm">Itens do Orçamento</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {items.length} {items.length === 1 ? "item" : "itens"} adicionados
+                    </p>
+                  </div>
+                  <Button size="sm" onClick={() => setProductSearchOpen(true)}>
+                    <Plus className="h-3.5 w-3.5 mr-1.5" />
+                    Produto
+                  </Button>
+                </div>
+                <div className="px-4 pb-4 overflow-y-auto max-h-[calc(100vh-10rem)]">
+                  <DraggableQuoteItems
+                    items={items.map((item, idx) => ({ ...item, id: `${item.product_id}-${idx}` }))}
+                    onReorder={(reorderedItems) => setItems(reorderedItems)}
+                    onUpdateQuantity={updateItemQuantity}
+                    onUpdatePrice={updateItemPrice}
+                    onRemove={removeItem}
+                    onTogglePersonalization={toggleExpanded}
+                    expandedItems={expandedItems}
+                    renderPersonalization={(item, index) => (
+                      <QuoteProductCustomization
+                        productId={item.product_id}
+                        quantity={item.quantity}
+                        existingPersonalizations={item.personalizations}
+                        onPersonalizationsChange={(personalizations) => handlePersonalizationsChange(index, personalizations)}
+                      />
+                    )}
+                    formatCurrency={formatCurrency}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* COL 3 — Resumo (idêntico ao Simulador) */}
+          <div className="lg:col-span-4">
             <div className="sticky top-24">
               <div className="flex flex-col rounded-2xl border border-border/50 bg-card shadow-xl overflow-hidden">
                 {/* Header — igual Simulador */}
