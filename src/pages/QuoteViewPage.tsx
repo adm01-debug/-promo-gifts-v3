@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Copy, Download, Eye, FileText, History, Link2, Loader2, MoreHorizontal, Printer, UserPlus } from "lucide-react";
+import { ArrowLeft, Building2, Copy, CreditCard, Download, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, Truck, User, UserPlus } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -329,7 +329,7 @@ export default function QuoteViewPage() {
           </div>
         </div>
 
-        {/* Next Action Banner (#8) */}
+        {/* Next Action Banner — compact inline */}
         <div className="print:hidden">
           <QuoteNextActionBanner 
             status={quote.status} 
@@ -354,10 +354,13 @@ export default function QuoteViewPage() {
         <Card className="print:hidden">
           <Separator />
           <CardContent className="pt-6 space-y-6">
-            {/* Client Info (#2) */}
+            {/* Client Info — 2 columns with icons */}
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <h3 className="font-semibold mb-2">Cliente</h3>
+                <div className="flex items-center gap-2 mb-3">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Empresa</h3>
+                </div>
                 {quote.client_company || quote.client_name ? (
                   (() => {
                     const company = quote.client_company || "Não especificado";
@@ -365,12 +368,15 @@ export default function QuoteViewPage() {
                     const companyName = parts[0];
                     const cityState = parts[1];
                     return (
-                      <>
+                      <div className="space-y-1">
                         <p className="text-foreground font-bold text-lg">{companyName}</p>
                         {cityState && (
-                          <p className="text-sm text-muted-foreground">{cityState}</p>
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            <span>{cityState}</span>
+                          </div>
                         )}
-                      </>
+                      </div>
                     );
                   })()
                 ) : (
@@ -386,14 +392,25 @@ export default function QuoteViewPage() {
               <div>
                 {quote.client_name ? (
                   <>
-                    <h3 className="font-semibold mb-2">Contato</h3>
-                    <p className="text-foreground font-medium">{quote.client_name}</p>
-                    {quote.client_email && (
-                      <p className="text-sm text-muted-foreground mt-2">{quote.client_email}</p>
-                    )}
-                    {quote.client_phone && (
-                      <p className="text-sm text-muted-foreground">{quote.client_phone}</p>
-                    )}
+                    <div className="flex items-center gap-2 mb-3">
+                      <User className="h-4 w-4 text-primary" />
+                      <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Contato</h3>
+                    </div>
+                    <div className="space-y-1.5">
+                      <p className="text-foreground font-medium">{quote.client_name}</p>
+                      {quote.client_email && (
+                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <Mail className="h-3.5 w-3.5" />
+                          <span>{quote.client_email}</span>
+                        </div>
+                      )}
+                      {quote.client_phone && (
+                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <Phone className="h-3.5 w-3.5" />
+                          <span>{quote.client_phone}</span>
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : null}
               </div>
@@ -401,21 +418,21 @@ export default function QuoteViewPage() {
 
             <Separator />
 
-            {/* Items Table (#3) */}
+            {/* Items Table — subtle header + zebra + hover */}
             <div>
               <h3 className="font-semibold mb-4">Itens do Orçamento</h3>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-lg border border-border">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-primary text-primary-foreground">
-                      <th className="text-left p-3 font-medium">Produto</th>
-                      <th className="text-left p-3 font-medium">SKU</th>
+                    <tr className="bg-primary/15">
+                      <th className="text-left p-3 font-semibold text-primary text-sm">Produto</th>
+                      <th className="text-left p-3 font-semibold text-primary text-sm">SKU</th>
                       {hasPersonalizations && (
-                        <th className="text-left p-3 font-medium">Personalização</th>
+                        <th className="text-left p-3 font-semibold text-primary text-sm">Personalização</th>
                       )}
-                      <th className="text-center p-3 font-medium">Qtd</th>
-                      <th className="text-right p-3 font-medium">Unitário</th>
-                      <th className="text-right p-3 font-medium">Total</th>
+                      <th className="text-center p-3 font-semibold text-primary text-sm">Qtd</th>
+                      <th className="text-right p-3 font-semibold text-primary text-sm">Unitário</th>
+                      <th className="text-right p-3 font-semibold text-primary text-sm">Total</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -427,7 +444,10 @@ export default function QuoteViewPage() {
                       const itemTotal = item.quantity * item.unit_price + personalizationCost;
 
                       return (
-                        <tr key={item.id || `item-${index}`} className="border-b">
+                        <tr 
+                          key={item.id || `item-${index}`} 
+                          className={`border-b border-border/50 transition-colors hover:bg-muted/40 ${index % 2 === 1 ? 'bg-muted/20' : ''}`}
+                        >
                           <td className="p-3">
                             <div className="flex items-center gap-3">
                               {item.product_image_url && (
@@ -453,19 +473,19 @@ export default function QuoteViewPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="p-3 text-muted-foreground">{item.product_sku || "-"}</td>
+                          <td className="p-3 text-muted-foreground font-mono text-sm">{item.product_sku || "-"}</td>
                           {hasPersonalizations && (
                             <td className="p-3">
                               {personalization ? (
-                                <span className="text-sm">
+                                <span className="text-sm" title={`${personalization.technique_name} (${personalization.colors_count || 1} cor${(personalization.colors_count || 1) > 1 ? "es" : ""})`}>
                                   {personalization.technique_name} ({personalization.colors_count || 1} cor{(personalization.colors_count || 1) > 1 ? "es" : ""})
                                 </span>
                               ) : "-"}
                             </td>
                           )}
-                          <td className="p-3 text-center">{item.quantity}</td>
-                          <td className="p-3 text-right">{formatCurrency(item.unit_price)}</td>
-                          <td className="p-3 text-right font-medium">{formatCurrency(itemTotal)}</td>
+                          <td className="p-3 text-center font-medium">{item.quantity}</td>
+                          <td className="p-3 text-right text-muted-foreground">{formatCurrency(item.unit_price)}</td>
+                          <td className="p-3 text-right font-semibold">{formatCurrency(itemTotal)}</td>
                         </tr>
                       );
                     })}
@@ -474,28 +494,79 @@ export default function QuoteViewPage() {
               </div>
             </div>
 
-            <Separator />
-
-            {/* Totals — Highlighted (#4) */}
+            {/* Totals — progressive breakdown */}
             <div className="flex justify-end">
-              <div className="w-full max-w-sm bg-muted/50 rounded-lg p-4 space-y-2 border">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal:</span>
-                  <span>{formatCurrency(quote.subtotal)}</span>
-                </div>
-                {quote.discount_amount > 0 && (
-                  <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
-                    <span>Desconto{quote.discount_percent ? ` (${quote.discount_percent}%)` : ""}:</span>
-                    <span>-{formatCurrency(quote.discount_amount)}</span>
+              <div className="w-full max-w-sm rounded-lg border border-border overflow-hidden">
+                <div className="p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal produtos:</span>
+                    <span>{formatCurrency(quote.subtotal)}</span>
                   </div>
-                )}
-                <Separator />
-                <div className="flex justify-between text-xl font-bold pt-1">
-                  <span>Total:</span>
-                  <span className="text-primary">{formatCurrency(quote.total)}</span>
+                  {hasPersonalizations && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Personalização:</span>
+                      <span>{formatCurrency(
+                        (quote.items || []).reduce((acc, item) => {
+                          const p = item.personalizations?.[0];
+                          return acc + (p ? (p.unit_cost || 0) * item.quantity + (p.setup_cost || 0) : 0);
+                        }, 0)
+                      )}</span>
+                    </div>
+                  )}
+                  {quote.discount_amount > 0 && (
+                    <div className="flex justify-between text-sm text-success">
+                      <span>Desconto{quote.discount_percent ? ` (${quote.discount_percent}%)` : ""}:</span>
+                      <span>-{formatCurrency(quote.discount_amount)}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="bg-muted/50 border-t border-border px-4 py-3">
+                  <div className="flex justify-between items-baseline">
+                    <span className="font-bold text-lg">Total:</span>
+                    <span className="text-2xl font-bold text-primary">{formatCurrency(quote.total)}</span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Condições Comerciais */}
+            {(quote.payment_terms || quote.delivery_time) && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="font-semibold mb-4">Condições Comerciais</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {quote.payment_terms && (
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                        <CreditCard className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pagamento</p>
+                          <p className="text-sm font-medium mt-0.5">{quote.payment_terms}</p>
+                        </div>
+                      </div>
+                    )}
+                    {quote.delivery_time && (
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                        <Package className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Prazo de Entrega</p>
+                          <p className="text-sm font-medium mt-0.5">{quote.delivery_time}</p>
+                        </div>
+                      </div>
+                    )}
+                    {quote.shipping_method && (
+                      <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                        <Truck className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Frete</p>
+                          <p className="text-sm font-medium mt-0.5">{quote.shipping_method}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Notes */}
             {quote.notes && (

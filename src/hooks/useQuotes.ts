@@ -54,6 +54,9 @@ export interface Quote {
   discount_amount: number;
   total: number;
   notes?: string;
+  payment_terms?: string;
+  delivery_time?: string;
+  shipping_method?: string;
   internal_notes?: string;
   valid_until?: string;
   bitrix_deal_id?: string;
