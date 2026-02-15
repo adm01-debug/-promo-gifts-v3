@@ -245,15 +245,22 @@ export default function MockupGenerator() {
     try {
       const techniquesRes = await supabase.functions.invoke("external-db-bridge", {
         body: {
-          table: "personalization_techniques",
+          table: "tabela_preco_gravacao_oficial",
           operation: "select",
-          filters: { is_active: true },
-          orderBy: { column: "name", ascending: true },
+          filters: { ativo: true },
           limit: 100,
         },
       });
 
-      const techniquesData = techniquesRes.data?.data?.records || techniquesRes.data?.records || [];
+      const records = techniquesRes.data?.data?.records || techniquesRes.data?.records || [];
+      // Map external table fields to Technique interface
+      const techniquesData = records.map((r: any) => ({
+        id: r.id,
+        name: r.nome,
+        code: r.codigo_curto || r.codigo_tabela || null,
+      }));
+      // Sort by name
+      techniquesData.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
       setTechniques(techniquesData);
     } catch (error) {
       console.error("Error fetching data:", error);
