@@ -38,6 +38,10 @@ interface LogoPositionEditorProps {
   techniqueName?: string;
   maxWidth?: number | null;
   maxHeight?: number | null;
+  /** Physical height of the product in cm (from external DB) */
+  productHeightCm?: number | null;
+  /** Physical width/diameter of the product in cm (from external DB) */
+  productWidthCm?: number | null;
   onPositionChange: (x: number, y: number) => void;
   onRotationChange?: (rotation: number) => void;
   onSizeChange: (width: number, height: number) => void;
@@ -179,6 +183,8 @@ export function LogoPositionEditor({
   techniqueName,
   maxWidth,
   maxHeight,
+  productHeightCm,
+  productWidthCm,
   onPositionChange,
   onSizeChange,
   onRotationChange,
@@ -227,18 +233,53 @@ export function LogoPositionEditor({
     [techniqueCode, techniqueName]
   );
 
-  // Convert cm to pixels relative to container, using real product area dimensions when available.
-  // If maxWidth/maxHeight are known, scale so that the max area occupies ~60% of the container,
-  // making the logo proportionally accurate to the real product.
+  // Convert cm to pixels using the product's real physical dimensions as the reference frame.
+  // This ensures the engraving area is proportionally accurate relative to the product.
+  //
+  // Strategy:
+  //   1. If product physical dims are known → use them as the "ruler" (1cm = N px)
+  //   2. Else if technique maxWidth/maxHeight known → old 60% fraction fallback
+  //   3. Else → 30cm reference fallback
+  //
+  // The product image fills the container via object-contain, so the "visible product"
+  // occupies a portion of the container. We use ~85% of the container as the product's
+  // largest dimension to approximate alignment with the object-contain rendering.
   const logoDisplay = useMemo(() => {
     const containerW = containerSize.width || 400;
     const containerH = containerSize.height || containerW; // aspect-square
 
+    const prodH = productHeightCm && productHeightCm > 0 ? productHeightCm : null;
+    const prodW = productWidthCm && productWidthCm > 0 ? productWidthCm : null;
+
     const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : null;
     const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : null;
 
+    // Strategy 1: Product-based scale (most accurate)
+    if (prodH || prodW) {
+      // Use known product dims. If only one is known, assume a reasonable ratio.
+      const physW = prodW || (prodH! * 0.4); // bottles are typically narrow
+      const physH = prodH || (prodW! * 2.5);
+
+      // The product image (object-contain) fills ~85% of the container visually
+      const productFraction = 0.85;
+      const scaleByW = (containerW * productFraction) / physW;
+      const scaleByH = (containerH * productFraction) / physH;
+      const cmToPx = Math.min(scaleByW, scaleByH);
+
+      // Enforce minimum pixel size so tiny engravings remain visible (at least 40px)
+      const rawW = logoWidth * cmToPx;
+      const rawH = logoHeight * cmToPx;
+      const minPx = 40;
+      if (rawW < minPx && rawH < minPx) {
+        const boost = minPx / Math.max(rawW, rawH);
+        return { widthPx: rawW * boost, heightPx: rawH * boost };
+      }
+
+      return { widthPx: rawW, heightPx: rawH };
+    }
+
+    // Strategy 2: Technique-based 60% fraction (no product dims)
     if (effectiveMaxW && effectiveMaxH) {
-      // Scale so the max engraving area fits ~60% of container (visually representative)
       const areaFraction = 0.6;
       const scaleByW = (containerW * areaFraction) / effectiveMaxW;
       const scaleByH = (containerH * areaFraction) / effectiveMaxH;
@@ -249,13 +290,13 @@ export function LogoPositionEditor({
       };
     }
 
-    // Fallback: old 30cm reference
+    // Strategy 3: Fallback — 30cm reference
     const scale = containerW / 30;
     return {
       widthPx: logoWidth * scale,
       heightPx: logoHeight * scale,
     };
-  }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight]);
+  }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm]);
 
   // Logo rendered size — fits the natural image into the container (object-contain equivalent)
   // Rotation does NOT affect sizing; it's applied purely as a CSS transform on the element's own axis.
