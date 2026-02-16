@@ -355,7 +355,12 @@ export function useMockupGenerator() {
   }, []);
 
   const getProductImage = (): string | null => {
-    if (productSelection?.imageUrl) return productSelection.imageUrl;
+    if (productSelection?.imageUrl) {
+      // Remove /thumbnail suffix for preview (full-size image renders better)
+      // The thumbnail variant can fail on some CDN entries
+      const url = productSelection.imageUrl;
+      return url.endsWith('/thumbnail') ? url.replace('/thumbnail', '') : url;
+    }
     if (!selectedProduct?.images?.length) return null;
     return selectedProduct.images[0] || null;
   };

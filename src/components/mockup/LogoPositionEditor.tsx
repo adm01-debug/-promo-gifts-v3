@@ -314,6 +314,14 @@ export function LogoPositionEditor({
             alt="Imagem do produto para preview de personalização"
             className="absolute inset-0 w-full h-full object-contain"
             loading="lazy"
+            onError={(e) => {
+              const t = e.currentTarget;
+              if (t.src.includes('/thumbnail')) {
+                t.src = t.src.replace('/thumbnail', '');
+              } else if (!t.src.includes('/placeholder.svg')) {
+                t.src = '/placeholder.svg';
+              }
+            }}
           />
 
           {logoPreview ? (
