@@ -17,6 +17,7 @@ import { usePositionHistory } from "@/hooks/usePositionHistory";
 import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useMockupWizardStep } from "@/components/mockup/MockupWizard";
+import { useLogoColorAnalysis } from "@/hooks/useLogoColorAnalysis";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import type { PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 import type { MockupProductSelection } from "@/components/mockup/MockupProductSelector";
@@ -118,6 +119,9 @@ export function useMockupGenerator() {
   // Tab & positioning
   const [activeTab, setActiveTab] = useState("generator");
   const [hasUserInteractedPosition, setHasUserInteractedPosition] = useState(false);
+
+  // Logo color analysis
+  const logoColorAnalysis = useLogoColorAnalysis();
 
   // ─── Undo/Redo ───────────────────────────────────────────────────────
   const positionHistory = usePositionHistory({ enabled: true });
@@ -369,9 +373,11 @@ export function useMockupGenerator() {
       setPersonalizationAreas(prev =>
         prev.map(area => area.id === areaId ? { ...area, logoPreview: logoData } : area)
       );
+      // Auto-analyze colors when logo is uploaded
+      logoColorAnalysis.analyzeImage(logoData);
     };
     reader.readAsDataURL(file);
-  }, []);
+  }, [logoColorAnalysis]);
 
   const getProductImage = (): string | null => {
     if (productSelection?.imageUrl) {
@@ -698,6 +704,9 @@ export function useMockupGenerator() {
 
     // Undo/Redo
     positionHistory,
+
+    // Logo color analysis
+    logoColorAnalysis,
 
     // Misc
     filteredTechniques,

@@ -249,6 +249,7 @@ export default function MockupGenerator() {
                 onActiveAreaChange={mg.setActiveAreaId}
                 onLogoUpload={mg.handleAreaLogoUpload}
                 productLocations={mg.productLocations}
+                logoColorAnalysis={mg.logoColorAnalysis}
               />
 
               {/* Right panel: Position Editor + Result */}

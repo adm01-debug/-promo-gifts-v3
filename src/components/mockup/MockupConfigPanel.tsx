@@ -19,6 +19,8 @@ import { GenerateButton } from "./GenerateButton";
 import { MockupClientSelector } from "./MockupClientSelector";
 import { MockupProductSelector, type MockupProductSelection } from "./MockupProductSelector";
 import { MultiAreaManager, type PersonalizationArea } from "./MultiAreaManager";
+import { LogoColorAnalyzer } from "./LogoColorAnalyzer";
+import type { DetectedColor } from "@/hooks/useLogoColorAnalysis";
 
 interface Technique {
   id: string;
@@ -61,6 +63,13 @@ interface MockupConfigPanelProps {
   onLogoUpload: (areaId: string, file: File) => void;
   /** Real product locations from DB — if provided, locks areas to these */
   productLocations: { code: string; name: string; order: number }[] | null;
+  /** Logo color analysis */
+  logoColorAnalysis?: {
+    colors: DetectedColor[];
+    isAnalyzing: boolean;
+    error: string | null;
+    updatePantone: (index: number, pantoneCode: string) => void;
+  };
 }
 
 export function MockupConfigPanel({
@@ -82,6 +91,7 @@ export function MockupConfigPanel({
   onActiveAreaChange,
   onLogoUpload,
   productLocations,
+  logoColorAnalysis,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
   const stepsRemaining = [!selectedClient, !productSelection, !selectedTechnique, !hasLogo].filter(Boolean).length;
@@ -214,6 +224,23 @@ export function MockupConfigPanel({
                 productLocations={productLocations}
               />
             </MobileCollapsibleSection>
+
+            {/* Logo Color Analysis — auto-appears after logo upload */}
+            {logoColorAnalysis && (logoColorAnalysis.colors.length > 0 || logoColorAnalysis.isAnalyzing) && (
+              <MobileCollapsibleSection
+                stepNumber={5}
+                label="Cores da Logo"
+                isCompleted={logoColorAnalysis.colors.length > 0 && !logoColorAnalysis.isAnalyzing}
+                summary={logoColorAnalysis.colors.length > 0 ? `${logoColorAnalysis.colors.length} Pantone` : undefined}
+              >
+                <LogoColorAnalyzer
+                  colors={logoColorAnalysis.colors}
+                  isAnalyzing={logoColorAnalysis.isAnalyzing}
+                  error={logoColorAnalysis.error}
+                  onPantoneChange={logoColorAnalysis.updatePantone}
+                />
+              </MobileCollapsibleSection>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-4">
