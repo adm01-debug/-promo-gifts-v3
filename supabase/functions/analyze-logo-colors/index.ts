@@ -19,6 +19,30 @@ serve(async (req) => {
       });
     }
 
+    // Handle HTTP URLs: fetch the image and convert to base64
+    let imageContent = imageBase64;
+    if (imageBase64.startsWith("http://") || imageBase64.startsWith("https://")) {
+      try {
+        const imgResponse = await fetch(imageBase64);
+        if (!imgResponse.ok) throw new Error(`Failed to fetch image: ${imgResponse.status}`);
+        const arrayBuffer = await imgResponse.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        let binary = "";
+        for (let i = 0; i < uint8Array.length; i++) {
+          binary += String.fromCharCode(uint8Array[i]);
+        }
+        const base64 = btoa(binary);
+        const contentType = imgResponse.headers.get("content-type") || "image/png";
+        imageContent = `data:${contentType};base64,${base64}`;
+      } catch (fetchErr) {
+        console.error("Error fetching image URL:", fetchErr);
+        return new Response(JSON.stringify({ error: "Failed to fetch image from URL" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY not configured");
@@ -56,7 +80,7 @@ Return ONLY a JSON array, no markdown, no explanation. Example:
               {
                 type: "image_url",
                 image_url: {
-                  url: imageBase64.startsWith("data:") ? imageBase64 : `data:image/png;base64,${imageBase64}`
+                  url: imageContent.startsWith("data:") ? imageContent : `data:image/png;base64,${imageContent}`
                 }
               }
             ]
