@@ -13,9 +13,15 @@ import {
   Share2,
   CheckCircle2,
   Copy,
+  Maximize2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 interface MockupResultCardProps {
   generatedMockup: string | null;
@@ -57,6 +63,9 @@ export function MockupResultCard({
       return () => clearTimeout(timer);
     }
   }, [generatedMockup, isLoading]);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenZoom, setFullscreenZoom] = useState(1);
 
   const handleZoomIn = () => setZoom((z) => Math.min(z + 0.25, 3));
   const handleZoomOut = () => setZoom((z) => Math.max(z - 0.25, 0.5));
@@ -232,11 +241,22 @@ export function MockupResultCard({
 
           {/* Metadata */}
           <div className="flex items-center justify-between text-xs">
-            {techniqueName && (
-              <Badge variant="secondary" className="font-normal">
-                {techniqueName}
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {techniqueName && (
+                <Badge variant="secondary" className="font-normal">
+                  {techniqueName}
+                </Badge>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsFullscreen(true)}
+                className="text-muted-foreground hover:text-foreground gap-1"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                Tela cheia
+              </Button>
+            </div>
             {onReset && (
               <Button
                 size="sm"
@@ -249,6 +269,56 @@ export function MockupResultCard({
             )}
           </div>
         </CardContent>
+
+        {/* Fullscreen Lightbox */}
+        <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+          <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-0 bg-background/95 backdrop-blur-xl [&>button]:hidden">
+            <div className="relative flex flex-col items-center justify-center w-full h-full min-h-[60vh]">
+              {/* Close + actions bar */}
+              <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+                <Button size="sm" variant="secondary" onClick={onDownload} className="gap-1.5 shadow-md">
+                  <Download className="h-4 w-4" /> Baixar
+                </Button>
+                <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => setIsFullscreen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Zoom controls */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg">
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.max(z - 0.25, 0.25))} disabled={fullscreenZoom <= 0.25}>
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <span className="text-xs font-medium w-14 text-center">{Math.round(fullscreenZoom * 100)}%</span>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.min(z + 0.25, 5))}>
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(1)}>
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+
+              {/* Image */}
+              <div className="overflow-auto w-full h-full flex items-center justify-center p-8" style={{ cursor: fullscreenZoom > 1 ? 'grab' : 'default' }}>
+                <img
+                  src={generatedMockup}
+                  alt="Mockup em tela cheia"
+                  className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
+                  style={{ transform: `scale(${fullscreenZoom})` }}
+                />
+              </div>
+
+              {/* Info bar */}
+              {(productName || techniqueName) && (
+                <div className="absolute top-3 left-3 z-10">
+                  <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm shadow-md">
+                    {productName}{techniqueName ? ` • ${techniqueName}` : ''}
+                  </Badge>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </Card>
     );
   }

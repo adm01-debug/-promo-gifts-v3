@@ -165,6 +165,7 @@ export default function MockupGenerator() {
         {/* Wizard Progress */}
         <MockupWizard
           currentStep={mg.wizardStep}
+          hasClient={!!mg.selectedClient}
           hasProduct={!!mg.selectedProduct}
           hasTechnique={!!mg.selectedTechnique}
           hasLogo={mg.hasLogo}
@@ -176,8 +177,9 @@ export default function MockupGenerator() {
               1: "Empresa",
               2: "Produto",
               3: "Técnica",
-              4: "Áreas",
-              5: "Gerar",
+              4: "Logo",
+              5: "Posição",
+              6: "Gerar",
             };
             const label = sectionMap[step];
             if (label) toast.info(`📍 ${label}`, { duration: 1500 });

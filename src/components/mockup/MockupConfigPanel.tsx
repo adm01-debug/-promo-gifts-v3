@@ -5,13 +5,15 @@
  * Handles: Client, Product, Technique selection + Areas + Generate button.
  */
 
-import { Loader2, Paintbrush, RefreshCw, Info } from "lucide-react";
+import { Loader2, Paintbrush, RefreshCw, Info, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Wand2 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 import { TechniqueTooltip } from "./TechniqueTooltip";
 import { GenerateButton } from "./GenerateButton";
 import { MockupClientSelector } from "./MockupClientSelector";
@@ -107,41 +109,45 @@ export function MockupConfigPanel({
 
         {!isLoadingData && (
           <>
-            {/* Client Selection — required, from external CRM */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">1</span>
-                Empresa <span className="text-destructive">*</span>
-              </Label>
+            {/* Step 1: Client Selection — collapsible on mobile */}
+            <MobileCollapsibleSection
+              stepNumber={1}
+              label="Empresa"
+              isCompleted={!!selectedClient}
+              summary={selectedClient?.name}
+              required
+            >
               <MockupClientSelector
                 selectedClient={selectedClient}
                 onClientSelect={onClientSelect}
               />
-            </div>
+            </MobileCollapsibleSection>
 
-            {/* Product Selection with color/variant */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">2</span>
-                Produto
-              </Label>
+            {/* Step 2: Product Selection */}
+            <MobileCollapsibleSection
+              stepNumber={2}
+              label="Produto"
+              isCompleted={!!productSelection}
+              summary={productSelection?.product.name}
+            >
               <MockupProductSelector
                 selection={productSelection}
                 onSelect={onProductSelect}
               />
-            </div>
+            </MobileCollapsibleSection>
 
-            {/* Technique Selection — filtered by product */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">3</span>
-                Técnica de Personalização
-                {selectedTechnique && (
-                  <TechniqueTooltip technique={selectedTechnique}>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary transition-colors cursor-help" />
-                  </TechniqueTooltip>
-                )}
-              </Label>
+            {/* Step 3: Technique Selection */}
+            <MobileCollapsibleSection
+              stepNumber={3}
+              label="Técnica de Personalização"
+              isCompleted={!!selectedTechnique}
+              summary={selectedTechnique?.name}
+              trailing={selectedTechnique && (
+                <TechniqueTooltip technique={selectedTechnique}>
+                  <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary transition-colors cursor-help" />
+                </TechniqueTooltip>
+              )}
+            >
               <Select
                 value={selectedTechnique?.id || ""}
                 onValueChange={(value) => {
@@ -190,14 +196,15 @@ export function MockupConfigPanel({
                   {filteredTechniques.length} de {techniques.length} técnicas compatíveis
                 </p>
               )}
-            </div>
+            </MobileCollapsibleSection>
 
-            {/* Áreas de Personalização — step 4 */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-xs font-semibold">4</span>
-                Áreas de Personalização
-              </Label>
+            {/* Step 4: Areas */}
+            <MobileCollapsibleSection
+              stepNumber={4}
+              label="Áreas de Personalização"
+              isCompleted={hasLogo}
+              summary={hasLogo ? `${personalizationAreas.filter(a => a.logoPreview).length} logo(s)` : undefined}
+            >
               <MultiAreaManager
                 areas={personalizationAreas}
                 activeAreaId={activeAreaId}
@@ -206,7 +213,7 @@ export function MockupConfigPanel({
                 onLogoUpload={onLogoUpload}
                 productLocations={productLocations}
               />
-            </div>
+            </MobileCollapsibleSection>
 
             {/* Action Buttons */}
             <div className="flex gap-2 pt-4">
@@ -231,5 +238,79 @@ export function MockupConfigPanel({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// ─── Mobile Collapsible Section ──────────────────────────────────────
+
+interface MobileCollapsibleSectionProps {
+  stepNumber: number;
+  label: string;
+  isCompleted: boolean;
+  summary?: string;
+  required?: boolean;
+  trailing?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+function MobileCollapsibleSection({
+  stepNumber,
+  label,
+  isCompleted,
+  summary,
+  required,
+  trailing,
+  children,
+}: MobileCollapsibleSectionProps) {
+  // Desktop: always expanded. Mobile: collapsible, auto-collapse when completed.
+  return (
+    <div className="space-y-2">
+      {/* Desktop view — always visible */}
+      <div className="hidden md:block space-y-2">
+        <Label className="flex items-center gap-2">
+          <span className={cn(
+            "flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold",
+            isCompleted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+          )}>
+            {stepNumber}
+          </span>
+          {label} {required && <span className="text-destructive">*</span>}
+          {trailing}
+        </Label>
+        {children}
+      </div>
+
+      {/* Mobile view — collapsible */}
+      <div className="md:hidden">
+        <Collapsible defaultOpen={!isCompleted}>
+          <CollapsibleTrigger className="w-full">
+            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  "flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold",
+                  isCompleted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
+                )}>
+                  {stepNumber}
+                </span>
+                <span className="text-sm font-medium">{label}</span>
+                {required && <span className="text-destructive text-xs">*</span>}
+                {trailing}
+              </div>
+              <div className="flex items-center gap-2">
+                {isCompleted && summary && (
+                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                    {summary}
+                  </span>
+                )}
+                <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform" />
+              </div>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            {children}
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+    </div>
   );
 }
