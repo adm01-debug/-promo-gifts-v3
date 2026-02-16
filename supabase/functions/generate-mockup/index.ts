@@ -78,14 +78,21 @@ Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)
 
 IMPORTANT: Render the logo ${techniquePrompt}
 
-Make the result look like a professional product mockup photo. The logo should:
-- Be properly integrated into the product surface
+CRITICAL RULES:
+- DO NOT change the product size, proportions, or dimensions in any way
+- DO NOT crop, zoom, resize, or reframe the original product image
+- The output image MUST have the exact same composition, framing, and scale as the input product image
+- Keep the product at the exact same size and position in the frame
+- The background, lighting, shadows, and overall photography must remain identical
+
+The logo should:
+- Be properly integrated into the product surface at the specified position
 - Follow the contours and curves of the product
 - Have realistic lighting and shadows matching the product
 - Look like a real customized promotional item
 - Maintain the original product colors and appearance
 
-Keep the product photography style consistent - same background, lighting, and overall quality.`;
+Output the final image maintaining the exact same dimensions and aspect ratio as the original product photo.`;
 
     console.log("Sending request to Lovable AI Gateway...");
 
