@@ -1,7 +1,5 @@
-import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Trash2, MapPin, Upload, RefreshCw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PersonalizationArea } from "./MultiAreaManager";
@@ -31,7 +29,7 @@ export function AreaCard({
   onLogoRemove,
   onRemove,
 }: AreaCardProps) {
-  const replaceInputRef = useRef<HTMLInputElement>(null);
+  
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
