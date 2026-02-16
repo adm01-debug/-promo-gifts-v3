@@ -15,6 +15,7 @@ interface LogoPositionEditorProps {
   logoWidth: number;
   logoHeight: number;
   logoRotation?: number;
+  logoScale?: number;
   techniqueCode?: string | null;
   techniqueName?: string;
   maxWidth?: number | null;
@@ -22,6 +23,7 @@ interface LogoPositionEditorProps {
   onPositionChange: (x: number, y: number) => void;
   onRotationChange?: (rotation: number) => void;
   onSizeChange: (width: number, height: number) => void;
+  onLogoScaleChange?: (scale: number) => void;
 }
 
 type TechniqueFilter = {
@@ -154,6 +156,7 @@ export function LogoPositionEditor({
   logoWidth,
   logoHeight,
   logoRotation = 0,
+  logoScale = 100,
   techniqueCode,
   techniqueName,
   maxWidth,
@@ -161,6 +164,7 @@ export function LogoPositionEditor({
   onPositionChange,
   onSizeChange,
   onRotationChange,
+  onLogoScaleChange,
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const [showPreviewMode, setShowPreviewMode] = useState(true);
@@ -388,7 +392,7 @@ export function LogoPositionEditor({
                 alt="Logo para personalização"
                 className="w-full h-full object-contain"
                 style={{
-                  transform: `rotate(${logoRotation || 0}deg)`,
+                  transform: `rotate(${logoRotation || 0}deg) scale(${(logoScale || 100) / 100})`,
                   opacity: showPreviewMode ? techniqueFilter.opacity : 1,
                   filter: showPreviewMode ? techniqueFilter.filter : "none",
                   mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
@@ -524,7 +528,23 @@ export function LogoPositionEditor({
           </Button>
         </div>
 
-        {/* Fine-tune controls */}
+        {/* Logo scale control */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground font-medium">Escala do Logo</span>
+            <span className="font-medium">{logoScale}%</span>
+          </div>
+          <Slider
+            value={[logoScale]}
+            onValueChange={(v) => onLogoScaleChange?.(v[0])}
+            min={10}
+            max={100}
+            step={5}
+            disabled={!logoPreview}
+          />
+        </div>
+
+
         <div className="pt-2 border-t space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground font-medium">Dimensões</span>
@@ -597,7 +617,7 @@ export function LogoPositionEditor({
             Posição: {positionX}% x {positionY}%
           </span>
           <span>
-            Tamanho: {logoWidth}cm × {logoHeight}cm{logoRotation ? ` · ${logoRotation}°` : ''}
+            {logoWidth}cm × {logoHeight}cm{logoScale < 100 ? ` · ${logoScale}%` : ''}{logoRotation ? ` · ${logoRotation}°` : ''}
           </span>
         </div>
       </CardContent>

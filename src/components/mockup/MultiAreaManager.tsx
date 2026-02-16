@@ -30,6 +30,7 @@ export interface PersonalizationArea {
   logoWidth: number;
   logoHeight: number;
   logoRotation?: number;
+  logoScale?: number;
   logoPreview: string | null;
 }
 
