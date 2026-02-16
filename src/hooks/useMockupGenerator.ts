@@ -484,7 +484,14 @@ export function useMockupGenerator() {
           },
         });
 
-        if (response.error) throw response.error;
+        if (response.error) {
+          // Check for structured error from edge function
+          const errData = response.data || response.error;
+          if (errData?.errorCode === "SVG_NOT_SUPPORTED") {
+            throw new Error(errData.error || "Logos SVG não são suportados. Use PNG ou JPG.");
+          }
+          throw response.error;
+        }
         if (response.data?.mockupUrl) {
           setGeneratedMockup(response.data.mockupUrl);
           await saveMockupToHistory(response.data.mockupUrl, primaryArea);
