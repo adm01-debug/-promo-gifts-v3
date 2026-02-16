@@ -160,6 +160,17 @@ export default function MockupGenerator() {
   const { data: customizationOptions } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
   const hasLogo = personalizationAreas.some(a => !!a.logoPreview);
 
+  // Derive unique clients from history data for the filter
+  const historyClients = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    mockupHistory.forEach(m => {
+      if (m.client_id && m.bitrix_clients?.name) {
+        map.set(m.client_id, { id: m.client_id, name: m.bitrix_clients.name });
+      }
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [mockupHistory]);
+
   // Product locations from DB for the MultiAreaManager
   const productLocations = useMemo(() => {
     if (!customizationOptions?.locations?.length) return null;
@@ -666,6 +677,22 @@ export default function MockupGenerator() {
           hasLogo={hasLogo}
           hasPositioned={hasUserInteractedPosition}
           hasGenerated={!!generatedMockup}
+          onStepClick={(step) => {
+            // Scroll to the config panel on the generator tab
+            setActiveTab("generator");
+            // Focus relevant section based on step
+            const sectionMap: Record<number, string> = {
+              1: "Empresa",
+              2: "Produto", 
+              3: "Técnica",
+              4: "Áreas",
+              5: "Gerar",
+            };
+            const label = sectionMap[step];
+            if (label) {
+              toast.info(`📍 ${label}`, { duration: 1500 });
+            }
+          }}
         />
 
         {/* Notices */}
@@ -746,6 +773,8 @@ export default function MockupGenerator() {
                     logoHeight={activeArea.logoHeight}
                     techniqueCode={selectedTechnique?.code}
                     techniqueName={selectedTechnique?.name}
+                    maxWidth={(selectedTechnique as any)?.maxWidth ?? null}
+                    maxHeight={(selectedTechnique as any)?.maxHeight ?? null}
                     onPositionChange={(x, y) => updateActiveArea({ positionX: x, positionY: y })}
                     onSizeChange={(w, h) => updateActiveArea({ logoWidth: w, logoHeight: h })}
                   />
@@ -753,11 +782,31 @@ export default function MockupGenerator() {
                   <Card className="border-dashed border-2">
                     <CardContent className="flex items-center justify-center py-16">
                       <div className="text-center text-muted-foreground max-w-xs">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 opacity-50" />
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                          <ImageIcon className="h-8 w-8 text-primary/50" />
                         </div>
-                        <p className="font-medium text-foreground mb-1">Nenhum produto selecionado</p>
-                        <p className="text-sm">Selecione um produto para posicionar o logo</p>
+                        <p className="font-medium text-foreground mb-1">Selecione um produto</p>
+                        <p className="text-sm mb-3">
+                          Comece escolhendo uma empresa e produto no painel ao lado para posicionar o logo
+                        </p>
+                        <div className="flex flex-col gap-1.5 text-xs text-left mx-auto max-w-[200px]">
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
+                            Selecione a empresa
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">2</span>
+                            Escolha o produto
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">3</span>
+                            Defina a técnica
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">4</span>
+                            Faça upload do logo
+                          </span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -780,7 +829,7 @@ export default function MockupGenerator() {
             <MockupHistoryPanel
               mockupHistory={mockupHistory}
               isLoading={isLoadingHistory}
-              clients={[]}
+              clients={historyClients}
               techniques={techniques}
               onLoadFromHistory={loadFromHistory}
               onDownload={downloadMockup}
