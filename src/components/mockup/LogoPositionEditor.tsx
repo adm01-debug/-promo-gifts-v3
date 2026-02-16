@@ -277,7 +277,7 @@ export function LogoPositionEditor({
     [logoPreview, positionX, positionY, handlePointerMove, handlePointerUp]
   );
 
-  const centerLogo = () => onPositionChange(50, 50);
+  
 
   const toggleOrientation = useCallback(() => {
     // Rotate the logo 90° within the fixed engraving area
