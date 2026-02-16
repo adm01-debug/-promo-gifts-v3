@@ -73,8 +73,8 @@ export function MockupBeforeAfter({
         <img
           src={beforeImage}
           alt="Preview de posicionamento"
-          className="absolute inset-0 w-full h-full object-contain"
-          style={{ width: `${containerRef.current?.offsetWidth || 400}px` }}
+          className="absolute top-0 left-0 h-full object-contain"
+          style={{ width: `${(1 / (sliderPosition / 100)) * 100}%`, maxWidth: 'none' }}
           draggable={false}
         />
       </div>

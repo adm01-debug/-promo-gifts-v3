@@ -94,7 +94,7 @@ export function MockupAnnotations({
       <div
         ref={containerRef}
         className={cn(
-          "relative rounded-lg border overflow-hidden",
+          "relative rounded-lg border",
           isAnnotating && "cursor-crosshair ring-2 ring-primary"
         )}
         onClick={handleClick}

@@ -73,7 +73,7 @@ interface MockupHistoryPanelProps {
   onLoadFromHistory: (mockup: GeneratedMockup) => void;
   onDownload: (url: string) => void;
   onDelete: (id: string) => void;
-  onShare: (mockup: GeneratedMockup) => void;
+  onShare?: (mockup: GeneratedMockup) => void;
 }
 
 const ITEMS_PER_PAGE = 12;

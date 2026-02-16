@@ -398,6 +398,7 @@ export function useMockupGenerator() {
         position_y: area.positionY,
         logo_width_cm: area.logoWidth,
         logo_height_cm: area.logoHeight,
+        annotations: mockupAnnotations.length > 0 ? mockupAnnotations : null,
       });
       if (error) throw error;
       fetchHistory();
