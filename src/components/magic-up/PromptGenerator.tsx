@@ -1,9 +1,10 @@
 /**
  * PromptGenerator — Gerador de prompts publicitários com IA
  * Cria prompts otimizados baseados no contexto do produto, cliente e objetivo
+ * Inclui seleção de local, técnica e dimensões reais do banco de dados
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,12 +15,13 @@ import {
 import {
   Wand2, Loader2, Sparkles, Target, Megaphone,
   Users, CalendarDays, RefreshCw, Check, Star,
-  Lightbulb, Zap,
+  Lightbulb, Zap, MapPin, Paintbrush, Ruler,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ScenePrompt } from "./PromptBank";
+import type { PrintAreaWithTechniques } from "@/types/gravacao";
 
 interface GeneratedPrompt {
   title: string;
@@ -32,13 +34,23 @@ interface GeneratedPrompt {
 interface PromptGeneratorProps {
   productName?: string;
   productColor?: string;
-  techniqueName?: string;
-  locationName?: string;
   clientName?: string;
   clientSegment?: string | null;
   brandColorName?: string | null;
+  /** Áreas de gravação do produto selecionado (do usePrintAreas) */
+  printAreas?: PrintAreaWithTechniques[];
   onSelectPrompt: (prompt: ScenePrompt) => void;
   selectedPrompt: ScenePrompt | null;
+  /** Callback para informar local/técnica selecionados ao MagicUp */
+  onCustomizationChange?: (info: {
+    locationId: string | null;
+    locationName: string | null;
+    techniqueId: string | null;
+    techniqueName: string | null;
+    maxWidth: number;
+    maxHeight: number;
+    unit: string;
+  }) => void;
 }
 
 const OBJECTIVES = [
@@ -86,21 +98,85 @@ const SEASONS = [
 export function PromptGenerator({
   productName,
   productColor,
-  techniqueName,
-  locationName,
   clientName,
   clientSegment,
   brandColorName,
+  printAreas,
   onSelectPrompt,
   selectedPrompt,
+  onCustomizationChange,
 }: PromptGeneratorProps) {
+  // Campaign settings
   const [objective, setObjective] = useState("");
   const [tone, setTone] = useState("");
   const [audience, setAudience] = useState("");
   const [season, setSeason] = useState("none");
+
+  // Customization from real DB
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
+  const [selectedTechId, setSelectedTechId] = useState<string | null>(null);
+
+  // Generation
   const [generating, setGenerating] = useState(false);
   const [generatedPrompts, setGeneratedPrompts] = useState<GeneratedPrompt[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
+
+  // ─── Derived from printAreas ───────────────────────────────────
+
+  const selectedArea = useMemo(() => {
+    if (!selectedAreaId || !printAreas) return null;
+    return printAreas.find(a => a.area_id === selectedAreaId) || null;
+  }, [selectedAreaId, printAreas]);
+
+  const availableTechniques = useMemo(() => {
+    if (!selectedArea) return [];
+    return selectedArea.techniques || [];
+  }, [selectedArea]);
+
+  const selectedTech = useMemo(() => {
+    if (!selectedTechId) return null;
+    return availableTechniques.find(t => t.id === selectedTechId) || null;
+  }, [selectedTechId, availableTechniques]);
+
+  const locationLabel = useMemo(() => {
+    if (!selectedArea) return null;
+    return [selectedArea.component_name, selectedArea.location_name].filter(Boolean).join(" — ");
+  }, [selectedArea]);
+
+  // ─── Sync selections back to MagicUp ───────────────────────────
+
+  const handleAreaChange = (areaId: string) => {
+    const isNone = areaId === "none";
+    setSelectedAreaId(isNone ? null : areaId);
+    setSelectedTechId(null);
+    const area = isNone ? null : printAreas?.find(a => a.area_id === areaId);
+    onCustomizationChange?.({
+      locationId: isNone ? null : areaId,
+      locationName: area ? [area.component_name, area.location_name].filter(Boolean).join(" — ") : null,
+      techniqueId: null,
+      techniqueName: null,
+      maxWidth: area?.max_width || 0,
+      maxHeight: area?.max_height || 0,
+      unit: area?.unit || "cm",
+    });
+  };
+
+  const handleTechChange = (techId: string) => {
+    const isNone = techId === "none";
+    setSelectedTechId(isNone ? null : techId);
+    const tech = isNone ? null : availableTechniques.find(t => t.id === techId);
+    onCustomizationChange?.({
+      locationId: selectedAreaId,
+      locationName: locationLabel,
+      techniqueId: isNone ? null : techId,
+      techniqueName: tech?.nome || null,
+      maxWidth: selectedArea?.max_width || 0,
+      maxHeight: selectedArea?.max_height || 0,
+      unit: selectedArea?.unit || "cm",
+    });
+  };
+
+  // ─── Generate ──────────────────────────────────────────────────
 
   const handleGenerate = useCallback(async () => {
     if (!productName) {
@@ -114,8 +190,12 @@ export function PromptGenerator({
         body: {
           productName,
           productColor,
-          techniqueName,
-          locationName,
+          techniqueName: selectedTech?.nome || null,
+          locationName: locationLabel || null,
+          maxWidth: selectedArea?.max_width || null,
+          maxHeight: selectedArea?.max_height || null,
+          dimensionUnit: selectedArea?.unit || "cm",
+          isCurved: selectedArea?.is_curved || false,
           clientName,
           clientSegment,
           brandColorName,
@@ -142,7 +222,7 @@ export function PromptGenerator({
     } finally {
       setGenerating(false);
     }
-  }, [productName, productColor, techniqueName, locationName, clientName, clientSegment, brandColorName, objective, tone, audience, season]);
+  }, [productName, productColor, selectedTech, locationLabel, selectedArea, clientName, clientSegment, brandColorName, objective, tone, audience, season]);
 
   const handleSelectGenerated = (gp: GeneratedPrompt) => {
     const scenePrompt: ScenePrompt = {
@@ -170,9 +250,104 @@ export function PromptGenerator({
     return MOOD_COLORS[m] || "bg-muted text-muted-foreground border-border";
   };
 
+  const hasPrintAreas = printAreas && printAreas.length > 0;
+
   return (
     <div className="space-y-4">
-      {/* Configuration panel */}
+      {/* ─── Customization: Location, Technique & Dimensions ──── */}
+      {hasPrintAreas && (
+        <div className="space-y-2.5 p-3 rounded-lg border border-primary/20 bg-primary/5">
+          <p className="text-[11px] font-semibold text-primary flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" />
+            Personalização do Produto
+          </p>
+
+          <div className="grid grid-cols-2 gap-2.5">
+            {/* Location */}
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <MapPin className="h-3 w-3" /> Local
+              </Label>
+              <Select value={selectedAreaId || "none"} onValueChange={handleAreaChange}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none" className="text-xs">Nenhum</SelectItem>
+                  {printAreas!.map(area => {
+                    const label = [area.component_name, area.location_name].filter(Boolean).join(" — ") || area.area_code;
+                    return (
+                      <SelectItem key={area.area_id} value={area.area_id} className="text-xs">
+                        {label}
+                        {area.max_width > 0 && (
+                          <span className="text-muted-foreground ml-1">
+                            ({area.max_width}×{area.max_height}{area.unit})
+                          </span>
+                        )}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Technique */}
+            <div className="space-y-1">
+              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Paintbrush className="h-3 w-3" /> Técnica
+              </Label>
+              <Select
+                value={selectedTechId || "none"}
+                onValueChange={handleTechChange}
+                disabled={!selectedAreaId || availableTechniques.length === 0}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder={selectedAreaId ? "Selecione..." : "Escolha local primeiro"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none" className="text-xs">Nenhuma</SelectItem>
+                  {availableTechniques.map(t => (
+                    <SelectItem key={t.id} value={t.id} className="text-xs">
+                      {t.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Dimensions info */}
+          {selectedArea && selectedArea.max_width > 0 && (
+            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+              <Ruler className="h-3 w-3 shrink-0" />
+              <span>
+                Área máxima: <strong className="text-foreground">{selectedArea.max_width} × {selectedArea.max_height} {selectedArea.unit}</strong>
+                {selectedArea.is_curved && (
+                  <Badge variant="outline" className="text-[8px] ml-1.5 px-1 py-0">Superfície curva</Badge>
+                )}
+              </span>
+            </div>
+          )}
+
+          {/* Selection summary chips */}
+          {(selectedArea || selectedTech) && (
+            <div className="flex flex-wrap gap-1">
+              {locationLabel && (
+                <Badge variant="secondary" className="text-[9px] gap-1">
+                  <MapPin className="h-2.5 w-2.5" /> {locationLabel}
+                </Badge>
+              )}
+              {selectedTech && (
+                <Badge variant="secondary" className="text-[9px] gap-1">
+                  <Paintbrush className="h-2.5 w-2.5" /> {selectedTech.nome}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── Campaign Configuration ───────────────────────────── */}
       <div className="grid grid-cols-2 gap-2.5">
         <div className="space-y-1">
           <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
@@ -354,7 +529,10 @@ export function PromptGenerator({
         <div className="text-center py-4 text-muted-foreground">
           <Wand2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
           <p className="text-xs">
-            Configure as opções acima e clique em <strong>"Gerar Prompts"</strong> para que a IA crie cenários otimizados para seu produto
+            {hasPrintAreas
+              ? <>Selecione o <strong>local e técnica</strong> de personalização, configure o objetivo e clique em <strong>"Gerar Prompts"</strong></>
+              : <>Configure as opções acima e clique em <strong>"Gerar Prompts"</strong> para que a IA crie cenários otimizados</>
+            }
           </p>
         </div>
       )}

@@ -874,13 +874,20 @@ CENÁRIO: ${effectivePrompt}`;
                   <PromptGenerator
                     productName={selectedProduct?.name}
                     productColor={selectedColor?.name}
-                    techniqueName={selectedTechnique?.name}
-                    locationName={selectedLocationName || undefined}
                     clientName={selectedClient?.name}
                     clientSegment={selectedClient?.ramo_atividade}
                     brandColorName={selectedClient?.cor_primaria_nome}
+                    printAreas={printAreas || []}
                     onSelectPrompt={(p) => setSelectedScene(p)}
                     selectedPrompt={selectedScene}
+                    onCustomizationChange={(info) => {
+                      setSelectedLocationId(info.locationId);
+                      if (info.techniqueId && info.techniqueName) {
+                        setSelectedTechnique({ id: info.techniqueId, name: info.techniqueName, code: "" });
+                      } else {
+                        setSelectedTechnique(null);
+                      }
+                    }}
                   />
                 ) : (
                   <PromptBank
