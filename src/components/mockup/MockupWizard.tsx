@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Package, Paintbrush, Upload, Move, Sparkles } from "lucide-react";
+import { CheckCircle2, Package, Paintbrush, Upload, Move, Sparkles, Building2 } from "lucide-react";
 
 interface MockupWizardStep {
   id: number;
@@ -12,6 +12,7 @@ interface MockupWizardStep {
 
 interface MockupWizardProps {
   currentStep: number;
+  hasClient: boolean;
   hasProduct: boolean;
   hasTechnique: boolean;
   hasLogo: boolean;
@@ -23,6 +24,7 @@ interface MockupWizardProps {
 
 export function MockupWizard({
   currentStep,
+  hasClient,
   hasProduct,
   hasTechnique,
   hasLogo,
@@ -34,43 +36,51 @@ export function MockupWizard({
   const steps: MockupWizardStep[] = [
     {
       id: 1,
-      label: "Produto",
-      description: "Escolha o produto",
-      icon: <Package className="h-4 w-4" />,
-      isCompleted: hasProduct,
+      label: "Empresa",
+      description: "Selecione o cliente",
+      icon: <Building2 className="h-4 w-4" />,
+      isCompleted: hasClient,
       isActive: currentStep === 1,
     },
     {
       id: 2,
-      label: "Técnica",
-      description: "Método de personalização",
-      icon: <Paintbrush className="h-4 w-4" />,
-      isCompleted: hasTechnique,
+      label: "Produto",
+      description: "Escolha o produto",
+      icon: <Package className="h-4 w-4" />,
+      isCompleted: hasProduct,
       isActive: currentStep === 2,
     },
     {
       id: 3,
-      label: "Logo",
-      description: "Faça upload da arte",
-      icon: <Upload className="h-4 w-4" />,
-      isCompleted: hasLogo,
+      label: "Técnica",
+      description: "Método de personalização",
+      icon: <Paintbrush className="h-4 w-4" />,
+      isCompleted: hasTechnique,
       isActive: currentStep === 3,
     },
     {
       id: 4,
-      label: "Posição",
-      description: "Ajuste o posicionamento",
-      icon: <Move className="h-4 w-4" />,
-      isCompleted: hasPositioned && hasLogo,
+      label: "Logo",
+      description: "Faça upload da arte",
+      icon: <Upload className="h-4 w-4" />,
+      isCompleted: hasLogo,
       isActive: currentStep === 4,
     },
     {
       id: 5,
+      label: "Posição",
+      description: "Ajuste o posicionamento",
+      icon: <Move className="h-4 w-4" />,
+      isCompleted: hasPositioned && hasLogo,
+      isActive: currentStep === 5,
+    },
+    {
+      id: 6,
       label: "Gerar",
       description: "Crie o mockup com IA",
       icon: <Sparkles className="h-4 w-4" />,
       isCompleted: hasGenerated,
-      isActive: currentStep === 5,
+      isActive: currentStep === 6,
     },
   ];
 
@@ -220,16 +230,18 @@ export function MockupWizard({
 
 // Hook to calculate current step from state
 export function useMockupWizardStep(state: {
+  hasClient: boolean;
   hasProduct: boolean;
   hasTechnique: boolean;
   hasLogo: boolean;
   hasPositioned: boolean;
   hasGenerated: boolean;
 }): number {
-  if (state.hasGenerated) return 5;
-  if (state.hasLogo && state.hasPositioned) return 5; // Ready to generate
-  if (state.hasLogo) return 4; // Needs positioning
-  if (state.hasTechnique) return 3; // Needs logo
-  if (state.hasProduct) return 2; // Needs technique
-  return 1; // Needs product
+  if (state.hasGenerated) return 6;
+  if (state.hasLogo && state.hasPositioned) return 6; // Ready to generate
+  if (state.hasLogo) return 5; // Needs positioning
+  if (state.hasTechnique) return 4; // Needs logo
+  if (state.hasProduct) return 3; // Needs technique
+  if (state.hasClient) return 2; // Needs product
+  return 1; // Needs client
 }

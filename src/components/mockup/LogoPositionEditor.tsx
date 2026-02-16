@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Move, RotateCcw, Target, Eye } from "lucide-react";
+import { Move, RotateCcw, Target, Eye, Lock, Unlock } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface LogoPositionEditorProps {
@@ -159,6 +160,34 @@ export function LogoPositionEditor({
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const [showPreviewMode, setShowPreviewMode] = useState(true);
+  const [aspectLocked, setAspectLocked] = useState(false);
+  const aspectRatioRef = useRef(logoWidth / logoHeight);
+
+  // Update aspect ratio reference when lock is toggled on
+  const toggleAspectLock = useCallback(() => {
+    if (!aspectLocked) {
+      aspectRatioRef.current = logoWidth / logoHeight;
+    }
+    setAspectLocked(!aspectLocked);
+  }, [aspectLocked, logoWidth, logoHeight]);
+
+  const handleLockedSizeChange = useCallback((newWidth: number, newHeight: number, changedAxis: 'w' | 'h') => {
+    if (!aspectLocked) {
+      onSizeChange(newWidth, newHeight);
+      return;
+    }
+    const ratio = aspectRatioRef.current;
+    const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : 20;
+    const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : 20;
+    if (changedAxis === 'w') {
+      const h = Math.round((newWidth / ratio) * 2) / 2; // snap to 0.5
+      onSizeChange(newWidth, Math.min(Math.max(h, 1), effectiveMaxH));
+    } else {
+      const w = Math.round((newHeight * ratio) * 2) / 2;
+      onSizeChange(Math.min(Math.max(w, 1), effectiveMaxW), newHeight);
+    }
+  }, [aspectLocked, onSizeChange, maxWidth, maxHeight]);
+
   const draggingRef = useRef<{
     startClientX: number;
     startClientY: number;
@@ -357,34 +386,53 @@ export function LogoPositionEditor({
         </div>
 
         {/* Fine-tune controls */}
-        <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Largura</span>
-              <span className="font-medium">{logoWidth} cm{maxWidth ? ` / ${maxWidth}` : ''}</span>
-            </div>
-            <Slider
-              value={[logoWidth]}
-              onValueChange={(v) => onSizeChange(v[0], logoHeight)}
-              min={1}
-              max={maxWidth && maxWidth > 0 ? maxWidth : 20}
-              step={0.5}
-              disabled={!logoPreview}
-            />
+        <div className="pt-2 border-t space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground font-medium">Dimensões</span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={aspectLocked ? "default" : "outline"}
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={toggleAspectLock}
+                  disabled={!logoPreview}
+                >
+                  {aspectLocked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{aspectLocked ? "Proporção travada" : "Travar proporção"}</TooltipContent>
+            </Tooltip>
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Altura</span>
-              <span className="font-medium">{logoHeight} cm{maxHeight ? ` / ${maxHeight}` : ''}</span>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Largura</span>
+                <span className="font-medium">{logoWidth} cm{maxWidth ? ` / ${maxWidth}` : ''}</span>
+              </div>
+              <Slider
+                value={[logoWidth]}
+                onValueChange={(v) => handleLockedSizeChange(v[0], logoHeight, 'w')}
+                min={1}
+                max={maxWidth && maxWidth > 0 ? maxWidth : 20}
+                step={0.5}
+                disabled={!logoPreview}
+              />
             </div>
-            <Slider
-              value={[logoHeight]}
-              onValueChange={(v) => onSizeChange(logoWidth, v[0])}
-              min={1}
-              max={maxHeight && maxHeight > 0 ? maxHeight : 20}
-              step={0.5}
-              disabled={!logoPreview}
-            />
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">Altura</span>
+                <span className="font-medium">{logoHeight} cm{maxHeight ? ` / ${maxHeight}` : ''}</span>
+              </div>
+              <Slider
+                value={[logoHeight]}
+                onValueChange={(v) => handleLockedSizeChange(logoWidth, v[0], 'h')}
+                min={1}
+                max={maxHeight && maxHeight > 0 ? maxHeight : 20}
+                step={0.5}
+                disabled={!logoPreview}
+              />
+            </div>
           </div>
         </div>
 

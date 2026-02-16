@@ -548,6 +548,7 @@ export function useMockupGenerator() {
 
   // Wizard step
   const wizardStep = useMockupWizardStep({
+    hasClient: !!selectedClient,
     hasProduct: !!selectedProduct,
     hasTechnique: !!selectedTechnique,
     hasLogo,
