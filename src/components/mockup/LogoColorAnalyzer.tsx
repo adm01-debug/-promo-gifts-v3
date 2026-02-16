@@ -8,7 +8,6 @@
 import { useState, useMemo } from 'react';
 import { Loader2, Search, ChevronDown, AlertTriangle, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
