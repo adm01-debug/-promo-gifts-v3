@@ -4,7 +4,7 @@
  * Inclui seleção de local, técnica e dimensões reais do banco de dados
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -118,9 +118,18 @@ export function PromptGenerator({
   const [audience, setAudience] = useState("");
   const [season, setSeason] = useState("none");
 
-  // Customization from real DB — initialize from parent if provided
+  // Customization from real DB — sync from parent when props change
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(initialLocationId || null);
   const [selectedTechId, setSelectedTechId] = useState<string | null>(initialTechniqueId || null);
+
+  // Keep in sync when parent changes (e.g. user selects in Step 1 bank mode, then switches to AI tab)
+  useEffect(() => {
+    setSelectedAreaId(initialLocationId || null);
+  }, [initialLocationId]);
+
+  useEffect(() => {
+    setSelectedTechId(initialTechniqueId || null);
+  }, [initialTechniqueId]);
 
   // Generation
   const [generating, setGenerating] = useState(false);
@@ -196,6 +205,7 @@ export function PromptGenerator({
         body: {
           productName,
           productColor,
+          productCategory: null, // TODO: pass from product data when available
           techniqueName: selectedTech?.nome || null,
           locationName: locationLabel || null,
           maxWidth: selectedArea?.max_width || null,
