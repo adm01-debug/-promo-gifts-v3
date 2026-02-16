@@ -27,6 +27,8 @@ serve(async (req) => {
       locationName,
       scenePrompt,
       sceneCategory,
+      brandColorHex,
+      brandColorName,
     } = await req.json();
 
     const logoImageSrc = logoBase64 || logoUrl;
@@ -49,12 +51,17 @@ serve(async (req) => {
     console.log(`[ad-image] Technique: ${techniqueName} @ ${locationName}`);
     console.log(`[ad-image] Scene category: ${sceneCategory}`);
 
+    const brandColorInstruction = brandColorHex
+      ? `\nBRAND COLORS: The client brand uses ${brandColorName || brandColorHex} (${brandColorHex}). Subtly incorporate this color in the scene elements (props, background accents, clothing details) for brand harmony.`
+      : '';
+
     const prompt = `Create a HIGH-QUALITY commercial advertising photograph for a promotional product company.
 
 PRODUCT: ${productName}${productColor ? ` in ${productColor} color` : ''}
 CUSTOMIZATION: The product has the company logo applied via ${techniqueName || 'printing'} on the ${locationName || 'front'}.
 
 SCENE: ${scenePrompt}
+${brandColorInstruction}
 
 CRITICAL REQUIREMENTS:
 1. The product shown in the reference image MUST appear prominently in the scene, clearly visible
