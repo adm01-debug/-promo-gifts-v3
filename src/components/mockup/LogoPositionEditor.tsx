@@ -200,15 +200,35 @@ export function LogoPositionEditor({
     [techniqueCode, techniqueName]
   );
 
-  // Convert cm to pixels relative to container width (same reference as before)
+  // Convert cm to pixels relative to container, using real product area dimensions when available.
+  // If maxWidth/maxHeight are known, scale so that the max area occupies ~60% of the container,
+  // making the logo proportionally accurate to the real product.
   const logoDisplay = useMemo(() => {
-    const width = containerSize.width || 400;
-    const scale = width / 30; // 30cm reference product size
+    const containerW = containerSize.width || 400;
+    const containerH = containerSize.height || containerW; // aspect-square
+
+    const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : null;
+    const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : null;
+
+    if (effectiveMaxW && effectiveMaxH) {
+      // Scale so the max engraving area fits ~60% of container (visually representative)
+      const areaFraction = 0.6;
+      const scaleByW = (containerW * areaFraction) / effectiveMaxW;
+      const scaleByH = (containerH * areaFraction) / effectiveMaxH;
+      const scale = Math.min(scaleByW, scaleByH);
+      return {
+        widthPx: logoWidth * scale,
+        heightPx: logoHeight * scale,
+      };
+    }
+
+    // Fallback: old 30cm reference
+    const scale = containerW / 30;
     return {
       widthPx: logoWidth * scale,
       heightPx: logoHeight * scale,
     };
-  }, [logoWidth, logoHeight, containerSize.width]);
+  }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight]);
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
