@@ -403,16 +403,6 @@ export function LogoPositionEditor({
             <Target className="h-4 w-4 mr-1" />
             Centralizar
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetSize}
-            disabled={!logoPreview}
-            className="flex-1"
-          >
-            <RotateCcw className="h-4 w-4 mr-1" />
-            Tamanho Padrão
-          </Button>
         </div>
 
         {/* Fine-tune controls */}
