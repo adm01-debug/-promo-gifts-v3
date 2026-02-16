@@ -41,6 +41,10 @@ interface PromptGeneratorProps {
   printAreas?: PrintAreaWithTechniques[];
   onSelectPrompt: (prompt: ScenePrompt) => void;
   selectedPrompt: ScenePrompt | null;
+  /** Valor inicial do local selecionado (sync com MagicUp) */
+  initialLocationId?: string | null;
+  /** Valor inicial da técnica selecionada (sync com MagicUp) */
+  initialTechniqueId?: string | null;
   /** Callback para informar local/técnica selecionados ao MagicUp */
   onCustomizationChange?: (info: {
     locationId: string | null;
@@ -104,6 +108,8 @@ export function PromptGenerator({
   printAreas,
   onSelectPrompt,
   selectedPrompt,
+  initialLocationId,
+  initialTechniqueId,
   onCustomizationChange,
 }: PromptGeneratorProps) {
   // Campaign settings
@@ -112,9 +118,9 @@ export function PromptGenerator({
   const [audience, setAudience] = useState("");
   const [season, setSeason] = useState("none");
 
-  // Customization from real DB
-  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
-  const [selectedTechId, setSelectedTechId] = useState<string | null>(null);
+  // Customization from real DB — initialize from parent if provided
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(initialLocationId || null);
+  const [selectedTechId, setSelectedTechId] = useState<string | null>(initialTechniqueId || null);
 
   // Generation
   const [generating, setGenerating] = useState(false);

@@ -424,8 +424,10 @@ CENÁRIO: ${effectivePrompt}`;
           imageUrl: data.imageUrl,
           isFavorite: false,
         };
-        setVariations(prev => [...prev, newVariation]);
-        setActiveVariation(variations.length); // point to new one
+        setVariations(prev => {
+          setActiveVariation(prev.length); // point to the new item
+          return [...prev, newVariation];
+        });
         toast.success("🎉 Imagem publicitária gerada com sucesso!");
       } else {
         throw new Error(data?.error || "Nenhuma imagem retornada");
@@ -724,7 +726,7 @@ CENÁRIO: ${effectivePrompt}`;
                   </div>
                 )}
 
-                {selectedProduct && !loadingPrintAreas && printAreas && printAreas.length > 0 && (
+                {selectedProduct && sceneTab !== "ai" && !loadingPrintAreas && printAreas && printAreas.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3" /> Local de Personalização
@@ -757,7 +759,7 @@ CENÁRIO: ${effectivePrompt}`;
                   </div>
                 )}
 
-                {selectedProduct && availableTechniques.length > 0 && (
+                {selectedProduct && sceneTab !== "ai" && availableTechniques.length > 0 && (
                   <div className="space-y-1.5">
                     <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Paintbrush className="h-3 w-3" /> Técnica
@@ -880,10 +882,13 @@ CENÁRIO: ${effectivePrompt}`;
                     printAreas={printAreas || []}
                     onSelectPrompt={(p) => setSelectedScene(p)}
                     selectedPrompt={selectedScene}
+                    initialLocationId={selectedLocationId}
+                    initialTechniqueId={selectedTechnique?.id || null}
                     onCustomizationChange={(info) => {
                       setSelectedLocationId(info.locationId);
                       if (info.techniqueId && info.techniqueName) {
-                        setSelectedTechnique({ id: info.techniqueId, name: info.techniqueName, code: "" });
+                        const tech = availableTechniques.find(t => t.id === info.techniqueId);
+                        setSelectedTechnique({ id: info.techniqueId, name: info.techniqueName, code: tech?.code || "" });
                       } else {
                         setSelectedTechnique(null);
                       }
