@@ -336,9 +336,11 @@ export function LogoPositionEditor({
             loading="lazy"
             onError={(e) => {
               const t = e.currentTarget;
-              if (t.src.includes('/thumbnail')) {
-                t.src = t.src.replace('/thumbnail', '');
-              } else if (!t.src.includes('/placeholder.svg')) {
+              const currentSrc = t.src;
+              if (currentSrc.includes('/thumbnail')) {
+                t.src = currentSrc.replace('/thumbnail', '');
+              } else if (!currentSrc.endsWith('/placeholder.svg') && !t.dataset.fallback) {
+                t.dataset.fallback = '1';
                 t.src = '/placeholder.svg';
               }
             }}
