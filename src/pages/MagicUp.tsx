@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
 import { usePrintAreas } from "@/hooks/usePrintAreas";
 import { PromptBank, type ScenePrompt } from "@/components/magic-up/PromptBank";
+import { PromptGenerator } from "@/components/magic-up/PromptGenerator";
 import { AdImageResult, type GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -107,6 +108,7 @@ export default function MagicUp() {
   const [selectedScene, setSelectedScene] = useState<ScenePrompt | null>(null);
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [showPromptPreview, setShowPromptPreview] = useState(false);
+  const [sceneTab, setSceneTab] = useState<"ai" | "bank">("ai");
 
   // Client (CRM externo)
   const [selectedClient, setSelectedClient] = useState<SelectedClient | null>(null);
@@ -834,16 +836,60 @@ CENÁRIO: ${effectivePrompt}`;
                   Cenário Publicitário
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Escolha um cenário e adicione detalhes extras se desejar
+                  Use a IA para gerar cenários personalizados ou escolha do banco de prompts
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <PromptBank
-                  selectedPrompt={selectedScene}
-                  onSelect={(p) => setSelectedScene(p)}
-                  productName={selectedProduct?.name}
-                  clientSegment={selectedClient?.ramo_atividade}
-                />
+                {/* Tab switcher */}
+                <div className="flex gap-1 p-0.5 bg-muted/50 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setSceneTab("ai")}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all",
+                      sceneTab === "ai"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    Gerar com IA
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSceneTab("bank")}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md text-xs font-medium transition-all",
+                      sceneTab === "bank"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Banco de Prompts
+                  </button>
+                </div>
+
+                {sceneTab === "ai" ? (
+                  <PromptGenerator
+                    productName={selectedProduct?.name}
+                    productColor={selectedColor?.name}
+                    techniqueName={selectedTechnique?.name}
+                    locationName={selectedLocationName || undefined}
+                    clientName={selectedClient?.name}
+                    clientSegment={selectedClient?.ramo_atividade}
+                    brandColorName={selectedClient?.cor_primaria_nome}
+                    onSelectPrompt={(p) => setSelectedScene(p)}
+                    selectedPrompt={selectedScene}
+                  />
+                ) : (
+                  <PromptBank
+                    selectedPrompt={selectedScene}
+                    onSelect={(p) => setSelectedScene(p)}
+                    productName={selectedProduct?.name}
+                    clientSegment={selectedClient?.ramo_atividade}
+                  />
+                )}
 
                 <div className="relative">
                   <Label className="text-xs text-muted-foreground mb-1 block">
