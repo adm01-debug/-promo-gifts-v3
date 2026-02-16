@@ -431,10 +431,10 @@ export function LogoPositionEditor({
                 className="flex-1"
               >
                 <Target className="h-3.5 w-3.5 mr-1" />
-                Centro H
+                Centro V
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Centralizar horizontalmente</TooltipContent>
+            <TooltipContent>Alinhar à linha vertical central</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -461,10 +461,10 @@ export function LogoPositionEditor({
                 className="flex-1"
               >
                 <Target className="h-3.5 w-3.5 mr-1" />
-                Centro V
+                Centro H
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Centralizar verticalmente</TooltipContent>
+            <TooltipContent>Alinhar à linha horizontal central</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
