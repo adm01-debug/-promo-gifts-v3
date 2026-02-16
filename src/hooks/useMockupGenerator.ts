@@ -10,6 +10,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { needsConversion, ensureSupportedFormat } from "@/lib/image-converter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";
 import { useFilteredTechniques, useProductCustomizationOptionsForMockup, type TechniqueWithLimits } from "@/hooks/useMockupTechniques";
@@ -358,7 +359,7 @@ export function useMockupGenerator() {
     }
   }, [activeAreaId, personalizationAreas, positionHistory]);
 
-  const handleAreaLogoUpload = useCallback((areaId: string, file: File) => {
+  const handleAreaLogoUpload = useCallback(async (areaId: string, file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Por favor, selecione uma imagem válida");
       return;
@@ -367,6 +368,21 @@ export function useMockupGenerator() {
       toast.error("A imagem deve ter no máximo 5MB");
       return;
     }
+
+    // Auto-convert SVG, WebP, BMP etc. to PNG
+    let processedFile = file;
+    if (needsConversion(file)) {
+      try {
+        toast.info(`Convertendo ${file.name} para PNG...`);
+        processedFile = await ensureSupportedFormat(file);
+        toast.success("Imagem convertida para PNG com sucesso!");
+      } catch (err) {
+        console.error("Conversion error:", err);
+        toast.error("Erro ao converter imagem. Tente usar PNG ou JPG.");
+        return;
+      }
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const logoData = e.target?.result as string;
@@ -376,7 +392,7 @@ export function useMockupGenerator() {
       // Auto-analyze colors when logo is uploaded
       logoColorAnalysis.analyzeImage(logoData);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(processedFile);
   }, [logoColorAnalysis]);
 
   const getProductImage = (): string | null => {
