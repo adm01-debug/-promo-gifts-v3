@@ -648,6 +648,8 @@ export function useMockupGenerator() {
       positionY: mockup.position_y ?? 50,
       logoWidth: mockup.logo_width_cm ?? 5,
       logoHeight: mockup.logo_height_cm ?? 3,
+      logoRotation: 0,
+      logoScale: 100,
       logoPreview: mockup.logo_url,
     };
     setPersonalizationAreas([restoredArea]);
