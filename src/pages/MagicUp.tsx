@@ -26,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
 import { usePrintAreas } from "@/hooks/usePrintAreas";
+import { useProductCustomizationOptionsForMockup } from "@/hooks/useMockupTechniques";
 import { PromptBank, type ScenePrompt } from "@/components/magic-up/PromptBank";
 import { PromptGenerator } from "@/components/magic-up/PromptGenerator";
 import { AdImageResult, type GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
@@ -95,10 +96,36 @@ export default function MagicUp() {
   const [selectedColor, setSelectedColor] = useState<ProductColor | null>(null);
   const [loadingColors, setLoadingColors] = useState(false);
 
-  // Technique & Location
-  const { data: printAreas, isLoading: loadingPrintAreas } = usePrintAreas(selectedProduct?.id || null);
+  // Technique & Location — use the SAME RPC as mockup generator (fn_get_product_customization_options)
+  const { data: customizationData, isLoading: loadingCustomization } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
+
+  // Transform RPC data into PrintAreaWithTechniques-like format for PromptGenerator
+  const printAreas = useMemo((): PrintAreaWithTechniques[] => {
+    if (!customizationData?.locations) return [];
+    return customizationData.locations.map((loc, idx) => ({
+      area_id: loc.location_code,
+      area_code: loc.location_code,
+      area_name: loc.location_name,
+      component_name: null,
+      location_name: loc.location_name,
+      max_width: Math.max(...loc.options.map(o => o.efetiva_largura_max || 0), 0),
+      max_height: Math.max(...loc.options.map(o => o.efetiva_altura_max || 0), 0),
+      unit: "cm",
+      shape: loc.options[0]?.shape || "rectangle",
+      is_curved: loc.options.some(o => o.is_curved),
+      is_primary: idx === 0,
+      display_order: loc.location_order,
+      techniques: loc.options.map(o => ({
+        id: o.technique_id,
+        nome: o.tecnica_nome,
+        codigo: o.codigo_tabela,
+      })),
+    }));
+  }, [customizationData]);
+
+  const loadingPrintAreas = loadingCustomization;
 
   // Logo
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
