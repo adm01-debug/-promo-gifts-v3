@@ -160,7 +160,7 @@ export function LogoPositionEditor({
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const [showPreviewMode, setShowPreviewMode] = useState(true);
-  const [aspectLocked, setAspectLocked] = useState(false);
+  const [aspectLocked, setAspectLocked] = useState(true);
   const aspectRatioRef = useRef(logoWidth / logoHeight);
 
   // Update aspect ratio reference when lock is toggled on
