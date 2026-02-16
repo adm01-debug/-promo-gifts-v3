@@ -281,10 +281,16 @@ export function LogoPositionEditor({
   const resetSize = () => onSizeChange(5, 3);
 
   const toggleOrientation = useCallback(() => {
-    // Swap width and height
-    onSizeChange(logoHeight, logoWidth);
-    aspectRatioRef.current = logoHeight / logoWidth;
-  }, [logoWidth, logoHeight, onSizeChange]);
+    const newW = logoHeight;
+    const newH = logoWidth;
+    // Clamp to technique limits if available
+    const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : 20;
+    const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : 20;
+    const clampedW = Math.min(newW, effectiveMaxW);
+    const clampedH = Math.min(newH, effectiveMaxH);
+    onSizeChange(clampedW, clampedH);
+    aspectRatioRef.current = clampedW / clampedH;
+  }, [logoWidth, logoHeight, onSizeChange, maxWidth, maxHeight]);
 
   const rotateClockwise = useCallback(() => {
     const newRotation = ((logoRotation || 0) + 15) % 360;

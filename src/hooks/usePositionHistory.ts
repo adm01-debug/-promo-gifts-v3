@@ -12,6 +12,7 @@ interface PositionState {
   positionY: number;
   logoWidth: number;
   logoHeight: number;
+  logoRotation?: number;
 }
 
 interface UsePositionHistoryOptions {
