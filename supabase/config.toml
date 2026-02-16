@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.crm-db-bridge]
 verify_jwt = false
+
+[functions.analyze-logo-colors]
+verify_jwt = false
