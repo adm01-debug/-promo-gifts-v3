@@ -75,6 +75,7 @@ const createDefaultArea = (): PersonalizationArea => ({
   positionY: 50,
   logoWidth: 5,
   logoHeight: 3,
+  logoScale: 100,
   logoPreview: null,
 });
 
@@ -344,7 +345,7 @@ export function useMockupGenerator() {
     setPersonalizationAreas(prev =>
       prev.map(area => area.id === activeAreaId ? { ...area, ...updates } : area)
     );
-    if ('positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates || 'logoRotation' in updates) {
+    if ('positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates || 'logoRotation' in updates || 'logoScale' in updates) {
       setHasUserInteractedPosition(true);
       // Push to undo/redo history
       const current = personalizationAreas.find(a => a.id === activeAreaId);
@@ -355,6 +356,7 @@ export function useMockupGenerator() {
           logoWidth: updates.logoWidth ?? current.logoWidth,
           logoHeight: updates.logoHeight ?? current.logoHeight,
           logoRotation: updates.logoRotation ?? current.logoRotation ?? 0,
+          logoScale: updates.logoScale ?? current.logoScale ?? 100,
         });
       }
     }

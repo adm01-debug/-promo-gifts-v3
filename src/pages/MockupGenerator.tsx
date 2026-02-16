@@ -264,6 +264,7 @@ export default function MockupGenerator() {
                     logoWidth={mg.activeArea.logoWidth}
                     logoHeight={mg.activeArea.logoHeight}
                     logoRotation={mg.activeArea.logoRotation || 0}
+                    logoScale={mg.activeArea.logoScale ?? 100}
                     techniqueCode={mg.selectedTechnique?.code}
                     techniqueName={mg.selectedTechnique?.name}
                     maxWidth={'maxWidth' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as any).maxWidth : null}
@@ -271,6 +272,7 @@ export default function MockupGenerator() {
                     onPositionChange={(x, y) => mg.updateActiveArea({ positionX: x, positionY: y })}
                     onSizeChange={(w, h) => mg.updateActiveArea({ logoWidth: w, logoHeight: h })}
                     onRotationChange={(r) => mg.updateActiveArea({ logoRotation: r })}
+                    onLogoScaleChange={(s) => mg.updateActiveArea({ logoScale: s })}
                   />
                 ) : (
                   <Card className="border-dashed border-2">

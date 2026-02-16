@@ -26,6 +26,7 @@ export interface PersonalizationArea {
   height: number;
   rotation?: number;
   scale?: number;
+  logoScale?: number;
 }
 
 export interface LogoData {
