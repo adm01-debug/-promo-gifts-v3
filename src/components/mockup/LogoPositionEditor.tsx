@@ -280,27 +280,11 @@ export function LogoPositionEditor({
   const centerLogo = () => onPositionChange(50, 50);
 
   const toggleOrientation = useCallback(() => {
-    // Swap width ↔ height
-    let newW = logoHeight;
-    let newH = logoWidth;
-    const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : 20;
-    const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : 20;
-
-    // If after swap either exceeds its max, scale proportionally to fit
-    const scaleW = newW > effectiveMaxW ? effectiveMaxW / newW : 1;
-    const scaleH = newH > effectiveMaxH ? effectiveMaxH / newH : 1;
-    const scale = Math.min(scaleW, scaleH);
-
-    const clampedW = Math.round(newW * scale * 2) / 2; // snap to 0.5
-    const clampedH = Math.round(newH * scale * 2) / 2;
-
-    // Only apply if dimensions actually change
-    const finalW = Math.max(clampedW, 1);
-    const finalH = Math.max(clampedH, 1);
-
-    onSizeChange(finalW, finalH);
-    aspectRatioRef.current = finalW / finalH;
-  }, [logoWidth, logoHeight, onSizeChange, maxWidth, maxHeight]);
+    // Rotate the logo 90° within the fixed engraving area
+    const currentRotation = logoRotation || 0;
+    const newRotation = (currentRotation + 90) % 360;
+    onRotationChange?.(newRotation);
+  }, [logoRotation, onRotationChange]);
 
   const rotateClockwise = useCallback(() => {
     const newRotation = ((logoRotation || 0) + 15) % 360;
@@ -445,15 +429,15 @@ export function LogoPositionEditor({
                 variant="outline"
                 size="sm"
                 onClick={toggleOrientation}
-                disabled={!logoPreview || logoWidth === logoHeight}
+                disabled={!logoPreview}
                 className="flex-1"
               >
-                {logoWidth >= logoHeight ? (
+                {((logoRotation || 0) % 180 === 0) ? (
                   <FlipVertical2 className="h-4 w-4 mr-1" />
                 ) : (
                   <FlipHorizontal2 className="h-4 w-4 mr-1" />
                 )}
-                {logoWidth >= logoHeight ? "Vertical" : "Horizontal"}
+                {((logoRotation || 0) % 180 === 0) ? "Vertical" : "Horizontal"}
               </Button>
             </TooltipTrigger>
             <TooltipContent>Alternar orientação do logo</TooltipContent>
