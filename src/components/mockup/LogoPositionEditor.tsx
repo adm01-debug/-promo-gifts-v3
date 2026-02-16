@@ -367,13 +367,12 @@ export function LogoPositionEditor({
           />
 
           {logoPreview ? (
-            <img
-              src={logoPreview}
-              alt="Logo para personalização"
+            <div
               className={cn(
                 "absolute select-none touch-none",
                 "cursor-grab active:cursor-grabbing",
-                "ring-2 ring-primary/30 rounded-sm"
+                "ring-2 ring-primary/30 rounded-sm",
+                "overflow-hidden"
               )}
               onPointerDown={handlePointerDown}
               style={{
@@ -381,14 +380,23 @@ export function LogoPositionEditor({
                 top: `${positionY}%`,
                 width: `${logoDisplay.widthPx}px`,
                 height: `${logoDisplay.heightPx}px`,
-                transform: `translate(-50%, -50%) rotate(${logoRotation || 0}deg)`,
-                opacity: showPreviewMode ? techniqueFilter.opacity : 1,
-                filter: showPreviewMode ? techniqueFilter.filter : "none",
-                mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
+                transform: `translate(-50%, -50%)`,
               }}
-              draggable={false}
-              loading="lazy"
-            />
+            >
+              <img
+                src={logoPreview}
+                alt="Logo para personalização"
+                className="w-full h-full object-contain"
+                style={{
+                  transform: `rotate(${logoRotation || 0}deg)`,
+                  opacity: showPreviewMode ? techniqueFilter.opacity : 1,
+                  filter: showPreviewMode ? techniqueFilter.filter : "none",
+                  mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
+                }}
+                draggable={false}
+                loading="lazy"
+              />
+            </div>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80">
               <p className="text-sm text-muted-foreground text-center px-4">
