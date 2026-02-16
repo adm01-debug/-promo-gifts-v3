@@ -469,7 +469,7 @@ export function LogoPositionEditor({
               }}
             >
               {/* Center the logo inside the engraving area using flex */}
-              <div className="w-full h-full flex items-center justify-center overflow-hidden">
+              <div className="w-full h-full flex items-center justify-center">
                 <img
                   src={logoPreview}
                   alt="Logo para personalização"
@@ -628,7 +628,7 @@ export function LogoPositionEditor({
             value={[logoScale]}
             onValueChange={(v) => onLogoScaleChange?.(v[0])}
             min={10}
-            max={100}
+            max={200}
             step={5}
             disabled={!logoPreview}
           />
