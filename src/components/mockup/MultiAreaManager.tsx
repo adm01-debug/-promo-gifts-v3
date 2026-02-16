@@ -38,6 +38,7 @@ interface MultiAreaManagerProps {
   onAreasChange: (areas: PersonalizationArea[]) => void;
   onActiveAreaChange: (areaId: string | null) => void;
   onLogoUpload: (areaId: string, file: File) => void;
+  onLogoRemove?: (areaId: string) => void;
   productLocations?: { code: string; name: string; order: number }[] | null;
 }
 
@@ -104,6 +105,7 @@ export function MultiAreaManager({
   onAreasChange,
   onActiveAreaChange,
   onLogoUpload,
+  onLogoRemove,
   productLocations,
 }: MultiAreaManagerProps) {
   const hasDbLocations = !!productLocations && productLocations.length > 0;
@@ -258,6 +260,7 @@ export function MultiAreaManager({
                         : a
                     );
                     onAreasChange(updated);
+                    onLogoRemove?.(area.id);
                   }}
                   onRemove={() => removeArea(area.id)}
                 />
