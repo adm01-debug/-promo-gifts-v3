@@ -18,6 +18,7 @@ interface MockupWizardProps {
   hasPositioned: boolean;
   hasGenerated: boolean;
   className?: string;
+  onStepClick?: (step: number) => void;
 }
 
 export function MockupWizard({
@@ -28,6 +29,7 @@ export function MockupWizard({
   hasPositioned,
   hasGenerated,
   className,
+  onStepClick,
 }: MockupWizardProps) {
   const steps: MockupWizardStep[] = [
     {
@@ -100,13 +102,21 @@ export function MockupWizard({
             style={{ width: `${progressPercent * 0.9}%` }}
           />
 
-          {steps.map((step, index) => (
+          {steps.map((step, index) => {
+            // Allow clicking completed steps or the current active step's next
+            const isClickable = onStepClick && (step.isCompleted || step.id <= currentStep);
+            return (
             <div
               key={step.id}
               className={cn(
                 "relative z-10 flex flex-col items-center",
-                "flex-1 first:flex-initial last:flex-initial"
+                "flex-1 first:flex-initial last:flex-initial",
+                isClickable && "cursor-pointer group/step"
               )}
+              onClick={() => isClickable && onStepClick(step.id)}
+              role={isClickable ? "button" : undefined}
+              tabIndex={isClickable ? 0 : undefined}
+              onKeyDown={(e) => isClickable && e.key === "Enter" && onStepClick(step.id)}
             >
               {/* Step Circle */}
               <div
@@ -115,7 +125,8 @@ export function MockupWizard({
                   "font-semibold text-sm",
                   step.isCompleted && "bg-primary border-primary text-primary-foreground shadow-md shadow-primary/25",
                   step.isActive && !step.isCompleted && "bg-background border-primary text-primary ring-4 ring-primary/20 animate-pulse",
-                  !step.isActive && !step.isCompleted && "bg-muted border-muted-foreground/30 text-muted-foreground"
+                  !step.isActive && !step.isCompleted && "bg-muted border-muted-foreground/30 text-muted-foreground",
+                  isClickable && "group-hover/step:scale-110 group-hover/step:shadow-lg transition-transform"
                 )}
               >
                 {step.isCompleted ? (
@@ -132,7 +143,8 @@ export function MockupWizard({
                     "text-xs font-medium transition-colors",
                     step.isActive && "text-primary",
                     step.isCompleted && "text-foreground",
-                    !step.isActive && !step.isCompleted && "text-muted-foreground"
+                    !step.isActive && !step.isCompleted && "text-muted-foreground",
+                    isClickable && "group-hover/step:text-primary"
                   )}
                 >
                   {step.label}
@@ -142,7 +154,8 @@ export function MockupWizard({
                 </p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

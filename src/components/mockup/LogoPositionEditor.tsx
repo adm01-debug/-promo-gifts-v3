@@ -15,6 +15,8 @@ interface LogoPositionEditorProps {
   logoHeight: number;
   techniqueCode?: string | null;
   techniqueName?: string;
+  maxWidth?: number | null;
+  maxHeight?: number | null;
   onPositionChange: (x: number, y: number) => void;
   onSizeChange: (width: number, height: number) => void;
 }
@@ -150,6 +152,8 @@ export function LogoPositionEditor({
   logoHeight,
   techniqueCode,
   techniqueName,
+  maxWidth,
+  maxHeight,
   onPositionChange,
   onSizeChange,
 }: LogoPositionEditorProps) {
@@ -357,13 +361,13 @@ export function LogoPositionEditor({
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Largura</span>
-              <span className="font-medium">{logoWidth} cm</span>
+              <span className="font-medium">{logoWidth} cm{maxWidth ? ` / ${maxWidth}` : ''}</span>
             </div>
             <Slider
               value={[logoWidth]}
               onValueChange={(v) => onSizeChange(v[0], logoHeight)}
               min={1}
-              max={20}
+              max={maxWidth && maxWidth > 0 ? maxWidth : 20}
               step={0.5}
               disabled={!logoPreview}
             />
@@ -371,18 +375,34 @@ export function LogoPositionEditor({
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Altura</span>
-              <span className="font-medium">{logoHeight} cm</span>
+              <span className="font-medium">{logoHeight} cm{maxHeight ? ` / ${maxHeight}` : ''}</span>
             </div>
             <Slider
               value={[logoHeight]}
               onValueChange={(v) => onSizeChange(logoWidth, v[0])}
               min={1}
-              max={20}
+              max={maxHeight && maxHeight > 0 ? maxHeight : 20}
               step={0.5}
               disabled={!logoPreview}
             />
           </div>
         </div>
+
+        {/* Área Máxima shortcut */}
+        {maxWidth && maxHeight && maxWidth > 0 && maxHeight > 0 && (
+          <div className="flex justify-end pt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs h-7 text-primary hover:text-primary"
+              onClick={() => onSizeChange(maxWidth, maxHeight)}
+              disabled={!logoPreview}
+            >
+              <Target className="h-3 w-3 mr-1" />
+              Área Máxima ({maxWidth}×{maxHeight}cm)
+            </Button>
+          </div>
+        )}
 
         {/* Position display */}
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
