@@ -278,7 +278,6 @@ export function LogoPositionEditor({
   );
 
   const centerLogo = () => onPositionChange(50, 50);
-  const resetSize = () => onSizeChange(5, 3);
 
   const toggleOrientation = useCallback(() => {
     const newW = logoHeight;
@@ -549,7 +548,7 @@ export function LogoPositionEditor({
             Posição: {positionX}% x {positionY}%
           </span>
           <span>
-            Tamanho: {logoWidth}cm × {logoHeight}cm
+            Tamanho: {logoWidth}cm × {logoHeight}cm{logoRotation ? ` · ${logoRotation}°` : ''}
           </span>
         </div>
       </CardContent>
