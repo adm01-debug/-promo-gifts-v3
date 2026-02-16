@@ -29,6 +29,7 @@ export interface PersonalizationArea {
   positionY: number;
   logoWidth: number;
   logoHeight: number;
+  logoRotation?: number;
   logoPreview: string | null;
 }
 
