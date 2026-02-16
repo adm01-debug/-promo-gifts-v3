@@ -463,9 +463,20 @@ export function LogoPositionEditor({
             <RotateCcw className="h-4 w-4 mr-1" />
             -15°
           </Button>
-          <span className="text-xs font-medium text-muted-foreground min-w-[40px] text-center">
-            {logoRotation || 0}°
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={logoRotation ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => onRotationChange?.(0)}
+                disabled={!logoPreview || !logoRotation}
+                className="min-w-[48px]"
+              >
+                {logoRotation || 0}°
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Resetar rotação para 0°</TooltipContent>
+          </Tooltip>
           <Button
             variant="outline"
             size="sm"
