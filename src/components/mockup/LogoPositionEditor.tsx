@@ -254,6 +254,14 @@ export function LogoPositionEditor({
     const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : null;
     const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : null;
 
+    console.log('[LogoPositionEditor] Scaling debug:', {
+      containerW, containerH,
+      productHeightCm, productWidthCm, prodH, prodW,
+      maxWidth, maxHeight, effectiveMaxW, effectiveMaxH,
+      logoWidth, logoHeight,
+      strategy: prodH || prodW ? 1 : effectiveMaxW && effectiveMaxH ? 2 : 3,
+    });
+
     // Strategy 1: Product-based scale (most accurate)
     if (prodH || prodW) {
       // Use known product dims. If only one is known, assume a reasonable ratio.
