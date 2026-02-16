@@ -75,6 +75,7 @@ const createDefaultArea = (): PersonalizationArea => ({
   positionY: 50,
   logoWidth: 5,
   logoHeight: 3,
+  logoRotation: 0,
   logoScale: 100,
   logoPreview: null,
 });
