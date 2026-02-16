@@ -51,6 +51,53 @@ serve(async (req) => {
     console.log(`[ad-image] Technique: ${techniqueName} @ ${locationName}`);
     console.log(`[ad-image] Scene category: ${sceneCategory}`);
 
+    // ─── Smart Product Type Detection ─────────────────────────────
+    const nameLower = (productName || "").toLowerCase();
+
+    type ProductHint = { type: string; material: string; angle: string; logoTip: string };
+
+    const PRODUCT_HINTS: { keywords: string[]; hint: ProductHint }[] = [
+      { keywords: ["caneca", "mug", "xícara", "copo térmico", "copo"],
+        hint: { type: "drinkware", material: "ceramic/porcelain surface with subtle reflections and gloss", angle: "slight 3/4 angle to show the printed area clearly, handle visible", logoTip: "Logo wraps naturally around the curved cylindrical surface" } },
+      { keywords: ["camiseta", "camisa", "t-shirt", "blusa", "polo"],
+        hint: { type: "apparel", material: "soft fabric with realistic textile folds and weave texture", angle: "front-facing, worn on a person or on a mannequin/flatlay", logoTip: "Logo appears as screen-printed or embroidered on the fabric, following the cloth's natural folds" } },
+      { keywords: ["mochila", "bolsa", "bag", "sacola", "necessaire", "pochete", "pasta"],
+        hint: { type: "bag", material: "durable nylon/polyester or leather with realistic stitching and zippers", angle: "front or slight 3/4 to show the main panel where the logo is", logoTip: "Logo applied via heat transfer or embroidery on the bag's main face" } },
+      { keywords: ["caderno", "agenda", "bloco", "moleskine", "notebook"],
+        hint: { type: "notebook", material: "smooth cover material (leatherette, paper, or hardcover) with edge details", angle: "flatlay or slight tilt showing the cover, spine visible", logoTip: "Logo debossed, foil-stamped, or printed on the cover surface" } },
+      { keywords: ["caneta", "pen", "lápis", "lapiseira"],
+        hint: { type: "pen", material: "metal or plastic barrel with realistic sheen and clip detail", angle: "macro close-up or angled on a desk surface to show the print area", logoTip: "Logo laser-engraved or pad-printed on the narrow barrel" } },
+      { keywords: ["garrafa", "squeeze", "tumbler", "garrafinha", "térmica"],
+        hint: { type: "bottle", material: "stainless steel or BPA-free plastic with reflective metallic or matte finish", angle: "upright 3/4 angle showing the label/print area and cap", logoTip: "Logo laser-engraved or silk-screened on the cylindrical body" } },
+      { keywords: ["boné", "chapéu", "cap", "viseira", "bucket"],
+        hint: { type: "headwear", material: "structured fabric with realistic stitching, eyelets, and brim", angle: "3/4 front showing the panel where the logo is embroidered", logoTip: "Logo embroidered with visible thread texture on the front panel" } },
+      { keywords: ["guarda-chuva", "sombrinha", "umbrella"],
+        hint: { type: "umbrella", material: "nylon fabric canopy with metal frame details", angle: "open position angled to show the printed panel", logoTip: "Logo screen-printed on one or more canopy panels" } },
+      { keywords: ["power bank", "carregador", "charger", "cabo", "fone", "earphone", "caixa de som", "speaker"],
+        hint: { type: "tech", material: "sleek plastic or aluminum housing with precise edges and LED indicators", angle: "product hero shot on a clean surface, slightly elevated angle", logoTip: "Logo pad-printed or laser-engraved on the flat surface" } },
+      { keywords: ["kit", "combo", "conjunto", "set"],
+        hint: { type: "kit", material: "multiple items arranged in an elegant gift-box composition", angle: "flatlay or 3/4 elevated angle showing all items in the kit", logoTip: "Logo visible on the main item and/or on the packaging" } },
+      { keywords: ["toalha", "towel", "roupão"],
+        hint: { type: "textile", material: "soft terry cloth or microfiber with visible texture and nap", angle: "folded arrangement or draped to show the embroidered area", logoTip: "Logo embroidered with satin stitch on the fabric" } },
+    ];
+
+    let productHint: ProductHint | null = null;
+    for (const { keywords, hint } of PRODUCT_HINTS) {
+      if (keywords.some(kw => nameLower.includes(kw))) {
+        productHint = hint;
+        break;
+      }
+    }
+
+    const materialInstruction = productHint
+      ? `\nPRODUCT TYPE DETECTED: ${productHint.type}
+MATERIAL RENDERING: ${productHint.material}
+RECOMMENDED ANGLE: ${productHint.angle}
+LOGO APPLICATION: ${productHint.logoTip}`
+      : '';
+
+    console.log(`[ad-image] Product type: ${productHint?.type || 'generic'}`);
+
     const brandColorInstruction = brandColorHex
       ? `\nBRAND COLORS: The client brand uses ${brandColorName || brandColorHex} (${brandColorHex}). Subtly incorporate this color in the scene elements (props, background accents, clothing details) for brand harmony.`
       : '';
@@ -59,19 +106,19 @@ serve(async (req) => {
 
 PRODUCT: ${productName}${productColor ? ` in ${productColor} color` : ''}
 CUSTOMIZATION: The product has the company logo applied via ${techniqueName || 'printing'} on the ${locationName || 'front'}.
-
+${materialInstruction}
 SCENE: ${scenePrompt}
 ${brandColorInstruction}
 
 CRITICAL REQUIREMENTS:
 1. The product shown in the reference image MUST appear prominently in the scene, clearly visible
 2. The company logo from the second image MUST be visible on the product, applied realistically via ${techniqueName || 'printing'}
-3. The logo should look naturally integrated into the product surface (not floating or pasted on)
-4. The overall image should look like a professional advertising campaign photo
-5. High resolution, perfect lighting, commercial photography quality
-6. The product should be the HERO of the image — the focal point
-7. People, environments, and props should complement but not overshadow the product
-8. Colors should be vibrant and appealing, suitable for marketing materials
+3. The logo should look naturally integrated into the product surface (not floating or pasted on)${productHint ? `\n4. Render the product with accurate ${productHint.material}` : ''}
+${productHint ? `5` : `4`}. The overall image should look like a professional advertising campaign photo
+${productHint ? `6` : `5`}. High resolution, perfect lighting, commercial photography quality
+${productHint ? `7` : `6`}. The product should be the HERO of the image — the focal point
+${productHint ? `8` : `7`}. People, environments, and props should complement but not overshadow the product
+${productHint ? `9` : `8`}. Colors should be vibrant and appealing, suitable for marketing materials
 
 Style: Professional commercial photography, advertising campaign quality, magazine-worthy.`;
 
