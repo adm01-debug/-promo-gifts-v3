@@ -1154,6 +1154,77 @@ export type Database = {
         }
         Relationships: []
       }
+      magic_up_generations: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          created_at: string
+          custom_prompt: string | null
+          generated_image_url: string
+          id: string
+          is_favorite: boolean
+          location_name: string | null
+          logo_url: string | null
+          product_color: string | null
+          product_image_url: string | null
+          product_name: string
+          product_sku: string | null
+          scene_category: string | null
+          scene_prompt: string
+          scene_title: string | null
+          technique_name: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          custom_prompt?: string | null
+          generated_image_url: string
+          id?: string
+          is_favorite?: boolean
+          location_name?: string | null
+          logo_url?: string | null
+          product_color?: string | null
+          product_image_url?: string | null
+          product_name: string
+          product_sku?: string | null
+          scene_category?: string | null
+          scene_prompt: string
+          scene_title?: string | null
+          technique_name?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          custom_prompt?: string | null
+          generated_image_url?: string
+          id?: string
+          is_favorite?: boolean
+          location_name?: string | null
+          logo_url?: string | null
+          product_color?: string | null
+          product_image_url?: string | null
+          product_name?: string
+          product_sku?: string | null
+          scene_category?: string | null
+          scene_prompt?: string
+          scene_title?: string | null
+          technique_name?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magic_up_generations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "bitrix_clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mockup_drafts: {
         Row: {
           client_id: string | null
