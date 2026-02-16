@@ -41,69 +41,19 @@ serve(async (req) => {
       );
     }
 
-    // Detect SVG and convert to PNG-compatible format
-    const isSvgDataUri = typeof logoImageSrc === "string" && logoImageSrc.startsWith("data:image/svg+xml");
-    const isSvgUrl = typeof logoImageSrc === "string" && (logoImageSrc.endsWith(".svg") || logoImageSrc.includes("image/svg"));
+    // SVG files should already be converted to PNG on the client side
+    // but add a safety check just in case
+    const isSvg = typeof logoImageSrc === "string" && 
+      (logoImageSrc.startsWith("data:image/svg+xml") || logoImageSrc.endsWith(".svg"));
     
-    if (isSvgDataUri || isSvgUrl) {
-      console.log("SVG logo detected — converting to PNG via rasterization...");
-      try {
-        let svgContent: string;
-        if (isSvgDataUri) {
-          // Extract SVG content from data URI
-          const base64Match = logoImageSrc.match(/^data:image\/svg\+xml;base64,(.+)$/);
-          const rawMatch = logoImageSrc.match(/^data:image\/svg\+xml[^,]*,(.+)$/);
-          if (base64Match) {
-            svgContent = atob(base64Match[1]);
-          } else if (rawMatch) {
-            svgContent = decodeURIComponent(rawMatch[1]);
-          } else {
-            throw new Error("Could not parse SVG data URI");
-          }
-        } else {
-          // Fetch SVG from URL
-          const svgResp = await fetch(logoImageSrc);
-          if (!svgResp.ok) throw new Error(`Failed to fetch SVG: ${svgResp.status}`);
-          svgContent = await svgResp.text();
-        }
-
-        // Ensure SVG has explicit dimensions for rasterization
-        let width = 512, height = 512;
-        const viewBoxMatch = svgContent.match(/viewBox=["']([^"']+)["']/);
-        if (viewBoxMatch) {
-          const parts = viewBoxMatch[1].split(/[\s,]+/).map(Number);
-          if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
-            const aspect = parts[2] / parts[3];
-            if (aspect > 1) { width = 512; height = Math.round(512 / aspect); }
-            else { height = 512; width = Math.round(512 * aspect); }
-          }
-        }
-
-        // Convert SVG to a PNG-compatible base64 using a simple SVG-in-canvas approach
-        // Since we can't use Canvas in Deno edge, we'll encode the SVG as a properly-typed PNG placeholder
-        // The best approach: re-encode as a high-quality base64 with proper MIME
-        const svgBase64 = btoa(unescape(encodeURIComponent(svgContent)));
-        // Try sending as a generic image — wrap SVG in a minimal foreignObject PNG workaround
-        // Actually, the simplest fix: convert to a proper raster by using the product image endpoint
-        // For now, provide clear error message to user about SVG limitation
-        
-        return new Response(
-          JSON.stringify({ 
-            error: "Logos em formato SVG não são suportados para geração de mockups. Por favor, converta seu logo para PNG ou JPG antes de fazer o upload.",
-            errorCode: "SVG_NOT_SUPPORTED"
-          }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      } catch (svgError) {
-        console.error("SVG handling error:", svgError);
-        return new Response(
-          JSON.stringify({ 
-            error: "Logos em formato SVG não são suportados. Por favor, use PNG ou JPG.",
-            errorCode: "SVG_NOT_SUPPORTED"
-          }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    if (isSvg) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Logos em formato SVG não são suportados. Por favor, converta para PNG ou JPG.",
+          errorCode: "SVG_NOT_SUPPORTED"
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     console.log(`Generating mockup for product: ${productName}`);
