@@ -1,23 +1,32 @@
-import { useState, useEffect, useMemo } from "react";
+/**
+ * MagicUp — Gerador de Imagens Publicitárias com IA
+ * 
+ * Gera fotos comerciais/publicitárias usando o produto personalizado
+ * em cenários reais (pessoa usando mochila, café no escritório, etc).
+ * 
+ * Fluxo: Produto → Técnica/Local → Logo → Cenário → Gerar
+ */
+
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Loader2, Upload, Wand2, Download, CheckCircle2, XCircle, Eye, Grid3x3, MapPin, Paperclip } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Sparkles, Upload, Loader2, MapPin, Paintbrush, Image as ImageIcon, ChevronRight, Wand2, Info } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { MultiAreaManager, PersonalizationArea } from "@/components/mockup/MultiAreaManager";
+import { ProductSearchCombobox } from "@/components/mockup/ProductSearchCombobox";
 import { usePrintAreas } from "@/hooks/usePrintAreas";
-import { ArtFileUpload, type ArtFile } from "@/components/mockup/ArtFileUpload";
+import { PromptBank, type ScenePrompt } from "@/components/magic-up/PromptBank";
+import { AdImageResult } from "@/components/magic-up/AdImageResult";
+import { cn } from "@/lib/utils";
 import type { PrintAreaWithTechniques } from "@/types/gravacao";
+
+// ─── Types ───────────────────────────────────────────────────────────
 
 interface Product {
   id: string;
@@ -32,8 +41,6 @@ interface Technique {
   id: string;
   name: string;
   code: string;
-  prompt_suffix: string;
-  requires_color_count: boolean;
 }
 
 interface ProductColor {
@@ -41,7 +48,6 @@ interface ProductColor {
   name: string;
   code: string;
   stock?: number;
-  selected: boolean;
 }
 
 interface ProductImage {
@@ -51,107 +57,82 @@ interface ProductImage {
   isOgImage: boolean;
 }
 
-interface GeneratedMockup {
-  id: string;
-  mockup_url: string;
-  product_color_hex: string;
-  product_color_name?: string;
-  area_name: string;
-  created_at: string;
-}
-
-const createDefaultArea = (): PersonalizationArea => ({
-  id: crypto.randomUUID(),
-  name: "Frente",
-  positionX: 50,
-  positionY: 50,
-  logoWidth: 5,
-  logoHeight: 3,
-  logoPreview: null,
-});
+// ─── Component ───────────────────────────────────────────────────────
 
 export default function MagicUp() {
   const { user } = useAuth();
-  
-  // State básico
+
+  // Product
   const [products, setProducts] = useState<Product[]>([]);
-  const [techniques] = useState<Technique[]>([]); // kept for type compat only
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
-  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
-  
-  // Print areas do produto (locais de personalização do BD externo)
-  const { data: printAreas, isLoading: loadingPrintAreas } = usePrintAreas(selectedProduct?.id || null);
-  
-  // Upload
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string>("");
-  const [uploading, setUploading] = useState(false);
-  
-  // Cores, imagens e áreas
   const [colors, setColors] = useState<ProductColor[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
-  const [previewColorCode, setPreviewColorCode] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<ProductColor | null>(null);
   const [loadingColors, setLoadingColors] = useState(false);
-  const [areas, setAreas] = useState<PersonalizationArea[]>([createDefaultArea()]);
-  const [artColorsCount, setArtColorsCount] = useState(1);
-  const [artFiles, setArtFiles] = useState<ArtFile[]>([]);
-  
-  // Modelo e geração
-  const [aiModel, setAiModel] = useState<"standard" | "pro">("pro");
-  const [generating, setGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [currentJob, setCurrentJob] = useState<string | null>(null);
-  
-  // Resultados
-  const [generatedMockups, setGeneratedMockups] = useState<GeneratedMockup[]>([]);
 
-  // Carregar dados iniciais
+  // Technique & Location
+  const { data: printAreas, isLoading: loadingPrintAreas } = usePrintAreas(selectedProduct?.id || null);
+  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+  const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
+
+  // Logo
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+
+  // Scene
+  const [selectedScene, setSelectedScene] = useState<ScenePrompt | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
+
+  // Generation
+  const [generating, setGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+
+  // ─── Load Products ──────────────────────────────────────────────────
+
   useEffect(() => {
-    loadProducts();
+    (async () => {
+      try {
+        const { fetchPromobrindProducts } = await import("@/lib/external-db");
+        const data = await fetchPromobrindProducts();
+        setProducts(data.map(p => ({
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          images: p.images || [],
+          primary_image_url: p.primary_image_url || p.image_url || null,
+          og_image_url: p.og_image_url || null,
+        })));
+      } catch {
+        toast.error("Erro ao carregar produtos");
+      }
+    })();
   }, []);
 
-  // Buscar cores reais e imagens do produto quando selecionado
+  // ─── Load Colors & Images on Product Change ──────────────────────
+
   useEffect(() => {
     if (!selectedProduct) {
       setColors([]);
       setProductImages([]);
-      setPreviewColorCode(null);
+      setSelectedColor(null);
       setSelectedLocationId(null);
       setSelectedTechnique(null);
       return;
     }
-    
-    const fetchProductData = async () => {
+
+    (async () => {
       setLoadingColors(true);
       try {
         const { invokeExternalDb } = await import("@/lib/external-db");
-        
-        // Buscar variantes e imagens em paralelo
         const [variantsResult, imagesResult] = await Promise.all([
-          invokeExternalDb<{
-            id: string;
-            color_name: string;
-            color_hex: string;
-            color_code: string;
-            stock_quantity: number;
-          }>({
+          invokeExternalDb<any>({
             table: "product_variants",
             operation: "select",
             filters: { product_id: selectedProduct.id },
             orderBy: { column: "color_name", ascending: true },
             limit: 100,
           }),
-          invokeExternalDb<{
-            id: string;
-            url_cdn: string | null;
-            url_original: string | null;
-            supplier_code: string | null;
-            is_primary: boolean;
-            is_og_image: boolean;
-            display_order: number;
-            image_type: string;
-          }>({
+          invokeExternalDb<any>({
             table: "product_images",
             operation: "select",
             filters: { product_id: selectedProduct.id },
@@ -160,809 +141,478 @@ export default function MagicUp() {
           }),
         ]);
 
-        // Mapear imagens — usar url_cdn com fallback para url_original
         const images: ProductImage[] = (imagesResult.records || [])
-          .filter((img) => img.image_type !== 'box')
-          .map((img) => ({
-            url: img.url_cdn || img.url_original || '',
+          .filter((img: any) => img.image_type !== "box")
+          .map((img: any) => ({
+            url: img.url_cdn || img.url_original || "",
             supplierCode: img.supplier_code || null,
             isPrimary: img.is_primary,
             isOgImage: img.is_og_image || false,
           }))
-          .filter((img) => img.url);
+          .filter((img: ProductImage) => img.url);
         setProductImages(images);
 
-        // Mapear cores
         const uniqueColors = new Map<string, ProductColor>();
-        (variantsResult.records || []).forEach((v) => {
+        (variantsResult.records || []).forEach((v: any) => {
           if (!v.color_name || uniqueColors.has(v.color_name)) return;
           uniqueColors.set(v.color_name, {
             hex: v.color_hex || "#CCCCCC",
             name: v.color_name,
             code: v.color_code || "",
             stock: v.stock_quantity ?? 0,
-            selected: true,
           });
         });
-
         setColors(Array.from(uniqueColors.values()));
-        setPreviewColorCode(null);
-      } catch (error) {
-        console.error("Erro ao buscar dados do produto:", error);
+      } catch {
         setColors([]);
         setProductImages([]);
       } finally {
         setLoadingColors(false);
       }
-    };
-
-    fetchProductData();
+    })();
   }, [selectedProduct?.id]);
 
-  const loadProducts = async () => {
-    try {
-      const { fetchPromobrindProducts } = await import('@/lib/external-db');
-      const productsData = await fetchPromobrindProducts();
-      
-      // Mapear para formato esperado
-      const mappedProducts = productsData.map(p => ({
-        id: p.id,
-        name: p.name,
-        sku: p.sku,
-        images: p.images || [],
-        primary_image_url: p.primary_image_url || p.image_url || null,
-        og_image_url: p.og_image_url || null,
-      }));
+  // ─── Derived: Techniques from print areas ───────────────────────
 
-      setProducts(mappedProducts);
-    } catch (error) {
-      console.error("Error loading products:", error);
-      toast.error("Erro ao carregar produtos");
-    }
-  };
-
-  // Técnicas derivadas das printAreas do produto selecionado
   const availableTechniques = useMemo((): Technique[] => {
     if (!printAreas?.length) return [];
-    
-    // Coletar técnicas únicas de todas as áreas do produto
     const techMap = new Map<string, Technique>();
-    for (const area of printAreas) {
-      if (area.techniques?.length) {
-        for (const t of area.techniques) {
-          if (!techMap.has(t.id)) {
-            techMap.set(t.id, {
-              id: t.id,
-              name: t.nome,
-              code: t.codigo,
-              prompt_suffix: '',
-              requires_color_count: false,
-            });
-          }
+    const source = selectedLocationId
+      ? printAreas.filter(a => a.area_id === selectedLocationId)
+      : printAreas;
+    for (const area of source) {
+      for (const t of area.techniques || []) {
+        if (!techMap.has(t.id)) {
+          techMap.set(t.id, { id: t.id, name: t.nome, code: t.codigo });
         }
       }
     }
-    
-    // Se um local está selecionado, filtrar apenas as técnicas desse local
-    if (selectedLocationId) {
-      const selectedArea = printAreas.find(a => a.area_id === selectedLocationId);
-      if (selectedArea?.techniques?.length) {
-        const locationTechIds = new Set(selectedArea.techniques.map(t => t.id));
-        return [...techMap.values()].filter(t => locationTechIds.has(t.id));
-      }
-    }
-    
     return [...techMap.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [printAreas, selectedLocationId]);
 
-  // Clear technique if it's no longer in the available list
+  // Clear technique if invalid
   useEffect(() => {
     if (selectedTechnique && availableTechniques.length > 0) {
-      const stillAvailable = availableTechniques.some(t => t.id === selectedTechnique.id);
-      if (!stillAvailable) setSelectedTechnique(null);
+      if (!availableTechniques.some(t => t.id === selectedTechnique.id)) {
+        setSelectedTechnique(null);
+      }
     }
   }, [availableTechniques, selectedTechnique]);
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // ─── Current preview image based on selected color ─────────────
+
+  const currentImage = useMemo(() => {
+    if (productImages.length === 0) return selectedProduct?.primary_image_url || null;
+    if (selectedColor?.code) {
+      const match = productImages.find(img => img.supplierCode === selectedColor.code);
+      if (match) return match.url;
+    }
+    return productImages.find(i => i.isOgImage)?.url
+      || productImages.find(i => i.isPrimary)?.url
+      || productImages[0]?.url || null;
+  }, [productImages, selectedColor, selectedProduct]);
+
+  // ─── Handlers ──────────────────────────────────────────────────
+
+  const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validações
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error("Arquivo muito grande. Máximo: 50MB");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione uma imagem válida");
       return;
     }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx. 10MB)");
+      return;
+    }
+    setLogoUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setLogoPreview(ev.target?.result as string);
+        setLogoUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setLogoUploading(false);
+      toast.error("Erro ao carregar logo");
+    }
+  }, []);
 
-    setLogoFile(file);
-    setUploading(true);
+  const selectedLocationName = useMemo(() => {
+    if (!selectedLocationId || !printAreas) return null;
+    const area = printAreas.find(a => a.area_id === selectedLocationId);
+    return area ? [area.component_name, area.location_name].filter(Boolean).join(" — ") : null;
+  }, [selectedLocationId, printAreas]);
+
+  const effectivePrompt = customPrompt.trim() || selectedScene?.prompt || "";
+
+  const canGenerate = !!(selectedProduct && currentImage && logoPreview && effectivePrompt);
+
+  const handleGenerate = async () => {
+    if (!canGenerate) return;
+
+    setGenerating(true);
+    setGeneratedImage(null);
 
     try {
-      // Upload para Supabase Storage
-      const fileName = `${user?.id}/${Date.now()}_${file.name}`;
-      const { data, error } = await supabase.storage
-        .from("mockups")
-        .upload(fileName, file);
+      const isLogoUrl = logoPreview!.startsWith("http");
+
+      const { data, error } = await supabase.functions.invoke("generate-ad-image", {
+        body: {
+          productImageUrl: currentImage,
+          logoBase64: isLogoUrl ? undefined : logoPreview,
+          logoUrl: isLogoUrl ? logoPreview : undefined,
+          productName: selectedProduct!.name,
+          productColor: selectedColor?.name || null,
+          techniqueName: selectedTechnique?.name || null,
+          locationName: selectedLocationName || null,
+          scenePrompt: effectivePrompt,
+          sceneCategory: selectedScene?.category || "custom",
+        },
+      });
 
       if (error) throw error;
 
-      // Pegar URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from("mockups")
-        .getPublicUrl(fileName);
-
-      setLogoUrl(publicUrl);
-      toast.success("Logo enviado com sucesso!");
-
-    } catch (error: any) {
-      toast.error("Erro ao enviar logo: " + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleColorToggle = (index: number) => {
-    const newColors = [...colors];
-    newColors[index].selected = !newColors[index].selected;
-    setColors(newColors);
-  };
-
-  const handleGenerate = async () => {
-    // Validações
-    if (!selectedProduct) {
-      toast.error("Selecione um produto");
-      return;
-    }
-
-    if (!logoUrl) {
-      toast.error("Faça upload do logo");
-      return;
-    }
-
-    if (!selectedTechnique) {
-      toast.error("Selecione uma técnica");
-      return;
-    }
-
-    const selectedColors = colors.filter(c => c.selected);
-    if (selectedColors.length === 0) {
-      toast.error("Selecione pelo menos uma cor");
-      return;
-    }
-
-    if (areas.length === 0) {
-      toast.error("Adicione pelo menos uma área");
-      return;
-    }
-
-    setGenerating(true);
-    setProgress(0);
-    setGeneratedMockups([]);
-
-    try {
-      // Criar job
-      const { data: job, error: jobError } = await supabase
-        .from("mockup_generation_jobs")
-        .insert({
-          user_id: user!.id,
-          product_id: selectedProduct.id,
-          product_name: selectedProduct.name,
-          product_sku: selectedProduct.sku,
-          technique_id: selectedTechnique.id,
-          technique_name: selectedTechnique.name,
-          logo_url: logoUrl,
-          product_colors: selectedColors.map(c => c.hex),
-          areas_config: areas,
-          art_colors_count: artColorsCount,
-          ai_model: aiModel,
-          status: "pending",
-        })
-        .select()
-        .single();
-
-      if (jobError) throw jobError;
-
-      setCurrentJob(job.id);
-      toast.success("Job criado! Iniciando geração mágica... ✨");
-
-      // Simular progresso
-      const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 10, 90));
-      }, 1000);
-
-      // Chamar Edge Function
-      const { data: authData } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        `${supabase.supabaseUrl}/functions/v1/generate-mockup-nanobanana`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${authData.session?.access_token}`,
-          },
-          body: JSON.stringify({ jobId: job.id }),
-        }
-      );
-
-      clearInterval(progressInterval);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erro ao gerar mockups");
+      if (data?.imageUrl) {
+        setGeneratedImage(data.imageUrl);
+        toast.success("🎉 Imagem publicitária gerada com sucesso!");
+      } else {
+        throw new Error(data?.error || "Nenhuma imagem retornada");
       }
-
-      const result = await response.json();
-      
-      // Adicionar nome da cor aos mockups
-      const mockupsWithColorNames = result.mockups.map((m: GeneratedMockup) => ({
-        ...m,
-        product_color_name: colors.find(c => c.hex === m.product_color_hex)?.name || m.product_color_hex
-      }));
-
-      setGeneratedMockups(mockupsWithColorNames);
-      setProgress(100);
-      
-      toast.success(`🎉 ${result.generated} mockups gerados com sucesso!`);
-      
-      if (result.failed > 0) {
-        toast.warning(`⚠️ ${result.failed} mockups falharam`);
-      }
-
-    } catch (error: any) {
-      console.error("Erro:", error);
-      toast.error("Erro ao gerar mockups: " + error.message);
-      setProgress(0);
+    } catch (err: any) {
+      console.error("Magic Up error:", err);
+      toast.error(err.message || "Erro ao gerar imagem");
     } finally {
       setGenerating(false);
     }
   };
 
-  const selectedColorsCount = colors.filter(c => c.selected).length;
-  const estimatedMockups = selectedColorsCount * areas.length;
-
-  // Imagem do produto baseada na cor selecionada para preview
-  const currentPreviewImage = useMemo(() => {
-    if (productImages.length === 0) return null;
-    
-    // Se tem uma cor de preview selecionada, buscar imagem específica
-    if (previewColorCode) {
-      const colorImage = productImages.find(
-        (img) => img.supplierCode === previewColorCode
-      );
-      if (colorImage) return colorImage.url;
+  const handleDownload = async () => {
+    if (!generatedImage) return;
+    try {
+      const resp = await fetch(generatedImage);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `magic-up-${selectedProduct?.sku || "ad"}-${Date.now()}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erro ao baixar imagem");
     }
-    
-    // Fallback: imagem OG (MAIN) ou primária (SET)
-    const ogImage = productImages.find((img) => img.isOgImage);
-    if (ogImage) return ogImage.url;
-    
-    const primaryImage = productImages.find((img) => img.isPrimary);
-    if (primaryImage) return primaryImage.url;
-    
-    return productImages[0]?.url || null;
-  }, [productImages, previewColorCode]);
+  };
 
-  // Nome da cor em preview
-  const previewColorName = useMemo(() => {
-    if (!previewColorCode) return null;
-    return colors.find(c => c.code === previewColorCode)?.name || null;
-  }, [previewColorCode, colors]);
+  const handleShare = () => {
+    if (!generatedImage) return;
+    const text = `✨ Confira a imagem publicitária: ${selectedProduct?.name}${selectedColor ? ` (${selectedColor.name})` : ""} com ${selectedTechnique?.name || "personalização"}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n" + generatedImage)}`, "_blank");
+  };
+
+  // ─── Progress ──────────────────────────────────────────────────
+
+  const step = !selectedProduct ? 1 : !logoPreview ? 2 : !effectivePrompt ? 3 : 4;
+
+  // ─── Render ────────────────────────────────────────────────────
 
   return (
     <MainLayout>
-      <div className="container mx-auto p-6 max-w-7xl">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-lg">
-              <Sparkles className="h-8 w-8 text-white" />
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-6 border border-primary/20">
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+          <div className="relative flex items-center gap-4">
+            <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 ring-2 ring-primary/20">
+              <Sparkles className="h-7 w-7 text-primary animate-pulse" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                 Magic Up
               </h1>
-              <p className="text-muted-foreground text-lg">
-                Geração automática de mockups com IA ✨
+              <p className="text-muted-foreground mt-1">
+                Crie imagens publicitárias profissionais com IA ✨
               </p>
             </div>
           </div>
-
-          {/* Info Cards */}
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            <Card className="border-purple-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Grid3x3 className="h-5 w-5 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Cores selecionadas</p>
-                    <p className="text-2xl font-bold text-purple-600">{selectedColorsCount}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-pink-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Wand2 className="h-5 w-5 text-pink-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Áreas configuradas</p>
-                    <p className="text-2xl font-bold text-pink-600">{areas.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-blue-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Mockups a gerar</p>
-                    <p className="text-2xl font-bold text-blue-600">{estimatedMockups}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Configuração */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Produto e Técnica */}
+        {/* Progress Steps */}
+        <div className="flex items-center gap-2">
+          {["Produto", "Logo", "Cenário", "Gerar"].map((label, i) => {
+            const s = i + 1;
+            const done = step > s;
+            const active = step === s;
+            return (
+              <div key={label} className="flex items-center gap-2 flex-1">
+                <div className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all flex-1",
+                  done ? "border-primary/30 bg-primary/5 text-primary" :
+                  active ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/30" :
+                  "border-border bg-muted/30 text-muted-foreground"
+                )}>
+                  <span className={cn(
+                    "flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold",
+                    done ? "bg-primary text-primary-foreground" :
+                    active ? "bg-primary/20 text-primary" :
+                    "bg-muted text-muted-foreground"
+                  )}>
+                    {done ? "✓" : s}
+                  </span>
+                  <span className="hidden sm:inline">{label}</span>
+                </div>
+                {i < 3 && <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Main Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Configuration */}
+          <div className="space-y-4">
+            {/* Step 1: Product */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">1</span>
-                  Produto e Técnica
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">1</span>
+                  Produto
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Produto *</Label>
-                    <ProductSearchCombobox
-                      products={products}
-                      selectedProduct={selectedProduct}
-                      onSelect={setSelectedProduct}
-                      placeholder="Buscar produto por nome ou SKU..."
-                    />
-                  </div>
+                <ProductSearchCombobox
+                  products={products}
+                  selectedProduct={selectedProduct}
+                  onSelect={(p) => {
+                    setSelectedProduct(p);
+                    setSelectedColor(null);
+                    setGeneratedImage(null);
+                  }}
+                  placeholder="Buscar produto por nome ou SKU..."
+                />
 
-                  <div>
-                    <Label>Técnica de Personalização *</Label>
+                {/* Product image + colors */}
+                {selectedProduct && (
+                  <div className="flex gap-4">
+                    {currentImage && (
+                      <div className="w-24 h-24 rounded-lg overflow-hidden bg-background border shrink-0">
+                        <img src={currentImage} alt={selectedProduct.name} className="w-full h-full object-contain" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <p className="text-sm font-medium truncate">{selectedProduct.name}</p>
+                      <p className="text-xs text-muted-foreground">SKU: {selectedProduct.sku}</p>
+                      {!loadingColors && colors.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {colors.map((c) => (
+                            <button
+                              key={c.name}
+                              type="button"
+                              onClick={() => setSelectedColor(selectedColor?.name === c.name ? null : c)}
+                              className={cn(
+                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border transition-all",
+                                selectedColor?.name === c.name
+                                  ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
+                                  : "border-border/50 bg-muted/30 text-muted-foreground hover:border-primary/50"
+                              )}
+                              title={c.name}
+                            >
+                              <span className="w-2.5 h-2.5 rounded-full border border-border/30" style={{ backgroundColor: c.hex }} />
+                              {c.name.length > 12 ? c.name.slice(0, 12) + "…" : c.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Locations */}
+                {selectedProduct && !loadingPrintAreas && printAreas && printAreas.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <MapPin className="h-3 w-3" /> Local de Personalização
+                    </Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {printAreas.map((area) => {
+                        const label = [area.component_name, area.location_name].filter(Boolean).join(" — ") || area.area_code;
+                        const isSelected = selectedLocationId === area.area_id;
+                        return (
+                          <button
+                            key={area.area_id}
+                            type="button"
+                            onClick={() => setSelectedLocationId(isSelected ? null : area.area_id)}
+                            className={cn(
+                              "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition-all",
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/30"
+                                : "border-border/50 bg-muted/30 text-muted-foreground hover:border-primary/50"
+                            )}
+                          >
+                            <MapPin className="h-3 w-3" />
+                            {label}
+                            {area.max_width > 0 && (
+                              <span className="text-[9px] opacity-60">{area.max_width}×{area.max_height}{area.unit}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Technique */}
+                {selectedProduct && availableTechniques.length > 0 && (
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Paintbrush className="h-3 w-3" /> Técnica
+                    </Label>
                     <Select
-                      value={selectedTechnique?.id}
-                      onValueChange={(value) => {
-                        const tech = availableTechniques.find(t => t.id === value);
-                        setSelectedTechnique(tech || null);
-                      }}
+                      value={selectedTechnique?.id || ""}
+                      onValueChange={(v) => setSelectedTechnique(availableTechniques.find(t => t.id === v) || null)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a técnica..." />
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
-                       <SelectContent>
-                        {availableTechniques.length === 0 ? (
-                          <div className="px-3 py-2 text-sm text-muted-foreground">
-                            {selectedProduct ? 'Nenhuma técnica vinculada a este produto' : 'Selecione um produto primeiro'}
-                          </div>
-                        ) : (
-                          availableTechniques.map((tech) => (
-                            <SelectItem key={tech.id} value={tech.id}>
-                              {tech.name}
-                            </SelectItem>
-                          ))
-                        )}
+                      <SelectContent>
+                        {availableTechniques.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-
-                {/* Local de Personalização */}
-                {selectedProduct && (
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                      Local de Personalização
-                    </Label>
-                    {loadingPrintAreas ? (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Carregando locais...
-                      </div>
-                    ) : printAreas && printAreas.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {printAreas.map((area) => {
-                          const label = [area.component_name, area.location_name]
-                            .filter(Boolean)
-                            .join(' — ') || area.area_name || area.area_code;
-                          const isSelected = selectedLocationId === area.area_id;
-                          return (
-                            <button
-                              key={area.area_id}
-                              type="button"
-                              onClick={() => setSelectedLocationId(isSelected ? null : area.area_id)}
-                              className={`
-                                inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
-                                border transition-all cursor-pointer
-                                ${isSelected
-                                  ? 'border-primary bg-primary/15 text-primary ring-1 ring-primary/30'
-                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:border-primary/50 hover:bg-primary/5'
-                                }
-                              `}
-                              title={`${label} (${area.max_width}×${area.max_height} ${area.unit})`}
-                            >
-                              <MapPin className="h-3 w-3" />
-                              {label}
-                              {area.max_width > 0 && area.max_height > 0 && (
-                                <span className="text-[10px] opacity-70">
-                                  {area.max_width}×{area.max_height}{area.unit}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground py-1">
-                        Nenhum local de personalização cadastrado para este produto.
-                      </p>
-                    )}
-                    {selectedLocationId && printAreas && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {(() => {
-                          const selected = printAreas.find(a => a.area_id === selectedLocationId);
-                          if (!selected || !selected.techniques.length) return null;
-                          return (
-                            <span className="flex items-center gap-1 flex-wrap">
-                              Técnicas disponíveis:
-                              {selected.techniques.map(t => (
-                                <Badge key={t.id} variant="outline" className="text-[10px] px-1.5 py-0">
-                                  {t.nome}
-                                </Badge>
-                              ))}
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Cores do produto - badges + preview de imagem */}
-                {selectedProduct && (
-                  <div className="space-y-3">
-                    {/* Imagem do produto por cor */}
-                    {currentPreviewImage && (
-                      <div className="flex items-center gap-4">
-                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-white border border-border/30 shrink-0">
-                          <img
-                            src={currentPreviewImage}
-                            alt={previewColorName || selectedProduct.name}
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                        {previewColorName && (
-                          <p className="text-sm text-muted-foreground">
-                            Cor: <span className="text-foreground font-medium">{previewColorName}</span>
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        {loadingColors ? "Carregando cores..." : `${colors.length} cores disponíveis · ${colors.filter(c => c.selected).length} selecionadas`}
-                      </p>
-                      {colors.length > 0 && (
-                        <button
-                          type="button"
-                          className="text-xs text-primary hover:underline"
-                          onClick={() => {
-                            const allSelected = colors.every(c => c.selected);
-                            setColors(colors.map(c => ({ ...c, selected: !allSelected })));
-                          }}
-                        >
-                          {colors.every(c => c.selected) ? "Desmarcar todas" : "Selecionar todas"}
-                        </button>
-                      )}
-                    </div>
-                    {!loadingColors && colors.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {colors.map((color, index) => {
-                          const stockFormatted = (color.stock ?? 0) >= 1000 
-                            ? `${((color.stock ?? 0) / 1000).toFixed(1)}k` 
-                            : String(color.stock ?? 0);
-                          const isPreview = previewColorCode === color.code && !!color.code;
-                          return (
-                            <button
-                              key={color.name}
-                              type="button"
-                              onClick={() => {
-                                handleColorToggle(index);
-                                if (color.code) setPreviewColorCode(color.code);
-                              }}
-                              className={`
-                                inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium
-                                border transition-all cursor-pointer
-                                ${isPreview
-                                  ? 'border-primary bg-primary/20 text-foreground ring-1 ring-primary/30'
-                                  : color.selected
-                                    ? 'border-primary/50 bg-primary/10 text-foreground'
-                                    : 'border-border/50 bg-muted/30 text-muted-foreground opacity-50 hover:opacity-75'
-                                }
-                              `}
-                              title={`${color.name} · Estoque: ${color.stock ?? 0} · Clique para ver foto`}
-                            >
-                              <span
-                                className="w-3 h-3 rounded-full shrink-0 border border-border/30"
-                                style={{ backgroundColor: color.hex }}
-                              />
-                              {stockFormatted}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {selectedTechnique?.requires_color_count && (
-                  <div>
-                    <Label>Quantidade de cores na arte</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={12}
-                      value={artColorsCount}
-                      onChange={(e) => setArtColorsCount(parseInt(e.target.value) || 1)}
-                      placeholder="Ex: 2"
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Para {selectedTechnique.name}, especifique quantas cores tem a arte
-                    </p>
-                  </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Logo do Cliente */}
+            {/* Step 2: Logo */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">2</span>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
                   Logo do Cliente
                 </CardTitle>
-                <CardDescription>
-                  Envie o logo ou arquivo de arte do cliente (qualquer formato, máx. 50MB)
-                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
-                    <Input
-                      type="file"
-                      accept="*/*"
-                      onChange={handleLogoUpload}
-                      disabled={uploading}
-                      className="hidden"
-                      id="logo-upload"
-                    />
-                    <label
-                      htmlFor="logo-upload"
-                      className="cursor-pointer flex flex-col items-center gap-3"
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                          <p className="text-lg font-medium">Enviando arquivo...</p>
-                        </>
-                      ) : logoUrl ? (
-                        <>
-                          <CheckCircle2 className="h-12 w-12 text-green-600" />
-                          <p className="text-lg font-medium text-green-600">Arquivo enviado com sucesso!</p>
-                          {logoFile && logoFile.type.startsWith("image/") ? (
-                            <div className="mt-4 p-4 bg-muted rounded-lg border-2 border-green-200">
-                              <img src={logoUrl} alt="Logo" className="max-h-40" />
-                            </div>
-                          ) : (
-                            <div className="mt-4 p-3 bg-muted rounded-lg border border-border flex items-center gap-3">
-                              <Paperclip className="h-5 w-5 text-muted-foreground" />
-                              <span className="text-sm font-medium truncate">{logoFile?.name}</span>
-                            </div>
-                          )}
-                          <Button variant="outline" size="sm" className="mt-2">
-                            Trocar arquivo
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-12 w-12 text-muted-foreground" />
-                          <div>
-                            <p className="text-lg font-medium">Clique para fazer upload</p>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Qualquer formato · Máx. 50MB
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </label>
-                  </div>
+                <div className={cn(
+                  "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+                  logoPreview ? "border-primary/30 bg-primary/5" : "border-border hover:border-primary/50"
+                )}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    disabled={logoUploading}
+                    className="hidden"
+                    id="magic-logo-upload"
+                  />
+                  <label htmlFor="magic-logo-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                    {logoUploading ? (
+                      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                    ) : logoPreview ? (
+                      <>
+                        <div className="w-20 h-20 rounded-lg overflow-hidden bg-background border">
+                          <img src={logoPreview} alt="Logo" className="w-full h-full object-contain" />
+                        </div>
+                        <Button variant="outline" size="sm" type="button">Trocar logo</Button>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-10 w-10 text-muted-foreground" />
+                        <p className="text-sm font-medium">Clique para enviar o logo</p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG, SVG · Máx. 10MB</p>
+                      </>
+                    )}
+                  </label>
                 </div>
               </CardContent>
             </Card>
-            {/* Áreas de Personalização */}
+
+            {/* Step 3: Scene */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">3</span>
-                  Áreas de Personalização
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">3</span>
+                  Cenário Publicitário
                 </CardTitle>
-                <CardDescription>
-                  Configure onde o logo será aplicado (gera 1 mockup por área)
+                <CardDescription className="text-xs">
+                  Escolha um cenário pronto ou descreva o seu
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <MultiAreaManager
-                  areas={areas}
-                  onAreasChange={setAreas}
+              <CardContent className="space-y-3">
+                <PromptBank
+                  selectedPrompt={selectedScene}
+                  onSelect={(p) => {
+                    setSelectedScene(p);
+                    setCustomPrompt("");
+                  }}
+                  productName={selectedProduct?.name}
                 />
-              </CardContent>
-            </Card>
 
-            {/* Modelo IA */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="bg-purple-100 text-purple-700 rounded-full w-8 h-8 flex items-center justify-center font-bold">4</span>
-                  Qualidade da IA
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div
-                    onClick={() => setAiModel("standard")}
-                    className={`
-                      cursor-pointer p-4 rounded-lg border-2 transition-all
-                      ${aiModel === "standard"
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
-                      }
-                    `}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold">Standard</span>
-                      <Badge variant="secondary">Rápido</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Boa qualidade, geração rápida (~10s)
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => setAiModel("pro")}
-                    className={`
-                      cursor-pointer p-4 rounded-lg border-2 transition-all
-                      ${aiModel === "pro"
-                        ? 'border-purple-500 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
-                      }
-                    `}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold">Pro</span>
-                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500">Premium</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Altíssima qualidade, 4K (~30s)
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar - Ação e Resultados */}
-          <div className="space-y-6">
-            {/* Gerar */}
-            <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle>Gerar Mockups</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Total a gerar:</span>
-                    <span className="font-bold">{estimatedMockups} mockups</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Modelo:</span>
-                    <Badge variant={aiModel === "pro" ? "default" : "secondary"}>
-                      {aiModel === "pro" ? "Pro" : "Standard"}
-                    </Badge>
-                  </div>
+                <div className="relative">
+                  <Label className="text-xs text-muted-foreground mb-1 block">Ou descreva seu próprio cenário:</Label>
+                  <Textarea
+                    value={customPrompt}
+                    onChange={(e) => {
+                      setCustomPrompt(e.target.value);
+                      if (e.target.value.trim()) setSelectedScene(null);
+                    }}
+                    placeholder="Ex: Uma executiva em reunião, usando a mochila personalizada sobre a cadeira..."
+                    rows={3}
+                    className="text-sm resize-none"
+                  />
                 </div>
 
-                <Button
-                  onClick={handleGenerate}
-                  disabled={generating || !selectedProduct || !logoUrl || !selectedTechnique || selectedColorsCount === 0}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                  size="lg"
-                >
-                  {generating ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Gerando... {progress}%
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="mr-2 h-5 w-5" />
-                      Gerar com IA
-                    </>
-                  )}
-                </Button>
-
-                {generating && (
-                  <Progress value={progress} className="w-full" />
+                {(selectedScene || customPrompt.trim()) && (
+                  <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/20">
+                    <p className="text-[11px] text-muted-foreground mb-1">Cenário selecionado:</p>
+                    <p className="text-xs font-medium text-foreground">
+                      {selectedScene ? `${selectedScene.title} — ${selectedScene.prompt.slice(0, 100)}...` : customPrompt.slice(0, 120)}
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Mockups Gerados */}
-            {generatedMockups.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    Mockups Gerados
-                  </CardTitle>
-                  <CardDescription>
-                    {generatedMockups.length} mockups prontos
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                    {generatedMockups.map((mockup) => (
-                      <div
-                        key={mockup.id}
-                        className="border rounded-lg p-3 hover:shadow-md transition-shadow"
-                      >
-                        <div className="relative group">
-                          <img
-                            src={mockup.mockup_url}
-                            alt={`${mockup.area_name} - ${mockup.product_color_name}`}
-                            className="w-full h-32 object-cover rounded"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all rounded">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => window.open(mockup.mockup_url, '_blank')}
-                            >
-                              <Eye className="mr-1 h-4 w-4" />
-                              Ver
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="mt-2">
-                          <p className="font-medium text-sm">{mockup.area_name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <div
-                              className="w-4 h-4 rounded"
-                              style={{ backgroundColor: mockup.product_color_hex }}
-                            />
-                            <span className="text-xs text-muted-foreground">
-                              {mockup.product_color_name}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+            {/* Generate Button */}
+            <Button
+              onClick={handleGenerate}
+              disabled={!canGenerate || generating}
+              className="w-full h-12 text-base gap-2"
+              size="lg"
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Gerando imagem...
+                </>
+              ) : (
+                <>
+                  <Wand2 className="h-5 w-5" />
+                  Gerar Imagem Publicitária
+                  {!canGenerate && (
+                    <Badge variant="secondary" className="ml-2 text-[10px]">
+                      {!selectedProduct ? "Selecione um produto" :
+                       !logoPreview ? "Envie o logo" :
+                       !effectivePrompt ? "Escolha um cenário" : ""}
+                    </Badge>
+                  )}
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Right: Result */}
+          <div className="lg:sticky lg:top-4 lg:self-start">
+            <AdImageResult
+              imageUrl={generatedImage}
+              isLoading={generating}
+              productName={selectedProduct?.name}
+              sceneName={selectedScene?.title}
+              onDownload={handleDownload}
+              onShare={handleShare}
+              onRegenerate={handleGenerate}
+            />
           </div>
         </div>
       </div>
