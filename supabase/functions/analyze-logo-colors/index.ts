@@ -25,6 +25,18 @@ serve(async (req) => {
       try {
         const imgResponse = await fetch(imageBase64);
         if (!imgResponse.ok) throw new Error(`Failed to fetch image: ${imgResponse.status}`);
+        const contentType = imgResponse.headers.get("content-type") || "image/png";
+        
+        // Reject SVG — AI vision models don't support it
+        if (contentType.includes("svg")) {
+          return new Response(JSON.stringify({ 
+            error: "Formato SVG não é suportado para análise de cores. Por favor, envie a logo em PNG, JPG ou WEBP." 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
         const arrayBuffer = await imgResponse.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         let binary = "";
@@ -32,7 +44,6 @@ serve(async (req) => {
           binary += String.fromCharCode(uint8Array[i]);
         }
         const base64 = btoa(binary);
-        const contentType = imgResponse.headers.get("content-type") || "image/png";
         imageContent = `data:${contentType};base64,${base64}`;
       } catch (fetchErr) {
         console.error("Error fetching image URL:", fetchErr);
@@ -41,6 +52,16 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+    }
+
+    // Also reject SVG from base64 data URIs
+    if (imageContent.startsWith("data:image/svg")) {
+      return new Response(JSON.stringify({ 
+        error: "Formato SVG não é suportado para análise de cores. Por favor, envie a logo em PNG, JPG ou WEBP." 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
