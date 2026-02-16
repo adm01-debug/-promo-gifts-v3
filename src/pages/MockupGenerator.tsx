@@ -248,6 +248,7 @@ export default function MockupGenerator() {
                 onAreasChange={mg.setPersonalizationAreas}
                 onActiveAreaChange={mg.setActiveAreaId}
                 onLogoUpload={mg.handleAreaLogoUpload}
+                onLogoRemove={() => mg.logoColorAnalysis.clearAnalysis()}
                 productLocations={mg.productLocations}
                 logoColorAnalysis={mg.logoColorAnalysis}
               />
