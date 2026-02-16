@@ -206,6 +206,26 @@ export function useMockupGenerator() {
     }
   }, [filteredTechniques, selectedTechnique]);
 
+  // When technique changes, clamp logo dimensions to the new maxWidth/maxHeight
+  useEffect(() => {
+    if (!selectedTechnique) return;
+    const tech = selectedTechnique as any;
+    const mw = tech?.maxWidth;
+    const mh = tech?.maxHeight;
+    if (!mw || !mh || mw <= 0 || mh <= 0) return;
+
+    setPersonalizationAreas(prev =>
+      prev.map(area => {
+        const clampedW = Math.min(area.logoWidth, mw);
+        const clampedH = Math.min(area.logoHeight, mh);
+        if (clampedW !== area.logoWidth || clampedH !== area.logoHeight) {
+          return { ...area, logoWidth: clampedW, logoHeight: clampedH };
+        }
+        return area;
+      })
+    );
+  }, [selectedTechnique]);
+
   // Draft restoration
   useEffect(() => {
     const restoreDraft = async () => {
