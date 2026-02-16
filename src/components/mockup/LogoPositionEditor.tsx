@@ -194,11 +194,18 @@ export function LogoPositionEditor({
   const logoNaturalSize = useImageNaturalSize(logoPreview);
   const [showPreviewMode, setShowPreviewMode] = useState(true);
   const [aspectLocked, setAspectLocked] = useState(true);
-  const aspectRatioRef = useRef(logoWidth / logoHeight);
+  const aspectRatioRef = useRef(logoHeight > 0 ? logoWidth / logoHeight : 1);
+
+  // Keep aspect ratio in sync when dimensions change externally (e.g. history restore, technique switch)
+  useEffect(() => {
+    if (aspectLocked && logoHeight > 0) {
+      aspectRatioRef.current = logoWidth / logoHeight;
+    }
+  }, [logoWidth, logoHeight, aspectLocked]);
 
   // Update aspect ratio reference when lock is toggled on
   const toggleAspectLock = useCallback(() => {
-    if (!aspectLocked) {
+    if (!aspectLocked && logoHeight > 0) {
       aspectRatioRef.current = logoWidth / logoHeight;
     }
     setAspectLocked(!aspectLocked);
@@ -210,14 +217,18 @@ export function LogoPositionEditor({
       return;
     }
     const ratio = aspectRatioRef.current;
+    if (!ratio || !isFinite(ratio) || ratio <= 0) {
+      onSizeChange(newWidth, newHeight);
+      return;
+    }
     const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : 20;
     const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : 20;
     if (changedAxis === 'w') {
       const h = Math.round((newWidth / ratio) * 2) / 2; // snap to 0.5
-      onSizeChange(newWidth, Math.min(Math.max(h, 1), effectiveMaxH));
+      onSizeChange(newWidth, clamp(h, 1, effectiveMaxH));
     } else {
       const w = Math.round((newHeight * ratio) * 2) / 2;
-      onSizeChange(Math.min(Math.max(w, 1), effectiveMaxW), newHeight);
+      onSizeChange(clamp(w, 1, effectiveMaxW), newHeight);
     }
   }, [aspectLocked, onSizeChange, maxWidth, maxHeight]);
 
@@ -646,8 +657,8 @@ export function LogoPositionEditor({
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="text-xs font-bold min-w-[40px] text-center bg-muted/50 rounded px-1.5 py-0.5">
-                  {logoWidth}
+               <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
+                  {logoWidth}cm
                 </span>
                 <Button
                   variant="outline"
@@ -658,7 +669,6 @@ export function LogoPositionEditor({
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
-                <span className="text-[10px] text-muted-foreground">cm</span>
               </div>
             </div>
             <Slider
@@ -685,8 +695,8 @@ export function LogoPositionEditor({
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <span className="text-xs font-bold min-w-[40px] text-center bg-muted/50 rounded px-1.5 py-0.5">
-                  {logoHeight}
+               <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
+                  {logoHeight}cm
                 </span>
                 <Button
                   variant="outline"
@@ -697,7 +707,6 @@ export function LogoPositionEditor({
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
-                <span className="text-[10px] text-muted-foreground">cm</span>
               </div>
             </div>
             <Slider
@@ -732,7 +741,12 @@ export function LogoPositionEditor({
                 variant="ghost"
                 size="sm"
                 className="text-xs h-7 text-primary hover:text-primary"
-                onClick={() => onSizeChange(maxWidth, maxHeight)}
+                onClick={() => {
+                  onSizeChange(maxWidth, maxHeight);
+                  if (aspectLocked) {
+                    aspectRatioRef.current = maxWidth / maxHeight;
+                  }
+                }}
                 disabled={!logoPreview}
               >
                 <Target className="h-3 w-3 mr-1" />
@@ -752,7 +766,7 @@ export function LogoPositionEditor({
                 size="icon"
                 className="h-7 w-7"
                 disabled={!logoPreview || logoScale <= 10}
-                onClick={() => onLogoScaleChange?.(Math.max(10, logoScale - 10))}
+                onClick={() => onLogoScaleChange?.(Math.max(10, logoScale - 5))}
               >
                 <Minus className="h-3 w-3" />
               </Button>
@@ -764,7 +778,7 @@ export function LogoPositionEditor({
                 size="icon"
                 className="h-7 w-7"
                 disabled={!logoPreview || logoScale >= 200}
-                onClick={() => onLogoScaleChange?.(Math.min(200, logoScale + 10))}
+                onClick={() => onLogoScaleChange?.(Math.min(200, logoScale + 5))}
               >
                 <Plus className="h-3 w-3" />
               </Button>
