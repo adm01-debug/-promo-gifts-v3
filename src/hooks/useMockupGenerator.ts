@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";
-import { useFilteredTechniques, useProductCustomizationOptionsForMockup } from "@/hooks/useMockupTechniques";
+import { useFilteredTechniques, useProductCustomizationOptionsForMockup, type TechniqueWithLimits } from "@/hooks/useMockupTechniques";
 import { usePositionHistory } from "@/hooks/usePositionHistory";
 import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
 import { useProductsContext } from "@/contexts/ProductsContext";
@@ -89,7 +89,7 @@ export function useMockupGenerator() {
 
   // Selection state
   const [productSelection, setProductSelection] = useState<MockupProductSelection | null>(null);
-  const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
+  const [selectedTechnique, setSelectedTechnique] = useState<Technique | TechniqueWithLimits | null>(null);
   const [selectedClient, setSelectedClient] = useState<MockupClient | null>(null);
 
   // Multi-area
@@ -209,9 +209,8 @@ export function useMockupGenerator() {
   // When technique changes, clamp logo dimensions to the new maxWidth/maxHeight
   useEffect(() => {
     if (!selectedTechnique) return;
-    const tech = selectedTechnique as any;
-    const mw = tech?.maxWidth;
-    const mh = tech?.maxHeight;
+    const mw = 'maxWidth' in selectedTechnique ? selectedTechnique.maxWidth : null;
+    const mh = 'maxHeight' in selectedTechnique ? selectedTechnique.maxHeight : null;
     if (!mw || !mh || mw <= 0 || mh <= 0) return;
 
     setPersonalizationAreas(prev =>
