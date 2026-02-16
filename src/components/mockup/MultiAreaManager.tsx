@@ -137,7 +137,7 @@ export function MultiAreaManager({
 
     const newTemplate: ProductTemplate = {
       id: `custom-${Date.now()}`, name: newTemplateName.trim(), icon: User, isCustom: true,
-      areas: areas.map(({ name, positionX, positionY, logoWidth, logoHeight }) => ({ name, positionX, positionY, logoWidth, logoHeight })),
+      areas: areas.map(({ name, positionX, positionY, logoWidth, logoHeight, logoRotation, logoScale }) => ({ name, positionX, positionY, logoWidth, logoHeight, logoRotation: logoRotation || 0, logoScale: logoScale ?? 100 })),
     };
     saveCustomTemplates([...customTemplates, newTemplate]);
     toast.success(`Template "${newTemplateName}" salvo com sucesso`);
@@ -157,7 +157,7 @@ export function MultiAreaManager({
 
   const doApplyTemplate = (template: ProductTemplate) => {
     const newAreas: PersonalizationArea[] = template.areas.map((area) => ({
-      ...area, id: crypto.randomUUID(), logoPreview: null,
+      ...area, id: crypto.randomUUID(), logoRotation: 0, logoScale: 100, logoPreview: null,
     }));
     onAreasChange(newAreas);
     onActiveAreaChange(newAreas[0]?.id || null);
@@ -170,7 +170,7 @@ export function MultiAreaManager({
     const availableName = DEFAULT_AREA_NAMES.find((n) => !usedNames.includes(n)) || `Área ${areas.length + 1}`;
     const newArea: PersonalizationArea = {
       id: crypto.randomUUID(), name: availableName,
-      positionX: 50, positionY: 50, logoWidth: 5, logoHeight: 3, logoPreview: null,
+      positionX: 50, positionY: 50, logoWidth: 5, logoHeight: 3, logoRotation: 0, logoScale: 100, logoPreview: null,
     };
     onAreasChange([...areas, newArea]);
     onActiveAreaChange(newArea.id);

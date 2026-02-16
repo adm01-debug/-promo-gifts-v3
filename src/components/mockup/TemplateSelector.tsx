@@ -23,6 +23,8 @@ interface TemplateArea {
   positionY: number;
   logoWidth: number;
   logoHeight: number;
+  logoRotation?: number;
+  logoScale?: number;
 }
 
 export interface ProductTemplate {
