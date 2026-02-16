@@ -390,7 +390,7 @@ export function LogoPositionEditor({
               <img
                 src={logoPreview}
                 alt="Logo para personalização"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-fill"
                 style={{
                   transform: `rotate(${logoRotation || 0}deg) scale(${(logoScale || 100) / 100})`,
                   opacity: showPreviewMode ? techniqueFilter.opacity : 1,
