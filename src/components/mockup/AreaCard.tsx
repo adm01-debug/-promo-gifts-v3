@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, MapPin } from "lucide-react";
+import { Trash2, MapPin, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PersonalizationArea } from "./MultiAreaManager";
 
@@ -84,31 +84,30 @@ export function AreaCard({
         )}
       </div>
 
-      {/* Logo indicator */}
+      {/* Logo indicator / upload button */}
       {area.logoPreview ? (
         <div className="relative h-7 w-7 rounded border bg-background overflow-hidden flex-shrink-0 group-hover:ring-2 ring-primary/30 transition-all">
           <img src={area.logoPreview} alt="Logo" className="w-full h-full object-contain" />
         </div>
       ) : (
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
             onClick={(e) => e.stopPropagation()}
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
             id={`logo-upload-${area.id}`}
             aria-label={`Upload logo para ${area.name}`}
           />
-          <Badge 
-            variant="outline" 
-            className={cn(
-              "text-[10px] cursor-pointer transition-colors",
-              "hover:bg-primary hover:text-primary-foreground hover:border-primary"
-            )}
+          <Button
+            variant="default"
+            size="sm"
+            className="h-7 px-3 text-xs font-semibold gap-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm pointer-events-none"
           >
-            + Logo
-          </Badge>
+            <Upload className="h-3 w-3" />
+            Adicionar Logo
+          </Button>
         </div>
       )}
 
