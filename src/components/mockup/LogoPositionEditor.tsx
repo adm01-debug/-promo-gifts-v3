@@ -445,7 +445,7 @@ export function LogoPositionEditor({
                 variant="outline"
                 size="sm"
                 onClick={toggleOrientation}
-                disabled={!logoPreview}
+                disabled={!logoPreview || logoWidth === logoHeight}
                 className="flex-1"
               >
                 {logoWidth >= logoHeight ? (
