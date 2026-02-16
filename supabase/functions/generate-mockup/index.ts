@@ -61,36 +61,36 @@ serve(async (req) => {
     console.log(`Position: ${positionX}%, ${positionY}%`);
     console.log(`Size: ${logoWidthCm}cm x ${logoHeightCm}cm`);
 
-    // Calculate position description
-    const horizontalPos = positionX < 40 ? "left side" : positionX > 60 ? "right side" : "center";
-    const verticalPos = positionY < 40 ? "upper" : positionY > 60 ? "lower" : "middle";
-    const positionDesc = `${verticalPos} ${horizontalPos}`;
+    // Calculate precise position description
+    // positionX: 0%=far left, 50%=center, 100%=far right
+    // positionY: 0%=very top, 50%=center, 100%=very bottom
+    const horizontalPos = positionX < 25 ? "far left" : positionX < 40 ? "left of center" : positionX > 75 ? "far right" : positionX > 60 ? "right of center" : "horizontally centered";
+    const verticalPos = positionY < 25 ? "near the very top" : positionY < 40 ? "in the upper third" : positionY > 75 ? "near the very bottom" : positionY > 60 ? "in the lower third" : "vertically centered";
+    const positionDesc = `${verticalPos}, ${horizontalPos}`;
 
     // Calculate relative size (assuming product is ~30cm on average)
     const relativeSize = ((logoWidthCm + logoHeightCm) / 2) / 30;
     const sizeDesc = relativeSize < 0.15 ? "small" : relativeSize < 0.3 ? "medium-sized" : "large";
 
-    const prompt = `Take this promotional product image and apply the provided company logo to it.
+    const prompt = `You are a professional product mockup generator. Apply the provided company logo onto the product image at the EXACT position specified.
 
 Product: ${productName}
-Logo placement: ${positionDesc} of the product
-Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)
+Technique: ${techniquePrompt}
 
-IMPORTANT: Render the logo ${techniquePrompt}
+EXACT LOGO POSITION (this is critical, do NOT deviate):
+- Horizontal: ${positionX}% from the left edge (${horizontalPos})
+- Vertical: ${positionY}% from the top edge (${verticalPos})
+- The logo must be placed at EXACTLY this coordinate on the product surface: ${positionDesc}
+- Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)
 
-CRITICAL RULES:
-- DO NOT change the product size, proportions, or dimensions in any way
-- DO NOT crop, zoom, resize, or reframe the original product image
-- The output image MUST have the exact same composition, framing, and scale as the input product image
-- Keep the product at the exact same size and position in the frame
-- The background, lighting, shadows, and overall photography must remain identical
-
-The logo should:
-- Be properly integrated into the product surface at the specified position
-- Follow the contours and curves of the product
-- Have realistic lighting and shadows matching the product
-- Look like a real customized promotional item
-- Maintain the original product colors and appearance
+STRICT RULES - MUST FOLLOW ALL:
+1. Place the logo at EXACTLY the specified position (${positionX}% horizontal, ${positionY}% vertical). This is the most important rule.
+2. DO NOT move the logo to a different location than specified. If the position says "lower third", the logo MUST be in the lower third, NOT in the middle or upper area.
+3. DO NOT change the product size, proportions, dimensions, framing, or crop in any way.
+4. The output must have the exact same composition and scale as the input product image.
+5. The logo should follow the contours/curves of the product surface naturally.
+6. Apply realistic lighting and shadows matching the product.
+7. Maintain identical background, lighting, and photography style.
 
 Output the final image maintaining the exact same dimensions and aspect ratio as the original product photo.`;
 
