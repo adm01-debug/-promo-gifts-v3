@@ -132,6 +132,7 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
               positionY: a.positionY ?? 50,
               logoWidth: a.logoWidth ?? 5,
               logoHeight: a.logoHeight ?? 3,
+              logoRotation: a.logoRotation ?? 0,
               logoPreview: a.logoPreview || null,
             }))
           : [];
