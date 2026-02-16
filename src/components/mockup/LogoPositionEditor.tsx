@@ -195,9 +195,15 @@ export function LogoPositionEditor({
   const [showPreviewMode, setShowPreviewMode] = useState(true);
   const [aspectLocked, setAspectLocked] = useState(true);
   const aspectRatioRef = useRef(logoHeight > 0 ? logoWidth / logoHeight : 1);
+  const isInternalSizeChangeRef = useRef(false);
 
-  // Keep aspect ratio in sync when dimensions change externally (e.g. history restore, technique switch)
+  // Keep aspect ratio in sync ONLY for external dimension changes (history restore, technique switch)
+  // Internal changes from handleLockedSizeChange set the flag to skip this update
   useEffect(() => {
+    if (isInternalSizeChangeRef.current) {
+      isInternalSizeChangeRef.current = false;
+      return;
+    }
     if (aspectLocked && logoHeight > 0) {
       aspectRatioRef.current = logoWidth / logoHeight;
     }
@@ -212,6 +218,7 @@ export function LogoPositionEditor({
   }, [aspectLocked, logoWidth, logoHeight]);
 
   const handleLockedSizeChange = useCallback((newWidth: number, newHeight: number, changedAxis: 'w' | 'h') => {
+    isInternalSizeChangeRef.current = true;
     if (!aspectLocked) {
       onSizeChange(newWidth, newHeight);
       return;
@@ -224,7 +231,7 @@ export function LogoPositionEditor({
     const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : 20;
     const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : 20;
     if (changedAxis === 'w') {
-      const h = Math.round((newWidth / ratio) * 2) / 2; // snap to 0.5
+      const h = Math.round((newWidth / ratio) * 2) / 2;
       onSizeChange(newWidth, clamp(h, 1, effectiveMaxH));
     } else {
       const w = Math.round((newHeight * ratio) * 2) / 2;
