@@ -251,6 +251,14 @@ export function MultiAreaManager({
                   onSelect={() => onActiveAreaChange(area.id)}
                   onNameChange={(name) => updateAreaName(area.id, name)}
                   onLogoUpload={(file) => onLogoUpload(area.id, file)}
+                  onLogoRemove={() => {
+                    const updated = areas.map(a =>
+                      a.id === area.id
+                        ? { ...a, logoData: null, logoPreview: null }
+                        : a
+                    );
+                    onAreasChange(updated);
+                  }}
                   onRemove={() => removeArea(area.id)}
                 />
               ))}

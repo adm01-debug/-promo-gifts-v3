@@ -1,7 +1,8 @@
+import { useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, MapPin, Upload } from "lucide-react";
+import { Trash2, MapPin, Upload, RefreshCw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PersonalizationArea } from "./MultiAreaManager";
 
@@ -14,6 +15,7 @@ interface AreaCardProps {
   onSelect: () => void;
   onNameChange: (name: string) => void;
   onLogoUpload: (file: File) => void;
+  onLogoRemove: () => void;
   onRemove: () => void;
 }
 
@@ -26,14 +28,19 @@ export function AreaCard({
   onSelect,
   onNameChange,
   onLogoUpload,
+  onLogoRemove,
   onRemove,
 }: AreaCardProps) {
+  const replaceInputRef = useRef<HTMLInputElement>(null);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.stopPropagation();
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
       onLogoUpload(file);
     }
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
   };
 
   return (
@@ -86,8 +93,47 @@ export function AreaCard({
 
       {/* Logo indicator / upload button */}
       {area.logoPreview ? (
-        <div className="relative h-7 w-7 rounded border bg-background overflow-hidden flex-shrink-0 group-hover:ring-2 ring-primary/30 transition-all">
-          <img src={area.logoPreview} alt="Logo" className="w-full h-full object-contain" />
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Logo thumbnail */}
+          <div className="relative h-7 w-7 rounded border bg-background overflow-hidden">
+            <img src={area.logoPreview} alt="Logo" className="w-full h-full object-contain" />
+          </div>
+
+          {/* Replace button */}
+          <div className="relative">
+            <input
+              ref={replaceInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+              aria-label={`Substituir logo de ${area.name}`}
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 pointer-events-none"
+              title="Substituir logo"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {/* Remove logo button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              onLogoRemove();
+            }}
+            title="Remover logo"
+            aria-label={`Remover logo de ${area.name}`}
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
         </div>
       ) : (
         <div className="relative flex-shrink-0">
@@ -119,7 +165,7 @@ export function AreaCard({
         <span>{area.positionY}%</span>
       </div>
 
-      {/* Remove button */}
+      {/* Remove area button */}
       {!isReadOnly && canRemove && (
         <Button
           variant="ghost"
