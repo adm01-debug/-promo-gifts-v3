@@ -1,4 +1,22 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+
+// Hook to detect natural dimensions of an image URL
+function useImageNaturalSize(src: string | null) {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    if (!src) {
+      setSize(null);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => setSize({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => setSize(null);
+    img.src = src;
+  }, [src]);
+
+  return size;
+}
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Move, RotateCw, RotateCcw, Target, Eye, Lock, Unlock, FlipHorizontal2, FlipVertical2 } from "lucide-react";
@@ -167,6 +185,7 @@ export function LogoPositionEditor({
   onLogoScaleChange,
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
+  const logoNaturalSize = useImageNaturalSize(logoPreview);
   const [showPreviewMode, setShowPreviewMode] = useState(true);
   const [aspectLocked, setAspectLocked] = useState(true);
   const aspectRatioRef = useRef(logoWidth / logoHeight);
@@ -237,6 +256,37 @@ export function LogoPositionEditor({
       heightPx: logoHeight * scale,
     };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight]);
+
+  // Rotation-aware logo rendered size (in px) — fits the rotated bounding box inside the container
+  const logoRenderedStyle = useMemo(() => {
+    const cw = logoDisplay.widthPx;
+    const ch = logoDisplay.heightPx;
+    if (!logoNaturalSize || cw <= 0 || ch <= 0) {
+      // Fallback: use object-contain behavior (no natural size yet)
+      return null;
+    }
+
+    const { w: nw, h: nh } = logoNaturalSize;
+    if (nw <= 0 || nh <= 0) return null;
+
+    const rotation = logoRotation || 0;
+    const radians = (rotation * Math.PI) / 180;
+    const absCos = Math.abs(Math.cos(radians));
+    const absSin = Math.abs(Math.sin(radians));
+
+    // Bounding box of the rotated image
+    const bboxW = nw * absCos + nh * absSin;
+    const bboxH = nw * absSin + nh * absCos;
+
+    // Scale so rotated bounding box fits inside the container
+    const scale = Math.min(cw / bboxW, ch / bboxH);
+    const userScale = (logoScale || 100) / 100;
+
+    return {
+      width: nw * scale * userScale,
+      height: nh * scale * userScale,
+    };
+  }, [logoDisplay, logoNaturalSize, logoRotation, logoScale]);
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
@@ -375,8 +425,7 @@ export function LogoPositionEditor({
               className={cn(
                 "absolute select-none touch-none",
                 "cursor-grab active:cursor-grabbing",
-                "ring-2 ring-primary/30 rounded-sm",
-                "overflow-hidden"
+                "ring-2 ring-primary/30 rounded-sm"
               )}
               onPointerDown={handlePointerDown}
               style={{
@@ -387,19 +436,28 @@ export function LogoPositionEditor({
                 transform: `translate(-50%, -50%)`,
               }}
             >
-              <img
-                src={logoPreview}
-                alt="Logo para personalização"
-                className="w-full h-full object-contain"
-                style={{
-                  transform: `rotate(${logoRotation || 0}deg) scale(${(logoScale || 100) / 100})`,
-                  opacity: showPreviewMode ? techniqueFilter.opacity : 1,
-                  filter: showPreviewMode ? techniqueFilter.filter : "none",
-                  mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
-                }}
-                draggable={false}
-                loading="lazy"
-              />
+              {/* Center the logo inside the engraving area using flex */}
+              <div className="w-full h-full flex items-center justify-center overflow-hidden">
+                <img
+                  src={logoPreview}
+                  alt="Logo para personalização"
+                  className={cn(
+                    logoRenderedStyle ? "" : "w-full h-full object-contain"
+                  )}
+                  style={{
+                    ...(logoRenderedStyle
+                      ? { width: `${logoRenderedStyle.width}px`, height: `${logoRenderedStyle.height}px` }
+                      : {}),
+                    transform: `rotate(${logoRotation || 0}deg)${!logoRenderedStyle ? ` scale(${(logoScale || 100) / 100})` : ''}`,
+                    opacity: showPreviewMode ? techniqueFilter.opacity : 1,
+                    filter: showPreviewMode ? techniqueFilter.filter : "none",
+                    mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
+                    flexShrink: 0,
+                  }}
+                  draggable={false}
+                  loading="lazy"
+                />
+              </div>
             </div>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80">
