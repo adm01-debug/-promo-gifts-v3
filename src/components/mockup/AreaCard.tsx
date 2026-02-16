@@ -100,7 +100,6 @@ export function AreaCard({
           {/* Replace button */}
           <div className="relative">
             <input
-              ref={replaceInputRef}
               type="file"
               accept="image/*"
               onChange={handleFileChange}
