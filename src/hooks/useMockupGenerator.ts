@@ -344,7 +344,7 @@ export function useMockupGenerator() {
     setPersonalizationAreas(prev =>
       prev.map(area => area.id === activeAreaId ? { ...area, ...updates } : area)
     );
-    if ('positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates) {
+    if ('positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates || 'logoRotation' in updates) {
       setHasUserInteractedPosition(true);
       // Push to undo/redo history
       const current = personalizationAreas.find(a => a.id === activeAreaId);
@@ -354,6 +354,7 @@ export function useMockupGenerator() {
           positionY: updates.positionY ?? current.positionY,
           logoWidth: updates.logoWidth ?? current.logoWidth,
           logoHeight: updates.logoHeight ?? current.logoHeight,
+          logoRotation: updates.logoRotation ?? current.logoRotation ?? 0,
         });
       }
     }
@@ -493,9 +494,10 @@ export function useMockupGenerator() {
             positionY: primaryArea.positionY,
             logoWidthCm: primaryArea.logoWidth,
             logoHeightCm: primaryArea.logoHeight,
+            logoRotation: primaryArea.logoRotation || 0,
             productName: selectedProduct!.name,
             areas: areasWithLogos.map(a => ({
-              name: a.name, positionX: a.positionX, positionY: a.positionY, logoWidth: a.logoWidth, logoHeight: a.logoHeight,
+              name: a.name, positionX: a.positionX, positionY: a.positionY, logoWidth: a.logoWidth, logoHeight: a.logoHeight, logoRotation: a.logoRotation || 0,
             })),
           },
         });
@@ -538,8 +540,9 @@ export function useMockupGenerator() {
               positionY: area.positionY,
               logoWidthCm: area.logoWidth,
               logoHeightCm: area.logoHeight,
+              logoRotation: area.logoRotation || 0,
               productName: selectedProduct!.name,
-              areas: [{ name: area.name, positionX: area.positionX, positionY: area.positionY, logoWidth: area.logoWidth, logoHeight: area.logoHeight }],
+              areas: [{ name: area.name, positionX: area.positionX, positionY: area.positionY, logoWidth: area.logoWidth, logoHeight: area.logoHeight, logoRotation: area.logoRotation || 0 }],
             },
           });
 
