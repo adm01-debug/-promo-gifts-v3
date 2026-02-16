@@ -29,6 +29,7 @@ serve(async (req) => {
       logoWidthCm, 
       logoHeightCm,
       logoRotation = 0,
+      logoScale = 100,
       productName 
     } = await req.json();
 
@@ -60,7 +61,7 @@ serve(async (req) => {
     console.log(`Generating mockup for product: ${productName}`);
     console.log(`Technique: ${techniqueName}`);
     console.log(`Position: ${positionX}%, ${positionY}%`);
-    console.log(`Size: ${logoWidthCm}cm x ${logoHeightCm}cm, Rotation: ${logoRotation}°`);
+    console.log(`Size: ${logoWidthCm}cm x ${logoHeightCm}cm, Rotation: ${logoRotation}°, Scale: ${logoScale}%`);
 
     // Calculate precise position description
     // positionX: 0%=far left, 50%=center, 100%=far right
@@ -82,7 +83,7 @@ EXACT LOGO POSITION (this is critical, do NOT deviate):
 - Horizontal: ${positionX}% from the left edge (${horizontalPos})
 - Vertical: ${positionY}% from the top edge (${verticalPos})
 - The logo must be placed at EXACTLY this coordinate on the product surface: ${positionDesc}
-- Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)${logoRotation ? `\n- Logo rotation: ${logoRotation}° clockwise from its natural upright orientation` : ''}
+- Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)${logoScale < 100 ? `\n- Logo fill: the logo should fill only ${logoScale}% of the engraving area, leaving proportional empty space around it` : ''}${logoRotation ? `\n- Logo rotation: ${logoRotation}° clockwise from its natural upright orientation` : ''}
 
 STRICT RULES - MUST FOLLOW ALL:
 1. Place the logo at EXACTLY the specified position (${positionX}% horizontal, ${positionY}% vertical). This is the most important rule.

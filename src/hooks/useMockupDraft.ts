@@ -133,6 +133,7 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
               logoWidth: a.logoWidth ?? 5,
               logoHeight: a.logoHeight ?? 3,
               logoRotation: a.logoRotation ?? 0,
+              logoScale: a.logoScale ?? 100,
               logoPreview: a.logoPreview || null,
             }))
           : [];

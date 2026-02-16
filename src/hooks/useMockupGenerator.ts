@@ -183,6 +183,7 @@ export function useMockupGenerator() {
         positionY: 50,
         logoWidth: 5,
         logoHeight: 3,
+        logoScale: 100,
         logoPreview: null,
       }));
     if (newAreas.length > 0) {
@@ -497,9 +498,10 @@ export function useMockupGenerator() {
             logoWidthCm: primaryArea.logoWidth,
             logoHeightCm: primaryArea.logoHeight,
             logoRotation: primaryArea.logoRotation || 0,
+            logoScale: primaryArea.logoScale ?? 100,
             productName: selectedProduct!.name,
             areas: areasWithLogos.map(a => ({
-              name: a.name, positionX: a.positionX, positionY: a.positionY, logoWidth: a.logoWidth, logoHeight: a.logoHeight, logoRotation: a.logoRotation || 0,
+              name: a.name, positionX: a.positionX, positionY: a.positionY, logoWidth: a.logoWidth, logoHeight: a.logoHeight, logoRotation: a.logoRotation || 0, logoScale: a.logoScale ?? 100,
             })),
           },
         });
@@ -543,8 +545,9 @@ export function useMockupGenerator() {
               logoWidthCm: area.logoWidth,
               logoHeightCm: area.logoHeight,
               logoRotation: area.logoRotation || 0,
+              logoScale: area.logoScale ?? 100,
               productName: selectedProduct!.name,
-              areas: [{ name: area.name, positionX: area.positionX, positionY: area.positionY, logoWidth: area.logoWidth, logoHeight: area.logoHeight, logoRotation: area.logoRotation || 0 }],
+              areas: [{ name: area.name, positionX: area.positionX, positionY: area.positionY, logoWidth: area.logoWidth, logoHeight: area.logoHeight, logoRotation: area.logoRotation || 0, logoScale: area.logoScale ?? 100 }],
             },
           });
 

@@ -13,6 +13,7 @@ interface PositionState {
   logoWidth: number;
   logoHeight: number;
   logoRotation?: number;
+  logoScale?: number;
 }
 
 interface UsePositionHistoryOptions {
