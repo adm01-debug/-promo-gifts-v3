@@ -1020,6 +1020,7 @@ export type Database = {
       }
       generated_mockups: {
         Row: {
+          annotations: Json | null
           client_id: string | null
           created_at: string
           id: string
@@ -1037,6 +1038,7 @@ export type Database = {
           technique_name: string
         }
         Insert: {
+          annotations?: Json | null
           client_id?: string | null
           created_at?: string
           id?: string
@@ -1054,6 +1056,7 @@ export type Database = {
           technique_name: string
         }
         Update: {
+          annotations?: Json | null
           client_id?: string | null
           created_at?: string
           id?: string
@@ -1294,6 +1297,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mockup_templates: {
+        Row: {
+          areas: Json
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          areas?: Json
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          areas?: Json
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
