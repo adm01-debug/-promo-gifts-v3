@@ -3,7 +3,7 @@
  * Categorias: Lifestyle, Corporativo, Outdoor, Esporte, Gastronomia, Varejo
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,31 @@ interface PromptBankProps {
   selectedPrompt: ScenePrompt | null;
   onSelect: (prompt: ScenePrompt) => void;
   productName?: string;
+  /** Ramo de atividade do cliente para sugerir cenários relevantes */
+  clientSegment?: string | null;
 }
+
+/** Mapeamento de ramos de atividade para categorias de cenário */
+const SEGMENT_CATEGORY_MAP: Record<string, string[]> = {
+  "tecnologia": ["corporativo", "lifestyle"],
+  "informática": ["corporativo", "lifestyle"],
+  "saúde": ["esporte", "corporativo"],
+  "educação": ["educacao", "corporativo"],
+  "alimentação": ["gastronomia", "varejo"],
+  "alimentos": ["gastronomia", "varejo"],
+  "construção": ["outdoor", "corporativo"],
+  "esporte": ["esporte", "outdoor"],
+  "moda": ["lifestyle", "varejo"],
+  "varejo": ["varejo", "lifestyle"],
+  "comércio": ["varejo", "lifestyle"],
+  "serviços": ["corporativo", "evento"],
+  "indústria": ["corporativo", "outdoor"],
+  "financeiro": ["corporativo"],
+  "marketing": ["lifestyle", "evento", "corporativo"],
+  "agronegócio": ["outdoor"],
+  "turismo": ["outdoor", "lifestyle", "gastronomia"],
+  "eventos": ["evento", "gastronomia"],
+};
 
 const CATEGORIES = [
   { id: "all", label: "Todos", icon: Sparkles },
@@ -86,18 +110,41 @@ const SCENE_PROMPTS: ScenePrompt[] = [
   { id: "edu-02", category: "educacao", title: "Formatura", prompt: "Graduate in cap and gown proudly holding the product as a graduation gift, university campus in background, celebratory moment, achievement photography" },
 ];
 
-export function PromptBank({ selectedPrompt, onSelect, productName }: PromptBankProps) {
+export function PromptBank({ selectedPrompt, onSelect, productName, clientSegment }: PromptBankProps) {
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
 
-  const filtered = SCENE_PROMPTS.filter((p) => {
-    if (activeCategory !== "all" && p.category !== activeCategory) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return p.title.toLowerCase().includes(q) || p.prompt.toLowerCase().includes(q);
+  // Determinar categorias sugeridas pelo segmento do cliente
+  const suggestedCategories = useMemo(() => {
+    if (!clientSegment) return null;
+    const seg = clientSegment.toLowerCase();
+    for (const [key, cats] of Object.entries(SEGMENT_CATEGORY_MAP)) {
+      if (seg.includes(key)) return cats;
     }
-    return true;
-  });
+    return null;
+  }, [clientSegment]);
+
+  const filtered = useMemo(() => {
+    let items = SCENE_PROMPTS.filter((p) => {
+      if (activeCategory !== "all" && p.category !== activeCategory) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return p.title.toLowerCase().includes(q) || p.prompt.toLowerCase().includes(q);
+      }
+      return true;
+    });
+
+    // Ordenar: cenários sugeridos primeiro
+    if (suggestedCategories && activeCategory === "all" && !search) {
+      items = [...items].sort((a, b) => {
+        const aScore = suggestedCategories.includes(a.category) ? 0 : 1;
+        const bScore = suggestedCategories.includes(b.category) ? 0 : 1;
+        return aScore - bScore;
+      });
+    }
+
+    return items;
+  }, [activeCategory, search, suggestedCategories]);
 
   return (
     <div className="space-y-3">
@@ -117,6 +164,7 @@ export function PromptBank({ selectedPrompt, onSelect, productName }: PromptBank
         {CATEGORIES.map((cat) => {
           const Icon = cat.icon;
           const isActive = activeCategory === cat.id;
+          const isSuggested = suggestedCategories?.includes(cat.id);
           return (
             <button
               key={cat.id}
@@ -126,15 +174,24 @@ export function PromptBank({ selectedPrompt, onSelect, productName }: PromptBank
                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
                 isActive
                   ? "border-primary bg-primary text-primary-foreground"
+                  : isSuggested
+                  ? "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10"
                   : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
               )}
             >
               <Icon className="h-3 w-3" />
               {cat.label}
+              {isSuggested && !isActive && <span className="text-[8px] opacity-70">★</span>}
             </button>
           );
         })}
       </div>
+
+      {suggestedCategories && activeCategory === "all" && !search && (
+        <p className="text-[10px] text-primary/70 flex items-center gap-1">
+          ★ Cenários sugeridos para o segmento do cliente aparecem primeiro
+        </p>
+      )}
 
       {/* Prompt grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1">

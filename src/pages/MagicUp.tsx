@@ -1,17 +1,8 @@
 /**
  * MagicUp — Gerador de Imagens Publicitárias com IA
  * 
- * Gera fotos comerciais/publicitárias usando o produto personalizado
- * em cenários reais (pessoa usando mochila, café no escritório, etc).
- * 
- * Melhorias v2:
- * - Modelo Pro (gemini-3-pro-image-preview)
- * - Persistência de gerações (histórico + favoritos)
- * - Seleção de cliente CRM
- * - Prompt customizável com preview
- * - Gerar variações
- * - Download em múltiplos formatos
- * - WhatsApp com texto personalizado
+ * v3: CRM externo, cores da marca, cenários por segmento,
+ * prompt complementar, carrossel de variações
  */
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -20,9 +11,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Sparkles, Upload, Loader2, MapPin, Paintbrush,
   ChevronRight, Wand2, Eye, EyeOff, Building2, Clock,
+  Search, X, ChevronLeft,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -37,6 +30,8 @@ import { PromptBank, type ScenePrompt } from "@/components/magic-up/PromptBank";
 import { AdImageResult, type GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { cn } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { searchCrm, selectCrmById } from "@/lib/crm-db";
+import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
 import type { PrintAreaWithTechniques } from "@/types/gravacao";
 
 // ─── Types ───────────────────────────────────────────────────────────
@@ -70,10 +65,19 @@ interface ProductImage {
   isOgImage: boolean;
 }
 
-interface CrmClient {
+interface SelectedClient {
   id: string;
   name: string;
   logo_url?: string | null;
+  ramo_atividade?: string | null;
+  cor_primaria_hex?: string | null;
+  cor_primaria_nome?: string | null;
+}
+
+interface VariationItem {
+  id: string | null;
+  imageUrl: string;
+  isFavorite: boolean;
 }
 
 // ─── Component ───────────────────────────────────────────────────────
@@ -101,30 +105,46 @@ export default function MagicUp() {
 
   // Scene
   const [selectedScene, setSelectedScene] = useState<ScenePrompt | null>(null);
-  const [customPrompt, setCustomPrompt] = useState("");
+  const [additionalDetails, setAdditionalDetails] = useState("");
   const [showPromptPreview, setShowPromptPreview] = useState(false);
 
-  // Client
-  const [selectedClient, setSelectedClient] = useState<CrmClient | null>(null);
-  const [crmClients, setCrmClients] = useState<CrmClient[]>([]);
+  // Client (CRM externo)
+  const [selectedClient, setSelectedClient] = useState<SelectedClient | null>(null);
+  const [clientSearch, setClientSearch] = useState("");
+  const [debouncedClientSearch, setDebouncedClientSearch] = useState("");
+  const [showClientResults, setShowClientResults] = useState(false);
 
-  // Generation
+  // Generation — carrossel de variações
   const [generating, setGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [currentGenId, setCurrentGenId] = useState<string | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [variations, setVariations] = useState<VariationItem[]>([]);
+  const [activeVariation, setActiveVariation] = useState(0);
 
-  // ─── Load CRM Clients ──────────────────────────────────────────
+  // ─── Client search debounce ──────────────────────────────────
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("bitrix_clients")
-        .select("id, name, logo_url")
-        .order("name")
-        .limit(500);
-      if (data) setCrmClients(data);
-    })();
-  }, []);
+    const t = setTimeout(() => setDebouncedClientSearch(clientSearch), 300);
+    return () => clearTimeout(t);
+  }, [clientSearch]);
+
+  const { data: clientResults = [], isLoading: loadingClients } = useQuery({
+    queryKey: ["magic-up-clients", debouncedClientSearch],
+    queryFn: async () => {
+      if (debouncedClientSearch.length < 3) return [];
+      const [byRazao, byTitle] = await Promise.all([
+        searchCrm<CrmCompany>("companies", "razao_social", debouncedClientSearch, {
+          select: "id, razao_social, nome_fantasia, title, ramo_atividade, logo_url",
+          limit: 20,
+        }),
+        searchCrm<CrmCompany>("companies", "title", debouncedClientSearch, {
+          select: "id, razao_social, nome_fantasia, title, ramo_atividade, logo_url",
+          limit: 20,
+        }),
+      ]);
+      const map = new Map<string, CrmCompany>();
+      [...byRazao, ...byTitle].forEach(c => map.set(c.id, c));
+      return Array.from(map.values()).slice(0, 20);
+    },
+    enabled: debouncedClientSearch.length >= 3,
+  });
 
   // ─── Load History ──────────────────────────────────────────────
   const { data: history = [] } = useQuery<GenerationHistoryItem[]>({
@@ -245,7 +265,6 @@ export default function MagicUp() {
     return [...techMap.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [printAreas, selectedLocationId]);
 
-  // Clear technique if invalid
   useEffect(() => {
     if (selectedTechnique && availableTechniques.length > 0) {
       if (!availableTechniques.some(t => t.id === selectedTechnique.id)) {
@@ -267,25 +286,31 @@ export default function MagicUp() {
       || productImages[0]?.url || null;
   }, [productImages, selectedColor, selectedProduct]);
 
-  // ─── Location name ────────────────────────────────────────────
-
   const selectedLocationName = useMemo(() => {
     if (!selectedLocationId || !printAreas) return null;
     const area = printAreas.find(a => a.area_id === selectedLocationId);
     return area ? [area.component_name, area.location_name].filter(Boolean).join(" — ") : null;
   }, [selectedLocationId, printAreas]);
 
-  const effectivePrompt = customPrompt.trim() || selectedScene?.prompt || "";
+  // ─── Effective prompt: ALWAYS scene + additional details combined ──
+
+  const effectivePrompt = useMemo(() => {
+    const base = selectedScene?.prompt || "";
+    const extra = additionalDetails.trim();
+    if (base && extra) return `${base}\n\nADDITIONAL DETAILS: ${extra}`;
+    return extra || base;
+  }, [selectedScene, additionalDetails]);
 
   const canGenerate = !!(selectedProduct && currentImage && logoPreview && effectivePrompt);
 
-  // ─── Build the full prompt preview ──────────────────────────────
+  // ─── Full prompt preview ──────────────────────────────────────
 
   const fullPromptPreview = useMemo(() => {
     if (!selectedProduct || !effectivePrompt) return "";
     return `PRODUTO: ${selectedProduct.name}${selectedColor ? ` (${selectedColor.name})` : ""}
 TÉCNICA: ${selectedTechnique?.name || "Não especificada"} @ ${selectedLocationName || "Não especificado"}
-${selectedClient ? `CLIENTE: ${selectedClient.name}` : ""}
+${selectedClient ? `CLIENTE: ${selectedClient.name}${selectedClient.ramo_atividade ? ` (${selectedClient.ramo_atividade})` : ""}` : ""}
+${selectedClient?.cor_primaria_hex ? `COR DA MARCA: ${selectedClient.cor_primaria_nome || selectedClient.cor_primaria_hex}` : ""}
 CENÁRIO: ${effectivePrompt}`;
   }, [selectedProduct, selectedColor, selectedTechnique, selectedLocationName, effectivePrompt, selectedClient]);
 
@@ -316,20 +341,29 @@ CENÁRIO: ${effectivePrompt}`;
     }
   }, []);
 
-  // Auto-load client logo
-  useEffect(() => {
-    if (selectedClient?.logo_url && !logoPreview) {
-      setLogoPreview(selectedClient.logo_url);
+  const handleSelectClient = (company: CrmCompany) => {
+    const client: SelectedClient = {
+      id: company.id,
+      name: getCompanyDisplayName(company),
+      logo_url: company.logo_url || null,
+      ramo_atividade: company.ramo_atividade || null,
+      cor_primaria_hex: null, // CRM externo pode ter isso em campos custom
+      cor_primaria_nome: null,
+    };
+    setSelectedClient(client);
+    setClientSearch("");
+    setShowClientResults(false);
+
+    // Auto-load logo do cliente
+    if (company.logo_url && !logoPreview) {
+      setLogoPreview(company.logo_url);
     }
-  }, [selectedClient]);
+  };
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
 
     setGenerating(true);
-    setGeneratedImage(null);
-    setCurrentGenId(null);
-    setIsFavorite(false);
 
     try {
       const isLogoUrl = logoPreview!.startsWith("http");
@@ -345,14 +379,16 @@ CENÁRIO: ${effectivePrompt}`;
           locationName: selectedLocationName || null,
           scenePrompt: effectivePrompt,
           sceneCategory: selectedScene?.category || "custom",
+          brandColorHex: selectedClient?.cor_primaria_hex || null,
+          brandColorName: selectedClient?.cor_primaria_nome || null,
         },
       });
 
       if (error) throw error;
 
       if (data?.imageUrl) {
-        setGeneratedImage(data.imageUrl);
-        toast.success("🎉 Imagem publicitária gerada com sucesso!");
+        // Add to variations carrossel
+        let genId: string | null = null;
 
         // Persist to history
         if (user?.id) {
@@ -368,7 +404,7 @@ CENÁRIO: ${effectivePrompt}`;
               scene_title: selectedScene?.title || null,
               scene_category: selectedScene?.category || "custom",
               scene_prompt: effectivePrompt,
-              custom_prompt: customPrompt.trim() || null,
+              custom_prompt: additionalDetails.trim() || null,
               product_image_url: currentImage,
               logo_url: isLogoUrl ? logoPreview : null,
               generated_image_url: data.imageUrl,
@@ -377,9 +413,18 @@ CENÁRIO: ${effectivePrompt}`;
             })
             .select("id")
             .single();
-          if (inserted) setCurrentGenId(inserted.id);
+          if (inserted) genId = inserted.id;
           queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
         }
+
+        const newVariation: VariationItem = {
+          id: genId,
+          imageUrl: data.imageUrl,
+          isFavorite: false,
+        };
+        setVariations(prev => [...prev, newVariation]);
+        setActiveVariation(variations.length); // point to new one
+        toast.success("🎉 Imagem publicitária gerada com sucesso!");
       } else {
         throw new Error(data?.error || "Nenhuma imagem retornada");
       }
@@ -391,10 +436,12 @@ CENÁRIO: ${effectivePrompt}`;
     }
   };
 
+  const currentVariation = variations[activeVariation] || null;
+
   const handleDownload = async (format: "png" | "jpg" = "png") => {
-    if (!generatedImage) return;
+    if (!currentVariation?.imageUrl) return;
     try {
-      const resp = await fetch(generatedImage);
+      const resp = await fetch(currentVariation.imageUrl);
       const blob = await resp.blob();
 
       let finalBlob = blob;
@@ -431,17 +478,17 @@ CENÁRIO: ${effectivePrompt}`;
   };
 
   const handleShare = () => {
-    if (!generatedImage) return;
+    if (!currentVariation?.imageUrl) return;
     const clientGreeting = selectedClient ? `Olá ${selectedClient.name}! ` : "";
     const text = `${clientGreeting}✨ Confira a imagem publicitária: ${selectedProduct?.name}${selectedColor ? ` (${selectedColor.name})` : ""} com ${selectedTechnique?.name || "personalização"}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n" + generatedImage)}`, "_blank");
+    window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n" + currentVariation.imageUrl)}`, "_blank");
   };
 
   const handleToggleFavorite = async () => {
-    if (!currentGenId) return;
-    const newVal = !isFavorite;
-    setIsFavorite(newVal);
-    await supabase.from("magic_up_generations").update({ is_favorite: newVal }).eq("id", currentGenId);
+    if (!currentVariation?.id) return;
+    const newVal = !currentVariation.isFavorite;
+    setVariations(prev => prev.map((v, i) => i === activeVariation ? { ...v, isFavorite: newVal } : v));
+    await supabase.from("magic_up_generations").update({ is_favorite: newVal }).eq("id", currentVariation.id);
     queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
   };
 
@@ -457,9 +504,9 @@ CENÁRIO: ${effectivePrompt}`;
   };
 
   const handleSelectHistory = (item: GenerationHistoryItem) => {
-    setGeneratedImage(item.generated_image_url);
-    setCurrentGenId(item.id);
-    setIsFavorite(item.is_favorite);
+    const newVar: VariationItem = { id: item.id, imageUrl: item.generated_image_url, isFavorite: item.is_favorite };
+    setVariations([newVar]);
+    setActiveVariation(0);
   };
 
   // ─── Progress ──────────────────────────────────────────────────
@@ -488,12 +535,19 @@ CENÁRIO: ${effectivePrompt}`;
                 </p>
               </div>
             </div>
-            {history.length > 0 && (
-              <Badge variant="outline" className="gap-1.5">
-                <Clock className="h-3 w-3" />
-                {history.length} geradas
-              </Badge>
-            )}
+            <div className="flex gap-2">
+              {variations.length > 1 && (
+                <Badge variant="secondary" className="gap-1">
+                  {variations.length} variações
+                </Badge>
+              )}
+              {history.length > 0 && (
+                <Badge variant="outline" className="gap-1.5">
+                  <Clock className="h-3 w-3" />
+                  {history.length} geradas
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
@@ -531,34 +585,84 @@ CENÁRIO: ${effectivePrompt}`;
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left: Configuration */}
           <div className="space-y-4">
-            {/* Client (optional) */}
+            {/* Client (CRM externo) */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  Cliente
+                  Empresa
                   <Badge variant="outline" className="text-[9px] ml-1">Opcional</Badge>
                 </CardTitle>
+                <CardDescription className="text-xs">
+                  Busque na base de 51k+ empresas do CRM
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <Select
-                  value={selectedClient?.id || ""}
-                  onValueChange={(v) => {
-                    const client = crmClients.find(c => c.id === v);
-                    setSelectedClient(client || null);
-                  }}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Selecionar cliente..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {crmClients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {selectedClient ? (
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-primary/5 border border-primary/20">
+                    {selectedClient.logo_url && (
+                      <img src={selectedClient.logo_url} alt="" className="w-8 h-8 rounded object-contain bg-background border" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{selectedClient.name}</p>
+                      {selectedClient.ramo_atividade && (
+                        <p className="text-[10px] text-muted-foreground">{selectedClient.ramo_atividade}</p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => { setSelectedClient(null); setLogoPreview(null); }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar empresa por nome..."
+                      value={clientSearch}
+                      onChange={(e) => {
+                        setClientSearch(e.target.value);
+                        setShowClientResults(true);
+                      }}
+                      onFocus={() => setShowClientResults(true)}
+                      className="pl-9 h-9"
+                    />
+                    {showClientResults && clientSearch.length >= 3 && (
+                      <div className="absolute z-20 w-full mt-1 bg-popover border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {loadingClients ? (
+                          <div className="p-3 text-center text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin inline mr-2" />Buscando...
+                          </div>
+                        ) : clientResults.length === 0 ? (
+                          <div className="p-3 text-center text-sm text-muted-foreground">Nenhuma empresa encontrada</div>
+                        ) : (
+                          clientResults.map(c => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              className="w-full text-left px-3 py-2 hover:bg-accent/50 flex items-center gap-2 text-sm"
+                              onClick={() => handleSelectClient(c)}
+                            >
+                              {c.logo_url && (
+                                <img src={c.logo_url} alt="" className="w-6 h-6 rounded object-contain border bg-background" />
+                              )}
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">{getCompanyDisplayName(c)}</p>
+                                {c.ramo_atividade && (
+                                  <p className="text-[10px] text-muted-foreground">{c.ramo_atividade}</p>
+                                )}
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -577,13 +681,12 @@ CENÁRIO: ${effectivePrompt}`;
                   onSelect={(p) => {
                     setSelectedProduct(p);
                     setSelectedColor(null);
-                    setGeneratedImage(null);
-                    setCurrentGenId(null);
+                    setVariations([]);
+                    setActiveVariation(0);
                   }}
                   placeholder="Buscar produto por nome ou SKU..."
                 />
 
-                {/* Product image + colors */}
                 {selectedProduct && (
                   <div className="flex gap-4">
                     {currentImage && (
@@ -619,7 +722,6 @@ CENÁRIO: ${effectivePrompt}`;
                   </div>
                 )}
 
-                {/* Locations */}
                 {selectedProduct && !loadingPrintAreas && printAreas && printAreas.length > 0 && (
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -653,7 +755,6 @@ CENÁRIO: ${effectivePrompt}`;
                   </div>
                 )}
 
-                {/* Technique */}
                 {selectedProduct && availableTechniques.length > 0 && (
                   <div className="space-y-1.5">
                     <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -684,9 +785,9 @@ CENÁRIO: ${effectivePrompt}`;
                   <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">2</span>
                   Logo do Cliente
                 </CardTitle>
-                {selectedClient?.logo_url && (
+                {selectedClient?.logo_url && logoPreview === selectedClient.logo_url && (
                   <CardDescription className="text-xs">
-                    Logo carregado automaticamente do cliente
+                    ✓ Logo carregado automaticamente da empresa
                   </CardDescription>
                 )}
               </CardHeader>
@@ -733,40 +834,46 @@ CENÁRIO: ${effectivePrompt}`;
                   Cenário Publicitário
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Escolha um cenário pronto ou descreva o seu
+                  Escolha um cenário e adicione detalhes extras se desejar
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <PromptBank
                   selectedPrompt={selectedScene}
-                  onSelect={(p) => {
-                    setSelectedScene(p);
-                    setCustomPrompt("");
-                  }}
+                  onSelect={(p) => setSelectedScene(p)}
                   productName={selectedProduct?.name}
+                  clientSegment={selectedClient?.ramo_atividade}
                 />
 
                 <div className="relative">
-                  <Label className="text-xs text-muted-foreground mb-1 block">Detalhes adicionais ou cenário personalizado:</Label>
+                  <Label className="text-xs text-muted-foreground mb-1 block">
+                    Detalhes adicionais (complementa o cenário acima):
+                  </Label>
                   <Textarea
-                    value={customPrompt}
-                    onChange={(e) => {
-                      setCustomPrompt(e.target.value);
-                      if (e.target.value.trim() && !selectedScene) {
-                        // Only clear scene if writing from scratch
-                      }
-                    }}
-                    placeholder="Ex: Uma executiva em reunião, usando a mochila personalizada sobre a cadeira... (complementa ou substitui o cenário acima)"
+                    value={additionalDetails}
+                    onChange={(e) => setAdditionalDetails(e.target.value)}
+                    placeholder="Ex: A pessoa deve estar sorrindo, ambiente com tons quentes, foco no produto..."
                     rows={3}
                     className="text-sm resize-none"
                   />
+                  {!selectedScene && additionalDetails.trim() && (
+                    <p className="text-[10px] text-amber-600 mt-1">
+                      💡 Dica: selecione também um cenário acima para melhores resultados
+                    </p>
+                  )}
                 </div>
 
                 {/* Prompt Preview */}
-                {(selectedScene || customPrompt.trim()) && (
+                {(selectedScene || additionalDetails.trim()) && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <p className="text-[11px] text-muted-foreground">Cenário selecionado:</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {selectedScene && additionalDetails.trim()
+                          ? `${selectedScene.title} + detalhes extras`
+                          : selectedScene
+                          ? selectedScene.title
+                          : "Cenário personalizado"}
+                      </p>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -777,16 +884,11 @@ CENÁRIO: ${effectivePrompt}`;
                         {showPromptPreview ? "Ocultar" : "Ver prompt completo"}
                       </Button>
                     </div>
-                    <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/20">
-                      <p className="text-xs font-medium text-foreground">
-                        {selectedScene ? `${selectedScene.title}` : "Cenário personalizado"}
-                      </p>
-                      {showPromptPreview && fullPromptPreview && (
-                        <pre className="mt-2 text-[10px] text-muted-foreground whitespace-pre-wrap font-mono bg-muted/50 rounded p-2">
-                          {fullPromptPreview}
-                        </pre>
-                      )}
-                    </div>
+                    {showPromptPreview && fullPromptPreview && (
+                      <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap font-mono bg-muted/50 rounded p-2.5 border">
+                        {fullPromptPreview}
+                      </pre>
+                    )}
                   </div>
                 )}
               </CardContent>
@@ -807,7 +909,7 @@ CENÁRIO: ${effectivePrompt}`;
               ) : (
                 <>
                   <Wand2 className="h-5 w-5" />
-                  {generatedImage ? "Gerar Nova Variação" : "Gerar Imagem Publicitária"}
+                  {variations.length > 0 ? "Gerar Nova Variação" : "Gerar Imagem Publicitária"}
                   {!canGenerate && (
                     <Badge variant="secondary" className="ml-2 text-[10px]">
                       {!selectedProduct ? "Selecione um produto" :
@@ -820,23 +922,81 @@ CENÁRIO: ${effectivePrompt}`;
             </Button>
           </div>
 
-          {/* Right: Result */}
-          <div className="lg:sticky lg:top-4 lg:self-start">
+          {/* Right: Result with Variations Carousel */}
+          <div className="lg:sticky lg:top-4 lg:self-start space-y-3">
+            {/* Variations carousel nav */}
+            {variations.length > 1 && (
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={activeVariation === 0}
+                  onClick={() => setActiveVariation(prev => prev - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex gap-1.5">
+                  {variations.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveVariation(i)}
+                      className={cn(
+                        "w-2 h-2 rounded-full transition-all",
+                        i === activeVariation
+                          ? "bg-primary w-6"
+                          : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+                      )}
+                    />
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={activeVariation === variations.length - 1}
+                  onClick={() => setActiveVariation(prev => prev + 1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
             <AdImageResult
-              imageUrl={generatedImage}
+              imageUrl={currentVariation?.imageUrl || null}
               isLoading={generating}
               productName={selectedProduct?.name}
               sceneName={selectedScene?.title}
               onDownload={handleDownload}
               onShare={handleShare}
               onRegenerate={handleGenerate}
-              onToggleFavorite={currentGenId ? handleToggleFavorite : undefined}
-              isFavorite={isFavorite}
+              onToggleFavorite={currentVariation?.id ? handleToggleFavorite : undefined}
+              isFavorite={currentVariation?.isFavorite}
               history={history}
               onSelectHistory={handleSelectHistory}
               onDeleteHistory={handleDeleteHistory}
               onToggleHistoryFavorite={handleToggleHistoryFavorite}
             />
+
+            {/* Variations thumbnails */}
+            {variations.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {variations.map((v, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveVariation(i)}
+                    className={cn(
+                      "w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all",
+                      i === activeVariation
+                        ? "border-primary ring-2 ring-primary/20"
+                        : "border-border hover:border-primary/40"
+                    )}
+                  >
+                    <img src={v.imageUrl} alt={`Variação ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
