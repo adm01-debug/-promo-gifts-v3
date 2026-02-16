@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Move, RotateCcw, Target, Eye, Lock, Unlock } from "lucide-react";
+import { Move, RotateCw, RotateCcw, Target, Eye, Lock, Unlock, FlipHorizontal2, FlipVertical2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -14,11 +14,13 @@ interface LogoPositionEditorProps {
   positionY: number;
   logoWidth: number;
   logoHeight: number;
+  logoRotation?: number;
   techniqueCode?: string | null;
   techniqueName?: string;
   maxWidth?: number | null;
   maxHeight?: number | null;
   onPositionChange: (x: number, y: number) => void;
+  onRotationChange?: (rotation: number) => void;
   onSizeChange: (width: number, height: number) => void;
 }
 
@@ -151,12 +153,14 @@ export function LogoPositionEditor({
   positionY,
   logoWidth,
   logoHeight,
+  logoRotation = 0,
   techniqueCode,
   techniqueName,
   maxWidth,
   maxHeight,
   onPositionChange,
   onSizeChange,
+  onRotationChange,
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const [showPreviewMode, setShowPreviewMode] = useState(true);
@@ -276,6 +280,22 @@ export function LogoPositionEditor({
   const centerLogo = () => onPositionChange(50, 50);
   const resetSize = () => onSizeChange(5, 3);
 
+  const toggleOrientation = useCallback(() => {
+    // Swap width and height
+    onSizeChange(logoHeight, logoWidth);
+    aspectRatioRef.current = logoHeight / logoWidth;
+  }, [logoWidth, logoHeight, onSizeChange]);
+
+  const rotateClockwise = useCallback(() => {
+    const newRotation = ((logoRotation || 0) + 15) % 360;
+    onRotationChange?.(newRotation);
+  }, [logoRotation, onRotationChange]);
+
+  const rotateCounterClockwise = useCallback(() => {
+    const newRotation = ((logoRotation || 0) - 15 + 360) % 360;
+    onRotationChange?.(newRotation);
+  }, [logoRotation, onRotationChange]);
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -361,7 +381,7 @@ export function LogoPositionEditor({
                 top: `${positionY}%`,
                 width: `${logoDisplay.widthPx}px`,
                 height: `${logoDisplay.heightPx}px`,
-                transform: "translate(-50%, -50%)",
+                transform: `translate(-50%, -50%) rotate(${logoRotation || 0}deg)`,
                 opacity: showPreviewMode ? techniqueFilter.opacity : 1,
                 filter: showPreviewMode ? techniqueFilter.filter : "none",
                 mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
@@ -402,6 +422,51 @@ export function LogoPositionEditor({
           >
             <Target className="h-4 w-4 mr-1" />
             Centralizar
+          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleOrientation}
+                disabled={!logoPreview}
+                className="flex-1"
+              >
+                {logoWidth >= logoHeight ? (
+                  <FlipVertical2 className="h-4 w-4 mr-1" />
+                ) : (
+                  <FlipHorizontal2 className="h-4 w-4 mr-1" />
+                )}
+                {logoWidth >= logoHeight ? "Vertical" : "Horizontal"}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Alternar orientação do logo</TooltipContent>
+          </Tooltip>
+        </div>
+        {/* Rotation controls */}
+        <div className="flex gap-2 items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={rotateCounterClockwise}
+            disabled={!logoPreview}
+            className="flex-1"
+          >
+            <RotateCcw className="h-4 w-4 mr-1" />
+            -15°
+          </Button>
+          <span className="text-xs font-medium text-muted-foreground min-w-[40px] text-center">
+            {logoRotation || 0}°
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={rotateClockwise}
+            disabled={!logoPreview}
+            className="flex-1"
+          >
+            <RotateCw className="h-4 w-4 mr-1" />
+            +15°
           </Button>
         </div>
 
