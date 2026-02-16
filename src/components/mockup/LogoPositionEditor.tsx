@@ -257,36 +257,27 @@ export function LogoPositionEditor({
     };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight]);
 
-  // Rotation-aware logo rendered size (in px) — fits the rotated bounding box inside the container
+  // Logo rendered size — fits the natural image into the container (object-contain equivalent)
+  // Rotation does NOT affect sizing; it's applied purely as a CSS transform on the element's own axis.
   const logoRenderedStyle = useMemo(() => {
     const cw = logoDisplay.widthPx;
     const ch = logoDisplay.heightPx;
     if (!logoNaturalSize || cw <= 0 || ch <= 0) {
-      // Fallback: use object-contain behavior (no natural size yet)
       return null;
     }
 
     const { w: nw, h: nh } = logoNaturalSize;
     if (nw <= 0 || nh <= 0) return null;
 
-    const rotation = logoRotation || 0;
-    const radians = (rotation * Math.PI) / 180;
-    const absCos = Math.abs(Math.cos(radians));
-    const absSin = Math.abs(Math.sin(radians));
-
-    // Bounding box of the rotated image
-    const bboxW = nw * absCos + nh * absSin;
-    const bboxH = nw * absSin + nh * absCos;
-
-    // Scale so rotated bounding box fits inside the container
-    const scale = Math.min(cw / bboxW, ch / bboxH);
+    // Standard object-contain: fit natural dimensions into container, ignoring rotation
+    const scale = Math.min(cw / nw, ch / nh);
     const userScale = (logoScale || 100) / 100;
 
     return {
       width: nw * scale * userScale,
       height: nh * scale * userScale,
     };
-  }, [logoDisplay, logoNaturalSize, logoRotation, logoScale]);
+  }, [logoDisplay, logoNaturalSize, logoScale]);
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
