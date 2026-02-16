@@ -6,7 +6,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Loader2, Palette, Search, ChevronDown, AlertTriangle, Sparkles, Eye } from 'lucide-react';
+import { Loader2, Search, ChevronDown, AlertTriangle, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -151,14 +151,21 @@ function PantoneDropdown({ selectedCode, pantoneHex, deltaE, onChange }: Pantone
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
 
-  const results = useMemo(() => searchPantone(search), [search]);
+  const results = useMemo(() => {
+    const searched = searchPantone(search);
+    // Ensure the currently selected code is always in results
+    if (selectedCode && !searched.some(r => r.code === selectedCode)) {
+      const selected = searchPantone(selectedCode).find(r => r.code === selectedCode);
+      if (selected) return [selected, ...searched];
+    }
+    return searched;
+  }, [search, selectedCode]);
 
   // Find the hex for the currently selected code
-  const selectedResult = useMemo(
-    () => results.find(r => r.code === selectedCode),
-    [results, selectedCode]
-  );
-  const displayHex = selectedResult?.hex || pantoneHex;
+  const displayHex = useMemo(() => {
+    const found = results.find(r => r.code === selectedCode);
+    return found?.hex || pantoneHex;
+  }, [results, selectedCode, pantoneHex]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

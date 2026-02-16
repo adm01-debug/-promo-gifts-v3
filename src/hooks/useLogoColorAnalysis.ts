@@ -5,7 +5,7 @@
  * e mapeia para Pantone mais próximo via Delta-E.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getBestPantoneMatch, type PantoneMatch } from '@/utils/color-matching';
 import { toast } from 'sonner';
@@ -28,8 +28,14 @@ export function useLogoColorAnalysis() {
   const [colors, setColors] = useState<DetectedColor[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const analyzeImage = useCallback(async (imageBase64: string) => {
+    // Cancel any in-flight analysis
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsAnalyzing(true);
     setError(null);
     setColors([]);
@@ -67,12 +73,14 @@ export function useLogoColorAnalysis() {
       toast.success(`${mapped.length} cor(es) detectada(s) na logo`);
       return mapped;
     } catch (err: any) {
+      // Ignore abort errors
+      if (err?.name === 'AbortError' || controller.signal.aborted) return [];
       const msg = err?.message || 'Erro ao analisar cores da logo';
       setError(msg);
       toast.error(msg);
       return [];
     } finally {
-      setIsAnalyzing(false);
+      if (!controller.signal.aborted) setIsAnalyzing(false);
     }
   }, []);
 

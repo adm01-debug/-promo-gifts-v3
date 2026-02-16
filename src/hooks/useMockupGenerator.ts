@@ -585,6 +585,7 @@ export function useMockupGenerator() {
     setHasUserInteractedPosition(false);
     positionHistory.clear();
     clearDraft();
+    logoColorAnalysis.clearAnalysis();
   };
 
   const handleShareMockup = (mockup: GeneratedMockup) => {
@@ -624,6 +625,10 @@ export function useMockupGenerator() {
     setHasUserInteractedPosition(true);
     positionHistory.clear();
     setActiveTab("generator");
+    // Trigger color analysis if logo is available
+    if (mockup.logo_url) {
+      logoColorAnalysis.analyzeImage(mockup.logo_url);
+    }
     toast.success("Configurações carregadas!");
   };
 
