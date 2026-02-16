@@ -419,18 +419,53 @@ export function LogoPositionEditor({
           )}
         </div>
 
-        {/* Quick actions */}
+        {/* Quick actions - 3 centering buttons */}
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={centerLogo}
-            disabled={!logoPreview}
-            className="flex-1"
-          >
-            <Target className="h-4 w-4 mr-1" />
-            Centralizar
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPositionChange(50, positionY)}
+                disabled={!logoPreview}
+                className="flex-1"
+              >
+                <Target className="h-3.5 w-3.5 mr-1" />
+                Centro H
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Centralizar horizontalmente</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPositionChange(50, 50)}
+                disabled={!logoPreview}
+                className="flex-1"
+              >
+                <Target className="h-3.5 w-3.5 mr-1" />
+                Centro
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Centralizar horizontal e verticalmente</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPositionChange(positionX, 50)}
+                disabled={!logoPreview}
+                className="flex-1"
+              >
+                <Target className="h-3.5 w-3.5 mr-1" />
+                Centro V
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Centralizar verticalmente</TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
