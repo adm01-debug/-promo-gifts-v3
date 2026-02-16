@@ -98,8 +98,11 @@ export function useMockupGenerator() {
 
   // Generation
   const [generatedMockup, setGeneratedMockup] = useState<string | null>(null);
+  const [generatedBatchMockups, setGeneratedBatchMockups] = useState<{areaName: string; url: string}[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [mockupAnnotations, setMockupAnnotations] = useState<{id: string; x: number; y: number; text: string}[]>([]);
+  const [beforeImage, setBeforeImage] = useState<string | null>(null);
 
   // History
   const [mockupHistory, setMockupHistory] = useState<GeneratedMockup[]>([]);
@@ -417,48 +420,92 @@ export function useMockupGenerator() {
 
     setIsLoading(true);
     setGeneratedMockup(null);
+    setGeneratedBatchMockups([]);
     setGenerationError(null);
+    setMockupAnnotations([]);
+
+    // Capture the before image (product image URL) for comparison
+    setBeforeImage(productImage);
 
     try {
       const techniquePrompt = getTechniquePrompt(selectedTechnique);
-      const primaryArea = areasWithLogos[0];
-      const isLogoUrl = primaryArea.logoPreview?.startsWith("http");
 
-      const response = await supabase.functions.invoke("generate-mockup", {
-        body: {
-          productImageUrl: productImage,
-          logoBase64: isLogoUrl ? undefined : primaryArea.logoPreview,
-          logoUrl: isLogoUrl ? primaryArea.logoPreview : undefined,
-          techniqueName: selectedTechnique.name,
-          techniquePrompt,
-          positionX: primaryArea.positionX,
-          positionY: primaryArea.positionY,
-          logoWidthCm: primaryArea.logoWidth,
-          logoHeightCm: primaryArea.logoHeight,
-          productName: selectedProduct.name,
-          areas: areasWithLogos.map(a => ({
-            name: a.name,
-            positionX: a.positionX,
-            positionY: a.positionY,
-            logoWidth: a.logoWidth,
-            logoHeight: a.logoHeight,
-          })),
-        },
-      });
+      // If only 1 area with logo, single generation (backward compatible)
+      if (areasWithLogos.length === 1) {
+        const primaryArea = areasWithLogos[0];
+        const isLogoUrl = primaryArea.logoPreview?.startsWith("http");
 
-      if (response.error) throw response.error;
-
-      if (response.data?.mockupUrl) {
-        setGeneratedMockup(response.data.mockupUrl);
-        await saveMockupToHistory(response.data.mockupUrl, primaryArea);
-        showMockupSuccessToast({
-          mockupUrl: response.data.mockupUrl,
-          productName: selectedProduct.name,
-          techniqueName: selectedTechnique.name,
-          onDownload: () => downloadMockup(response.data.mockupUrl),
+        const response = await supabase.functions.invoke("generate-mockup", {
+          body: {
+            productImageUrl: productImage,
+            logoBase64: isLogoUrl ? undefined : primaryArea.logoPreview,
+            logoUrl: isLogoUrl ? primaryArea.logoPreview : undefined,
+            techniqueName: selectedTechnique.name,
+            techniquePrompt,
+            positionX: primaryArea.positionX,
+            positionY: primaryArea.positionY,
+            logoWidthCm: primaryArea.logoWidth,
+            logoHeightCm: primaryArea.logoHeight,
+            productName: selectedProduct!.name,
+            areas: areasWithLogos.map(a => ({
+              name: a.name, positionX: a.positionX, positionY: a.positionY, logoWidth: a.logoWidth, logoHeight: a.logoHeight,
+            })),
+          },
         });
+
+        if (response.error) throw response.error;
+        if (response.data?.mockupUrl) {
+          setGeneratedMockup(response.data.mockupUrl);
+          await saveMockupToHistory(response.data.mockupUrl, primaryArea);
+          showMockupSuccessToast({
+            mockupUrl: response.data.mockupUrl,
+            productName: selectedProduct!.name,
+            techniqueName: selectedTechnique.name,
+            onDownload: () => downloadMockup(response.data.mockupUrl),
+          });
+        } else {
+          throw new Error("Nenhuma imagem retornada");
+        }
       } else {
-        throw new Error("Nenhuma imagem retornada");
+        // BATCH: generate for each area sequentially
+        const results: {areaName: string; url: string}[] = [];
+        for (const area of areasWithLogos) {
+          const isLogoUrl = area.logoPreview?.startsWith("http");
+          toast.info(`Gerando ${area.name}...`, { duration: 2000 });
+
+          const response = await supabase.functions.invoke("generate-mockup", {
+            body: {
+              productImageUrl: productImage,
+              logoBase64: isLogoUrl ? undefined : area.logoPreview,
+              logoUrl: isLogoUrl ? area.logoPreview : undefined,
+              techniqueName: selectedTechnique.name,
+              techniquePrompt,
+              positionX: area.positionX,
+              positionY: area.positionY,
+              logoWidthCm: area.logoWidth,
+              logoHeightCm: area.logoHeight,
+              productName: selectedProduct!.name,
+              areas: [{ name: area.name, positionX: area.positionX, positionY: area.positionY, logoWidth: area.logoWidth, logoHeight: area.logoHeight }],
+            },
+          });
+
+          if (response.error) {
+            console.error(`Error generating ${area.name}:`, response.error);
+            continue;
+          }
+          if (response.data?.mockupUrl) {
+            results.push({ areaName: area.name, url: response.data.mockupUrl });
+            await saveMockupToHistory(response.data.mockupUrl, area);
+          }
+        }
+
+        if (results.length > 0) {
+          setGeneratedMockup(results[0].url);
+          setGeneratedBatchMockups(results);
+          toast.success(`${results.length} mockups gerados com sucesso!`);
+        } else {
+          throw new Error("Nenhum mockup gerado no batch");
+        }
       }
     } catch (error: any) {
       console.error("Error generating mockup:", error);
@@ -500,7 +547,10 @@ export function useMockupGenerator() {
     setPersonalizationAreas([createDefaultArea()]);
     setActiveAreaId(null);
     setGeneratedMockup(null);
+    setGeneratedBatchMockups([]);
     setGenerationError(null);
+    setMockupAnnotations([]);
+    setBeforeImage(null);
     setHasUserInteractedPosition(false);
     positionHistory.clear();
     clearDraft();
@@ -586,11 +636,15 @@ export function useMockupGenerator() {
     // Generation
     generatedMockup,
     setGeneratedMockup,
+    generatedBatchMockups,
     isLoading,
     generationError,
     setGenerationError,
     generateMockup,
     downloadMockup,
+    mockupAnnotations,
+    setMockupAnnotations,
+    beforeImage,
 
     // History
     mockupHistory,

@@ -310,7 +310,29 @@ export default function MockupGenerator() {
                   productName={mg.selectedProduct?.name}
                   techniqueName={mg.selectedTechnique?.name}
                   onReset={mg.resetForm}
+                  beforeImage={mg.beforeImage}
+                  annotations={mg.mockupAnnotations}
+                  onAnnotationsChange={mg.setMockupAnnotations}
                 />
+
+                {/* Batch results */}
+                {mg.generatedBatchMockups.length > 1 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Todas as áreas ({mg.generatedBatchMockups.length})
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {mg.generatedBatchMockups.map((batch, idx) => (
+                        <div key={idx} className="border rounded-lg overflow-hidden bg-card">
+                          <img src={batch.url} alt={batch.areaName} className="w-full aspect-square object-contain" />
+                          <div className="p-2 text-center">
+                            <Badge variant="secondary" className="text-[10px]">{batch.areaName}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>

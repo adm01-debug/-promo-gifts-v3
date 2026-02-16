@@ -6,11 +6,13 @@
  */
 
 import { useState, useMemo } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -24,12 +26,15 @@ import {
   Wand2,
   ChevronLeft,
   ChevronRight,
-  Share2,
   Calendar,
+  Columns2,
+  X,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MockupHistorySkeleton } from "./MockupSkeleton";
+import { MockupCompareDialog } from "./MockupCompareDialog";
+import { ShareMenu } from "./ShareMenu";
 
 interface GeneratedMockup {
   id: string;
@@ -88,6 +93,20 @@ export function MockupHistoryPanel({
   const [filterTechnique, setFilterTechnique] = useState("all");
   const [filterDateRange, setFilterDateRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
+  const [showCompare, setShowCompare] = useState(false);
+
+  const toggleCompareSelection = (id: string) => {
+    setSelectedForCompare(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 4) next.add(id);
+      return next;
+    });
+  };
+
+  const compareMode = selectedForCompare.size > 0;
+  const compareMockups = mockupHistory.filter(m => selectedForCompare.has(m.id));
 
   const filteredMockups = useMemo(() => {
     return mockupHistory.filter((mockup) => {
@@ -129,11 +148,28 @@ export function MockupHistoryPanel({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <History className="h-5 w-5 text-primary" />
-          Histórico de Mockups
-        </CardTitle>
-        <CardDescription>Mockups gerados anteriormente</CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-primary" />
+              Histórico de Mockups
+            </CardTitle>
+            <CardDescription>Mockups gerados anteriormente</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            {compareMode && (
+              <>
+                <Badge variant="secondary">{selectedForCompare.size} selecionados</Badge>
+                <Button size="sm" onClick={() => setShowCompare(true)} disabled={selectedForCompare.size < 2}>
+                  <Columns2 className="h-4 w-4 mr-1" /> Comparar
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setSelectedForCompare(new Set())}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters */}
@@ -240,8 +276,24 @@ export function MockupHistoryPanel({
               {paginatedMockups.map((mockup) => (
                 <div
                   key={mockup.id}
-                  className="group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card"
+                  className={cn(
+                    "group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
+                    selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
+                  )}
                 >
+                  {/* Compare checkbox */}
+                  <div className="absolute top-2 left-2 z-10">
+                    <div
+                      className={cn(
+                        "flex items-center justify-center w-6 h-6 rounded-md border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
+                        selectedForCompare.has(mockup.id) ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 opacity-0 group-hover:opacity-100"
+                      )}
+                      onClick={(e) => { e.stopPropagation(); toggleCompareSelection(mockup.id); }}
+                    >
+                      {selectedForCompare.has(mockup.id) && <span className="text-xs font-bold">✓</span>}
+                    </div>
+                  </div>
+
                   <div className="aspect-square bg-muted/30 overflow-hidden">
                     <img
                       src={mockup.mockup_url}
@@ -263,23 +315,16 @@ export function MockupHistoryPanel({
                     </Tooltip>
 
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                        {mockup.technique_name}
-                      </Badge>
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
                     </div>
 
                     {mockup.bitrix_clients?.name && (
-                      <p className="text-xs text-primary truncate font-medium">
-                        👤 {mockup.bitrix_clients.name}
-                      </p>
+                      <p className="text-xs text-primary truncate font-medium">👤 {mockup.bitrix_clients.name}</p>
                     )}
 
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(mockup.created_at), {
-                        addSuffix: true,
-                        locale: ptBR,
-                      })}
+                      {formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
                     </div>
                   </div>
 
@@ -287,40 +332,18 @@ export function MockupHistoryPanel({
                   <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="h-8 w-8 shadow-md"
-                          onClick={() => onLoadFromHistory(mockup)}
-                        >
+                        <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onLoadFromHistory(mockup)}>
                           <RotateCcw className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>Regenerar</TooltipContent>
                     </Tooltip>
 
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="h-8 w-8 shadow-md"
-                          onClick={() => onShare(mockup)}
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Compartilhar</TooltipContent>
-                    </Tooltip>
+                    <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 shadow-md [&>svg]:h-4 [&>svg]:w-4" />
 
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="h-8 w-8 shadow-md"
-                          onClick={() => onDownload(mockup.mockup_url)}
-                        >
+                        <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.mockup_url)}>
                           <Download className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
@@ -329,12 +352,7 @@ export function MockupHistoryPanel({
 
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          size="icon"
-                          variant="destructive"
-                          className="h-8 w-8 shadow-md"
-                          onClick={() => onDelete(mockup.id)}
-                        >
+                        <Button size="icon" variant="destructive" className="h-8 w-8 shadow-md" onClick={() => onDelete(mockup.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
@@ -385,6 +403,14 @@ export function MockupHistoryPanel({
           </div>
         )}
       </CardContent>
+
+      {/* Compare Dialog */}
+      <MockupCompareDialog
+        open={showCompare}
+        onOpenChange={setShowCompare}
+        mockups={compareMockups}
+        onDownload={onDownload}
+      />
     </Card>
   );
 }
