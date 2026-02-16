@@ -21,6 +21,10 @@ serve(async (req) => {
       productCategory,
       techniqueName,
       locationName,
+      maxWidth,
+      maxHeight,
+      dimensionUnit,
+      isCurved,
       clientSegment,
       clientName,
       brandColorName,
@@ -39,6 +43,16 @@ serve(async (req) => {
     }
 
     const numPrompts = Math.min(numberOfPrompts || 4, 6);
+
+    // Build customization detail string
+    const customizationParts: string[] = [];
+    if (techniqueName) customizationParts.push(`Technique: ${techniqueName}`);
+    if (locationName) customizationParts.push(`Location: ${locationName}`);
+    if (maxWidth && maxHeight) customizationParts.push(`Max print area: ${maxWidth}×${maxHeight}${dimensionUnit || 'cm'}`);
+    if (isCurved) customizationParts.push(`Surface type: curved/cylindrical`);
+    const customizationDetail = customizationParts.length > 0
+      ? customizationParts.join(' | ')
+      : 'standard printing on front';
 
     const systemPrompt = `You are a world-class advertising creative director specialized in promotional product photography. 
 
@@ -59,6 +73,7 @@ RULES:
 8. If a client segment is provided, tailor scenes to that industry
 9. Never use generic descriptions — be specific and evocative
 10. Think about what would make someone STOP scrolling on Instagram
+11. CRITICAL: The customization details (technique, location, dimensions) are REAL specifications from the factory database. Your prompts MUST accurately describe the logo placement matching these specs. If the surface is curved, ensure the scene angle shows the curved print area clearly.
 
 RESPOND ONLY with a valid JSON array. No markdown, no explanation. Example:
 [
@@ -74,7 +89,7 @@ RESPOND ONLY with a valid JSON array. No markdown, no explanation. Example:
     const userMessage = `Generate ${numPrompts} UNIQUE advertising scene prompts for this product:
 
 PRODUCT: ${productName}${productColor ? ` (color: ${productColor})` : ''}${productCategory ? `\nPRODUCT CATEGORY: ${productCategory}` : ''}
-CUSTOMIZATION: ${techniqueName || 'printing'} on ${locationName || 'front'}
+CUSTOMIZATION SPECS: ${customizationDetail}
 ${clientName ? `CLIENT: ${clientName}` : ''}
 ${clientSegment ? `CLIENT INDUSTRY: ${clientSegment}` : ''}
 ${brandColorName ? `BRAND COLOR: ${brandColorName}` : ''}
@@ -88,6 +103,8 @@ Create ${numPrompts} distinct scene concepts that:
 - Range from aspirational to relatable scenarios
 - Would each produce a visually stunning commercial photograph
 - Consider the specific product type, its materials, and how people actually use it
+- The logo/branding MUST be shown applied via ${techniqueName || 'printing'} on the ${locationName || 'front'}${maxWidth && maxHeight ? `, within a ${maxWidth}×${maxHeight}${dimensionUnit || 'cm'} area` : ''}
+- If the surface is curved, ensure camera angles show the curved print area prominently
 - If a client industry is given, include at least 2 scenes relevant to that industry`;
 
     console.log("[ad-prompt] Generating prompts for:", productName);
