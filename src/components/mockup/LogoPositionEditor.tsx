@@ -280,15 +280,26 @@ export function LogoPositionEditor({
   const centerLogo = () => onPositionChange(50, 50);
 
   const toggleOrientation = useCallback(() => {
-    const newW = logoHeight;
-    const newH = logoWidth;
-    // Clamp to technique limits if available
+    // Swap width ↔ height
+    let newW = logoHeight;
+    let newH = logoWidth;
     const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : 20;
     const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : 20;
-    const clampedW = Math.min(newW, effectiveMaxW);
-    const clampedH = Math.min(newH, effectiveMaxH);
-    onSizeChange(clampedW, clampedH);
-    aspectRatioRef.current = clampedW / clampedH;
+
+    // If after swap either exceeds its max, scale proportionally to fit
+    const scaleW = newW > effectiveMaxW ? effectiveMaxW / newW : 1;
+    const scaleH = newH > effectiveMaxH ? effectiveMaxH / newH : 1;
+    const scale = Math.min(scaleW, scaleH);
+
+    const clampedW = Math.round(newW * scale * 2) / 2; // snap to 0.5
+    const clampedH = Math.round(newH * scale * 2) / 2;
+
+    // Only apply if dimensions actually change
+    const finalW = Math.max(clampedW, 1);
+    const finalH = Math.max(clampedH, 1);
+
+    onSizeChange(finalW, finalH);
+    aspectRatioRef.current = finalW / finalH;
   }, [logoWidth, logoHeight, onSizeChange, maxWidth, maxHeight]);
 
   const rotateClockwise = useCallback(() => {
