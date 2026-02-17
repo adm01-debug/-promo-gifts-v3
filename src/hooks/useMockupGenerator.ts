@@ -20,6 +20,7 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { useMockupWizardStep } from "@/components/mockup/MockupWizard";
 import { useLogoColorAnalysis } from "@/hooks/useLogoColorAnalysis";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
+import { classifyTechnique, techniqueNeedsColorConfig, type TechniqueColorConfig } from "@/components/mockup/TechniqueColorConfigDialog";
 import type { PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 import type { MockupProductSelection } from "@/components/mockup/MockupProductSelector";
 import type { MockupClient } from "@/components/mockup/MockupConfigPanel";
@@ -107,6 +108,9 @@ export function useMockupGenerator() {
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [mockupAnnotations, setMockupAnnotations] = useState<{id: string; x: number; y: number; text: string}[]>([]);
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
+
+  // Technique color configuration
+  const [techniqueColorConfig, setTechniqueColorConfig] = useState<TechniqueColorConfig | null>(null);
 
   // History
   const [mockupHistory, setMockupHistory] = useState<GeneratedMockup[]>([]);
@@ -617,6 +621,7 @@ export function useMockupGenerator() {
     setMockupAnnotations([]);
     setBeforeImage(null);
     setHasUserInteractedPosition(false);
+    setTechniqueColorConfig(null);
     positionHistory.clear();
     clearDraft();
     logoColorAnalysis.clearAnalysis();
@@ -748,6 +753,10 @@ export function useMockupGenerator() {
 
     // Logo color analysis
     logoColorAnalysis,
+
+    // Technique color config
+    techniqueColorConfig,
+    setTechniqueColorConfig,
 
     // Misc
     filteredTechniques,
