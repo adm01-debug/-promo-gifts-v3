@@ -236,22 +236,26 @@ export function LogoPositionEditor({
     
     if (techniqueColorConfig.category === "laser") {
       const tone = techniqueColorConfig.laserTone || "escuro";
-      // Step 1: grayscale(1) → converts all colors to gray
-      // Step 2: contrast(100) → binarizes: forces pixels to pure black or pure white (eliminates all gradients/intermediate tones)
-      // Step 3: brightness() → shifts the binary result to the target solid tone
-      // Result: a single flat color, no gradients, no multiple gray shades
+      // Binarization chain:
+      // 1. grayscale(1)       → todos os pixels viram cinza
+      // 2. brightness(0.25)   → escurece TUDO antes do contraste, garantindo que pixels
+      //                         claros da logo (ex: texto azul claro) caiam abaixo de 50%
+      // 3. contrast(1000%)    → binariza: pixels < 50% → preto puro, > 50% → branco puro
+      //                         (1000% = 10x o contraste normal, força binarização real)
+      // 4. tone adjustment    → aplica o tom sólido único desejado
+      // Resultado: silhueta 100% cor sólida, zero degradê, zero tons intermediários
       if (tone === "claro") {
-        // Dark pixels → white → dimmed to a light silver/gray (simulates light laser on dark surface)
-        return { filter: "grayscale(1) contrast(100) invert(1) brightness(0.78)", opacity: 0.75 };
+        // Claro: binariza → inverte (preto→branco) → clareia para tom prata claro
+        return { filter: "grayscale(1) brightness(0.25) contrast(1000%) invert(1) brightness(0.82)", opacity: 0.72 };
       } else {
-        // Dark pixels → pure black → lifted slightly to charcoal (simulates dark laser on light surface)
-        return { filter: "grayscale(1) contrast(100) brightness(0.38)", opacity: 0.82 };
+        // Escuro: binariza → tom chumbo/escuro sólido
+        return { filter: "grayscale(1) brightness(0.25) contrast(1000%) brightness(0.42)", opacity: 0.88 };
       }
     }
     
     if (techniqueColorConfig.category === "serigrafia" && techniqueColorConfig.colorCount === 1) {
-      // Binary single-color simulation for 1-color serigrafia
-      return { filter: "grayscale(1) contrast(100) brightness(0.3)", opacity: 0.88 };
+      // Mesma binarização para serigrafia 1 cor
+      return { filter: "grayscale(1) brightness(0.25) contrast(1000%) brightness(0.35)", opacity: 0.9 };
     }
     
     return null;
