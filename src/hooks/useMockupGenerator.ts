@@ -219,6 +219,7 @@ export function useMockupGenerator() {
     if (!selectedTechnique) return;
     const mw = 'maxWidth' in selectedTechnique ? selectedTechnique.maxWidth : null;
     const mh = 'maxHeight' in selectedTechnique ? selectedTechnique.maxHeight : null;
+    console.log('[MockupGenerator] Technique changed:', selectedTechnique.name, '| maxWidth:', mw, '| maxHeight:', mh);
     if (!mw || !mh || mw <= 0 || mh <= 0) return;
 
     setPersonalizationAreas(prev =>
