@@ -269,10 +269,10 @@ export default function MockupGenerator() {
                     techniqueName={mg.selectedTechnique?.name}
                     maxWidth={'maxWidth' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as any).maxWidth : null}
                     maxHeight={'maxHeight' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as any).maxHeight : null}
-                    {/* CRITICAL: Dimensões físicas vêm de dimensions.height_cm (mapeado do banco externo),
-                        NÃO de metadata.height_mm (campo legado, quase sempre null).
-                        Para garrafas cilíndricas, diameter_cm é usado como largura.
-                        Corrigido em 2026-02-17 — NÃO REVERTER. */}
+                    // CRITICAL: Dimensões físicas vêm de dimensions.height_cm (mapeado do banco externo),
+                    // NÃO de metadata.height_mm (campo legado, quase sempre null).
+                    // Para garrafas cilíndricas, diameter_cm é usado como largura.
+                    // Corrigido em 2026-02-17 — NÃO REVERTER.
                     productHeightCm={mg.selectedProduct?.dimensions?.height_cm ?? (mg.selectedProduct?.metadata?.height_mm ? mg.selectedProduct.metadata.height_mm / 10 : null)}
                     productWidthCm={mg.selectedProduct?.dimensions?.width_cm ?? mg.selectedProduct?.dimensions?.diameter_cm ?? (mg.selectedProduct?.metadata?.width_mm ? mg.selectedProduct.metadata.width_mm / 10 : null)}
                     onPositionChange={(x, y) => mg.updateActiveArea({ positionX: x, positionY: y })}
