@@ -94,13 +94,11 @@ export async function processLogoForLaser(
         }
 
         // All other pixels = logo content → replace with solid laser tone
-        // Preserve anti-aliasing by scaling alpha proportionally to original darkness
-        const darkness = 1 - luminance / 255; // 0 = white, 1 = black
+        // 100% monochromatic: every visible pixel gets EXACTLY the same tone at full opacity
         data[i] = tR;
         data[i + 1] = tG;
         data[i + 2] = tB;
-        // Keep original alpha but scale it slightly by darkness for smooth edges
-        data[i + 3] = Math.round(a * Math.max(0.3, darkness));
+        data[i + 3] = 255; // Full opacity — no gradients, no anti-aliasing variation
       }
 
       ctx.putImageData(imageData, 0, 0);
