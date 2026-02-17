@@ -195,6 +195,12 @@ export function LogoPositionEditor({
   // Convert cm to pixels using the product's real physical dimensions as the reference frame.
   // This ensures the engraving area is proportionally accurate relative to the product.
   //
+  // CRITICAL — DO NOT CHANGE THIS LOGIC (fixed 2026-02-17):
+  //   productHeightCm/productWidthCm come from `dimensions.height_cm` (external DB),
+  //   NOT from `metadata.height_mm` (legacy field, almost always null).
+  //   Ex: Squeeze 94623 has height_cm=21, width_cm=6.6 → a 2.5×6cm area renders
+  //   proportionally small on the 21cm bottle, matching physical reality.
+  //
   // Strategy:
   //   1. If product physical dims are known → use them as the "ruler" (1cm = N px)
   //   2. Else if technique maxWidth/maxHeight known → old 60% fraction fallback
