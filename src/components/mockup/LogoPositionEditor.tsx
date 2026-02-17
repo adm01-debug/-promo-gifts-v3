@@ -654,7 +654,7 @@ export function LogoPositionEditor({
               )}
             </div>
 
-            {/* Largura da área */}
+            {/* Largura da área — independente, sem lock */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Largura</span>
@@ -664,7 +664,7 @@ export function LogoPositionEditor({
                     size="icon"
                     className="h-7 w-7"
                     disabled={!logoPreview || logoWidth <= 1}
-                    onClick={() => handleLockedSizeChange(Math.max(1, logoWidth - 0.5), logoHeight, 'w')}
+                    onClick={() => onSizeChange(Math.max(1, logoWidth - 0.5), logoHeight)}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
@@ -676,7 +676,7 @@ export function LogoPositionEditor({
                     size="icon"
                     className="h-7 w-7"
                     disabled={!logoPreview || logoWidth >= (maxWidth && maxWidth > 0 ? maxWidth : 20)}
-                    onClick={() => handleLockedSizeChange(Math.min(maxWidth && maxWidth > 0 ? maxWidth : 20, logoWidth + 0.5), logoHeight, 'w')}
+                    onClick={() => onSizeChange(Math.min(maxWidth && maxWidth > 0 ? maxWidth : 20, logoWidth + 0.5), logoHeight)}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
@@ -684,7 +684,7 @@ export function LogoPositionEditor({
               </div>
               <Slider
                 value={[logoWidth]}
-                onValueChange={(v) => handleLockedSizeChange(v[0], logoHeight, 'w')}
+                onValueChange={(v) => onSizeChange(v[0], logoHeight)}
                 min={1}
                 max={maxWidth && maxWidth > 0 ? maxWidth : 20}
                 step={0.5}
@@ -692,7 +692,7 @@ export function LogoPositionEditor({
               />
             </div>
 
-            {/* Altura da área */}
+            {/* Altura da área — independente, sem lock */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Altura</span>
@@ -702,7 +702,7 @@ export function LogoPositionEditor({
                     size="icon"
                     className="h-7 w-7"
                     disabled={!logoPreview || logoHeight <= 1}
-                    onClick={() => handleLockedSizeChange(logoWidth, Math.max(1, logoHeight - 0.5), 'h')}
+                    onClick={() => onSizeChange(logoWidth, Math.max(1, logoHeight - 0.5))}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
@@ -714,7 +714,7 @@ export function LogoPositionEditor({
                     size="icon"
                     className="h-7 w-7"
                     disabled={!logoPreview || logoHeight >= (maxHeight && maxHeight > 0 ? maxHeight : 20)}
-                    onClick={() => handleLockedSizeChange(logoWidth, Math.min(maxHeight && maxHeight > 0 ? maxHeight : 20, logoHeight + 0.5), 'h')}
+                    onClick={() => onSizeChange(logoWidth, Math.min(maxHeight && maxHeight > 0 ? maxHeight : 20, logoHeight + 0.5))}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
@@ -722,7 +722,7 @@ export function LogoPositionEditor({
               </div>
               <Slider
                 value={[logoHeight]}
-                onValueChange={(v) => handleLockedSizeChange(logoWidth, v[0], 'h')}
+                onValueChange={(v) => onSizeChange(logoWidth, v[0])}
                 min={1}
                 max={maxHeight && maxHeight > 0 ? maxHeight : 20}
                 step={0.5}
@@ -730,34 +730,14 @@ export function LogoPositionEditor({
               />
             </div>
 
-            {/* Lock + Área Máxima */}
-            <div className="flex items-center justify-between">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={aspectLocked ? "default" : "outline"}
-                    size="sm"
-                    className="h-7 gap-1.5 text-xs"
-                    onClick={toggleAspectLock}
-                    disabled={!logoPreview}
-                  >
-                    {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                    {aspectLocked ? "Travada" : "Livre"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{aspectLocked ? "Clique para destravar proporção" : "Clique para travar proporção"}</TooltipContent>
-              </Tooltip>
+            {/* Área Máxima (sem lock aqui) */}
+            <div className="flex items-center justify-end">
               {maxWidth && maxHeight && maxWidth > 0 && maxHeight > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="text-[10px] h-7 text-primary hover:text-primary px-1.5"
-                  onClick={() => {
-                    onSizeChange(maxWidth, maxHeight);
-                    if (aspectLocked) {
-                      aspectRatioRef.current = maxWidth / maxHeight;
-                    }
-                  }}
+                  onClick={() => onSizeChange(maxWidth, maxHeight)}
                   disabled={!logoPreview}
                 >
                   <Target className="h-3 w-3 mr-1" />
@@ -812,8 +792,23 @@ export function LogoPositionEditor({
               />
             </div>
 
-            {/* Reset escala */}
+            {/* Lock proporção do logo + Reset escala */}
             <div className="flex items-center justify-between">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={aspectLocked ? "default" : "outline"}
+                    size="sm"
+                    className="h-7 gap-1.5 text-xs"
+                    onClick={toggleAspectLock}
+                    disabled={!logoPreview}
+                  >
+                    {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                    {aspectLocked ? "Travada" : "Livre"}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{aspectLocked ? "Proporção da logo travada" : "Proporção da logo livre"}</TooltipContent>
+              </Tooltip>
               <Button
                 variant="ghost"
                 size="sm"
