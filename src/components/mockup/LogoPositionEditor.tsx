@@ -489,7 +489,7 @@ export function LogoPositionEditor({
               }}
             >
               {/* Center the logo inside the engraving area using flex — overflow-hidden clips at 100% cover */}
-              <div className="w-full h-full flex items-center justify-center overflow-hidden">
+              <div className="w-full h-full flex items-center justify-center">
                 <img
                   src={logoPreview}
                   alt="Logo para personalização"
