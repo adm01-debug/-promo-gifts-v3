@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler } from "lucide-react";
+import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -685,8 +686,26 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoScale >= 500}
-                    onClick={() => onLogoScaleChange?.(Math.min(500, logoScale + 5))}
+                    disabled={!logoPreview || logoScale >= 100}
+                    onClick={() => {
+                      if (logoScale >= 100) {
+                        const isAreaAtMax = maxWidth != null && maxHeight != null && maxWidth > 0 && maxHeight > 0
+                          && logoWidth >= maxWidth && logoHeight >= maxHeight;
+                        if (isAreaAtMax) {
+                          toast.info("🔒 Limite máximo atingido", {
+                            description: "A logo já ocupa 100% da área de gravação e a área já está no tamanho máximo permitido para esta técnica.",
+                            duration: 4000,
+                          });
+                        } else {
+                          toast.info("📐 Logo no tamanho máximo da área", {
+                            description: "Aumente a Área de Gravação (lado esquerdo) para poder ampliar a logo.",
+                            duration: 4000,
+                          });
+                        }
+                        return;
+                      }
+                      onLogoScaleChange?.(Math.min(100, logoScale + 5));
+                    }}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
@@ -694,9 +713,9 @@ export function LogoPositionEditor({
               </div>
               <Slider
                 value={[logoScale]}
-                onValueChange={(v) => onLogoScaleChange?.(v[0])}
+                onValueChange={(v) => onLogoScaleChange?.(Math.min(100, v[0]))}
                 min={10}
-                max={500}
+                max={100}
                 step={5}
                 disabled={!logoPreview}
               />
