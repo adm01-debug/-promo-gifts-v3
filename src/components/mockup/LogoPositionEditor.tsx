@@ -236,17 +236,22 @@ export function LogoPositionEditor({
     
     if (techniqueColorConfig.category === "laser") {
       const tone = techniqueColorConfig.laserTone || "escuro";
-      // Apply grayscale + brightness to simulate laser tone
+      // Step 1: grayscale(1) → converts all colors to gray
+      // Step 2: contrast(100) → binarizes: forces pixels to pure black or pure white (eliminates all gradients/intermediate tones)
+      // Step 3: brightness() → shifts the binary result to the target solid tone
+      // Result: a single flat color, no gradients, no multiple gray shades
       if (tone === "claro") {
-        return { filter: "grayscale(1) brightness(1.6) contrast(0.8)", opacity: 0.7 };
+        // Dark pixels → white → dimmed to a light silver/gray (simulates light laser on dark surface)
+        return { filter: "grayscale(1) contrast(100) invert(1) brightness(0.78)", opacity: 0.75 };
       } else {
-        return { filter: "grayscale(1) brightness(0.5) contrast(1.4)", opacity: 0.8 };
+        // Dark pixels → pure black → lifted slightly to charcoal (simulates dark laser on light surface)
+        return { filter: "grayscale(1) contrast(100) brightness(0.38)", opacity: 0.82 };
       }
     }
     
     if (techniqueColorConfig.category === "serigrafia" && techniqueColorConfig.colorCount === 1) {
-      // Simulate monocromia with high contrast grayscale
-      return { filter: "grayscale(1) contrast(1.3)", opacity: 0.85 };
+      // Binary single-color simulation for 1-color serigrafia
+      return { filter: "grayscale(1) contrast(100) brightness(0.3)", opacity: 0.88 };
     }
     
     return null;
