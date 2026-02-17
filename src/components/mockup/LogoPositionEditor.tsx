@@ -51,6 +51,11 @@ const TECHNIQUE_FILTERS: Record<string, TechniqueFilter> = {
     opacity: 0.9,
     description: "Serigrafia",
   },
+  serigrafia: {
+    filter: "contrast(1.2) saturate(1.1)",
+    opacity: 0.9,
+    description: "Serigrafia",
+  },
   dtf: {
     filter: "brightness(1.05) saturate(1.2)",
     opacity: 0.95,
@@ -108,13 +113,39 @@ const TECHNIQUE_FILTERS: Record<string, TechniqueFilter> = {
   },
 };
 
+// Ordered matching rules: more specific patterns first to avoid false matches.
+// e.g. "Serigrafia Vinílica UV" must match "serigrafia" NOT "uv".
+const TECHNIQUE_MATCH_ORDER: Array<{ pattern: string; key: string }> = [
+  { pattern: "laser_co2", key: "laser_co2" },
+  { pattern: "laser_fibra", key: "laser_fibra" },
+  { pattern: "co2", key: "laser_co2" },
+  { pattern: "fibra", key: "laser_fibra" },
+  { pattern: "laser", key: "laser" },
+  { pattern: "bordado", key: "bordado" },
+  { pattern: "serigrafia", key: "serigrafia" },
+  { pattern: "silk", key: "silk" },
+  { pattern: "dtf", key: "dtf" },
+  { pattern: "sublima", key: "sublimacao" },
+  { pattern: "tampografia", key: "tampografia" },
+  { pattern: "hot_stamping", key: "hot_stamping" },
+  { pattern: "hot stamping", key: "hot_stamping" },
+  { pattern: "adesivo", key: "adesivo" },
+  { pattern: "transfer", key: "transfer" },
+  // "uv" MUST be last — it's a substring of many technique names
+  { pattern: "uv", key: "uv" },
+];
+
 function getTechniqueFilter(techniqueCode?: string | null, techniqueName?: string) {
   if (!techniqueCode && !techniqueName) return TECHNIQUE_FILTERS.default;
 
-  const code = (techniqueCode || techniqueName || "").toLowerCase();
+  // CRITICAL: combine BOTH code AND name for matching,
+  // so "Serigrafia Vinílica | UV | Cilíndrica" matches "serigrafia" even if code is "SUV_C"
+  const combined = [techniqueCode, techniqueName].filter(Boolean).join(" ").toLowerCase();
 
-  for (const [key, value] of Object.entries(TECHNIQUE_FILTERS)) {
-    if (code.includes(key)) return value;
+  for (const rule of TECHNIQUE_MATCH_ORDER) {
+    if (combined.includes(rule.pattern)) {
+      return TECHNIQUE_FILTERS[rule.key];
+    }
   }
 
   return TECHNIQUE_FILTERS.default;
