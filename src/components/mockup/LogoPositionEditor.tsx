@@ -213,33 +213,31 @@ export function LogoPositionEditor({
     const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : null;
     const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : null;
 
+    // Calculate the RENDERED image size within the container (object-contain).
+    // The image maintains its aspect ratio, so it won't fill both dimensions
+    // for non-square images (e.g. tall bottles in a square container).
+    const imgAR = productBounds.imageAspectRatio || 1;
+    const containerAR = containerW / containerH;
+    let renderedImgW: number, renderedImgH: number;
+    if (imgAR > containerAR) {
+      // Image is wider than container → width-limited
+      renderedImgW = containerW;
+      renderedImgH = containerW / imgAR;
+    } else {
+      // Image is taller than container → height-limited
+      renderedImgH = containerH;
+      renderedImgW = containerH * imgAR;
+    }
+
     // Strategy 1: Product-based scale (most accurate)
     if (prodH || prodW) {
-      // Use known product dims. If only one is known, assume a reasonable ratio.
-      const physW = prodW || (prodH! * 0.4); // bottles are typically narrow
+      const physW = prodW || (prodH! * 0.4);
       const physH = prodH || (prodW! * 2.5);
 
-      // Calculate the RENDERED image size within the container (object-contain)
-      // The image maintains its aspect ratio, so it won't fill both dimensions.
-      const imgAR = productBounds.imageAspectRatio || 1;
-      const containerAR = containerW / containerH;
-      let renderedImgW: number, renderedImgH: number;
-      if (imgAR > containerAR) {
-        // Image is wider than container → width-limited
-        renderedImgW = containerW;
-        renderedImgH = containerW / imgAR;
-      } else {
-        // Image is taller than container → height-limited
-        renderedImgH = containerH;
-        renderedImgW = containerH * imgAR;
-      }
-
-      // Product pixels within the rendered image area
       const scaleByW = (renderedImgW * productBounds.fractionX) / physW;
       const scaleByH = (renderedImgH * productBounds.fractionY) / physH;
       const cmToPx = Math.min(scaleByW, scaleByH);
 
-      // Enforce minimum pixel size so tiny engravings remain visible (at least 40px)
       const rawW = logoWidth * cmToPx;
       const rawH = logoHeight * cmToPx;
       const minPx = 40;
@@ -252,10 +250,12 @@ export function LogoPositionEditor({
     }
 
     // Strategy 2: Technique-based 60% fraction (no product dims)
+    // Use renderedImg dimensions so the engraving scales correctly
+    // relative to the actual product area, not the full container.
     if (effectiveMaxW && effectiveMaxH) {
       const areaFraction = 0.6;
-      const scaleByW = (containerW * areaFraction) / effectiveMaxW;
-      const scaleByH = (containerH * areaFraction) / effectiveMaxH;
+      const scaleByW = (renderedImgW * areaFraction) / effectiveMaxW;
+      const scaleByH = (renderedImgH * areaFraction) / effectiveMaxH;
       const scale = Math.min(scaleByW, scaleByH);
       return {
         widthPx: logoWidth * scale,
@@ -263,8 +263,8 @@ export function LogoPositionEditor({
       };
     }
 
-    // Strategy 3: Fallback — 30cm reference
-    const scale = containerW / 30;
+    // Strategy 3: Fallback — 30cm reference using rendered width
+    const scale = renderedImgW / 30;
     return {
       widthPx: logoWidth * scale,
       heightPx: logoHeight * scale,
