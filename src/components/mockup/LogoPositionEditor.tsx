@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useProductBounds } from "@/hooks/useProductBounds";
 
 interface LogoPositionEditorProps {
   productImageUrl: string;
@@ -174,6 +175,7 @@ export function LogoPositionEditor({
   onLogoScaleChange,
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
+  const productBounds = useProductBounds(productImageUrl);
   const [showPreviewMode, setShowPreviewMode] = useState(true);
   // Logo scale is a single percentage slider — proportionality is inherent.
   // No aspect lock needed here.
@@ -217,10 +219,9 @@ export function LogoPositionEditor({
       const physW = prodW || (prodH! * 0.4); // bottles are typically narrow
       const physH = prodH || (prodW! * 2.5);
 
-      // The product image (object-contain) fills ~85% of the container visually
-      const productFraction = 0.85;
-      const scaleByW = (containerW * productFraction) / physW;
-      const scaleByH = (containerH * productFraction) / physH;
+      // Use canvas-detected product bounds (or 85% fallback)
+      const scaleByW = (containerW * productBounds.fractionX) / physW;
+      const scaleByH = (containerH * productBounds.fractionY) / physH;
       const cmToPx = Math.min(scaleByW, scaleByH);
 
       // Enforce minimum pixel size so tiny engravings remain visible (at least 40px)
@@ -253,7 +254,7 @@ export function LogoPositionEditor({
       widthPx: logoWidth * scale,
       heightPx: logoHeight * scale,
     };
-  }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm]);
+  }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm, productBounds]);
 
   // Logo scale — CSS transform scale(). overflow-hidden on container clips at area boundary.
   const userScaleFactor = (logoScale || 100) / 100;
