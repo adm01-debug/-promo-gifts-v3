@@ -232,10 +232,10 @@ export function LogoPositionEditor({
   //   Ex: Squeeze 94623 has height_cm=21, width_cm=6.6 → a 2.5×6cm area renders
   //   proportionally small on the 21cm bottle, matching physical reality.
   //
-  // Strategy:
-  //   1. If product physical dims are known → use them as the "ruler" (1cm = N px)
-  //   2. Else if technique maxWidth/maxHeight known → old 60% fraction fallback
-  //   3. Else → 30cm reference fallback
+   // Strategy: ONLY product-based physical scale (cm→px).
+   // If product dims are missing, estimate from technique or use safe defaults.
+   // Strategies 2 (60% fraction) and 3 (30cm reference) were REMOVED 2026-02-17
+   // because they produced visually incorrect proportions. DO NOT RE-ADD.
   //
   // The product image fills the container via object-contain. We use canvas-based
   // bounding box detection to determine the real fraction the product occupies,
@@ -266,46 +266,28 @@ export function LogoPositionEditor({
       renderedImgW = containerH * imgAR;
     }
 
-    // Strategy 1: Product-based scale (most accurate)
-    if (prodH || prodW) {
-      const physW = prodW || (prodH! * 0.4);
-      const physH = prodH || (prodW! * 2.5);
+    // SINGLE STRATEGY: Product-based physical scale (cm→px)
+    // When product dims are unknown, estimate from technique limits or use 20cm default.
+    const physW = prodW || (prodH ? prodH * 0.4 : (effectiveMaxW ? effectiveMaxW * 2 : 8));
+    const physH = prodH || (prodW ? prodW * 2.5 : (effectiveMaxH ? effectiveMaxH * 2.5 : 20));
 
-      const scaleByW = (renderedImgW * productBounds.fractionX) / physW;
-      const scaleByH = (renderedImgH * productBounds.fractionY) / physH;
-      const cmToPx = Math.min(scaleByW, scaleByH);
-
-      const rawW = logoWidth * cmToPx;
-      const rawH = logoHeight * cmToPx;
-      const minPx = 40;
-      if (rawW < minPx && rawH < minPx) {
-        const boost = minPx / Math.max(rawW, rawH);
-        return { widthPx: rawW * boost, heightPx: rawH * boost };
-      }
-
-      return { widthPx: rawW, heightPx: rawH };
+    if (!prodH && !prodW) {
+      console.warn('[LogoPositionEditor] Product physical dims missing — using estimates:', { physW, physH });
     }
 
-    // Strategy 2: Technique-based 60% fraction (no product dims)
-    // Use renderedImg dimensions so the engraving scales correctly
-    // relative to the actual product area, not the full container.
-    if (effectiveMaxW && effectiveMaxH) {
-      const areaFraction = 0.6;
-      const scaleByW = (renderedImgW * areaFraction) / effectiveMaxW;
-      const scaleByH = (renderedImgH * areaFraction) / effectiveMaxH;
-      const scale = Math.min(scaleByW, scaleByH);
-      return {
-        widthPx: logoWidth * scale,
-        heightPx: logoHeight * scale,
-      };
+    const scaleByW = (renderedImgW * productBounds.fractionX) / physW;
+    const scaleByH = (renderedImgH * productBounds.fractionY) / physH;
+    const cmToPx = Math.min(scaleByW, scaleByH);
+
+    const rawW = logoWidth * cmToPx;
+    const rawH = logoHeight * cmToPx;
+    const minPx = 40;
+    if (rawW < minPx && rawH < minPx) {
+      const boost = minPx / Math.max(rawW, rawH);
+      return { widthPx: rawW * boost, heightPx: rawH * boost };
     }
 
-    // Strategy 3: Fallback — 30cm reference using rendered width
-    const scale = renderedImgW / 30;
-    return {
-      widthPx: logoWidth * scale,
-      heightPx: logoHeight * scale,
-    };
+    return { widthPx: rawW, heightPx: rawH };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm, productBounds]);
 
   // Logo scale — CSS transform scale(). overflow-hidden on container clips at area boundary.
