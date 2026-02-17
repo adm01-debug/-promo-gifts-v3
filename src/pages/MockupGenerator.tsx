@@ -48,8 +48,9 @@ export default function MockupGenerator() {
   const [techniqueChangeDialogOpen, setTechniqueChangeDialogOpen] = useState(false);
 
   const handleTechniqueChange = useCallback((technique: any) => {
-    // If there's already a logo AND a different technique selected, ask for confirmation
-    if (mg.hasLogo && mg.selectedTechnique && technique?.id !== mg.selectedTechnique.id) {
+    // If there's already a logo AND switching FROM one technique TO a DIFFERENT one, ask for confirmation
+    // Don't show dialog when: clearing technique (null), first selection, or same technique
+    if (mg.hasLogo && mg.selectedTechnique && technique && technique.id !== mg.selectedTechnique.id) {
       setPendingTechnique(technique);
       setTechniqueChangeDialogOpen(true);
       return;
@@ -389,7 +390,7 @@ export default function MockupGenerator() {
       </div>
 
       {/* Technique Change Confirmation Dialog */}
-      <AlertDialog open={techniqueChangeDialogOpen} onOpenChange={setTechniqueChangeDialogOpen}>
+      <AlertDialog open={techniqueChangeDialogOpen} onOpenChange={(open) => { setTechniqueChangeDialogOpen(open); if (!open) setPendingTechnique(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Alterar técnica de personalização?</AlertDialogTitle>
