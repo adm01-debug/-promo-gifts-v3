@@ -16,6 +16,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
 import { AIMockupAssistant } from "@/components/ai";
+import { TechniqueColorConfigDialog, techniqueNeedsColorConfig, classifyTechnique } from "@/components/mockup/TechniqueColorConfigDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -46,18 +47,29 @@ export default function MockupGenerator() {
   // Technique change confirmation
   const [pendingTechnique, setPendingTechnique] = useState<any>(null);
   const [techniqueChangeDialogOpen, setTechniqueChangeDialogOpen] = useState(false);
+  // Color config dialog
+  const [colorConfigDialogOpen, setColorConfigDialogOpen] = useState(false);
 
   const handleTechniqueChange = useCallback((technique: any) => {
     // If there's already a logo AND switching FROM one technique TO a DIFFERENT one, ask for confirmation
-    // Don't show dialog when: clearing technique (null), first selection, or same technique
     if (mg.hasLogo && mg.selectedTechnique && technique && technique.id !== mg.selectedTechnique.id) {
       setPendingTechnique(technique);
       setTechniqueChangeDialogOpen(true);
       return;
     }
+    // Apply technique and open color config if needed
     mg.setSelectedTechnique(technique);
     mg.setGeneratedMockup(null);
-  }, [mg.hasLogo, mg.selectedTechnique, mg.setSelectedTechnique, mg.setGeneratedMockup]);
+    if (technique && techniqueNeedsColorConfig(technique.name, technique.code)) {
+      mg.setTechniqueColorConfig(null); // reset config for new technique
+      setColorConfigDialogOpen(true);
+    } else if (technique) {
+      // Auto-set full color config for digital techniques
+      mg.setTechniqueColorConfig({ category: classifyTechnique(technique.name, technique.code), isFullColor: true });
+    } else {
+      mg.setTechniqueColorConfig(null);
+    }
+  }, [mg.hasLogo, mg.selectedTechnique, mg.setSelectedTechnique, mg.setGeneratedMockup, mg.setTechniqueColorConfig]);
 
   const confirmTechniqueChange = useCallback(() => {
     mg.setSelectedTechnique(pendingTechnique);
@@ -65,7 +77,14 @@ export default function MockupGenerator() {
     setTechniqueChangeDialogOpen(false);
     setPendingTechnique(null);
     toast.info(`Técnica alterada para ${pendingTechnique?.name}. Dimensões ajustadas automaticamente.`, { duration: 3000 });
-  }, [pendingTechnique, mg.setSelectedTechnique, mg.setGeneratedMockup]);
+    // Open color config for the new technique
+    if (pendingTechnique && techniqueNeedsColorConfig(pendingTechnique.name, pendingTechnique.code)) {
+      mg.setTechniqueColorConfig(null);
+      setTimeout(() => setColorConfigDialogOpen(true), 300); // slight delay after dialog closes
+    } else if (pendingTechnique) {
+      mg.setTechniqueColorConfig({ category: classifyTechnique(pendingTechnique.name, pendingTechnique.code), isFullColor: true });
+    }
+  }, [pendingTechnique, mg.setSelectedTechnique, mg.setGeneratedMockup, mg.setTechniqueColorConfig]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -301,6 +320,8 @@ export default function MockupGenerator() {
                     onSizeChange={(w, h) => mg.updateActiveArea({ logoWidth: w, logoHeight: h })}
                     onRotationChange={(r) => mg.updateActiveArea({ logoRotation: r })}
                     onLogoScaleChange={(s) => mg.updateActiveArea({ logoScale: s })}
+                    techniqueColorConfig={mg.techniqueColorConfig}
+                    onColorConfigClick={() => setColorConfigDialogOpen(true)}
                   />
                 ) : (
                   <Card className="border-dashed border-2">
@@ -439,6 +460,27 @@ export default function MockupGenerator() {
         isLoading={mg.isLoading}
         isReady={!!(mg.selectedProduct && mg.selectedTechnique && mg.hasLogo)}
         disabled={!mg.selectedProduct || !mg.selectedTechnique || !mg.hasLogo || mg.isLoading}
+      />
+
+      {/* Technique Color Configuration Dialog */}
+      <TechniqueColorConfigDialog
+        open={colorConfigDialogOpen}
+        onOpenChange={setColorConfigDialogOpen}
+        techniqueName={mg.selectedTechnique?.name || ""}
+        techniqueCode={mg.selectedTechnique?.code}
+        detectedColors={mg.logoColorAnalysis.colors}
+        currentConfig={mg.techniqueColorConfig}
+        onConfirm={(config) => {
+          mg.setTechniqueColorConfig(config);
+          toast.success(
+            config.category === "laser"
+              ? `Tom ${config.laserTone === "claro" ? "claro" : "escuro"} selecionado`
+              : config.category === "serigrafia"
+                ? `${config.colorCount} cor${(config.colorCount || 1) > 1 ? "es" : ""} configurada${(config.colorCount || 1) > 1 ? "s" : ""}`
+                : "Policromia (Full Color)",
+            { duration: 2000 }
+          );
+        }}
       />
 
       {/* AI Assistant */}

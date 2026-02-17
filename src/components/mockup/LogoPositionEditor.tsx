@@ -1,13 +1,14 @@
 import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler } from "lucide-react";
+import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useProductBounds } from "@/hooks/useProductBounds";
+import type { TechniqueColorConfig } from "./TechniqueColorConfigDialog";
 
 interface LogoPositionEditorProps {
   productImageUrl: string;
@@ -26,6 +27,10 @@ interface LogoPositionEditorProps {
   productHeightCm?: number | null;
   /** Physical width/diameter of the product in cm (from external DB) */
   productWidthCm?: number | null;
+  /** Technique color configuration (laser tone, serigrafia colors, etc.) */
+  techniqueColorConfig?: TechniqueColorConfig | null;
+  /** Callback to open color config dialog */
+  onColorConfigClick?: () => void;
   onPositionChange: (x: number, y: number) => void;
   onRotationChange?: (rotation: number) => void;
   onSizeChange: (width: number, height: number) => void;
@@ -200,6 +205,8 @@ export function LogoPositionEditor({
   maxHeight,
   productHeightCm,
   productWidthCm,
+  techniqueColorConfig,
+  onColorConfigClick,
   onPositionChange,
   onSizeChange,
   onRotationChange,
@@ -222,6 +229,28 @@ export function LogoPositionEditor({
     () => getTechniqueFilter(techniqueCode, techniqueName),
     [techniqueCode, techniqueName]
   );
+
+  // Override filter based on technique color configuration
+  const colorConfigFilter = useMemo(() => {
+    if (!techniqueColorConfig) return null;
+    
+    if (techniqueColorConfig.category === "laser") {
+      const tone = techniqueColorConfig.laserTone || "escuro";
+      // Apply grayscale + brightness to simulate laser tone
+      if (tone === "claro") {
+        return { filter: "grayscale(1) brightness(1.6) contrast(0.8)", opacity: 0.7 };
+      } else {
+        return { filter: "grayscale(1) brightness(0.5) contrast(1.4)", opacity: 0.8 };
+      }
+    }
+    
+    if (techniqueColorConfig.category === "serigrafia" && techniqueColorConfig.colorCount === 1) {
+      // Simulate monocromia with high contrast grayscale
+      return { filter: "grayscale(1) contrast(1.3)", opacity: 0.85 };
+    }
+    
+    return null;
+  }, [techniqueColorConfig]);
 
   // Convert cm to pixels using the product's real physical dimensions as the reference frame.
   // This ensures the engraving area is proportionally accurate relative to the product.
@@ -450,8 +479,12 @@ export function LogoPositionEditor({
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{
                   transform: `rotate(${logoRotation || 0}deg) scale(${userScaleFactor})`,
-                  opacity: showPreviewMode ? techniqueFilter.opacity : 1,
-                  filter: showPreviewMode ? techniqueFilter.filter : "none",
+                  opacity: showPreviewMode
+                    ? (colorConfigFilter?.opacity ?? techniqueFilter.opacity)
+                    : 1,
+                  filter: showPreviewMode
+                    ? (colorConfigFilter?.filter ?? techniqueFilter.filter)
+                    : "none",
                   mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
                 }}
                 draggable={false}
@@ -466,9 +499,9 @@ export function LogoPositionEditor({
             </div>
           )}
 
-          {/* Live preview badge */}
+          {/* Live preview badge + Color config badge */}
           {showPreviewMode && logoPreview && (
-            <div className="absolute top-2 left-2">
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
               <Badge
                 variant="secondary"
                 className="bg-background/90 backdrop-blur-sm text-[10px] gap-1"
@@ -476,6 +509,21 @@ export function LogoPositionEditor({
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 Preview em tempo real
               </Badge>
+              {techniqueColorConfig && (
+                <Badge
+                  variant="outline"
+                  className="bg-background/90 backdrop-blur-sm text-[10px] gap-1 cursor-pointer hover:bg-accent"
+                  onClick={onColorConfigClick}
+                >
+                  <Palette className="h-3 w-3" />
+                  {techniqueColorConfig.category === "laser"
+                    ? `Laser ${techniqueColorConfig.laserTone === "claro" ? "Claro" : "Escuro"}`
+                    : techniqueColorConfig.category === "serigrafia"
+                      ? `${techniqueColorConfig.colorCount || 1} cor${(techniqueColorConfig.colorCount || 1) > 1 ? "es" : ""}`
+                      : "Policromia"
+                  }
+                </Badge>
+              )}
             </div>
           )}
         </div>
