@@ -83,7 +83,7 @@ EXACT LOGO POSITION (this is critical, do NOT deviate):
 - Horizontal: ${positionX}% from the left edge (${horizontalPos})
 - Vertical: ${positionY}% from the top edge (${verticalPos})
 - The logo must be placed at EXACTLY this coordinate on the product surface: ${positionDesc}
-- Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)${logoScale < 100 ? `\n- Logo fill: the logo should fill only ${logoScale}% of the engraving area, leaving proportional empty space around it` : ''}${logoRotation ? `\n- Logo rotation: ${logoRotation}° clockwise from its natural upright orientation` : ''}
+- Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)${logoScale < 100 ? `\n- Logo fill: the logo should fill only ${logoScale}% of the engraving area, leaving proportional empty space around it` : logoScale > 100 ? `\n- Logo fill: the logo should OVERFLOW beyond the engraving area boundaries, scaled to ${logoScale}% of the area (the logo appears ${Math.round(logoScale / 100 * 10) / 10}x larger than the base engraving zone)` : ''}${logoRotation ? `\n- Logo rotation: ${logoRotation}° clockwise from its natural upright orientation` : ''}
 
 STRICT RULES - MUST FOLLOW ALL:
 1. Place the logo at EXACTLY the specified position (${positionX}% horizontal, ${positionY}% vertical). This is the most important rule.
