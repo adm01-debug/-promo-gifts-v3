@@ -255,9 +255,8 @@ export function LogoPositionEditor({
     };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm]);
 
-  // Logo scale capped at 100% — logo must not exceed engraving area
-  const effectiveLogoScale = Math.min(logoScale || 100, 100);
-  const userScaleFactor = effectiveLogoScale / 100;
+  // Logo scale — CSS transform scale(). overflow-hidden on container clips at area boundary.
+  const userScaleFactor = (logoScale || 100) / 100;
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
@@ -674,48 +673,30 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || effectiveLogoScale <= 10}
-                    onClick={() => onLogoScaleChange?.(Math.max(10, effectiveLogoScale - 5))}
+                    disabled={!logoPreview || logoScale <= 10}
+                    onClick={() => onLogoScaleChange?.(Math.max(10, logoScale - 5))}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
                   <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
-                    {effectiveLogoScale}%
+                    {logoScale}%
                   </span>
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview}
-                    onClick={() => {
-                      if (effectiveLogoScale >= 100) {
-                        const isAreaAtMax = maxWidth != null && maxHeight != null && maxWidth > 0 && maxHeight > 0
-                          && logoWidth >= maxWidth && logoHeight >= maxHeight;
-                        if (isAreaAtMax) {
-                          toast.info("🔒 Limite máximo atingido", {
-                            description: "A logo já ocupa 100% da área de gravação e a área já está no tamanho máximo permitido para esta técnica.",
-                            duration: 4000,
-                          });
-                        } else {
-                          toast.info("📐 Logo no tamanho máximo da área", {
-                            description: "Aumente a Área de Gravação (lado esquerdo) para poder ampliar a logo.",
-                            duration: 4000,
-                          });
-                        }
-                        return;
-                      }
-                      onLogoScaleChange?.(Math.min(100, effectiveLogoScale + 5));
-                    }}
+                    disabled={!logoPreview || logoScale >= 500}
+                    onClick={() => onLogoScaleChange?.(Math.min(500, logoScale + 5))}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
               <Slider
-                value={[effectiveLogoScale]}
-                onValueChange={(v) => onLogoScaleChange?.(Math.min(100, v[0]))}
+                value={[logoScale]}
+                onValueChange={(v) => onLogoScaleChange?.(v[0])}
                 min={10}
-                max={100}
+                max={500}
                 step={5}
                 disabled={!logoPreview}
               />
@@ -732,7 +713,7 @@ export function LogoPositionEditor({
                 size="sm"
                 className="text-[10px] h-7 text-primary hover:text-primary px-1.5"
                 onClick={() => onLogoScaleChange?.(100)}
-                disabled={!logoPreview || effectiveLogoScale === 100}
+                disabled={!logoPreview || logoScale === 100}
               >
                 <Target className="h-3 w-3 mr-1" />
                 Resetar 100%
@@ -745,7 +726,7 @@ export function LogoPositionEditor({
                 <span>Pos: {positionX}% × {positionY}%</span>
                 <span>Área: {logoWidth}×{logoHeight}cm</span>
                 <span>
-                  Escala: {effectiveLogoScale}%{logoRotation ? ` · Rot: ${logoRotation}°` : ''}
+                  Escala: {logoScale}%{logoRotation ? ` · Rot: ${logoRotation}°` : ''}
                 </span>
               </div>
             </div>
