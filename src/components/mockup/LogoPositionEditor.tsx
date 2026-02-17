@@ -450,9 +450,7 @@ export function LogoPositionEditor({
                 <img
                   src={logoPreview}
                   alt="Logo para personalização"
-                  className={cn(
-                    logoRenderedStyle ? "" : "w-full h-full object-contain"
-                  )}
+                  className="object-contain"
                   style={{
                     ...(logoRenderedStyle
                       ? { width: `${logoRenderedStyle.width}px`, height: `${logoRenderedStyle.height}px` }
