@@ -1,22 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-
-// Hook to detect natural dimensions of an image URL
-function useImageNaturalSize(src: string | null) {
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-
-  useEffect(() => {
-    if (!src) {
-      setSize(null);
-      return;
-    }
-    const img = new Image();
-    img.onload = () => setSize({ w: img.naturalWidth, h: img.naturalHeight });
-    img.onerror = () => setSize(null);
-    img.src = src;
-  }, [src]);
-
-  return size;
-}
+import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler } from "lucide-react";
@@ -191,7 +173,7 @@ export function LogoPositionEditor({
   onLogoScaleChange,
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
-  // logoNaturalSize removed — logo scaling now uses CSS scale() instead of pixel calculations
+  const [showPreviewMode, setShowPreviewMode] = useState(true);
   const [showPreviewMode, setShowPreviewMode] = useState(true);
   // Logo scale is a single percentage slider — proportionality is inherent.
   // No aspect lock needed here.
