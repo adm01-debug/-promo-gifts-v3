@@ -7,6 +7,7 @@ const DEFAULT: ProductBounds = {
   centerX: 0.5,
   centerY: 0.5,
   detected: false,
+  imageAspectRatio: 1,
 };
 
 /**

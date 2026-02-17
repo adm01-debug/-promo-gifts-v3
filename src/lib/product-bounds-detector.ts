@@ -20,6 +20,8 @@ export interface ProductBounds {
   centerY: number;
   /** Whether detection succeeded or fell back to default */
   detected: boolean;
+  /** Natural aspect ratio of the source image (width / height) */
+  imageAspectRatio: number;
 }
 
 const DEFAULT_BOUNDS: ProductBounds = {
@@ -28,6 +30,7 @@ const DEFAULT_BOUNDS: ProductBounds = {
   centerX: 0.5,
   centerY: 0.5,
   detected: false,
+  imageAspectRatio: 1,
 };
 
 // Cache to avoid reprocessing the same image
@@ -67,10 +70,15 @@ export async function detectProductBounds(
   try {
     const img = await loadImageCors(imageUrl);
     
+    // Capture natural aspect ratio before scaling
+    const natW = img.naturalWidth || img.width;
+    const natH = img.naturalHeight || img.height;
+    if (natW === 0 || natH === 0) return DEFAULT_BOUNDS;
+    const imageAspectRatio = natW / natH;
+
     // Scale down for performance
-    let w = img.naturalWidth || img.width;
-    let h = img.naturalHeight || img.height;
-    if (w === 0 || h === 0) return DEFAULT_BOUNDS;
+    let w = natW;
+    let h = natH;
 
     const scale = Math.min(1, maxSize / Math.max(w, h));
     w = Math.round(w * scale);
@@ -117,8 +125,9 @@ export async function detectProductBounds(
     const totalPixels = w * h;
     const productRatio = productPixels / totalPixels;
     if (productPixels < 100 || productRatio < 0.01) {
-      boundsCache.set(imageUrl, DEFAULT_BOUNDS);
-      return DEFAULT_BOUNDS;
+      const fallback: ProductBounds = { ...DEFAULT_BOUNDS, imageAspectRatio };
+      boundsCache.set(imageUrl, fallback);
+      return fallback;
     }
 
     // If product fills almost the entire image (>95%), likely no background to detect
@@ -129,6 +138,7 @@ export async function detectProductBounds(
         centerX: 0.5,
         centerY: 0.5,
         detected: true,
+        imageAspectRatio,
       };
       boundsCache.set(imageUrl, fullBounds);
       return fullBounds;
@@ -148,6 +158,7 @@ export async function detectProductBounds(
       centerX,
       centerY,
       detected: true,
+      imageAspectRatio,
     };
 
     boundsCache.set(imageUrl, result);
