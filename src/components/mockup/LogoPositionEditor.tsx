@@ -19,7 +19,7 @@ function useImageNaturalSize(src: string | null) {
 }
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Move, RotateCw, RotateCcw, Target, Eye, Lock, Unlock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler } from "lucide-react";
+import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -193,51 +193,8 @@ export function LogoPositionEditor({
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const logoNaturalSize = useImageNaturalSize(logoPreview);
   const [showPreviewMode, setShowPreviewMode] = useState(true);
-  const [aspectLocked, setAspectLocked] = useState(true);
-  const aspectRatioRef = useRef(logoHeight > 0 ? logoWidth / logoHeight : 1);
-  const isInternalSizeChangeRef = useRef(false);
-
-  // Keep aspect ratio in sync ONLY for external dimension changes (history restore, technique switch)
-  // Internal changes from handleLockedSizeChange set the flag to skip this update
-  useEffect(() => {
-    if (isInternalSizeChangeRef.current) {
-      isInternalSizeChangeRef.current = false;
-      return;
-    }
-    if (aspectLocked && logoHeight > 0) {
-      aspectRatioRef.current = logoWidth / logoHeight;
-    }
-  }, [logoWidth, logoHeight, aspectLocked]);
-
-  // Update aspect ratio reference when lock is toggled on
-  const toggleAspectLock = useCallback(() => {
-    if (!aspectLocked && logoHeight > 0) {
-      aspectRatioRef.current = logoWidth / logoHeight;
-    }
-    setAspectLocked(!aspectLocked);
-  }, [aspectLocked, logoWidth, logoHeight]);
-
-  const handleLockedSizeChange = useCallback((newWidth: number, newHeight: number, changedAxis: 'w' | 'h') => {
-    isInternalSizeChangeRef.current = true;
-    if (!aspectLocked) {
-      onSizeChange(newWidth, newHeight);
-      return;
-    }
-    const ratio = aspectRatioRef.current;
-    if (!ratio || !isFinite(ratio) || ratio <= 0) {
-      onSizeChange(newWidth, newHeight);
-      return;
-    }
-    const effectiveMaxW = maxWidth && maxWidth > 0 ? maxWidth : 20;
-    const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : 20;
-    if (changedAxis === 'w') {
-      const h = Math.round((newWidth / ratio) * 2) / 2;
-      onSizeChange(newWidth, clamp(h, 1, effectiveMaxH));
-    } else {
-      const w = Math.round((newHeight * ratio) * 2) / 2;
-      onSizeChange(clamp(w, 1, effectiveMaxW), newHeight);
-    }
-  }, [aspectLocked, onSizeChange, maxWidth, maxHeight]);
+  // Logo scale is a single percentage slider — proportionality is inherent.
+  // No aspect lock needed here.
 
   const draggingRef = useRef<{
     startClientX: number;
@@ -663,7 +620,7 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoWidth <= 1}
+                    disabled={logoWidth <= 1}
                     onClick={() => onSizeChange(Math.max(1, logoWidth - 0.5), logoHeight)}
                   >
                     <Minus className="h-3 w-3" />
@@ -675,7 +632,7 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoWidth >= (maxWidth && maxWidth > 0 ? maxWidth : 20)}
+                    disabled={logoWidth >= (maxWidth && maxWidth > 0 ? maxWidth : 20)}
                     onClick={() => onSizeChange(Math.min(maxWidth && maxWidth > 0 ? maxWidth : 20, logoWidth + 0.5), logoHeight)}
                   >
                     <Plus className="h-3 w-3" />
@@ -688,7 +645,7 @@ export function LogoPositionEditor({
                 min={1}
                 max={maxWidth && maxWidth > 0 ? maxWidth : 20}
                 step={0.5}
-                disabled={!logoPreview}
+                disabled={false}
               />
             </div>
 
@@ -701,7 +658,7 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoHeight <= 1}
+                    disabled={logoHeight <= 1}
                     onClick={() => onSizeChange(logoWidth, Math.max(1, logoHeight - 0.5))}
                   >
                     <Minus className="h-3 w-3" />
@@ -713,7 +670,7 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoHeight >= (maxHeight && maxHeight > 0 ? maxHeight : 20)}
+                    disabled={logoHeight >= (maxHeight && maxHeight > 0 ? maxHeight : 20)}
                     onClick={() => onSizeChange(logoWidth, Math.min(maxHeight && maxHeight > 0 ? maxHeight : 20, logoHeight + 0.5))}
                   >
                     <Plus className="h-3 w-3" />
@@ -726,7 +683,7 @@ export function LogoPositionEditor({
                 min={1}
                 max={maxHeight && maxHeight > 0 ? maxHeight : 20}
                 step={0.5}
-                disabled={!logoPreview}
+                disabled={false}
               />
             </div>
 
@@ -738,7 +695,7 @@ export function LogoPositionEditor({
                   size="sm"
                   className="text-[10px] h-7 text-primary hover:text-primary px-1.5"
                   onClick={() => onSizeChange(maxWidth, maxHeight)}
-                  disabled={!logoPreview}
+                  disabled={false}
                 >
                   <Target className="h-3 w-3 mr-1" />
                   Máxima
@@ -792,23 +749,12 @@ export function LogoPositionEditor({
               />
             </div>
 
-            {/* Lock proporção do logo + Reset escala */}
+            {/* Reset escala + indicador de proporção protegida */}
             <div className="flex items-center justify-between">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={aspectLocked ? "default" : "outline"}
-                    size="sm"
-                    className="h-7 gap-1.5 text-xs"
-                    onClick={toggleAspectLock}
-                    disabled={!logoPreview}
-                  >
-                    {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                    {aspectLocked ? "Travada" : "Livre"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{aspectLocked ? "Proporção da logo travada" : "Proporção da logo livre"}</TooltipContent>
-              </Tooltip>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Lock className="h-3 w-3 text-primary" />
+                <span>Proporção protegida</span>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -827,7 +773,7 @@ export function LogoPositionEditor({
                 <span>Pos: {positionX}% × {positionY}%</span>
                 <span>Área: {logoWidth}×{logoHeight}cm</span>
                 <span>
-                  Escala: {logoScale}%{logoRotation ? ` · ${logoRotation}°` : ''}
+                  Escala: {logoScale}%{logoRotation ? ` · Rot: ${logoRotation}°` : ''}
                 </span>
               </div>
             </div>
