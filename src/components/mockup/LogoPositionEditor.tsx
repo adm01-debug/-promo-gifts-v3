@@ -19,6 +19,8 @@ function useImageNaturalSize(src: string | null) {
 }
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Move, RotateCw, RotateCcw, Target, Eye, Lock, Unlock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -640,8 +642,10 @@ export function LogoPositionEditor({
         <div className="pt-2 border-t space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Ruler className="h-4 w-4 text-primary" />
-              <span className="text-xs font-semibold">Área de Gravação</span>
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                <Ruler className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-sm font-bold">Tamanho</span>
             </div>
             {maxWidth && maxHeight && maxWidth > 0 && maxHeight > 0 && (
               <Badge variant="outline" className="text-[10px]">
@@ -651,31 +655,43 @@ export function LogoPositionEditor({
           </div>
 
           {/* Largura */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Largura</span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <Label className="font-medium">Largura</Label>
               <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 rounded-lg"
                   disabled={!logoPreview || logoWidth <= 1}
                   onClick={() => handleLockedSizeChange(Math.max(1, logoWidth - 0.5), logoHeight, 'w')}
                 >
-                  <Minus className="h-3 w-3" />
+                  −
                 </Button>
-               <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
-                  {logoWidth}cm
-                </span>
+                <Input
+                  type="number"
+                  value={logoWidth}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    const effectiveMax = maxWidth && maxWidth > 0 ? maxWidth : 20;
+                    if (!isNaN(v) && v >= 0.5 && v <= effectiveMax) handleLockedSizeChange(v, logoHeight, 'w');
+                  }}
+                  min={0.5}
+                  max={maxWidth && maxWidth > 0 ? maxWidth : 20}
+                  step={0.5}
+                  className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                  disabled={!logoPreview}
+                />
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 rounded-lg"
                   disabled={!logoPreview || logoWidth >= (maxWidth && maxWidth > 0 ? maxWidth : 20)}
                   onClick={() => handleLockedSizeChange(Math.min(maxWidth && maxWidth > 0 ? maxWidth : 20, logoWidth + 0.5), logoHeight, 'w')}
                 >
-                  <Plus className="h-3 w-3" />
+                  +
                 </Button>
+                <span className="text-xs text-muted-foreground ml-1">cm</span>
               </div>
             </div>
             <Slider
@@ -685,35 +701,48 @@ export function LogoPositionEditor({
               max={maxWidth && maxWidth > 0 ? maxWidth : 20}
               step={0.5}
               disabled={!logoPreview}
+              className="opacity-60"
             />
           </div>
 
           {/* Altura */}
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Altura</span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <Label className="font-medium">Altura</Label>
               <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 rounded-lg"
                   disabled={!logoPreview || logoHeight <= 1}
                   onClick={() => handleLockedSizeChange(logoWidth, Math.max(1, logoHeight - 0.5), 'h')}
                 >
-                  <Minus className="h-3 w-3" />
+                  −
                 </Button>
-               <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
-                  {logoHeight}cm
-                </span>
+                <Input
+                  type="number"
+                  value={logoHeight}
+                  onChange={(e) => {
+                    const v = parseFloat(e.target.value);
+                    const effectiveMax = maxHeight && maxHeight > 0 ? maxHeight : 20;
+                    if (!isNaN(v) && v >= 0.5 && v <= effectiveMax) handleLockedSizeChange(logoWidth, v, 'h');
+                  }}
+                  min={0.5}
+                  max={maxHeight && maxHeight > 0 ? maxHeight : 20}
+                  step={0.5}
+                  className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                  disabled={!logoPreview}
+                />
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 rounded-lg"
                   disabled={!logoPreview || logoHeight >= (maxHeight && maxHeight > 0 ? maxHeight : 20)}
                   onClick={() => handleLockedSizeChange(logoWidth, Math.min(maxHeight && maxHeight > 0 ? maxHeight : 20, logoHeight + 0.5), 'h')}
                 >
-                  <Plus className="h-3 w-3" />
+                  +
                 </Button>
+                <span className="text-xs text-muted-foreground ml-1">cm</span>
               </div>
             </div>
             <Slider
@@ -723,26 +752,22 @@ export function LogoPositionEditor({
               max={maxHeight && maxHeight > 0 ? maxHeight : 20}
               step={0.5}
               disabled={!logoPreview}
+              className="opacity-60"
             />
           </div>
 
           {/* Lock + Área Máxima */}
           <div className="flex items-center justify-between">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={aspectLocked ? "default" : "outline"}
-                  size="sm"
-                  className="h-7 gap-1.5 text-xs"
-                  onClick={toggleAspectLock}
-                  disabled={!logoPreview}
-                >
-                  {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                  {aspectLocked ? "Proporção travada" : "Proporção livre"}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{aspectLocked ? "Clique para destravar proporção" : "Clique para travar proporção"}</TooltipContent>
-            </Tooltip>
+            <Button
+              variant={aspectLocked ? "default" : "outline"}
+              size="sm"
+              className="h-7 gap-1.5 text-xs"
+              onClick={toggleAspectLock}
+              disabled={!logoPreview}
+            >
+              {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+              {aspectLocked ? "Proporção travada" : "Proporção livre"}
+            </Button>
             {maxWidth && maxHeight && maxWidth > 0 && maxHeight > 0 && (
               <Button
                 variant="ghost"
@@ -756,7 +781,7 @@ export function LogoPositionEditor({
                 }}
                 disabled={!logoPreview}
               >
-                <Target className="h-3 w-3 mr-1" />
+                <Ruler className="h-3 w-3 mr-1" />
                 Área Máxima ({maxWidth}×{maxHeight}cm)
               </Button>
             )}
@@ -765,30 +790,41 @@ export function LogoPositionEditor({
 
         {/* ── Escala do Logo ── */}
         <div className="pt-2 border-t space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold">Escala do Logo</span>
+          <div className="flex justify-between items-center text-sm">
+            <Label className="font-medium">Escala do Logo</Label>
             <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="icon"
-                className="h-7 w-7"
+                className="h-7 w-7 rounded-lg"
                 disabled={!logoPreview || logoScale <= 10}
                 onClick={() => onLogoScaleChange?.(Math.max(10, logoScale - 5))}
               >
-                <Minus className="h-3 w-3" />
+                −
               </Button>
-              <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
-                {logoScale}%
-              </span>
+              <Input
+                type="number"
+                value={logoScale}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value);
+                  if (!isNaN(v) && v >= 10 && v <= 200) onLogoScaleChange?.(v);
+                }}
+                min={10}
+                max={200}
+                step={5}
+                className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                disabled={!logoPreview}
+              />
               <Button
                 variant="outline"
                 size="icon"
-                className="h-7 w-7"
+                className="h-7 w-7 rounded-lg"
                 disabled={!logoPreview || logoScale >= 200}
                 onClick={() => onLogoScaleChange?.(Math.min(200, logoScale + 5))}
               >
-                <Plus className="h-3 w-3" />
+                +
               </Button>
+              <span className="text-xs text-muted-foreground ml-1">%</span>
             </div>
           </div>
           <Slider
@@ -798,6 +834,7 @@ export function LogoPositionEditor({
             max={200}
             step={5}
             disabled={!logoPreview}
+            className="opacity-60"
           />
         </div>
 
