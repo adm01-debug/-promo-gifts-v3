@@ -444,29 +444,26 @@ export function LogoPositionEditor({
                 transform: `translate(-50%, -50%)`,
               }}
             >
-              {/* Center the logo inside the engraving area using flex — overflow-hidden clips at 100% cover */}
-              <div className="w-full h-full flex items-center justify-center">
-                <img
-                  src={logoPreview}
-                  alt="Logo para personalização"
-                  className={cn(
-                    "object-contain",
-                    !logoRenderedStyle && "w-full h-full"
-                  )}
-                  style={{
-                    ...(logoRenderedStyle
-                      ? { width: `${logoRenderedStyle.width}px`, height: `${logoRenderedStyle.height}px` }
-                      : {}),
-                    transform: `rotate(${logoRotation || 0}deg)${!logoRenderedStyle ? ` scale(${(logoScale || 100) / 100})` : ''}`,
-                    opacity: showPreviewMode ? techniqueFilter.opacity : 1,
-                    filter: showPreviewMode ? techniqueFilter.filter : "none",
-                    mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
-                    flexShrink: 0,
-                  }}
-                  draggable={false}
-                  loading="lazy"
-                />
-              </div>
+              {/* Logo centered absolutely inside engraving area — no flex constraints */}
+              <img
+                src={logoPreview}
+                alt="Logo para personalização"
+                className={cn(
+                  "absolute left-1/2 top-1/2 object-contain",
+                  !logoRenderedStyle && "w-full h-full"
+                )}
+                style={{
+                  ...(logoRenderedStyle
+                    ? { width: `${logoRenderedStyle.width}px`, height: `${logoRenderedStyle.height}px` }
+                    : {}),
+                  transform: `translate(-50%, -50%) rotate(${logoRotation || 0}deg)${!logoRenderedStyle ? ` scale(${(logoScale || 100) / 100})` : ''}`,
+                  opacity: showPreviewMode ? techniqueFilter.opacity : 1,
+                  filter: showPreviewMode ? techniqueFilter.filter : "none",
+                  mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
+                }}
+                draggable={false}
+                loading="lazy"
+              />
             </div>
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80">
