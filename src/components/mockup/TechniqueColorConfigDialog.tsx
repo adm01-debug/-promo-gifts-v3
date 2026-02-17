@@ -308,7 +308,9 @@ export function TechniqueColorConfigDialog({
                   <div className="grid gap-2">
                     {detectedColors.map((color, idx) => {
                       const isSelected = selectedIndices.includes(idx);
-                      const isDisabled = !isSelected && selectedIndices.length >= colorCount;
+                      // Never truly disable — handlePantoneToggle already handles replacement
+                      // when colorCount is reached. "atMax" is purely a visual hint.
+                      const atMax = !isSelected && selectedIndices.length >= colorCount;
                       const pantoneLabel = color.selectedPantone || color.pantoneMatch?.pantoneCode || color.name;
                       return (
                         <label
@@ -317,15 +319,14 @@ export function TechniqueColorConfigDialog({
                             "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-all",
                             isSelected
                               ? "border-primary bg-primary/5"
-                              : isDisabled
-                                ? "border-muted opacity-50 cursor-not-allowed"
+                              : atMax
+                                ? "border-muted/50 hover:border-primary/20"
                                 : "border-muted hover:border-primary/30"
                           )}
                         >
                           <Checkbox
                             checked={isSelected}
-                            onCheckedChange={() => !isDisabled && handlePantoneToggle(idx)}
-                            disabled={isDisabled}
+                            onCheckedChange={() => handlePantoneToggle(idx)}
                           />
                           <div
                             className="w-8 h-8 rounded border shadow-sm shrink-0"
