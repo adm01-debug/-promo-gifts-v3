@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, useCallback, useEffect } from "react";
+import { processLogoForLaser } from "@/utils/laser-logo-processor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler, Palette } from "lucide-react";
@@ -215,6 +216,50 @@ export function LogoPositionEditor({
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const productBounds = useProductBounds(productImageUrl);
   const [showPreviewMode, setShowPreviewMode] = useState(true);
+
+  // ── Laser canvas processing ─────────────────────────────────────────
+  // Replaces CSS filters with real pixel-level processing via Canvas API.
+  // This preserves white gaps between logo elements (e.g. SICOOB triangles)
+  // while converting every visible pixel to a single solid laser tone.
+  const [processedLogoUrl, setProcessedLogoUrl] = useState<string | null>(null);
+  const [isProcessingLaser, setIsProcessingLaser] = useState(false);
+
+  useEffect(() => {
+    const isLaser = techniqueColorConfig?.category === "laser";
+
+    if (!isLaser || !logoPreview || !showPreviewMode) {
+      // Clear processed URL when not in laser mode
+      if (processedLogoUrl) {
+        URL.revokeObjectURL(processedLogoUrl);
+        setProcessedLogoUrl(null);
+      }
+      return;
+    }
+
+    const tone = techniqueColorConfig?.laserTone || "escuro";
+    let cancelled = false;
+
+    setIsProcessingLaser(true);
+    processLogoForLaser(logoPreview, tone)
+      .then((dataUrl) => {
+        if (!cancelled) {
+          setProcessedLogoUrl(dataUrl);
+        }
+      })
+      .catch(() => {
+        // Fallback to CSS filters if canvas processing fails (CORS etc.)
+        if (!cancelled) setProcessedLogoUrl(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsProcessingLaser(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, showPreviewMode]);
+
   // Logo scale is a single percentage slider — proportionality is inherent.
   // No aspect lock needed here.
 
@@ -235,21 +280,14 @@ export function LogoPositionEditor({
     if (!techniqueColorConfig) return null;
     
     if (techniqueColorConfig.category === "laser") {
+      // Canvas API handles the actual pixel-level conversion (see processedLogoUrl + useEffect above).
+      // This CSS filter is only a FALLBACK in case Canvas processing fails (CORS etc.)
+      // It applies minimal styling so the laser preview still looks different from the original.
       const tone = techniqueColorConfig.laserTone || "escuro";
-      // Binarization chain:
-      // 1. grayscale(1)       → todos os pixels viram cinza
-      // 2. brightness(0.25)   → escurece TUDO antes do contraste, garantindo que pixels
-      //                         claros da logo (ex: texto azul claro) caiam abaixo de 50%
-      // 3. contrast(1000%)    → binariza: pixels < 50% → preto puro, > 50% → branco puro
-      //                         (1000% = 10x o contraste normal, força binarização real)
-      // 4. tone adjustment    → aplica o tom sólido único desejado
-      // Resultado: silhueta 100% cor sólida, zero degradê, zero tons intermediários
       if (tone === "claro") {
-        // Claro: binariza → inverte (preto→branco) → clareia para tom prata claro
-        return { filter: "grayscale(1) brightness(0.25) contrast(1000%) invert(1) brightness(0.82)", opacity: 0.72 };
+        return { filter: "grayscale(1) brightness(1.4)", opacity: 0.75 };
       } else {
-        // Escuro: binariza → tom chumbo/escuro sólido
-        return { filter: "grayscale(1) brightness(0.25) contrast(1000%) brightness(0.42)", opacity: 0.88 };
+        return { filter: "grayscale(1) brightness(0.6)", opacity: 0.88 };
       }
     }
     
@@ -482,16 +520,23 @@ export function LogoPositionEditor({
               }}
             >
               {/* Logo: object-contain fills area at 100%, CSS scale grows/shrinks */}
+              {/* When laser mode: src switches to canvas-processed image (solid single tone, gaps preserved) */}
               <img
-                src={logoPreview}
+                src={
+                  showPreviewMode && processedLogoUrl && techniqueColorConfig?.category === "laser"
+                    ? processedLogoUrl
+                    : logoPreview!
+                }
                 alt="Logo para personalização"
                 className="absolute inset-0 w-full h-full object-contain"
                 style={{
                   transform: `rotate(${logoRotation || 0}deg) scale(${userScaleFactor})`,
                   opacity: showPreviewMode
-                    ? (colorConfigFilter?.opacity ?? techniqueFilter.opacity)
+                    ? (processedLogoUrl && techniqueColorConfig?.category === "laser"
+                        ? 0.88  // Canvas processed: no CSS filter needed, just opacity
+                        : (colorConfigFilter?.opacity ?? techniqueFilter.opacity))
                     : 1,
-                  filter: showPreviewMode
+                  filter: showPreviewMode && !(processedLogoUrl && techniqueColorConfig?.category === "laser")
                     ? (colorConfigFilter?.filter ?? techniqueFilter.filter)
                     : "none",
                   mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
