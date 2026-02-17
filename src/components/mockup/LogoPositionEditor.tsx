@@ -240,7 +240,13 @@ export function LogoPositionEditor({
   // The product image fills the container via object-contain. We use canvas-based
   // bounding box detection to determine the real fraction the product occupies,
   // falling back to 85% if detection fails (complex background, CORS, etc.).
+  // Wait for bounds detection before computing logo size to avoid flash of wrong proportions
+  const boundsReady = productBounds.detected;
+
   const logoDisplay = useMemo(() => {
+    // If bounds aren't detected yet, return null to prevent rendering with wrong fractions
+    if (!boundsReady) return null;
+
     const containerW = containerSize.width || 400;
     const containerH = containerSize.height || containerW; // aspect-square
 
@@ -251,17 +257,13 @@ export function LogoPositionEditor({
     const effectiveMaxH = maxHeight && maxHeight > 0 ? maxHeight : null;
 
     // Calculate the RENDERED image size within the container (object-contain).
-    // The image maintains its aspect ratio, so it won't fill both dimensions
-    // for non-square images (e.g. tall bottles in a square container).
     const imgAR = productBounds.imageAspectRatio || 1;
     const containerAR = containerW / containerH;
     let renderedImgW: number, renderedImgH: number;
     if (imgAR > containerAR) {
-      // Image is wider than container → width-limited
       renderedImgW = containerW;
       renderedImgH = containerW / imgAR;
     } else {
-      // Image is taller than container → height-limited
       renderedImgH = containerH;
       renderedImgW = containerH * imgAR;
     }
@@ -288,7 +290,7 @@ export function LogoPositionEditor({
     }
 
     return { widthPx: rawW, heightPx: rawH };
-  }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm, productBounds]);
+  }, [boundsReady, logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm, productBounds]);
 
   // Logo scale — CSS transform scale(). overflow-hidden on container clips at area boundary.
   const userScaleFactor = (logoScale || 100) / 100;
@@ -425,7 +427,7 @@ export function LogoPositionEditor({
             }}
           />
 
-          {logoPreview ? (
+          {logoPreview && logoDisplay ? (
             <div
               className={cn(
                 "absolute select-none touch-none overflow-hidden",
