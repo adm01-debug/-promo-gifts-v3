@@ -3,12 +3,16 @@
  * 
  * When a product is selected, fetches its REAL customization options from the external DB
  * and returns ONLY the techniques that are configured for that product.
- * NO FALLBACKS — if the product has no techniques, returns empty.
+ * 
+ * When the product has NO customization data configured (locations: []),
+ * returns all techniques BUT enriches them with their inherent max dimensions
+ * from tabela_preco_gravacao_oficial + tabela_preco_gravacao_oficial_faixa.
  */
 
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalRpc } from "@/lib/external-rpc";
+import { invokeExternalDb } from "@/lib/external-db";
 
 interface Technique {
   id: string;
@@ -58,6 +62,17 @@ interface CustomizationResponse {
   locations: CustomizationLocation[];
 }
 
+interface TabelaPrecoOficial {
+  id: string;
+  codigo: string;
+  nome: string;
+}
+
+interface FaixaPreco {
+  largura_max: number | null;
+  altura_max: number | null;
+}
+
 /**
  * Fetches product customization options from external DB via RPC.
  */
@@ -74,8 +89,86 @@ export function useProductCustomizationOptionsForMockup(productId: string | unde
 }
 
 /**
+ * Fetches max dimensions for ALL techniques in 2 batch queries:
+ * 1. All active rows from tabela_preco_gravacao_oficial (via alias)
+ * 2. All faixas from tabela_preco_gravacao_oficial_faixa
+ * Then matches by code in JS. Uses same sentinel logic as external-db-bridge.
+ */
+function useAllTechniqueDimensions(techniques: Technique[], shouldFetch: boolean) {
+  return useQuery({
+    queryKey: ['all-technique-dimensions-v2'],
+    queryFn: async () => {
+      // 1. Fetch ALL active techniques from external DB (via alias — bridge maps filters)
+      const techResult = await invokeExternalDb<{ id: string; code: string; name: string }>({
+        table: 'personalization_techniques',
+        operation: 'select',
+        limit: 200,
+      });
+
+      if (!techResult.records.length) return new Map<string, { maxWidth: number | null; maxHeight: number | null }>();
+
+      // 2. Fetch ALL faixas in one query
+      const faixaResult = await invokeExternalDb<{ tabela_preco_gravacao_id: string; largura_max: number | null; altura_max: number | null }>({
+        table: 'tabela_preco_gravacao_oficial_faixa',
+        operation: 'select',
+        select: 'tabela_preco_gravacao_id,largura_max,altura_max',
+        limit: 5000,
+      });
+
+      // Group faixas by technique ID
+      const faixasByTech = new Map<string, FaixaPreco[]>();
+      for (const f of faixaResult.records) {
+        const key = f.tabela_preco_gravacao_id;
+        if (!faixasByTech.has(key)) faixasByTech.set(key, []);
+        faixasByTech.get(key)!.push(f);
+      }
+
+      // Build code → dimensions map
+      const codeMap = new Map<string, { maxWidth: number | null; maxHeight: number | null }>();
+
+      for (const tech of techResult.records) {
+        const faixas = faixasByTech.get(tech.id) || [];
+        if (!faixas.length) continue;
+
+        const larguras: number[] = [];
+        const alturas: number[] = [];
+        let larguraSentinel = false;
+        let alturaSentinel = false;
+
+        for (const f of faixas) {
+          if (f.largura_max != null) {
+            if (f.largura_max >= 90) larguraSentinel = true;
+            else larguras.push(f.largura_max);
+          }
+          if (f.altura_max != null) {
+            if (f.altura_max >= 90) alturaSentinel = true;
+            else alturas.push(f.altura_max);
+          }
+        }
+
+        let maxWidth = larguras.length > 0 ? Math.max(...larguras) : null;
+        let maxHeight = alturas.length > 0 ? Math.max(...alturas) : null;
+        if (larguraSentinel) maxWidth = null;
+        if (alturaSentinel) maxHeight = null;
+
+        codeMap.set(tech.code, { maxWidth, maxHeight });
+      }
+
+      console.log('[useMockupTechniques] Loaded technique dimensions for', codeMap.size, 'techniques');
+      return codeMap;
+    },
+    enabled: shouldFetch,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+/**
  * Filters techniques to ONLY those available for the selected product.
- * Uses fn_get_product_customization_options RPC — NO FALLBACKS.
+ * Uses fn_get_product_customization_options RPC.
+ * 
+ * When product has NO configured areas (locations: []):
+ * → Returns all techniques enriched with their inherent max dimensions
+ *   from the pricing tables (tabela_preco_gravacao_oficial_faixa).
  * 
  * Returns unique techniques with dimension limits from the best (largest) area.
  */
@@ -84,6 +177,13 @@ export function useFilteredTechniques(
   selectedProduct: { id: string } | null
 ): TechniqueWithLimits[] {
   const { data: customizationData } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
+  
+  // Determine if we need technique-level dimensions (product has no configured areas)
+  const needsTechniqueDims = !!selectedProduct 
+    && !!customizationData?.locations 
+    && customizationData.locations.length === 0;
+
+  const { data: techniqueDims } = useAllTechniqueDimensions(techniques, needsTechniqueDims);
 
   return useMemo(() => {
     // No product selected -> return all techniques without limits
@@ -102,15 +202,19 @@ export function useFilteredTechniques(
       return [];
     }
 
-    // RPC returned successfully but product has NO configured areas -> fallback to all techniques
+    // RPC returned successfully but product has NO configured areas
+    // → Use technique-level dimensions from pricing tables
     if (customizationData.locations.length === 0) {
-      return techniques.map(t => ({
-        ...t,
-        maxWidth: null,
-        maxHeight: null,
-        areaName: null,
-        locationName: null,
-      }));
+      return techniques.map(t => {
+        const dims = t.code ? techniqueDims?.get(t.code) : undefined;
+        return {
+          ...t,
+          maxWidth: dims?.maxWidth ?? null,
+          maxHeight: dims?.maxHeight ?? null,
+          areaName: null,
+          locationName: null,
+        };
+      });
     }
 
     // Extract all unique techniques from all locations
@@ -162,5 +266,5 @@ export function useFilteredTechniques(
     result.sort((a, b) => a.name.localeCompare(b.name));
 
     return result;
-  }, [techniques, selectedProduct, customizationData]);
+  }, [techniques, selectedProduct, customizationData, techniqueDims]);
 }
