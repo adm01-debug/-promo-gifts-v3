@@ -636,10 +636,10 @@ export function LogoPositionEditor({
           </Button>
         </div>
 
-        {/* ── Área de Gravação + Escala (metade da largura) ── */}
+        {/* ── Área de Gravação (esquerda) + Tamanho da Logo (direita) ── */}
         <div className="flex gap-4 pt-2 border-t">
+          {/* ─── LADO ESQUERDO: Área de Gravação ─── */}
           <div className="w-1/2 space-y-3">
-            {/* Área de Gravação */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Ruler className="h-4 w-4 text-primary" />
@@ -652,7 +652,7 @@ export function LogoPositionEditor({
               )}
             </div>
 
-            {/* Largura */}
+            {/* Largura da área */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Largura</span>
@@ -666,7 +666,7 @@ export function LogoPositionEditor({
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
-                 <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
+                  <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
                     {logoWidth}cm
                   </span>
                   <Button
@@ -690,7 +690,7 @@ export function LogoPositionEditor({
               />
             </div>
 
-            {/* Altura */}
+            {/* Altura da área */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Altura</span>
@@ -704,7 +704,7 @@ export function LogoPositionEditor({
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
-                 <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
+                  <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
                     {logoHeight}cm
                   </span>
                   <Button
@@ -740,7 +740,7 @@ export function LogoPositionEditor({
                     disabled={!logoPreview}
                   >
                     {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                    {aspectLocked ? "Proporção travada" : "Proporção livre"}
+                    {aspectLocked ? "Travada" : "Livre"}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{aspectLocked ? "Clique para destravar proporção" : "Clique para travar proporção"}</TooltipContent>
@@ -749,7 +749,7 @@ export function LogoPositionEditor({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-xs h-7 text-primary hover:text-primary"
+                  className="text-[10px] h-7 text-primary hover:text-primary px-1.5"
                   onClick={() => {
                     onSizeChange(maxWidth, maxHeight);
                     if (aspectLocked) {
@@ -759,15 +759,23 @@ export function LogoPositionEditor({
                   disabled={!logoPreview}
                 >
                   <Target className="h-3 w-3 mr-1" />
-                  Área Máxima ({maxWidth}×{maxHeight}cm)
+                  Máxima
                 </Button>
               )}
             </div>
+          </div>
+
+          {/* ─── LADO DIREITO: Tamanho da Logo ─── */}
+          <div className="w-1/2 space-y-3">
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-primary" />
+              <span className="text-xs font-semibold">Tamanho da Logo</span>
+            </div>
 
             {/* Escala do Logo */}
-            <div className="pt-2 border-t space-y-2">
+            <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold">Escala do Logo</span>
+                <span className="text-xs text-muted-foreground">Escala</span>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
@@ -802,17 +810,31 @@ export function LogoPositionEditor({
               />
             </div>
 
-            {/* Position display */}
-            <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-2 border-t">
-              <span>Pos: {positionX}% × {positionY}%</span>
-              <span>
-                {logoWidth}×{logoHeight}cm{logoScale !== 100 ? ` · ${logoScale}%` : ''}{logoRotation ? ` · ${logoRotation}°` : ''}
-              </span>
+            {/* Reset escala */}
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-[10px] h-7 text-primary hover:text-primary px-1.5"
+                onClick={() => onLogoScaleChange?.(100)}
+                disabled={!logoPreview || logoScale === 100}
+              >
+                <Target className="h-3 w-3 mr-1" />
+                Resetar 100%
+              </Button>
+            </div>
+
+            {/* Status */}
+            <div className="pt-2 border-t">
+              <div className="flex flex-col gap-1 text-[10px] text-muted-foreground">
+                <span>Pos: {positionX}% × {positionY}%</span>
+                <span>Área: {logoWidth}×{logoHeight}cm</span>
+                <span>
+                  Escala: {logoScale}%{logoRotation ? ` · ${logoRotation}°` : ''}
+                </span>
+              </div>
             </div>
           </div>
-
-          {/* Lado direito reservado para próxima funcionalidade */}
-          <div className="w-1/2" />
         </div>
       </CardContent>
     </Card>
