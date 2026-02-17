@@ -255,9 +255,9 @@ export function LogoPositionEditor({
     };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm]);
 
-  // Logo scale is now handled purely via CSS transform scale().
-  // At 100%, object-contain fills the engraving area. scale() grows/shrinks from there.
-  const userScaleFactor = (logoScale || 100) / 100;
+  // Logo scale capped at 100% — logo must not exceed engraving area
+  const effectiveLogoScale = Math.min(logoScale || 100, 100);
+  const userScaleFactor = effectiveLogoScale / 100;
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
@@ -674,21 +674,21 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoScale <= 10}
-                    onClick={() => onLogoScaleChange?.(Math.max(10, logoScale - 5))}
+                    disabled={!logoPreview || effectiveLogoScale <= 10}
+                    onClick={() => onLogoScaleChange?.(Math.max(10, effectiveLogoScale - 5))}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
                   <span className="text-xs font-bold min-w-[44px] text-center bg-muted/50 rounded px-1.5 py-0.5">
-                    {logoScale}%
+                    {effectiveLogoScale}%
                   </span>
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoScale >= 100}
+                    disabled={!logoPreview}
                     onClick={() => {
-                      if (logoScale >= 100) {
+                      if (effectiveLogoScale >= 100) {
                         const isAreaAtMax = maxWidth != null && maxHeight != null && maxWidth > 0 && maxHeight > 0
                           && logoWidth >= maxWidth && logoHeight >= maxHeight;
                         if (isAreaAtMax) {
@@ -704,7 +704,7 @@ export function LogoPositionEditor({
                         }
                         return;
                       }
-                      onLogoScaleChange?.(Math.min(100, logoScale + 5));
+                      onLogoScaleChange?.(Math.min(100, effectiveLogoScale + 5));
                     }}
                   >
                     <Plus className="h-3 w-3" />
@@ -712,7 +712,7 @@ export function LogoPositionEditor({
                 </div>
               </div>
               <Slider
-                value={[logoScale]}
+                value={[effectiveLogoScale]}
                 onValueChange={(v) => onLogoScaleChange?.(Math.min(100, v[0]))}
                 min={10}
                 max={100}
@@ -732,7 +732,7 @@ export function LogoPositionEditor({
                 size="sm"
                 className="text-[10px] h-7 text-primary hover:text-primary px-1.5"
                 onClick={() => onLogoScaleChange?.(100)}
-                disabled={!logoPreview || logoScale === 100}
+                disabled={!logoPreview || effectiveLogoScale === 100}
               >
                 <Target className="h-3 w-3 mr-1" />
                 Resetar 100%
@@ -745,7 +745,7 @@ export function LogoPositionEditor({
                 <span>Pos: {positionX}% × {positionY}%</span>
                 <span>Área: {logoWidth}×{logoHeight}cm</span>
                 <span>
-                  Escala: {logoScale}%{logoRotation ? ` · Rot: ${logoRotation}°` : ''}
+                  Escala: {effectiveLogoScale}%{logoRotation ? ` · Rot: ${logoRotation}°` : ''}
                 </span>
               </div>
             </div>
