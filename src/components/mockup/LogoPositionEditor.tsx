@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, useCallback, useEffect } from "react";
-import { processLogoForLaser } from "@/utils/laser-logo-processor";
+import { processLogoForLaser, processLogoForSerigrafia } from "@/utils/laser-logo-processor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler, Palette } from "lucide-react";
@@ -217,37 +217,50 @@ export function LogoPositionEditor({
   const productBounds = useProductBounds(productImageUrl);
   const [showPreviewMode, setShowPreviewMode] = useState(true);
 
-  // ── Laser canvas processing ─────────────────────────────────────────
-  // Replaces CSS filters with real pixel-level processing via Canvas API.
-  // This preserves white gaps between logo elements (e.g. SICOOB triangles)
-  // while converting every visible pixel to a single solid laser tone.
+  // ── Canvas-based logo processing (Laser + Serigrafia) ──────────────────────
+  // Laser: converts all visible pixels to a single solid tone (claro/escuro).
+  // Serigrafia: maps each pixel to the nearest selected Pantone color (solid, no gradients).
+  // Both preserve white/transparent gaps between logo elements.
   const [processedLogoUrl, setProcessedLogoUrl] = useState<string | null>(null);
   const [isProcessingLaser, setIsProcessingLaser] = useState(false);
 
   useEffect(() => {
     const isLaser = techniqueColorConfig?.category === "laser";
+    const isSerigrafia = techniqueColorConfig?.category === "serigrafia";
+    const needsProcessing = isLaser || isSerigrafia;
 
-    if (!isLaser || !logoPreview || !showPreviewMode) {
-      // Clear processed URL when not in laser mode
+    if (!needsProcessing || !logoPreview || !showPreviewMode) {
       if (processedLogoUrl) {
-        URL.revokeObjectURL(processedLogoUrl);
         setProcessedLogoUrl(null);
       }
       return;
     }
 
-    const tone = techniqueColorConfig?.laserTone || "escuro";
     let cancelled = false;
-
     setIsProcessingLaser(true);
-    processLogoForLaser(logoPreview, tone)
+
+    let promise: Promise<string>;
+
+    if (isLaser) {
+      const tone = techniqueColorConfig?.laserTone || "escuro";
+      promise = processLogoForLaser(logoPreview, tone);
+    } else {
+      // Serigrafia — use selected Pantone colors
+      const selectedColors = techniqueColorConfig?.selectedColors || [];
+      // Fallback: if no colors resolved yet (e.g. no logo uploaded at config time), skip processing
+      if (selectedColors.length === 0) {
+        setIsProcessingLaser(false);
+        setProcessedLogoUrl(null);
+        return;
+      }
+      promise = processLogoForSerigrafia(logoPreview, selectedColors);
+    }
+
+    promise
       .then((dataUrl) => {
-        if (!cancelled) {
-          setProcessedLogoUrl(dataUrl);
-        }
+        if (!cancelled) setProcessedLogoUrl(dataUrl);
       })
       .catch(() => {
-        // Fallback to CSS filters if canvas processing fails (CORS etc.)
         if (!cancelled) setProcessedLogoUrl(null);
       })
       .finally(() => {
@@ -258,7 +271,7 @@ export function LogoPositionEditor({
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, showPreviewMode]);
+  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, techniqueColorConfig?.selectedColors, showPreviewMode]);
 
   // Logo scale is a single percentage slider — proportionality is inherent.
   // No aspect lock needed here.
@@ -276,13 +289,12 @@ export function LogoPositionEditor({
   );
 
   // Override filter based on technique color configuration
+  // NOTE: Canvas processing (processedLogoUrl) handles actual pixel conversion for laser + serigrafia.
+  // These CSS filters are only FALLBACKS if canvas processing fails (CORS, etc.)
   const colorConfigFilter = useMemo(() => {
     if (!techniqueColorConfig) return null;
     
     if (techniqueColorConfig.category === "laser") {
-      // Canvas API handles the actual pixel-level conversion (see processedLogoUrl + useEffect above).
-      // This CSS filter is only a FALLBACK in case Canvas processing fails (CORS etc.)
-      // It applies minimal styling so the laser preview still looks different from the original.
       const tone = techniqueColorConfig.laserTone || "escuro";
       if (tone === "claro") {
         return { filter: "grayscale(1) brightness(1.4)", opacity: 0.75 };
@@ -291,9 +303,10 @@ export function LogoPositionEditor({
       }
     }
     
-    if (techniqueColorConfig.category === "serigrafia" && techniqueColorConfig.colorCount === 1) {
-      // Mesma binarização para serigrafia 1 cor
-      return { filter: "grayscale(1) brightness(0.25) contrast(1000%) brightness(0.35)", opacity: 0.9 };
+    // Serigrafia: canvas handles it — no CSS fallback needed (would distort colors)
+    // Just reduce saturation slightly as a visual hint if canvas failed
+    if (techniqueColorConfig.category === "serigrafia") {
+      return { filter: "contrast(1.2)", opacity: 0.92 };
     }
     
     return null;
@@ -520,10 +533,11 @@ export function LogoPositionEditor({
               }}
             >
               {/* Logo: object-contain fills area at 100%, CSS scale grows/shrinks */}
-              {/* When laser mode: src switches to canvas-processed image (solid single tone, gaps preserved) */}
+              {/* Laser + Serigrafia: src switches to canvas-processed image (solid colors, gaps preserved) */}
               <img
                 src={
-                  showPreviewMode && processedLogoUrl && techniqueColorConfig?.category === "laser"
+                  showPreviewMode && processedLogoUrl &&
+                  (techniqueColorConfig?.category === "laser" || techniqueColorConfig?.category === "serigrafia")
                     ? processedLogoUrl
                     : logoPreview!
                 }
@@ -532,11 +546,14 @@ export function LogoPositionEditor({
                 style={{
                   transform: `rotate(${logoRotation || 0}deg) scale(${userScaleFactor})`,
                   opacity: showPreviewMode
-                    ? (processedLogoUrl && techniqueColorConfig?.category === "laser"
-                        ? 0.88  // Canvas processed: no CSS filter needed, just opacity
+                    ? (processedLogoUrl &&
+                       (techniqueColorConfig?.category === "laser" || techniqueColorConfig?.category === "serigrafia")
+                        ? 0.92  // Canvas processed: no CSS filter needed, slight opacity for realism
                         : (colorConfigFilter?.opacity ?? techniqueFilter.opacity))
                     : 1,
-                  filter: showPreviewMode && !(processedLogoUrl && techniqueColorConfig?.category === "laser")
+                  filter: showPreviewMode &&
+                    !(processedLogoUrl &&
+                      (techniqueColorConfig?.category === "laser" || techniqueColorConfig?.category === "serigrafia"))
                     ? (colorConfigFilter?.filter ?? techniqueFilter.filter)
                     : "none",
                   mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
