@@ -316,29 +316,29 @@ export function LogoPositionEditor({
     };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm]);
 
-  // Logo rendered size — fits the natural image into the container (object-contain equivalent)
-  // Rotation does NOT affect sizing; it's applied purely as a CSS transform on the element's own axis.
+  // Logo rendered size — INDEPENDENT of engraving area dimensions.
+  // The logo size is based on its natural aspect ratio, a fixed fraction of the container,
+  // and the user-controlled logoScale. Changing the engraving area does NOT affect logo size.
   const logoRenderedStyle = useMemo(() => {
-    const cw = logoDisplay.widthPx;
-    const ch = logoDisplay.heightPx;
-    if (!logoNaturalSize || cw <= 0 || ch <= 0) {
-      return null;
-    }
+    const containerW = containerSize.width || 400;
+    const containerH = containerSize.height || containerW;
+    if (!logoNaturalSize) return null;
 
     const { w: nw, h: nh } = logoNaturalSize;
     if (nw <= 0 || nh <= 0) return null;
 
-    // object-cover: logo fills the entire engraving area at 100% scale,
-    // touching ALL edges (may crop on one axis to maintain aspect ratio).
-    // This ensures the logo visually occupies the full engraving rectangle.
-    const scale = Math.max(cw / nw, ch / nh);
+    // Base: fit the logo's natural proportions into ~25% of the container
+    const baseFraction = 0.25;
+    const baseW = containerW * baseFraction;
+    const baseH = containerH * baseFraction;
+    const fitScale = Math.min(baseW / nw, baseH / nh);
     const userScale = (logoScale || 100) / 100;
 
     return {
-      width: nw * scale * userScale,
-      height: nh * scale * userScale,
+      width: nw * fitScale * userScale,
+      height: nh * fitScale * userScale,
     };
-  }, [logoDisplay, logoNaturalSize, logoScale]);
+  }, [containerSize.width, containerSize.height, logoNaturalSize, logoScale]);
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
