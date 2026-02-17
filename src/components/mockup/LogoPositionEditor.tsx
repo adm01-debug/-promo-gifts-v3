@@ -191,7 +191,7 @@ export function LogoPositionEditor({
   onLogoScaleChange,
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
-  const logoNaturalSize = useImageNaturalSize(logoPreview);
+  // logoNaturalSize removed — logo scaling now uses CSS scale() instead of pixel calculations
   const [showPreviewMode, setShowPreviewMode] = useState(true);
   // Logo scale is a single percentage slider — proportionality is inherent.
   // No aspect lock needed here.
@@ -273,28 +273,9 @@ export function LogoPositionEditor({
     };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm]);
 
-  // Logo rendered size — fits proportionally inside the engraving area rectangle.
-  // At 100% scale, the logo touches the edges of the engraving area in at least one
-  // dimension (object-fit: contain behavior). Scale > 100% overflows the area.
-  const logoRenderedStyle = useMemo(() => {
-    if (!logoNaturalSize) return null;
-
-    const { w: nw, h: nh } = logoNaturalSize;
-    if (nw <= 0 || nh <= 0) return null;
-
-    const areaW = logoDisplay.widthPx;
-    const areaH = logoDisplay.heightPx;
-    if (areaW <= 0 || areaH <= 0) return null;
-
-    // Fit logo proportionally into the engraving area (contain logic)
-    const fitScale = Math.min(areaW / nw, areaH / nh);
-    const userScale = (logoScale || 100) / 100;
-
-    return {
-      width: nw * fitScale * userScale,
-      height: nh * fitScale * userScale,
-    };
-  }, [logoNaturalSize, logoScale, logoDisplay.widthPx, logoDisplay.heightPx]);
+  // Logo scale is now handled purely via CSS transform scale().
+  // At 100%, object-contain fills the engraving area. scale() grows/shrinks from there.
+  const userScaleFactor = (logoScale || 100) / 100;
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
@@ -444,19 +425,13 @@ export function LogoPositionEditor({
                 transform: `translate(-50%, -50%)`,
               }}
             >
-              {/* Logo centered absolutely inside engraving area — no flex constraints */}
+              {/* Logo: object-contain fills area at 100%, CSS scale grows/shrinks */}
               <img
                 src={logoPreview}
                 alt="Logo para personalização"
-                className={cn(
-                  "absolute left-1/2 top-1/2 object-contain",
-                  !logoRenderedStyle && "w-full h-full"
-                )}
+                className="absolute inset-0 w-full h-full object-contain"
                 style={{
-                  ...(logoRenderedStyle
-                    ? { width: `${logoRenderedStyle.width}px`, height: `${logoRenderedStyle.height}px` }
-                    : {}),
-                  transform: `translate(-50%, -50%) rotate(${logoRotation || 0}deg)${!logoRenderedStyle ? ` scale(${(logoScale || 100) / 100})` : ''}`,
+                  transform: `rotate(${logoRotation || 0}deg) scale(${userScaleFactor})`,
                   opacity: showPreviewMode ? techniqueFilter.opacity : 1,
                   filter: showPreviewMode ? techniqueFilter.filter : "none",
                   mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
