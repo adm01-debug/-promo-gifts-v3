@@ -5,6 +5,7 @@
  * This page component is now purely presentational.
  */
 
+import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,29 @@ import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 
 export default function MockupGenerator() {
   const mg = useMockupGenerator();
+
+  // Technique change confirmation
+  const [pendingTechnique, setPendingTechnique] = useState<any>(null);
+  const [techniqueChangeDialogOpen, setTechniqueChangeDialogOpen] = useState(false);
+
+  const handleTechniqueChange = useCallback((technique: any) => {
+    // If there's already a logo AND a different technique selected, ask for confirmation
+    if (mg.hasLogo && mg.selectedTechnique && technique?.id !== mg.selectedTechnique.id) {
+      setPendingTechnique(technique);
+      setTechniqueChangeDialogOpen(true);
+      return;
+    }
+    mg.setSelectedTechnique(technique);
+    mg.setGeneratedMockup(null);
+  }, [mg.hasLogo, mg.selectedTechnique, mg.setSelectedTechnique, mg.setGeneratedMockup]);
+
+  const confirmTechniqueChange = useCallback(() => {
+    mg.setSelectedTechnique(pendingTechnique);
+    mg.setGeneratedMockup(null);
+    setTechniqueChangeDialogOpen(false);
+    setPendingTechnique(null);
+    toast.info(`Técnica alterada para ${pendingTechnique?.name}. Dimensões ajustadas automaticamente.`, { duration: 3000 });
+  }, [pendingTechnique, mg.setSelectedTechnique, mg.setGeneratedMockup]);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -237,10 +261,7 @@ export default function MockupGenerator() {
                   mg.setProductSelection(sel);
                   mg.setGeneratedMockup(null);
                 }}
-                onTechniqueSelect={(t) => {
-                  mg.setSelectedTechnique(t);
-                  mg.setGeneratedMockup(null);
-                }}
+                onTechniqueSelect={handleTechniqueChange}
                 onClientSelect={mg.setSelectedClient}
                 onGenerate={mg.generateMockup}
                 onReset={mg.resetForm}
@@ -366,6 +387,32 @@ export default function MockupGenerator() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Technique Change Confirmation Dialog */}
+      <AlertDialog open={techniqueChangeDialogOpen} onOpenChange={setTechniqueChangeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Alterar técnica de personalização?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <span className="block">
+                Você está trocando de <strong>{mg.selectedTechnique?.name}</strong> para <strong>{pendingTechnique?.name}</strong>.
+              </span>
+              <span className="block text-sm">
+                • O logo será mantido, mas as dimensões serão ajustadas aos limites da nova técnica.
+                {mg.generatedMockup && (
+                  <span className="block">• O mockup gerado será descartado (será necessário gerar novamente).</span>
+                )}
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingTechnique(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmTechniqueChange}>
+              Alterar técnica
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={mg.deleteDialogOpen} onOpenChange={mg.setDeleteDialogOpen}>
