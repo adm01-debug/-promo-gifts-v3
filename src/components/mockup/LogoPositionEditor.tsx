@@ -393,7 +393,7 @@ export function LogoPositionEditor({
           {logoPreview ? (
             <div
               className={cn(
-                "absolute select-none touch-none",
+                "absolute select-none touch-none overflow-hidden",
                 "cursor-grab active:cursor-grabbing",
                 "ring-2 ring-primary/30 rounded-sm"
               )}
