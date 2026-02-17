@@ -219,9 +219,24 @@ export function LogoPositionEditor({
       const physW = prodW || (prodH! * 0.4); // bottles are typically narrow
       const physH = prodH || (prodW! * 2.5);
 
-      // Use canvas-detected product bounds (or 85% fallback)
-      const scaleByW = (containerW * productBounds.fractionX) / physW;
-      const scaleByH = (containerH * productBounds.fractionY) / physH;
+      // Calculate the RENDERED image size within the container (object-contain)
+      // The image maintains its aspect ratio, so it won't fill both dimensions.
+      const imgAR = productBounds.imageAspectRatio || 1;
+      const containerAR = containerW / containerH;
+      let renderedImgW: number, renderedImgH: number;
+      if (imgAR > containerAR) {
+        // Image is wider than container → width-limited
+        renderedImgW = containerW;
+        renderedImgH = containerW / imgAR;
+      } else {
+        // Image is taller than container → height-limited
+        renderedImgH = containerH;
+        renderedImgW = containerH * imgAR;
+      }
+
+      // Product pixels within the rendered image area
+      const scaleByW = (renderedImgW * productBounds.fractionX) / physW;
+      const scaleByH = (renderedImgH * productBounds.fractionY) / physH;
       const cmToPx = Math.min(scaleByW, scaleByH);
 
       // Enforce minimum pixel size so tiny engravings remain visible (at least 40px)
