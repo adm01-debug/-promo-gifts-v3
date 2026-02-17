@@ -200,9 +200,9 @@ export function LogoPositionEditor({
   //   2. Else if technique maxWidth/maxHeight known → old 60% fraction fallback
   //   3. Else → 30cm reference fallback
   //
-  // The product image fills the container via object-contain, so the "visible product"
-  // occupies a portion of the container. We use ~85% of the container as the product's
-  // largest dimension to approximate alignment with the object-contain rendering.
+  // The product image fills the container via object-contain. We use canvas-based
+  // bounding box detection to determine the real fraction the product occupies,
+  // falling back to 85% if detection fails (complex background, CORS, etc.).
   const logoDisplay = useMemo(() => {
     const containerW = containerSize.width || 400;
     const containerH = containerSize.height || containerW; // aspect-square
