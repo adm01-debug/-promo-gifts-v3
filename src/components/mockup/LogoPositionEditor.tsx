@@ -273,29 +273,28 @@ export function LogoPositionEditor({
     };
   }, [logoWidth, logoHeight, containerSize.width, containerSize.height, maxWidth, maxHeight, productHeightCm, productWidthCm]);
 
-  // Logo rendered size — INDEPENDENT of engraving area dimensions.
-  // The logo size is based on its natural aspect ratio, a fixed fraction of the container,
-  // and the user-controlled logoScale. Changing the engraving area does NOT affect logo size.
+  // Logo rendered size — fits proportionally inside the engraving area rectangle.
+  // At 100% scale, the logo touches the edges of the engraving area in at least one
+  // dimension (object-fit: contain behavior). Scale > 100% overflows the area.
   const logoRenderedStyle = useMemo(() => {
-    const containerW = containerSize.width || 400;
-    const containerH = containerSize.height || containerW;
     if (!logoNaturalSize) return null;
 
     const { w: nw, h: nh } = logoNaturalSize;
     if (nw <= 0 || nh <= 0) return null;
 
-    // Base: fit the logo's natural proportions into ~25% of the container
-    const baseFraction = 0.25;
-    const baseW = containerW * baseFraction;
-    const baseH = containerH * baseFraction;
-    const fitScale = Math.min(baseW / nw, baseH / nh);
+    const areaW = logoDisplay.widthPx;
+    const areaH = logoDisplay.heightPx;
+    if (areaW <= 0 || areaH <= 0) return null;
+
+    // Fit logo proportionally into the engraving area (contain logic)
+    const fitScale = Math.min(areaW / nw, areaH / nh);
     const userScale = (logoScale || 100) / 100;
 
     return {
       width: nw * fitScale * userScale,
       height: nh * fitScale * userScale,
     };
-  }, [containerSize.width, containerSize.height, logoNaturalSize, logoScale]);
+  }, [logoNaturalSize, logoScale, logoDisplay.widthPx, logoDisplay.heightPx]);
 
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
