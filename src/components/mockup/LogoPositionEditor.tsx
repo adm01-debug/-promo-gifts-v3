@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Move, RotateCw, RotateCcw, Target, Eye, Lock, Unlock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler } from "lucide-react";
+import { Move, RotateCw, RotateCcw, Target, Eye, Lock, Unlock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler, Link2, AlignCenterVertical, AlignCenterHorizontal, Maximize2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -428,11 +428,11 @@ export function LogoPositionEditor({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Technique preview indicator */}
+        {/* Technique preview indicator — simplified, no redundant badge */}
         {showPreviewMode && techniqueName && (
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="flex items-center gap-2 p-1.5 rounded-lg bg-primary/5 border border-primary/20">
             <div
-              className="w-4 h-4 rounded-full border-2 border-primary"
+              className="w-3 h-3 rounded-full border-2 border-primary flex-shrink-0"
               style={{
                 background: techniqueFilter.filter.includes("grayscale")
                   ? "linear-gradient(135deg, hsl(var(--muted-foreground)), hsl(var(--muted)))"
@@ -441,16 +441,13 @@ export function LogoPositionEditor({
                     : "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))",
               }}
             />
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground truncate">
               Simulando: <span className="font-medium text-foreground">{techniqueName}</span>
             </span>
-            <Badge variant="secondary" className="text-[10px] ml-auto">
-              {techniqueFilter.description}
-            </Badge>
           </div>
         )}
 
-        {/* Preview area */}
+        {/* Preview area — reduced padding */}
         <div
           ref={containerRef}
           className="relative rounded-lg border overflow-hidden bg-muted/30 aspect-square"
@@ -488,7 +485,6 @@ export function LogoPositionEditor({
                 transform: `translate(-50%, -50%)`,
               }}
             >
-              {/* Center the logo inside the engraving area using flex */}
               <div className="w-full h-full flex items-center justify-center">
                 <img
                   src={logoPreview}
@@ -519,126 +515,81 @@ export function LogoPositionEditor({
             </div>
           )}
 
-          {/* Live preview badge */}
+          {/* Discrete inline badge */}
           {showPreviewMode && logoPreview && (
-            <div className="absolute top-2 left-2">
-              <Badge
-                variant="secondary"
-                className="bg-background/90 backdrop-blur-sm text-[10px] gap-1"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                Preview em tempo real
-              </Badge>
+            <div className="absolute top-1.5 left-1.5">
+              <span className="inline-flex items-center gap-1 text-[9px] text-muted-foreground bg-background/70 backdrop-blur-sm rounded px-1.5 py-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Tempo real
+              </span>
             </div>
           )}
         </div>
 
-        {/* Quick actions - 3 centering buttons */}
-        <div className="flex gap-2">
+        {/* ── Alinhamento: icon-only compact row ── */}
+        <div className="flex gap-1.5 items-center">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPositionChange(50, positionY)}
-                disabled={!logoPreview}
-                className="flex-1"
-              >
-                <Target className="h-3.5 w-3.5 mr-1" />
-                Centro V
+              <Button variant="outline" size="icon" className="h-8 w-8"
+                onClick={() => onPositionChange(50, positionY)} disabled={!logoPreview}>
+                <AlignCenterVertical className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Alinhar à linha vertical central</TooltipContent>
+            <TooltipContent>Centralizar verticalmente (X=50%)</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPositionChange(50, 50)}
-                disabled={!logoPreview}
-                className="flex-1"
-              >
-                <Target className="h-3.5 w-3.5 mr-1" />
-                Centro
+              <Button variant="outline" size="icon" className="h-8 w-8"
+                onClick={() => onPositionChange(50, 50)} disabled={!logoPreview}>
+                <Maximize2 className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Centralizar horizontal e verticalmente</TooltipContent>
+            <TooltipContent>Centralizar ambos (50% × 50%)</TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPositionChange(positionX, 50)}
-                disabled={!logoPreview}
-                className="flex-1"
-              >
-                <Target className="h-3.5 w-3.5 mr-1" />
-                Centro H
+              <Button variant="outline" size="icon" className="h-8 w-8"
+                onClick={() => onPositionChange(positionX, 50)} disabled={!logoPreview}>
+                <AlignCenterHorizontal className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Alinhar à linha horizontal central</TooltipContent>
+            <TooltipContent>Centralizar horizontalmente (Y=50%)</TooltipContent>
           </Tooltip>
+          <div className="w-px h-5 bg-border mx-0.5" />
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleOrientation}
-                disabled={!logoPreview}
-                className="flex-1"
-              >
-                {((logoRotation || 0) % 180 === 0) ? (
-                  <FlipVertical2 className="h-4 w-4 mr-1" />
-                ) : (
-                  <FlipHorizontal2 className="h-4 w-4 mr-1" />
-                )}
-                {((logoRotation || 0) % 180 === 0) ? "Vertical" : "Horizontal"}
+              <Button variant="outline" size="icon" className="h-8 w-8"
+                onClick={toggleOrientation} disabled={!logoPreview}>
+                {((logoRotation || 0) % 180 === 0)
+                  ? <FlipVertical2 className="h-4 w-4" />
+                  : <FlipHorizontal2 className="h-4 w-4" />}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Alternar orientação do logo</TooltipContent>
+            <TooltipContent>{((logoRotation || 0) % 180 === 0) ? "Alternar para vertical" : "Alternar para horizontal"}</TooltipContent>
           </Tooltip>
-        </div>
-        {/* Rotation controls */}
-        <div className="flex gap-2 items-center">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={rotateCounterClockwise}
-            disabled={!logoPreview}
-            className="flex-1"
-          >
-            <RotateCcw className="h-4 w-4 mr-1" />
-            -15°
+          
+          {/* Rotation — condensed into same row */}
+          <div className="w-px h-5 bg-border mx-0.5" />
+          <Button variant="outline" size="icon" className="h-8 w-8"
+            onClick={rotateCounterClockwise} disabled={!logoPreview}>
+            <RotateCcw className="h-3.5 w-3.5" />
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant={logoRotation ? "secondary" : "outline"}
-                size="sm"
-                onClick={() => onRotationChange?.(0)}
-                disabled={!logoPreview || !logoRotation}
-                className="min-w-[48px]"
-              >
+              <Button variant={logoRotation ? "secondary" : "outline"} size="icon" className="h-8 min-w-[40px] px-1.5 text-xs font-bold"
+                onClick={() => onRotationChange?.(0)} disabled={!logoPreview || !logoRotation}>
                 {logoRotation || 0}°
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Resetar rotação para 0°</TooltipContent>
+            <TooltipContent>Resetar rotação</TooltipContent>
           </Tooltip>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={rotateClockwise}
-            disabled={!logoPreview}
-            className="flex-1"
-          >
-            <RotateCw className="h-4 w-4 mr-1" />
-            +15°
+          <Button variant="outline" size="icon" className="h-8 w-8"
+            onClick={rotateClockwise} disabled={!logoPreview}>
+            <RotateCw className="h-3.5 w-3.5" />
           </Button>
         </div>
 
-        {/* ── Tamanho (compact) ── */}
+        {/* ── Tamanho (compact with link icon) ── */}
         <div className="pt-2 border-t space-y-1.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
@@ -650,10 +601,10 @@ export function LogoPositionEditor({
             )}
           </div>
 
-          {/* Largura + Altura inline rows */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* Largura + Link icon + Altura */}
+          <div className="flex items-end gap-1.5">
             {/* Largura */}
-            <div className="space-y-0.5">
+            <div className="flex-1 space-y-0.5">
               <span className="text-[10px] text-muted-foreground">Largura</span>
               <div className="flex items-center gap-0.5">
                 <Button variant="outline" size="icon" className="h-6 w-6 rounded"
@@ -677,8 +628,15 @@ export function LogoPositionEditor({
                 </Button>
               </div>
             </div>
+            {/* Link icon between dimensions */}
+            <div className="flex items-center pb-0.5">
+              <Link2 className={cn(
+                "h-3.5 w-3.5 transition-colors",
+                aspectLocked ? "text-primary" : "text-muted-foreground/30"
+              )} />
+            </div>
             {/* Altura */}
-            <div className="space-y-0.5">
+            <div className="flex-1 space-y-0.5">
               <span className="text-[10px] text-muted-foreground">Altura</span>
               <div className="flex items-center gap-0.5">
                 <Button variant="outline" size="icon" className="h-6 w-6 rounded"
@@ -714,13 +672,13 @@ export function LogoPositionEditor({
               disabled={!logoPreview}
             >
               {aspectLocked ? <Lock className="h-2.5 w-2.5" /> : <Unlock className="h-2.5 w-2.5" />}
-              {aspectLocked ? "Travada" : "Livre"}
+              {aspectLocked ? "Proporção travada" : "Proporção livre"}
             </Button>
             {maxWidth && maxHeight && maxWidth > 0 && maxHeight > 0 && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="text-[10px] h-6 px-2 text-primary hover:text-primary"
+                className="text-[10px] h-6 px-2"
                 onClick={() => {
                   onSizeChange(maxWidth, maxHeight);
                   if (aspectLocked) {
@@ -729,8 +687,8 @@ export function LogoPositionEditor({
                 }}
                 disabled={!logoPreview}
               >
-                <Target className="h-2.5 w-2.5 mr-0.5" />
-                Máxima
+                <Maximize2 className="h-2.5 w-2.5 mr-0.5" />
+                Máxima ({maxWidth}×{maxHeight})
               </Button>
             )}
           </div>
@@ -763,13 +721,14 @@ export function LogoPositionEditor({
           />
         </div>
 
-        {/* Position display */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
+        {/* Position display — semantic labels */}
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-2 border-t">
           <span>
-            Posição: {positionX}% x {positionY}%
+            {positionX === 50 && positionY === 50 ? "Centralizado" 
+              : `Pos: ${positionX}% × ${positionY}%`}
           </span>
           <span>
-            {logoWidth}cm × {logoHeight}cm{logoScale !== 100 ? ` · ${logoScale}%` : ''}{logoRotation ? ` · ${logoRotation}°` : ''}
+            {logoWidth}×{logoHeight}cm{logoScale !== 100 ? ` · ${logoScale}%` : ''}{logoRotation ? ` · ${logoRotation}°` : ''}
           </span>
         </div>
       </CardContent>
