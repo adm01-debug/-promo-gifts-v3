@@ -39,6 +39,8 @@ export interface TechniqueColorConfig {
   colorCount?: number;
   /** Serigrafia: selected Pantone indices from detected colors */
   selectedPantoneIndices?: number[];
+  /** Serigrafia: resolved hex + pantone code for each selected color (for canvas processing) */
+  selectedColors?: { hex: string; pantoneCode: string }[];
   /** Whether this is full color (policromia) */
   isFullColor?: boolean;
 }
@@ -184,13 +186,21 @@ export function TechniqueColorConfigDialog({
     } else if (category === "serigrafia") {
       config.colorCount = colorCount;
       config.selectedPantoneIndices = selectedIndices;
+      // Resolve actual hex + pantoneCode for each selected index so canvas processing can use them
+      config.selectedColors = selectedIndices.map((idx) => {
+        const color = detectedColors[idx];
+        return {
+          hex: color.hex,
+          pantoneCode: color.selectedPantone || color.pantoneMatch?.pantoneCode || color.name,
+        };
+      });
     } else {
       config.isFullColor = true;
     }
     
     onConfirm(config);
     onOpenChange(false);
-  }, [category, laserTone, colorCount, selectedIndices, onConfirm, onOpenChange]);
+  }, [category, laserTone, colorCount, selectedIndices, detectedColors, onConfirm, onOpenChange]);
 
   const isValid = useMemo(() => {
     if (category === "laser") return true; // always has a default
