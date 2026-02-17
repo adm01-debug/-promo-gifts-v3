@@ -328,8 +328,10 @@ export function LogoPositionEditor({
     const { w: nw, h: nh } = logoNaturalSize;
     if (nw <= 0 || nh <= 0) return null;
 
-    // Standard object-contain: fit natural dimensions into container, ignoring rotation
-    const scale = Math.min(cw / nw, ch / nh);
+    // object-cover: logo fills the entire engraving area at 100% scale,
+    // touching ALL edges (may crop on one axis to maintain aspect ratio).
+    // This ensures the logo visually occupies the full engraving rectangle.
+    const scale = Math.max(cw / nw, ch / nh);
     const userScale = (logoScale || 100) / 100;
 
     return {
