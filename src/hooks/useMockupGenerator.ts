@@ -214,46 +214,21 @@ export function useMockupGenerator() {
     }
   }, [filteredTechniques, selectedTechnique]);
 
-  // When technique changes, adjust logo dimensions to the new maxWidth/maxHeight.
-  // - If current dimension EXCEEDS new max → clamp down
-  // - If current dimension was previously clamped by old technique (equals old max) → expand to new max or default
-  const prevTechniqueRef = useRef<typeof selectedTechnique>(null);
+  // When technique changes, clamp logo dimensions to the new maxWidth/maxHeight.
   useEffect(() => {
-    if (!selectedTechnique) {
-      prevTechniqueRef.current = null;
-      return;
-    }
-    const mw = 'maxWidth' in selectedTechnique ? selectedTechnique.maxWidth : null;
-    const mh = 'maxHeight' in selectedTechnique ? selectedTechnique.maxHeight : null;
+    if (!selectedTechnique) return;
+    const mw = 'maxWidth' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxWidth : null;
+    const mh = 'maxHeight' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxHeight : null;
     console.log('[MockupGenerator] Technique changed:', selectedTechnique.name, '| maxWidth:', mw, '| maxHeight:', mh);
-
-    const prevTech = prevTechniqueRef.current;
-    const prevMw = prevTech && 'maxWidth' in prevTech ? prevTech.maxWidth : null;
-    const prevMh = prevTech && 'maxHeight' in prevTech ? prevTech.maxHeight : null;
-    prevTechniqueRef.current = selectedTechnique;
 
     if (!mw || !mh || mw <= 0 || mh <= 0) return;
 
     setPersonalizationAreas(prev =>
       prev.map(area => {
-        let newW = area.logoWidth;
-        let newH = area.logoHeight;
-
-        // If width was clamped by previous technique (equals prev max), expand to new max or default (5cm)
-        if (prevMw && prevMw > 0 && Math.abs(area.logoWidth - prevMw) < 0.01) {
-          newW = Math.min(mw, 5); // Expand to default (5cm) but no more than new max
-        }
-        // If height was clamped by previous technique
-        if (prevMh && prevMh > 0 && Math.abs(area.logoHeight - prevMh) < 0.01) {
-          newH = Math.min(mh, 3); // Expand to default (3cm) but no more than new max
-        }
-
-        // Always clamp to new technique limits
-        newW = Math.min(newW, mw);
-        newH = Math.min(newH, mh);
-
-        if (newW !== area.logoWidth || newH !== area.logoHeight) {
-          return { ...area, logoWidth: newW, logoHeight: newH };
+        const clampedW = Math.min(area.logoWidth, mw);
+        const clampedH = Math.min(area.logoHeight, mh);
+        if (clampedW !== area.logoWidth || clampedH !== area.logoHeight) {
+          return { ...area, logoWidth: clampedW, logoHeight: clampedH };
         }
         return area;
       })
