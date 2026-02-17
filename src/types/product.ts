@@ -28,6 +28,14 @@ export interface Product {
   min_quantity: number | null;
   external_id: string | null;
   metadata: ProductMetadata | null;        // JSONB
+  dimensions?: {
+    height_cm?: number | null;
+    width_cm?: number | null;
+    length_cm?: number | null;
+    diameter_cm?: number | null;
+    weight_g?: number | null;
+    capacity_ml?: number | null;
+  } | null;
   video_url: string | null;
   search_vector: unknown;                  // tsvector (ignorar no frontend)
   created_at: string;
