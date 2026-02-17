@@ -174,7 +174,6 @@ export function LogoPositionEditor({
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const [showPreviewMode, setShowPreviewMode] = useState(true);
-  const [showPreviewMode, setShowPreviewMode] = useState(true);
   // Logo scale is a single percentage slider — proportionality is inherent.
   // No aspect lock needed here.
 
@@ -686,8 +685,8 @@ export function LogoPositionEditor({
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    disabled={!logoPreview || logoScale >= 200}
-                    onClick={() => onLogoScaleChange?.(Math.min(200, logoScale + 5))}
+                    disabled={!logoPreview || logoScale >= 500}
+                    onClick={() => onLogoScaleChange?.(Math.min(500, logoScale + 5))}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
@@ -697,7 +696,7 @@ export function LogoPositionEditor({
                 value={[logoScale]}
                 onValueChange={(v) => onLogoScaleChange?.(v[0])}
                 min={10}
-                max={200}
+                max={500}
                 step={5}
                 disabled={!logoPreview}
               />
