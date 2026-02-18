@@ -48,32 +48,6 @@ export function ProposalFooter({ data, isLastPage, pageNumber, totalPages }: Pro
       </svg>
 
       <div style={{ position: "relative", zIndex: 10, height: "100%", padding: "0 40px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", paddingTop: "8px", marginBottom: "8px" }}>
-          <ContactDot color="#333333" text={data.seller.phone || "00-00000-0000"} />
-          <ContactDot color="#00c853" text="promobrindes.com" />
-        </div>
-
-        <div style={{ fontSize: "9px", fontWeight: 600, color: "#555", lineHeight: "1.3" }}>
-          CNPJ: 36.835.552/0001-67 | Razão Social: Brasil Marcas Industria e Comercio de Brindes LTDA.
-        </div>
-
-        <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "13px", fontWeight: 700, color: "#0085ca", fontStyle: "italic", marginTop: "4px" }}>
-          adm01@promobrindes.com.br
-        </div>
-
-        {/* Assinatura do vendedor */}
-        <div style={{ position: "absolute", top: "8px", right: "44px", textAlign: "center" }}>
-          <div style={{ fontFamily: "'Sacramento', cursive", fontSize: "28px", color: "#0085ca", marginBottom: "-4px", transform: "rotate(-3deg)" }}>
-            {data.seller.name}
-          </div>
-          <p style={{ fontWeight: 800, fontSize: "10px", textTransform: "uppercase", marginTop: "4px", color: "#000", margin: "4px 0 0 0" }}>
-            {data.seller.name}
-          </p>
-          <div style={{ width: "150px", height: "1px", backgroundColor: "#333", margin: "2px auto" }} />
-          <p style={{ fontSize: "9px", color: "#666", margin: "2px 0 0 0" }}>Executivo de Vendas</p>
-        </div>
-
-        {/* Page number + print date */}
         <div style={{ position: "absolute", bottom: "4px", left: "40px", fontSize: "8px", color: "#999", display: "flex", gap: "16px", fontVariantNumeric: "tabular-nums" }}>
           <span>Página {pageNumber} de {totalPages}</span>
           <span>Impresso em: {printDate}</span>
