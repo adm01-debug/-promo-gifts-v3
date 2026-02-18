@@ -54,7 +54,17 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
 
           const gravacao = item.personalizations?.map((p) => {
             let s = p.technique_name;
-            if (p.width_cm && p.height_cm) s += ` ${p.width_cm}×${p.height_cm}cm`;
+            // Try direct fields first, then parse from notes ("Local — Code | WxHcm")
+            let widthCm = p.width_cm;
+            let heightCm = p.height_cm;
+            if ((!widthCm || !heightCm) && p.notes) {
+              const dimMatch = p.notes.match(/\|\s*([\d.]+)×([\d.]+)cm/);
+              if (dimMatch) {
+                widthCm = parseFloat(dimMatch[1]);
+                heightCm = parseFloat(dimMatch[2]);
+              }
+            }
+            if (widthCm && heightCm) s += ` ${widthCm}×${heightCm}cm`;
             if (p.colors_count) s += ` | ${p.colors_count} cor${p.colors_count > 1 ? "es" : ""}`;
             if (p.material) s += ` | ${p.material}`;
             return s;
