@@ -132,28 +132,27 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               )}
               {/* Description */}
               <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px", flexWrap: "wrap" }}>
-                  <span style={{ fontWeight: 800, color: "#111", fontSize: "13px", lineHeight: "1.3" }}>
-                    {item.name}
+                {item.sku && (
+                  <span style={{
+                    display: "inline-block",
+                    background: "#e8f5e9",
+                    color: "#2e7d32",
+                    fontSize: "9px",
+                    padding: "2px 6px",
+                    borderRadius: "3px",
+                    fontWeight: 700,
+                    fontFamily: "'Roboto Mono', monospace",
+                    whiteSpace: "nowrap",
+                    marginBottom: "3px",
+                  }}>
+                    #{item.sku}
                   </span>
-                  {item.sku && (
-                    <span style={{
-                      background: "#e8f5e9",
-                      color: "#2e7d32",
-                      fontSize: "9px",
-                      padding: "2px 6px",
-                      borderRadius: "3px",
-                      fontWeight: 700,
-                      fontFamily: "'Roboto Mono', monospace",
-                      whiteSpace: "nowrap",
-                      flexShrink: 0,
-                    }}>
-                      #{item.sku}
-                    </span>
-                  )}
+                )}
+                <div style={{ fontWeight: 800, color: "#111", fontSize: "13px", lineHeight: "1.3", marginBottom: "2px" }}>
+                  {item.name}
                 </div>
                 {item.description && (
-                  <span style={{ display: "block", fontSize: "11px", color: "#666", marginTop: "2px", lineHeight: "1.4", maxWidth: "380px" }}>
+                  <span style={{ display: "block", fontSize: "11px", color: "#666", marginBottom: "4px", lineHeight: "1.4", maxWidth: "380px" }}>
                     {item.description}
                   </span>
                 )}
@@ -162,7 +161,6 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                     display: "flex",
                     alignItems: "center",
                     gap: "5px",
-                    marginTop: "4px",
                     padding: "3px 7px",
                     backgroundColor: "#e0f2f1",
                     borderRadius: "4px",
