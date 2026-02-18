@@ -1,5 +1,27 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { ProposalItem } from "../ProposalHtmlTemplate";
+import { processLogoTransparent } from "./LogoWithTransparentBg";
+
+function ProductImageTransparent({ src, alt }: { src: string; alt: string }) {
+  const [dataUrl, setDataUrl] = useState<string>("");
+  useEffect(() => {
+    processLogoTransparent(src).then(setDataUrl);
+  }, [src]);
+  return (
+    <img
+      src={dataUrl || src}
+      alt={alt}
+      style={{
+        width: "108px",
+        height: "108px",
+        objectFit: "contain",
+        borderRadius: "6px",
+        display: "block",
+        margin: "0 auto",
+      }}
+    />
+  );
+}
 
 function fmt(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -83,22 +105,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               {hasAnyImage && (
                 <td style={{ padding: "1px", textAlign: "center", verticalAlign: "middle", width: "110px", minWidth: "110px", maxWidth: "110px" }}>
                   {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      crossOrigin="anonymous"
-                      style={{
-                        width: "108px",
-                        height: "108px",
-                        objectFit: "contain",
-                        borderRadius: "6px",
-                        border: "1px solid #e8e8e8",
-                        backgroundColor: "#fff",
-                        padding: "2px",
-                        display: "block",
-                        margin: "0 auto",
-                      }}
-                    />
+                    <ProductImageTransparent src={item.imageUrl} alt={item.name} />
                   ) : (
                     <div style={{
                       width: "108px",
