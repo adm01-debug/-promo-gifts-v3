@@ -61,17 +61,27 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         top: "0",
         left: "24px",
         bottom: `${barH}px`,
-        width: "243px",
+        width: "260px",
         display: "flex",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        padding: "12px 14px",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        padding: "10px 14px",
+        gap: "6px",
       }}>
         <LogoWithTransparentBg
           src="/images/promo-brindes-logo-v2.png"
           alt="Promo Brindes"
           style={{ width: "100%", height: "auto", display: "block" }}
         />
+        <div style={{ display: "flex", flexDirection: "column", gap: "2px", paddingLeft: "2px" }}>
+          <span style={{ fontSize: "10px", fontWeight: 700, color: "#444", letterSpacing: "0.3px" }}>
+            📞 (11) 4637-5517
+          </span>
+          <span style={{ fontSize: "10px", fontWeight: 700, color: "#00c853", letterSpacing: "0.3px" }}>
+            🌐 www.promobrindes.com.br
+          </span>
+        </div>
       </div>
 
       <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-75%)" }}>
