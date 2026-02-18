@@ -135,51 +135,52 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                   const b = parseInt(hex.substring(4, 6), 16);
                   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
                   const textColor = luminance > 0.5 ? "#1a1a1a" : "#ffffff";
-                  return (
-                    <span style={{
-                      display: "inline-block",
-                      background: bgColor,
-                      color: textColor,
-                      fontSize: "9px",
-                      padding: "2px 6px",
-                      borderRadius: "3px",
-                      fontWeight: 700,
-                      fontFamily: "'Roboto Mono', monospace",
-                      whiteSpace: "nowrap",
+                   return (
+                    <div style={{
+                      display: "block",
                       marginBottom: "4px",
                     }}>
-                      {item.composedCode || item.sku}
-                    </span>
-                  );
-                })()}
-                <div style={{ fontWeight: 800, color: "#111", fontSize: "13px", lineHeight: "1.3", marginBottom: "2px" }}>
-                  {item.name}
-                </div>
-                {item.description && (
-                  <span style={{ display: "block", fontSize: "11px", color: "#666", marginBottom: "4px", lineHeight: "1.4", maxWidth: "380px" }}>
-                    {item.description}
-                  </span>
-                )}
-                {gravacao && (
-                  <div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    padding: "3px 7px",
-                    backgroundColor: "#e0f2f1",
-                    borderRadius: "4px",
-                    borderLeft: "3px solid #00796b",
-                    maxWidth: "fit-content",
-                    marginTop: "2px",
-                  }}>
-                    <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 700 }}>
-                      ✦ Gravação:
-                    </span>
-                    <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 500 }}>
-                      {gravacao}
-                    </span>
-                  </div>
-                )}
+                      <span style={{
+                        display: "inline-block",
+                        background: bgColor,
+                        color: textColor,
+                        fontSize: "9px",
+                        padding: "2px 6px",
+                        borderRadius: "3px",
+                        fontWeight: 700,
+                        fontFamily: "'Roboto', monospace",
+                        whiteSpace: "nowrap",
+                      }}>
+                        {item.composedCode || item.sku}
+                      </span>
+                    </div>
+                   );
+                 })()}
+                 <div style={{ fontWeight: 800, color: "#111", fontSize: "13px", lineHeight: "1.3", marginBottom: "2px" }}>
+                   {item.name}
+                 </div>
+                 {item.description && (
+                   <span style={{ display: "block", fontSize: "11px", color: "#666", marginBottom: "4px", lineHeight: "1.4", maxWidth: "380px" }}>
+                     {item.description}
+                   </span>
+                 )}
+                 {gravacao && (
+                   <div style={{
+                     display: "inline-block",
+                     padding: "3px 7px",
+                     backgroundColor: "#e0f2f1",
+                     borderRadius: "4px",
+                     borderLeft: "3px solid #00796b",
+                     marginTop: "2px",
+                   }}>
+                     <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 700 }}>
+                       ✦ Gravação:{" "}
+                     </span>
+                     <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 500 }}>
+                       {gravacao}
+                     </span>
+                   </div>
+                 )}
                 {!gravacao && item.color && (
                   <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "2px" }}>
                     Cor: {item.color}
