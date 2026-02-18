@@ -25,7 +25,7 @@ export function ProposalFooter({ isLastPage, pageNumber, totalPages }: Props) {
           <span>Impresso em: {printDate}</span>
         </div>
       )}
-      <div style={{ width: "794px", height: "10px", backgroundColor: "#00c853" }} />
+      <div style={{ width: "794px", height: "40px", backgroundColor: "#00c853" }} />
     </div>
   );
 }
