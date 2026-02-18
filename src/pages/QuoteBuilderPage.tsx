@@ -559,15 +559,35 @@ export default function QuoteBuilderPage() {
     }));
   }, [items]);
 
+  // Validation: all required fields
+  const validationErrors = useMemo(() => {
+    const errors: string[] = [];
+    if (!clientId) errors.push("empresa");
+    if (!contactId) errors.push("contato");
+    if (!paymentTerms) errors.push("prazo_pagamento");
+    if (!deliveryTime) errors.push("prazo_entrega");
+    if (!shippingType) errors.push("frete");
+    if ((shippingType === "fob" || shippingType === "fob_pre") && (!shippingCost || shippingCost <= 0)) errors.push("valor_frete");
+    if (items.length === 0) errors.push("itens");
+    return errors;
+  }, [clientId, contactId, paymentTerms, deliveryTime, shippingType, shippingCost, items]);
+
+  const isFormValid = validationErrors.length === 0;
+
   // Save quote (create or update)
   const handleSaveQuote = async (status: "draft" | "pending" = "draft") => {
-    console.log("[SAVE DEBUG] contactInfo:", JSON.stringify(contactInfo));
-    console.log("[SAVE DEBUG] companyInfo:", JSON.stringify(companyInfo));
-    console.log("[SAVE DEBUG] contactId:", contactId);
-    console.log("[SAVE DEBUG] clientId:", clientId);
-    
-    if (items.length === 0) {
-      toast.error("Adicione pelo menos um item ao orçamento");
+    if (!isFormValid) {
+      const fieldLabels: Record<string, string> = {
+        empresa: "Empresa",
+        contato: "Contato",
+        prazo_pagamento: "Prazo de Pagamento",
+        prazo_entrega: "Prazo de Entrega",
+        frete: "Frete",
+        valor_frete: "Valor do Frete",
+        itens: "Itens do Orçamento",
+      };
+      const missing = validationErrors.map((e) => fieldLabels[e] || e).join(", ");
+      toast.error(`Preencha os campos obrigatórios: ${missing}`);
       return;
     }
 
@@ -779,7 +799,12 @@ export default function QuoteBuilderPage() {
               </div>
 
               {/* Condições Comerciais */}
-              <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
+              <div className={cn(
+                "rounded-2xl border bg-card p-4 space-y-3",
+                (validationErrors.includes("prazo_pagamento") || validationErrors.includes("prazo_entrega") || validationErrors.includes("frete") || validationErrors.includes("valor_frete"))
+                  ? "border-destructive/50"
+                  : "border-border/50"
+              )}>
                 <h3 className="font-semibold text-sm flex items-center gap-2">
                   <Package className="h-4 w-4 text-primary" />
                   Condições
@@ -787,9 +812,11 @@ export default function QuoteBuilderPage() {
 
                 {/* Prazo Pagamento */}
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Prazo | Pagamento</Label>
+                  <Label className={cn("text-xs", validationErrors.includes("prazo_pagamento") ? "text-destructive" : "text-muted-foreground")}>
+                    Prazo | Pagamento {validationErrors.includes("prazo_pagamento") && <span className="ml-1">*</span>}
+                  </Label>
                   <Select value={paymentTerms} onValueChange={setPaymentTerms}>
-                    <SelectTrigger className="h-8 text-xs">
+                    <SelectTrigger className={cn("h-8 text-xs", validationErrors.includes("prazo_pagamento") && "border-destructive focus:ring-destructive/20")}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -802,9 +829,11 @@ export default function QuoteBuilderPage() {
 
                 {/* Prazo Entrega */}
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Prazo | Entrega</Label>
+                  <Label className={cn("text-xs", validationErrors.includes("prazo_entrega") ? "text-destructive" : "text-muted-foreground")}>
+                    Prazo | Entrega {validationErrors.includes("prazo_entrega") && <span className="ml-1">*</span>}
+                  </Label>
                   <Select value={deliveryTime} onValueChange={setDeliveryTime}>
-                    <SelectTrigger className="h-8 text-xs">
+                    <SelectTrigger className={cn("h-8 text-xs", validationErrors.includes("prazo_entrega") && "border-destructive focus:ring-destructive/20")}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -818,9 +847,11 @@ export default function QuoteBuilderPage() {
 
                 {/* Frete */}
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Frete</Label>
+                  <Label className={cn("text-xs", validationErrors.includes("frete") ? "text-destructive" : "text-muted-foreground")}>
+                    Frete {validationErrors.includes("frete") && <span className="ml-1">*</span>}
+                  </Label>
                   <Select value={shippingType} onValueChange={setShippingType}>
-                    <SelectTrigger className="h-8 text-xs">
+                    <SelectTrigger className={cn("h-8 text-xs", validationErrors.includes("frete") && "border-destructive focus:ring-destructive/20")}>
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -830,17 +861,22 @@ export default function QuoteBuilderPage() {
                     </SelectContent>
                   </Select>
                   {(shippingType === "fob_pre" || shippingType === "fob") && (
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <span className="text-xs text-muted-foreground">R$</span>
-                      <Input
-                        type="number"
-                        min={0}
-                        step={0.01}
-                        value={shippingCost || ""}
-                        onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
-                        placeholder="0,00"
-                        className="h-8 text-xs"
-                      />
+                    <div className="space-y-1 mt-1.5">
+                      <Label className={cn("text-xs", validationErrors.includes("valor_frete") ? "text-destructive" : "text-muted-foreground")}>
+                        Valor R$ {validationErrors.includes("valor_frete") && <span className="ml-1">*</span>}
+                      </Label>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">R$</span>
+                        <Input
+                          type="number"
+                          min={0}
+                          step={0.01}
+                          value={shippingCost || ""}
+                          onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
+                          placeholder="0,00"
+                          className={cn("h-8 text-xs", validationErrors.includes("valor_frete") && "border-destructive focus-visible:ring-destructive/20")}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1158,12 +1194,31 @@ export default function QuoteBuilderPage() {
                     </span>
                   </div>
 
+                  {/* Validation summary */}
+                  {!isFormValid && (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 space-y-1">
+                      <p className="text-xs font-semibold text-destructive flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Campos obrigatórios pendentes:
+                      </p>
+                      <ul className="text-xs text-destructive/80 space-y-0.5 list-disc list-inside">
+                        {validationErrors.includes("empresa") && <li>Empresa</li>}
+                        {validationErrors.includes("contato") && <li>Contato</li>}
+                        {validationErrors.includes("prazo_pagamento") && <li>Prazo de Pagamento</li>}
+                        {validationErrors.includes("prazo_entrega") && <li>Prazo de Entrega</li>}
+                        {validationErrors.includes("frete") && <li>Frete</li>}
+                        {validationErrors.includes("valor_frete") && <li>Valor do Frete</li>}
+                        {validationErrors.includes("itens") && <li>Itens do Orçamento</li>}
+                      </ul>
+                    </div>
+                  )}
+
                   {/* CTA Premium — gradient igual Simulador */}
                   <Button
                     size="lg"
                     className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
                     onClick={() => handleSaveQuote("pending")}
-                    disabled={quotesLoading || items.length === 0}
+                    disabled={quotesLoading || !isFormValid}
                   >
                     {quotesLoading ? (
                       <Loader2 className="h-5 w-5 animate-spin" />
@@ -1176,7 +1231,7 @@ export default function QuoteBuilderPage() {
                     variant="outline"
                     className="w-full"
                     onClick={() => handleSaveQuote("draft")}
-                    disabled={quotesLoading || items.length === 0}
+                    disabled={quotesLoading || !isFormValid}
                   >
                     {quotesLoading ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
