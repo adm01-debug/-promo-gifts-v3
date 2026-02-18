@@ -11,13 +11,13 @@ function ProductImageTransparent({ src, alt }: { src: string; alt: string }) {
     <div style={{
       width: "92px",
       height: "92px",
-      border: "1.5px solid #d0d0d0",
+      border: "1px solid #d0d0d0",
       borderRadius: "4px",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
       margin: "0 auto",
-      padding: "3px",
+      padding: "1px",
       boxSizing: "border-box",
     }}>
       <img
