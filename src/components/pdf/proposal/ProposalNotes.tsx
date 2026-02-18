@@ -70,14 +70,14 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
           </tbody>
         </table>
 
-        <div style={{ fontSize: "9px", color: "#777", lineHeight: "1.5", borderTop: "1px solid #eee", paddingTop: "6px", marginBottom: "8px" }}>
+        <div style={{ fontSize: "9px", color: "#777", lineHeight: "1.5", paddingTop: "6px", marginBottom: "8px" }}>
           <div>- Todos os valores incluem personalizacao conforme descricao.</div>
           <div>- Todos os produtos passam por controle de qualidade.</div>
           {data.notes && <div>- {data.notes}</div>}
         </div>
 
         {/* Termos de Aceite */}
-        <div style={{ borderTop: "2px solid #e8f5e9", paddingTop: "8px" }}>
+        <div style={{ paddingTop: "8px" }}>
           <div style={{
             fontFamily: "'Montserrat', sans-serif",
             fontWeight: 700,
