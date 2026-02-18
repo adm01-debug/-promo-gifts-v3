@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ChevronDown, ChevronRight, Search, X, Layers } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, X, Layers, RefreshCw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,7 @@ export function ExternalCategoryFilter({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   
   const { data: categoryIcons = [] } = useCategoryIcons();
-  const { data: categories = [], isLoading } = useExternalCategoriesQuery();
+  const { data: categories = [], isLoading, refetch, isFetching } = useExternalCategoriesQuery();
 
   // Construir árvore hierárquica
   const categoryTree = useMemo((): CategoryNode[] => {
@@ -274,9 +274,21 @@ export function ExternalCategoryFilter({
       {/* Estatísticas */}
       <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
         <span>{categories.length} categorias</span>
-        <span className="text-primary font-medium">
-          {selectedCategories.length} selecionadas
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+            title="Atualizar categorias"
+          >
+            <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
+            {isFetching ? "Atualizando..." : "Atualizar"}
+          </button>
+          <span className="text-primary font-medium">
+            {selectedCategories.length} selecionadas
+          </span>
+        </div>
       </div>
 
       {/* Árvore de categorias */}
