@@ -68,8 +68,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
             )}
             <th style={{ ...thBase, textAlign: "left", borderRadius: hasAnyImage ? "0" : "6px 0 0 0" }}>Descrição do Produto</th>
             <th style={{ ...thBase, textAlign: "center", width: "52px" }}>Qtd.</th>
-            <th style={{ ...thBase, textAlign: "right", width: "90px" }}>Unitário</th>
-            <th style={{ ...thBase, textAlign: "right", width: "115px", borderRadius: "0 6px 0 0", backgroundColor: "#009c3e" }}>Total</th>
+            <th style={{ ...thBase, textAlign: "right", width: "90px", borderRadius: "0 6px 0 0" }}>Unitário</th>
           </tr>
         </thead>
       )}
@@ -187,25 +186,13 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                 {item.quantity}
               </td>
               {/* Unit price */}
-              <td style={{ padding: "8px 6px", textAlign: "right", verticalAlign: "middle", fontVariantNumeric: "tabular-nums" }}>
+              <td style={{ padding: "8px 8px", textAlign: "right", verticalAlign: "middle", fontVariantNumeric: "tabular-nums" }}>
                 <span style={{ fontSize: "13px", fontWeight: 600, color: "#333" }}>{fmt(allInUnitPrice)}</span>
                 {itemDiscount > 0 && (
                   <span style={{ display: "block", fontSize: "10px", color: "#e53935", marginTop: "2px", fontWeight: 600 }}>
                     -{fmt(itemDiscount)}
                   </span>
                 )}
-              </td>
-              {/* Total */}
-              <td style={{
-                padding: "8px 8px 8px 16px",
-                textAlign: "right",
-                verticalAlign: "middle",
-                fontWeight: 800,
-                fontSize: "14px",
-                color: "#1a1a1a",
-                fontVariantNumeric: "tabular-nums",
-              }}>
-                {fmt(total)}
               </td>
             </tr>
           );
