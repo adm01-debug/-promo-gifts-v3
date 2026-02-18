@@ -79,21 +79,6 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
         </div>
       </div>
 
-      {/* Aceite do cliente */}
-      <div style={{ marginTop: "14px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: "40px" }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ borderBottom: "1px dashed #aaa", height: "30px" }} />
-          <div style={{ fontSize: "9px", color: "#888", textAlign: "center", marginTop: "4px", fontWeight: 600 }}>
-            De acordo — Assinatura do Cliente
-          </div>
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ borderBottom: "1px dashed #aaa", height: "30px" }} />
-          <div style={{ fontSize: "9px", color: "#888", textAlign: "center", marginTop: "4px", fontWeight: 600 }}>
-            Data
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
