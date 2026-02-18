@@ -136,20 +136,18 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
                   const textColor = luminance > 0.5 ? "#1a1a1a" : "#ffffff";
                    return (
-                    <div style={{
-                      display: "block",
-                      marginBottom: "4px",
-                    }}>
+                    <div style={{ display: "block", marginBottom: "4px" }}>
                       <span style={{
                         display: "inline-block",
                         background: bgColor,
                         color: textColor,
                         fontSize: "9px",
-                        padding: "2px 6px",
+                        padding: "2px 7px",
                         borderRadius: "3px",
                         fontWeight: 700,
-                        fontFamily: "'Roboto', monospace",
+                        fontFamily: "'Roboto', sans-serif",
                         whiteSpace: "nowrap",
+                        border: luminance > 0.85 ? "1px solid #ccc" : "1px solid transparent",
                       }}>
                         {item.composedCode || item.sku}
                       </span>
