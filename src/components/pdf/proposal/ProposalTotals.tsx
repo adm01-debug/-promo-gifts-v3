@@ -33,39 +33,36 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           <span style={{ fontWeight: 600 }}>{shippingLabel}</span>
         </div>
         {data.discount && data.discount > 0 && (
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "7.5px 16px",
-            margin: "6px 0",
-            backgroundColor: "#fff5f5",
-            border: "1px solid #ffcdd2",
-            borderLeft: "4px solid #e53935",
-            borderRadius: "0 6px 6px 0",
-            fontVariantNumeric: "tabular-nums",
-          }}>
-            <span style={{ fontWeight: 700, fontSize: "13px", color: "#c62828" }}>Desconto Global:</span>
-            <span style={{ fontWeight: 800, fontSize: "15px", color: "#c62828" }}>- {fmt(data.discount)}</span>
-          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", margin: "6px 0", backgroundColor: "#fff5f5", border: "1px solid #ffcdd2", borderRadius: "0 6px 6px 0", fontVariantNumeric: "tabular-nums" }}>
+            <tbody>
+              <tr>
+                <td style={{ width: "6px", backgroundColor: "#e53935", padding: 0 }} />
+                <td style={{ padding: "7.5px 16px" }}>
+                  <span style={{ fontWeight: 700, fontSize: "13px", color: "#c62828" }}>Desconto Global:</span>
+                </td>
+                <td style={{ padding: "7.5px 16px", textAlign: "right" }}>
+                  <span style={{ fontWeight: 800, fontSize: "15px", color: "#c62828" }}>- {fmt(data.discount)}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         )}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          background: "linear-gradient(135deg, #00c853 0%, #00a844 100%)",
-          color: "#ffffff",
-          padding: "10px 18px",
-          marginTop: "10px",
-          borderRadius: "8px",
-          boxShadow: "0 4px 16px rgba(0,200,83, 0.3)",
-        }}>
-          <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, textTransform: "uppercase", fontSize: "13px", color: "#ffffff", letterSpacing: "0.5px" }}>
-            Valor Total:
-          </span>
-          <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "19px", color: "#ffffff", fontVariantNumeric: "tabular-nums" }}>
-            {fmt(data.total)}
-          </strong>
-        </div>
+        <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#00c853", borderRadius: "8px", marginTop: "10px" }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: "10px 18px" }}>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, textTransform: "uppercase", fontSize: "13px", color: "#ffffff", letterSpacing: "0.5px" }}>
+                  Valor Total:
+                </span>
+              </td>
+              <td style={{ padding: "10px 18px", textAlign: "right" }}>
+                <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "19px", color: "#ffffff", fontVariantNumeric: "tabular-nums" }}>
+                  {fmt(data.total)}
+                </strong>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );

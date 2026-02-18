@@ -163,21 +163,17 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                    </span>
                  )}
                  {gravacao && (
-                   <div style={{
-                     display: "inline-block",
-                     padding: "3px 7px",
-                     backgroundColor: "#e0f2f1",
-                     borderRadius: "4px",
-                     borderLeft: "3px solid #00796b",
-                     marginTop: "2px",
-                   }}>
-                     <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 700 }}>
-                       ✦ Gravação:{" "}
-                     </span>
-                     <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 500 }}>
-                       {gravacao}
-                     </span>
-                   </div>
+                   <table style={{ borderCollapse: "collapse", marginTop: "2px" }}>
+                     <tbody>
+                       <tr>
+                         <td style={{ width: "3px", backgroundColor: "#00796b", padding: 0 }} />
+                         <td style={{ backgroundColor: "#e0f2f1", padding: "3px 7px", borderRadius: "0 4px 4px 0" }}>
+                           <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 700 }}>✦ Gravação: </span>
+                           <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 500 }}>{gravacao}</span>
+                         </td>
+                       </tr>
+                     </tbody>
+                   </table>
                  )}
                 {!gravacao && item.color && (
                   <span style={{ display: "block", fontSize: "10px", color: "#666", marginTop: "2px" }}>
