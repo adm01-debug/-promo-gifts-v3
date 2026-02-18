@@ -1,7 +1,12 @@
 import React from "react";
 import type { ProposalTemplateData } from "../ProposalHtmlTemplate";
+import { formatPaymentTerms, formatDeliveryTime, formatShipping } from "../ProposalHtmlTemplate";
 
 export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
+  const paymentLabel = formatPaymentTerms(data.paymentTerms);
+  const deliveryLabel = formatDeliveryTime(data.deliveryTime);
+  const shippingLabel = formatShipping(data.shippingType, data.shippingCost);
+
   return (
     <div style={{ marginTop: "14px" }}>
       {/* Bloco de Condições Comerciais */}
@@ -25,31 +30,41 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
           Condições Comerciais
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "8px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px", marginBottom: "8px" }}>
           {/* Pagamento */}
           <div>
             <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-              Pagamento
+              💳 Pagamento
             </div>
             <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
-              {data.paymentTerms || "À vista / Boleto / Pix"}
+              {paymentLabel || "À vista / Boleto / Pix"}
             </div>
           </div>
 
           {/* Entrega */}
           <div>
             <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-              Prazo de Entrega
+              📦 Prazo de Entrega
             </div>
             <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
-              {data.deliveryTime || "A combinar"}
+              {deliveryLabel || "A combinar"}
+            </div>
+          </div>
+
+          {/* Frete */}
+          <div>
+            <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
+              🚚 Frete
+            </div>
+            <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
+              {shippingLabel}
             </div>
           </div>
 
           {/* Validade */}
           <div>
             <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-              Validade da Proposta
+              📅 Validade da Proposta
             </div>
             <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
               {data.validUntil || "15 dias"}

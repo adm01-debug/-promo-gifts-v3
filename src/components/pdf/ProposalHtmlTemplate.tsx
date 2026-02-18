@@ -46,10 +46,43 @@ export interface ProposalTemplateData {
   subtotal: number;
   discount?: number;
   shippingCost?: number;
+  shippingType?: string;
   total: number;
   notes?: string;
   paymentTerms?: string;
   deliveryTime?: string;
+}
+
+// Human-readable labels for commercial conditions
+export function formatPaymentTerms(value?: string): string {
+  const map: Record<string, string> = {
+    "21_dias": "21 dias a partir da entrega",
+    "28_dias": "28 dias a partir da entrega",
+    "50_50": "50% entrada / 50% após entrega",
+  };
+  return value ? (map[value] || value) : "";
+}
+
+export function formatDeliveryTime(value?: string): string {
+  const map: Record<string, string> = {
+    "14_dias": "14 dias após aprovação",
+    "21_dias": "21 dias após aprovação",
+    "28_dias": "28 dias após aprovação",
+    "45_dias": "45 dias após aprovação",
+  };
+  return value ? (map[value] || value) : "";
+}
+
+export function formatShipping(type?: string, cost?: number): string {
+  if (!type) return "A combinar";
+  if (type === "cif") return "CIF — Frete grátis (Cortesia)";
+  if (type === "fob") return cost && cost > 0
+    ? `FOB — Repassado ao cliente (${cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
+    : "FOB — Repassado ao cliente";
+  if (type === "fob_pre") return cost && cost > 0
+    ? `FOB — Valor pré-negociado (${cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
+    : "FOB — Valor pré-negociado";
+  return type;
 }
 
 function fmt(v: number): string {
@@ -305,16 +338,20 @@ function ProductRow({ item }: { item: ProposalItem }) {
 
 /* ─── Totals ─── */
 function TotalsSection({ data }: { data: ProposalTemplateData }) {
+  const shippingLabel = data.shippingType
+    ? formatShipping(data.shippingType, data.shippingCost)
+    : (data.shippingCost ? fmt(data.shippingCost) : "Cortesia");
+
   return (
     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px" }}>
-      <div style={{ width: "350px" }}>
+      <div style={{ width: "380px" }}>
         <div style={totalsRowStyle}>
           <span>Subtotal:</span>
           <span style={{ fontWeight: 500 }}>{fmt(data.subtotal)}</span>
         </div>
         <div style={totalsRowStyle}>
           <span>Frete:</span>
-          <span style={{ fontWeight: 500 }}>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
+          <span style={{ fontWeight: 500 }}>{shippingLabel}</span>
         </div>
         {data.discount && data.discount > 0 && (
           <div style={totalsRowStyle}>
@@ -349,16 +386,21 @@ function TotalsSection({ data }: { data: ProposalTemplateData }) {
 
 /* ─── Notes ─── */
 function NotesSection({ data }: { data: ProposalTemplateData }) {
+  const paymentLabel = formatPaymentTerms(data.paymentTerms);
+  const deliveryLabel = formatDeliveryTime(data.deliveryTime);
+  const shippingLabel = formatShipping(data.shippingType, data.shippingCost);
+
   return (
     <div style={{ marginTop: "50px", fontSize: "12px", color: "#666", lineHeight: "1.6", borderTop: "1px solid #eee", paddingTop: "20px" }}>
       <div style={{ fontWeight: 700, fontSize: "13px", color: "#333", marginBottom: "8px" }}>
         Informações Relevantes:
       </div>
       <div>- Todos os valores são para produtos já personalizados conforme descrição.</div>
-      {data.paymentTerms && <div>- {data.paymentTerms}</div>}
+      {paymentLabel && <div>- 💳 Pagamento: {paymentLabel}.</div>}
+      {deliveryLabel && <div>- 📦 Prazo de Entrega: {deliveryLabel}.</div>}
+      {data.shippingType && <div>- 🚚 Frete: {shippingLabel}.</div>}
       <div>- Todos produtos passam por controle de qualidade.</div>
-      {data.deliveryTime && <div>- Previsão de Entrega: {data.deliveryTime}.</div>}
-      {data.validUntil && <div>- Validade da Proposta: {data.validUntil}.</div>}
+      {data.validUntil && <div>- 📅 Validade da Proposta: {data.validUntil}.</div>}
     </div>
   );
 }

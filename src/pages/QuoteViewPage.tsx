@@ -103,6 +103,8 @@ export default function QuoteViewPage() {
       })) || [],
       subtotal: quote.subtotal || 0,
       discount: quote.discount_amount || undefined,
+      shippingCost: (quote as any).shipping_cost || undefined,
+      shippingType: (quote as any).shipping_type || undefined,
       total: quote.total || 0,
       notes: quote.notes || undefined,
       paymentTerms: quote.payment_terms || undefined,

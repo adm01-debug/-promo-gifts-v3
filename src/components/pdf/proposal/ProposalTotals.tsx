@@ -1,5 +1,6 @@
 import React from "react";
 import type { ProposalTemplateData } from "../ProposalHtmlTemplate";
+import { formatShipping } from "../ProposalHtmlTemplate";
 
 function fmt(v: number): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -15,9 +16,13 @@ const rowStyle: React.CSSProperties = {
 };
 
 export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
+  const shippingLabel = data.shippingType
+    ? formatShipping(data.shippingType, data.shippingCost)
+    : (data.shippingCost ? fmt(data.shippingCost) : "Cortesia");
+
   return (
     <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
-      <div style={{ width: "320px" }}>
+      <div style={{ width: "360px" }}>
         {/* Escada visual progressiva */}
         <div style={{ ...rowStyle, borderBottom: "1px solid #f0f0f0" }}>
           <span>Subtotal:</span>
@@ -25,7 +30,7 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
         </div>
         <div style={{ ...rowStyle, borderBottom: "1px solid #f0f0f0", paddingLeft: "24px" }}>
           <span>Frete:</span>
-          <span style={{ fontWeight: 600 }}>{data.shippingCost ? fmt(data.shippingCost) : "Cortesia"}</span>
+          <span style={{ fontWeight: 600 }}>{shippingLabel}</span>
         </div>
         {data.discount && data.discount > 0 && (
           <div style={{ ...rowStyle, borderBottom: "1px solid #f0f0f0", paddingLeft: "32px", color: "#e53935" }}>
