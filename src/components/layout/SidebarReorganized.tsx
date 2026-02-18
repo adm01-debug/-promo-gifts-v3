@@ -163,10 +163,9 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
         to={item.href}
         data-tour={item.tourId}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative",
-          "hover:bg-orange/10 hover:text-orange",
-          isActive && "bg-orange/12 text-orange font-medium border-l-2 border-orange pl-[10px]",
-          !isActive && "text-sidebar-foreground/70"
+          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group",
+          "hover:text-orange",
+          isActive ? "text-orange font-medium" : "text-sidebar-foreground/70"
         )}
         onClick={() => isOpen && onToggle()}
       >
