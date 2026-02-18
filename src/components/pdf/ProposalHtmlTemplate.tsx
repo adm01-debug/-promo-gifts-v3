@@ -382,11 +382,6 @@ function FooterSection({ data }: { data: ProposalTemplateData }) {
           <ContactDot color={GREEN} text="comercial01@gmail.com" />
         </div>
 
-        <div style={{ fontSize: "11px", fontWeight: 600, color: "#555", lineHeight: "1.4" }}>
-          CNPJ: 36.835.552/0001-67<br />
-          Razão Social: Brasil Marcas Industria e Comercio de Brindes LTDA.
-        </div>
-
         <div style={{
           fontFamily: "'Montserrat', sans-serif",
           fontSize: "16px",
