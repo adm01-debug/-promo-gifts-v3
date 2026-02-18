@@ -91,7 +91,7 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
           }}>
             Termos de Aceite e Contratação
           </div>
-          <div style={{ fontSize: "8px", color: "#555", lineHeight: "1.55" }}>
+          <div style={{ fontSize: "8.5px", color: "#555", lineHeight: "1.45" }}>
             <div style={{ marginBottom: "4px" }}>
               <span style={{ fontWeight: 700, color: "#333" }}>1. ACEITE — </span>
               A presente proposta constitui oferta formal (art. 427, Código Civil). A resposta do destinatário com expressões de concordância ("aprovado", "aceito", "de acordo" ou equivalentes), por e-mail ou aplicativo de mensagens, configura aceitação plena de todos os termos, valores, prazos e especificações aqui descritos, formando contrato válido e vinculante (arts. 104, 107 e 427 a 435 do Código Civil).
