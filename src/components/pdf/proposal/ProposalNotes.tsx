@@ -72,13 +72,37 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
           </div>
         </div>
 
-        <div style={{ fontSize: "9px", color: "#777", lineHeight: "1.5", borderTop: "1px solid #eee", paddingTop: "6px" }}>
+        <div style={{ fontSize: "9px", color: "#777", lineHeight: "1.5", borderTop: "1px solid #eee", paddingTop: "6px", marginBottom: "8px" }}>
           <div>• Todos os valores incluem personalização conforme descrição.</div>
           <div>• Todos os produtos passam por controle de qualidade.</div>
           {data.notes && <div>• {data.notes}</div>}
         </div>
-      </div>
 
+        {/* Termos de Aceite */}
+        <div style={{ borderTop: "2px solid #e8f5e9", paddingTop: "8px" }}>
+          <div style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontWeight: 700,
+            fontSize: "9px",
+            color: "#00c853",
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+            marginBottom: "6px",
+          }}>
+            Termos de Aceite e Contratação
+          </div>
+          <div style={{ fontSize: "8px", color: "#555", lineHeight: "1.55" }}>
+            <div style={{ marginBottom: "4px" }}>
+              <span style={{ fontWeight: 700, color: "#333" }}>1. ACEITE — </span>
+              A presente proposta constitui oferta formal (art. 427, Código Civil). A resposta do destinatário com expressões de concordância ("aprovado", "aceito", "de acordo" ou equivalentes), por e-mail ou aplicativo de mensagens, configura aceitação plena de todos os termos, valores, prazos e especificações aqui descritos, formando contrato válido e vinculante (arts. 104, 107 e 427 a 435 do Código Civil).
+            </div>
+            <div>
+              <span style={{ fontWeight: 700, color: "#333" }}>2. REPRESENTAÇÃO — </span>
+              Ao aprovar esta proposta, o respondente declara que possui poderes suficientes para vincular a empresa identificada no campo "EMPRESA" à presente contratação, estando autorizado a firmar compromissos comerciais nas condições aqui estipuladas.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
