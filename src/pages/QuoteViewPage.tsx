@@ -392,29 +392,29 @@ export default function QuoteViewPage() {
                 )}
               </div>
               <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Contato</h3>
+                </div>
                 {quote.client_name ? (
-                  <>
-                    <div className="flex items-center gap-2 mb-3">
-                      <User className="h-4 w-4 text-primary" />
-                      <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Contato</h3>
-                    </div>
-                    <div className="space-y-1.5">
-                      <p className="text-foreground font-medium">{quote.client_name}</p>
-                      {quote.client_email && (
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Mail className="h-3.5 w-3.5" />
-                          <span>{quote.client_email}</span>
-                        </div>
-                      )}
-                      {quote.client_phone && (
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <Phone className="h-3.5 w-3.5" />
-                          <span>{quote.client_phone}</span>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                ) : null}
+                  <div className="space-y-1.5">
+                    <p className="text-foreground font-medium">{quote.client_name}</p>
+                    {quote.client_email && (
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Mail className="h-3.5 w-3.5" />
+                        <span>{quote.client_email}</span>
+                      </div>
+                    )}
+                    {quote.client_phone && (
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Phone className="h-3.5 w-3.5" />
+                        <span>{quote.client_phone}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">Nenhum contato vinculado</p>
+                )}
               </div>
             </div>
 
