@@ -17,7 +17,7 @@ export function ProposalClientBar({ data }: { data: ProposalTemplateData }) {
       borderRadius: "6px",
     }}>
       <div>
-        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
           Empresa
         </p>
         <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{company}</p>
@@ -30,7 +30,7 @@ export function ProposalClientBar({ data }: { data: ProposalTemplateData }) {
       </div>
       {contact && (
         <div style={{ textAlign: "right" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
             Solicitante
           </p>
           <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{contact}</p>
