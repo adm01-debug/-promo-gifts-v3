@@ -357,19 +357,31 @@ function ProductRow({ item }: { item: ProposalItem }) {
         <span style={{ fontWeight: 800, color: "#000", fontSize: "16px", display: "block", marginBottom: "6px" }}>
           {item.name}
         </span>
-        {(item.composedCode || item.sku) && (
-          <span style={{
-            background: "#f0f0f0",
-            color: "#555",
-            fontSize: "11px",
-            padding: "2px 6px",
-            borderRadius: "4px",
-            marginLeft: "0",
-            fontWeight: 600,
-          }}>
-            {item.composedCode || item.sku}
-          </span>
-        )}
+        {(item.composedCode || item.sku) && (() => {
+          const bgColor = item.colorHex || "#2e7d32";
+          const hex = bgColor.replace("#", "");
+          const r = parseInt(hex.substring(0, 2), 16);
+          const g = parseInt(hex.substring(2, 4), 16);
+          const b = parseInt(hex.substring(4, 6), 16);
+          const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+          const textColor = luminance > 0.5 ? "#1a1a1a" : "#ffffff";
+          return (
+            <span style={{
+              display: "inline-block",
+              background: bgColor,
+              color: textColor,
+              fontSize: "11px",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              fontWeight: 700,
+              fontFamily: "'Roboto Mono', monospace",
+              whiteSpace: "nowrap",
+              marginBottom: "4px",
+            }}>
+              {item.composedCode || item.sku}
+            </span>
+          );
+        })()}
         {item.description && (
           <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "6px", lineHeight: "1.5", maxWidth: "450px" }}>
             {item.description}
