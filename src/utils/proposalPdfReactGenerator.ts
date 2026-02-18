@@ -34,7 +34,8 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
       root.render(
         React.createElement(PropostaComercialTailwind, { data, ref: templateRef, isDraft: options?.isDraft || false })
       );
-      setTimeout(resolve, 2000);
+      // Wait 3s: 2s for React + images, +1s for Google Fonts to load via @import
+      setTimeout(resolve, 3000);
     });
 
     const wrapper = templateRef.current || container.firstElementChild as HTMLElement;
