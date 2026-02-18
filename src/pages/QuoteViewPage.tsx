@@ -398,6 +398,12 @@ export default function QuoteViewPage() {
                             <span>{cityState}</span>
                           </div>
                         )}
+                        {clientCnpj && (
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <CreditCard className="h-3.5 w-3.5" />
+                            <span>CNPJ: {clientCnpj}</span>
+                          </div>
+                        )}
                       </div>
                     );
                   })()
