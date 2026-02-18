@@ -91,7 +91,7 @@ export const defaultFilters: FilterState = {
   materialGroups: [],
   materialTypes: [],
   materiais: [],
-  priceRange: [0, 500],
+  priceRange: [0, 9999],
   inStock: false,
   isKit: false,
   featured: false,
@@ -300,13 +300,13 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                 onFilterChange({ ...filters, priceRange: [value[0], value[1]] })
               }
               min={0}
-              max={500}
+              max={9999}
               step={10}
               className="w-full"
             />
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>R$ {filters.priceRange[0]}</span>
-              <span>R$ {filters.priceRange[1] >= 500 ? '500+' : filters.priceRange[1]}</span>
+              <span>R$ {filters.priceRange[1] >= 9999 ? 'Sem limite' : filters.priceRange[1]}</span>
             </div>
           </div>
         </FilterSection>
