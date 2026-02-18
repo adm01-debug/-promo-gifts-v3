@@ -61,7 +61,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         top: "0",
         left: "24px",
         bottom: `${barH}px`,
-        width: "324px",
+        width: "243px",
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-start",
