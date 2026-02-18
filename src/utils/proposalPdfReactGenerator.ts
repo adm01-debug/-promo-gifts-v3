@@ -62,25 +62,37 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    for (let i = 0; i < pages.length; i++) {
-      if (i > 0) pdf.addPage();
+    // ── Fix: Tailwind Preflight sets img { display: block } which causes
+    // html2canvas to insert phantom line-breaks, shifting text downward.
+    // Temporarily override to inline-block during capture (issue #2775).
+    const imgFixStyle = document.createElement("style");
+    imgFixStyle.textContent = "img { display: inline-block !important; }";
+    document.head.appendChild(imgFixStyle);
 
-      const canvas = await html2canvas(pages[i] as HTMLElement, {
-        scale: 4,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        backgroundColor: "#ffffff",
-        width: 794,
-        height: 1123,
-        windowWidth: 794,
-        imageTimeout: 15000,
-      });
+    try {
+      for (let i = 0; i < pages.length; i++) {
+        if (i > 0) pdf.addPage();
 
-      const imgData = canvas.toDataURL("image/png");
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+        const canvas = await html2canvas(pages[i] as HTMLElement, {
+          scale: 4,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+          width: 794,
+          height: 1123,
+          windowWidth: 794,
+          imageTimeout: 15000,
+        });
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
+        const imgData = canvas.toDataURL("image/png");
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
+      }
+    } finally {
+      // Always remove the temporary style, even if html2canvas throws
+      document.head.removeChild(imgFixStyle);
     }
 
     root.unmount();
