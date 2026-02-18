@@ -11,8 +11,6 @@ function ProductImageTransparent({ src, alt }: { src: string; alt: string }) {
     <div style={{
       width: "92px",
       height: "92px",
-      border: "0.5px solid #d0d0d0",
-      borderRadius: "4px",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -115,9 +113,6 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                     <div style={{
                       width: "92px",
                       height: "92px",
-                      backgroundColor: "#f5f5f5",
-                      borderRadius: "4px",
-                      border: "1.5px solid #d0d0d0",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
