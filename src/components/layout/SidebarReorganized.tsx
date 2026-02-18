@@ -158,40 +158,21 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     const isActive = isItemActive(item.href);
     const Icon = item.icon;
 
-    // CTA items (e.g. "Novo Orçamento") get a distinct outlined action style
-    const ctaLinkContent = (
-      <NavLink
-        to={item.href}
-        data-tour={item.tourId}
-        className={cn(
-          "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 group w-full",
-          "border border-orange/60 text-orange hover:bg-orange hover:text-orange-foreground hover:border-orange",
-          isActive && "bg-orange text-orange-foreground border-orange shadow-sm"
-        )}
-        onClick={() => isOpen && onToggle()}
-      >
-        <Icon className="h-4 w-4 shrink-0" />
-        {!isCollapsed && (
-          <span className="truncate text-sm font-medium">{item.label}</span>
-        )}
-      </NavLink>
-    );
-
-    const navLinkContent = (
+    const linkContent = (
       <NavLink
         to={item.href}
         data-tour={item.tourId}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group",
           "hover:bg-orange/10 hover:text-orange",
-          isActive && "bg-orange/15 text-orange font-medium",
+          isActive && "bg-orange text-orange-foreground font-medium shadow-sm",
           !isActive && "text-sidebar-foreground/80"
         )}
         onClick={() => isOpen && onToggle()}
       >
         <Icon className={cn(
           "h-4 w-4 shrink-0 transition-colors",
-          isActive ? "text-orange" : "group-hover:text-orange"
+          isActive ? "text-orange-foreground" : "group-hover:text-orange"
         )} />
         {!isCollapsed && (
           <span className="truncate">{item.label}</span>
@@ -203,8 +184,6 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
         )}
       </NavLink>
     );
-
-    const linkContent = item.isCta ? ctaLinkContent : navLinkContent;
 
     if (isCollapsed) {
       return (
