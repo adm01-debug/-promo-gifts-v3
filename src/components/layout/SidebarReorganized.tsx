@@ -57,6 +57,7 @@ interface NavItem {
   requiredPermission?: { action: string; resource: string };
   badge?: string | number;
   isCta?: boolean;
+  exact?: boolean;
 }
 
 // Reorganized navigation in 4 logical groups
@@ -96,8 +97,8 @@ const navGroups: NavGroup[] = [
     icon: FileText,
     defaultOpen: true,
     items: [
-      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true },
-      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes" },
+      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo" },
+      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true },
     ],
   },
   {
@@ -144,8 +145,8 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     }));
   };
 
-  const isItemActive = (href: string) => {
-    if (href === "/") return location.pathname === "/";
+  const isItemActive = (href: string, exact?: boolean) => {
+    if (href === "/" || exact) return location.pathname === href;
     return location.pathname.startsWith(href);
   };
 
@@ -155,7 +156,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     // Ocultar itens baseado em permissão específica
     if (item.requiredPermission && !hasPermission(item.requiredPermission.action, item.requiredPermission.resource)) return null;
     
-    const isActive = isItemActive(item.href);
+    const isActive = isItemActive(item.href, item.exact);
     const Icon = item.icon;
 
     const linkContent = (
@@ -246,7 +247,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
             {navGroups.map((group) => {
               const GroupIcon = group.icon;
               const isGroupOpen = openGroups[group.id];
-              const hasActiveItem = group.items.some((item) => isItemActive(item.href));
+              const hasActiveItem = group.items.some((item) => isItemActive(item.href, item.exact));
 
               if (isCollapsed) {
                 // When collapsed, just show the group items as flat list with tooltips
