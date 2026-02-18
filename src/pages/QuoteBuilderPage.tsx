@@ -587,7 +587,7 @@ export default function QuoteBuilderPage() {
       payment_terms: paymentTerms || undefined,
       delivery_time: deliveryTime || undefined,
       shipping_type: shippingType || undefined,
-      shipping_cost: shippingType === "fob_pre" ? shippingCost : undefined,
+      shipping_cost: (shippingType === "fob_pre" || shippingType === "fob") ? shippingCost : undefined,
     };
 
     let result;
@@ -800,7 +800,7 @@ export default function QuoteBuilderPage() {
                       <SelectItem value="fob_pre">FOB | Valor pré negociado</SelectItem>
                     </SelectContent>
                   </Select>
-                  {shippingType === "fob_pre" && (
+                  {(shippingType === "fob_pre" || shippingType === "fob") && (
                     <div className="flex items-center gap-1.5 mt-1.5">
                       <span className="text-xs text-muted-foreground">R$</span>
                       <Input
