@@ -74,25 +74,20 @@ export function ProposalHeader({ data, isContinuation }: Props) {
           alt="Promo Brindes"
           style={{ width: "100%", height: "auto", display: "block" }}
         />
-        <div style={{ display: "flex", flexDirection: "column", gap: "2px", paddingLeft: "2px" }}>
-          <span style={{ fontSize: "10px", fontWeight: 700, color: "#444", letterSpacing: "0.3px" }}>
-            📞 (11) 4637-5517
-          </span>
-          <span style={{ fontSize: "10px", fontWeight: 700, color: "#00c853", letterSpacing: "0.3px" }}>
-            🌐 www.promobrindes.com.br
-          </span>
-        </div>
       </div>
 
-      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-75%)" }}>
-        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "22px", textTransform: "uppercase", letterSpacing: "3px", margin: "0 0 8px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
+      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-50%)" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "20px", textTransform: "uppercase", letterSpacing: "3px", margin: "0 0 6px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
           Proposta Comercial
         </p>
-        <p style={{ fontSize: "15px", opacity: 0.95, fontWeight: 400, lineHeight: "1.8", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif" }}>
+        <p style={{ fontSize: "13px", opacity: 0.95, fontWeight: 400, lineHeight: "1.7", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif" }}>
           Proposta {data.quoteNumber}
         </p>
-        <p style={{ fontSize: "15px", opacity: 0.85, margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}>
+        <p style={{ fontSize: "13px", opacity: 0.85, margin: "0 0 6px 0", fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}>
           {data.date}
+        </p>
+        <p style={{ fontSize: "10px", opacity: 0.7, margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 400, whiteSpace: "nowrap" }}>
+          (11) 4637-5517 &nbsp;|&nbsp; www.promobrindes.com.br
         </p>
       </div>
     </div>
