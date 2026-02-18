@@ -38,7 +38,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
     );
   }
 
-  const H = 160;
+  const H = 128;
   const W = 794;
   const barH = 7;
   const darkStart = 380;
