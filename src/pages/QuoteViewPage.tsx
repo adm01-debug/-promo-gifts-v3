@@ -98,6 +98,7 @@ export default function QuoteViewPage() {
           unit_cost: p.unit_cost || 0,
           setup_cost: p.setup_cost || 0,
           total_cost: p.total_cost || 0,
+          notes: p.notes || undefined,
         })) || [],
       })) || [],
       subtotal: quote.subtotal || 0,
