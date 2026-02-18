@@ -54,7 +54,7 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           alignItems: "center",
           background: "linear-gradient(135deg, #00c853 0%, #00a844 100%)",
           color: "#ffffff",
-          padding: "6.5px 18px",
+          padding: "10px 18px",
           marginTop: "10px",
           borderRadius: "8px",
           boxShadow: "0 4px 16px rgba(0,200,83, 0.3)",
@@ -62,7 +62,7 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, textTransform: "uppercase", fontSize: "13px", color: "#ffffff", letterSpacing: "0.5px" }}>
             Valor Total:
           </span>
-          <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "22px", color: "#ffffff", fontVariantNumeric: "tabular-nums" }}>
+          <strong style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "19px", color: "#ffffff", fontVariantNumeric: "tabular-nums" }}>
             {fmt(data.total)}
           </strong>
         </div>
