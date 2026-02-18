@@ -13,7 +13,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
     return (
       <div style={{ width: "794px", height: "64px", flexShrink: 0, position: "relative" }}>
         <svg width="794" height="64" viewBox="0 0 794 64" style={{ position: "absolute", top: 0, left: 0 }}>
-          <rect x="0" y="0" width="794" height="64" fill="#2d2d2d" />
+          <rect x="0" y="0" width="794" height="64" fill="#000000" />
           <rect x="0" y="58" width="794" height="6" fill="#00c853" />
         </svg>
         <div style={{ position: "relative", zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 36px", height: "64px" }}>
@@ -50,7 +50,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
     <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0 }}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", top: 0, left: 0 }}>
         <rect x="0" y="0" width={W} height={H} fill="#ffffff" />
-        <polygon points={`${darkStart},0 ${W},0 ${W},${H} ${darkEnd},${H}`} fill="#2d2d2d" />
+        <polygon points={`${darkStart},0 ${W},0 ${W},${H} ${darkEnd},${H}`} fill="#000000" />
         <polygon points={`${greenStart},0 ${darkStart},0 ${darkEnd},${H} ${greenEnd},${H}`} fill="#00c853" />
         <rect x="0" y={H - barH} width={W} height={barH} fill="#00c853" />
       </svg>
