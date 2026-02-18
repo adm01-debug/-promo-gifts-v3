@@ -619,7 +619,7 @@ export default function QuoteBuilderPage() {
     }
 
     if (result) {
-      navigate("/orcamentos");
+      navigate(`/orcamentos/${result.id}`);
     }
   };
 
