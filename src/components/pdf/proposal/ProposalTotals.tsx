@@ -54,7 +54,7 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           alignItems: "center",
           background: "linear-gradient(135deg, #00c853 0%, #00a844 100%)",
           color: "#ffffff",
-          padding: "14px 18px",
+          padding: "8px 18px",
           marginTop: "10px",
           borderRadius: "8px",
           boxShadow: "0 4px 16px rgba(0,200,83, 0.3)",
