@@ -269,30 +269,59 @@ export default function FiltersPage() {
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
 
     // Filtro por cores - sistema hierárquico (colorGroups / colorVariations / colorNuances)
-    const hasColorFilter = filters.colorGroups.length > 0 || filters.colorVariations.length > 0 || filters.colorNuances.length > 0 || filters.colors.length > 0;
+    // Lógica: variações são mais específicas que grupos; nuances se aplicam sobre qualquer cor
+    const hasGroupFilter = filters.colorGroups.length > 0;
+    const hasVariationFilter = filters.colorVariations.length > 0;
+    const hasNuanceFilter = filters.colorNuances.length > 0;
+    const hasLegacyColors = filters.colors.length > 0;
+    const hasColorFilter = hasGroupFilter || hasVariationFilter || hasNuanceFilter || hasLegacyColors;
+
     if (hasColorFilter) {
       result = result.filter((product) => {
         if (!product.colors?.length) return false;
         return product.colors.some((color: any) => {
           const colorName = (color.name || '').toLowerCase();
           const colorGroup = (color.group || '').toLowerCase();
-          // Match por grupo hierárquico (colorGroups)
-          if (filters.colorGroups.length > 0) {
+          const colorNuance = (color.nuance || color.finish || '').toLowerCase();
+
+          // Se há variações selecionadas, elas têm prioridade sobre grupos
+          // (narrowing: "Amarelo Banana" é mais específico que "Amarelo")
+          if (hasVariationFilter) {
+            const matchesVariation = filters.colorVariations.some(slug =>
+              colorName.includes(slug.toLowerCase().replace(/-/g, ' '))
+            );
+            if (matchesVariation) {
+              // Se há também nuance selecionada, exige que ambos coincidam
+              if (hasNuanceFilter) {
+                return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
+              }
+              return true;
+            }
+            // Se há grupos selecionados mas não é a variação certa, não passa
+            if (hasGroupFilter) return false;
+          }
+
+          // Filtro por grupo (sem variações específicas selecionadas)
+          if (hasGroupFilter) {
             const matchesGroup = filters.colorGroups.some(slug =>
               colorGroup.includes(slug.toLowerCase()) ||
               colorName.includes(slug.toLowerCase())
             );
-            if (matchesGroup) return true;
+            if (matchesGroup) {
+              if (hasNuanceFilter) {
+                return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
+              }
+              return true;
+            }
           }
-          // Match por variação (colorVariations)
-          if (filters.colorVariations.length > 0) {
-            const matchesVariation = filters.colorVariations.some(slug =>
-              colorName.includes(slug.toLowerCase().replace(/-/g, ' '))
-            );
-            if (matchesVariation) return true;
+
+          // Apenas nuance selecionada (sem grupo nem variação)
+          if (hasNuanceFilter && !hasGroupFilter && !hasVariationFilter) {
+            return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
           }
-          // Fallback legado (filters.colors)
-          if (filters.colors.length > 0) {
+
+          // Fallback legado
+          if (hasLegacyColors) {
             return filters.colors.includes(color.name);
           }
           return false;
@@ -428,18 +457,34 @@ export default function FiltersPage() {
   const activeFiltersSummary = useMemo(() => {
     const summary: { label: string; value: string; key: keyof FilterState }[] = [];
 
-    if (filters.colors.length > 0) {
+    // Cores (grupos + variações + nuances + legado)
+    const totalCores = (filters.colorGroups?.length || 0) + (filters.colorVariations?.length || 0) + (filters.colorNuances?.length || 0) + filters.colors.length;
+    if (totalCores > 0) {
       summary.push({
         label: "Cores",
-        value: filters.colors.slice(0, 2).join(", ") + (filters.colors.length > 2 ? ` +${filters.colors.length - 2}` : ""),
+        value: `${totalCores} selecionada${totalCores > 1 ? 's' : ''}`,
         key: "colors",
       });
     }
     if (filters.categories.length > 0) {
       summary.push({
         label: "Categorias",
-        value: `${filters.categories.length} selecionadas`,
+        value: `${filters.categories.length} selecionada${filters.categories.length > 1 ? 's' : ''}`,
         key: "categories",
+      });
+    }
+    if (filters.suppliers.length > 0) {
+      summary.push({
+        label: "Fornecedores",
+        value: `${filters.suppliers.length} selecionado${filters.suppliers.length > 1 ? 's' : ''}`,
+        key: "suppliers",
+      });
+    }
+    if (filters.publicoAlvo.length > 0) {
+      summary.push({
+        label: "Público-Alvo",
+        value: filters.publicoAlvo.slice(0, 2).join(", ") + (filters.publicoAlvo.length > 2 ? ` +${filters.publicoAlvo.length - 2}` : ""),
+        key: "publicoAlvo",
       });
     }
     if (filters.datasComemorativas.length > 0) {
@@ -452,8 +497,24 @@ export default function FiltersPage() {
     if (filters.endomarketing.length > 0) {
       summary.push({
         label: "Endomarketing",
-        value: filters.endomarketing[0],
+        value: filters.endomarketing.slice(0, 2).join(", "),
         key: "endomarketing",
+      });
+    }
+    const totalMateriais = (filters.materialGroups?.length || 0) + (filters.materialTypes?.length || 0) + filters.materiais.length;
+    if (totalMateriais > 0) {
+      summary.push({
+        label: "Materiais",
+        value: `${totalMateriais} selecionado${totalMateriais > 1 ? 's' : ''}`,
+        key: "materiais",
+      });
+    }
+    const totalRamos = (filters.ramosAtividade?.length || 0) + (filters.segmentosAtividade?.length || 0);
+    if (totalRamos > 0) {
+      summary.push({
+        label: "Nichos",
+        value: `${totalRamos} selecionado${totalRamos > 1 ? 's' : ''}`,
+        key: "ramosAtividade",
       });
     }
 
