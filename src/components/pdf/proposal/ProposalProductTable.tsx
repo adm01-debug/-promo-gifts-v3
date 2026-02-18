@@ -32,7 +32,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
           <tr>
             <th style={{ ...thBase, textAlign: "center", width: "40px", borderRadius: "6px 0 0 0" }}>#</th>
             {hasAnyImage && (
-              <th style={{ ...thBase, textAlign: "center", width: "75px" }}>Foto</th>
+              <th style={{ ...thBase, textAlign: "center", width: "95px" }}>Foto</th>
             )}
             <th style={{ ...thBase, textAlign: "left" }}>Descrição do Produto</th>
             <th style={{ ...thBase, textAlign: "center", width: "50px" }}>Qtd.</th>
@@ -81,15 +81,15 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               </td>
               {/* Image — conditional column */}
               {hasAnyImage && (
-                <td style={{ padding: "6px", textAlign: "center", verticalAlign: "middle", width: "75px" }}>
+                <td style={{ padding: "6px", textAlign: "center", verticalAlign: "middle", width: "95px" }}>
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.name}
                       crossOrigin="anonymous"
                       style={{
-                        width: "56px",
-                        height: "56px",
+                        width: "80px",
+                        height: "80px",
                         objectFit: "contain",
                         borderRadius: "6px",
                         border: "1px solid #e8e8e8",
@@ -99,8 +99,8 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                     />
                   ) : (
                     <div style={{
-                      width: "56px",
-                      height: "56px",
+                      width: "80px",
+                      height: "80px",
                       backgroundColor: "#f5f5f5",
                       borderRadius: "6px",
                       border: "1px solid #eee",
@@ -116,24 +116,28 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               )}
               {/* Description */}
               <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
-                <span style={{ fontWeight: 800, color: "#111", fontSize: "13px", display: "block", marginBottom: "2px", lineHeight: "1.3" }}>
-                  {item.name}
-                </span>
-                {item.sku && (
-                  <span style={{
-                    background: "#e8f5e9",
-                    color: "#2e7d32",
-                    fontSize: "9px",
-                    padding: "1px 5px",
-                    borderRadius: "3px",
-                    fontWeight: 700,
-                    fontFamily: "'Roboto Mono', monospace",
-                  }}>
-                    #{item.sku}
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px", flexWrap: "wrap" }}>
+                  <span style={{ fontWeight: 800, color: "#111", fontSize: "13px", lineHeight: "1.3" }}>
+                    {item.name}
                   </span>
-                )}
+                  {item.sku && (
+                    <span style={{
+                      background: "#e8f5e9",
+                      color: "#2e7d32",
+                      fontSize: "9px",
+                      padding: "2px 6px",
+                      borderRadius: "3px",
+                      fontWeight: 700,
+                      fontFamily: "'Roboto Mono', monospace",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}>
+                      #{item.sku}
+                    </span>
+                  )}
+                </div>
                 {item.description && (
-                  <span style={{ display: "block", fontSize: "11px", color: "#666", marginTop: "3px", lineHeight: "1.4", maxWidth: "380px" }}>
+                  <span style={{ display: "block", fontSize: "11px", color: "#666", marginTop: "2px", lineHeight: "1.4", maxWidth: "380px" }}>
                     {item.description}
                   </span>
                 )}
