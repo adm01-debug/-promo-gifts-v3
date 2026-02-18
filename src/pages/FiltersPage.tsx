@@ -249,7 +249,7 @@ export default function FiltersPage() {
     if (filters.ramosAtividade?.length > 0) count++;
     if (filters.segmentosAtividade?.length > 0) count++;
     if ((filters.materialGroups?.length || 0) + (filters.materialTypes?.length || 0) + filters.materiais.length > 0) count++;
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) count++;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 9999) count++;
     if (filters.inStock) count++;
     if (filters.isKit) count++;
     if (filters.featured) count++;
@@ -415,12 +415,15 @@ export default function FiltersPage() {
       });
     }
 
-    // Filtro por faixa de preço
-    result = result.filter(
-      (product) =>
-        product.price >= filters.priceRange[0] &&
-        product.price <= filters.priceRange[1]
-    );
+    // Filtro por faixa de preço (só aplica se o usuário realmente ajustou o slider)
+    const priceFilterActive = filters.priceRange[0] > 0 || filters.priceRange[1] < 9999;
+    if (priceFilterActive) {
+      result = result.filter(
+        (product) =>
+          product.price >= filters.priceRange[0] &&
+          product.price <= filters.priceRange[1]
+      );
+    }
 
     // Filtro por estoque
     if (filters.inStock) {
@@ -522,7 +525,14 @@ export default function FiltersPage() {
   }, [filters]);
 
   const clearSingleFilter = (key: keyof FilterState) => {
-    if (Array.isArray(filters[key])) {
+    // Grupos hierárquicos: limpar todos os níveis juntos
+    if (key === "colors") {
+      setFilters({ ...filters, colors: [], colorGroups: [], colorVariations: [], colorNuances: [] });
+    } else if (key === "materiais") {
+      setFilters({ ...filters, materiais: [], materialGroups: [], materialTypes: [] });
+    } else if (key === "ramosAtividade") {
+      setFilters({ ...filters, ramosAtividade: [], segmentosAtividade: [] });
+    } else if (Array.isArray(filters[key])) {
       setFilters({ ...filters, [key]: [] });
     } else if (typeof filters[key] === "boolean") {
       setFilters({ ...filters, [key]: false });
