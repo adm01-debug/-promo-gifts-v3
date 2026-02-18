@@ -121,7 +121,7 @@ export default function QuoteBuilderPage() {
   const [deliveryTime, setDeliveryTime] = useState<string>("");
   const [shippingType, setShippingType] = useState<string>("");
   const [shippingCost, setShippingCost] = useState<number>(0);
-  const [priority, setPriority] = useState<string>("");
+  
 
   // Product search modal
   const [productSearchOpen, setProductSearchOpen] = useState(false);
@@ -588,7 +588,6 @@ export default function QuoteBuilderPage() {
       delivery_time: deliveryTime || undefined,
       shipping_type: shippingType || undefined,
       shipping_cost: shippingType === "fob_pre" ? shippingCost : undefined,
-      priority: priority || undefined,
     };
 
     let result;
@@ -817,20 +816,6 @@ export default function QuoteBuilderPage() {
                   )}
                 </div>
 
-                {/* Prioridade */}
-                <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Prioridade</Label>
-                  <Select value={priority} onValueChange={setPriority}>
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alta">🔴 Alta prioridade</SelectItem>
-                      <SelectItem value="media">🟡 Média prioridade</SelectItem>
-                      <SelectItem value="baixa">🟢 Baixa prioridade</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
             </div>
           </div>
