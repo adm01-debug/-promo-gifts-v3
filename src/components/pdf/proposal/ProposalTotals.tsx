@@ -33,9 +33,19 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           <span style={{ fontWeight: 600 }}>{shippingLabel}</span>
         </div>
         {data.discount && data.discount > 0 && (
-          <div style={{ ...rowStyle, borderBottom: "1px solid #f0f0f0", paddingLeft: "32px", color: "#e53935" }}>
-            <span>Desconto Global:</span>
-            <span style={{ fontWeight: 600 }}>- {fmt(data.discount)}</span>
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            padding: "9px 16px",
+            margin: "6px 0",
+            backgroundColor: "#fff5f5",
+            border: "1px solid #ffcdd2",
+            borderLeft: "4px solid #e53935",
+            borderRadius: "0 6px 6px 0",
+            fontVariantNumeric: "tabular-nums",
+          }}>
+            <span style={{ fontWeight: 700, fontSize: "13px", color: "#c62828" }}>🏷 Desconto Global:</span>
+            <span style={{ fontWeight: 800, fontSize: "14px", color: "#c62828" }}>- {fmt(data.discount)}</span>
           </div>
         )}
         <div style={{
