@@ -36,15 +36,15 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
             <tr>
               <td style={{ width: "25%", padding: "0 8px 0 0", verticalAlign: "top" }}>
                 <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-                  Prazo de Pagamento
+                  💳 Prazo de Pagamento
                 </div>
                 <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
-                  {paymentLabel || "A vista / Boleto / Pix"}
+                  {paymentLabel || "À vista / Boleto / Pix"}
                 </div>
               </td>
               <td style={{ width: "25%", padding: "0 8px", verticalAlign: "top" }}>
                 <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-                  Prazo de Entrega
+                  📦 Prazo de Entrega
                 </div>
                 <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
                   {deliveryLabel || "A combinar"}
@@ -52,7 +52,7 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
               </td>
               <td style={{ width: "25%", padding: "0 8px", verticalAlign: "top" }}>
                 <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-                  Frete
+                  🚚 Frete
                 </div>
                 <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
                   {shippingLabel}
@@ -60,7 +60,7 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
               </td>
               <td style={{ width: "25%", padding: "0 0 0 8px", verticalAlign: "top" }}>
                 <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-                  Validade da Proposta
+                  📅 Validade da Proposta
                 </div>
                 <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
                   {data.validUntil || "15 dias"}
