@@ -90,6 +90,7 @@ export default function QuoteViewPage() {
             ? `${item.product_sku}-${item.color_name}`
             : item.product_sku
           : undefined,
+        colorHex: item.color_hex || undefined,
         quantity: item.quantity,
         unitPrice: item.unit_price,
         color: item.color_name || undefined,
