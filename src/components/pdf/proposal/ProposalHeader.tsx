@@ -39,34 +39,30 @@ export function ProposalHeader({ data, isContinuation }: Props) {
   }
 
   // Main header: white logo area left, sharp green diagonal, dark right with title
-  const H = 150;
+  const H = 155;
   const W = 794;
-  // Diagonal cut: starts at x=320 top, x=370 bottom
-  const diagX1 = 320; // top left of green band
-  const diagX2 = 348; // top right of green band  
-  const diagX3 = 400; // bottom right of green band
-  const diagX4 = 372; // bottom left of green band
+  // The diagonal green stripe separating white (logo) from dark (title)
+  // Top edge: starts at x=310, ends at x=340
+  // Bottom edge: starts at x=355, ends at x=390
+  const t1 = 305; // top-left of green band
+  const t2 = 338; // top-right of green band
+  const b2 = 392; // bottom-right of green band
+  const b1 = 358; // bottom-left of green band
 
   return (
     <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0 }}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", top: 0, left: 0 }}>
-        {/* White background for logo area */}
+        {/* White background (full) */}
         <rect x="0" y="0" width={W} height={H} fill="#ffffff" />
 
-        {/* Dark right section */}
-        <polygon
-          points={`${diagX2},0 ${W},0 ${W},${H} ${diagX3},${H}`}
-          fill="#2d2d2d"
-        />
+        {/* Dark right section polygon */}
+        <polygon points={`${t2},0 ${W},0 ${W},${H} ${b2},${H}`} fill="#2d2d2d" />
 
         {/* Green diagonal stripe */}
-        <polygon
-          points={`${diagX1},0 ${diagX2},0 ${diagX3},${H} ${diagX4},${H}`}
-          fill="#00c853"
-        />
+        <polygon points={`${t1},0 ${t2},0 ${b2},${H} ${b1},${H}`} fill="#00c853" />
 
-        {/* Green bottom bar on white area */}
-        <rect x="0" y={H - 6} width={diagX4} height="6" fill="#00c853" />
+        {/* Green bottom bar on the white logo area */}
+        <rect x="0" y={H - 7} width={b1 + 2} height="7" fill="#00c853" />
       </svg>
 
       {/* Logo - left side, large */}
@@ -99,11 +95,12 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         <p style={{
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 900,
-          fontSize: "28px",
+          fontSize: "24px",
           textTransform: "uppercase",
-          letterSpacing: "3px",
+          letterSpacing: "2px",
           margin: "0 0 6px 0",
           lineHeight: 1,
+          whiteSpace: "nowrap",
         }}>
           Proposta Comercial
         </p>
