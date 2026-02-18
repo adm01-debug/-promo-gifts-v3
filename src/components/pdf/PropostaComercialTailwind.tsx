@@ -11,7 +11,7 @@ const PAGE_W = 794;
 const PAGE_H = 1123;
 const FIRST_HEADER_H = 128;
 const CONT_HEADER_H = 60;
-const FULL_FOOTER_H = 30;
+const FULL_FOOTER_H = 190;
 const SIMPLE_FOOTER_H = 30;
 const CONTENT_PAD = 36;
 const CLIENT_BAR_H = 90;
@@ -132,7 +132,6 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                 {isLast && (
                   <>
                     <ProposalTotals data={data} />
-                    <ProposalNotes data={data} />
                   </>
                 )}
               </div>
