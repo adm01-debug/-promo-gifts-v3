@@ -177,7 +177,7 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         <img
           src="/images/promo-brindes-logo.png"
           alt="Promo Brindes"
-          style={{ width: "100%", height: "auto", display: "block", imageRendering: "crisp-edges" }}
+          style={{ width: "100%", height: "auto", display: "block", imageRendering: "crisp-edges", mixBlendMode: "multiply" }}
           crossOrigin="anonymous"
         />
       </div>
