@@ -16,6 +16,7 @@ export interface ProposalItemPersonalization {
 export interface ProposalItem {
   name: string;
   sku?: string;
+  composedCode?: string;
   description?: string;
   quantity: number;
   unitPrice: number;
@@ -355,7 +356,7 @@ function ProductRow({ item }: { item: ProposalItem }) {
         <span style={{ fontWeight: 800, color: "#000", fontSize: "16px", display: "block", marginBottom: "6px" }}>
           {item.name}
         </span>
-        {item.sku && (
+        {(item.composedCode || item.sku) && (
           <span style={{
             background: "#f0f0f0",
             color: "#555",
@@ -365,7 +366,7 @@ function ProductRow({ item }: { item: ProposalItem }) {
             marginLeft: "0",
             fontWeight: 600,
           }}>
-            #{item.sku}
+            {item.composedCode || item.sku}
           </span>
         )}
         {item.description && (

@@ -85,6 +85,11 @@ export default function QuoteViewPage() {
       items: quote.items?.map((item) => ({
         name: item.product_name,
         sku: item.product_sku || undefined,
+        composedCode: item.product_sku
+          ? item.color_name
+            ? `${item.product_sku}-${item.color_name}`
+            : item.product_sku
+          : undefined,
         quantity: item.quantity,
         unitPrice: item.unit_price,
         color: item.color_name || undefined,

@@ -131,7 +131,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               )}
               {/* Description */}
               <td style={{ padding: "8px 10px", verticalAlign: "middle" }}>
-                {item.sku && (
+                {(item.composedCode || item.sku) && (
                   <span style={{
                     display: "inline-block",
                     background: "#2e7d32",
@@ -144,7 +144,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                     whiteSpace: "nowrap",
                     marginBottom: "4px",
                   }}>
-                    #{item.sku}
+                    {item.composedCode || item.sku}
                   </span>
                 )}
                 <div style={{ fontWeight: 800, color: "#111", fontSize: "13px", lineHeight: "1.3", marginBottom: "2px" }}>
