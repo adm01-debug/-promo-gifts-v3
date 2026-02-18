@@ -165,17 +165,13 @@ export default function QuoteBuilderPage() {
             });
           }
 
-          // Restore companyInfo from saved client_company (format: "Name | City/State")
+          // Restore companyInfo from saved client_company
           if (quote.client_company) {
-            const parts = quote.client_company.split(" | ");
-            const locationParts = parts[1] ? parts[1].split("/") : [];
             setCompanyInfo({
               id: quote.client_id || "",
-              name: parts[0],
+              name: quote.client_company,
               cnpj: undefined,
               ramo_atividade: undefined,
-              cidade: locationParts[0] || undefined,
-              estado: locationParts[1] || undefined,
             });
           }
           
@@ -574,11 +570,7 @@ export default function QuoteBuilderPage() {
       return;
     }
 
-    const companyDisplayName = companyInfo?.name || undefined;
-    const companyLocation = [companyInfo?.cidade, companyInfo?.estado].filter(Boolean).join("/");
-    const companyWithLocation = companyDisplayName && companyLocation
-      ? `${companyDisplayName} | ${companyLocation}`
-      : companyDisplayName;
+    const companyWithLocation = companyInfo?.name || undefined;
 
     const quoteData = {
       client_id: clientId || undefined,

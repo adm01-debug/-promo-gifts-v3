@@ -37,8 +37,6 @@ export interface SelectedCompanyInfo {
   name: string;
   cnpj?: string;
   ramo_atividade?: string;
-  cidade?: string;
-  estado?: string;
 }
 
 export interface SelectedContactInfo {
@@ -158,8 +156,58 @@ function ContactDropdown({
   );
 }
 
+// Single contact auto-select component: shows the contact and auto-fires onContactChange/onContactInfoChange
+function SingleContactDisplay({
+  contact,
+  contactId,
+  onContactChange,
+  onContactInfoChange,
+}: {
+  contact: ContactOption;
+  contactId?: string;
+  onContactChange?: (id: string) => void;
+  onContactInfoChange?: (info: SelectedContactInfo | null) => void;
+}) {
+  // Auto-select this contact if not yet selected
+  useEffect(() => {
+    if (contactId !== contact.id) {
+      onContactChange?.(contact.id);
+      onContactInfoChange?.({
+        id: contact.id,
+        name: contact.name,
+        email: contact.email || undefined,
+        phone: contact.phone || undefined,
+        cargo: contact.cargo || undefined,
+      });
+    }
+  }, [contact.id]); // only run when contact changes
+
+  return (
+    <div className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm">
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
+          <User className="h-3.5 w-3.5" />
+        </div>
+        <span className="truncate font-medium">{contact.name}</span>
+        {contact.cargo && (
+          <span className="text-xs text-muted-foreground hidden sm:inline">· {contact.cargo}</span>
+        )}
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {contact.email && (
+          <Badge variant="outline" className="text-xs gap-1 px-1.5">
+            <Mail className="h-3 w-3" />
+            <span className="hidden sm:inline max-w-[120px] truncate">{contact.email}</span>
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function CompanyContactSelector({
   companyId,
+
   contactId,
   onCompanyChange,
   onContactChange,
@@ -182,7 +230,7 @@ export function CompanyContactSelector({
     queryKey: ["quote-companies-selector"],
     queryFn: async () => {
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj, cidade, estado",
+        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
@@ -389,7 +437,7 @@ export function CompanyContactSelector({
     onContactChange?.("");
     onContactInfoChange?.(null);
     const found = filteredCompanies.find((c) => c.id === id) || companies?.find((c) => c.id === id);
-    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: (found as any).ramo_atividade || undefined, cidade: (found as any).cidade || undefined, estado: (found as any).estado || undefined } : null);
+    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: (found as any).ramo_atividade || undefined } : null);
     setIsOpen(false);
     setSearchTerm("");
   };
@@ -567,24 +615,12 @@ export function CompanyContactSelector({
             Nenhum contato cadastrado
           </div>
         ) : contacts.length === 1 ? (
-          <div className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
-          )}>
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary">
-                <User className="h-3.5 w-3.5" />
-              </div>
-              <span className="truncate font-medium">{contacts[0].name}</span>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {contacts[0].email && (
-                <Badge variant="outline" className="text-xs gap-1 px-1.5">
-                  <Mail className="h-3 w-3" />
-                  <span className="hidden sm:inline max-w-[120px] truncate">{contacts[0].email}</span>
-                </Badge>
-              )}
-            </div>
-          </div>
+          <SingleContactDisplay
+            contact={contacts[0]}
+            contactId={contactId}
+            onContactChange={onContactChange}
+            onContactInfoChange={onContactInfoChange}
+          />
         ) : (
           <ContactDropdown
             contacts={contacts}
