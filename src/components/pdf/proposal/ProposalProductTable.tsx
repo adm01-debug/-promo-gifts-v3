@@ -54,9 +54,11 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
 
           const gravacao = item.personalizations?.map((p) => {
             let s = p.technique_name;
+            if (p.width_cm && p.height_cm) s += ` ${p.width_cm}×${p.height_cm}cm`;
+            if (p.colors_count) s += ` | ${p.colors_count} cor${p.colors_count > 1 ? "es" : ""}`;
             if (p.material) s += ` | ${p.material}`;
             return s;
-          }).join(", ");
+          }).join(" · ");
 
           return (
             <tr key={idx} style={{
