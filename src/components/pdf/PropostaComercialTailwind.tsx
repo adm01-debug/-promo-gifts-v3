@@ -9,7 +9,7 @@ import { ProposalFooter } from "./proposal/ProposalFooter";
 
 const PAGE_W = 794;
 const PAGE_H = 1123;
-const FIRST_HEADER_H = 155;
+const FIRST_HEADER_H = 160;
 const CONT_HEADER_H = 60;
 const FULL_FOOTER_H = 140;
 const SIMPLE_FOOTER_H = 40;
