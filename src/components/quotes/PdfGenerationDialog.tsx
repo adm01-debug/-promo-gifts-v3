@@ -207,12 +207,6 @@ export function PdfGenerationDialog({
                     <FileText className="h-4 w-4" />
                     Gerar PDF
                   </Button>
-                  {onWhatsApp && (
-                    <Button size="lg" variant="outline" className="gap-2 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10" onClick={onWhatsApp}>
-                      <MessageCircle className="h-4 w-4" />
-                      WhatsApp
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>
