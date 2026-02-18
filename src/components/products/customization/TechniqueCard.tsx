@@ -32,9 +32,12 @@ function getGroupColor(grupo: string): string {
 }
 
 export function TechniqueCard({ technique, isSelected, onSelect }: TechniqueCardProps) {
+  const isDigitalTechnique = ['UV_DIGITAL', 'SUBLIMACAO', 'TRANSFER'].includes(technique.grupo_tecnica);
   const colorLabel = technique.cobra_por_cor
-    ? `até ${technique.max_cores} core${technique.max_cores !== 1 ? 's' : ''}`
-    : 'Full Color';
+    ? `até ${technique.max_cores} cor${technique.max_cores !== 1 ? 'es' : ''}`
+    : isDigitalTechnique
+      ? 'Full Color'
+      : `1 cor`;
 
   return (
     <button
