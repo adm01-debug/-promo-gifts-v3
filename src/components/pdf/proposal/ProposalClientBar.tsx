@@ -21,8 +21,8 @@ export function ProposalClientBar({ data }: { data: ProposalTemplateData }) {
           Empresa
         </p>
         <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{company}</p>
-        {data.client.email && (
-          <p style={{ fontSize: "11px", color: "#666", margin: "3px 0 0 0" }}>✉ {data.client.email}</p>
+        {data.client.cnpj && (
+          <p style={{ fontSize: "11px", color: "#666", margin: "3px 0 0 0" }}>CNPJ: {data.client.cnpj}</p>
         )}
         {data.client.phone && (
           <p style={{ fontSize: "11px", color: "#666", margin: "2px 0 0 0" }}>☎ {data.client.phone}</p>
