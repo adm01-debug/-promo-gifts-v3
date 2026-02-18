@@ -759,7 +759,12 @@ export default function QuoteBuilderPage() {
           {/* COL 1 — Empresa + Contato (fixa) */}
           <div className="lg:col-span-3">
             <div className="sticky top-24 space-y-3 overflow-y-auto max-h-[calc(100vh-7rem)] pr-1">
-              <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-4">
+              <div className={cn(
+                "rounded-2xl border bg-card p-4 space-y-4",
+                (validationErrors.includes("empresa") || validationErrors.includes("contato"))
+                  ? "border-destructive/50"
+                  : "border-border/50"
+              )}>
                 <CompanyContactSelector
                   companyId={clientId}
                   contactId={contactId}
@@ -768,6 +773,12 @@ export default function QuoteBuilderPage() {
                   onCompanyInfoChange={setCompanyInfo}
                   onContactInfoChange={setContactInfo}
                 />
+                {(validationErrors.includes("empresa") || validationErrors.includes("contato")) && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3 shrink-0" />
+                    {validationErrors.includes("empresa") ? "Selecione uma empresa" : "Selecione um contato"}
+                  </p>
+                )}
               </div>
 
               {/* Validade da Proposta */}
