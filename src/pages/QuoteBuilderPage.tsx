@@ -105,8 +105,9 @@ export default function QuoteBuilderPage() {
   const [contactId, setContactId] = useState<string>("");
   const [companyInfo, setCompanyInfo] = useState<SelectedCompanyInfo | null>(null);
   const [contactInfo, setContactInfo] = useState<SelectedContactInfo | null>(null);
+  const [validityDays, setValidityDays] = useState<string>("7");
   const [validUntil, setValidUntil] = useState<string>(
-    format(addDays(new Date(), 30), "yyyy-MM-dd")
+    format(addDays(new Date(), 7), "yyyy-MM-dd")
   );
   const [discountType, setDiscountType] = useState<"percent" | "amount">("percent");
   const [discountValue, setDiscountValue] = useState<number>(0);
@@ -747,6 +748,34 @@ export default function QuoteBuilderPage() {
                   onCompanyInfoChange={setCompanyInfo}
                   onContactInfoChange={setContactInfo}
                 />
+              </div>
+
+              {/* Validade da Proposta */}
+              <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <span className="text-primary">📅</span>
+                  Validade | Proposta
+                </h3>
+                <div className="space-y-1">
+                  <Select
+                    value={validityDays}
+                    onValueChange={(val) => {
+                      setValidityDays(val);
+                      setValidUntil(format(addDays(new Date(), parseInt(val)), "yyyy-MM-dd"));
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 dia</SelectItem>
+                      <SelectItem value="3">3 dias</SelectItem>
+                      <SelectItem value="7">7 dias</SelectItem>
+                      <SelectItem value="15">15 dias</SelectItem>
+                      <SelectItem value="30">30 dias</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               {/* Condições Comerciais */}
