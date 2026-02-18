@@ -44,8 +44,8 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
             borderRadius: "0 6px 6px 0",
             fontVariantNumeric: "tabular-nums",
           }}>
-            <span style={{ fontWeight: 700, fontSize: "13px", color: "#c62828" }}>🏷 Desconto Global:</span>
-            <span style={{ fontWeight: 800, fontSize: "14px", color: "#c62828" }}>- {fmt(data.discount)}</span>
+            <span style={{ fontWeight: 700, fontSize: "13px", color: "#c62828" }}>Desconto Global:</span>
+            <span style={{ fontWeight: 800, fontSize: "15px", color: "#c62828" }}>- {fmt(data.discount)}</span>
           </div>
         )}
         <div style={{
