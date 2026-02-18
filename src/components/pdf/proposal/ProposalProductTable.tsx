@@ -68,8 +68,8 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
             )}
             <th style={{ ...thBase, textAlign: "left", borderRadius: hasAnyImage ? "0" : "6px 0 0 0" }}>Descrição do Produto</th>
             <th style={{ ...thBase, textAlign: "center", width: "50px" }}>Qtd.</th>
-            <th style={{ ...thBase, textAlign: "right", width: "90px" }}>Unitário</th>
-            <th style={{ ...thBase, textAlign: "right", width: "95px", borderRadius: "0 6px 0 0" }}>Total</th>
+            <th style={{ ...thBase, textAlign: "right", width: "85px" }}>Unitário</th>
+            <th style={{ ...thBase, textAlign: "right", width: "120px", borderRadius: "0 6px 0 0" }}>Total</th>
           </tr>
         </thead>
       )}
@@ -195,7 +195,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                 )}
               </td>
               {/* Total */}
-              <td style={{ padding: "8px 6px", textAlign: "right", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#1a1a1a", fontVariantNumeric: "tabular-nums" }}>
+              <td style={{ padding: "8px 6px 8px 20px", textAlign: "right", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#1a1a1a", fontVariantNumeric: "tabular-nums" }}>
                 {fmt(total)}
               </td>
             </tr>
