@@ -40,52 +40,46 @@ export function ProposalHeader({ data, isContinuation }: Props) {
 
   const H = 160;
   const W = 794;
-  const t1 = 318;
-  const t2 = 348;
-  const b1 = 370;
-  const b2 = 402;
-  const barH = 8;
-  const frameBottom = H - barH;
+  const barH = 7;
+  const darkStart = 340;
+  const greenStart = 310;
+  const darkEnd = 390;
+  const greenEnd = 360;
 
   return (
     <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0 }}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", top: 0, left: 0 }}>
         <rect x="0" y="0" width={W} height={H} fill="#ffffff" />
-        <polygon points={`${t2},0 ${W},0 ${W},${H} ${b2},${H}`} fill="#2d2d2d" />
-        <polygon points={`${t1},0 ${t2},0 ${b2},${H} ${b1},${H}`} fill="#00c853" />
-        <rect x="0" y={frameBottom} width={t1} height={barH} fill="#00c853" />
+        <polygon points={`${darkStart},0 ${W},0 ${W},${H} ${darkEnd},${H}`} fill="#2d2d2d" />
+        <polygon points={`${greenStart},0 ${darkStart},0 ${darkEnd},${H} ${greenEnd},${H}`} fill="#00c853" />
+        <rect x="0" y={H - barH} width={W} height={barH} fill="#00c853" />
       </svg>
 
       <div style={{
         position: "absolute",
         zIndex: 10,
-        top: "10px",
+        top: "0",
         left: "24px",
-        bottom: `${barH + 6}px`,
+        bottom: `${barH}px`,
         width: "270px",
-        border: "2px solid #1a1a1a",
-        backgroundColor: "#ffffff",
-        boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
-        padding: "8px 14px",
+        justifyContent: "flex-start",
+        padding: "16px 14px",
       }}>
-        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", display: "block" }} crossOrigin="anonymous" />
+        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", display: "block", filter: "brightness(0) invert(1)" }} crossOrigin="anonymous" />
       </div>
 
-      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-50%)" }}>
-        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "26px", textTransform: "uppercase", letterSpacing: "2.5px", margin: "0 0 6px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
+      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-60%)" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "28px", textTransform: "uppercase", letterSpacing: "3px", margin: "0 0 8px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
           Proposta Comercial
         </p>
-        <p style={{ fontSize: "12px", opacity: 0.9, fontWeight: 400, lineHeight: "1.7", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif" }}>
-          Nº {data.quoteNumber} • {data.date}
+        <p style={{ fontSize: "13px", opacity: 0.95, fontWeight: 400, lineHeight: "1.8", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif" }}>
+          Proposta {data.quoteNumber}
         </p>
-        {data.validUntil && (
-          <p style={{ fontSize: "11px", opacity: 0.7, fontWeight: 400, lineHeight: "1.5", marginTop: "2px", fontFamily: "'Montserrat', sans-serif" }}>
-            Válida até {data.validUntil}
-          </p>
-        )}
+        <p style={{ fontSize: "11px", opacity: 0.65, margin: 0, fontFamily: "'Montserrat', sans-serif" }}>
+          {data.date}
+        </p>
       </div>
     </div>
   );
