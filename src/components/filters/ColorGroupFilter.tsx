@@ -193,9 +193,10 @@ export function ColorGroupFilter({
     setExpandedGroups(newExpanded);
   };
 
-  // Limpar tudo
+  // Limpar tudo e fechar popover
   const clearAll = () => {
     onChange({ groups: [], variations: [], nuances: [] });
+    setIsOpen(false);
   };
 
   if (isLoading) {
