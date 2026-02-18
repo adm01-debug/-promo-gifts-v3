@@ -139,38 +139,40 @@ ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";
 function HeaderSection({ data }: { data: ProposalTemplateData }) {
   const H = 160;
   const W = 794;
-  const t1 = 318;
-  const t2 = 348;
-  const b1 = 370;
-  const b2 = 402;
-  const barH = 8; // green bottom bar height
-  const frameBottom = H - barH; // frame must sit above the green bar
+  // Green diagonal stripe: starts at x=310 top, ends at x=370 bottom
+  // Dark area: starts at x=340 top, full right side
+  // Bottom green bar: spans full width
+  const barH = 7;
+  const darkStart = 340;  // where dark polygon starts at top
+  const greenStart = 310; // where green stripe starts at top
+  const darkEnd = 390;    // where dark polygon starts at bottom
+  const greenEnd = 360;   // where green stripe ends at bottom
 
   return (
     <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0, marginBottom: "16px" }}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", top: 0, left: 0 }}>
+        {/* White background */}
         <rect x="0" y="0" width={W} height={H} fill="#ffffff" />
-        <polygon points={`${t2},0 ${W},0 ${W},${H} ${b2},${H}`} fill="#2d2d2d" />
-        <polygon points={`${t1},0 ${t2},0 ${b2},${H} ${b1},${H}`} fill="#00c853" />
-        {/* Green bottom bar on white area — sits below the logo frame */}
-        <rect x="0" y={frameBottom} width={t1} height={barH} fill="#00c853" />
+        {/* Dark area — right side */}
+        <polygon points={`${darkStart},0 ${W},0 ${W},${H} ${darkEnd},${H}`} fill="#2d2d2d" />
+        {/* Green diagonal stripe */}
+        <polygon points={`${greenStart},0 ${darkStart},0 ${darkEnd},${H} ${greenEnd},${H}`} fill="#00c853" />
+        {/* Green bottom bar — full width */}
+        <rect x="0" y={H - barH} width={W} height={barH} fill="#00c853" />
       </svg>
 
-      {/* Logo with rectangular frame — sits above green bar */}
+      {/* Logo — no border, white area left side */}
       <div style={{
         position: "absolute",
         zIndex: 10,
-        top: "10px",
+        top: "0",
         left: "24px",
-        bottom: `${barH + 6}px`,
+        bottom: `${barH}px`,
         width: "270px",
-        border: "2px solid #1a1a1a",
-        backgroundColor: "#ffffff",
-        boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
-        justifyContent: "center",
-        padding: "8px 14px",
+        justifyContent: "flex-start",
+        padding: "16px 14px",
       }}>
         <img
           src="/images/promo-brindes-logo.png"
@@ -180,7 +182,7 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         />
       </div>
 
-      {/* Title block — right side */}
+      {/* Title block — right side, centered vertically */}
       <div style={{
         position: "absolute",
         zIndex: 10,
@@ -188,25 +190,25 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         color: "#ffffff",
         top: "50%",
         right: "32px",
-        transform: "translateY(-50%)",
+        transform: "translateY(-60%)",
       }}>
         <p style={{
           fontFamily: "'Montserrat', sans-serif",
           fontWeight: 900,
-          fontSize: "26px",
+          fontSize: "28px",
           textTransform: "uppercase",
-          letterSpacing: "2.5px",
-          margin: "0 0 6px 0",
+          letterSpacing: "3px",
+          margin: "0 0 8px 0",
           lineHeight: 1,
           whiteSpace: "nowrap",
         }}>
           Proposta Comercial
         </p>
         <p style={{
-          fontSize: "12px",
-          opacity: 0.9,
+          fontSize: "13px",
+          opacity: 0.95,
           fontWeight: 400,
-          lineHeight: "1.7",
+          lineHeight: "1.8",
           margin: 0,
           fontVariantNumeric: "tabular-nums",
           fontFamily: "'Montserrat', sans-serif",
@@ -215,10 +217,10 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         </p>
         {data.validUntil && (
           <p style={{
-            fontSize: "11px",
-            opacity: 0.7,
+            fontSize: "12px",
+            opacity: 0.75,
             fontWeight: 400,
-            lineHeight: "1.5",
+            lineHeight: "1.6",
             marginTop: "2px",
             fontFamily: "'Montserrat', sans-serif",
           }}>
