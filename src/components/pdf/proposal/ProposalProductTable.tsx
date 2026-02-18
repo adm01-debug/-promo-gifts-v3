@@ -81,7 +81,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               </td>
               {/* Image — conditional column */}
               {hasAnyImage && (
-                <td style={{ padding: "6px", textAlign: "center", verticalAlign: "middle", width: "110px" }}>
+                <td style={{ padding: "1px", textAlign: "center", verticalAlign: "middle", width: "110px", minWidth: "110px", maxWidth: "110px" }}>
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
@@ -95,6 +95,8 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                         border: "1px solid #e8e8e8",
                         backgroundColor: "#fff",
                         padding: "2px",
+                        display: "block",
+                        margin: "0 auto",
                       }}
                     />
                   ) : (
