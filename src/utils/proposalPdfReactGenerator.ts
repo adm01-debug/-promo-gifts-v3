@@ -11,9 +11,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
 import { PropostaComercialTailwind } from "@/components/pdf/PropostaComercialTailwind";
+import { processLogoTransparent } from "@/components/pdf/proposal/LogoWithTransparentBg";
 
 
 export async function generateProposalPDFv2(data: ProposalTemplateData, options?: { isDraft?: boolean }): Promise<Blob> {
+  // ① Pre-process logo BEFORE React renders — guarantees cache is warm
+  await processLogoTransparent("/images/promo-brindes-logo.png");
+
   const container = document.createElement("div");
   container.style.position = "fixed";
   container.style.top = "-10000px";
@@ -30,7 +34,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
       root.render(
         React.createElement(PropostaComercialTailwind, { data, ref: templateRef, isDraft: options?.isDraft || false })
       );
-      setTimeout(resolve, 2500); // extra time for LogoWithTransparentBg canvas processing
+      setTimeout(resolve, 2000);
     });
 
     const wrapper = templateRef.current || container.firstElementChild as HTMLElement;
