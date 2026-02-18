@@ -204,7 +204,6 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                 fontSize: "14px",
                 color: "#1a1a1a",
                 fontVariantNumeric: "tabular-nums",
-                borderLeft: "2px solid #e0e0e0",
               }}>
                 {fmt(total)}
               </td>
