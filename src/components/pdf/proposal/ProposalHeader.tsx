@@ -41,10 +41,10 @@ export function ProposalHeader({ data, isContinuation }: Props) {
   const H = 160;
   const W = 794;
   const barH = 7;
-  const darkStart = 340;
-  const greenStart = 310;
-  const darkEnd = 390;
-  const greenEnd = 360;
+  const darkStart = 380;
+  const greenStart = 350;
+  const darkEnd = 430;
+  const greenEnd = 400;
 
   return (
     <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0 }}>
@@ -74,7 +74,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         />
       </div>
 
-      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-60%)" }}>
+      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-75%)" }}>
         <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "19px", textTransform: "uppercase", letterSpacing: "3px", margin: "0 0 8px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
           Proposta Comercial
         </p>
