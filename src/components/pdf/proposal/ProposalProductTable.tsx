@@ -59,7 +59,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
   const hasAnyImage = items.some((item) => !!item.imageUrl);
 
   return (
-    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
       {showHeader && (
         <thead>
           <tr>
@@ -67,9 +67,9 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               <th style={{ ...thBase, textAlign: "center", width: "110px", borderRadius: "6px 0 0 0" }}>Foto</th>
             )}
             <th style={{ ...thBase, textAlign: "left", borderRadius: hasAnyImage ? "0" : "6px 0 0 0" }}>Descrição do Produto</th>
-            <th style={{ ...thBase, textAlign: "center", width: "50px" }}>Qtd.</th>
-            <th style={{ ...thBase, textAlign: "right", width: "85px" }}>Unitário</th>
-            <th style={{ ...thBase, textAlign: "right", width: "120px", borderRadius: "0 6px 0 0" }}>Total</th>
+            <th style={{ ...thBase, textAlign: "center", width: "52px" }}>Qtd.</th>
+            <th style={{ ...thBase, textAlign: "right", width: "90px" }}>Unitário</th>
+            <th style={{ ...thBase, textAlign: "right", width: "115px", borderRadius: "0 6px 0 0" }}>Total</th>
           </tr>
         </thead>
       )}
@@ -109,7 +109,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
             }}>
               {/* Image — conditional column */}
               {hasAnyImage && (
-                <td style={{ padding: "1px", textAlign: "center", verticalAlign: "middle", width: "110px", minWidth: "110px", maxWidth: "110px" }}>
+                <td style={{ padding: "1px", textAlign: "center", verticalAlign: "middle" }}>
                   {item.imageUrl ? (
                     <ProductImageTransparent src={item.imageUrl} alt={item.name} />
                   ) : (
@@ -195,7 +195,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                 )}
               </td>
               {/* Total */}
-              <td style={{ padding: "8px 6px 8px 20px", textAlign: "right", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#1a1a1a", fontVariantNumeric: "tabular-nums" }}>
+              <td style={{ padding: "8px 8px 8px 16px", textAlign: "right", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#1a1a1a", fontVariantNumeric: "tabular-nums", borderLeft: "2px solid #eef0f2" }}>
                 {fmt(total)}
               </td>
             </tr>
