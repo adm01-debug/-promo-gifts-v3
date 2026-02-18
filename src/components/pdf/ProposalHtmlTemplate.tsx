@@ -137,40 +137,38 @@ ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";
 
 /* ─── Header ─── */
 function HeaderSection({ data }: { data: ProposalTemplateData }) {
+  const H = 155;
+  const W = 794;
+  const t1 = 305;
+  const t2 = 338;
+  const b2 = 392;
+  const b1 = 358;
+
   return (
-    <div style={{ position: "relative", width: "794px", height: "160px", marginBottom: "30px" }}>
-      <svg width="794" height="160" viewBox="0 0 794 160" style={{ position: "absolute", top: 0, left: 0 }}>
-        <polygon points="340,0 380,0 420,160 380,160" fill={GREEN} />
-        <polygon points="375,0 794,0 794,125 405,125" fill={DARK} />
-        <polygon points="405,125 430,125 405,160" fill={GREEN_DARK} />
+    <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0, marginBottom: "16px" }}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", top: 0, left: 0 }}>
+        <rect x="0" y="0" width={W} height={H} fill="#ffffff" />
+        <polygon points={`${t2},0 ${W},0 ${W},${H} ${b2},${H}`} fill="#2d2d2d" />
+        <polygon points={`${t1},0 ${t2},0 ${b2},${H} ${b1},${H}`} fill="#00c853" />
+        <rect x="0" y={H - 7} width={b1 + 2} height="7" fill="#00c853" />
       </svg>
 
-      <div style={{ position: "absolute", top: "50%", left: "40px", transform: "translateY(-50%)", width: "200px", zIndex: 10 }}>
-        <img
-          src="/images/promo-brindes-logo.png"
-          alt="Promo Brindes"
-          style={{ width: "100%", display: "block" }}
-          crossOrigin="anonymous"
-        />
+      <div style={{ position: "absolute", zIndex: 10, top: "50%", left: "36px", transform: "translateY(-50%)", width: "230px" }}>
+        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", display: "block" }} crossOrigin="anonymous" />
       </div>
 
-      <div style={{ position: "absolute", top: "25px", right: "40px", textAlign: "right", color: "#fff", zIndex: 10 }}>
-        <div style={{
-          fontFamily: "'Montserrat', sans-serif",
-          fontWeight: 800,
-          fontSize: "28px",
-          textTransform: "uppercase",
-          letterSpacing: "1px",
-          margin: "0 0 5px 0",
-        }}>
-          Proposta
-        </div>
-        <div style={{ fontSize: "13px", opacity: 0.9, fontWeight: 300, lineHeight: "1.6" }}>
-          Nº: #{data.quoteNumber}
-        </div>
-        <div style={{ fontSize: "13px", opacity: 0.9, fontWeight: 300, lineHeight: "1.6" }}>
-          Data: {data.date}
-        </div>
+      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "36px", transform: "translateY(-50%)" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "24px", textTransform: "uppercase", letterSpacing: "2px", margin: "0 0 6px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
+          Proposta Comercial
+        </p>
+        <p style={{ fontSize: "12px", opacity: 0.85, fontWeight: 400, lineHeight: "1.6", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif" }}>
+          Nº {data.quoteNumber} • {data.date}
+        </p>
+        {data.validUntil && (
+          <p style={{ fontSize: "11px", opacity: 0.65, fontWeight: 400, lineHeight: "1.5", marginTop: "2px", fontFamily: "'Montserrat', sans-serif" }}>
+            Válida até {data.validUntil}
+          </p>
+        )}
       </div>
     </div>
   );
