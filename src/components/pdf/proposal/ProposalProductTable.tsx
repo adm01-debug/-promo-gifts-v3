@@ -8,18 +8,29 @@ function ProductImageTransparent({ src, alt }: { src: string; alt: string }) {
     processLogoTransparent(src).then(setDataUrl);
   }, [src]);
   return (
-    <img
-      src={dataUrl || src}
-      alt={alt}
-      style={{
-        width: "108px",
-        height: "108px",
-        objectFit: "contain",
-        borderRadius: "6px",
-        display: "block",
-        margin: "0 auto",
-      }}
-    />
+    <div style={{
+      width: "92px",
+      height: "92px",
+      border: "1.5px solid #d0d0d0",
+      borderRadius: "4px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      margin: "0 auto",
+      padding: "3px",
+      boxSizing: "border-box",
+    }}>
+      <img
+        src={dataUrl || src}
+        alt={alt}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          display: "block",
+        }}
+      />
+    </div>
   );
 }
 
@@ -108,15 +119,16 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                     <ProductImageTransparent src={item.imageUrl} alt={item.name} />
                   ) : (
                     <div style={{
-                      width: "108px",
-                      height: "108px",
+                      width: "92px",
+                      height: "92px",
                       backgroundColor: "#f5f5f5",
-                      borderRadius: "6px",
-                      border: "1px solid #eee",
+                      borderRadius: "4px",
+                      border: "1.5px solid #d0d0d0",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       margin: "0 auto",
+                      boxSizing: "border-box",
                     }}>
                       <span style={{ fontSize: "9px", color: "#ccc" }}>—</span>
                     </div>
