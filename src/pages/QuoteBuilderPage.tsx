@@ -148,11 +148,33 @@ export default function QuoteBuilderPage() {
       fetchQuote(quoteId).then((quote) => {
         if (quote) {
           setClientId(quote.client_id || "");
+          setContactId(quote.client_id || ""); // restore contact selection state
           setValidUntil(quote.valid_until || format(addDays(new Date(), 30), "yyyy-MM-dd"));
           setNotes(quote.notes || "");
           setInternalNotes(quote.internal_notes || "");
           setQuoteNumber(quote.quote_number || "");
           setCurrentStatus(quote.status);
+          
+          // Restore contactInfo from saved data so it persists on re-save
+          if (quote.client_name) {
+            setContactInfo({
+              id: "",
+              name: quote.client_name,
+              email: quote.client_email || undefined,
+              phone: quote.client_phone || undefined,
+            });
+          }
+
+          // Restore companyInfo from saved client_company
+          if (quote.client_company) {
+            const parts = quote.client_company.split(" | ");
+            setCompanyInfo({
+              id: quote.client_id || "",
+              name: parts[0],
+              cnpj: undefined,
+              ramo_atividade: undefined,
+            });
+          }
           
           if (quote.discount_percent && quote.discount_percent > 0) {
             setDiscountType("percent");
