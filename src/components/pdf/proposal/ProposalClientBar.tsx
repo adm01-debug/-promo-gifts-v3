@@ -8,14 +8,13 @@ export function ProposalClientBar({ data }: { data: ProposalTemplateData }) {
   return (
     <div style={{
       backgroundColor: "#f8f9fa",
-      borderLeft: "5px solid #00c853",
       padding: "10px 18px",
       marginTop: "12px",
       marginBottom: "14px",
       display: "flex",
       justifyContent: "space-between",
       alignItems: "flex-start",
-      borderRadius: "0 6px 6px 0",
+      borderRadius: "6px",
     }}>
       <div>
         <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
