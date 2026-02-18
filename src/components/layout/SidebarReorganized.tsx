@@ -56,6 +56,7 @@ interface NavItem {
   adminOnly?: boolean;
   requiredPermission?: { action: string; resource: string };
   badge?: string | number;
+  isCta?: boolean;
 }
 
 // Reorganized navigation in 4 logical groups
@@ -93,9 +94,9 @@ const navGroups: NavGroup[] = [
     id: "quotes",
     label: "Orçamentos",
     icon: FileText,
-    defaultOpen: false,
+    defaultOpen: true,
     items: [
-      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo" },
+      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes" },
     ],
   },
@@ -157,7 +158,26 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     const isActive = isItemActive(item.href);
     const Icon = item.icon;
 
-    const linkContent = (
+    // CTA items (e.g. "Novo Orçamento") get a distinct outlined action style
+    const ctaLinkContent = (
+      <NavLink
+        to={item.href}
+        data-tour={item.tourId}
+        className={cn(
+          "flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 group w-full",
+          "border border-orange/60 text-orange hover:bg-orange hover:text-orange-foreground hover:border-orange",
+          isActive && "bg-orange text-orange-foreground border-orange shadow-sm"
+        )}
+        onClick={() => isOpen && onToggle()}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        {!isCollapsed && (
+          <span className="truncate text-sm font-medium">{item.label}</span>
+        )}
+      </NavLink>
+    );
+
+    const navLinkContent = (
       <NavLink
         to={item.href}
         data-tour={item.tourId}
@@ -183,6 +203,8 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
         )}
       </NavLink>
     );
+
+    const linkContent = item.isCta ? ctaLinkContent : navLinkContent;
 
     if (isCollapsed) {
       return (
