@@ -177,7 +177,13 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         <img
           src="/images/promo-brindes-logo.png"
           alt="Promo Brindes"
-          style={{ width: "100%", height: "auto", display: "block", imageRendering: "crisp-edges", mixBlendMode: "multiply" }}
+          style={{ 
+            width: "100%", 
+            height: "auto", 
+            display: "block", 
+            imageRendering: "high-quality" as React.CSSProperties["imageRendering"],
+            mixBlendMode: "multiply",
+          }}
           crossOrigin="anonymous"
         />
       </div>

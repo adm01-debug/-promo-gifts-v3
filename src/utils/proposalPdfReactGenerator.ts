@@ -61,7 +61,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
       if (i > 0) pdf.addPage();
 
       const canvas = await html2canvas(pages[i] as HTMLElement, {
-        scale: 2,
+        scale: 4,
         useCORS: true,
         allowTaint: true,
         logging: false,
@@ -69,12 +69,13 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
         width: 794,
         height: 1123,
         windowWidth: 794,
+        imageTimeout: 15000,
       });
 
-      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+      const imgData = canvas.toDataURL("image/png");
       const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
     }
 
     root.unmount();

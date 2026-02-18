@@ -67,7 +67,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         justifyContent: "flex-start",
         padding: "12px 14px",
       }}>
-        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", height: "auto", display: "block", imageRendering: "crisp-edges", mixBlendMode: "multiply" }} crossOrigin="anonymous" />
+        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", height: "auto", display: "block", imageRendering: "high-quality" as React.CSSProperties["imageRendering"], mixBlendMode: "multiply" }} crossOrigin="anonymous" />
       </div>
 
       <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-60%)" }}>
