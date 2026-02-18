@@ -69,7 +69,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
             <th style={{ ...thBase, textAlign: "left", borderRadius: hasAnyImage ? "0" : "6px 0 0 0" }}>Descrição do Produto</th>
             <th style={{ ...thBase, textAlign: "center", width: "52px" }}>Qtd.</th>
             <th style={{ ...thBase, textAlign: "right", width: "90px" }}>Unitário</th>
-            <th style={{ ...thBase, textAlign: "right", width: "115px", borderRadius: "0 6px 0 0" }}>Total</th>
+            <th style={{ ...thBase, textAlign: "right", width: "115px", borderRadius: "0 6px 0 0", backgroundColor: "#009c3e" }}>Total</th>
           </tr>
         </thead>
       )}
@@ -131,19 +131,19 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                 </td>
               )}
               {/* Description */}
-              <td style={{ padding: "8px 10px", verticalAlign: "top" }}>
+              <td style={{ padding: "8px 10px", verticalAlign: "middle" }}>
                 {item.sku && (
                   <span style={{
                     display: "inline-block",
-                    background: "#e8f5e9",
-                    color: "#2e7d32",
+                    background: "#2e7d32",
+                    color: "#fff",
                     fontSize: "9px",
                     padding: "2px 6px",
                     borderRadius: "3px",
                     fontWeight: 700,
                     fontFamily: "'Roboto Mono', monospace",
                     whiteSpace: "nowrap",
-                    marginBottom: "3px",
+                    marginBottom: "4px",
                   }}>
                     #{item.sku}
                   </span>
@@ -166,6 +166,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                     borderRadius: "4px",
                     borderLeft: "3px solid #00796b",
                     maxWidth: "fit-content",
+                    marginTop: "2px",
                   }}>
                     <span style={{ fontSize: "10px", color: "#00796b", fontWeight: 700 }}>
                       ✦ Gravação:
@@ -194,8 +195,18 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                   </span>
                 )}
               </td>
-              {/* Total */}
-              <td style={{ padding: "8px 8px 8px 16px", textAlign: "right", verticalAlign: "middle", fontWeight: 800, fontSize: "14px", color: "#1a1a1a", fontVariantNumeric: "tabular-nums", borderLeft: "2px solid #eef0f2" }}>
+              {/* Total — destaque visual */}
+              <td style={{
+                padding: "8px 8px 8px 16px",
+                textAlign: "right",
+                verticalAlign: "middle",
+                fontWeight: 800,
+                fontSize: "14px",
+                color: "#006025",
+                fontVariantNumeric: "tabular-nums",
+                borderLeft: "2px solid #c8e6c9",
+                backgroundColor: isEven ? "#f1faf3" : "#eaf7ec",
+              }}>
                 {fmt(total)}
               </td>
             </tr>
