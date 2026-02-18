@@ -355,7 +355,7 @@ function NotesSection({ data }: { data: ProposalTemplateData }) {
         Informações Relevantes:
       </div>
       <div>- Todos os valores são para produtos já personalizados conforme descrição.</div>
-      <div>- {data.paymentTerms || "Pagamento: À vista / Boleto / Pix (após a entrega)."}</div>
+      {data.paymentTerms && <div>- {data.paymentTerms}</div>}
       <div>- Todos produtos passam por controle de qualidade.</div>
       {data.deliveryTime && <div>- Previsão de Entrega: {data.deliveryTime}.</div>}
       {data.validUntil && <div>- Validade da Proposta: {data.validUntil}.</div>}
