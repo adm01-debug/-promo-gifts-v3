@@ -91,7 +91,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         <p style={{ fontSize: "15px", opacity: 0.95, fontWeight: 400, lineHeight: "1.8", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif" }}>
           Proposta {data.quoteNumber}
         </p>
-        <p style={{ fontSize: "13px", opacity: 0.65, margin: 0, fontFamily: "'Montserrat', sans-serif" }}>
+        <p style={{ fontSize: "15px", opacity: 0.85, margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 700 }}>
           {data.date}
         </p>
       </div>
