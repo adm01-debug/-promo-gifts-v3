@@ -36,7 +36,7 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           <div style={{
             display: "flex",
             justifyContent: "space-between",
-            padding: "9px 16px",
+            padding: "7.5px 16px",
             margin: "6px 0",
             backgroundColor: "#fff5f5",
             border: "1px solid #ffcdd2",
@@ -54,7 +54,7 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           alignItems: "center",
           background: "linear-gradient(135deg, #00c853 0%, #00a844 100%)",
           color: "#ffffff",
-          padding: "8px 18px",
+          padding: "6.5px 18px",
           marginTop: "10px",
           borderRadius: "8px",
           boxShadow: "0 4px 16px rgba(0,200,83, 0.3)",
