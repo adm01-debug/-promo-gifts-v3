@@ -63,11 +63,10 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
       {showHeader && (
         <thead>
           <tr>
-            <th style={{ ...thBase, textAlign: "center", width: "40px", borderRadius: "6px 0 0 0" }}>#</th>
             {hasAnyImage && (
-              <th style={{ ...thBase, textAlign: "center", width: "110px" }}>Foto</th>
+              <th style={{ ...thBase, textAlign: "center", width: "110px", borderRadius: "6px 0 0 0" }}>Foto</th>
             )}
-            <th style={{ ...thBase, textAlign: "left" }}>Descrição do Produto</th>
+            <th style={{ ...thBase, textAlign: "left", borderRadius: hasAnyImage ? "0" : "6px 0 0 0" }}>Descrição do Produto</th>
             <th style={{ ...thBase, textAlign: "center", width: "50px" }}>Qtd.</th>
             <th style={{ ...thBase, textAlign: "right", width: "90px" }}>Unitário</th>
             <th style={{ ...thBase, textAlign: "right", width: "95px", borderRadius: "0 6px 0 0" }}>Total</th>
@@ -108,10 +107,6 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               backgroundColor: isEven ? "#ffffff" : "#f9fafb",
               borderBottom: "1px solid #eef0f2",
             }}>
-              {/* Row number */}
-              <td style={{ padding: "8px 6px", textAlign: "center", verticalAlign: "middle", fontSize: "11px", fontWeight: 700, color: "#b0b0b0", fontVariantNumeric: "tabular-nums" }}>
-                {String(startIndex + idx + 1).padStart(2, "0")}
-              </td>
               {/* Image — conditional column */}
               {hasAnyImage && (
                 <td style={{ padding: "1px", textAlign: "center", verticalAlign: "middle", width: "110px", minWidth: "110px", maxWidth: "110px" }}>
