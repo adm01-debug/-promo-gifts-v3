@@ -195,17 +195,16 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                   </span>
                 )}
               </td>
-              {/* Total — destaque visual */}
+              {/* Total */}
               <td style={{
                 padding: "8px 8px 8px 16px",
                 textAlign: "right",
                 verticalAlign: "middle",
                 fontWeight: 800,
                 fontSize: "14px",
-                color: "#006025",
+                color: "#1a1a1a",
                 fontVariantNumeric: "tabular-nums",
-                borderLeft: "2px solid #c8e6c9",
-                backgroundColor: isEven ? "#f1faf3" : "#eaf7ec",
+                borderLeft: "2px solid #e0e0e0",
               }}>
                 {fmt(total)}
               </td>
