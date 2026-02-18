@@ -85,7 +85,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         <p style={{ fontSize: "13px", opacity: 0.85, margin: "0 0 6px 0", fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}>
           {data.date}
         </p>
-        <p style={{ fontSize: "10px", opacity: 0.7, margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 400, whiteSpace: "nowrap" }}>
+        <p style={{ fontSize: "12px", opacity: 0.7, margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 400, whiteSpace: "nowrap" }}>
           (11) 4637-5517 &nbsp;|&nbsp; www.promobrindes.com.br
         </p>
       </div>
