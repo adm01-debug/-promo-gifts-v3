@@ -62,9 +62,17 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // ── Fix: Tailwind Preflight sets img { display: block } which causes
-    // html2canvas to insert phantom line-breaks, shifting text downward.
-    // Temporarily override to inline-block during capture (issue #2775).
+    // ── BUG FIX (html2canvas issue #2775) ────────────────────────────────────
+    // Tailwind CSS Preflight define globalmente `img { display: block }`.
+    // Durante a captura, html2canvas interpreta esse estilo como uma quebra de
+    // linha fantasma após cada imagem, deslocando todo o texto subsequente para
+    // baixo e desfigurando o layout do PDF (mesmo que o preview no browser
+    // apareça corretamente, pois o browser compensa o offset internamente).
+    //
+    // Solução: injetar temporariamente `img { display: inline-block !important }`
+    // apenas durante a captura do canvas, removendo a regra no bloco `finally`
+    // para não afetar o restante da UI. Confirmado funcionando em 2026-02.
+    // ─────────────────────────────────────────────────────────────────────────
     const imgFixStyle = document.createElement("style");
     imgFixStyle.textContent = "img { display: inline-block !important; }";
     document.head.appendChild(imgFixStyle);
