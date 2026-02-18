@@ -69,9 +69,9 @@ export default function QuoteViewPage() {
   const proposalData: ProposalTemplateData | null = useMemo(() => {
     if (!quote) return null;
     return {
-      quoteNumber: quote.quote_number || "",
-      date: quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "",
-      validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR }) : "30 dias",
+      quoteNumber: (quote.quote_number || "").replace(/\s+/g, ""),
+      date: quote.created_at ? format(new Date(quote.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "",
+      validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "30 dias",
       client: {
         name: quote.client_company || quote.client_name || "Não especificado",
         email: quote.client_email || undefined,
