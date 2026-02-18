@@ -377,8 +377,8 @@ function FooterSection({ data }: { data: ProposalTemplateData }) {
 
       <div style={{ position: "relative", zIndex: 10, padding: "0 50px", height: "100%" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "15px", paddingTop: "10px" }}>
-          <ContactDot color={DARK} text={data.seller.phone || "00-00000-0000"} />
-          <ContactDot color={GREEN} text="promobrindes.com" />
+          <ContactDot color={DARK} text="(11) 4637-5517" />
+          <ContactDot color={GREEN} text="www.promobrindes.com.br" />
           <ContactDot color={GREEN} text="comercial01@gmail.com" />
         </div>
 
