@@ -165,14 +165,17 @@ export default function QuoteBuilderPage() {
             });
           }
 
-          // Restore companyInfo from saved client_company
+          // Restore companyInfo from saved client_company (format: "Name | City/State")
           if (quote.client_company) {
             const parts = quote.client_company.split(" | ");
+            const locationParts = parts[1] ? parts[1].split("/") : [];
             setCompanyInfo({
               id: quote.client_id || "",
               name: parts[0],
               cnpj: undefined,
               ramo_atividade: undefined,
+              cidade: locationParts[0] || undefined,
+              estado: locationParts[1] || undefined,
             });
           }
           

@@ -37,6 +37,8 @@ export interface SelectedCompanyInfo {
   name: string;
   cnpj?: string;
   ramo_atividade?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 export interface SelectedContactInfo {
@@ -180,7 +182,7 @@ export function CompanyContactSelector({
     queryKey: ["quote-companies-selector"],
     queryFn: async () => {
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
+        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj, cidade, estado",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
@@ -387,7 +389,7 @@ export function CompanyContactSelector({
     onContactChange?.("");
     onContactInfoChange?.(null);
     const found = filteredCompanies.find((c) => c.id === id) || companies?.find((c) => c.id === id);
-    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: found.ramo_atividade || undefined } : null);
+    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: (found as any).ramo_atividade || undefined, cidade: (found as any).cidade || undefined, estado: (found as any).estado || undefined } : null);
     setIsOpen(false);
     setSearchTerm("");
   };
