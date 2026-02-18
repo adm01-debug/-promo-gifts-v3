@@ -239,7 +239,8 @@ export default function FiltersPage() {
   // Contar filtros ativos
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (filters.colors.length > 0) count++;
+    // Cores hierárquicas
+    if ((filters.colorGroups?.length || 0) + (filters.colorVariations?.length || 0) + (filters.colorNuances?.length || 0) + filters.colors.length > 0) count++;
     if (filters.categories.length > 0) count++;
     if (filters.suppliers.length > 0) count++;
     if (filters.publicoAlvo.length > 0) count++;
@@ -247,7 +248,7 @@ export default function FiltersPage() {
     if (filters.endomarketing.length > 0) count++;
     if (filters.ramosAtividade?.length > 0) count++;
     if (filters.segmentosAtividade?.length > 0) count++;
-    if (filters.materiais.length > 0) count++;
+    if ((filters.materialGroups?.length || 0) + (filters.materialTypes?.length || 0) + filters.materiais.length > 0) count++;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) count++;
     if (filters.inStock) count++;
     if (filters.isKit) count++;
@@ -267,11 +268,36 @@ export default function FiltersPage() {
     // Se há busca, usar resultados do fuzzy search
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
 
-    // Filtro por cores
-    if (filters.colors.length > 0) {
-      result = result.filter((product) =>
-        product.colors?.some((color: any) => filters.colors.includes(color.name)) || false
-      );
+    // Filtro por cores - sistema hierárquico (colorGroups / colorVariations / colorNuances)
+    const hasColorFilter = filters.colorGroups.length > 0 || filters.colorVariations.length > 0 || filters.colorNuances.length > 0 || filters.colors.length > 0;
+    if (hasColorFilter) {
+      result = result.filter((product) => {
+        if (!product.colors?.length) return false;
+        return product.colors.some((color: any) => {
+          const colorName = (color.name || '').toLowerCase();
+          const colorGroup = (color.group || '').toLowerCase();
+          // Match por grupo hierárquico (colorGroups)
+          if (filters.colorGroups.length > 0) {
+            const matchesGroup = filters.colorGroups.some(slug =>
+              colorGroup.includes(slug.toLowerCase()) ||
+              colorName.includes(slug.toLowerCase())
+            );
+            if (matchesGroup) return true;
+          }
+          // Match por variação (colorVariations)
+          if (filters.colorVariations.length > 0) {
+            const matchesVariation = filters.colorVariations.some(slug =>
+              colorName.includes(slug.toLowerCase().replace(/-/g, ' '))
+            );
+            if (matchesVariation) return true;
+          }
+          // Fallback legado (filters.colors)
+          if (filters.colors.length > 0) {
+            return filters.colors.includes(color.name);
+          }
+          return false;
+        });
+      });
     }
 
     // Filtro por categorias usando tabela product_category_assignments
@@ -282,21 +308,67 @@ export default function FiltersPage() {
       result = [];
     }
 
-    // Filtro por fornecedores (por ID)
+    // Filtro por fornecedores (por ID ou nome)
     if (filters.suppliers.length > 0) {
-      result = result.filter((product) =>
-        filters.suppliers.includes(product.supplier?.id || '') ||
-        filters.suppliers.includes(product.brand || '') ||
-        filters.suppliers.includes(product.supplier_reference || '')
-      );
+      result = result.filter((product) => {
+        const supplierId = product.supplier?.id || '';
+        const supplierName = (product.supplier?.name || product.brand || '').toLowerCase();
+        return (
+          filters.suppliers.includes(supplierId) ||
+          filters.suppliers.some(s => supplierName.includes(s.toLowerCase())) ||
+          filters.suppliers.includes(product.supplier_reference || '')
+        );
+      });
     }
 
-    // Filtros de tags não existem no banco externo, ignorar por enquanto
-    // (publicoAlvo, datasComemorativas, endomarketing)
+    // Filtro por Público-Alvo
+    if (filters.publicoAlvo.length > 0) {
+      result = result.filter((product) => {
+        const tags = product.tags?.publicoAlvo || [];
+        return filters.publicoAlvo.some(p =>
+          tags.some((t: string) => t.toLowerCase() === p.toLowerCase())
+        );
+      });
+    }
+
+    // Filtro por Datas Comemorativas
+    if (filters.datasComemorativas.length > 0) {
+      result = result.filter((product) => {
+        const tags = product.tags?.datasComemorativas || [];
+        return filters.datasComemorativas.some(d =>
+          tags.some((t: string) => t.toLowerCase().includes(d.toLowerCase()))
+        );
+      });
+    }
+
+    // Filtro por Endomarketing
+    if (filters.endomarketing.length > 0) {
+      result = result.filter((product) => {
+        const tags = product.tags?.endomarketing || [];
+        return filters.endomarketing.some(e =>
+          tags.some((t: string) => t.toLowerCase() === e.toLowerCase())
+        );
+      });
+    }
 
     // Filtro por ramos de atividade (nichos/segmentos)
-    // TODO: Integrar com dados reais de produto_ramo_atividade quando estiver implementado
-    // Por enquanto, o filtro é aplicado apenas no banco de dados externo
+    if (filters.ramosAtividade?.length > 0 || filters.segmentosAtividade?.length > 0) {
+      result = result.filter((product) => {
+        const ramos = product.tags?.ramo || [];
+        const nichos = product.tags?.nicho || [];
+        const matchesRamo = filters.ramosAtividade?.length
+          ? filters.ramosAtividade.some(r =>
+              ramos.some((t: string) => t.toLowerCase().includes(r.toLowerCase()))
+            )
+          : true;
+        const matchesSegmento = filters.segmentosAtividade?.length
+          ? filters.segmentosAtividade.some(s =>
+              nichos.some((t: string) => t.toLowerCase().includes(s.toLowerCase()))
+            )
+          : true;
+        return matchesRamo || matchesSegmento;
+      });
+    }
 
     // Filtro por materiais usando tabela product_materials (hierárquico)
     if (hasMaterialFilter && materialFilteredProductIds.size > 0) {

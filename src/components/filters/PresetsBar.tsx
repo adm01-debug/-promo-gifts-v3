@@ -134,7 +134,17 @@ export function PresetsBar({ currentFilters, onApplyPreset, activePresetId }: Pr
         
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" variant="outline" disabled={!hasActiveFilters} className="h-7 px-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-2"
+              onClick={(e) => {
+                if (!hasActiveFilters) {
+                  e.preventDefault();
+                  toast.info("Selecione pelo menos um filtro para salvar um preset");
+                }
+              }}
+            >
               <Plus className="h-3.5 w-3.5" />
               <span className="ml-1 hidden sm:inline">Salvar</span>
             </Button>
