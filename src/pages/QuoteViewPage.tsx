@@ -480,21 +480,30 @@ export default function QuoteViewPage() {
                             <td className="p-3">
                               {allPersonalizations.length > 0 ? (
                                 <div className="space-y-1.5">
-                                  {allPersonalizations.map((p: any, pIdx: number) => (
-                                    <div key={pIdx} className={`${pIdx > 0 ? 'pt-1.5 border-t border-border/30' : ''}`}>
-                                      <div className="inline-flex flex-col gap-0.5 bg-primary/8 border border-primary/20 rounded-md px-2 py-1.5">
-                                        <span className="text-xs font-semibold text-primary flex items-center gap-1">
-                                          ✦ {p.technique_name}
-                                        </span>
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                          {p.width_cm && p.height_cm ? (
-                                            <span className="font-medium text-foreground/80">{p.width_cm} × {p.height_cm} cm</span>
-                                          ) : null}
-                                          <span>{p.colors_count || 1} cor{(p.colors_count || 1) > 1 ? "es" : ""}</span>
+                                  {allPersonalizations.map((p: any, pIdx: number) => {
+                                    // Extract location from notes field ("LocationName — codigoTabela")
+                                    const locationLabel = p.notes
+                                      ? p.notes.split(" — ")[0]
+                                      : null;
+                                    return (
+                                      <div key={pIdx} className={`${pIdx > 0 ? 'pt-1.5 border-t border-border/30' : ''}`}>
+                                        <div className="inline-flex flex-col gap-0.5 bg-primary/8 border border-primary/20 rounded-md px-2 py-1.5">
+                                          <span className="text-xs font-semibold text-primary flex items-center gap-1">
+                                            ✦ {p.technique_name}
+                                          </span>
+                                          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                                            {locationLabel && (
+                                              <span className="font-medium text-foreground/70">{locationLabel}</span>
+                                            )}
+                                            {p.width_cm && p.height_cm ? (
+                                              <span className="font-medium text-foreground/80">{p.width_cm} × {p.height_cm} cm</span>
+                                            ) : null}
+                                            <span>{p.colors_count || 1} cor{(p.colors_count || 1) > 1 ? "es" : ""}</span>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  ))}
+                                    );
+                                  })}
                                 </div>
                               ) : <span className="text-muted-foreground text-sm">—</span>}
                             </td>

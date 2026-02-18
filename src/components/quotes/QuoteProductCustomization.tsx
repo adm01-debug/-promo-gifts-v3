@@ -2,19 +2,23 @@
  * QuoteProductCustomization — Personalização de produto dentro do orçamento
  * 
  * Usa ProductCustomizationOptions v6 com o novo fluxo:
- * Local → Técnica → Dimensões/Cores → Preço → BOTÃO ADICIONAR
+ * Local → Técnica → Dimensões/Cores → Preço → AUTO-CONFIRMA
  * 
- * Diferente do simulador, aqui o vendedor precisa clicar "Adicionar"
- * para confirmar a personalização no resumo do orçamento.
+ * A personalização é confirmada automaticamente quando o preço é calculado,
+ * sem necessidade de clicar em "Adicionar" — evitando perda de dados.
  */
 
-import { useCallback, useRef, useState } from "react";
-import { Plus, CheckCircle2 } from "lucide-react";
+import { useCallback, useEffect, useRef } from "react";
+import { CheckCircle2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import type { QuoteItemPersonalization } from "@/hooks/useQuotes";
 import type { PersonalizationItem } from "@/types/customization";
-import { toast } from "sonner";
+
+function fmt(v: number) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 interface QuoteProductCustomizationProps {
   productId: string;
@@ -29,19 +33,22 @@ export function QuoteProductCustomization({
   existingPersonalizations = [],
   onPersonalizationsChange,
 }: QuoteProductCustomizationProps) {
-  // Buffer: personalizations being configured but not yet confirmed
-  const [pendingItems, setPendingItems] = useState<PersonalizationItem[]>([]);
-  // Track already-confirmed personalizations
-  const [confirmedPersonalizations, setConfirmedPersonalizations] = useState<QuoteItemPersonalization[]>(existingPersonalizations);
+  // Use ref to hold current personalizations to avoid stale closures
+  const personalizationsRef = useRef<QuoteItemPersonalization[]>(existingPersonalizations);
 
+  // Keep ref in sync if parent changes existingPersonalizations (e.g. on load)
+  useEffect(() => {
+    personalizationsRef.current = existingPersonalizations;
+  }, [existingPersonalizations]);
+
+  // Auto-confirm: whenever a price is calculated, update the personalization map immediately
   const handleSelectionChange = useCallback((items: PersonalizationItem[]) => {
-    setPendingItems(items);
-  }, []);
+    const updated = [...personalizationsRef.current];
 
-  const handleAddClick = useCallback(() => {
-    const newPersonalizations: QuoteItemPersonalization[] = pendingItems
-      .filter(item => item.price?.success)
-      .map(item => ({
+    items.forEach(item => {
+      if (!item.price?.success) return;
+
+      const newP: QuoteItemPersonalization = {
         technique_id: item.techniqueId,
         technique_name: item.techniqueName,
         colors_count: item.numberOfColors,
@@ -49,41 +56,31 @@ export function QuoteProductCustomization({
         width_cm: item.width,
         height_cm: item.height,
         personalized_quantity: quantity,
-        setup_cost: item.price!.setup_total,
-        unit_cost: item.price!.preco_unitario,
-        total_cost: item.price!.total_cobrado,
+        setup_cost: item.price.setup_total,
+        unit_cost: item.price.preco_unitario,
+        total_cost: item.price.total_cobrado,
         notes: `${item.locationName} — ${item.codigoTabela}`,
-      }));
+      };
 
-    if (newPersonalizations.length === 0) {
-      toast.error("Configure uma técnica com preço antes de adicionar");
-      return;
-    }
-
-    // Merge: replace by technique_id to avoid duplicates, keep others
-    const merged = [...confirmedPersonalizations];
-    newPersonalizations.forEach(np => {
-      const existingIdx = merged.findIndex(m => m.technique_id === np.technique_id && m.notes === np.notes);
+      // Replace existing by same locationCode (notes key) or techniqueId
+      const key = newP.notes!;
+      const existingIdx = updated.findIndex(m => m.notes === key || m.technique_id === newP.technique_id);
       if (existingIdx >= 0) {
-        merged[existingIdx] = np;
+        updated[existingIdx] = newP;
       } else {
-        merged.push(np);
+        updated.push(newP);
       }
     });
 
-    setConfirmedPersonalizations(merged);
-    onPersonalizationsChange(merged);
+    personalizationsRef.current = updated;
+    onPersonalizationsChange(updated);
+  }, [quantity, onPersonalizationsChange]);
 
-    const count = newPersonalizations.length;
-    toast.success(`${count} gravação(ões) adicionada(s) ao orçamento`);
-  }, [pendingItems, confirmedPersonalizations, onPersonalizationsChange]);
-
-  // Calculate pending total
-  const pendingTotal = pendingItems
-    .filter(item => item.price?.success)
-    .reduce((sum, item) => sum + (item.price?.total_cobrado ?? 0), 0);
-
-  const hasPendingPrices = pendingItems.some(item => item.price?.success);
+  const handleRemove = useCallback((idx: number) => {
+    const updated = personalizationsRef.current.filter((_, i) => i !== idx);
+    personalizationsRef.current = updated;
+    onPersonalizationsChange(updated);
+  }, [onPersonalizationsChange]);
 
   if (!productId) {
     return (
@@ -93,32 +90,64 @@ export function QuoteProductCustomization({
     );
   }
 
+  const confirmed = existingPersonalizations;
+  const confirmedTotal = confirmed.reduce((s, p) => s + (p.total_cost || 0), 0);
+
   return (
     <div className="space-y-4">
+      {/* Already-confirmed personalizations summary */}
+      {confirmed.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            Gravações adicionadas
+          </p>
+          {confirmed.map((p, i) => (
+            <div key={i} className="flex items-center justify-between gap-2 p-2 rounded-lg bg-primary/5 border border-primary/20">
+              <div className="flex items-center gap-2 min-w-0">
+                <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-xs font-semibold text-primary block truncate">{p.technique_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {p.width_cm && p.height_cm ? `${p.width_cm}×${p.height_cm}cm · ` : ""}
+                    {p.colors_count || 1} cor{(p.colors_count || 1) > 1 ? "es" : ""}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge variant="secondary" className="text-xs font-semibold">
+                  {fmt(p.total_cost || 0)}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                  onClick={() => handleRemove(i)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          ))}
+          <div className="flex justify-between text-xs text-muted-foreground pt-1 px-1">
+            <span>Total gravação:</span>
+            <span className="font-semibold text-primary">{fmt(confirmedTotal)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Configurador — auto-confirms on price calculation */}
       <ProductCustomizationOptions
         productId={productId}
         quantity={quantity}
         onSelectionChange={handleSelectionChange}
       />
 
-      {/* Botão Adicionar — aparece quando há preço calculado */}
-      {hasPendingPrices && (
-        <div className="flex items-center justify-between pt-3 border-t border-border/50">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CheckCircle2 className="h-4 w-4 text-primary" />
-            <span>
-              Prévia: <strong className="text-primary">R$ {pendingTotal.toFixed(2)}</strong>
-            </span>
-          </div>
-          <Button
-            onClick={handleAddClick}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold gap-2 px-6"
-          >
-            <Plus className="h-4 w-4" />
-            Adicionar
-          </Button>
-        </div>
+      {confirmed.length === 0 && (
+        <p className="text-xs text-center text-muted-foreground/70 pt-1">
+          Configure a técnica acima — o preço será adicionado automaticamente ao orçamento.
+        </p>
       )}
     </div>
   );
 }
+
