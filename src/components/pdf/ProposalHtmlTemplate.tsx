@@ -260,7 +260,7 @@ function ClientBar({ company, contact, cnpj }: { company: string; contact: strin
         </div>
         <div style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{company}</div>
         {cnpj && (
-          <div style={{ fontSize: "11px", color: "#666", marginTop: "3px" }}>CNPJ: {cnpj}</div>
+          <div style={{ fontSize: "11px", color: "#666", marginTop: "3px", fontWeight: 700 }}>CNPJ: {cnpj}</div>
         )}
       </div>
       {contact && (
