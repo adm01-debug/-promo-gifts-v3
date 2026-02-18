@@ -51,7 +51,6 @@ export function ProposalFooter({ data, isLastPage, pageNumber, totalPages }: Pro
         <div style={{ display: "flex", alignItems: "center", gap: "16px", paddingTop: "8px", marginBottom: "8px" }}>
           <ContactDot color="#333333" text={data.seller.phone || "00-00000-0000"} />
           <ContactDot color="#00c853" text="promobrindes.com" />
-          <ContactDot color="#00c853" text={data.seller.email || "comercial@promobrindes.com.br"} />
         </div>
 
         <div style={{ fontSize: "9px", fontWeight: 600, color: "#555", lineHeight: "1.3" }}>
