@@ -34,7 +34,7 @@ export function ProposalNotes({ data }: { data: ProposalTemplateData }) {
           {/* Pagamento */}
           <div>
             <div style={{ fontSize: "9px", fontWeight: 700, color: "#888", textTransform: "uppercase", marginBottom: "2px" }}>
-              💳 Pagamento
+              💳 Prazo de Pagamento
             </div>
             <div style={{ fontSize: "10px", color: "#333", fontWeight: 600, lineHeight: "1.4" }}>
               {paymentLabel || "À vista / Boleto / Pix"}
