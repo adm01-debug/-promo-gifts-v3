@@ -59,7 +59,9 @@ export function QuoteProductCustomization({
         setup_cost: item.price.setup_total,
         unit_cost: item.price.preco_unitario,
         total_cost: item.price.total_cobrado,
-        notes: `${item.locationName} — ${item.codigoTabela}`,
+        notes: item.width && item.height
+          ? `${item.locationName} — ${item.codigoTabela} | ${item.width}×${item.height}cm`
+          : `${item.locationName} — ${item.codigoTabela}`,
       };
 
       // Replace existing by same locationCode (notes key) or techniqueId

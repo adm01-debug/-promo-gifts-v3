@@ -481,10 +481,20 @@ export default function QuoteViewPage() {
                               {allPersonalizations.length > 0 ? (
                                 <div className="space-y-1.5">
                                   {allPersonalizations.map((p: any, pIdx: number) => {
-                                    // Extract location from notes field ("LocationName — codigoTabela")
-                                    const locationLabel = p.notes
-                                      ? p.notes.split(" — ")[0]
+                                    // Extract location and dimensions from notes field
+                                    // Format: "LocationName — codigoTabela | WxHcm"
+                                    const notesRaw = p.notes || "";
+                                    const [locationPart, dimPart] = notesRaw.split(" | ");
+                                    const locationLabel = locationPart
+                                      ? locationPart.split(" — ")[0]
                                       : null;
+                                    // Parse "3×4.7cm" or use width_cm/height_cm from state
+                                    let dimLabel: string | null = null;
+                                    if (dimPart) {
+                                      dimLabel = dimPart.replace("cm", " cm");
+                                    } else if (p.width_cm && p.height_cm) {
+                                      dimLabel = `${p.width_cm} × ${p.height_cm} cm`;
+                                    }
                                     return (
                                       <div key={pIdx} className={`${pIdx > 0 ? 'pt-1.5 border-t border-border/30' : ''}`}>
                                         <div className="inline-flex flex-col gap-0.5 bg-primary/8 border border-primary/20 rounded-md px-2 py-1.5">
@@ -495,9 +505,9 @@ export default function QuoteViewPage() {
                                             {locationLabel && (
                                               <span className="font-medium text-foreground/70">{locationLabel}</span>
                                             )}
-                                            {p.width_cm && p.height_cm ? (
-                                              <span className="font-medium text-foreground/80">{p.width_cm} × {p.height_cm} cm</span>
-                                            ) : null}
+                                            {dimLabel && (
+                                              <span className="font-medium text-foreground/80">{dimLabel}</span>
+                                            )}
                                             <span>{p.colors_count || 1} cor{(p.colors_count || 1) > 1 ? "es" : ""}</span>
                                           </div>
                                         </div>
