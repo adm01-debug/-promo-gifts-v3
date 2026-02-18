@@ -38,6 +38,7 @@ export interface ProposalTemplateData {
     phone?: string;
     company?: string;
     contactName?: string;
+    cnpj?: string;
   };
   seller: {
     name: string;
@@ -122,7 +123,7 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
 
         {/* ═══ CONTENT ═══ */}
         <div style={{ padding: "0 50px", flex: 1 }}>
-          <ClientBar company={company} contact={contact} />
+          <ClientBar company={company} contact={contact} cnpj={data.client.cnpj} />
           <ProductsTable items={data.items} />
           <TotalsSection data={data} />
           <NotesSection data={data} />
@@ -241,7 +242,7 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
 }
 
 /* ─── Client Bar ─── */
-function ClientBar({ company, contact }: { company: string; contact: string }) {
+function ClientBar({ company, contact, cnpj }: { company: string; contact: string; cnpj?: string }) {
   return (
     <div
       style={{
@@ -258,6 +259,9 @@ function ClientBar({ company, contact }: { company: string; contact: string }) {
           Empresa
         </div>
         <div style={{ fontWeight: 600, fontSize: "16px", color: "#222" }}>{company}</div>
+        {cnpj && (
+          <div style={{ fontSize: "11px", color: "#666", marginTop: "3px" }}>CNPJ: {cnpj}</div>
+        )}
       </div>
       {contact && (
         <div style={{ textAlign: "right" }}>

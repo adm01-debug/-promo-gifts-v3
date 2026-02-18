@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
+import { selectCrmById } from "@/lib/crm-db";
 
 import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
 import { ProposalHtmlTemplate, ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
@@ -50,6 +51,7 @@ export default function QuoteViewPage() {
   
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [clientCnpj, setClientCnpj] = useState<string | undefined>(undefined);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [approvalLink, setApprovalLink] = useState<string | null>(null);
   const whatsAppRef = useRef<HTMLButtonElement>(null);
@@ -64,6 +66,15 @@ export default function QuoteViewPage() {
     if (!id) return;
     const data = await fetchQuote(id);
     setQuote(data);
+    // Fetch CNPJ from company in CRM if client_id is available
+    if (data?.client_id) {
+      try {
+        const company = await selectCrmById<any>("companies", data.client_id);
+        if (company?.cnpj) setClientCnpj(company.cnpj);
+      } catch {
+        // CNPJ not found, keep undefined
+      }
+    }
   };
 
   const proposalData: ProposalTemplateData | null = useMemo(() => {
@@ -74,10 +85,10 @@ export default function QuoteViewPage() {
       validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "30 dias",
       client: {
         name: quote.client_company || quote.client_name || "Não especificado",
-        email: quote.client_email || undefined,
         phone: quote.client_phone || undefined,
         company: quote.client_company || undefined,
         contactName: quote.client_name || undefined,
+        cnpj: clientCnpj,
       },
       seller: {
         name: user?.email || "Vendedor",
@@ -116,7 +127,7 @@ export default function QuoteViewPage() {
       paymentTerms: quote.payment_terms || undefined,
       deliveryTime: quote.delivery_time || undefined,
     };
-  }, [quote, user]);
+  }, [quote, user, clientCnpj]);
 
   const handleDownloadPDF = async () => {
     if (!proposalData) return;
