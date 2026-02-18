@@ -10,6 +10,7 @@ export interface ProposalItemPersonalization {
   unit_cost?: number;
   setup_cost?: number;
   total_cost?: number;
+  notes?: string;
 }
 
 export interface ProposalItem {
