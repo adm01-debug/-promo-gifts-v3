@@ -26,6 +26,7 @@ import {
   Zap,
   PackagePlus,
   DollarSign,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -94,6 +95,7 @@ const navGroups: NavGroup[] = [
     icon: FileText,
     defaultOpen: false,
     items: [
+      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo" },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes" },
     ],
   },
