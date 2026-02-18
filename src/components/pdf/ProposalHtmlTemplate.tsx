@@ -4,6 +4,8 @@ export interface ProposalItemPersonalization {
   technique_name: string;
   material?: string;
   colors_count?: number;
+  width_cm?: number;
+  height_cm?: number;
   area_cm2?: number;
   unit_cost?: number;
   setup_cost?: number;

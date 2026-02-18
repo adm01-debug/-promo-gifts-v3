@@ -92,6 +92,8 @@ export default function QuoteViewPage() {
         personalizations: item.personalizations?.map((p: any) => ({
           technique_name: p.technique_name || "Personalizacao",
           colors_count: p.colors_count || 1,
+          width_cm: p.width_cm || undefined,
+          height_cm: p.height_cm || undefined,
           area_cm2: p.area_cm2 || undefined,
           unit_cost: p.unit_cost || 0,
           setup_cost: p.setup_cost || 0,
