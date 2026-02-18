@@ -185,6 +185,8 @@ export default function QuoteBuilderPage() {
       technique_name: p.technique?.name || '',
       colors_count: p.specs?.colors || 1,
       positions_count: 1,
+      width_cm: p.specs?.width || undefined,
+      height_cm: p.specs?.height || undefined,
       area_cm2: (p.specs?.width || 0) * (p.specs?.height || 0),
       setup_cost: p.pricing?.setupPrice || 0,
       unit_cost: p.pricing?.unitPrice || 0,

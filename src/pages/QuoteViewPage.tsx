@@ -481,22 +481,22 @@ export default function QuoteViewPage() {
                               {allPersonalizations.length > 0 ? (
                                 <div className="space-y-1.5">
                                   {allPersonalizations.map((p: any, pIdx: number) => (
-                                    <div key={pIdx} className={`space-y-0.5 ${pIdx > 0 ? 'pt-1.5 border-t border-border/30' : ''}`}>
-                                      <span className="text-sm font-medium">
-                                        {p.technique_name}
-                                      </span>
-                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        {p.width_cm && p.height_cm && (
-                                          <span>{p.width_cm}x{p.height_cm}cm</span>
-                                        )}
-                                        <span>
-                                          {p.colors_count || 1} cor{(p.colors_count || 1) > 1 ? "es" : ""}
+                                    <div key={pIdx} className={`${pIdx > 0 ? 'pt-1.5 border-t border-border/30' : ''}`}>
+                                      <div className="inline-flex flex-col gap-0.5 bg-primary/8 border border-primary/20 rounded-md px-2 py-1.5">
+                                        <span className="text-xs font-semibold text-primary flex items-center gap-1">
+                                          ✦ {p.technique_name}
                                         </span>
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                          {p.width_cm && p.height_cm ? (
+                                            <span className="font-medium text-foreground/80">{p.width_cm} × {p.height_cm} cm</span>
+                                          ) : null}
+                                          <span>{p.colors_count || 1} cor{(p.colors_count || 1) > 1 ? "es" : ""}</span>
+                                        </div>
                                       </div>
                                     </div>
                                   ))}
                                 </div>
-                              ) : "-"}
+                              ) : <span className="text-muted-foreground text-sm">—</span>}
                             </td>
                           )}
                           <td className="p-3 text-center font-medium">{item.quantity}</td>
