@@ -168,16 +168,16 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         top: "0",
         left: "24px",
         bottom: `${barH}px`,
-        width: "270px",
+        width: "324px",
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-start",
-        padding: "16px 14px",
+        padding: "12px 14px",
       }}>
         <img
           src="/images/promo-brindes-logo.png"
           alt="Promo Brindes"
-          style={{ width: "100%", display: "block" }}
+          style={{ width: "100%", height: "auto", display: "block", imageRendering: "crisp-edges" }}
           crossOrigin="anonymous"
         />
       </div>

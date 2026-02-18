@@ -61,13 +61,13 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         top: "0",
         left: "24px",
         bottom: `${barH}px`,
-        width: "270px",
+        width: "324px",
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-start",
-        padding: "16px 14px",
+        padding: "12px 14px",
       }}>
-        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", display: "block", filter: "brightness(0) invert(1)" }} crossOrigin="anonymous" />
+        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", height: "auto", display: "block", imageRendering: "crisp-edges", filter: "brightness(0) invert(1)" }} crossOrigin="anonymous" />
       </div>
 
       <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-60%)" }}>
