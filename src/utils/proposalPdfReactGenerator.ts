@@ -30,7 +30,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
       root.render(
         React.createElement(PropostaComercialTailwind, { data, ref: templateRef, isDraft: options?.isDraft || false })
       );
-      setTimeout(resolve, 1200);
+      setTimeout(resolve, 2500); // extra time for LogoWithTransparentBg canvas processing
     });
 
     const wrapper = templateRef.current || container.firstElementChild as HTMLElement;

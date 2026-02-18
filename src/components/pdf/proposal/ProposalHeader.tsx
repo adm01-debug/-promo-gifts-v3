@@ -1,5 +1,6 @@
 import React from "react";
 import type { ProposalTemplateData } from "../ProposalHtmlTemplate";
+import { LogoWithTransparentBg } from "./LogoWithTransparentBg";
 
 interface Props {
   data: ProposalTemplateData;
@@ -16,11 +17,10 @@ export function ProposalHeader({ data, isContinuation }: Props) {
           <rect x="0" y="58" width="794" height="6" fill="#00c853" />
         </svg>
         <div style={{ position: "relative", zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 36px", height: "64px" }}>
-          <img
+          <LogoWithTransparentBg
             src="/images/promo-brindes-logo.png"
             alt="Promo Brindes"
-            style={{ height: "30px", display: "block", filter: "brightness(0) invert(1)" }}
-            crossOrigin="anonymous"
+            style={{ height: "30px", display: "block" }}
           />
           <div style={{ textAlign: "right", color: "#fff", display: "flex", alignItems: "center", gap: "16px" }}>
             <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", opacity: 0.6 }}>
@@ -67,7 +67,11 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         justifyContent: "flex-start",
         padding: "12px 14px",
       }}>
-        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", height: "auto", display: "block", imageRendering: "high-quality" as React.CSSProperties["imageRendering"], mixBlendMode: "multiply" }} crossOrigin="anonymous" />
+        <LogoWithTransparentBg
+          src="/images/promo-brindes-logo.png"
+          alt="Promo Brindes"
+          style={{ width: "100%", height: "auto", display: "block" }}
+        />
       </div>
 
       <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "32px", transform: "translateY(-60%)" }}>
