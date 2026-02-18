@@ -17,6 +17,7 @@ export interface ProposalItem {
   name: string;
   sku?: string;
   composedCode?: string;
+  colorHex?: string;
   description?: string;
   quantity: number;
   unitPrice: number;

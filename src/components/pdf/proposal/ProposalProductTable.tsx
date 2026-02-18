@@ -131,22 +131,32 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               )}
               {/* Description */}
               <td style={{ padding: "8px 10px", verticalAlign: "middle" }}>
-                {(item.composedCode || item.sku) && (
-                  <span style={{
-                    display: "inline-block",
-                    background: "#2e7d32",
-                    color: "#fff",
-                    fontSize: "9px",
-                    padding: "2px 6px",
-                    borderRadius: "3px",
-                    fontWeight: 700,
-                    fontFamily: "'Roboto Mono', monospace",
-                    whiteSpace: "nowrap",
-                    marginBottom: "4px",
-                  }}>
-                    {item.composedCode || item.sku}
-                  </span>
-                )}
+                {(item.composedCode || item.sku) && (() => {
+                  const bgColor = item.colorHex || "#2e7d32";
+                  // Determine text color based on luminance
+                  const hex = bgColor.replace("#", "");
+                  const r = parseInt(hex.substring(0, 2), 16);
+                  const g = parseInt(hex.substring(2, 4), 16);
+                  const b = parseInt(hex.substring(4, 6), 16);
+                  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                  const textColor = luminance > 0.5 ? "#1a1a1a" : "#ffffff";
+                  return (
+                    <span style={{
+                      display: "inline-block",
+                      background: bgColor,
+                      color: textColor,
+                      fontSize: "9px",
+                      padding: "2px 6px",
+                      borderRadius: "3px",
+                      fontWeight: 700,
+                      fontFamily: "'Roboto Mono', monospace",
+                      whiteSpace: "nowrap",
+                      marginBottom: "4px",
+                    }}>
+                      {item.composedCode || item.sku}
+                    </span>
+                  );
+                })()}
                 <div style={{ fontWeight: 800, color: "#111", fontSize: "13px", lineHeight: "1.3", marginBottom: "2px" }}>
                   {item.name}
                 </div>
