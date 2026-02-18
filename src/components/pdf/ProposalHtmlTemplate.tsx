@@ -137,12 +137,14 @@ ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";
 
 /* ─── Header ─── */
 function HeaderSection({ data }: { data: ProposalTemplateData }) {
-  const H = 155;
+  const H = 160;
   const W = 794;
-  const t1 = 305;
-  const t2 = 338;
-  const b2 = 392;
-  const b1 = 358;
+  const t1 = 318;
+  const t2 = 348;
+  const b1 = 370;
+  const b2 = 402;
+  const barH = 8; // green bottom bar height
+  const frameBottom = H - barH; // frame must sit above the green bar
 
   return (
     <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0, marginBottom: "16px" }}>
@@ -150,22 +152,76 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
         <rect x="0" y="0" width={W} height={H} fill="#ffffff" />
         <polygon points={`${t2},0 ${W},0 ${W},${H} ${b2},${H}`} fill="#2d2d2d" />
         <polygon points={`${t1},0 ${t2},0 ${b2},${H} ${b1},${H}`} fill="#00c853" />
-        <rect x="0" y={H - 7} width={b1 + 2} height="7" fill="#00c853" />
+        {/* Green bottom bar on white area — sits below the logo frame */}
+        <rect x="0" y={frameBottom} width={t1} height={barH} fill="#00c853" />
       </svg>
 
-      <div style={{ position: "absolute", zIndex: 10, top: "50%", left: "36px", transform: "translateY(-50%)", width: "230px" }}>
-        <img src="/images/promo-brindes-logo.png" alt="Promo Brindes" style={{ width: "100%", display: "block" }} crossOrigin="anonymous" />
+      {/* Logo with rectangular frame — sits above green bar */}
+      <div style={{
+        position: "absolute",
+        zIndex: 10,
+        top: "10px",
+        left: "24px",
+        bottom: `${barH + 6}px`,
+        width: "270px",
+        border: "2px solid #1a1a1a",
+        backgroundColor: "#ffffff",
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "8px 14px",
+      }}>
+        <img
+          src="/images/promo-brindes-logo.png"
+          alt="Promo Brindes"
+          style={{ width: "100%", display: "block" }}
+          crossOrigin="anonymous"
+        />
       </div>
 
-      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "50%", right: "36px", transform: "translateY(-50%)" }}>
-        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "24px", textTransform: "uppercase", letterSpacing: "2px", margin: "0 0 6px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
+      {/* Title block — right side */}
+      <div style={{
+        position: "absolute",
+        zIndex: 10,
+        textAlign: "right",
+        color: "#ffffff",
+        top: "50%",
+        right: "32px",
+        transform: "translateY(-50%)",
+      }}>
+        <p style={{
+          fontFamily: "'Montserrat', sans-serif",
+          fontWeight: 900,
+          fontSize: "26px",
+          textTransform: "uppercase",
+          letterSpacing: "2.5px",
+          margin: "0 0 6px 0",
+          lineHeight: 1,
+          whiteSpace: "nowrap",
+        }}>
           Proposta Comercial
         </p>
-        <p style={{ fontSize: "12px", opacity: 0.85, fontWeight: 400, lineHeight: "1.6", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif" }}>
+        <p style={{
+          fontSize: "12px",
+          opacity: 0.9,
+          fontWeight: 400,
+          lineHeight: "1.7",
+          margin: 0,
+          fontVariantNumeric: "tabular-nums",
+          fontFamily: "'Montserrat', sans-serif",
+        }}>
           Nº {data.quoteNumber} • {data.date}
         </p>
         {data.validUntil && (
-          <p style={{ fontSize: "11px", opacity: 0.65, fontWeight: 400, lineHeight: "1.5", marginTop: "2px", fontFamily: "'Montserrat', sans-serif" }}>
+          <p style={{
+            fontSize: "11px",
+            opacity: 0.7,
+            fontWeight: 400,
+            lineHeight: "1.5",
+            marginTop: "2px",
+            fontFamily: "'Montserrat', sans-serif",
+          }}>
             Válida até {data.validUntil}
           </p>
         )}
