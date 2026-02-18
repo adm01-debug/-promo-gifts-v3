@@ -32,7 +32,7 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
           <tr>
             <th style={{ ...thBase, textAlign: "center", width: "40px", borderRadius: "6px 0 0 0" }}>#</th>
             {hasAnyImage && (
-              <th style={{ ...thBase, textAlign: "center", width: "95px" }}>Foto</th>
+              <th style={{ ...thBase, textAlign: "center", width: "120px" }}>Foto</th>
             )}
             <th style={{ ...thBase, textAlign: "left" }}>Descrição do Produto</th>
             <th style={{ ...thBase, textAlign: "center", width: "50px" }}>Qtd.</th>
@@ -81,15 +81,15 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
               </td>
               {/* Image — conditional column */}
               {hasAnyImage && (
-                <td style={{ padding: "6px", textAlign: "center", verticalAlign: "middle", width: "95px" }}>
+                <td style={{ padding: "6px", textAlign: "center", verticalAlign: "middle", width: "120px" }}>
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
                       alt={item.name}
                       crossOrigin="anonymous"
                       style={{
-                        width: "80px",
-                        height: "80px",
+                        width: "106px",
+                        height: "106px",
                         objectFit: "contain",
                         borderRadius: "6px",
                         border: "1px solid #e8e8e8",
@@ -99,8 +99,8 @@ export function ProposalProductTable({ items, showHeader = true, startIndex = 0 
                     />
                   ) : (
                     <div style={{
-                      width: "80px",
-                      height: "80px",
+                      width: "106px",
+                      height: "106px",
                       backgroundColor: "#f5f5f5",
                       borderRadius: "6px",
                       border: "1px solid #eee",
