@@ -9,10 +9,10 @@ import { ProposalFooter } from "./proposal/ProposalFooter";
 
 const PAGE_W = 794;
 const PAGE_H = 1123;
-const FIRST_HEADER_H = 160;
+const FIRST_HEADER_H = 128;
 const CONT_HEADER_H = 60;
-const FULL_FOOTER_H = 140;
-const SIMPLE_FOOTER_H = 40;
+const FULL_FOOTER_H = 30;
+const SIMPLE_FOOTER_H = 30;
 const CONTENT_PAD = 36;
 const CLIENT_BAR_H = 90;
 const TOTALS_H = 160;
