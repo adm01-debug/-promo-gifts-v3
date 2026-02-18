@@ -68,10 +68,11 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         left: "50px",
         bottom: `${barH}px`,
         width: "234px",
-        paddingTop: "34px",
-        paddingLeft: "14px",
-        paddingRight: "14px",
-        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        padding: "10px 14px",
       }}>
         <LogoWithTransparentBg
           src="/images/promo-brindes-logo-v2.png"
