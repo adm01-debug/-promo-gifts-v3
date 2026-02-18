@@ -6,38 +6,36 @@ export function ProposalClientBar({ data }: { data: ProposalTemplateData }) {
   const contact = data.client.contactName || "";
 
   return (
-    <table style={{
-      width: "100%",
-      borderCollapse: "collapse",
+    <div style={{
       backgroundColor: "#f8f9fa",
+      padding: "10px 18px",
       marginTop: "12px",
       marginBottom: "14px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
       borderRadius: "6px",
     }}>
-      <tbody>
-        <tr>
-          <td style={{ padding: "10px 18px", verticalAlign: "top" }}>
-            <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>
-              Empresa
-            </div>
-            <div style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a" }}>{company}</div>
-            {data.client.cnpj && (
-              <div style={{ fontSize: "11px", color: "#666", marginTop: "3px", fontWeight: 700 }}>CNPJ: {data.client.cnpj}</div>
-            )}
-            {data.client.phone && (
-              <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>Tel: {data.client.phone}</div>
-            )}
-          </td>
-          {contact && (
-            <td style={{ padding: "10px 18px", verticalAlign: "top", textAlign: "right" }}>
-              <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "4px" }}>
-                Solicitante
-              </div>
-              <div style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a" }}>{contact}</div>
-            </td>
-          )}
-        </tr>
-      </tbody>
-    </table>
+      <div>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
+          Empresa
+        </p>
+        <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{company}</p>
+        {data.client.cnpj && (
+          <p style={{ fontSize: "11px", color: "#666", margin: "3px 0 0 0", fontWeight: 700 }}>CNPJ: {data.client.cnpj}</p>
+        )}
+        {data.client.phone && (
+          <p style={{ fontSize: "11px", color: "#666", margin: "2px 0 0 0" }}>☎ {data.client.phone}</p>
+        )}
+      </div>
+      {contact && (
+        <div style={{ textAlign: "right" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
+            Solicitante
+          </p>
+          <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{contact}</p>
+        </div>
+      )}
+    </div>
   );
 }
