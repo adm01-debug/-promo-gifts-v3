@@ -184,14 +184,14 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group",
           "hover:bg-orange/10 hover:text-orange",
-          isActive && "bg-orange text-orange-foreground font-medium shadow-sm",
+          isActive && "bg-orange/15 text-orange font-medium",
           !isActive && "text-sidebar-foreground/80"
         )}
         onClick={() => isOpen && onToggle()}
       >
         <Icon className={cn(
           "h-4 w-4 shrink-0 transition-colors",
-          isActive ? "text-orange-foreground" : "group-hover:text-orange"
+          isActive ? "text-orange" : "group-hover:text-orange"
         )} />
         {!isCollapsed && (
           <span className="truncate">{item.label}</span>
