@@ -251,35 +251,12 @@ export function PdfGenerationDialog({
               </div>
 
               {/* Action Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-lg">
+              <div className="flex justify-center w-full max-w-lg">
                 <ActionButton
                   icon={<Download className="h-5 w-5" />}
                   label="Baixar"
                   onClick={handleDownload}
                   variant="primary"
-                />
-                <ActionButton
-                  icon={<MessageCircle className="h-5 w-5" />}
-                  label="WhatsApp"
-                  onClick={() => {
-                    handleDownload();
-                    onWhatsApp?.();
-                  }}
-                  variant="whatsapp"
-                />
-                <ActionButton
-                  icon={<Mail className="h-5 w-5" />}
-                  label="Email"
-                  onClick={() => {
-                    handleDownload();
-                    handleEmail();
-                  }}
-                />
-                <ActionButton
-                  icon={<Link2 className="h-5 w-5" />}
-                  label="Copiar Link"
-                  onClick={onShareLink}
-                  disabled={!onShareLink}
                 />
               </div>
 
