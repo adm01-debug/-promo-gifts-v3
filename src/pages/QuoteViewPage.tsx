@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Building2, Copy, CreditCard, Download, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, Truck, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, Truck, User, UserPlus } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -269,6 +269,10 @@ export default function QuoteViewPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${id}/editar`)}>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Editar
+                </DropdownMenuItem>
                 <Sheet>
                   <SheetTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
