@@ -48,11 +48,11 @@ serve(async (req) => {
       console.warn(`sellerEmail "${sellerEmail}" não encontrado no SELLER_EMAIL_MAP — orçamento enviado sem seller_id`);
     }
 
-    // ── 3. Resolve company_id (Bitrix numeric) ───────────────────────────────
+    // ── 3. Resolve company_id (Bitrix numeric) — OBRIGATÓRIO (Spec v3.2) ────
     // bitrixCompanyId comes from companies.bitrix_id (string like "125240")
     const companyId = bitrixCompanyId ? parseInt(bitrixCompanyId, 10) : null;
-    if (!companyId) {
-      console.warn("No Bitrix company_id resolved — proceeding without it (test mode)");
+    if (!companyId || !Number.isFinite(companyId) || companyId <= 0) {
+      throw new Error("company_id (Bitrix) é obrigatório. Verifique se a empresa possui vínculo com o Bitrix24.");
     }
 
     // ── 4. REMOVIDO: bitrix_quote_id não é mais enviado no payload ───────────
@@ -158,14 +158,15 @@ serve(async (req) => {
       quote?.client_company ||
       "Cliente";
 
+    // Spec v3.2: title = "Orçamento - NomeEmpresa - BitrixCompanyId"
     const payload: Record<string, unknown> = {
-      title: `Orçamento - ${clientName}`,
+      title: `Orçamento - ${clientName} - ${companyId}`,
       products,
     };
 
     // Only include optional fields when resolved
     if (sellerId) payload.seller_id = sellerId;
-    if (companyId) payload.company_id = companyId;
+    payload.company_id = companyId; // Obrigatório (Spec v3.2)
 
     // Spec v3: quote_id = código interno do gifts-store (ex: "10001/26")
     // O n8n busca no campo UF_CRM_QUOTE_1771506036 para criar ou atualizar
