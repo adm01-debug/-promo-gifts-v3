@@ -481,6 +481,7 @@ export default function QuoteViewPage() {
               createdAt={quote.created_at}
               updatedAt={quote.updated_at}
               clientResponseAt={quote.client_response_at}
+              isSyncing={isSyncing}
             />
           </div>
           <QuoteValidityBanner validUntil={quote.valid_until} status={quote.status} />
