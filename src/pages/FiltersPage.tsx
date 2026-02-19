@@ -34,14 +34,12 @@ import { toast } from "sonner";
 
 export default function FiltersPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isFavorite, toggleFavorite } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   
   // Buscar produtos reais do banco de dados
   const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
-  
-  const [searchParams, setSearchParams] = useSearchParams();
   const isInitialMount = useRef(true);
 
   // #22 Deep linking: deserialize filters from URL on mount
@@ -754,9 +752,8 @@ export default function FiltersPage() {
         {/* Main content */}
         <div className="flex gap-6">
           {/* Sidebar - Desktop with sticky footer (#24) */}
-          <aside className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-20 flex flex-col max-h-[calc(100vh-10rem)]">
-              <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 space-y-4">
+          <aside className="hidden lg:flex lg:flex-col w-80 shrink-0 sticky top-20 max-h-[calc(100vh-6rem)] self-start">
+              <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin pr-2 space-y-4">
                 <FilterPanel
                   filters={filters}
                   onFilterChange={handleFilterChange}
@@ -790,7 +787,6 @@ export default function FiltersPage() {
                   )}
                 </div>
               )}
-            </div>
           </aside>
 
           {/* Products area - alinhado com a sidebar */}
