@@ -317,6 +317,8 @@ export default function QuoteViewPage() {
           </div>
 
           {/* Primary CTAs + Dropdown for secondary (#1) */}
+          <div className="flex items-center gap-2">
+            {/* Desktop-only buttons */}
             <div className="hidden md:flex items-center gap-2">
             <QuoteConvertToOrder quoteId={id!} status={quote.status} />
 
@@ -749,6 +751,8 @@ export default function QuoteViewPage() {
       <QuoteMobileActionBar
         onDownloadPDF={handleDownloadPDF}
         onWhatsApp={handleWhatsAppShare}
+        onSync={handleSyncBitrix}
+        isSyncing={isSyncing}
         onShare={handleShareLink}
         isGeneratingPDF={isGeneratingPDF}
       />
