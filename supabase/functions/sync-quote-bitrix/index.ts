@@ -1,46 +1,88 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// Full CORS headers required by Supabase web clients
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+// Mapping: seller email → Bitrix24 numeric seller_id
+const SELLER_EMAIL_MAP: Record<string, number> = {
+  "comercial01@promobrindes.com.br": 8,
+  "henrique.silva@promobrindes.com.br": 10,
+  "comercial03@promobrindes.com.br": 16,
+  "comercial04@promobrindes.com.br": 5174,
+  "comercial06@promobrindes.com.br": 5176,
+  "comercial05@promobrindes.com.br": 5180,
+  "comercial07@promobrindes.com.br": 16558,
 };
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const body = await req.json();
-    const { quote, proposalData, pdfBase64, filename } = body;
+    const {
+      quote,
+      proposalData,
+      pdfBase64,
+      filename,
+      bitrixCompanyId,  // companies.bitrix_id — numeric string (e.g. "125240")
+      sellerEmail,      // authenticated user email for seller mapping
+    } = body;
 
+    // ── 1. Validate webhook URL ──────────────────────────────────────────────
     const webhookUrl = Deno.env.get("N8N_QUOTE_WEBHOOK_URL");
     if (!webhookUrl) {
-      throw new Error("N8N_QUOTE_WEBHOOK_URL não configurado");
+      throw new Error("N8N_QUOTE_WEBHOOK_URL não configurado nos secrets");
     }
 
-    // Build the payload according to the Bitrix24 API spec
+    // ── 2. Resolve seller_id ─────────────────────────────────────────────────
+    // Priority: email passed from frontend → undefined (n8n test mode uses default)
+    const sellerId = sellerEmail ? SELLER_EMAIL_MAP[sellerEmail] : undefined;
+
+    // ── 3. Resolve company_id (Bitrix numeric) ───────────────────────────────
+    // bitrixCompanyId comes from companies.bitrix_id (string like "125240")
+    const companyId = bitrixCompanyId ? parseInt(bitrixCompanyId, 10) : null;
+    if (!companyId) {
+      console.warn("No Bitrix company_id resolved — proceeding without it (test mode)");
+    }
+
+    // ── 4. Resolve bitrix_quote_id (for update mode) ─────────────────────────
+    // quote.bitrix_quote_id is stored in the CRM quotes table
+    const bitrixQuoteId = quote?.bitrix_quote_id
+      ? parseInt(String(quote.bitrix_quote_id), 10)
+      : undefined;
+
+    // ── 5. Build products array ──────────────────────────────────────────────
+    // offer_id is null if not mapped — n8n handles this gracefully
     const products = (proposalData?.items || []).map((item: any) => {
       const product: any = {
-        offer_id: item.offerId || null, // will be null if not mapped
+        offer_id: item.offerId || item.bitrix_offer_id || null,
         product_name: item.name || item.product_name || "Produto",
-        sku: item.sku || item.composedCode || "",
-        price: item.unitPrice || item.unit_price || 0,
-        quantity: item.quantity || 1,
+        sku: item.sku || item.composedCode || item.product_sku || "",
+        price: Number(item.unitPrice ?? item.unit_price ?? 0),
+        quantity: Number(item.quantity ?? 1),
       };
 
       // Map first personalization as engraving if present
-      const personalization = item.personalizations?.[0];
-      if (personalization) {
-        const sizeStr = personalization.width_cm && personalization.height_cm
-          ? `${personalization.width_cm}x${personalization.height_cm}cm`
-          : personalization.area_cm2
-            ? `${personalization.area_cm2}cm²`
+      const pers = item.personalizations?.[0];
+      if (pers) {
+        const sizeStr = pers.width_cm && pers.height_cm
+          ? `${pers.width_cm}x${pers.height_cm}cm`
+          : pers.area_cm2
+            ? `${pers.area_cm2}cm²`
             : "";
         product.engraving = {
-          type: personalization.technique_name || "Personalização",
-          unit_price: personalization.unit_cost || 0,
-          total_price: personalization.total_cost || (personalization.unit_cost || 0) * (item.quantity || 1),
+          type: pers.technique_name || "Personalização",
+          unit_price: Number(pers.unit_cost ?? 0),
+          total_price: Number(
+            pers.total_cost ?? (pers.unit_cost ?? 0) * (item.quantity ?? 1)
+          ),
           size: sizeStr,
         };
       }
@@ -48,67 +90,76 @@ serve(async (req) => {
       return product;
     });
 
-    // Build seller_id from seller info if available
-    // Mapping: seller email → Bitrix24 seller_id
-    const sellerEmailMap: Record<string, number> = {
-      "comercial01@promobrindes.com.br": 8,
-      "henrique.silva@promobrindes.com.br": 10,
-      "comercial03@promobrindes.com.br": 16,
-      "comercial04@promobrindes.com.br": 5174,
-      "comercial06@promobrindes.com.br": 5176,
-      "comercial05@promobrindes.com.br": 5180,
-      "comercial07@promobrindes.com.br": 16558,
-    };
+    // ── 6. Assemble final payload ────────────────────────────────────────────
+    const clientName =
+      proposalData?.client?.company ||
+      proposalData?.client?.name ||
+      quote?.client_company ||
+      "Cliente";
 
-    const sellerEmail = proposalData?.seller?.email || quote?.seller_email || "";
-    const sellerId = sellerEmailMap[sellerEmail] || undefined;
-
-    // Extract Bitrix24 company_id from quote metadata
-    const companyId = quote?.bitrix_company_id || quote?.client_bitrix_id || null;
-    const contactId = quote?.bitrix_contact_id || null;
-    const bitrixQuoteId = quote?.bitrix_quote_id || null;
-
-    const payload: any = {
-      title: `Orçamento - ${proposalData?.client?.company || proposalData?.client?.name || quote?.client_company || "Cliente"}`,
-      company_id: companyId,
+    const payload: Record<string, unknown> = {
+      title: `Orçamento - ${clientName}`,
       products,
     };
 
+    // Only include optional fields when resolved
     if (sellerId) payload.seller_id = sellerId;
-    if (contactId) payload.contact_id = contactId;
+    if (companyId) payload.company_id = companyId;
     if (bitrixQuoteId) payload.quote_id = bitrixQuoteId;
 
-    // Attach PDF if provided
-    if (pdfBase64 && filename) {
-      payload.pdf = {
-        filename,
-        content: pdfBase64,
-      };
+    // Contact (numeric Bitrix contact_id if available)
+    if (quote?.bitrix_contact_id) {
+      const cId = parseInt(String(quote.bitrix_contact_id), 10);
+      if (!isNaN(cId)) payload.contact_id = cId;
     }
 
-    console.log("Sending payload to n8n:", JSON.stringify({ ...payload, pdf: payload.pdf ? { filename: payload.pdf.filename, content: "[base64...]" } : undefined }));
+    // Attach PDF if generated successfully
+    if (pdfBase64 && filename) {
+      payload.pdf = { filename, content: pdfBase64 };
+    }
 
+    // ── 7. Log (mask PDF content) ────────────────────────────────────────────
+    console.log("Sending to n8n:", JSON.stringify({
+      ...payload,
+      pdf: payload.pdf ? { filename: (payload.pdf as any).filename, content: "[base64 omitted]" } : undefined,
+      products_count: products.length,
+      seller_email_input: sellerEmail,
+      bitrix_company_id_input: bitrixCompanyId,
+    }));
+
+    // ── 8. Call n8n webhook ──────────────────────────────────────────────────
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const result = await response.json();
-    console.log("n8n response:", result);
+    let result: unknown;
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      result = await response.json();
+    } else {
+      // n8n sometimes returns plain text on error
+      const text = await response.text();
+      result = { raw: text };
+    }
+
+    console.log("n8n response status:", response.status, "body:", JSON.stringify(result));
 
     if (!response.ok) {
-      throw new Error(result.error || `Erro HTTP ${response.status}`);
+      const errMsg = (result as any)?.error || (result as any)?.raw || `HTTP ${response.status}`;
+      throw new Error(errMsg);
     }
 
     return new Response(JSON.stringify({ success: true, result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
-  } catch (error: any) {
-    console.error("sync-quote-bitrix error:", error);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("sync-quote-bitrix error:", message);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
