@@ -61,8 +61,13 @@ serve(async (req) => {
     // ── 5. Build products array ──────────────────────────────────────────────
     // offer_id is null if not mapped — n8n handles this gracefully
     const products = (proposalData?.items || []).map((item: any) => {
+      // Priority: bitrix_product_id (Bitrix24 numeric product ID) → legacy fallbacks
+      const offerId = item.bitrix_product_id
+        ? Number(item.bitrix_product_id)
+        : item.offerId || item.bitrix_offer_id || null;
+
       const product: any = {
-        offer_id: item.offerId || item.bitrix_offer_id || null,
+        offer_id: offerId,
         product_name: item.name || item.product_name || "Produto",
         sku: item.sku || item.composedCode || item.product_sku || "",
         price: Number(item.unitPrice ?? item.unit_price ?? 0),
