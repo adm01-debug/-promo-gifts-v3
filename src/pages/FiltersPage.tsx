@@ -614,17 +614,38 @@ export default function FiltersPage() {
                     )}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-80 overflow-y-auto">
-                  <SheetHeader>
+                <SheetContent side="left" className="w-80 flex flex-col p-0">
+                  <SheetHeader className="px-6 pt-6 pb-2">
                     <SheetTitle>Filtros</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-6">
+                  <div className="flex-1 overflow-y-auto px-6 pb-4">
                     <FilterPanel
                       filters={filters}
                       onFilterChange={handleFilterChange}
                       onReset={handleReset}
                       activeFiltersCount={activeFiltersCount}
                     />
+                  </div>
+                  <div className="sticky bottom-0 border-t bg-background px-6 py-3 flex gap-2">
+                    {activeFiltersCount > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          handleReset();
+                        }}
+                        className="text-xs"
+                      >
+                        Limpar ({activeFiltersCount})
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => setMobileFiltersOpen(false)}
+                    >
+                      Ver {filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''}
+                    </Button>
                   </div>
                 </SheetContent>
               </Sheet>
