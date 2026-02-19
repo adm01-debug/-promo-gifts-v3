@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem, Building2, Gift, Palette, Sparkles, Filter, Paintbrush, Clock, Tag } from "lucide-react";
 import { toTitleCase } from "@/lib/textUtils";
 import { Button } from "@/components/ui/button";
@@ -184,28 +184,37 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     }
   }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes, materialGroups, allMaterials]);
 
+  // Ref para rastrear se filtros externos já tiveram valores (para distinguir reset de estado inicial)
+  const prevMaterialFiltersRef = useRef<{ groups: string[]; types: string[] }>({ groups: [], types: [] });
+
   // Sincronizar seleção de materiais do hook interno com o FilterState externo
   useEffect(() => {
     const currentMaterialGroups = filters.materialGroups || [];
     const currentMaterialTypes = filters.materialTypes || [];
     
-    // CRÍTICO: nunca mutar arrays do state com .sort() (isso causa UI “bugada” e toggles instáveis)
+    // CRÍTICO: nunca mutar arrays do state com .sort() (isso causa UI "bugada" e toggles instáveis)
     const groupsChanged = JSON.stringify(stableSorted(currentMaterialGroups)) !== JSON.stringify(stableSorted(materialFilterState.selectedGroups));
     const typesChanged = JSON.stringify(stableSorted(currentMaterialTypes)) !== JSON.stringify(stableSorted(materialFilterState.selectedTypes));
     
     if (groupsChanged || typesChanged) {
-      // Se filtros externos foram limpos (reset), sincronizar hook interno
-      if (currentMaterialGroups.length === 0 && currentMaterialTypes.length === 0 &&
-          (materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0)) {
+      // Se filtros externos foram limpos (reset explícito: antes tinham valores, agora estão vazios)
+      const wasExternallyReset = 
+        currentMaterialGroups.length === 0 && currentMaterialTypes.length === 0 &&
+        (prevMaterialFiltersRef.current.groups.length > 0 || prevMaterialFiltersRef.current.types.length > 0);
+      
+      if (wasExternallyReset && (materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0)) {
         clearMaterialFilters();
-        return;
+      } else {
+        onFilterChange({
+          ...filters,
+          materialGroups: materialFilterState.selectedGroups,
+          materialTypes: materialFilterState.selectedTypes,
+        });
       }
-      onFilterChange({
-        ...filters,
-        materialGroups: materialFilterState.selectedGroups,
-        materialTypes: materialFilterState.selectedTypes,
-      });
     }
+    
+    // Atualizar ref com estado atual
+    prevMaterialFiltersRef.current = { groups: currentMaterialGroups, types: currentMaterialTypes };
   }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes, filters.materialGroups, filters.materialTypes]);
 
   const toggleSection = (section: string) => {
