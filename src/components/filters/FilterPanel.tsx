@@ -272,7 +272,10 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
     return (
       <Collapsible open={isOpen} onOpenChange={() => toggleSection(id)}>
-        <CollapsibleTrigger className="flex items-center justify-between w-full py-3 text-sm font-medium hover:text-primary transition-colors">
+        <CollapsibleTrigger className={cn(
+          "flex items-center justify-between w-full py-3 text-sm font-medium transition-colors",
+          isOpen ? "text-primary" : "text-foreground hover:text-primary"
+        )}>
           <div className="flex items-center gap-2">
             {icon}
             <span>{title}</span>
