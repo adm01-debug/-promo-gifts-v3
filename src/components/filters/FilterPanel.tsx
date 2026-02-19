@@ -29,8 +29,6 @@ import { ColorFilterSelection } from "./ColorGroupFilter";
 import { InlineColorGroupFilter } from "./InlineColorGroupFilter";
 import { ExternalCategoryFilter } from "./ExternalCategoryFilter";
 import {
-  PUBLICO_ALVO,
-  ENDOMARKETING,
   FAIXAS_PRECO,
 } from "@/data/mockData";
 import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
@@ -76,6 +74,7 @@ interface FilterPanelProps {
   onFilterChange: (filters: FilterState) => void;
   onReset: () => void;
   activeFiltersCount: number;
+  products?: Array<{ tags?: { publicoAlvo?: string[]; endomarketing?: string[] } }>;
 }
 
 export const defaultFilters: FilterState = {
@@ -106,12 +105,25 @@ export const defaultFilters: FilterState = {
   sortBy: 'name',
 };
 
-export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount }: FilterPanelProps) {
+export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [] }: FilterPanelProps) {
   const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco', 'materiais', 'ramos-atividade']);
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
   const [supplierSearch, setSupplierSearch] = useState('');
   const { data: categoryIcons = [] } = useCategoryIcons();
+
+  // Extrair opções dinâmicas de Público-Alvo e Endomarketing dos produtos reais (#8)
+  const publicoAlvoOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    products.forEach(p => p.tags?.publicoAlvo?.forEach(v => set.add(v)));
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const endomarketingOptions = React.useMemo(() => {
+    const set = new Set<string>();
+    products.forEach(p => p.tags?.endomarketing?.forEach(v => set.add(v)));
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [products]);
 
   // Dados do hook avançado (técnicas, tags)
   const { techniqueOptions, tagOptions } = useAdvancedFilters();
@@ -425,20 +437,24 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Público-Alvo */}
         <FilterSection id="publico" title="Público-Alvo">
-          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
-            {[...PUBLICO_ALVO].sort((a, b) => a.localeCompare(b)).map((publico) => (
-              <div key={publico} className="flex items-center gap-2">
-                <Checkbox
-                  id={`pub-${publico}`}
-                  checked={filters.publicoAlvo.includes(publico)}
-                  onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
-                />
-                <Label htmlFor={`pub-${publico}`} className="text-sm cursor-pointer">
-                  {toTitleCase(publico)}
-                </Label>
-              </div>
-            ))}
-          </div>
+          {publicoAlvoOptions.length > 0 ? (
+            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+              {publicoAlvoOptions.map((publico) => (
+                <div key={publico} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`pub-${publico}`}
+                    checked={filters.publicoAlvo.includes(publico)}
+                    onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
+                  />
+                  <Label htmlFor={`pub-${publico}`} className="text-sm cursor-pointer">
+                    {toTitleCase(publico)}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
+          )}
         </FilterSection>
 
         {/* Datas Comemorativas - Agora com dados reais da API */}
@@ -453,20 +469,24 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Endomarketing */}
         <FilterSection id="endomarketing" title="Endomarketing">
-          <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
-            {[...ENDOMARKETING].sort((a, b) => a.localeCompare(b)).map((endo) => (
-              <div key={endo} className="flex items-center gap-2">
-                <Checkbox
-                  id={`endo-${endo}`}
-                  checked={filters.endomarketing.includes(endo)}
-                  onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
-                />
-                <Label htmlFor={`endo-${endo}`} className="text-sm cursor-pointer">
-                  {toTitleCase(endo)}
-                </Label>
-              </div>
-            ))}
-          </div>
+          {endomarketingOptions.length > 0 ? (
+            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+              {endomarketingOptions.map((endo) => (
+                <div key={endo} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`endo-${endo}`}
+                    checked={filters.endomarketing.includes(endo)}
+                    onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
+                  />
+                  <Label htmlFor={`endo-${endo}`} className="text-sm cursor-pointer">
+                    {toTitleCase(endo)}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
+          )}
         </FilterSection>
 
         {/* Materiais - Sistema Dinâmico com Accordion */}
@@ -983,6 +1003,18 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                 Em Estoque
               </Label>
             </div>
+            <div className="flex items-center gap-2 p-2 rounded-lg border border-warning/20 bg-warning/5">
+              <Checkbox
+                id="has-commercial-packaging"
+                checked={filters.hasCommercialPackaging}
+                onCheckedChange={() => toggleBooleanFilter('hasCommercialPackaging')}
+                className="border-warning/50 data-[state=checked]:bg-warning data-[state=checked]:border-warning"
+              />
+              <Label htmlFor="has-commercial-packaging" className="text-sm cursor-pointer flex items-center gap-1.5">
+                <Gift className="h-3.5 w-3.5 text-warning" />
+                Com Embalagem Nativa
+              </Label>
+            </div>
           </div>
         </FilterSection>
 
@@ -1003,31 +1035,6 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
               ))}
             </SelectContent>
           </Select>
-        </FilterSection>
-
-        {/* Embalagem Especial */}
-        <FilterSection id="embalagem-especial" title="Embalagem Especial" icon={<Gift className="h-4 w-4 text-warning" />}>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 p-2.5 rounded-lg border border-warning/20 bg-warning/5 hover:bg-warning/10 transition-colors">
-              <Checkbox
-                id="has-commercial-packaging"
-                checked={filters.hasCommercialPackaging}
-                onCheckedChange={() => toggleBooleanFilter('hasCommercialPackaging')}
-                className="border-warning/50 data-[state=checked]:bg-warning data-[state=checked]:border-warning"
-              />
-              <Label 
-                htmlFor="has-commercial-packaging" 
-                className="text-sm cursor-pointer flex items-center gap-2 flex-1"
-              >
-                <span className="font-medium text-warning-foreground">
-                  Com Embalagem Nativa
-                </span>
-              </Label>
-            </div>
-            <p className="text-[11px] text-muted-foreground leading-relaxed px-1">
-              Filtra produtos que possuem embalagem comercial especial inclusa no preço.
-            </p>
-          </div>
         </FilterSection>
       </div>
     </div>

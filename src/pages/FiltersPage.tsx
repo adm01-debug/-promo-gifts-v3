@@ -624,6 +624,7 @@ export default function FiltersPage() {
                       onFilterChange={handleFilterChange}
                       onReset={handleReset}
                       activeFiltersCount={activeFiltersCount}
+                      products={realProducts}
                     />
                   </div>
                   <div className="sticky bottom-0 border-t bg-background px-6 py-3 flex gap-2">
@@ -689,6 +690,7 @@ export default function FiltersPage() {
                 onFilterChange={handleFilterChange}
                 onReset={handleReset}
                 activeFiltersCount={activeFiltersCount}
+                products={realProducts}
               />
             </div>
           </aside>
