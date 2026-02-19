@@ -111,6 +111,9 @@ export default function QuoteViewPage() {
       items: quote.items?.map((item) => ({
         name: item.product_name,
         sku: item.product_sku || undefined,
+        // Correção 3: supplier_sku = product_sku limpo (sem concatenar nome da cor)
+        // O edge function prioriza supplier_sku → evita formato errado "94256-Preto"
+        supplier_sku: item.product_sku || undefined,
         composedCode: item.product_sku
           ? item.color_name
             ? `${item.product_sku}-${item.color_name}`
