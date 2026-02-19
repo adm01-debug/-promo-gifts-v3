@@ -257,6 +257,7 @@ export function useQuotes() {
           color_hex: item.color_hex,
           notes: item.notes,
           sort_order: index,
+          bitrix_product_id: item.bitrix_product_id ?? null,
         }));
 
         const insertedItems = await insertCrm<any>("quote_items", itemsToInsert);
@@ -452,6 +453,7 @@ export function useQuotes() {
           color_hex: item.color_hex,
           notes: item.notes,
           sort_order: index,
+          bitrix_product_id: item.bitrix_product_id ?? null,
         }));
 
         const insertedItems = await insertCrm<any>("quote_items", itemsToInsert);

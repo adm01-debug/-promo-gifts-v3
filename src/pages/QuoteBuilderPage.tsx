@@ -464,6 +464,7 @@ export default function QuoteBuilderPage() {
             unit_price: product.price,
             color_name: colorName,
             color_hex: colorHex,
+            bitrix_product_id: (product as any).external_id ?? null,
             personalizations: [],
           },
         ];
