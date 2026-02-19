@@ -29,7 +29,7 @@ serve(async (req) => {
     const {
       quote,
       proposalData,
-      pdfBase64,
+      pdfUrl,           // public storage URL of the PDF (no base64 in memory)
       filename,
       bitrixCompanyId,  // companies.bitrix_id — numeric string (e.g. "125240")
       sellerEmail,      // authenticated user email for seller mapping
@@ -113,15 +113,15 @@ serve(async (req) => {
       if (!isNaN(cId)) payload.contact_id = cId;
     }
 
-    // Attach PDF if generated successfully
-    if (pdfBase64 && filename) {
-      payload.pdf = { filename, content: pdfBase64 };
+    // Attach PDF URL — n8n downloads the file directly (avoids memory limits)
+    if (pdfUrl && filename) {
+      payload.pdf = { filename, url: pdfUrl };
     }
 
-    // ── 7. Log (mask PDF content) ────────────────────────────────────────────
+    // ── 7. Log (no sensitive content) ───────────────────────────────────────
     console.log("Sending to n8n:", JSON.stringify({
       ...payload,
-      pdf: payload.pdf ? { filename: (payload.pdf as any).filename, content: "[base64 omitted]" } : undefined,
+      pdf: payload.pdf ? { filename: (payload.pdf as any).filename, url: (payload.pdf as any).url } : undefined,
       products_count: products.length,
       seller_email_input: sellerEmail,
       bitrix_company_id_input: bitrixCompanyId,

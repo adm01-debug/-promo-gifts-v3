@@ -205,34 +205,43 @@ export default function QuoteViewPage() {
     if (!quote || !proposalData) return;
     setIsSyncing(true);
     try {
-      // Generate PDF blob and convert to base64 safely (chunked to avoid call stack overflow)
-      let pdfBase64: string | undefined;
+      // ── 1. Generate PDF blob client-side ────────────────────────────────────
+      let pdfStorageUrl: string | undefined;
       let filename: string | undefined;
       try {
         const blob = await generateProposalPDFv2(proposalData, { isDraft: quote.status === "draft" });
-        const buffer = await blob.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        // Chunked base64 conversion — avoids stack overflow on large PDFs
-        const CHUNK = 8192;
-        let binary = "";
-        for (let i = 0; i < bytes.byteLength; i += CHUNK) {
-          binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+        filename = `proposta-${quote.quote_number || quote.id}.pdf`;
+
+        // ── 2. Upload PDF to Storage (avoids sending base64 through edge function) ──
+        const storagePath = `quotes/${quote.id}/${filename}`;
+        const { error: uploadError } = await supabase.storage
+          .from("art-files")
+          .upload(storagePath, blob, {
+            contentType: "application/pdf",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.warn("PDF upload failed, syncing without PDF:", uploadError);
+        } else {
+          const { data: urlData } = supabase.storage
+            .from("art-files")
+            .getPublicUrl(storagePath);
+          pdfStorageUrl = urlData.publicUrl;
         }
-        pdfBase64 = btoa(binary);
-        filename = `proposta-${quote.quote_number || "sem-numero"}.pdf`;
       } catch (pdfErr) {
         console.warn("PDF generation failed, syncing without PDF:", pdfErr);
       }
 
+      // ── 3. Invoke edge function with URL only (no base64 in body) ───────────
       const { data, error } = await supabase.functions.invoke("sync-quote-bitrix", {
         body: {
           quote,
           proposalData,
-          pdfBase64,
+          pdfUrl: pdfStorageUrl,   // URL instead of base64
           filename,
-          // Pass resolved IDs explicitly so edge function doesn't need CRM access
-          bitrixCompanyId,           // numeric string from companies.bitrix_id
-          sellerEmail: user?.email,  // for mapping to Bitrix seller_id
+          bitrixCompanyId,
+          sellerEmail: user?.email,
         },
       });
 
