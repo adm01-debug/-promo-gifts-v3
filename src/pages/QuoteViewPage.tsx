@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, Truck, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, RefreshCw, Truck, User, UserPlus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,6 +62,7 @@ export default function QuoteViewPage() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [clientCnpj, setClientCnpj] = useState<string | undefined>(undefined);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [approvalLink, setApprovalLink] = useState<string | null>(null);
   const whatsAppRef = useRef<HTMLButtonElement>(null);
 
@@ -196,6 +198,48 @@ export default function QuoteViewPage() {
     }
   };
 
+  const handleSyncBitrix = async () => {
+    if (!quote || !proposalData) return;
+    setIsSyncing(true);
+    try {
+      // Generate PDF blob and convert to base64
+      let pdfBase64: string | undefined;
+      let filename: string | undefined;
+      try {
+        const blob = await generateProposalPDFv2(proposalData, { isDraft: quote.status === "draft" });
+        const buffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        pdfBase64 = btoa(binary);
+        filename = `proposta-${quote.quote_number || "sem-numero"}.pdf`;
+      } catch (pdfErr) {
+        console.warn("PDF generation failed, syncing without PDF:", pdfErr);
+      }
+
+      const { data, error } = await supabase.functions.invoke("sync-quote-bitrix", {
+        body: { quote, proposalData, pdfBase64, filename },
+      });
+
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Erro desconhecido");
+      }
+
+      const result = data.result;
+      toast.success(
+        result?.message || `Orçamento sincronizado com Bitrix24!`,
+        { description: result?.quote_id ? `ID Bitrix: ${result.quote_id}` : undefined }
+      );
+    } catch (err: any) {
+      console.error("Sync error:", err);
+      toast.error("Erro ao sincronizar", { description: err.message });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // Check if any items have personalizations
   const hasPersonalizations = quote?.items?.some(item => item.personalizations && item.personalizations.length > 0);
 
@@ -253,6 +297,21 @@ export default function QuoteViewPage() {
           {/* Primary CTAs + Dropdown for secondary (#1) */}
             <div className="hidden md:flex items-center gap-2">
             <QuoteConvertToOrder quoteId={id!} status={quote.status} />
+
+            {/* Sincronizar com Bitrix24 */}
+            <Button
+              onClick={handleSyncBitrix}
+              disabled={isSyncing}
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              {isSyncing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {isSyncing ? "Sincronizando..." : "Sincronizar"}
+            </Button>
+
             <PdfGenerationDialog
               proposalData={proposalData}
               quoteNumber={quote.quote_number}
