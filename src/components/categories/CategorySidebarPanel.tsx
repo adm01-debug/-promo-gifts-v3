@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { toTitleCase } from '@/lib/textUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CategorySidebarPanelProps {
@@ -38,10 +39,7 @@ function TreeNode({
   const isExpanded = expandedIds.has(node.id);
   const isSelected = selectedId === node.id;
 
-  // Função para converter para Title Case
-  const toTitleCase = (str: string) => {
-    return str.toLowerCase().replace(/(?:^|\s|[|])\S/g, (char) => char.toUpperCase());
-  };
+  
 
   // Handler de clique com propagação correta
   const handleClick = (e: MouseEvent<HTMLDivElement>) => {

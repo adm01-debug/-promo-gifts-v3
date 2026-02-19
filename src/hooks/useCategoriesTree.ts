@@ -1,29 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-// Palavras que devem permanecer em minúsculo (preposições, artigos, conjunções)
-const LOWERCASE_WORDS = ['e', 'de', 'da', 'do', 'das', 'dos', 'em', 'na', 'no', 'nas', 'nos', 'para', 'por', 'com'];
-
-// Categorias que devem ser ocultadas da árvore (nomes em uppercase para comparação)
-const HIDDEN_CATEGORIES = [
-  'GRAVAÇÃO | MOCHILA',
-  'GRAVACAO | MOCHILA',
-];
-
-// Função para formatar nome em Title Case (Primeira Maiúscula, exceto preposições)
-const toTitleCase = (str: string): string => {
-  return str
-    .toLowerCase()
-    .split(' ')
-    .map((word, index) => {
-      // Primeira palavra sempre com maiúscula, ou se não for uma preposição
-      if (index === 0 || !LOWERCASE_WORDS.includes(word)) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      return word;
-    })
-    .join(' ');
-};
+import { toTitleCase } from '@/lib/textUtils';
 
 // Interface para a view categories_tree_visual
 export interface CategoryTreeItem {

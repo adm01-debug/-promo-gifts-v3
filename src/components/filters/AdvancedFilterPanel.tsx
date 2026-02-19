@@ -54,20 +54,7 @@ import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
 import { PUBLICO_ALVO, ENDOMARKETING } from "@/data/mockData";
 
-// Função para padronizar texto: primeira letra maiúscula, resto minúsculo
-const toTitleCase = (str: string): string => {
-  const prepositions = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'com', 'por'];
-  return str
-    .toLowerCase()
-    .split(' ')
-    .map((word, index) => {
-      if (index > 0 && prepositions.includes(word)) {
-        return word;
-      }
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(' ');
-};
+import { toTitleCase } from "@/lib/textUtils";
 
 interface AdvancedFilterPanelProps {
   filters: AdvancedFilterState;
