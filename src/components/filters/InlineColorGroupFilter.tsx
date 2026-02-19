@@ -50,14 +50,18 @@ function InlineColorSwatch({
           className={cn(
             sizeClasses[size],
             'rounded-full border-2 transition-all duration-200 flex items-center justify-center',
-            'hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
+            'hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2',
             isSelected
-              ? 'border-primary ring-2 ring-primary ring-offset-1'
+              ? 'ring-2 ring-offset-1'
               : 'border-border hover:border-muted-foreground/50',
             isTransparent && 'bg-gradient-to-br from-gray-100 to-gray-200'
           )}
           style={{
             backgroundColor: isTransparent ? undefined : (hexCode || '#ccc'),
+            ...(isSelected ? {
+              borderColor: hexCode || '#ccc',
+              ['--tw-ring-color' as string]: hexCode || '#ccc',
+            } : {}),
           }}
         >
           {isSelected && (
