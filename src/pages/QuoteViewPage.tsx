@@ -748,7 +748,7 @@ export default function QuoteViewPage() {
                     </div>
                   )}
                   {quote.discount_amount > 0 && (
-                    <div className="flex justify-between text-sm text-success">
+                    <div className="flex justify-between text-sm text-destructive">
                       <span>Desconto{quote.discount_percent ? ` (${quote.discount_percent}%)` : ""}:</span>
                       <span>-{formatCurrency(quote.discount_amount)}</span>
                     </div>
