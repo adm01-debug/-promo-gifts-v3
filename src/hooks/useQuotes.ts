@@ -44,6 +44,7 @@ export interface QuoteItem {
   color_hex?: string;
   notes?: string;
   sort_order?: number;
+  bitrix_product_id?: string | number | null;
   personalizations?: QuoteItemPersonalization[];
 }
 
