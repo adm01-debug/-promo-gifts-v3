@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem, Building2, Gift } from "lucide-react";
+import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem, Building2, Gift, Palette, Sparkles, Filter, Paintbrush, Clock, Tag } from "lucide-react";
 import { toTitleCase } from "@/lib/textUtils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import { useMaterialFilter } from "@/hooks/useMaterialFilter";
@@ -18,7 +25,8 @@ import { useRamoAtividadeFilter } from "@/hooks/useRamoAtividadeFilter";
 import { MaterialBadge } from "@/components/materials/MaterialBadge";
 import { RamoAtividadeBadge } from "@/components/ramo-atividade/RamoAtividadeBadge";
 import { RamoAtividadeGroupAccordion } from "@/components/ramo-atividade/RamoAtividadeGroupAccordion";
-import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
+import { ColorFilterSelection } from "./ColorGroupFilter";
+import { InlineColorGroupFilter } from "./InlineColorGroupFilter";
 import { ExternalCategoryFilter } from "./ExternalCategoryFilter";
 import {
   PUBLICO_ALVO,
@@ -26,32 +34,41 @@ import {
   FAIXAS_PRECO,
 } from "@/data/mockData";
 import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
+import { useAdvancedFilters, SORT_OPTIONS } from "@/hooks/useAdvancedFilters";
 
 export interface FilterState {
+  // Busca textual
+  search: string;
   // Sistema hierárquico de cores
-  colorGroups: string[];      // slugs dos grupos (Azul, Verde, etc.)
-  colorVariations: string[];  // slugs das variações (Azul Royal, etc.)
-  colorNuances: string[];     // slugs das nuances (Metalizado, etc.)
-  // Mantém compatibilidade com o antigo
+  colorGroups: string[];
+  colorVariations: string[];
+  colorNuances: string[];
   colors: string[];
-  categories: string[];  // UUIDs das categorias externas
+  categories: string[];
   suppliers: string[];
   publicoAlvo: string[];
   datasComemorativas: string[];
   endomarketing: string[];
-  // Sistema hierárquico de Ramos de Atividade
-  ramosAtividade: string[];      // slugs dos ramos (grupos pai)
-  segmentosAtividade: string[];  // slugs dos segmentos (filhos)
-  // Sistema hierárquico de Materiais (usa tabela product_materials)
-  materialGroups: string[];      // slugs dos grupos (Tecidos, Metais, etc.)
-  materialTypes: string[];       // slugs dos tipos específicos (Algodão, etc.)
-  materiais: string[];           // Legado - mantido para compatibilidade
+  // Ramos de Atividade
+  ramosAtividade: string[];
+  segmentosAtividade: string[];
+  // Materiais
+  materialGroups: string[];
+  materialTypes: string[];
+  materiais: string[];
+  // Técnicas de gravação
+  techniques: string[];
+  // Tags
+  tags: string[];
   priceRange: [number, number];
   inStock: boolean;
   isKit: boolean;
   featured: boolean;
-  // Embalagem especial nativa
+  isNew: boolean;
+  hasPersonalization: boolean;
   hasCommercialPackaging: boolean;
+  // Ordenação
+  sortBy: string;
 }
 
 interface FilterPanelProps {
@@ -62,11 +79,12 @@ interface FilterPanelProps {
 }
 
 export const defaultFilters: FilterState = {
+  search: '',
   colorGroups: [],
   colorVariations: [],
   colorNuances: [],
   colors: [],
-  categories: [],  // UUIDs
+  categories: [],
   suppliers: [],
   publicoAlvo: [],
   datasComemorativas: [],
@@ -76,18 +94,27 @@ export const defaultFilters: FilterState = {
   materialGroups: [],
   materialTypes: [],
   materiais: [],
+  techniques: [],
+  tags: [],
   priceRange: [0, 9999],
   inStock: false,
   isKit: false,
   featured: false,
+  isNew: false,
+  hasPersonalization: false,
   hasCommercialPackaging: false,
+  sortBy: 'name',
 };
 
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount }: FilterPanelProps) {
   const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco', 'materiais', 'ramos-atividade']);
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
+  const [supplierSearch, setSupplierSearch] = useState('');
   const { data: categoryIcons = [] } = useCategoryIcons();
+
+  // Dados do hook avançado (técnicas, tags)
+  const { techniqueOptions, tagOptions } = useAdvancedFilters();
 
   const stableSorted = (arr: string[] | undefined) => [...(arr ?? [])].slice().sort();
 
@@ -244,9 +271,30 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       </div>
 
       <div className="divide-y divide-border">
-        {/* Cores - Sistema Hierárquico */}
-        <div className="py-3">
-          <ColorGroupFilter
+        {/* Busca textual */}
+        <FilterSection id="search" title="Buscar" icon={<Search className="h-4 w-4" />}>
+          <div className="relative">
+            <Input
+              placeholder="Nome, SKU, descrição..."
+              value={filters.search}
+              onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+              className="pr-8"
+            />
+            {filters.search && (
+              <button
+                onClick={() => onFilterChange({ ...filters, search: '' })}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Limpar busca"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </FilterSection>
+
+        {/* Cores - Inline com Radix Tooltip (#1 + #10) */}
+        <FilterSection id="cores" title="Cores" icon={<Palette className="h-4 w-4" />}>
+          <InlineColorGroupFilter
             selection={{
               groups: filters.colorGroups,
               variations: filters.colorVariations,
@@ -263,7 +311,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             showNuances={true}
             showVariations={true}
           />
-        </div>
+        </FilterSection>
 
         {/* Categorias - Sistema com categorias externas */}
         <FilterSection id="categorias" title="Categorias">
@@ -276,7 +324,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           />
         </FilterSection>
 
-        {/* Preço */}
+        {/* Preço - com inputs numéricos editáveis (#6) */}
         <FilterSection id="preco" title="Faixa de Preço">
           <div className="space-y-4 px-1">
             <Slider
@@ -289,16 +337,58 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
               step={10}
               className="w-full"
             />
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>R$ {filters.priceRange[0]}</span>
-              <span>R$ {filters.priceRange[1] >= 9999 ? 'Sem limite' : filters.priceRange[1]}</span>
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">R$</span>
+                <Input
+                  type="number"
+                  value={filters.priceRange[0]}
+                  onChange={(e) => onFilterChange({ ...filters, priceRange: [Number(e.target.value) || 0, filters.priceRange[1]] })}
+                  className="w-20 h-8 text-sm"
+                  min={0}
+                />
+              </div>
+              <span className="text-muted-foreground">até</span>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">R$</span>
+                <Input
+                  type="number"
+                  value={filters.priceRange[1] >= 9999 ? '' : filters.priceRange[1]}
+                  onChange={(e) => onFilterChange({ ...filters, priceRange: [filters.priceRange[0], Number(e.target.value) || 9999] })}
+                  className="w-20 h-8 text-sm"
+                  placeholder="Sem limite"
+                  min={0}
+                />
+              </div>
             </div>
           </div>
         </FilterSection>
 
-        {/* Fornecedores */}
+        {/* Fornecedores - com busca (#7) */}
         <FilterSection id="fornecedores" title="Fornecedores">
           <div className="space-y-2">
+            {/* Busca de fornecedores */}
+            {!suppliersLoading && supplierOptions.length > 5 && (
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar fornecedor..."
+                  value={supplierSearch}
+                  onChange={(e) => setSupplierSearch(e.target.value)}
+                  className="h-8 text-sm pl-8 pr-8"
+                />
+                {supplierSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setSupplierSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="Limpar busca"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+            )}
             {suppliersLoading ? (
               <>
                 <Skeleton className="h-6 w-full" />
@@ -306,21 +396,27 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                 <Skeleton className="h-6 w-3/4" />
               </>
             ) : supplierOptions.length > 0 ? (
-              supplierOptions.map((supplier) => (
-                <div key={supplier.id} className="flex items-center gap-2">
-                  <Checkbox
-                    id={`sup-${supplier.id}`}
-                    checked={filters.suppliers.includes(supplier.id)}
-                    onCheckedChange={() => toggleArrayFilter('suppliers', supplier.id)}
-                  />
-                  <Label htmlFor={`sup-${supplier.id}`} className="text-sm cursor-pointer flex items-center gap-2">
-                    <span>{supplier.name}</span>
-                    {supplier.leadTimeDays && (
-                      <span className="text-xs text-muted-foreground">({supplier.leadTimeDays}d)</span>
-                    )}
-                  </Label>
+              <ScrollArea className="max-h-48">
+                <div className="space-y-2 pr-2">
+                  {supplierOptions
+                    .filter(s => !supplierSearch || s.name.toLowerCase().includes(supplierSearch.toLowerCase()))
+                    .map((supplier) => (
+                    <div key={supplier.id} className="flex items-center gap-2">
+                      <Checkbox
+                        id={`sup-${supplier.id}`}
+                        checked={filters.suppliers.includes(supplier.id)}
+                        onCheckedChange={() => toggleArrayFilter('suppliers', supplier.id)}
+                      />
+                      <Label htmlFor={`sup-${supplier.id}`} className="text-sm cursor-pointer flex items-center gap-2">
+                        <span>{supplier.name}</span>
+                        {supplier.leadTimeDays && (
+                          <span className="text-xs text-muted-foreground">({supplier.leadTimeDays}d)</span>
+                        )}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
-              ))
+              </ScrollArea>
             ) : (
               <p className="text-xs text-muted-foreground">Nenhum fornecedor disponível</p>
             )}
@@ -778,6 +874,135 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
               </ScrollArea>
             )}
           </div>
+        </FilterSection>
+
+        {/* Técnicas de Gravação (#2) */}
+        {techniqueOptions.length > 0 && (
+          <FilterSection id="tecnicas" title="Técnicas de Gravação" icon={<Paintbrush className="h-4 w-4" />}>
+            <ScrollArea className="max-h-40">
+              <div className="space-y-2 pr-3">
+                {techniqueOptions.map(tech => (
+                  <div key={tech.id} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`tech-${tech.id}`}
+                      checked={(filters.techniques || []).includes(tech.id)}
+                      onCheckedChange={() => toggleArrayFilter('techniques', tech.id)}
+                    />
+                    <Label
+                      htmlFor={`tech-${tech.id}`}
+                      className="text-sm cursor-pointer flex-1 flex items-center justify-between"
+                    >
+                      <span>{tech.name}</span>
+                      {tech.estimatedDays && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {tech.estimatedDays}d
+                        </span>
+                      )}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          </FilterSection>
+        )}
+
+        {/* Tags (#2) */}
+        {tagOptions.length > 0 && (
+          <FilterSection id="tags" title="Tags" icon={<Tag className="h-4 w-4" />}>
+            <div className="flex flex-wrap gap-1.5">
+              {tagOptions.slice(0, 20).map(tag => (
+                <button
+                  key={tag.id}
+                  onClick={() => toggleArrayFilter('tags', tag.id)}
+                  aria-label={`Tag ${tag.name}`}
+                  className={cn(
+                    "px-2.5 py-1 text-xs rounded-full border transition-all",
+                    (filters.tags || []).includes(tag.id)
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+                  )}
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          </FilterSection>
+        )}
+
+        {/* Opções Rápidas (#2) */}
+        <FilterSection id="opcoes-rapidas" title="Opções Rápidas" icon={<Sparkles className="h-4 w-4" />}>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="filter-isKit"
+                checked={filters.isKit}
+                onCheckedChange={() => toggleBooleanFilter('isKit')}
+              />
+              <Label htmlFor="filter-isKit" className="text-sm cursor-pointer">
+                Apenas KITs
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="filter-featured"
+                checked={filters.featured}
+                onCheckedChange={() => toggleBooleanFilter('featured')}
+              />
+              <Label htmlFor="filter-featured" className="text-sm cursor-pointer">
+                Destaques
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="filter-isNew"
+                checked={filters.isNew}
+                onCheckedChange={() => toggleBooleanFilter('isNew')}
+              />
+              <Label htmlFor="filter-isNew" className="text-sm cursor-pointer">
+                Novidades
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="filter-hasPersonalization"
+                checked={filters.hasPersonalization}
+                onCheckedChange={() => toggleBooleanFilter('hasPersonalization')}
+              />
+              <Label htmlFor="filter-hasPersonalization" className="text-sm cursor-pointer">
+                Com Personalização
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="filter-inStock"
+                checked={filters.inStock}
+                onCheckedChange={() => toggleBooleanFilter('inStock')}
+              />
+              <Label htmlFor="filter-inStock" className="text-sm cursor-pointer">
+                Em Estoque
+              </Label>
+            </div>
+          </div>
+        </FilterSection>
+
+        {/* Ordenação (#2) */}
+        <FilterSection id="ordenacao" title="Ordenar por" icon={<Filter className="h-4 w-4" />}>
+          <Select
+            value={filters.sortBy || 'name'}
+            onValueChange={(value) => onFilterChange({ ...filters, sortBy: value })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FilterSection>
 
         {/* Embalagem Especial */}
