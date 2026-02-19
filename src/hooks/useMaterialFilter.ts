@@ -60,22 +60,25 @@ export function useMaterialFilter(): UseMaterialFilterReturn {
   const isLoading = groupsLoading || materialsLoading;
   const error = groupsError || materialsError;
 
-  // Toggle grupo
+  // Toggle grupo — selecionar grupo auto-seleciona todos os tipos (#13)
   const toggleGroup = useCallback((groupSlug: string) => {
     setFilterState(prev => {
       const isSelected = prev.selectedGroups.includes(groupSlug);
+      const typesInGroup = byGroup.get(groupSlug)?.map(m => m.type_slug) || [];
       if (isSelected) {
         // Remove grupo e todos os tipos desse grupo
-        const typesInGroup = byGroup.get(groupSlug)?.map(m => m.type_slug) || [];
         return {
           ...prev,
           selectedGroups: prev.selectedGroups.filter(g => g !== groupSlug),
           selectedTypes: prev.selectedTypes.filter(t => !typesInGroup.includes(t)),
         };
       }
+      // Selecionar grupo + todos os tipos que ainda não estão selecionados
+      const newTypes = typesInGroup.filter(t => !prev.selectedTypes.includes(t));
       return {
         ...prev,
         selectedGroups: [...prev.selectedGroups, groupSlug],
+        selectedTypes: [...prev.selectedTypes, ...newTypes],
       };
     });
   }, [byGroup]);
