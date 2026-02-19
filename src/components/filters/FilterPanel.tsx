@@ -107,7 +107,7 @@ export const defaultFilters: FilterState = {
 };
 
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [] }: FilterPanelProps) {
-  const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias', 'preco', 'materiais', 'ramos-atividade']);
+  const [openSections, setOpenSections] = useState<string[]>([]);
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
   const [supplierSearch, setSupplierSearch] = useState('');
