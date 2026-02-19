@@ -277,15 +277,8 @@ export function QuotesConfigurableList({
           </Badge>
         );
       case "value": {
-        const validity = getValidityInfo(quote.valid_until);
         return (
           <div className="flex items-center justify-end gap-2">
-            {validity?.urgent && (
-              <span className={`text-[10px] ${validity.color} ${validity.bgColor} px-1.5 py-0.5 rounded flex items-center gap-0.5`}>
-                <AlertTriangle className="h-3 w-3" />
-                {validity.label}
-              </span>
-            )}
             <span className="text-sm font-bold text-foreground">{formatCurrency(quote.total || 0)}</span>
           </div>
         );
@@ -293,7 +286,7 @@ export function QuotesConfigurableList({
       case "date":
         return (
           <span className="text-xs text-muted-foreground text-right block">
-            {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
+            {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"}
           </span>
         );
       default:
