@@ -11,7 +11,11 @@ import {
   CheckCircle, 
   XCircle,
   Clock,
-  Package
+  Package,
+  Upload,
+  FileText,
+  AlertTriangle,
+  Zap
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,6 +33,12 @@ const actionIcons: Record<string, React.ReactNode> = {
   item_added: <Package className="h-4 w-4" />,
   item_removed: <Trash2 className="h-4 w-4" />,
   item_updated: <Edit2 className="h-4 w-4" />,
+  // Sync events
+  sync_started: <Zap className="h-4 w-4" />,
+  sync_pdf_ok: <FileText className="h-4 w-4" />,
+  sync_pdf_error: <AlertTriangle className="h-4 w-4" />,
+  sync_success: <CheckCircle className="h-4 w-4" />,
+  sync_error: <XCircle className="h-4 w-4" />,
 };
 
 const actionColors: Record<string, string> = {
@@ -38,6 +48,12 @@ const actionColors: Record<string, string> = {
   item_added: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
   item_removed: "bg-red-500/10 text-red-600 border-red-500/20",
   item_updated: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  // Sync events
+  sync_started: "bg-sky-500/10 text-sky-600 border-sky-500/20",
+  sync_pdf_ok: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
+  sync_pdf_error: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  sync_success: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
+  sync_error: "bg-red-500/10 text-red-600 border-red-500/20",
 };
 
 export function QuoteHistoryPanel({ quoteId }: QuoteHistoryPanelProps) {

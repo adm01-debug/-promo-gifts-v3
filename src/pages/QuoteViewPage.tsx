@@ -55,7 +55,7 @@ function formatCurrency(value: number): string {
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { fetchQuote, isLoading } = useQuotes();
+  const { fetchQuote, isLoading, logQuoteHistory } = useQuotes();
   const { user } = useAuth();
   
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
@@ -253,6 +253,10 @@ export default function QuoteViewPage() {
     }
 
     setIsSyncing(true);
+
+    // ── Log: início da sincronização ────────────────────────────────────────
+    await logQuoteHistory(quote.id, "sync_started", "Sincronização com Bitrix24 iniciada");
+
     try {
       // ── 1. Generate PDF blob client-side ────────────────────────────────────
       let pdfStorageUrl: string | undefined;
@@ -272,14 +276,19 @@ export default function QuoteViewPage() {
 
         if (uploadError) {
           console.warn("PDF upload failed, syncing without PDF:", uploadError);
+          await logQuoteHistory(quote.id, "sync_pdf_error", `Falha no upload do PDF: ${uploadError.message}`);
         } else {
           const { data: urlData } = supabase.storage
             .from("art-files")
             .getPublicUrl(storagePath);
           pdfStorageUrl = urlData.publicUrl;
+          await logQuoteHistory(quote.id, "sync_pdf_ok", `PDF gerado e enviado: ${filename}`, {
+            newValue: pdfStorageUrl,
+          });
         }
-      } catch (pdfErr) {
+      } catch (pdfErr: any) {
         console.warn("PDF generation failed, syncing without PDF:", pdfErr);
+        await logQuoteHistory(quote.id, "sync_pdf_error", `Erro ao gerar PDF: ${pdfErr?.message || "desconhecido"}`);
       }
 
       // ── 3. Invoke edge function with URL only (no base64 in body) ───────────
@@ -301,8 +310,6 @@ export default function QuoteViewPage() {
       const result = data.result;
 
       // ── Correção 1: Salvar bitrix_quote_id no CRM externo ───────────────
-      // Os orçamentos vivem no CRM externo (crm-db-bridge), não na tabela local
-      // result.quote_id = ID numérico do orçamento no Bitrix24 (ex: 344)
       const parsedBitrixId = result?.quote_id ? Number(result.quote_id) : null;
       const bitrixQuoteIdFromResponse = parsedBitrixId && !isNaN(parsedBitrixId) ? parsedBitrixId : null;
 
@@ -316,6 +323,21 @@ export default function QuoteViewPage() {
       } catch (updateErr) {
         console.warn("Falha ao atualizar quote no CRM após sync:", updateErr);
       }
+
+      // ── Log: sincronização concluída ────────────────────────────────────
+      await logQuoteHistory(
+        quote.id,
+        "sync_success",
+        `Sincronizado com Bitrix24 com sucesso${bitrixQuoteIdFromResponse ? ` — ID Bitrix: ${bitrixQuoteIdFromResponse}` : ""}`,
+        {
+          newValue: bitrixQuoteIdFromResponse ? String(bitrixQuoteIdFromResponse) : undefined,
+          metadata: {
+            bitrix_quote_id: bitrixQuoteIdFromResponse,
+            pdf_url: pdfStorageUrl,
+            filename,
+          },
+        }
+      );
 
       // Atualizar estado local imediatamente (UI)
       setQuote((prev) =>
@@ -338,6 +360,15 @@ export default function QuoteViewPage() {
       );
     } catch (err: any) {
       console.error("Sync error:", err);
+
+      // ── Log: falha na sincronização ─────────────────────────────────────
+      await logQuoteHistory(
+        quote.id,
+        "sync_error",
+        `Falha na sincronização com Bitrix24: ${err.message || "erro desconhecido"}`,
+        { metadata: { error: err.message } }
+      );
+
       toast.error("Erro ao sincronizar", { description: err.message });
     } finally {
       setIsSyncing(false);

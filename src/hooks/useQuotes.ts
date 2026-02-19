@@ -688,5 +688,6 @@ export function useQuotes() {
     fetchTechniques,
     syncQuoteToBitrix,
     testWebhookConnection,
+    logQuoteHistory,
   };
 }
