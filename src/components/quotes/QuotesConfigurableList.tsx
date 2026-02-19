@@ -255,11 +255,6 @@ export function QuotesConfigurableList({
                 {(quote as any).client_cnpj}
               </span>
             )}
-            {quote.client_name && quote.client_company && (
-              <span className="text-xs text-muted-foreground truncate">
-                {quote.client_name}
-              </span>
-            )}
           </div>
         ) : (
           <button
