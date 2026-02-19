@@ -229,6 +229,18 @@ export default function QuoteViewPage() {
       return;
     }
 
+    // ── Validação obrigatória: todos os itens devem ter bitrix_product_id ──────
+    // Spec §3: "Se bitrix_product_id for NULL, o produto não pode ser incluído"
+    const itemsSemBitrixId = quote.items?.filter(item => !item.bitrix_product_id) || [];
+    if (itemsSemBitrixId.length > 0) {
+      const nomes = itemsSemBitrixId.map(i => `"${i.product_name}${i.color_name ? ` - ${i.color_name}` : ''}"`).join(", ");
+      toast.error("Produtos sem ID no Bitrix24", {
+        description: `Os seguintes produtos ainda não foram importados no Bitrix24 e não podem ser sincronizados: ${nomes}. Remova-os ou aguarde a sincronização do catálogo.`,
+        duration: 8000,
+      });
+      return;
+    }
+
     setIsSyncing(true);
     try {
       // ── 1. Generate PDF blob client-side ────────────────────────────────────

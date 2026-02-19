@@ -60,23 +60,40 @@ serve(async (req) => {
 
     // ── 5. Build products array ──────────────────────────────────────────────
     // offer_id is null if not mapped — n8n handles this gracefully
-    const products = (proposalData?.items || []).map((item: any) => {
-      // Priority: bitrix_product_id (Bitrix24 numeric product ID) → legacy fallbacks
-      const offerId = item.bitrix_product_id
-        ? Number(item.bitrix_product_id)
-        : item.offerId || item.bitrix_offer_id || null;
+    const rawItems = proposalData?.items || [];
+
+    // ── Spec §3: rejeitar itens sem bitrix_product_id ────────────────────────
+    const itemsSemId = rawItems.filter((item: any) => !item.bitrix_product_id);
+    if (itemsSemId.length > 0) {
+      const nomes = itemsSemId.map((i: any) => i.name || i.product_name || "Produto").join(", ");
+      throw new Error(`Produtos sem ID no Bitrix24 (offer_id nulo): ${nomes}. Importe-os no catálogo do Bitrix24 primeiro.`);
+    }
+
+    const products = rawItems.map((item: any) => {
+      // Spec §6.2: offer_id = product_variants.bitrix_product_id (obrigatório)
+      const offerId = Number(item.bitrix_product_id);
+
+      // Spec §6.2: product_name = nome do produto + " - " + cor
+      const baseName = item.name || item.product_name || "Produto";
+      const colorSuffix = item.color ? ` - ${item.color}` : "";
+      const productName = `${baseName}${colorSuffix}`;
+
+      // Spec §6.2: sku = product_variants.supplier_sku
+      // composedCode é gerado como `${sku}-${color_name}` — usar como SKU do fornecedor
+      const sku = item.composedCode || item.sku || item.product_sku || "";
 
       const product: any = {
         offer_id: offerId,
-        product_name: item.name || item.product_name || "Produto",
-        sku: item.sku || item.composedCode || item.product_sku || "",
+        product_name: productName,
+        sku,
         price: Number(item.unitPrice ?? item.unit_price ?? 0),
         quantity: Number(item.quantity ?? 1),
       };
 
-      // Map first personalization as engraving if present
+      // Spec §6.3: gravação (engraving) — apenas se o produto tiver personalização
       const pers = item.personalizations?.[0];
       if (pers) {
+        // Spec §6.3: size = "LxHcm" ou "Xcm²"
         const sizeStr = pers.width_cm && pers.height_cm
           ? `${pers.width_cm}x${pers.height_cm}cm`
           : pers.area_cm2
