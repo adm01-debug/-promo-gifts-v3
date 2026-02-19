@@ -18,6 +18,28 @@ function encodeShippingInNotes(internalNotes: string | null | undefined, shippin
   return base ? `${base} ${suffix}` : suffix;
 }
 
+// ── BitrixProductId serialization helpers ─────────────────────────────────────
+// The external CRM's quote_items table doesn't have a bitrix_product_id column.
+// We encode it into the item's notes field with a special marker.
+const BPID_MARKER = "|||BPID:";
+const BPID_END = "|||";
+
+function encodeBitrixProductIdInNotes(notes: string | null | undefined, bitrixProductId?: string | number | null): string | null {
+  const base = (notes || "").replace(/\|\|\|BPID:[^|]*\|\|\|/g, "").trimEnd();
+  if (!bitrixProductId) return base || null;
+  const suffix = `${BPID_MARKER}${bitrixProductId}${BPID_END}`;
+  return base ? `${base} ${suffix}` : suffix;
+}
+
+function decodeBitrixProductIdFromNotes(notes: string | null | undefined): { cleanNotes: string | null; bitrixProductId: string | null } {
+  const raw = notes || "";
+  const match = raw.match(/\|\|\|BPID:([^|]*)\|\|\|/);
+  if (!match) return { cleanNotes: raw || null, bitrixProductId: null };
+  const bitrixProductId = match[1] || null;
+  const cleanNotes = raw.replace(/\s*\|\|\|BPID:[^|]*\|\|\|/g, "").trim() || null;
+  return { cleanNotes, bitrixProductId };
+}
+
 function decodeShippingFromNotes(internalNotes: string | null | undefined): { cleanNotes: string | null; shippingType: string | null; shippingCost: number | null } {
   const raw = internalNotes || "";
   const match = raw.match(/\|\|\|FRETE:(.*?):(.*?)\|\|\|/);
@@ -164,11 +186,16 @@ export function useQuotes() {
         });
       }
 
-      // Map personalizations to items
-      const items: QuoteItem[] = itemsData.map((item: any) => ({
-        ...item,
-        personalizations: allPersonalizations.filter(p => p.quote_item_id === item.id),
-      }));
+      // Map personalizations to items + decode bitrix_product_id from notes
+      const items: QuoteItem[] = itemsData.map((item: any) => {
+        const { cleanNotes: itemCleanNotes, bitrixProductId } = decodeBitrixProductIdFromNotes(item.notes);
+        return {
+          ...item,
+          notes: itemCleanNotes,
+          bitrix_product_id: bitrixProductId,
+          personalizations: allPersonalizations.filter(p => p.quote_item_id === item.id),
+        };
+      });
 
       // Decode shipping data from internal_notes
       const { cleanNotes, shippingType, shippingCost } = decodeShippingFromNotes(quoteData.internal_notes);
@@ -255,9 +282,9 @@ export function useQuotes() {
           unit_price: item.unit_price,
           color_name: item.color_name,
           color_hex: item.color_hex,
-          notes: item.notes,
+          // Encode bitrix_product_id into notes (CRM table doesn't have this column)
+          notes: encodeBitrixProductIdInNotes(item.notes, item.bitrix_product_id),
           sort_order: index,
-          bitrix_product_id: item.bitrix_product_id ?? null,
         }));
 
         const insertedItems = await insertCrm<any>("quote_items", itemsToInsert);
@@ -451,9 +478,9 @@ export function useQuotes() {
           unit_price: item.unit_price,
           color_name: item.color_name,
           color_hex: item.color_hex,
-          notes: item.notes,
+          // Encode bitrix_product_id into notes (CRM table doesn't have this column)
+          notes: encodeBitrixProductIdInNotes(item.notes, item.bitrix_product_id),
           sort_order: index,
-          bitrix_product_id: item.bitrix_product_id ?? null,
         }));
 
         const insertedItems = await insertCrm<any>("quote_items", itemsToInsert);
