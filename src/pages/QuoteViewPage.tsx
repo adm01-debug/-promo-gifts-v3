@@ -295,23 +295,48 @@ export default function QuoteViewPage() {
         throw new Error(data?.error || error?.message || "Erro desconhecido");
       }
 
-      // ── Atualizar status para "sent" no banco ────────────────────────────
+      const result = data.result;
+
+      // ── Correção 1: Salvar bitrix_quote_id retornado pelo webhook ────────
+      // Garante que sincronizações futuras ATUALIZAM em vez de criar duplicatas
+      const bitrixQuoteIdFromResponse = result?.quote_id ? Number(result.quote_id) : null;
+
+      const updates: Record<string, any> = {
+        status: "sent",
+        updated_at: new Date().toISOString(),
+      };
+      if (bitrixQuoteIdFromResponse) {
+        updates.bitrix_quote_id = bitrixQuoteIdFromResponse;
+      }
+
       const { error: updateError } = await supabase
         .from("quotes")
-        .update({ status: "sent", updated_at: new Date().toISOString() })
+        .update(updates)
         .eq("id", quote.id);
 
       if (updateError) {
-        console.warn("Falha ao atualizar status para sent:", updateError);
+        console.warn("Falha ao atualizar quote após sync:", updateError);
       } else {
         // Atualizar estado local imediatamente
-        setQuote((prev) => prev ? { ...prev, status: "sent", updated_at: new Date().toISOString() } : prev);
+        setQuote((prev) =>
+          prev
+            ? {
+                ...prev,
+                status: "sent",
+                updated_at: updates.updated_at,
+                ...(bitrixQuoteIdFromResponse ? { bitrix_quote_id: bitrixQuoteIdFromResponse } : {}),
+              }
+            : prev
+        );
       }
 
-      const result = data.result;
       toast.success(
         result?.message || `Orçamento sincronizado com Bitrix24!`,
-        { description: result?.quote_id ? `ID Bitrix: ${result.quote_id}` : undefined }
+        {
+          description: result?.quote_id
+            ? `ID Bitrix: ${result.quote_id}`
+            : undefined,
+        }
       );
     } catch (err: any) {
       console.error("Sync error:", err);
