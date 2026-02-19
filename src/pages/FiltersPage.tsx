@@ -246,8 +246,12 @@ export default function FiltersPage() {
   };
 
   const handleReset = () => {
+    const hadFilters = activeFiltersCount > 0;
     setFilters(defaultFilters);
     setActivePresetId(undefined);
+    if (hadFilters) {
+      toast.success('Filtros limpos', { description: 'Todos os filtros foram removidos.' });
+    }
   };
 
   // Contar filtros ativos
