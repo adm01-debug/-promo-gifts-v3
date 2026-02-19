@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
@@ -41,22 +41,89 @@ export default function FiltersPage() {
   // Buscar produtos reais do banco de dados
   const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
   
+  const [searchParams, setSearchParams] = useSearchParams();
+  const isInitialMount = useRef(true);
+
+  // #22 Deep linking: deserialize filters from URL on mount
   const [filters, setFilters] = useState<FilterState>(() => {
-    // Verificar se há filtro de fornecedor na URL
-    const supplierParam = searchParams.get('supplier');
-    if (supplierParam) {
-      return { ...defaultFilters, suppliers: [supplierParam] };
-    }
-    return defaultFilters;
+    const f = { ...defaultFilters };
+    const get = (k: string) => searchParams.get(k);
+    const getArr = (k: string) => {
+      const v = searchParams.get(k);
+      return v ? v.split(',').filter(Boolean) : [];
+    };
+    
+    if (get('search')) f.search = get('search')!;
+    const cg = getArr('colorGroups'); if (cg.length) f.colorGroups = cg;
+    const cv = getArr('colorVariations'); if (cv.length) f.colorVariations = cv;
+    const cn = getArr('colorNuances'); if (cn.length) f.colorNuances = cn;
+    const colors = getArr('colors'); if (colors.length) f.colors = colors;
+    const cats = getArr('categories'); if (cats.length) f.categories = cats;
+    const suppliers = getArr('suppliers'); if (suppliers.length) f.suppliers = suppliers;
+    // Legacy: support old ?supplier= param
+    const singleSupplier = get('supplier');
+    if (singleSupplier && !f.suppliers.includes(singleSupplier)) f.suppliers = [...f.suppliers, singleSupplier];
+    const pa = getArr('publicoAlvo'); if (pa.length) f.publicoAlvo = pa;
+    const dc = getArr('datasComemorativas'); if (dc.length) f.datasComemorativas = dc;
+    const endo = getArr('endomarketing'); if (endo.length) f.endomarketing = endo;
+    const ra = getArr('ramosAtividade'); if (ra.length) f.ramosAtividade = ra;
+    const sa = getArr('segmentosAtividade'); if (sa.length) f.segmentosAtividade = sa;
+    const mg = getArr('materialGroups'); if (mg.length) f.materialGroups = mg;
+    const mt = getArr('materialTypes'); if (mt.length) f.materialTypes = mt;
+    const mat = getArr('materiais'); if (mat.length) f.materiais = mat;
+    const tech = getArr('techniques'); if (tech.length) f.techniques = tech;
+    const tags = getArr('tags'); if (tags.length) f.tags = tags;
+    const pMin = get('priceMin'); const pMax = get('priceMax');
+    if (pMin || pMax) f.priceRange = [pMin ? parseInt(pMin) : 0, pMax ? parseInt(pMax) : 9999];
+    if (get('inStock') === '1') f.inStock = true;
+    if (get('isKit') === '1') f.isKit = true;
+    if (get('featured') === '1') f.featured = true;
+    if (get('isNew') === '1') f.isNew = true;
+    if (get('hasPersonalization') === '1') f.hasPersonalization = true;
+    if (get('hasCommercialPackaging') === '1') f.hasCommercialPackaging = true;
+    if (get('sortBy')) f.sortBy = get('sortBy')!;
+    
+    return f;
   });
 
-  // Atualizar filtros quando a URL mudar
+  // #22 Deep linking: serialize filters to URL on change
   useEffect(() => {
-    const supplierParam = searchParams.get('supplier');
-    if (supplierParam && !filters.suppliers.includes(supplierParam)) {
-      setFilters(prev => ({ ...prev, suppliers: [supplierParam] }));
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
     }
-  }, [searchParams]);
+    const params = new URLSearchParams();
+    const setArr = (k: string, arr: string[]) => { if (arr.length) params.set(k, arr.join(',')); };
+    
+    if (filters.search) params.set('search', filters.search);
+    setArr('colorGroups', filters.colorGroups);
+    setArr('colorVariations', filters.colorVariations);
+    setArr('colorNuances', filters.colorNuances);
+    setArr('colors', filters.colors);
+    setArr('categories', filters.categories);
+    setArr('suppliers', filters.suppliers);
+    setArr('publicoAlvo', filters.publicoAlvo);
+    setArr('datasComemorativas', filters.datasComemorativas);
+    setArr('endomarketing', filters.endomarketing);
+    setArr('ramosAtividade', filters.ramosAtividade || []);
+    setArr('segmentosAtividade', filters.segmentosAtividade || []);
+    setArr('materialGroups', filters.materialGroups || []);
+    setArr('materialTypes', filters.materialTypes || []);
+    setArr('materiais', filters.materiais);
+    setArr('techniques', filters.techniques || []);
+    setArr('tags', filters.tags || []);
+    if (filters.priceRange[0] > 0) params.set('priceMin', String(filters.priceRange[0]));
+    if (filters.priceRange[1] < 9999) params.set('priceMax', String(filters.priceRange[1]));
+    if (filters.inStock) params.set('inStock', '1');
+    if (filters.isKit) params.set('isKit', '1');
+    if (filters.featured) params.set('featured', '1');
+    if (filters.isNew) params.set('isNew', '1');
+    if (filters.hasPersonalization) params.set('hasPersonalization', '1');
+    if (filters.hasCommercialPackaging) params.set('hasCommercialPackaging', '1');
+    if (filters.sortBy && filters.sortBy !== 'name') params.set('sortBy', filters.sortBy);
+    
+    setSearchParams(params, { replace: true });
+  }, [filters, setSearchParams]);
   
   // Hook para buscar produtos por materiais (usa tabela product_materials)
   const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
@@ -686,16 +753,43 @@ export default function FiltersPage() {
 
         {/* Main content */}
         <div className="flex gap-6">
-          {/* Sidebar - Desktop */}
+          {/* Sidebar - Desktop with sticky footer (#24) */}
           <aside className="hidden lg:block w-80 shrink-0">
-            <div className="sticky top-20 space-y-4 max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-thin pr-2">
-              <FilterPanel
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onReset={handleReset}
-                activeFiltersCount={activeFiltersCount}
-                products={realProducts}
-              />
+            <div className="sticky top-20 flex flex-col max-h-[calc(100vh-10rem)]">
+              <div className="flex-1 overflow-y-auto scrollbar-thin pr-2 space-y-4">
+                <FilterPanel
+                  filters={filters}
+                  onFilterChange={handleFilterChange}
+                  onReset={handleReset}
+                  activeFiltersCount={activeFiltersCount}
+                  products={realProducts}
+                />
+              </div>
+              {/* Sticky footer (#24) */}
+              {(activeFiltersCount > 0 || filteredProducts.length !== realProducts.length) && (
+                <div className="border-t bg-background/95 backdrop-blur-sm px-3 py-2.5 flex items-center gap-2 shrink-0 mt-1">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs text-muted-foreground">
+                      {activeFiltersCount > 0 && (
+                        <span className="font-medium text-primary">{activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''}</span>
+                      )}
+                      {activeFiltersCount > 0 && ' · '}
+                      <span className="font-semibold text-foreground">{filteredProducts.length}</span> produto{filteredProducts.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleReset}
+                      className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Limpar
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </aside>
 

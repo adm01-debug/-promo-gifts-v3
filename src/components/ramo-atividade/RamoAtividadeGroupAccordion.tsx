@@ -15,6 +15,10 @@ interface RamoAtividadeGroupAccordionProps {
   defaultOpen?: boolean;
   showProductCounts?: boolean;
   compact?: boolean;
+  productCountsByRamo?: {
+    ramoCounts: Map<string, number>;
+    segmentoCounts: Map<string, number>;
+  };
 }
 
 export function RamoAtividadeGroupAccordion({
@@ -27,6 +31,7 @@ export function RamoAtividadeGroupAccordion({
   defaultOpen = false,
   showProductCounts = true,
   compact = false,
+  productCountsByRamo,
 }: RamoAtividadeGroupAccordionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   
@@ -70,9 +75,17 @@ export function RamoAtividadeGroupAccordion({
             </span>
           </label>
 
-          <span className="text-[10px] text-muted-foreground">
-            {selectedCount > 0 && `${selectedCount}/`}{group.total_segmentos}
-          </span>
+          {(() => {
+            const ramoCount = productCountsByRamo?.ramoCounts.get(group.group_name.toLowerCase()) || 0;
+            return (
+              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                {selectedCount > 0 && `${selectedCount}/`}{group.total_segmentos}
+                {ramoCount > 0 && (
+                  <span className="text-primary/70">· {ramoCount}</span>
+                )}
+              </span>
+            );
+          })()}
         </div>
 
         {/* Lista compacta */}
@@ -164,7 +177,7 @@ export function RamoAtividadeGroupAccordion({
             </span>
           )}
           
-          {/* Total de segmentos */}
+          {/* Total de segmentos + product count */}
           <div className={cn(
             "flex items-center gap-1 text-xs px-2 py-0.5 rounded-full transition-colors",
             hasSelection 
@@ -173,6 +186,12 @@ export function RamoAtividadeGroupAccordion({
           )}>
             <span className="font-medium">{group.total_segmentos}</span>
             <span className="text-[10px]">seg.</span>
+            {(() => {
+              const ramoCount = productCountsByRamo?.ramoCounts.get(group.group_name.toLowerCase()) || 0;
+              return ramoCount > 0 ? (
+                <span className="text-[10px] text-primary/70 ml-0.5">· {ramoCount}</span>
+              ) : null;
+            })()}
           </div>
         </div>
       </div>
