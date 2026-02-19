@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { 
   useExternalCategories, 
   useExternalTechniques, 
@@ -9,141 +9,27 @@ import {
   ExternalSupplier,
 } from './useExternalDatabase';
 
-// ============================================
-// TIPOS PARA FILTROS AVANÇADOS
-// ============================================
+// Re-exportar tipos e constantes dos novos arquivos
+export type {
+  ColorOption,
+  CategoryOption,
+  TechniqueOption,
+  SupplierOption,
+  MaterialOption,
+  StockFilterOption,
+  AdvancedFilterState,
+  ColorGroupData,
+  TagData,
+} from '@/types/advancedFilters';
 
-export interface ColorOption {
-  id: string;
-  name: string;
-  hex: string;
-  count?: number;
-}
+export {
+  defaultAdvancedFilters,
+  STOCK_FILTER_OPTIONS,
+  SORT_OPTIONS,
+} from '@/constants/filters';
 
-export interface CategoryOption {
-  id: string;
-  name: string;
-  parentId?: string;
-  level: number;
-  path?: string;
-  count?: number;
-  children?: CategoryOption[];
-}
-
-export interface TechniqueOption {
-  id: string;
-  name: string;
-  code: string;
-  estimatedDays?: number;
-  minQuantity?: number;
-}
-
-export interface SupplierOption {
-  id: string;
-  name: string;
-  code?: string;
-  leadTimeDays?: number;
-}
-
-export interface MaterialOption {
-  name: string;
-  count?: number;
-}
-
-export interface StockFilterOption {
-  value: 'all' | 'in_stock' | 'low_stock' | 'out_of_stock' | 'future';
-  label: string;
-}
-
-export interface AdvancedFilterState {
-  // Filtros básicos
-  search: string;
-  categories: string[];
-  suppliers: string[];
-  colors: string[];
-  materials: string[];
-  techniques: string[];
-  tags: string[];
-  
-  // Sistema hierárquico de cores (novo)
-  colorGroups: string[];      // slugs dos grupos (Azul, Verde, etc.)
-  colorVariations: string[];  // slugs das variações (Azul Royal, etc.)
-  colorNuances: string[];     // slugs das nuances (Metalizado, etc.)
-  
-  // Filtros de marketing (novo)
-  datasComemorativas: string[];
-  publicoAlvo: string[];
-  endomarketing: string[];
-  ramosAtividade: string[];      // slugs dos ramos (grupos pai)
-  segmentosAtividade: string[];  // slugs dos segmentos (filhos)
-  
-  // Faixa de preço
-  priceRange: [number, number];
-  
-  // Tiragem/Quantidade
-  quantityRange: [number, number];
-  
-  // Estoque
-  stockStatus: StockFilterOption['value'];
-  minStock: number;
-  
-  // Características
-  isKit: boolean;
-  isFeatured: boolean;
-  isNew: boolean;
-  hasPersonalization: boolean;
-  
-  // Prazo de entrega
-  maxLeadTimeDays: number | null;
-  
-  // Ordenação
-  sortBy: 'name' | 'price_asc' | 'price_desc' | 'newest' | 'stock' | 'popularity';
-}
-
-export const defaultAdvancedFilters: AdvancedFilterState = {
-  search: '',
-  categories: [],
-  suppliers: [],
-  colors: [],
-  materials: [],
-  techniques: [],
-  tags: [],
-  colorGroups: [],
-  colorVariations: [],
-  colorNuances: [],
-  datasComemorativas: [],
-  publicoAlvo: [],
-  endomarketing: [],
-  ramosAtividade: [],
-  segmentosAtividade: [],
-  priceRange: [0, 1000],
-  quantityRange: [1, 10000],
-  stockStatus: 'all',
-  minStock: 0,
-  isKit: false,
-  isFeatured: false,
-  isNew: false,
-  hasPersonalization: false,
-  maxLeadTimeDays: null,
-  sortBy: 'name',
-};
-
-export const STOCK_FILTER_OPTIONS: StockFilterOption[] = [
-  { value: 'all', label: 'Todos' },
-  { value: 'in_stock', label: 'Em Estoque' },
-  { value: 'low_stock', label: 'Estoque Baixo' },
-  { value: 'out_of_stock', label: 'Sem Estoque' },
-  { value: 'future', label: 'Estoque Futuro' },
-];
-
-export const SORT_OPTIONS = [
-  { value: 'name', label: 'Nome (A-Z)' },
-  { value: 'price_asc', label: 'Preço (Menor → Maior)' },
-  { value: 'price_desc', label: 'Preço (Maior → Menor)' },
-  { value: 'newest', label: 'Mais Recentes' },
-  { value: 'stock', label: 'Maior Estoque' },
-  { value: 'popularity', label: 'Mais Populares' },
-];
+import type { CategoryOption, TechniqueOption, SupplierOption, ColorOption, ColorGroupData, TagData, AdvancedFilterState } from '@/types/advancedFilters';
+import { defaultAdvancedFilters } from '@/constants/filters';
 
 // ============================================
 // HOOK PRINCIPAL
@@ -168,7 +54,7 @@ export function useAdvancedFilters() {
         await Promise.all([
           categoriesDB.fetchAll({ filters: { is_active: true }, limit: 500 }),
           techniquesDB.fetchAll({ filters: { is_active: true }, limit: 100 }),
-          suppliersDB.fetchAll({ limit: 100 }), // suppliers usa 'active' não 'is_active'
+          suppliersDB.fetchAll({ limit: 100 }),
           colorGroupsDB.fetchAll({ filters: { is_active: true }, limit: 100 }),
           tagsDB.fetchAll({ limit: 200 }),
         ]);
@@ -190,7 +76,6 @@ export function useAdvancedFilters() {
     const categoryMap = new Map<string, CategoryOption>();
     const roots: CategoryOption[] = [];
 
-    // Primeiro passo: criar todos os nós
     categories.forEach(cat => {
       categoryMap.set(cat.id, {
         id: cat.id,
@@ -202,7 +87,6 @@ export function useAdvancedFilters() {
       });
     });
 
-    // Segundo passo: construir a árvore
     categoryMap.forEach(cat => {
       if (cat.parentId) {
         const parent = categoryMap.get(cat.parentId);
@@ -318,17 +202,14 @@ export function useAdvancedFilters() {
     if (filters.materials.length) count += filters.materials.length;
     if (filters.techniques.length) count += filters.techniques.length;
     if (filters.tags.length) count += filters.tags.length;
-    // Cores hierárquicas
     if (filters.colorGroups.length) count += filters.colorGroups.length;
     if (filters.colorVariations.length) count += filters.colorVariations.length;
     if (filters.colorNuances.length) count += filters.colorNuances.length;
-    // Filtros de marketing
     if (filters.datasComemorativas.length) count += filters.datasComemorativas.length;
     if (filters.publicoAlvo.length) count += filters.publicoAlvo.length;
     if (filters.endomarketing.length) count += filters.endomarketing.length;
     if (filters.ramosAtividade.length) count += filters.ramosAtividade.length;
     if (filters.segmentosAtividade.length) count += filters.segmentosAtividade.length;
-    // Ranges e opções
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 1000) count++;
     if (filters.quantityRange[0] > 1 || filters.quantityRange[1] < 10000) count++;
     if (filters.stockStatus !== 'all') count++;
@@ -357,20 +238,15 @@ export function useAdvancedFilters() {
   }, [filters]);
 
   return {
-    // Estado
     filters,
     isLoading,
     activeFiltersCount,
-    
-    // Opções de filtro
     categoryTree,
     categoryOptions,
     techniqueOptions,
     supplierOptions,
     colorOptions,
     tagOptions,
-    
-    // Funções
     updateFilter,
     toggleArrayFilter,
     resetFilters,
@@ -378,22 +254,4 @@ export function useAdvancedFilters() {
     setFilters,
     hasActiveFiltersInGroup,
   };
-}
-
-// ============================================
-// TIPOS AUXILIARES
-// ============================================
-
-interface ColorGroupData {
-  id: string;
-  name: string;
-  hex_code?: string;
-  is_active?: boolean;
-}
-
-interface TagData {
-  id: string;
-  name: string;
-  slug?: string;
-  color?: string;
 }
