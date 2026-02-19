@@ -86,24 +86,31 @@ Deno.serve(async (req) => {
         const yearShort = String(year).slice(-2);
 
         // Get the last quote number for this year from CRM
+        // Order by length first (to avoid lexicographic ordering issues) then alphabetically
         const { data: lastQuotes } = await crm
           .from("quotes")
           .select("quote_number")
           .ilike("quote_number", `%/${yearShort}`)
           .order("quote_number", { ascending: false })
-          .limit(1);
+          .limit(50); // get more to find the true max numerically
 
         let nextNumber = 10001;
 
         if (lastQuotes && lastQuotes.length > 0) {
-          const rawNum = (lastQuotes[0].quote_number || "").split("/")[0].trim();
-          const lastNum = parseInt(rawNum || "10000", 10);
-          if (!isNaN(lastNum) && lastNum >= 10000) {
-            nextNumber = lastNum + 1;
+          // Parse all numbers and find the true numeric maximum
+          let maxNum = 10000;
+          for (const row of lastQuotes) {
+            const rawNum = (row.quote_number || "").replace(/\s+/g, "").split("/")[0];
+            const parsed = parseInt(rawNum || "0", 10);
+            if (!isNaN(parsed) && parsed > maxNum) {
+              maxNum = parsed;
+            }
           }
+          nextNumber = maxNum + 1;
         }
 
-        const generatedNumber = `${nextNumber}/${yearShort}`.trim();
+        // Generate clean number with no spaces ever
+        const generatedNumber = `${nextNumber}/${yearShort}`;
 
         // Apply to single or batch insert
         if (Array.isArray(data)) {
