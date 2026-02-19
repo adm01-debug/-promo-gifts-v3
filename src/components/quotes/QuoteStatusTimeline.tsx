@@ -22,10 +22,10 @@ const steps = [
 const statusOrder: Record<string, number> = {
   draft:    0,
   pending:  1,
-  sent:     3,
-  approved: 3,
-  rejected: 3,
-  expired:  3,
+  sent:     4, // além do último step → todos marcados como concluídos
+  approved: 4,
+  rejected: 4,
+  expired:  4,
 };
 
 function formatTs(ts?: string) {
