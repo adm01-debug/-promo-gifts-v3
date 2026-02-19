@@ -247,7 +247,7 @@ export function PdfGenerationDialog({
                   <Check className="h-8 w-8 text-emerald-500" />
                 </div>
                 <p className="font-semibold text-lg">PDF pronto!</p>
-                <p className="text-sm text-muted-foreground">Escolha como deseja compartilhar a proposta</p>
+                
               </div>
 
               {/* Action Grid */}
