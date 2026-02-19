@@ -131,7 +131,12 @@ serve(async (req) => {
     // Only include optional fields when resolved
     if (sellerId) payload.seller_id = sellerId;
     if (companyId) payload.company_id = companyId;
-    if (bitrixQuoteId) payload.quote_id = bitrixQuoteId;
+
+    // Spec v3: quote_id = código interno do gifts-store (ex: "10001/26")
+    // O n8n busca no campo UF_CRM_QUOTE_1771506036 para criar ou atualizar
+    // NÃO usar bitrix_quote_id numérico — o workflow resolve sozinho pelo código
+    const internalQuoteId = (quote?.quote_number || "").replace(/\s+/g, "");
+    if (internalQuoteId) payload.quote_id = internalQuoteId;
 
     // Contact (numeric Bitrix contact_id if available)
     if (quote?.bitrix_contact_id) {

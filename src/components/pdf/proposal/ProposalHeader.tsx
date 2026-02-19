@@ -80,8 +80,8 @@ export function ProposalHeader({ data, isContinuation }: Props) {
         <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "20px", textTransform: "uppercase", letterSpacing: "3px", margin: "0 0 6px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
           Proposta Comercial
         </p>
-        <p style={{ fontSize: "13px", opacity: 0.95, fontWeight: 400, lineHeight: "1.7", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif", whiteSpace: "nowrap" }}>
-          Proposta {quoteNumber}
+        <p style={{ fontSize: "13px", opacity: 0.95, fontWeight: 400, lineHeight: "1.7", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif", whiteSpace: "nowrap", letterSpacing: "0px" }}>
+          Proposta&nbsp;{quoteNumber}
         </p>
         <p style={{ fontSize: "13px", opacity: 0.85, margin: "0 0 6px 0", fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}>
           {data.date}
