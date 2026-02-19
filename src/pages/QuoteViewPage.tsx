@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { QuoteStatusTimeline } from "@/components/quotes/QuoteStatusTimeline";
 import { QuoteValidityBanner } from "@/components/quotes/QuoteValidityBanner";
 import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
-import { QuoteNextActionBanner } from "@/components/quotes/QuoteNextActionBanner";
+
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
 
 function formatCNPJ(cnpj: string): string {
@@ -471,14 +471,6 @@ export default function QuoteViewPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-
-        {/* Next Action Banner — compact inline */}
-        <div className="print:hidden">
-          <QuoteNextActionBanner 
-            status={quote.status} 
-            onSendWhatsApp={handleWhatsAppShare}
-          />
         </div>
 
         {/* Status Timeline + Validity Banner */}
