@@ -14,7 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
-import { selectCrmById } from "@/lib/crm-db";
+import { selectCrmById, updateCrm } from "@/lib/crm-db";
 
 import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
 import { ProposalHtmlTemplate, ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
@@ -300,38 +300,31 @@ export default function QuoteViewPage() {
 
       const result = data.result;
 
-      // ── Correção 1: Salvar bitrix_quote_id retornado pelo webhook ────────
-      // Garante que sincronizações futuras ATUALIZAM em vez de criar duplicatas
+      // ── Correção 1: Salvar bitrix_quote_id no CRM externo ───────────────
+      // Os orçamentos vivem no CRM externo (crm-db-bridge), não na tabela local
       const bitrixQuoteIdFromResponse = result?.quote_id ? Number(result.quote_id) : null;
 
-      const updates: Record<string, any> = {
-        status: "sent",
-        updated_at: new Date().toISOString(),
-      };
+      const crmUpdates: Record<string, any> = { status: "sent" };
       if (bitrixQuoteIdFromResponse) {
-        updates.bitrix_quote_id = bitrixQuoteIdFromResponse;
+        crmUpdates.bitrix_quote_id = bitrixQuoteIdFromResponse;
       }
 
-      const { error: updateError } = await supabase
-        .from("quotes")
-        .update(updates)
-        .eq("id", quote.id);
-
-      if (updateError) {
-        console.warn("Falha ao atualizar quote após sync:", updateError);
-      } else {
-        // Atualizar estado local imediatamente
-        setQuote((prev) =>
-          prev
-            ? {
-                ...prev,
-                status: "sent",
-                updated_at: updates.updated_at,
-                ...(bitrixQuoteIdFromResponse ? { bitrix_quote_id: bitrixQuoteIdFromResponse } : {}),
-              }
-            : prev
-        );
+      try {
+        await updateCrm("quotes", quote.id, crmUpdates);
+      } catch (updateErr) {
+        console.warn("Falha ao atualizar quote no CRM após sync:", updateErr);
       }
+
+      // Atualizar estado local imediatamente (UI)
+      setQuote((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: "sent",
+              ...(bitrixQuoteIdFromResponse ? { bitrix_quote_id: bitrixQuoteIdFromResponse } : {}),
+            }
+          : prev
+      );
 
       toast.success(
         result?.message || `Orçamento sincronizado com Bitrix24!`,
