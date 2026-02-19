@@ -9,6 +9,7 @@ interface Props {
 }
 
 export function ProposalHeader({ data, isContinuation }: Props) {
+  const quoteNumber = (data.quoteNumber || "").replace(/\s+/g, "");
   if (isContinuation) {
     return (
       <div style={{ width: "794px", height: "64px", flexShrink: 0, position: "relative" }}>
@@ -26,10 +27,10 @@ export function ProposalHeader({ data, isContinuation }: Props) {
             <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", opacity: 0.6 }}>
               Continuação
             </span>
-            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px" }}>
-              Proposta {data.quoteNumber}
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", whiteSpace: "nowrap" }}>
+              Proposta {quoteNumber}
             </span>
-            <span style={{ fontSize: "11px", opacity: 0.6 }}>
+            <span style={{ fontSize: "11px", opacity: 0.6, whiteSpace: "nowrap" }}>
               {data.date}
             </span>
           </div>
@@ -80,7 +81,7 @@ export function ProposalHeader({ data, isContinuation }: Props) {
           Proposta Comercial
         </p>
         <p style={{ fontSize: "13px", opacity: 0.95, fontWeight: 400, lineHeight: "1.7", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif", whiteSpace: "nowrap" }}>
-          Proposta {data.quoteNumber}
+          Proposta {quoteNumber}
         </p>
         <p style={{ fontSize: "13px", opacity: 0.85, margin: "0 0 6px 0", fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}>
           {data.date}
