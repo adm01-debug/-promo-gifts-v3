@@ -14,8 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { useIPValidation } from "@/hooks/useIPValidation";
-import { useCaptcha } from "@/hooks/useCaptcha";
-import { CaptchaWidget } from "@/components/auth/CaptchaWidget";
 import { PasskeyLogin } from "@/components/auth/PasskeyLogin";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,16 +45,6 @@ export default function Auth() {
   const { toast } = useToast();
   const { user, isLoading: authLoading, signIn, signUp, signOut } = useAuth();
   const { validateIPForAuthenticatedUser, logLoginAttempt, fetchCurrentIP } = useIPValidation();
-  const {
-    showCaptcha,
-    failedAttempts,
-    incrementFailedAttempts,
-    resetFailedAttempts,
-    onCaptchaVerify,
-    onCaptchaExpire,
-    canAttemptLogin,
-    captchaThreshold,
-  } = useCaptcha();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
@@ -82,29 +70,14 @@ export default function Auth() {
   });
 
   const handleLogin = async (data: LoginForm) => {
-    // Check if CAPTCHA is required but not verified
-    if (!canAttemptLogin()) {
-      toast({
-        variant: "destructive",
-        title: "Verificação necessária",
-        description: "Complete o CAPTCHA para continuar",
-      });
-      return;
-    }
-
     setIsSubmitting(true);
     setIpBlocked(false);
     
     try {
-      // Primeiro, fazer o login para obter o user_id
       const { error } = await signIn(data.email, data.password);
       
       if (error) {
-        // Registrar tentativa de login falha
         await logLoginAttempt(data.email, null, false, error.message);
-        
-        // Increment failed attempts for CAPTCHA
-        incrementFailedAttempts();
         
         if (error.message.includes("Invalid login credentials")) {
           toast({
@@ -122,16 +95,13 @@ export default function Auth() {
         return;
       }
 
-      // Obter o usuário atual após login bem-sucedido
       const { data: sessionData } = await supabase.auth.getSession();
       const userId = sessionData?.session?.user?.id;
 
       if (userId) {
-        // Validar IP após login bem-sucedido
         const ipValidation = await validateIPForAuthenticatedUser(userId);
         
         if (!ipValidation.isAllowed && ipValidation.hasRestrictions) {
-          // IP bloqueado - fazer logout e mostrar erro
           await signOut();
           await logLoginAttempt(data.email, userId, false, 'IP não autorizado: ' + ipValidation.currentIP);
           
@@ -147,12 +117,8 @@ export default function Auth() {
           return;
         }
 
-        // Login bem-sucedido e IP permitido
         await logLoginAttempt(data.email, userId, true);
       }
-
-      // Reset CAPTCHA on successful login
-      resetFailedAttempts();
 
       toast({
         title: "Bem-vindo!",
@@ -160,7 +126,6 @@ export default function Auth() {
       });
       navigate("/");
     } catch (error) {
-      incrementFailedAttempts();
       toast({
         variant: "destructive",
         title: "Erro inesperado",
@@ -438,15 +403,6 @@ export default function Auth() {
                       )}
                     </div>
 
-                    {/* CAPTCHA Widget */}
-                    {showCaptcha && (
-                      <CaptchaWidget
-                        onVerify={onCaptchaVerify}
-                        onExpire={onCaptchaExpire}
-                        failedAttempts={failedAttempts}
-                        threshold={captchaThreshold}
-                      />
-                    )}
 
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -473,7 +429,7 @@ export default function Auth() {
                       type="submit" 
                       variant="orange"
                       className="w-full h-12 text-base font-semibold shadow-lg shadow-orange/25 hover:shadow-xl hover:shadow-orange/30 transition-all duration-300" 
-                      disabled={isSubmitting || (showCaptcha && !canAttemptLogin())}
+                      disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <>
