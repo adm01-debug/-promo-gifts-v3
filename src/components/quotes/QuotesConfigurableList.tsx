@@ -75,7 +75,7 @@ export interface ColumnDef {
 const ALL_COLUMNS: ColumnDef[] = [
   { id: "status", label: "Status", width: "110px" },
   { id: "client", label: "Empresa", width: "1fr", required: true },
-  { id: "contact", label: "Contato", width: "160px", align: "center" },
+  { id: "contact", label: "Contato", width: "160px" },
   { id: "date", label: "Data", width: "110px" },
   { id: "value", label: "Valor", width: "140px", align: "right" },
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
@@ -266,7 +266,7 @@ export function QuotesConfigurableList({
         );
       case "contact":
         return quote.client_name && quote.client_company ? (
-          <span className="text-[0.975rem] text-muted-foreground truncate text-center block">{quote.client_name}</span>
+          <span className="text-[0.975rem] text-muted-foreground truncate">{quote.client_name}</span>
         ) : (
           <span className="text-xs text-muted-foreground/50">—</span>
         );
