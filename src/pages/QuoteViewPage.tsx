@@ -320,6 +320,7 @@ export default function QuoteViewPage() {
           <div className="flex items-center gap-2">
             {/* Desktop-only buttons */}
             <div className="hidden md:flex items-center gap-2">
+
             <QuoteConvertToOrder quoteId={id!} status={quote.status} />
 
             {/* Sincronizar com Bitrix24 */}
@@ -335,6 +336,7 @@ export default function QuoteViewPage() {
               )}
               {isSyncing ? "Sincronizando..." : "Sincronizar"}
             </Button>
+            </div>{/* end hidden md:flex */}
 
             <PdfGenerationDialog
               proposalData={proposalData}
