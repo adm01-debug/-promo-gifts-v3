@@ -2751,6 +2751,21 @@ export type Database = {
           },
         ]
       }
+      quote_number_counters: {
+        Row: {
+          last_number: number
+          year: number
+        }
+        Insert: {
+          last_number?: number
+          year: number
+        }
+        Update: {
+          last_number?: number
+          year?: number
+        }
+        Relationships: []
+      }
       quote_templates: {
         Row: {
           created_at: string

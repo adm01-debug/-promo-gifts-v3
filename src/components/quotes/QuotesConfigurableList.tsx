@@ -241,7 +241,7 @@ export function QuotesConfigurableList({
       case "quote_number":
         return (
           <span className="text-xs text-muted-foreground truncate font-mono">
-            #{quote.quote_number}
+            {quote.quote_number}
           </span>
         );
       case "client":
