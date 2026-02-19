@@ -79,6 +79,47 @@ Deno.serve(async (req) => {
         );
       }
 
+      // Auto-generate quote_number for quotes table
+      if (table === "quotes") {
+        const now = new Date();
+        const year = now.getFullYear();
+        const yearShort = String(year).slice(-2);
+
+        // Get the last quote number for this year from CRM
+        const { data: lastQuotes } = await crm
+          .from("quotes")
+          .select("quote_number")
+          .ilike("quote_number", `%/${yearShort}`)
+          .order("quote_number", { ascending: false })
+          .limit(1);
+
+        let nextNumber = 10001;
+
+        if (lastQuotes && lastQuotes.length > 0) {
+          const lastNum = parseInt(lastQuotes[0].quote_number?.split("/")[0] || "10000", 10);
+          if (!isNaN(lastNum) && lastNum >= 10000) {
+            nextNumber = lastNum + 1;
+          }
+        }
+
+        const generatedNumber = `${nextNumber}/${yearShort}`;
+
+        // Apply to single or batch insert
+        if (Array.isArray(data)) {
+          // batch: only set on items missing quote_number
+          (data as Record<string, unknown>[]).forEach((row) => {
+            if (!row.quote_number || row.quote_number === "") {
+              row.quote_number = generatedNumber;
+            }
+          });
+        } else {
+          const row = data as Record<string, unknown>;
+          if (!row.quote_number || row.quote_number === "") {
+            row.quote_number = generatedNumber;
+          }
+        }
+      }
+
       let query = crm.from(table).insert(data as any).select(returning || "*");
 
       const { data: result, error } = await query;
