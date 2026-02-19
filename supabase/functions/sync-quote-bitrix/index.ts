@@ -44,6 +44,9 @@ serve(async (req) => {
     // ── 2. Resolve seller_id ─────────────────────────────────────────────────
     // Priority: email passed from frontend → undefined (n8n test mode uses default)
     const sellerId = sellerEmail ? SELLER_EMAIL_MAP[sellerEmail] : undefined;
+    if (sellerEmail && sellerId === undefined) {
+      console.warn(`sellerEmail "${sellerEmail}" não encontrado no SELLER_EMAIL_MAP — orçamento enviado sem seller_id`);
+    }
 
     // ── 3. Resolve company_id (Bitrix numeric) ───────────────────────────────
     // bitrixCompanyId comes from companies.bitrix_id (string like "125240")
@@ -71,11 +74,18 @@ serve(async (req) => {
     }
 
     // Spec v3.1 §REGRA DE PREÇO: desconto do orçamento (0–100)
-    const discountRate = Number(quote?.discount_percent ?? 0) / 100;
+    // Guard: garante que discount_percent seja numérico válido (evita NaN propagado)
+    const rawDiscount = Number(quote?.discount_percent ?? 0);
+    const discountRate = Number.isFinite(rawDiscount) ? rawDiscount / 100 : 0;
 
     const products = itemsValidos.map((item: any) => {
       // Spec §6.2: offer_id = product_variants.bitrix_product_id (obrigatório)
       const offerId = Number(item.bitrix_product_id);
+      // Guard: rejeita offer_id inválido (NaN, 0, negativo)
+      if (!Number.isFinite(offerId) || offerId <= 0) {
+        console.warn(`Item ignorado: bitrix_product_id inválido ("${item.bitrix_product_id}") — produto: ${item.name || item.product_name}`);
+        return null;
+      }
 
       // Spec §6.2: product_name = nome do produto + " - " + cor
       const baseName = item.name || item.product_name || "Produto";
@@ -87,7 +97,13 @@ serve(async (req) => {
       // NÃO usar `${sku}-${color_name}` — esse formato está errado
       const sku = item.supplier_sku || item.composedCode || item.sku || item.product_sku || "";
 
+      // Guard: qty deve ser inteiro positivo
       const qty = Number(item.quantity ?? 1);
+      if (!Number.isFinite(qty) || qty <= 0) {
+        console.warn(`Item ignorado: quantity inválida (${item.quantity}) — produto: ${baseName}`);
+        return null;
+      }
+
       const unitPrice = Number(item.unitPrice ?? item.unit_price ?? 0);
 
       // Spec §6.3: gravação (engraving) — apenas se o produto tiver personalização
@@ -95,7 +111,10 @@ serve(async (req) => {
 
       // Spec v3.1 §REGRA DE PREÇO:
       // price = (preço_produto + gravação_unitária) × (1 - desconto%)
-      const engravingTotal = pers ? Number(pers.total_cost ?? (pers.unit_cost ?? 0) * qty) : 0;
+      // FIX: usar != null em vez de ?? para suportar total_cost = 0 como valor válido
+      const engravingTotal = pers
+        ? (pers.total_cost != null ? Number(pers.total_cost) : Number(pers.unit_cost ?? 0) * qty)
+        : 0;
       const engravingUnit = qty > 0 ? engravingTotal / qty : 0;
       const subtotalUnit = unitPrice + engravingUnit;
       const finalPrice = Math.round(subtotalUnit * (1 - discountRate) * 100) / 100;
@@ -110,9 +129,10 @@ serve(async (req) => {
 
       if (pers) {
         // Spec §6.3: size = "LxHcm" ou "Xcm²"
-        const sizeStr = pers.width_cm && pers.height_cm
+        // FIX: usar != null para suportar dimensões com valor 0 (falsy)
+        const sizeStr = pers.width_cm != null && pers.height_cm != null
           ? `${pers.width_cm}x${pers.height_cm}cm`
-          : pers.area_cm2
+          : pers.area_cm2 != null
             ? `${pers.area_cm2}cm²`
             : "";
         product.engraving = {
@@ -124,7 +144,12 @@ serve(async (req) => {
       }
 
       return product;
-    });
+    }).filter((p: any) => p !== null); // Remove itens rejeitados (offerId/qty inválidos)
+
+    // Guard pós-filtro: pode sobrar 0 itens válidos após rejeições de offerId/qty
+    if (products.length === 0) {
+      throw new Error("Todos os itens foram rejeitados por dados inválidos (offer_id ou quantity). Verifique os dados dos produtos.");
+    }
 
     // ── 6. Assemble final payload ────────────────────────────────────────────
     const clientName =
