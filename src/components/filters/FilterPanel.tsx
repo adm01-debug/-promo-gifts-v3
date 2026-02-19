@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ChevronDown, ChevronUp, RefreshCw, Search, X, Gem, Building2, Gift, Palette, Sparkles, Filter, Paintbrush, Clock, Tag } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ChevronDown, ChevronUp, ChevronsUpDown, RefreshCw, Search, X, Gem, Building2, Gift, Palette, Sparkles, Filter, Paintbrush, Clock, Tag } from "lucide-react";
+import toast from "react-hot-toast";
 import { toTitleCase } from "@/lib/textUtils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -289,6 +290,10 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     );
   };
 
+  const collapseAllSections = useCallback(() => {
+    setOpenSections([]);
+  }, []);
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -301,19 +306,28 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             </Badge>
           )}
         </div>
-        {activeFiltersCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onReset}
-                className="text-muted-foreground hover:text-foreground"
-                aria-label="Limpar todos os filtros"
-                role="button"
-              >
-            <RefreshCw className="h-4 w-4 mr-1" />
-            Limpar
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { onReset(); toast.success('Filtros resetados'); }}
+            className="text-muted-foreground hover:text-foreground text-xs h-7 px-2"
+            aria-label="Resetar todos os filtros"
+          >
+            <RefreshCw className="h-3.5 w-3.5 mr-1" />
+            Reset
           </Button>
-        )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={collapseAllSections}
+            className="text-muted-foreground hover:text-foreground text-xs h-7 px-2"
+            aria-label="Colapsar todas as seções de filtro"
+          >
+            <ChevronsUpDown className="h-3.5 w-3.5 mr-1" />
+            Closer
+          </Button>
+        </div>
       </div>
 
       <div className="divide-y divide-border">
