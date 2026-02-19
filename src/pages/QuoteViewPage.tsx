@@ -83,7 +83,9 @@ export default function QuoteViewPage() {
       try {
         const company = await selectCrmById<any>("companies", data.client_id);
         if (company?.cnpj) setClientCnpj(formatCNPJ(company.cnpj));
-        if (company?.bitrix_id) setBitrixCompanyId(company.bitrix_id);
+        // Campo correto no CRM externo é bitrix_company_id (número inteiro)
+        const bId = company?.bitrix_company_id ?? company?.bitrix_id;
+        if (bId) setBitrixCompanyId(String(bId));
       } catch {
         // Company not found, keep undefined
       }
@@ -209,9 +211,10 @@ export default function QuoteViewPage() {
     if (!effectiveBitrixCompanyId && quote.client_id) {
       try {
         const company = await selectCrmById<any>("companies", quote.client_id);
-        if (company?.bitrix_id) {
-          effectiveBitrixCompanyId = company.bitrix_id;
-          setBitrixCompanyId(company.bitrix_id);
+        const bId = company?.bitrix_company_id ?? company?.bitrix_id;
+        if (bId) {
+          effectiveBitrixCompanyId = String(bId);
+          setBitrixCompanyId(String(bId));
         }
       } catch {
         // ignore
