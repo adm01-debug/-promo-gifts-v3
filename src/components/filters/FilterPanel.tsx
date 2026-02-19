@@ -291,6 +291,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             size="sm"
             onClick={onReset}
             className="text-muted-foreground hover:text-foreground"
+            aria-label="Limpar todos os filtros"
           >
             <RefreshCw className="h-4 w-4 mr-1" />
             Limpar
@@ -307,6 +308,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
               value={filters.search}
               onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
               className="pr-8"
+              aria-label="Buscar produtos por nome, SKU ou descrição"
             />
             {filters.search && (
               <button
@@ -404,6 +406,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                   value={supplierSearch}
                   onChange={(e) => setSupplierSearch(e.target.value)}
                   className="h-8 text-sm pl-8 pr-8"
+                  aria-label="Buscar fornecedor por nome"
                 />
                 {supplierSearch && (
                   <button
@@ -523,6 +526,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                       materialFilterState.selectedTypes.forEach(slug => toggleMaterialType(slug));
                     }}
                     className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                    aria-label="Limpar todos os materiais selecionados"
                   >
                     Limpar todos
                   </button>
@@ -567,12 +571,14 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                 value={materialSearch}
                 onChange={(e) => setMaterialSearch(e.target.value)}
                 className="h-8 text-sm pl-8 pr-8"
+                aria-label="Buscar material por nome"
               />
               {materialSearch && (
                 <button
                   type="button"
                   onClick={() => setMaterialSearch('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Limpar busca de material"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -746,6 +752,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                       });
                     }}
                     className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+                    aria-label="Limpar todos os nichos e segmentos selecionados"
                   >
                     Limpar todos
                   </button>
@@ -802,12 +809,14 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                 value={ramoSearch}
                 onChange={(e) => setRamoSearch(e.target.value)}
                 className="h-8 text-sm pl-8 pr-8"
+                aria-label="Buscar nicho ou segmento de atividade"
               />
               {ramoSearch && (
                 <button
                   type="button"
                   onClick={() => setRamoSearch('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label="Limpar busca de nicho/segmento"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>

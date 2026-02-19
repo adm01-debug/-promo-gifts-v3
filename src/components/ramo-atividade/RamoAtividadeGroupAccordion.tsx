@@ -46,6 +46,7 @@ export function RamoAtividadeGroupAccordion({
             type="button"
             onClick={() => setIsOpen(!isOpen)}
             className="p-0.5 hover:bg-muted rounded transition-colors"
+            aria-label={`${isOpen ? 'Recolher' : 'Expandir'} segmentos de ${group.group_name}`}
           >
             <ChevronDown className={cn(
               "w-3 h-3 text-muted-foreground transition-transform duration-200",
@@ -112,6 +113,7 @@ export function RamoAtividadeGroupAccordion({
               ? "bg-primary/15 text-primary" 
               : "bg-muted/50 text-muted-foreground hover:bg-muted"
           )}
+          aria-label={`${isOpen ? 'Recolher' : 'Expandir'} segmentos de ${group.group_name}`}
         >
           <ChevronDown className={cn(
             "w-4 h-4 transition-transform duration-300",
