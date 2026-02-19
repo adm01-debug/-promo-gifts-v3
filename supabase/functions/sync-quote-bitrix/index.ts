@@ -52,11 +52,9 @@ serve(async (req) => {
       console.warn("No Bitrix company_id resolved — proceeding without it (test mode)");
     }
 
-    // ── 4. Resolve bitrix_quote_id (for update mode) ─────────────────────────
-    // quote.bitrix_quote_id is stored in the CRM quotes table
-    const bitrixQuoteId = quote?.bitrix_quote_id
-      ? parseInt(String(quote.bitrix_quote_id), 10)
-      : undefined;
+    // ── 4. REMOVIDO: bitrix_quote_id não é mais enviado no payload ───────────
+    // Spec v3: o n8n busca pelo quote_id (código interno) no Bitrix e resolve sozinho
+    // se deve criar ou atualizar. O gifts-store não precisa manter o ID do Bitrix.
 
     // ── 5. Build products array ──────────────────────────────────────────────
     // offer_id is null if not mapped — n8n handles this gracefully
