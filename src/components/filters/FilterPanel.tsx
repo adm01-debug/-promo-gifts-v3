@@ -143,6 +143,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     toggleType: toggleMaterialType,
     isGroupSelected: isMaterialGroupSelected,
     getTypesForGroup,
+    clearFilters: clearMaterialFilters,
   } = useMaterialFilter();
 
   // Hook de Ramos de Atividade
@@ -193,13 +194,19 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     const typesChanged = JSON.stringify(stableSorted(currentMaterialTypes)) !== JSON.stringify(stableSorted(materialFilterState.selectedTypes));
     
     if (groupsChanged || typesChanged) {
+      // Se filtros externos foram limpos (reset), sincronizar hook interno
+      if (currentMaterialGroups.length === 0 && currentMaterialTypes.length === 0 &&
+          (materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0)) {
+        clearMaterialFilters();
+        return;
+      }
       onFilterChange({
         ...filters,
         materialGroups: materialFilterState.selectedGroups,
         materialTypes: materialFilterState.selectedTypes,
       });
     }
-  }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes]);
+  }, [materialFilterState.selectedGroups, materialFilterState.selectedTypes, filters.materialGroups, filters.materialTypes]);
 
   const toggleSection = (section: string) => {
     setOpenSections((prev) =>
