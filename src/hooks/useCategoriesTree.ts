@@ -4,6 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 // Palavras que devem permanecer em minúsculo (preposições, artigos, conjunções)
 const LOWERCASE_WORDS = ['e', 'de', 'da', 'do', 'das', 'dos', 'em', 'na', 'no', 'nas', 'nos', 'para', 'por', 'com'];
 
+// Categorias que devem ser ocultadas da árvore (nomes em uppercase para comparação)
+const HIDDEN_CATEGORIES = [
+  'GRAVAÇÃO | MOCHILA',
+  'GRAVACAO | MOCHILA',
+];
+
 // Função para formatar nome em Title Case (Primeira Maiúscula, exceto preposições)
 const toTitleCase = (str: string): string => {
   return str
@@ -98,10 +104,12 @@ export function useCategoriesTree() {
       if (!data.success) throw new Error(data.error || 'Erro ao buscar categorias');
 
       // Aplicar Title Case nos nomes das categorias
-      const formattedCategories = (data.data.records || []).map((cat: CategoryTreeItem) => ({
-        ...cat,
-        name: toTitleCase(cat.name),
-      }));
+      const formattedCategories = (data.data.records || [])
+        .filter((cat: CategoryTreeItem) => !HIDDEN_CATEGORIES.includes(cat.name.toUpperCase()))
+        .map((cat: CategoryTreeItem) => ({
+          ...cat,
+          name: toTitleCase(cat.name),
+        }));
       setCategories(formattedCategories);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido';
