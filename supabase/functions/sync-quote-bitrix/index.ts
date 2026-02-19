@@ -81,9 +81,10 @@ serve(async (req) => {
       const colorSuffix = item.color ? ` - ${item.color}` : "";
       const productName = `${baseName}${colorSuffix}`;
 
-      // Spec §6.2: sku = product_variants.supplier_sku
-      // composedCode é gerado como `${sku}-${color_name}` — usar como SKU do fornecedor
-      const sku = item.composedCode || item.sku || item.product_sku || "";
+      // Correção 3: SKU = supplier_sku da variante (ex: "94256-103")
+      // Prioridade: supplier_sku > composedCode > sku > product_sku
+      // NÃO usar `${sku}-${color_name}` — esse formato está errado
+      const sku = item.supplier_sku || item.composedCode || item.sku || item.product_sku || "";
 
       const product: any = {
         offer_id: offerId,
