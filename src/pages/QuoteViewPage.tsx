@@ -495,67 +495,6 @@ export default function QuoteViewPage() {
                     </div>
                   </SheetContent>
                 </Sheet>
-                <DropdownMenuItem onClick={handlePrint}>
-                  <Printer className="h-4 w-4 mr-2" />
-                  Imprimir
-                </DropdownMenuItem>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      <Link2 className="h-4 w-4 mr-2" />
-                      Link de Aprovação
-                    </DropdownMenuItem>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80" align="end">
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-medium mb-1">Link de Aprovação</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Gere um link para o cliente aprovar ou rejeitar este orçamento.
-                        </p>
-                      </div>
-                      {approvalLink ? (
-                        <div className="space-y-2">
-                          <div className="p-2 bg-muted rounded text-xs break-all font-mono">
-                            {approvalLink}
-                          </div>
-                          {/* QR Code inline (#9) */}
-                          <div className="flex justify-center py-2">
-                            <QuoteQRCode
-                              approvalLink={approvalLink}
-                              quoteNumber={quote.quote_number}
-                              size={140}
-                              showActions={false}
-                              className="border-0 shadow-none p-0"
-                            />
-                          </div>
-                          <Button 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => copyToClipboard(approvalLink)}
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Copiar Link
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button 
-                          size="sm" 
-                          className="w-full"
-                          onClick={handleGenerateApprovalLink}
-                          disabled={isGenerating}
-                        >
-                          {isGenerating ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          ) : (
-                            <Link2 className="h-4 w-4 mr-2" />
-                          )}
-                          {isGenerating ? "Gerando..." : "Gerar Link"}
-                        </Button>
-                      )}
-                    </div>
-                  </PopoverContent>
-                </Popover>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
