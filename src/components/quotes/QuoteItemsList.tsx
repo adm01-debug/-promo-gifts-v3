@@ -32,9 +32,23 @@ export function QuoteItemsList({ items, techniques, onItemUpdate, onItemRemove }
     setExpandedItems(newExpanded);
   };
 
-  const handleQuantityChange = (index: number, quantity: number) => {
+  const [editingQuantity, setEditingQuantity] = useState<Record<number, string>>({});
+
+  const handleQuantityChange = (index: number, value: string) => {
+    setEditingQuantity(prev => ({ ...prev, [index]: value }));
+  };
+
+  const handleQuantityBlur = (index: number) => {
+    const raw = editingQuantity[index];
+    const parsed = parseInt(raw, 10);
+    const quantity = parsed > 0 ? parsed : 1;
     const item = items[index];
-    onItemUpdate(index, { ...item, quantity: Math.max(1, quantity) });
+    onItemUpdate(index, { ...item, quantity });
+    setEditingQuantity(prev => {
+      const next = { ...prev };
+      delete next[index];
+      return next;
+    });
   };
 
   const handlePersonalizationAdd = (index: number, personalization: QuoteItemPersonalization) => {
@@ -139,10 +153,15 @@ export function QuoteItemsList({ items, techniques, onItemUpdate, onItemRemove }
                   <Input
                     type="number"
                     min={1}
-                    value={item.quantity}
-                    onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
-                    onFocus={(e) => e.target.select()}
+                    value={index in editingQuantity ? editingQuantity[index] : item.quantity}
+                    onChange={(e) => handleQuantityChange(index, e.target.value)}
+                    onFocus={(e) => {
+                      setEditingQuantity(prev => ({ ...prev, [index]: String(item.quantity) }));
+                      setTimeout(() => e.target.select(), 0);
+                    }}
+                    onBlur={() => handleQuantityBlur(index)}
                     className="w-20 h-8"
+                  />
                   />
                 </div>
                 <div className="flex items-center gap-2">
