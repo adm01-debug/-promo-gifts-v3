@@ -124,6 +124,29 @@ Deno.serve(async (req) => {
 
       const { data: result, error } = await query;
 
+      // After insert, if this is quotes table and we generated a quote_number,
+      // force-update it because the external CRM trigger may overwrite with old format
+      if (!error && result && result.length > 0 && table === "quotes") {
+        const insertedRow = result[0] as Record<string, unknown>;
+        const targetNumber = Array.isArray(data)
+          ? (data[0] as Record<string, unknown>).quote_number
+          : (data as Record<string, unknown>).quote_number;
+
+        if (
+          targetNumber &&
+          targetNumber !== "" &&
+          insertedRow.quote_number !== targetNumber
+        ) {
+          // Force the correct number via update
+          await crm
+            .from("quotes")
+            .update({ quote_number: targetNumber })
+            .eq("id", insertedRow.id as string);
+
+          insertedRow.quote_number = targetNumber;
+        }
+      }
+
       if (error) {
         console.error("CRM insert error:", error);
         return new Response(
