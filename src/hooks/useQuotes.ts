@@ -209,7 +209,11 @@ export function useQuotes() {
       const discountAmount = quote.discount_percent 
         ? subtotal * (quote.discount_percent / 100) 
         : (quote.discount_amount || 0);
-      const total = subtotal - discountAmount;
+      // Shipping added AFTER discount — not subject to global discount
+      const shippingCostValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre")
+        ? (quote.shipping_cost || 0)
+        : 0;
+      const total = subtotal - discountAmount + shippingCostValue;
 
       // Encode shipping into internal_notes (external CRM has no shipping columns)
       const encodedInternalNotes = encodeShippingInNotes(quote.internal_notes, quote.shipping_type, quote.shipping_cost);
@@ -400,7 +404,11 @@ export function useQuotes() {
       const discountAmount = quote.discount_percent 
         ? subtotal * (quote.discount_percent / 100) 
         : (quote.discount_amount || 0);
-      const total = subtotal - discountAmount;
+      // Shipping added AFTER discount — not subject to global discount
+      const shippingCostValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre")
+        ? (quote.shipping_cost || 0)
+        : 0;
+      const total = subtotal - discountAmount + shippingCostValue;
 
       // Encode shipping into internal_notes (external CRM has no shipping columns)
       const encodedInternalNotes = encodeShippingInNotes(quote.internal_notes, quote.shipping_type, quote.shipping_cost);

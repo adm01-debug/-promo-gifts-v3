@@ -24,17 +24,7 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
           </tbody>
         </table>
 
-        {/* Frete row */}
-        <table style={{ width: "100%", borderCollapse: "collapse", borderBottom: "1px solid #f0f0f0" }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: "7px 24px 7px 24px", fontSize: "12px", color: "#555" }}>Frete:</td>
-              <td style={{ padding: "7px 16px", fontSize: "12px", color: "#555", textAlign: "right", fontWeight: 600 }}>{shippingLabel}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        {/* Desconto Global row */}
+        {/* Desconto Global row — antes do frete */}
         {data.discount && data.discount > 0 && (
           <div style={{ borderRadius: "6px", overflow: "hidden", margin: "6px 0", border: "1px solid #ffcdd2" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#fff5f5" }}>
@@ -52,6 +42,16 @@ export function ProposalTotals({ data }: { data: ProposalTemplateData }) {
             </table>
           </div>
         )}
+
+        {/* Frete row — após desconto, entra no total */}
+        <table style={{ width: "100%", borderCollapse: "collapse", borderBottom: "1px solid #f0f0f0" }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: "7px 24px 7px 24px", fontSize: "12px", color: "#555" }}>Frete:</td>
+              <td style={{ padding: "7px 16px", fontSize: "12px", color: "#555", textAlign: "right", fontWeight: 600 }}>{shippingLabel}</td>
+            </tr>
+          </tbody>
+        </table>
 
         {/* Valor Total */}
         <div style={{ borderRadius: "8px", overflow: "hidden", marginTop: "10px" }}>

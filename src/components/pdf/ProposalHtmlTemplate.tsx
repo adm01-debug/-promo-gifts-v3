@@ -429,16 +429,16 @@ function TotalsSection({ data }: { data: ProposalTemplateData }) {
           <span>Subtotal:</span>
           <span style={{ fontWeight: 500 }}>{fmt(data.subtotal)}</span>
         </div>
-        <div style={totalsRowStyle}>
-          <span>Frete:</span>
-          <span style={{ fontWeight: 500 }}>{shippingLabel}</span>
-        </div>
         {data.discount && data.discount > 0 && (
           <div style={totalsRowStyle}>
             <span>Desconto Global:</span>
             <span style={{ fontWeight: 500 }}>- {fmt(data.discount)}</span>
           </div>
         )}
+        <div style={totalsRowStyle}>
+          <span>Frete:</span>
+          <span style={{ fontWeight: 500 }}>{shippingLabel}</span>
+        </div>
         <div
           style={{
             backgroundColor: GREEN,
