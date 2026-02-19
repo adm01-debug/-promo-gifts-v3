@@ -742,9 +742,11 @@ export default function FiltersPage() {
                 size="sm"
                 onClick={handleReset}
                 className="text-muted-foreground"
+                aria-label="Limpar todos os filtros ativos"
               >
-                Limpar todos
-              </Button>
+              Limpar todos
+            </Button>
+            
             </div>
           )}
         </div>

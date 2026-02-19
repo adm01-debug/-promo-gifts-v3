@@ -302,13 +302,14 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           )}
         </div>
         {activeFiltersCount > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onReset}
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="Limpar todos os filtros"
-          >
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onReset}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Limpar todos os filtros"
+                role="button"
+              >
             <RefreshCw className="h-4 w-4 mr-1" />
             Limpar
           </Button>
@@ -665,6 +666,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                               type="button"
                               onClick={() => toggleSection(`mat-${group.group_slug}`)}
                               className="flex-1 flex items-center justify-between text-left"
+                              aria-label={`${openSections.includes(`mat-${group.group_slug}`) ? 'Recolher' : 'Expandir'} tipos de ${group.group_name}`}
                             >
                               <span className={cn(
                                 "text-sm font-medium",
