@@ -95,6 +95,7 @@ export interface Quote {
   client_email?: string;
   client_phone?: string;
   client_company?: string;
+  client_cnpj?: string;
   seller_id?: string;
   status: "draft" | "pending" | "sent" | "approved" | "rejected" | "expired";
   subtotal: number;
@@ -254,6 +255,7 @@ export function useQuotes() {
         client_email: (quote as any).client_email || null,
         client_phone: (quote as any).client_phone || null,
         client_company: (quote as any).client_company || null,
+        client_cnpj: (quote as any).client_cnpj || null,
         seller_id: user.id,
         status: quote.status || "draft",
         subtotal,
@@ -449,6 +451,7 @@ export function useQuotes() {
         client_email: (quote as any).client_email || null,
         client_phone: (quote as any).client_phone || null,
         client_company: (quote as any).client_company || null,
+        client_cnpj: (quote as any).client_cnpj || null,
         status: quote.status,
         subtotal,
         discount_percent: quote.discount_percent || 0,

@@ -246,9 +246,16 @@ export function QuotesConfigurableList({
         );
       case "client":
         return hasClient ? (
-          <span className="text-sm font-semibold text-foreground truncate">
-            {quote.client_company || quote.client_name}
-          </span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-semibold text-foreground truncate">
+              {quote.client_company || quote.client_name}
+            </span>
+            {(quote as any).client_cnpj && (
+              <span className="text-[10px] text-muted-foreground/70 font-mono truncate">
+                {(quote as any).client_cnpj}
+              </span>
+            )}
+          </div>
         ) : (
           <button
             className="text-xs text-primary/70 hover:text-primary flex items-center gap-1"
