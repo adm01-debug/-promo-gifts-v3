@@ -21,6 +21,8 @@ export interface Quote {
   valid_until: string | null;              // ISO date
   payment_terms: string | null;
   delivery_time: string | null;
+  shipping_type: string | null;            // 'cif' | 'fob' | 'fob_pre'
+  shipping_cost: number | null;
   notes: string | null;                    // Notas para cliente
   internal_notes: string | null;           // Notas internas
   bitrix_deal_id: string | null;
@@ -72,6 +74,8 @@ export interface QuoteInput {
   client_company?: string;
   payment_terms?: string;
   delivery_time?: string;
+  shipping_type?: string;
+  shipping_cost?: number;
   notes?: string;
   internal_notes?: string;
   valid_until?: string;
