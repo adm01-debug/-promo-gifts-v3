@@ -279,7 +279,7 @@ export function ExternalCategoryFilter({
       </div>
 
       {/* Árvore de categorias */}
-      <ScrollArea className={cn("pr-2", compact ? "h-48" : "h-64")}>
+      <ScrollArea className={cn("pr-2", compact ? "max-h-[40vh]" : "max-h-[55vh]")}>
         <div className="space-y-0.5">
           {filteredTree.length > 0 ? (
             filteredTree.map((node) => renderCategoryNode(node))
