@@ -70,12 +70,26 @@ export default function FiltersPage() {
     includeDescendants: true,
   });
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
-  const [sortBy, setSortBy] = useState<string>("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
   const [commandAction, setCommandAction] = useState<string | null>(null);
   const [appliedFilters, setAppliedFilters] = useState<Array<{ type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit"; label: string }>>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
+
+  // Loading transition when filters change (#5)
+  const filtersJson = JSON.stringify(filters);
+  useEffect(() => {
+    setIsFiltering(true);
+    const timer = setTimeout(() => setIsFiltering(false), 350);
+    return () => clearTimeout(timer);
+  }, [filtersJson]);
+
+  // Use sortBy from FilterState
+  const sortBy = filters.sortBy || 'name';
+  const setSortBy = useCallback((value: string) => {
+    setFilters(prev => ({ ...prev, sortBy: value }));
+  }, []);
 
   const { parseCommand } = useVoiceCommands();
 
@@ -253,7 +267,12 @@ export default function FiltersPage() {
     if (filters.inStock) count++;
     if (filters.isKit) count++;
     if (filters.featured) count++;
+    if (filters.isNew) count++;
+    if (filters.hasPersonalization) count++;
     if (filters.hasCommercialPackaging) count++;
+    if ((filters.techniques?.length || 0) > 0) count++;
+    if ((filters.tags?.length || 0) > 0) count++;
+    if (filters.search) count++;
     return count;
   }, [filters]);
 
@@ -265,8 +284,18 @@ export default function FiltersPage() {
 
   // Aplicar filtros nos produtos - USANDO PRODUTOS REAIS
   const filteredProducts = useMemo(() => {
-    // Se há busca, usar resultados do fuzzy search
+    // Se há busca da URL, usar resultados do fuzzy search
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
+
+    // Busca textual inline do FilterPanel (#2)
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      result = result.filter(p =>
+        p.name.toLowerCase().includes(searchLower) ||
+        (p.sku && p.sku.toLowerCase().includes(searchLower)) ||
+        (p.description && p.description.toLowerCase().includes(searchLower))
+      );
+    }
 
     // Filtro por cores - sistema hierárquico (colorGroups / colorVariations / colorNuances)
     // Lógica: variações são mais específicas que grupos; nuances se aplicam sobre qualquer cor
@@ -644,7 +673,16 @@ export default function FiltersPage() {
           </aside>
 
           {/* Products area - alinhado com a sidebar */}
-          <div className="flex-1 min-h-[calc(100vh-10rem)] space-y-3">
+          <div className="flex-1 min-h-[calc(100vh-10rem)] space-y-3 relative">
+            {/* Loading transition overlay (#5) */}
+            {isFiltering && (
+              <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[1px] flex items-start justify-center pt-32 transition-opacity duration-200 pointer-events-none rounded-xl">
+                <div className="flex items-center gap-2 px-4 py-2 bg-background/90 border rounded-full shadow-sm">
+                  <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-muted-foreground">Filtrando...</span>
+                </div>
+              </div>
+            )}
             {/* Presets Bar - Above products */}
             <PresetsBar
               currentFilters={filters}
