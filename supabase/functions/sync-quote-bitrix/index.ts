@@ -70,6 +70,9 @@ serve(async (req) => {
       throw new Error("Nenhum produto da proposta possui ID no Bitrix24 (bitrix_product_id nulo em todos os itens). Aguarde a importação do catálogo.");
     }
 
+    // Spec v3.1 §REGRA DE PREÇO: desconto do orçamento (0–100)
+    const discountRate = Number(quote?.discount_percent ?? 0) / 100;
+
     const products = itemsValidos.map((item: any) => {
       // Spec §6.2: offer_id = product_variants.bitrix_product_id (obrigatório)
       const offerId = Number(item.bitrix_product_id);
@@ -84,16 +87,27 @@ serve(async (req) => {
       // NÃO usar `${sku}-${color_name}` — esse formato está errado
       const sku = item.supplier_sku || item.composedCode || item.sku || item.product_sku || "";
 
+      const qty = Number(item.quantity ?? 1);
+      const unitPrice = Number(item.unitPrice ?? item.unit_price ?? 0);
+
+      // Spec §6.3: gravação (engraving) — apenas se o produto tiver personalização
+      const pers = item.personalizations?.[0];
+
+      // Spec v3.1 §REGRA DE PREÇO:
+      // price = (preço_produto + gravação_unitária) × (1 - desconto%)
+      const engravingTotal = pers ? Number(pers.total_cost ?? (pers.unit_cost ?? 0) * qty) : 0;
+      const engravingUnit = qty > 0 ? engravingTotal / qty : 0;
+      const subtotalUnit = unitPrice + engravingUnit;
+      const finalPrice = Math.round(subtotalUnit * (1 - discountRate) * 100) / 100;
+
       const product: any = {
         offer_id: offerId,
         product_name: productName,
         sku,
-        price: Number(item.unitPrice ?? item.unit_price ?? 0),
-        quantity: Number(item.quantity ?? 1),
+        price: finalPrice,
+        quantity: qty,
       };
 
-      // Spec §6.3: gravação (engraving) — apenas se o produto tiver personalização
-      const pers = item.personalizations?.[0];
       if (pers) {
         // Spec §6.3: size = "LxHcm" ou "Xcm²"
         const sizeStr = pers.width_cm && pers.height_cm
@@ -103,10 +117,8 @@ serve(async (req) => {
             : "";
         product.engraving = {
           type: pers.technique_name || "Personalização",
-          unit_price: Number(pers.unit_cost ?? 0),
-          total_price: Number(
-            pers.total_cost ?? (pers.unit_cost ?? 0) * (item.quantity ?? 1)
-          ),
+          unit_price: Math.round(engravingUnit * 100) / 100,
+          total_price: Math.round(engravingTotal * 100) / 100,
           size: sizeStr,
         };
       }
