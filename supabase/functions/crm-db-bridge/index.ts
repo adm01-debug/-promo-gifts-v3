@@ -96,13 +96,14 @@ Deno.serve(async (req) => {
         let nextNumber = 10001;
 
         if (lastQuotes && lastQuotes.length > 0) {
-          const lastNum = parseInt(lastQuotes[0].quote_number?.split("/")[0] || "10000", 10);
+          const rawNum = (lastQuotes[0].quote_number || "").split("/")[0].trim();
+          const lastNum = parseInt(rawNum || "10000", 10);
           if (!isNaN(lastNum) && lastNum >= 10000) {
             nextNumber = lastNum + 1;
           }
         }
 
-        const generatedNumber = `${nextNumber}/${yearShort}`;
+        const generatedNumber = `${nextNumber}/${yearShort}`.trim();
 
         // Apply to single or batch insert
         if (Array.isArray(data)) {
