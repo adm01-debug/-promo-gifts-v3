@@ -141,6 +141,7 @@ export function QuoteItemsList({ items, techniques, onItemUpdate, onItemRemove }
                     min={1}
                     value={item.quantity}
                     onChange={(e) => handleQuantityChange(index, parseInt(e.target.value) || 1)}
+                    onFocus={(e) => e.target.select()}
                     className="w-20 h-8"
                   />
                 </div>
