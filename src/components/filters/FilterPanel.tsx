@@ -74,7 +74,7 @@ interface FilterPanelProps {
   onFilterChange: (filters: FilterState) => void;
   onReset: () => void;
   activeFiltersCount: number;
-  products?: Array<{ tags?: { publicoAlvo?: string[]; endomarketing?: string[] } }>;
+  products?: Array<{ tags?: { publicoAlvo?: string[]; endomarketing?: string[]; ramo?: string[]; nicho?: string[] } }>;
 }
 
 export const defaultFilters: FilterState = {
@@ -125,6 +125,22 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [products]);
 
+  // #14 Product counts per ramo/segmento
+  const productCountsByRamo = React.useMemo(() => {
+    const ramoCounts = new Map<string, number>();
+    const segmentoCounts = new Map<string, number>();
+    products.forEach(p => {
+      p.tags?.ramo?.forEach(r => {
+        const key = r.toLowerCase();
+        ramoCounts.set(key, (ramoCounts.get(key) || 0) + 1);
+      });
+      p.tags?.nicho?.forEach(n => {
+        const key = n.toLowerCase();
+        segmentoCounts.set(key, (segmentoCounts.get(key) || 0) + 1);
+      });
+    });
+    return { ramoCounts, segmentoCounts };
+  }, [products]);
   // Dados do hook avançado (técnicas, tags)
   const { techniqueOptions, tagOptions } = useAdvancedFilters();
 
@@ -866,6 +882,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                           segmentos={segmentos}
                           isRamoSelected={isRamoSelected}
                           selectedSegmentos={filters.segmentosAtividade}
+                          productCountsByRamo={productCountsByRamo}
                           onRamoToggle={(ramoSlug) => {
                             const currentSelected = filters.ramosAtividade.includes(ramoSlug);
                             if (currentSelected) {
