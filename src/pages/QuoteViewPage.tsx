@@ -295,6 +295,19 @@ export default function QuoteViewPage() {
         throw new Error(data?.error || error?.message || "Erro desconhecido");
       }
 
+      // ── Atualizar status para "sent" no banco ────────────────────────────
+      const { error: updateError } = await supabase
+        .from("quotes")
+        .update({ status: "sent", updated_at: new Date().toISOString() })
+        .eq("id", quote.id);
+
+      if (updateError) {
+        console.warn("Falha ao atualizar status para sent:", updateError);
+      } else {
+        // Atualizar estado local imediatamente
+        setQuote((prev) => prev ? { ...prev, status: "sent", updated_at: new Date().toISOString() } : prev);
+      }
+
       const result = data.result;
       toast.success(
         result?.message || `Orçamento sincronizado com Bitrix24!`,
