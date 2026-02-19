@@ -266,7 +266,7 @@ export function QuotesConfigurableList({
         );
       case "contact":
         return quote.client_name && quote.client_company ? (
-          <span className="text-xs text-muted-foreground truncate">{quote.client_name}</span>
+          <span className="text-[0.975rem] text-muted-foreground truncate">{quote.client_name}</span>
         ) : (
           <span className="text-xs text-muted-foreground/50">—</span>
         );
