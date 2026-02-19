@@ -61,6 +61,8 @@ export default function QuoteViewPage() {
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
   const [quote, setQuote] = useState<Quote | null>(null);
   const [clientCnpj, setClientCnpj] = useState<string | undefined>(undefined);
+  // bitrix_company_id = numeric Bitrix ID from companies.bitrix_id (string in DB)
+  const [bitrixCompanyId, setBitrixCompanyId] = useState<string | null>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [approvalLink, setApprovalLink] = useState<string | null>(null);
@@ -76,13 +78,14 @@ export default function QuoteViewPage() {
     if (!id) return;
     const data = await fetchQuote(id);
     setQuote(data);
-    // Fetch CNPJ from company in CRM if client_id is available
+    // Fetch company data from CRM (CNPJ + bitrix_id for Bitrix sync)
     if (data?.client_id) {
       try {
         const company = await selectCrmById<any>("companies", data.client_id);
         if (company?.cnpj) setClientCnpj(formatCNPJ(company.cnpj));
+        if (company?.bitrix_id) setBitrixCompanyId(company.bitrix_id);
       } catch {
-        // CNPJ not found, keep undefined
+        // Company not found, keep undefined
       }
     }
   };
@@ -202,16 +205,18 @@ export default function QuoteViewPage() {
     if (!quote || !proposalData) return;
     setIsSyncing(true);
     try {
-      // Generate PDF blob and convert to base64
+      // Generate PDF blob and convert to base64 safely (chunked to avoid call stack overflow)
       let pdfBase64: string | undefined;
       let filename: string | undefined;
       try {
         const blob = await generateProposalPDFv2(proposalData, { isDraft: quote.status === "draft" });
         const buffer = await blob.arrayBuffer();
         const bytes = new Uint8Array(buffer);
+        // Chunked base64 conversion — avoids stack overflow on large PDFs
+        const CHUNK = 8192;
         let binary = "";
-        for (let i = 0; i < bytes.byteLength; i++) {
-          binary += String.fromCharCode(bytes[i]);
+        for (let i = 0; i < bytes.byteLength; i += CHUNK) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
         }
         pdfBase64 = btoa(binary);
         filename = `proposta-${quote.quote_number || "sem-numero"}.pdf`;
@@ -220,7 +225,15 @@ export default function QuoteViewPage() {
       }
 
       const { data, error } = await supabase.functions.invoke("sync-quote-bitrix", {
-        body: { quote, proposalData, pdfBase64, filename },
+        body: {
+          quote,
+          proposalData,
+          pdfBase64,
+          filename,
+          // Pass resolved IDs explicitly so edge function doesn't need CRM access
+          bitrixCompanyId,           // numeric string from companies.bitrix_id
+          sellerEmail: user?.email,  // for mapping to Bitrix seller_id
+        },
       });
 
       if (error || !data?.success) {
