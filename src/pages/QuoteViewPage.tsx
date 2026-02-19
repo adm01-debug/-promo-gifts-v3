@@ -229,16 +229,24 @@ export default function QuoteViewPage() {
       return;
     }
 
-    // ── Validação obrigatória: todos os itens devem ter bitrix_product_id ──────
-    // Spec §3: "Se bitrix_product_id for NULL, o produto não pode ser incluído"
+    // ── Spec §3: produtos sem bitrix_product_id são excluídos do payload ───────
     const itemsSemBitrixId = quote.items?.filter(item => !item.bitrix_product_id) || [];
-    if (itemsSemBitrixId.length > 0) {
-      const nomes = itemsSemBitrixId.map(i => `"${i.product_name}${i.color_name ? ` - ${i.color_name}` : ''}"`).join(", ");
-      toast.error("Produtos sem ID no Bitrix24", {
-        description: `Os seguintes produtos ainda não foram importados no Bitrix24 e não podem ser sincronizados: ${nomes}. Remova-os ou aguarde a sincronização do catálogo.`,
+    const itensSincronizaveis = quote.items?.filter(item => !!item.bitrix_product_id) || [];
+
+    if (itensSincronizaveis.length === 0) {
+      toast.error("Nenhum produto com ID Bitrix24", {
+        description: "Nenhum produto desta proposta possui ID no Bitrix24. Aguarde a importação do catálogo.",
         duration: 8000,
       });
       return;
+    }
+
+    if (itemsSemBitrixId.length > 0) {
+      const nomes = itemsSemBitrixId.map(i => `${i.product_name}${i.color_name ? ` - ${i.color_name}` : ''}`).join(", ");
+      toast.warning(`${itemsSemBitrixId.length} produto(s) excluído(s) da sincronização`, {
+        description: `Sem ID Bitrix24: ${nomes}. Os demais serão sincronizados normalmente.`,
+        duration: 7000,
+      });
     }
 
     setIsSyncing(true);

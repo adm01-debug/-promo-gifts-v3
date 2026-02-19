@@ -62,14 +62,17 @@ serve(async (req) => {
     // offer_id is null if not mapped — n8n handles this gracefully
     const rawItems = proposalData?.items || [];
 
-    // ── Spec §3: rejeitar itens sem bitrix_product_id ────────────────────────
-    const itemsSemId = rawItems.filter((item: any) => !item.bitrix_product_id);
-    if (itemsSemId.length > 0) {
-      const nomes = itemsSemId.map((i: any) => i.name || i.product_name || "Produto").join(", ");
-      throw new Error(`Produtos sem ID no Bitrix24 (offer_id nulo): ${nomes}. Importe-os no catálogo do Bitrix24 primeiro.`);
+    // ── Spec §3: excluir itens sem bitrix_product_id (ainda não importados no Bitrix24) ──
+    const itemsValidos = rawItems.filter((item: any) => !!item.bitrix_product_id);
+    const itemsExcluidos = rawItems.length - itemsValidos.length;
+    if (itemsExcluidos > 0) {
+      console.warn(`${itemsExcluidos} item(ns) excluído(s) do payload por não ter bitrix_product_id`);
+    }
+    if (itemsValidos.length === 0) {
+      throw new Error("Nenhum produto da proposta possui ID no Bitrix24 (bitrix_product_id nulo em todos os itens). Aguarde a importação do catálogo.");
     }
 
-    const products = rawItems.map((item: any) => {
+    const products = itemsValidos.map((item: any) => {
       // Spec §6.2: offer_id = product_variants.bitrix_product_id (obrigatório)
       const offerId = Number(item.bitrix_product_id);
 
