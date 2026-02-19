@@ -203,6 +203,28 @@ export default function QuoteViewPage() {
 
   const handleSyncBitrix = async () => {
     if (!quote || !proposalData) return;
+
+    // Tenta buscar bitrix_id novamente caso não tenha carregado
+    let effectiveBitrixCompanyId = bitrixCompanyId;
+    if (!effectiveBitrixCompanyId && quote.client_id) {
+      try {
+        const company = await selectCrmById<any>("companies", quote.client_id);
+        if (company?.bitrix_id) {
+          effectiveBitrixCompanyId = company.bitrix_id;
+          setBitrixCompanyId(company.bitrix_id);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!effectiveBitrixCompanyId) {
+      toast.error("Empresa sem ID Bitrix24", {
+        description: "Esta empresa não possui um vínculo com o Bitrix24. Verifique se a empresa foi sincronizada no CRM antes de enviar o orçamento.",
+      });
+      return;
+    }
+
     setIsSyncing(true);
     try {
       // ── 1. Generate PDF blob client-side ────────────────────────────────────
@@ -240,7 +262,7 @@ export default function QuoteViewPage() {
           proposalData,
           pdfUrl: pdfStorageUrl,   // URL instead of base64
           filename,
-          bitrixCompanyId,
+          bitrixCompanyId: effectiveBitrixCompanyId,
           sellerEmail: user?.email,
         },
       });
