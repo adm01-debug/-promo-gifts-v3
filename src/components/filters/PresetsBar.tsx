@@ -192,7 +192,7 @@ export function PresetsBar({ currentFilters, onApplyPreset, activePresetId }: Pr
       {/* Presets list */}
       {presets.length === 0 ? (
         <div className="flex items-center gap-2 text-muted-foreground">
-          <span className="text-sm">Nenhum preset salvo</span>
+        <span className="text-sm">Salve filtros como preset para acessar rapidamente</span>
         </div>
       ) : (
         <ScrollArea className="flex-1">
