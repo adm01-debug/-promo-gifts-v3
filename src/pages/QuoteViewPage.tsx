@@ -28,6 +28,14 @@ import { QuoteValidityBanner } from "@/components/quotes/QuoteValidityBanner";
 import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
 import { QuoteNextActionBanner } from "@/components/quotes/QuoteNextActionBanner";
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
+
+function formatCNPJ(cnpj: string): string {
+  const digits = cnpj.replace(/\D/g, "");
+  if (digits.length === 14) {
+    return `${digits.slice(0,2)}.${digits.slice(2,5)}.${digits.slice(5,8)}/${digits.slice(8,12)}-${digits.slice(12,14)}`;
+  }
+  return cnpj; // return as-is if not 14 digits
+}
 import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -70,7 +78,7 @@ export default function QuoteViewPage() {
     if (data?.client_id) {
       try {
         const company = await selectCrmById<any>("companies", data.client_id);
-        if (company?.cnpj) setClientCnpj(company.cnpj);
+        if (company?.cnpj) setClientCnpj(formatCNPJ(company.cnpj));
       } catch {
         // CNPJ not found, keep undefined
       }
