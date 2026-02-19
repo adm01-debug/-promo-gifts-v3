@@ -171,7 +171,7 @@ export default function QuoteBuilderPage() {
             setCompanyInfo({
               id: quote.client_id || "",
               name: quote.client_company,
-              cnpj: undefined,
+              cnpj: (quote as any).client_cnpj || undefined,
               ramo_atividade: undefined,
             });
           }
@@ -598,6 +598,7 @@ export default function QuoteBuilderPage() {
       client_id: clientId || undefined,
       client_name: contactInfo?.name || undefined,
       client_company: companyWithLocation,
+      client_cnpj: companyInfo?.cnpj || undefined,
       client_email: contactInfo?.email || undefined,
       client_phone: contactInfo?.phone || undefined,
       status,
