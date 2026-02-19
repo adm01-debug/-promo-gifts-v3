@@ -222,7 +222,7 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
           fontVariantNumeric: "tabular-nums",
           fontFamily: "'Montserrat', sans-serif",
         }}>
-          Nº {data.quoteNumber} • {data.date}
+          Nº&nbsp;{(data.quoteNumber || "").replace(/\s+/g, "")} • {data.date}
         </p>
         {data.validUntil && (
           <p style={{

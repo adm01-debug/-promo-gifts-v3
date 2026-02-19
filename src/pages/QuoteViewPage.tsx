@@ -153,7 +153,7 @@ export default function QuoteViewPage() {
     setIsGeneratingPDF(true);
     try {
       const blob = await generateProposalPDFv2(proposalData, { isDraft: quote?.status === "draft" });
-      downloadPDF(blob, `proposta-${quote?.quote_number || "sem-numero"}.pdf`);
+      downloadPDF(blob, `proposta-${(quote?.quote_number || "sem-numero").replace(/\s+/g, "")}.pdf`);
       toast.success("PDF gerado com sucesso!");
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -259,7 +259,7 @@ export default function QuoteViewPage() {
       let filename: string | undefined;
       try {
         const blob = await generateProposalPDFv2(proposalData, { isDraft: quote.status === "draft" });
-        filename = `proposta-${quote.quote_number || quote.id}.pdf`;
+        filename = `proposta-${(quote.quote_number || quote.id).replace(/\s+/g, "")}.pdf`;
 
         // ── 2. Upload PDF to Storage (avoids sending base64 through edge function) ──
         const storagePath = `quotes/${quote.id}/${filename}`;
@@ -302,7 +302,9 @@ export default function QuoteViewPage() {
 
       // ── Correção 1: Salvar bitrix_quote_id no CRM externo ───────────────
       // Os orçamentos vivem no CRM externo (crm-db-bridge), não na tabela local
-      const bitrixQuoteIdFromResponse = result?.quote_id ? Number(result.quote_id) : null;
+      // result.quote_id = ID numérico do orçamento no Bitrix24 (ex: 344)
+      const parsedBitrixId = result?.quote_id ? Number(result.quote_id) : null;
+      const bitrixQuoteIdFromResponse = parsedBitrixId && !isNaN(parsedBitrixId) ? parsedBitrixId : null;
 
       const crmUpdates: Record<string, any> = { status: "sent" };
       if (bitrixQuoteIdFromResponse) {

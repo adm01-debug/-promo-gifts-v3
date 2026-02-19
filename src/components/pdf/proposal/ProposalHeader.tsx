@@ -27,8 +27,8 @@ export function ProposalHeader({ data, isContinuation }: Props) {
             <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 600, fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", opacity: 0.6 }}>
               Continuação
             </span>
-            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "1px", whiteSpace: "nowrap" }}>
-              Proposta {quoteNumber}
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "12px", textTransform: "uppercase", letterSpacing: "0px", whiteSpace: "nowrap" }}>
+              Proposta&nbsp;{quoteNumber}
             </span>
             <span style={{ fontSize: "11px", opacity: 0.6, whiteSpace: "nowrap" }}>
               {data.date}
