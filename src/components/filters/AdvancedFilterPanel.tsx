@@ -837,13 +837,9 @@ export function AdvancedFilterPanel({
           badge={(filters.datasComemorativas?.length || 0)}
         >
           <CommemorativeDateFilter
-            selectedDate={(filters.datasComemorativas || [])[0] || null}
-            onSelectDate={(slug) => {
-              onFilterChange({
-                ...filters,
-                datasComemorativas: slug ? [slug] : [],
-              });
-            }}
+            selectedDates={filters.datasComemorativas || []}
+            onToggleDate={(slug) => toggleArrayFilter('datasComemorativas', slug)}
+            onClearDates={() => onFilterChange({ ...filters, datasComemorativas: [] })}
             compact
           />
         </FilterSection>

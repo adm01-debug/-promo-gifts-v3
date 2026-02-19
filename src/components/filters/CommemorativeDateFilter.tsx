@@ -4,8 +4,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CommemorativeDateFilterProps {
-  selectedDate: string | null;
-  onSelectDate: (slug: string | null) => void;
+  selectedDates: string[];
+  onToggleDate: (slug: string) => void;
+  onClearDates?: () => void;
   className?: string;
   compact?: boolean;
 }
@@ -13,10 +14,12 @@ interface CommemorativeDateFilterProps {
 /**
  * Componente de filtro para datas comemorativas ativas
  * Mostra apenas datas que estão no período de campanha (baseado em campaign_start_days)
+ * Suporta multi-seleção
  */
 export function CommemorativeDateFilter({
-  selectedDate,
-  onSelectDate,
+  selectedDates,
+  onToggleDate,
+  onClearDates,
   className,
   compact = false,
 }: CommemorativeDateFilterProps) {
@@ -45,14 +48,14 @@ export function CommemorativeDateFilter({
   return (
     <div className={cn("space-y-2", className)}>
       {/* Botão limpar se tiver seleção */}
-      {selectedDate && (
+      {selectedDates.length > 0 && onClearDates && (
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={() => onSelectDate(null)}
+            onClick={onClearDates}
             className="text-xs text-muted-foreground hover:text-primary transition-colors"
           >
-            Limpar
+            Limpar ({selectedDates.length})
           </button>
         </div>
       )}
@@ -64,8 +67,8 @@ export function CommemorativeDateFilter({
             <CommemorativeDateItem
               key={date.id}
               date={date}
-              isSelected={selectedDate === date.slug}
-              onSelect={() => onSelectDate(selectedDate === date.slug ? null : date.slug)}
+              isSelected={selectedDates.includes(date.slug)}
+              onSelect={() => onToggleDate(date.slug)}
               compact={compact}
             />
           ))}

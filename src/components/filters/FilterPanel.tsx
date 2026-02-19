@@ -363,13 +363,9 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         {/* Datas Comemorativas - Agora com dados reais da API */}
         <FilterSection id="datas-comemorativas" title="Datas Comemorativas">
           <CommemorativeDateFilter
-            selectedDate={filters.datasComemorativas[0] || null}
-            onSelectDate={(slug) => {
-              onFilterChange({
-                ...filters,
-                datasComemorativas: slug ? [slug] : [],
-              });
-            }}
+            selectedDates={filters.datasComemorativas}
+            onToggleDate={(slug) => toggleArrayFilter('datasComemorativas', slug)}
+            onClearDates={() => onFilterChange({ ...filters, datasComemorativas: [] })}
             compact
           />
         </FilterSection>
