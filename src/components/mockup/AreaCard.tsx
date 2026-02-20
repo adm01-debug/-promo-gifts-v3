@@ -133,34 +133,37 @@ export function AreaCard({
           </Button>
         </div>
       ) : (
-        <div className="relative flex-shrink-0">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            onClick={(e) => e.stopPropagation()}
-            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-            id={`logo-upload-${area.id}`}
-            aria-label={`Upload logo para ${area.name}`}
-          />
-          <Button
-            variant="default"
-            size="sm"
-            className="h-7 px-3 text-xs font-semibold gap-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm pointer-events-none"
-          >
-            <Upload className="h-3 w-3" />
-            Adicionar Logo
-          </Button>
-        </div>
-      )}
+        <>
+          {/* Position indicator - before upload button */}
+          <div className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground flex-shrink-0">
+            <MapPin className="h-3 w-3" />
+            <span>{area.positionX}%</span>
+            <span>×</span>
+            <span>{area.positionY}%</span>
+          </div>
 
-      {/* Position indicator */}
-      <div className="hidden sm:flex items-center gap-1 text-[10px] text-muted-foreground">
-        <MapPin className="h-3 w-3" />
-        <span>{area.positionX}%</span>
-        <span>×</span>
-        <span>{area.positionY}%</span>
-      </div>
+          {/* Upload button - far right */}
+          <div className="relative flex-shrink-0">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+              id={`logo-upload-${area.id}`}
+              aria-label={`Upload logo para ${area.name}`}
+            />
+            <Button
+              variant="default"
+              size="sm"
+              className="h-7 px-3 text-xs font-semibold gap-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm pointer-events-none"
+            >
+              <Upload className="h-3 w-3" />
+              Adicionar Logo
+            </Button>
+          </div>
+        </>
+      )}
 
       {/* Remove area button */}
       {!isReadOnly && canRemove && (
