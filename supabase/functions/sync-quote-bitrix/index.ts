@@ -111,9 +111,10 @@ serve(async (req) => {
       // Gravação (engraving) — valores brutos, sem desconto
       const pers = item.personalizations?.[0];
       if (pers) {
-        // Use unit_cost directly from DB to avoid rounding divergence (e.g. 983.84/160 = 6.149 vs DB's 6.15)
-        const engravingUnit = Number(pers.unit_cost ?? 0);
-        const engravingTotal = pers.total_cost != null ? Number(pers.total_cost) : engravingUnit * qty;
+        // total_cost from DB includes markup; unit_cost is raw cost without markup
+        // Derive unit_price from total_cost/qty to match what UI displays (e.g. 983.84/160 = 6.149 → R$ 6.15)
+        const engravingTotal = pers.total_cost != null ? Number(pers.total_cost) : Number(pers.unit_cost ?? 0) * qty;
+        const engravingUnit = qty > 0 ? Math.round((engravingTotal / qty) * 100) / 100 : 0;
 
         // size: try structured fields first, then parse from notes "Local — CODE | WxHcm"
         let sizeStr = "";
