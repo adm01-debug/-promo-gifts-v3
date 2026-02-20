@@ -33,6 +33,8 @@ serve(async (req) => {
       filename,
       bitrixCompanyId,  // companies.bitrix_id — numeric string (e.g. "125240")
       sellerEmail,      // authenticated user email for seller mapping
+      shippingType,     // decoded shipping type: "cif", "fob", "fob_pre"
+      shippingCost,     // decoded shipping cost (number)
     } = body;
 
     // ── 1. Validate webhook URL ──────────────────────────────────────────────
@@ -183,32 +185,36 @@ serve(async (req) => {
       payload.discount_percentage = rawDiscount;
     }
 
-    // Spec v3.4: freight — extraído do internal_notes via marcador |||FRETE:tipo:custo|||
-    const freightMatch = String(quote?.internal_notes || "").match(/\|\|\|FRETE:([^:]+):([^|]*)\|\|\|/);
-    if (freightMatch) {
-      const freightTypeRaw = freightMatch[1].toUpperCase(); // "cif", "fob", "fob_pre"
-      const freightValue = parseFloat(freightMatch[2]);
+    // Spec v3.4: freight — from direct shippingType/shippingCost fields (decoded by frontend)
+    // Fallback: parse from internal_notes marker |||FRETE:tipo:custo|||
+    let resolvedFreightType: string | null = null;
+    let resolvedFreightValue: number | null = null;
 
-      // Map internal types to spec values
-      const freightTypeMap: Record<string, string> = {
-        CIF: "CIF",
-        FOB: "FOB",
-        FOB_PRE: "FOB_PRE",
-      };
-      const freightType = freightTypeMap[freightTypeRaw];
-
-      if (freightType) {
-        const freight: Record<string, unknown> = { type: freightType };
-        // Fix #1: Send value for any FOB type that has a value (not just FOB_PRE)
-        if (Number.isFinite(freightValue) && freightValue > 0) {
-          // If type is FOB but has a value, upgrade to FOB_PRE
-          if (freightType === "FOB") {
-            freight.type = "FOB_PRE";
-          }
-          freight.value = freightValue;
-        }
-        payload.freight = freight;
+    if (shippingType) {
+      // Direct fields from frontend (preferred)
+      const typeMap: Record<string, string> = { cif: "CIF", fob: "FOB", fob_pre: "FOB_PRE" };
+      resolvedFreightType = typeMap[shippingType.toLowerCase()] || null;
+      resolvedFreightValue = Number(shippingCost) || null;
+    } else {
+      // Fallback: parse from internal_notes marker
+      const freightMatch = String(quote?.internal_notes || "").match(/\|\|\|FRETE:([^:]+):([^|]*)\|\|\|/);
+      if (freightMatch) {
+        const freightTypeMap: Record<string, string> = { CIF: "CIF", FOB: "FOB", FOB_PRE: "FOB_PRE" };
+        resolvedFreightType = freightTypeMap[freightMatch[1].toUpperCase()] || null;
+        resolvedFreightValue = parseFloat(freightMatch[2]) || null;
       }
+    }
+
+    if (resolvedFreightType) {
+      const freight: Record<string, unknown> = { type: resolvedFreightType };
+      if (resolvedFreightValue && Number.isFinite(resolvedFreightValue) && resolvedFreightValue > 0) {
+        // If type is FOB but has a value, upgrade to FOB_PRE
+        if (resolvedFreightType === "FOB") {
+          freight.type = "FOB_PRE";
+        }
+        freight.value = resolvedFreightValue;
+      }
+      payload.freight = freight;
     }
 
     // Contact (numeric Bitrix contact_id if available)

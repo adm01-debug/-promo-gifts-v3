@@ -300,6 +300,8 @@ export default function QuoteViewPage() {
           filename,
           bitrixCompanyId: effectiveBitrixCompanyId,
           sellerEmail: user?.email,
+          shippingType: quote.shipping_type,   // decoded by useQuotes
+          shippingCost: quote.shipping_cost,   // decoded by useQuotes
         },
       });
 
