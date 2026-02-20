@@ -30,15 +30,15 @@ export function ProposalSellerSignature({ data }: Props) {
         maxWidth: "280px",
       }}>
         {/* Signature: PNG image or Sacramento font fallback */}
-        <div style={{ minHeight: "50px", display: "flex", alignItems: "flex-end", justifyContent: "center", marginBottom: "2px" }}>
+        <div style={{ minHeight: "36px", display: "flex", alignItems: "flex-end", justifyContent: "center", marginBottom: "2px" }}>
           {seller.signatureUrl ? (
             <img
               src={seller.signatureUrl}
               alt={`Assinatura de ${seller.name}`}
               crossOrigin="anonymous"
               style={{
-                maxHeight: "50px",
-                maxWidth: "240px",
+                maxHeight: "36px",
+                maxWidth: "180px",
                 objectFit: "contain",
                 display: "block",
                 margin: "0 auto",
