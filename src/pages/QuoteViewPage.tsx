@@ -94,6 +94,19 @@ export default function QuoteViewPage() {
 
   const proposalData: ProposalTemplateData | null = useMemo(() => {
     if (!quote) return null;
+
+    // Recalculate totals client-side to ensure discount covers products + personalization
+    const prodSub = (quote.items || []).reduce((s, i) => s + i.quantity * i.unit_price, 0);
+    const persSub = (quote.items || []).reduce((s, i) =>
+      s + (i.personalizations || []).reduce((ps, p) => ps + ((p.unit_cost || 0) * i.quantity + (p.setup_cost || 0)), 0), 0
+    );
+    const fullSubtotal = prodSub + persSub;
+    const discountValue = quote.discount_percent
+      ? Math.round(fullSubtotal * (quote.discount_percent / 100) * 100) / 100
+      : (quote.discount_amount || 0);
+    const shipValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre") ? (quote.shipping_cost || 0) : 0;
+    const computedTotal = fullSubtotal - discountValue + shipValue;
+
     return {
       quoteNumber: (quote.quote_number || "").replace(/\s+/g, ""),
       date: quote.created_at ? format(new Date(quote.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "",
@@ -111,8 +124,6 @@ export default function QuoteViewPage() {
       items: quote.items?.map((item) => ({
         name: item.product_name,
         sku: item.product_sku || undefined,
-        // Correção 3: supplier_sku = product_sku limpo (sem concatenar nome da cor)
-        // O edge function prioriza supplier_sku → evita formato errado "94256-Preto"
         supplier_sku: item.product_sku || undefined,
         composedCode: item.product_sku
           ? item.color_name
@@ -137,11 +148,11 @@ export default function QuoteViewPage() {
           notes: p.notes || undefined,
         })) || [],
       })) || [],
-      subtotal: quote.subtotal || 0,
-      discount: quote.discount_amount || undefined,
+      subtotal: fullSubtotal,
+      discount: discountValue || undefined,
       shippingCost: quote.shipping_cost || undefined,
       shippingType: quote.shipping_type || undefined,
-      total: quote.total || 0,
+      total: computedTotal,
       notes: quote.notes || undefined,
       paymentTerms: quote.payment_terms || undefined,
       deliveryTime: quote.delivery_time || undefined,
