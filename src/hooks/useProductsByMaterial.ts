@@ -40,16 +40,10 @@ export function useProductsByMaterial(options: UseProductsByMaterialOptions = {}
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['products-by-materials', materialTypeSlugs, materialGroupSlugs],
     queryFn: async () => {
-      // Como temos slugs mas a API espera IDs para materialTypes,
-      // passamos os groupSlugs e deixamos a API resolver
-      // Para materialTypeSlugs, precisamos primeiro buscar os IDs correspondentes
-      
-      // Por ora, vamos usar principalmente os groups slugs
-      // e tratar os type slugs separadamente se necessário
       const result = await materialService.getProductsByMaterials({
+        materialTypeIds: materialTypeSlugs.length > 0 ? materialTypeSlugs : undefined,
         materialGroupSlugs: materialGroupSlugs.length > 0 ? materialGroupSlugs : undefined,
       });
-      
       return result;
     },
     enabled: shouldFetch,
