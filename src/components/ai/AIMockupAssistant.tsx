@@ -145,7 +145,7 @@ export function AIMockupAssistant({
       >
         <Button
           size="lg"
-          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group bg-[hsl(145,80%,45%)] hover:bg-[hsl(145,80%,40%)] text-white border-0"
+          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group bg-[hsl(145,80%,30%)] hover:bg-[hsl(145,80%,25%)] text-white border-0"
           onClick={() => setIsOpen(true)}
         >
           <motion.div
@@ -177,11 +177,11 @@ export function AIMockupAssistant({
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 p-3 border-b bg-[hsl(145,80%,45%)]/15 cursor-pointer"
+        className="flex items-center gap-3 p-3 border-b bg-[hsl(145,80%,30%)]/15 cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="p-2 rounded-lg bg-[hsl(145,80%,45%)]/25">
-          <Bot className="h-4 w-4 text-[hsl(145,80%,45%)]" />
+        <div className="p-2 rounded-lg bg-[hsl(145,80%,30%)]/25">
+          <Bot className="h-4 w-4 text-[hsl(145,80%,30%)]" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm">Matheus — Expert em Layouts</h3>
@@ -228,7 +228,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "p-2 rounded-lg shrink-0",
                         message.role === "user"
-                          ? "bg-[hsl(145,80%,45%)] text-white"
+                          ? "bg-[hsl(145,80%,30%)] text-white"
                           : "bg-muted"
                       )}
                     >
@@ -242,7 +242,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "rounded-xl p-3 max-w-[80%]",
                         message.role === "user"
-                          ? "bg-[hsl(145,80%,45%)] text-white"
+                          ? "bg-[hsl(145,80%,30%)] text-white"
                           : "bg-muted"
                       )}
                     >
@@ -300,13 +300,13 @@ export function AIMockupAssistant({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Pergunte sobre o mockup..."
-                className="flex-1 h-10 focus-visible:ring-[hsl(145,80%,45%)] focus-visible:border-[hsl(145,80%,45%)]"
+                className="flex-1 h-10 focus-visible:ring-[hsl(145,80%,30%)] focus-visible:border-[hsl(145,80%,30%)]"
                 disabled={isLoading}
               />
               <Button
                 type="submit"
                 size="icon"
-                className="h-10 w-10 shrink-0 bg-[hsl(145,80%,45%)] hover:bg-[hsl(145,80%,40%)] text-white"
+                className="h-10 w-10 shrink-0 bg-[hsl(145,80%,30%)] hover:bg-[hsl(145,80%,25%)] text-white"
                 disabled={!input.trim() || isLoading}
               >
                 {isLoading ? (
