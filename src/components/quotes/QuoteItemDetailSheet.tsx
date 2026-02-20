@@ -1,11 +1,26 @@
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Info, Palette, Ruler, MapPin, Layers, DollarSign, Package, Wrench } from "lucide-react";
+import { Info, Palette, Ruler, MapPin, Layers, DollarSign, Package, Wrench, TrendingDown, ArrowRight, Loader2 } from "lucide-react";
+import { invokeExternalRpc } from "@/lib/external-rpc";
+import type { CustomizationPriceResponseV6 } from "@/types/customization";
+
+const QUANTITY_TIERS = [
+  { min: 1, max: 9 },
+  { min: 10, max: 24 },
+  { min: 25, max: 49 },
+  { min: 50, max: 99 },
+  { min: 100, max: 249 },
+  { min: 250, max: 499 },
+  { min: 500, max: 999 },
+  { min: 1000, max: null },
+];
 
 interface Personalization {
   technique_name?: string;
+  technique_id?: string;
   colors_count?: number;
   width_cm?: number;
   height_cm?: number;
@@ -43,6 +58,128 @@ function parseNotesField(notes: string) {
     dimensions = dimPart.replace("cm", " cm");
   }
   return { location, code, dimensions };
+}
+
+function getNextTier(qty: number) {
+  for (const tier of QUANTITY_TIERS) {
+    if (tier.min > qty) {
+      return tier;
+    }
+  }
+  return null;
+}
+
+function getCurrentTierLabel(qty: number) {
+  for (let i = QUANTITY_TIERS.length - 1; i >= 0; i--) {
+    if (qty >= QUANTITY_TIERS[i].min) {
+      const t = QUANTITY_TIERS[i];
+      return t.max ? `${t.min}-${t.max}` : `${t.min}+`;
+    }
+  }
+  return "1-9";
+}
+
+/** Component that fetches and shows next tier pricing */
+function NextTierHint({ personalization, currentQty }: { personalization: Personalization; currentQty: number }) {
+  const [nextPrice, setNextPrice] = useState<CustomizationPriceResponseV6 | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const nextTier = getNextTier(currentQty);
+  const parsed = parseNotesField(personalization.notes || "");
+
+  // Parse dimensions from notes
+  let widthCm: number | null = null;
+  let heightCm: number | null = null;
+  if (parsed.dimensions) {
+    const dimMatch = parsed.dimensions.match(/([\d.]+)\s*[×x]\s*([\d.]+)/);
+    if (dimMatch) {
+      widthCm = parseFloat(dimMatch[1]);
+      heightCm = parseFloat(dimMatch[2]);
+    }
+  }
+  if (!widthCm && personalization.width_cm) widthCm = personalization.width_cm;
+  if (!heightCm && personalization.height_cm) heightCm = personalization.height_cm;
+
+  const areaId = personalization.technique_id;
+
+  useEffect(() => {
+    if (!nextTier || !areaId) return;
+
+    let cancelled = false;
+    setLoading(true);
+
+    const fetchNextPrice = async () => {
+      try {
+        const rpcParams: Record<string, unknown> = {
+          p_area_id: areaId,
+          p_quantidade: nextTier.min,
+          p_num_cores: personalization.colors_count ?? 1,
+        };
+        if (widthCm && widthCm > 0) rpcParams.p_largura_cm = widthCm;
+        if (heightCm && heightCm > 0) rpcParams.p_altura_cm = heightCm;
+
+        const result = await invokeExternalRpc<CustomizationPriceResponseV6>(
+          "fn_get_customization_price",
+          rpcParams
+        );
+        if (!cancelled && result?.success) {
+          setNextPrice(result);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchNextPrice();
+    return () => { cancelled = true; };
+  }, [nextTier?.min, areaId]);
+
+  if (!nextTier) return null;
+
+  const currentUnitRounded = currentQty > 0
+    ? Math.round(((personalization.total_cost || 0) / currentQty) * 100) / 100
+    : 0;
+
+  const unitsNeeded = nextTier.min - currentQty;
+  const nextTierLabel = nextTier.max ? `${nextTier.min}-${nextTier.max}` : `${nextTier.min}+`;
+
+  return (
+    <div className="bg-accent/50 border border-accent rounded-lg p-3 space-y-2">
+      <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+        <TrendingDown className="h-3.5 w-3.5 text-primary" />
+        Próxima faixa de desconto
+      </div>
+      <div className="text-xs text-muted-foreground">
+        Faltam <span className="font-bold text-foreground">{unitsNeeded} {unitsNeeded === 1 ? "unidade" : "unidades"}</span> para a faixa de{" "}
+        <span className="font-bold text-foreground">{nextTierLabel} un</span>
+      </div>
+      {loading ? (
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Calculando...
+        </div>
+      ) : nextPrice ? (
+        <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground">Atual:</span>
+            <span className="font-semibold">{fmt(currentUnitRounded)}/un</span>
+          </div>
+          <ArrowRight className="h-3 w-3 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground">Próxima:</span>
+            <span className="font-semibold text-primary">{fmt(nextPrice.preco_unitario)}/un</span>
+          </div>
+          {currentUnitRounded > 0 && nextPrice.preco_unitario < currentUnitRounded && (
+            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
+              -{Math.round((1 - nextPrice.preco_unitario / currentUnitRounded) * 100)}%
+            </Badge>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
@@ -121,7 +258,12 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Quantidade</span>
-                <span className="font-medium">{item.quantity}</span>
+                <span className="font-medium">
+                  {item.quantity}
+                  <span className="text-xs text-muted-foreground ml-1.5">
+                    (faixa {getCurrentTierLabel(item.quantity)} un)
+                  </span>
+                </span>
               </div>
               <div className="flex justify-between font-semibold border-t border-border/50 pt-2">
                 <span className="text-foreground">Total do item</span>
@@ -148,77 +290,75 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
                     const totalRounded = Math.round(unitRounded * item.quantity * 100) / 100;
 
                     return (
-                      <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-2.5 border border-border/50">
-                        {/* Technique */}
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">
-                            ✦ {p.technique_name || "Gravação"}
-                          </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {/* Location */}
-                          {parsed.location && (
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-muted-foreground">Local:</span>
-                              <span className="font-medium text-foreground">{parsed.location}</span>
-                            </div>
-                          )}
-
-                          {/* Code */}
-                          {parsed.code && (
-                            <div className="flex items-center gap-1.5">
-                              <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-muted-foreground">Código:</span>
-                              <span className="font-mono font-medium text-foreground">{parsed.code}</span>
-                            </div>
-                          )}
-
-                          {/* Dimensions */}
-                          {(parsed.dimensions || (p.width_cm && p.height_cm)) && (
-                            <div className="flex items-center gap-1.5">
-                              <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-muted-foreground">Tamanho:</span>
-                              <span className="font-medium text-foreground">
-                                {parsed.dimensions || `${p.width_cm}×${p.height_cm} cm`}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* Colors */}
-                          <div className="flex items-center gap-1.5">
-                            <Palette className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="text-muted-foreground">Cores:</span>
-                            <span className="font-medium text-foreground">{p.colors_count || 1}</span>
+                      <div key={idx} className="space-y-3">
+                        <div className="bg-muted/50 rounded-lg p-3 space-y-2.5 border border-border/50">
+                          {/* Technique */}
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">
+                              ✦ {p.technique_name || "Gravação"}
+                            </Badge>
                           </div>
 
-                          {/* Area */}
-                          {p.area_cm2 && (
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {parsed.location && (
+                              <div className="flex items-center gap-1.5">
+                                <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground">Local:</span>
+                                <span className="font-medium text-foreground">{parsed.location}</span>
+                              </div>
+                            )}
+                            {parsed.code && (
+                              <div className="flex items-center gap-1.5">
+                                <Layers className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground">Código:</span>
+                                <span className="font-mono font-medium text-foreground">{parsed.code}</span>
+                              </div>
+                            )}
+                            {(parsed.dimensions || (p.width_cm && p.height_cm)) && (
+                              <div className="flex items-center gap-1.5">
+                                <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground">Tamanho:</span>
+                                <span className="font-medium text-foreground">
+                                  {parsed.dimensions || `${p.width_cm}×${p.height_cm} cm`}
+                                </span>
+                              </div>
+                            )}
                             <div className="flex items-center gap-1.5">
-                              <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-muted-foreground">Área:</span>
-                              <span className="font-medium text-foreground">{p.area_cm2} cm²</span>
+                              <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="text-muted-foreground">Cores:</span>
+                              <span className="font-medium text-foreground">{p.colors_count || 1}</span>
                             </div>
-                          )}
-                        </div>
+                            {p.area_cm2 && (
+                              <div className="flex items-center gap-1.5">
+                                <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground">Área:</span>
+                                <span className="font-medium text-foreground">{p.area_cm2} cm²</span>
+                              </div>
+                            )}
+                          </div>
 
-                        {/* Costs */}
-                        <Separator className="my-1" />
-                        <div className="grid grid-cols-3 gap-2 text-xs">
-                          <div>
-                            <span className="text-muted-foreground block">Unitário</span>
-                            <span className="font-semibold text-foreground">{fmt(unitRounded)}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground block">Setup</span>
-                            <span className="font-semibold text-foreground">{fmt(p.setup_cost || 0)}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground block">Total</span>
-                            <span className="font-semibold text-primary">{fmt(totalRounded)}</span>
+                          {/* Costs */}
+                          <Separator className="my-1" />
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div>
+                              <span className="text-muted-foreground block">Unitário</span>
+                              <span className="font-semibold text-foreground">{fmt(unitRounded)}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground block">Setup</span>
+                              <span className="font-semibold text-foreground">{fmt(p.setup_cost || 0)}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground block">Total</span>
+                              <span className="font-semibold text-primary">{fmt(totalRounded)}</span>
+                            </div>
                           </div>
                         </div>
+
+                        {/* Next Tier Hint */}
+                        {p.technique_id && (
+                          <NextTierHint personalization={p} currentQty={item.quantity} />
+                        )}
                       </div>
                     );
                   })}
