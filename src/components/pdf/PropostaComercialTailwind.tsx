@@ -21,15 +21,18 @@ const TABLE_HEADER_H = 38;
 const ROW_H = 76; // estimated row height
 
 function paginateItems(items: ProposalItem[]) {
-  // First page: header(145) + clientbar(90) + tableheader(38) + footer(40/140) + totals/notes
-  // Available for rows on first page
-  const firstPageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30; // 30 padding
-  const firstPageRows = Math.floor(firstPageAvailable / ROW_H);
+  // Single page: must also fit totals + notes/signature + full footer
+  const singlePageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - TOTALS_H - NOTES_H - FULL_FOOTER_H - 40;
+  const singlePageRows = Math.floor(singlePageAvailable / ROW_H);
 
-  if (items.length <= firstPageRows) {
-    // Everything fits on one page
+  if (items.length <= singlePageRows && singlePageRows > 0) {
+    // Everything fits on one page including totals+notes+footer
     return [items];
   }
+
+  // Multi-page: first page only has products (no totals/notes)
+  const firstPageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
+  const firstPageRows = Math.floor(firstPageAvailable / ROW_H);
 
   // Multi-page
   const pages: ProposalItem[][] = [];
