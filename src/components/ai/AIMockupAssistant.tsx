@@ -228,7 +228,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "p-2 rounded-lg shrink-0",
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-[hsl(270,90%,80%)] text-white"
                           : "bg-muted"
                       )}
                     >
@@ -242,7 +242,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "rounded-xl p-3 max-w-[80%]",
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
+                          ? "bg-[hsl(270,90%,80%)] text-white"
                           : "bg-muted"
                       )}
                     >
