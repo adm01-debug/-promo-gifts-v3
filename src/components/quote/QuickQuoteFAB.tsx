@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -163,6 +163,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.button
+            ref={undefined}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsOpen(!isOpen)}
