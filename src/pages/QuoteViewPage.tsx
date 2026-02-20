@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, RefreshCw, Truck, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, RefreshCw, Truck, Undo2, User, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -492,6 +492,27 @@ export default function QuoteViewPage() {
                   <Edit2 className="h-4 w-4 mr-2" />
                   Editar
                 </DropdownMenuItem>
+                {quote.status === "sent" && (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      try {
+                        await updateCrm("quotes", quote.id, { status: "pending" });
+                        await logQuoteHistory(quote.id, "status_change", "Sincronização cancelada — status revertido para Pendente", {
+                          oldValue: "sent",
+                          newValue: "pending",
+                        });
+                        setQuote((prev) => prev ? { ...prev, status: "pending" } : prev);
+                        toast.success("Sincronização cancelada", { description: "Status revertido para Pendente" });
+                      } catch (err: any) {
+                        toast.error("Erro ao cancelar sincronização", { description: err.message });
+                      }
+                    }}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Undo2 className="h-4 w-4 mr-2" />
+                    Cancelar Sincronização
+                  </DropdownMenuItem>
+                )}
                 <Sheet>
                   <SheetTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
