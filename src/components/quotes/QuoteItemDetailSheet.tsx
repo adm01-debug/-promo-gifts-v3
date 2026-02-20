@@ -160,7 +160,7 @@ function NextTierHint({ personalization, currentQty }: { personalization: Person
           <Loader2 className="h-3 w-3 animate-spin" />
           Calculando...
         </div>
-      ) : nextPrice ? (
+      ) : nextPrice && currentUnitRounded > 0 && nextPrice.preco_unitario < currentUnitRounded ? (
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1.5">
             <span className="text-muted-foreground">Atual:</span>
@@ -171,11 +171,9 @@ function NextTierHint({ personalization, currentQty }: { personalization: Person
             <span className="text-muted-foreground">Próxima:</span>
             <span className="font-semibold text-primary">{fmt(nextPrice.preco_unitario)}/un</span>
           </div>
-          {currentUnitRounded > 0 && nextPrice.preco_unitario < currentUnitRounded && (
-            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
-              -{Math.round((1 - nextPrice.preco_unitario / currentUnitRounded) * 100)}%
-            </Badge>
-          )}
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
+            -{Math.round((1 - nextPrice.preco_unitario / currentUnitRounded) * 100)}%
+          </Badge>
         </div>
       ) : null}
     </div>
