@@ -66,7 +66,7 @@ export function ProposalSellerSignature({ data }: Props) {
         {seller.email && (
           <div style={{
             fontFamily: "'Montserrat', sans-serif",
-            fontSize: "9px",
+            fontSize: "12px",
             color: "#777",
             marginTop: "2px",
           }}>
