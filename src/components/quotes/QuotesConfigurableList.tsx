@@ -76,7 +76,8 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "status", label: "Status", width: "110px" },
   { id: "client", label: "Empresa", width: "minmax(120px, 0.7fr)", required: true },
   { id: "contact", label: "Contato", width: "120px" },
-  { id: "date", label: "Data", width: "110px" },
+  { id: "date", label: "Data", width: "100px" },
+  { id: "time", label: "Hora", width: "70px" },
   { id: "value", label: "Valor", width: "140px", align: "right" },
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
 ];
@@ -285,8 +286,14 @@ export function QuotesConfigurableList({
       }
       case "date":
         return (
-          <span className="text-xs text-muted-foreground text-right block">
-            {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—"}
+          <span className="text-xs text-muted-foreground block">
+            {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
+          </span>
+        );
+      case "time":
+        return (
+          <span className="text-xs text-muted-foreground block">
+            {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : "—"}
           </span>
         );
       default:
