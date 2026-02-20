@@ -73,71 +73,53 @@ serve(async (req) => {
       throw new Error("Nenhum produto da proposta possui ID no Bitrix24 (bitrix_product_id nulo em todos os itens). Aguarde a importação do catálogo.");
     }
 
-    // Spec v3.1 §REGRA DE PREÇO: desconto do orçamento (0–100)
-    // Guard: garante que discount_percent seja numérico válido (evita NaN propagado)
-    const rawDiscount = Number(quote?.discount_percent ?? 0);
-    const discountRate = Number.isFinite(rawDiscount) ? rawDiscount / 100 : 0;
-
     const products = itemsValidos.map((item: any) => {
       // Spec §6.2: offer_id = product_variants.bitrix_product_id (obrigatório)
       const offerId = Number(item.bitrix_product_id);
-      // Guard: rejeita offer_id inválido (NaN, 0, negativo)
       if (!Number.isFinite(offerId) || offerId <= 0) {
         console.warn(`Item ignorado: bitrix_product_id inválido ("${item.bitrix_product_id}") — produto: ${item.name || item.product_name}`);
         return null;
       }
 
-      // Spec §6.2: product_name = nome do produto + " - " + cor
+      // product_name = nome do produto + " - " + cor
       const baseName = item.name || item.product_name || "Produto";
       const colorSuffix = item.color ? ` - ${item.color}` : "";
       const productName = `${baseName}${colorSuffix}`;
 
-      // Correção 3: SKU = supplier_sku da variante (ex: "94256-103")
-      // Prioridade: supplier_sku > composedCode > sku > product_sku
-      // NÃO usar `${sku}-${color_name}` — esse formato está errado
+      // SKU = supplier_sku da variante
       const sku = item.supplier_sku || item.composedCode || item.sku || item.product_sku || "";
 
-      // Guard: qty deve ser inteiro positivo
       const qty = Number(item.quantity ?? 1);
       if (!Number.isFinite(qty) || qty <= 0) {
         console.warn(`Item ignorado: quantity inválida (${item.quantity}) — produto: ${baseName}`);
         return null;
       }
 
+      // Spec v3.4: price = preço unitário SÓ DO PRODUTO (sem gravação, sem desconto)
       const unitPrice = Number(item.unitPrice ?? item.unit_price ?? 0);
-
-      // Spec §6.3: gravação (engraving) — apenas se o produto tiver personalização
-      const pers = item.personalizations?.[0];
-
-      // Spec v3.1 §REGRA DE PREÇO:
-      // price = (preço_produto + gravação_unitária) × (1 - desconto%)
-      // FIX: usar != null em vez de ?? para suportar total_cost = 0 como valor válido
-      const engravingTotal = pers
-        ? (pers.total_cost != null ? Number(pers.total_cost) : Number(pers.unit_cost ?? 0) * qty)
-        : 0;
-      const engravingUnit = qty > 0 ? engravingTotal / qty : 0;
-      const subtotalUnit = unitPrice + engravingUnit;
-      const finalPrice = Math.round(subtotalUnit * (1 - discountRate) * 100) / 100;
 
       const product: any = {
         offer_id: offerId,
         product_name: productName,
         sku,
-        price: finalPrice,
+        price: Math.round(unitPrice * 100) / 100,
         quantity: qty,
       };
 
+      // Gravação (engraving) — valores brutos, sem desconto
+      const pers = item.personalizations?.[0];
       if (pers) {
-        // Spec §6.3: size = "LxHcm" ou "Xcm²"
-        // FIX: usar != null para suportar dimensões com valor 0 (falsy)
+        const engravingTotal = pers.total_cost != null ? Number(pers.total_cost) : Number(pers.unit_cost ?? 0) * qty;
+        const engravingUnit = qty > 0 ? engravingTotal / qty : 0;
+
+        // size = "LxHcm" ou "Xcm²"
         const sizeStr = pers.width_cm != null && pers.height_cm != null
           ? `${pers.width_cm}x${pers.height_cm}cm`
           : pers.area_cm2 != null
             ? `${pers.area_cm2}cm²`
             : "";
 
-        // Spec v3.3: engraving.type = "Technique | Location"
-        // Location is encoded in notes field: "LocationName — tableCode | WxHcm"
+        // engraving.type = "Technique | Location"
         let engravingType = pers.technique_name || "Personalização";
         if (pers.notes) {
           const notesRaw = String(pers.notes);
@@ -159,9 +141,8 @@ serve(async (req) => {
       }
 
       return product;
-    }).filter((p: any) => p !== null); // Remove itens rejeitados (offerId/qty inválidos)
+    }).filter((p: any) => p !== null);
 
-    // Guard pós-filtro: pode sobrar 0 itens válidos após rejeições de offerId/qty
     if (products.length === 0) {
       throw new Error("Todos os itens foram rejeitados por dados inválidos (offer_id ou quantity). Verifique os dados dos produtos.");
     }
@@ -176,18 +157,45 @@ serve(async (req) => {
     // Spec v3.2: title = "Orçamento - NomeEmpresa - BitrixCompanyId"
     const payload: Record<string, unknown> = {
       title: `Orçamento - ${clientName} - ${companyId}`,
+      company_id: companyId,
       products,
     };
 
     // Only include optional fields when resolved
     if (sellerId) payload.seller_id = sellerId;
-    payload.company_id = companyId; // Obrigatório (Spec v3.2)
 
     // Spec v3: quote_id = código interno do gifts-store (ex: "10001/26")
-    // O n8n busca no campo UF_CRM_QUOTE_1771506036 para criar ou atualizar
-    // NÃO usar bitrix_quote_id numérico — o workflow resolve sozinho pelo código
     const internalQuoteId = (quote?.quote_number || "").replace(/\s+/g, "");
     if (internalQuoteId) payload.quote_id = internalQuoteId;
+
+    // Spec v3.4: discount_percentage — desconto global em % (ex: 5, 10, 15)
+    const rawDiscount = Number(quote?.discount_percent ?? 0);
+    if (Number.isFinite(rawDiscount) && rawDiscount > 0) {
+      payload.discount_percentage = rawDiscount;
+    }
+
+    // Spec v3.4: freight — extraído do internal_notes via marcador |||FRETE:tipo:custo|||
+    const freightMatch = String(quote?.internal_notes || "").match(/\|\|\|FRETE:([^:]+):([^|]*)\|\|\|/);
+    if (freightMatch) {
+      const freightTypeRaw = freightMatch[1].toUpperCase(); // "cif", "fob", "fob_pre"
+      const freightValue = parseFloat(freightMatch[2]);
+
+      // Map internal types to spec values
+      const freightTypeMap: Record<string, string> = {
+        CIF: "CIF",
+        FOB: "FOB",
+        FOB_PRE: "FOB_PRE",
+      };
+      const freightType = freightTypeMap[freightTypeRaw];
+
+      if (freightType) {
+        const freight: Record<string, unknown> = { type: freightType };
+        if (freightType === "FOB_PRE" && Number.isFinite(freightValue) && freightValue > 0) {
+          freight.value = freightValue;
+        }
+        payload.freight = freight;
+      }
+    }
 
     // Contact (numeric Bitrix contact_id if available)
     if (quote?.bitrix_contact_id) {
@@ -195,7 +203,7 @@ serve(async (req) => {
       if (!isNaN(cId)) payload.contact_id = cId;
     }
 
-    // Attach PDF URL — n8n downloads the file directly (avoids memory limits)
+    // Attach PDF URL
     if (pdfUrl && filename) {
       payload.pdf = { filename, url: pdfUrl };
     }
