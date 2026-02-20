@@ -52,7 +52,7 @@ const INITIAL_MESSAGES: Message[] = [
   {
     id: "welcome",
     role: "assistant",
-    content: "Olá! Eu sou o Matheus, seu assistente de mockups. Posso ajudar com posicionamento, técnicas e sugestões para criar o mockup perfeito. Como posso ajudar?",
+    content: "Olá! Eu sou o Matheus, seu expert em layouts. Posso ajudar com posicionamento, técnicas e sugestões para criar o mockup perfeito. Como posso ajudar?",
     timestamp: new Date(),
     suggestions: QUICK_ACTIONS,
   },
@@ -184,7 +184,7 @@ export function AIMockupAssistant({
           <Bot className="h-4 w-4 text-[hsl(145,80%,45%)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm">Matheus — Assistente de Mockup</h3>
+          <h3 className="font-semibold text-sm">Matheus — Expert em Layouts</h3>
           {!isMinimized && (
             <p className="text-xs text-muted-foreground truncate">
               Powered by AI
