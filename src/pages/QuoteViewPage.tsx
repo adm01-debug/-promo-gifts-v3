@@ -675,7 +675,7 @@ export default function QuoteViewPage() {
                               <div>
                                 {item.product_sku && (
                                   <span 
-                                    className="inline-flex items-center gap-1 font-mono text-xs px-1.5 py-0.5 rounded border mb-1"
+                                    className="inline-flex items-center gap-1 font-mono text-xs font-semibold px-2 py-0.5 rounded-md border mb-1"
                                     style={{ 
                                       backgroundColor: item.color_hex ? `${item.color_hex}22` : undefined,
                                       borderColor: item.color_hex || 'hsl(var(--border))',
