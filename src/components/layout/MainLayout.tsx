@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { Header } from "./Header";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { SidebarReorganized } from "./SidebarReorganized";
@@ -23,6 +24,8 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const location = useLocation();
+  const isMockupGenerator = location.pathname === "/mockup-generator";
   
   // Prevent Radix modals from permanently locking page scroll
   useScrollLockFix();
@@ -89,10 +92,12 @@ export function MainLayout({ children }: MainLayoutProps) {
               <RestartTourButton />
             </div>
             
-            {/* Expert Chat Button - hidden on mobile (accessible from FAB menu) */}
-            <div className="print:hidden hidden lg:block">
-              <ExpertChatButton />
-            </div>
+            {/* Expert Chat Button - hidden on mobile and on mockup generator (has its own assistant) */}
+            {!isMockupGenerator && (
+              <div className="print:hidden hidden lg:block">
+                <ExpertChatButton />
+              </div>
+            )}
             
             {/* Quick Quote FAB - Desktop only */}
             <div className="print:hidden">
