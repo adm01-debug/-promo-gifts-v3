@@ -48,7 +48,7 @@ const quickActions: QuickAction[] = [
     description: "Calcular personalização",
     icon: Calculator,
     href: "/simulador",
-    color: "bg-green-500 text-white",
+    color: "bg-amber-500 text-white",
   },
   {
     id: "cart",
@@ -56,7 +56,7 @@ const quickActions: QuickAction[] = [
     description: "Orçamento rápido",
     icon: ShoppingCart,
     href: "__open_cart__",
-    color: "bg-emerald-600 text-white",
+    color: "bg-emerald-400 text-white",
   },
 ];
 
