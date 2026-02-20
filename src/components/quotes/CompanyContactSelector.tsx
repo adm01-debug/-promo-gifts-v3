@@ -230,7 +230,7 @@ export function CompanyContactSelector({
     queryKey: ["quote-companies-selector"],
     queryFn: async () => {
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
+        select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
@@ -388,7 +388,7 @@ export function CompanyContactSelector({
     queryFn: async () => {
       if (!companyId) return null;
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
+        select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
         filters: { id: companyId },
         limit: 1,
       });
