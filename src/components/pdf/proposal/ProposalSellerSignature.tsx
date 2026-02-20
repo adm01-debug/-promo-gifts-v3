@@ -91,11 +91,11 @@ export function ProposalSellerSignature({ data }: Props) {
 
         {/* Electronic signature disclaimer */}
         <div style={{
-          fontSize: "7px",
-          color: "#aaa",
+          fontSize: "8px",
+          color: "#333",
           marginTop: "6px",
           lineHeight: "1.3",
-          fontStyle: "italic",
+          fontWeight: 600,
         }}>
           Documento gerado eletronicamente por {seller.name} em {printDate}
         </div>
