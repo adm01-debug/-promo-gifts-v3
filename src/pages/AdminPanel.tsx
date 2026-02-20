@@ -15,7 +15,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, ShieldAlert, Users, UserCog, Loader2, KeyRound, Package, Crown } from "lucide-react";
+import { Shield, ShieldCheck, ShieldAlert, Users, UserCog, Loader2, KeyRound, Package, Crown, Pencil } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,6 +90,9 @@ export default function AdminPanel() {
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [dialogUser, setDialogUser] = useState<UserWithRole | null>(null);
+  const [editUser, setEditUser] = useState<UserWithRole | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: "", email: "", is_active: true });
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const { pendingCount } = usePasswordResetRequests();
 
   const fetchUsers = async () => {
@@ -154,6 +168,47 @@ export default function AdminPanel() {
   const openRoleDialog = (userItem: UserWithRole) => {
     setDialogUser(userItem);
     setSelectedRole(userItem.role);
+  };
+
+  const openEditDialog = (userItem: UserWithRole) => {
+    setEditUser(userItem);
+    setEditForm({
+      full_name: userItem.full_name || "",
+      email: userItem.email || "",
+      is_active: userItem.is_active !== false,
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editUser) return;
+    setIsSavingEdit(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: editForm.full_name.trim() || null,
+          email: editForm.email.trim() || null,
+          is_active: editForm.is_active,
+        })
+        .eq("user_id", editUser.user_id);
+
+      if (error) throw error;
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.user_id === editUser.user_id
+            ? { ...u, full_name: editForm.full_name.trim() || null, email: editForm.email.trim() || null, is_active: editForm.is_active }
+            : u
+        )
+      );
+      toast.success("Usuário atualizado com sucesso");
+      setEditUser(null);
+    } catch (error: any) {
+      console.error("Error updating user:", error);
+      toast.error("Erro ao atualizar usuário", { description: error.message });
+    } finally {
+      setIsSavingEdit(false);
+    }
   };
 
   const adminCount = users.filter((u) => u.role === "admin").length;
@@ -322,20 +377,31 @@ export default function AdminPanel() {
                               {new Date(userItem.created_at).toLocaleDateString("pt-BR")}
                             </TableCell>
                             <TableCell className="text-right">
-                              {userItem.user_id !== user?.id && (
+                              <div className="flex items-center justify-end gap-2">
                                 <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openRoleDialog(userItem)}
-                                  disabled={updatingUserId === userItem.user_id}
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => openEditDialog(userItem)}
+                                  title="Editar usuário"
                                 >
-                                  {updatingUserId === userItem.user_id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    "Alterar Role"
-                                  )}
+                                  <Pencil className="h-4 w-4" />
                                 </Button>
-                              )}
+                                {userItem.user_id !== user?.id && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => openRoleDialog(userItem)}
+                                    disabled={updatingUserId === userItem.user_id}
+                                  >
+                                    {updatingUserId === userItem.user_id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      "Alterar Role"
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
@@ -425,6 +491,54 @@ export default function AdminPanel() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Edit User Dialog */}
+        <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar Usuário</DialogTitle>
+              <DialogDescription>
+                Altere as informações de <span className="font-semibold">{editUser?.full_name || "este usuário"}</span>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name">Nome Completo</Label>
+                <Input
+                  id="edit-name"
+                  value={editForm.full_name}
+                  onChange={(e) => setEditForm((f) => ({ ...f, full_name: e.target.value }))}
+                  placeholder="Nome do usuário"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={editForm.email}
+                  onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="email@exemplo.com"
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="edit-active">Status Ativo</Label>
+                <Switch
+                  id="edit-active"
+                  checked={editForm.is_active}
+                  onCheckedChange={(checked) => setEditForm((f) => ({ ...f, is_active: checked }))}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditUser(null)}>Cancelar</Button>
+              <Button onClick={handleSaveEdit} disabled={isSavingEdit}>
+                {isSavingEdit ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Salvar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
