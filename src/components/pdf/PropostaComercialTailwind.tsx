@@ -34,12 +34,12 @@ const PAGE_H = 1123;
 const FIRST_HEADER_H = 128;
 const CONT_HEADER_H = 60;
 const CONT_CLIENT_H = 60; // compact client bar on continuation pages
-const FULL_FOOTER_H = 190;
+const FULL_FOOTER_H = 220;
 const SIMPLE_FOOTER_H = 30;
 const CONTENT_PAD = 36;
 const CLIENT_BAR_H = 90;
-const TOTALS_H = 160;
-const NOTES_H = 260; // condições comerciais + aceite do cliente + assinatura vendedor
+const TOTALS_H = 180;
+const NOTES_H = 310; // condições comerciais + aceite do cliente + assinatura vendedor
 const TABLE_HEADER_H = 38;
 const ROW_H = 76; // estimated row height
 
