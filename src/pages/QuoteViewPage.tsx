@@ -622,7 +622,7 @@ export default function QuoteViewPage() {
                     {quote.items?.map((item, index) => {
                       const allPersonalizations = item.personalizations || [];
                       const personalizationCost = allPersonalizations.reduce(
-                        (acc, p) => acc + ((p.unit_cost || 0) * item.quantity + (p.setup_cost || 0)), 0
+                        (acc, p) => acc + (p.total_cost || 0), 0
                       );
                       const itemTotal = item.quantity * item.unit_price + personalizationCost;
 
