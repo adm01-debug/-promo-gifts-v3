@@ -358,7 +358,6 @@ export default function AdminPanel() {
           <TabsContent value="access-security">
             <AccessSecurityManager />
           </TabsContent>
-          </TabsContent>
         </Tabs>
 
         {/* Role Change Dialog */}
