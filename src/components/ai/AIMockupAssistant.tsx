@@ -52,7 +52,7 @@ const INITIAL_MESSAGES: Message[] = [
   {
     id: "welcome",
     role: "assistant",
-    content: "Olá! Eu sou a Helô, sua assistente de mockups. Posso ajudar com posicionamento, técnicas e sugestões para criar o mockup perfeito. Como posso ajudar?",
+    content: "Olá! Eu sou o Matheus, seu assistente de mockups. Posso ajudar com posicionamento, técnicas e sugestões para criar o mockup perfeito. Como posso ajudar?",
     timestamp: new Date(),
     suggestions: QUICK_ACTIONS,
   },
@@ -145,7 +145,7 @@ export function AIMockupAssistant({
       >
         <Button
           size="lg"
-          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group bg-[hsl(270,90%,80%)] hover:bg-[hsl(270,90%,75%)] text-white border-0"
+          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group bg-[hsl(145,80%,45%)] hover:bg-[hsl(145,80%,40%)] text-white border-0"
           onClick={() => setIsOpen(true)}
         >
           <motion.div
@@ -177,14 +177,14 @@ export function AIMockupAssistant({
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 p-3 border-b bg-[hsl(270,90%,80%)]/15 cursor-pointer"
+        className="flex items-center gap-3 p-3 border-b bg-[hsl(145,80%,45%)]/15 cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="p-2 rounded-lg bg-[hsl(270,90%,80%)]/25">
-          <Bot className="h-4 w-4 text-[hsl(270,90%,80%)]" />
+        <div className="p-2 rounded-lg bg-[hsl(145,80%,45%)]/25">
+          <Bot className="h-4 w-4 text-[hsl(145,80%,45%)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm">Helô — Assistente de Mockup</h3>
+          <h3 className="font-semibold text-sm">Matheus — Assistente de Mockup</h3>
           {!isMinimized && (
             <p className="text-xs text-muted-foreground truncate">
               Powered by AI
@@ -228,7 +228,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "p-2 rounded-lg shrink-0",
                         message.role === "user"
-                          ? "bg-[hsl(270,90%,80%)] text-white"
+                          ? "bg-[hsl(145,80%,45%)] text-white"
                           : "bg-muted"
                       )}
                     >
@@ -242,7 +242,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "rounded-xl p-3 max-w-[80%]",
                         message.role === "user"
-                          ? "bg-[hsl(270,90%,80%)] text-white"
+                          ? "bg-[hsl(145,80%,45%)] text-white"
                           : "bg-muted"
                       )}
                     >
@@ -306,7 +306,7 @@ export function AIMockupAssistant({
               <Button
                 type="submit"
                 size="icon"
-                className="h-10 w-10 shrink-0 bg-[hsl(270,90%,80%)] hover:bg-[hsl(270,90%,75%)] text-white"
+                className="h-10 w-10 shrink-0 bg-[hsl(145,80%,45%)] hover:bg-[hsl(145,80%,40%)] text-white"
                 disabled={!input.trim() || isLoading}
               >
                 {isLoading ? (
