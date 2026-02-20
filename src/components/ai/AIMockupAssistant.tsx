@@ -177,11 +177,11 @@ export function AIMockupAssistant({
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 p-3 border-b bg-primary/5 cursor-pointer"
+        className="flex items-center gap-3 p-3 border-b bg-[hsl(270,80%,60%)]/10 cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="p-2 rounded-lg bg-primary/10">
-          <Bot className="h-4 w-4 text-primary" />
+        <div className="p-2 rounded-lg bg-[hsl(270,80%,60%)]/20">
+          <Bot className="h-4 w-4 text-[hsl(270,80%,60%)]" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm">Helô — Assistente de Mockup</h3>
@@ -306,7 +306,7 @@ export function AIMockupAssistant({
               <Button
                 type="submit"
                 size="icon"
-                className="h-10 w-10 shrink-0"
+                className="h-10 w-10 shrink-0 bg-[hsl(270,80%,60%)] hover:bg-[hsl(270,80%,50%)] text-white"
                 disabled={!input.trim() || isLoading}
               >
                 {isLoading ? (
