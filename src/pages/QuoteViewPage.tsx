@@ -643,7 +643,7 @@ export default function QuoteViewPage() {
                       )}
                       <th className="text-center p-3 font-semibold text-primary text-sm w-20">Qtd</th>
                       <th className="text-right p-3 font-semibold text-primary text-sm w-28">Unitário</th>
-                      <th className="text-right p-3 font-semibold text-primary text-sm w-32">Total</th>
+                      <th className="text-left p-3 font-semibold text-primary text-sm w-32">Total</th>
                       <th className="text-center p-3 font-semibold text-primary text-sm print:hidden w-24"></th>
                     </tr>
                   </thead>
@@ -739,7 +739,7 @@ export default function QuoteViewPage() {
                               return sum + (item.quantity > 0 ? Math.round((pTotal / item.quantity) * 100) / 100 : 0);
                             }, 0)))}
                           </td>
-                          <td className="p-3 text-right font-bold text-base tabular-nums w-32">{formatCurrency(itemTotal)}</td>
+                          <td className="p-3 text-left font-bold text-base tabular-nums w-32">{formatCurrency(itemTotal)}</td>
                           <td className="p-3 text-center print:hidden">
                             <QuoteItemDetailSheet item={item} />
                           </td>
