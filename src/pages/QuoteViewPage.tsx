@@ -29,6 +29,7 @@ import { QuoteValidityBanner } from "@/components/quotes/QuoteValidityBanner";
 import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
 
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
+import { QuoteItemDetailSheet } from "@/components/quotes/QuoteItemDetailSheet";
 
 function formatCNPJ(cnpj: string): string {
   const digits = cnpj.replace(/\D/g, "");
@@ -644,6 +645,7 @@ export default function QuoteViewPage() {
                       <th className="text-center p-3 font-semibold text-primary text-sm">Qtd</th>
                       <th className="text-right p-3 font-semibold text-primary text-sm">Unitário</th>
                       <th className="text-right p-3 font-semibold text-primary text-sm">Total</th>
+                      <th className="text-center p-3 font-semibold text-primary text-sm print:hidden w-20"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -735,6 +737,9 @@ export default function QuoteViewPage() {
                             }, 0)))}
                           </td>
                           <td className="p-3 text-right font-semibold">{formatCurrency(itemTotal)}</td>
+                          <td className="p-3 text-center print:hidden">
+                            <QuoteItemDetailSheet item={item} />
+                          </td>
                         </tr>
                       );
                     })}
