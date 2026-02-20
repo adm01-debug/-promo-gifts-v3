@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  ChevronsDownUp,
   ShieldCheck,
   User,
   Cloud,
@@ -138,6 +139,16 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     setIsCollapsed(!isCollapsed);
   };
 
+  const collapseAllGroups = () => {
+    setOpenGroups((prev) => {
+      const collapsed: Record<string, boolean> = {};
+      Object.keys(prev).forEach((key) => { collapsed[key] = false; });
+      return collapsed;
+    });
+  };
+
+  const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
+
   const toggleGroup = (groupId: string) => {
     setOpenGroups((prev) => ({
       ...prev,
@@ -226,11 +237,23 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
       >
         <div className="flex flex-col h-full pt-16 lg:pt-4">
           {/* Collapse toggle (desktop only) */}
-          <div className="hidden lg:flex justify-end px-2 mb-4">
+          <div className="hidden lg:flex items-center justify-between px-2 mb-4">
+            {!isCollapsed && hasAnyGroupOpen && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-xs border-sidebar-border hover:bg-orange/10 hover:text-orange hover:border-orange/30"
+                onClick={collapseAllGroups}
+              >
+                <ChevronsDownUp className="h-3.5 w-3.5" />
+                Closer
+              </Button>
+            )}
+            {!isCollapsed && !hasAnyGroupOpen && <div />}
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 hover:bg-orange/10 hover:text-orange"
+              className="h-8 w-8 hover:bg-orange/10 hover:text-orange ml-auto"
               onClick={toggleCollapse}
               aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
             >
