@@ -165,14 +165,15 @@ function SortableItem({
                     {item.color_name && (
                       <Badge
                         variant="secondary"
-                        className="text-[10px] gap-1"
+                        className="text-[10px] gap-1 border"
                         style={{
-                          backgroundColor: item.color_hex ? `${item.color_hex}20` : undefined,
-                          borderColor: item.color_hex,
+                          backgroundColor: item.color_hex ? `${item.color_hex}22` : undefined,
+                          borderColor: item.color_hex || 'hsl(var(--border))',
+                          color: item.color_hex || 'hsl(var(--foreground))',
                         }}
                       >
                         <div
-                          className="w-2 h-2 rounded-full border"
+                          className="w-2 h-2 rounded-full border border-border/50"
                           style={{ backgroundColor: item.color_hex }}
                         />
                         {item.color_name}
