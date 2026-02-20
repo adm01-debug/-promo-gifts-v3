@@ -667,7 +667,7 @@ export default function QuoteViewPage() {
                                 <img 
                                   src={item.product_image_url} 
                                   alt={item.product_name}
-                                  className="w-14 h-14 object-cover rounded border border-border print:hidden"
+                                  className="w-16 h-16 object-cover rounded border border-border print:hidden"
                                 />
                               )}
                               <div>
