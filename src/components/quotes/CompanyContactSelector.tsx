@@ -307,21 +307,21 @@ export function CompanyContactSelector({
     queryKey: ["quote-companies-search", debouncedSearch],
     queryFn: async () => {
       if (!debouncedSearch || debouncedSearch.length < 2) return [];
-      // Search both razao_social and title for better coverage
-      const [byRazao, byTitle] = await Promise.all([
+      // Search both razao_social and nome_fantasia for better coverage
+      const [byRazao, byNomeFantasia] = await Promise.all([
         searchCrm<CrmCompany>("companies", "razao_social", debouncedSearch, {
-          select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
+          select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
           limit: 50,
         }),
-        searchCrm<CrmCompany>("companies", "title", debouncedSearch, {
-          select: "id, razao_social, nome_fantasia, title, ramo_atividade, cnpj",
+        searchCrm<CrmCompany>("companies", "nome_fantasia", debouncedSearch, {
+          select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
           limit: 50,
         }),
       ]);
       // Merge and deduplicate
       const seen = new Set<string>();
       const merged: CompanyOption[] = [];
-      for (const c of [...byRazao, ...byTitle]) {
+      for (const c of [...byRazao, ...byNomeFantasia]) {
         if (!seen.has(c.id)) {
           seen.add(c.id);
           merged.push({
