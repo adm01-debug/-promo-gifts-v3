@@ -46,43 +46,48 @@ const ROW_H = 76; // estimated row height
 function paginateItems(items: ProposalItem[]) {
   // Single page: must also fit totals + notes/signature + full footer
   const singlePageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - TOTALS_H - NOTES_H - FULL_FOOTER_H - 40;
-  const singlePageRows = Math.floor(singlePageAvailable / ROW_H);
+  const singlePageRows = Math.max(0, Math.floor(singlePageAvailable / ROW_H));
 
   if (items.length <= singlePageRows && singlePageRows > 0) {
-    // Everything fits on one page including totals+notes+footer
     return [items];
   }
-
-  // Multi-page: first page only has products (no totals/notes)
-  const firstPageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
-  const firstPageRows = Math.floor(firstPageAvailable / ROW_H);
 
   // Multi-page
   const pages: ProposalItem[][] = [];
   let remaining = [...items];
 
-  // First page
+  // First page: only products + simple footer (totals/notes go on a later page)
+  const firstPageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
+  const firstPageRows = Math.max(1, Math.floor(firstPageAvailable / ROW_H));
+
   const fpRows = Math.min(firstPageRows, remaining.length);
   pages.push(remaining.slice(0, fpRows));
   remaining = remaining.slice(fpRows);
 
-  // Middle/last pages
+  // If remaining is empty, we still need a last page for totals/notes/footer
+  // because the first page was calculated WITHOUT space for them
+  if (remaining.length === 0) {
+    // Push an empty last page that will hold only totals + notes + footer
+    pages.push([]);
+  }
+
+  // Continue with middle/last pages
   while (remaining.length > 0) {
     const contPageAvailable = PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
     const contPageRows = Math.floor(contPageAvailable / ROW_H);
 
-    // If this is the last chunk, account for totals+notes+full footer
     if (remaining.length <= contPageRows) {
-      // Check if totals+notes+full footer fit
       const spaceNeeded = remaining.length * ROW_H + TABLE_HEADER_H + TOTALS_H + NOTES_H + FULL_FOOTER_H + CONT_HEADER_H + CONT_CLIENT_H + 40;
       if (spaceNeeded <= PAGE_H) {
         pages.push(remaining);
         remaining = [];
       } else {
-        // Split: put some on this page, rest on next with totals
-        const fitRows = Math.floor((PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30) / ROW_H);
+        const fitRows = Math.max(1, Math.floor((PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30) / ROW_H));
         pages.push(remaining.slice(0, fitRows));
         remaining = remaining.slice(fitRows);
+        if (remaining.length === 0) {
+          pages.push([]);
+        }
       }
     } else {
       pages.push(remaining.slice(0, contPageRows));
@@ -150,11 +155,13 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                 {isFirst && <ProposalClientBar data={data} />}
                 {!isFirst && <ProposalClientBarCompact data={data} />}
 
-                <ProposalProductTable
-                  items={pageItems}
-                  showHeader={true}
-                  startIndex={startIdx}
-                />
+                {pageItems.length > 0 && (
+                  <ProposalProductTable
+                    items={pageItems}
+                    showHeader={true}
+                    startIndex={startIdx}
+                  />
+                )}
 
                 {isLast && (
                   <>
