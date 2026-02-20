@@ -499,7 +499,7 @@ export default function QuoteViewPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {quote.status === "sent" && (
+                {(quote.status === "sent" || isSyncing) && (
                   <DropdownMenuItem
                     onClick={async () => {
                       try {
