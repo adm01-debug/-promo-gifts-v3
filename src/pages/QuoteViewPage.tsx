@@ -671,18 +671,22 @@ export default function QuoteViewPage() {
                                 />
                               )}
                               <div>
-                                <p className="font-medium">{item.product_name}</p>
-                                {item.color_name && (
-                                  <div className="flex items-center gap-1 mt-1">
+                                {item.product_sku && (
+                                  <span 
+                                    className="inline-flex items-center gap-1 font-mono text-xs px-1.5 py-0.5 rounded border mb-1"
+                                    style={{ 
+                                      backgroundColor: item.color_hex ? `${item.color_hex}22` : undefined,
+                                      borderColor: item.color_hex || 'hsl(var(--border))',
+                                      color: item.color_hex || 'hsl(var(--foreground))'
+                                    }}
+                                  >
                                     {item.color_hex && (
-                                      <span 
-                                        className="w-3 h-3 rounded-full border" 
-                                        style={{ backgroundColor: item.color_hex }}
-                                      />
+                                      <span className="w-2.5 h-2.5 rounded-full border border-border/50" style={{ backgroundColor: item.color_hex }} />
                                     )}
-                                    <span className="text-sm text-muted-foreground">{item.color_name}</span>
-                                  </div>
+                                    {item.product_sku}{item.color_name ? `-${item.color_name}` : ''}
+                                  </span>
                                 )}
+                                <p className="font-medium">{item.product_name}</p>
                               </div>
                             </div>
                           </td>

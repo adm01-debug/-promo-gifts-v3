@@ -130,11 +130,23 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
               />
             )}
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-foreground">{item.product_name}</p>
               {item.product_sku && (
-                <Badge variant="outline" className="mt-1 font-mono text-xs">{item.product_sku}</Badge>
+                <span 
+                  className="inline-flex items-center gap-1 font-mono text-xs px-1.5 py-0.5 rounded border mb-1"
+                  style={{ 
+                    backgroundColor: item.color_hex ? `${item.color_hex}22` : undefined,
+                    borderColor: item.color_hex || 'hsl(var(--border))',
+                    color: item.color_hex || 'hsl(var(--foreground))'
+                  }}
+                >
+                  {item.color_hex && (
+                    <span className="w-2.5 h-2.5 rounded-full border border-border/50" style={{ backgroundColor: item.color_hex }} />
+                  )}
+                  {item.product_sku}{item.color_name ? `-${item.color_name}` : ''}
+                </span>
               )}
-              {item.color_name && (
+              <p className="font-semibold text-foreground">{item.product_name}</p>
+              {!item.product_sku && item.color_name && (
                 <div className="flex items-center gap-1.5 mt-1.5">
                   {item.color_hex && (
                     <span className="w-3.5 h-3.5 rounded-full border border-border" style={{ backgroundColor: item.color_hex }} />
