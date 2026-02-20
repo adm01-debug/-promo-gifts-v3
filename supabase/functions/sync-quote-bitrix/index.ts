@@ -108,47 +108,60 @@ serve(async (req) => {
         quantity: qty,
       };
 
-      // Gravação (engraving) — valores brutos, sem desconto
-      const pers = item.personalizations?.[0];
-      if (pers) {
-        // total_cost from DB includes markup; unit_cost is raw cost without markup
-        // Derive unit_price from total_cost/qty to match what UI displays (e.g. 983.84/160 = 6.149 → R$ 6.15)
-        const engravingTotal = pers.total_cost != null ? Number(pers.total_cost) : Number(pers.unit_cost ?? 0) * qty;
-        const engravingUnit = qty > 0 ? Math.round((engravingTotal / qty) * 100) / 100 : 0;
+      // Gravação (engraving) — valores do banco, sem recalcular
+      // DB fields: unit_cost (preço unitário c/ markup), total_cost (MAX(valor_gravacao, setup)),
+      //            setup_cost (custo de setup c/ markup)
+      const allPers = item.personalizations || [];
+      if (allPers.length > 0) {
+        // Support multiple personalizations: aggregate all into one engraving block
+        const engravings = allPers.map((pers: any) => {
+          // Use DB values directly — no recalculation to avoid rounding divergence
+          const engravingUnit = Number(pers.unit_cost ?? 0);
+          const engravingTotal = Number(pers.total_cost ?? 0);
+          const setupPrice = Number(pers.setup_cost ?? 0);
 
-        // size: try structured fields first, then parse from notes "Local — CODE | WxHcm"
-        let sizeStr = "";
-        if (pers.width_cm != null && pers.height_cm != null) {
-          sizeStr = `${pers.width_cm}x${pers.height_cm}cm`;
-        } else if (pers.area_cm2 != null) {
-          sizeStr = `${pers.area_cm2}cm²`;
-        } else if (pers.notes) {
-          // Fallback: extract dimensions from notes like "Lado A — UVDIG-PL-01 | 2.5×10cm"
-          const dimMatch = String(pers.notes).match(/\|\s*([\d.,]+)\s*[x×]\s*([\d.,]+)\s*cm/i);
-          if (dimMatch) {
-            sizeStr = `${dimMatch[1]}x${dimMatch[2]}cm`;
-          }
-        }
-
-        // engraving.type = "Technique | Location"
-        let engravingType = pers.technique_name || "Personalização";
-        if (pers.notes) {
-          const notesRaw = String(pers.notes);
-          const [locationPart] = notesRaw.split(" | ");
-          if (locationPart) {
-            const locationName = locationPart.split(" — ")[0]?.trim();
-            if (locationName) {
-              engravingType = `${engravingType} | ${locationName}`;
+          // size: try structured fields first, then parse from notes "Local — CODE | WxHcm"
+          let sizeStr = "";
+          if (pers.width_cm != null && pers.height_cm != null) {
+            sizeStr = `${pers.width_cm}x${pers.height_cm}cm`;
+          } else if (pers.area_cm2 != null) {
+            sizeStr = `${pers.area_cm2}cm²`;
+          } else if (pers.notes) {
+            const dimMatch = String(pers.notes).match(/\|\s*([\d.,]+)\s*[x×]\s*([\d.,]+)\s*cm/i);
+            if (dimMatch) {
+              sizeStr = `${dimMatch[1]}x${dimMatch[2]}cm`;
             }
           }
-        }
 
-        product.engraving = {
-          type: engravingType,
-          unit_price: Math.round(engravingUnit * 10000) / 10000,
-          total_price: Math.round(engravingTotal * 10000) / 10000,
-          size: sizeStr,
-        };
+          // engraving.type = "Technique | Location"
+          let engravingType = pers.technique_name || "Personalização";
+          if (pers.notes) {
+            const notesRaw = String(pers.notes);
+            const [locationPart] = notesRaw.split(" | ");
+            if (locationPart) {
+              const locationName = locationPart.split(" — ")[0]?.trim();
+              if (locationName) {
+                engravingType = `${engravingType} | ${locationName}`;
+              }
+            }
+          }
+
+          return {
+            type: engravingType,
+            unit_price: engravingUnit,
+            total_price: engravingTotal,
+            setup_price: setupPrice,
+            size: sizeStr,
+          };
+        });
+
+        // Primary engraving (first one) — backward compatible
+        product.engraving = engravings[0];
+
+        // If multiple, attach full array
+        if (engravings.length > 1) {
+          product.engravings = engravings;
+        }
       }
 
       return product;
