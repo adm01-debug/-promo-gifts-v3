@@ -112,12 +112,19 @@ serve(async (req) => {
         const engravingTotal = pers.total_cost != null ? Number(pers.total_cost) : Number(pers.unit_cost ?? 0) * qty;
         const engravingUnit = qty > 0 ? engravingTotal / qty : 0;
 
-        // size = "LxHcm" ou "Xcm²"
-        const sizeStr = pers.width_cm != null && pers.height_cm != null
-          ? `${pers.width_cm}x${pers.height_cm}cm`
-          : pers.area_cm2 != null
-            ? `${pers.area_cm2}cm²`
-            : "";
+        // size: try structured fields first, then parse from notes "Local — CODE | WxHcm"
+        let sizeStr = "";
+        if (pers.width_cm != null && pers.height_cm != null) {
+          sizeStr = `${pers.width_cm}x${pers.height_cm}cm`;
+        } else if (pers.area_cm2 != null) {
+          sizeStr = `${pers.area_cm2}cm²`;
+        } else if (pers.notes) {
+          // Fallback: extract dimensions from notes like "Lado A — UVDIG-PL-01 | 2.5×10cm"
+          const dimMatch = String(pers.notes).match(/\|\s*([\d.,]+)\s*[x×]\s*([\d.,]+)\s*cm/i);
+          if (dimMatch) {
+            sizeStr = `${dimMatch[1]}x${dimMatch[2]}cm`;
+          }
+        }
 
         // engraving.type = "Technique | Location"
         let engravingType = pers.technique_name || "Personalização";
@@ -148,13 +155,15 @@ serve(async (req) => {
     }
 
     // ── 6. Assemble final payload ────────────────────────────────────────────
-    const clientName =
+    const rawClientName =
       proposalData?.client?.company ||
       proposalData?.client?.name ||
       quote?.client_company ||
       "Cliente";
 
-    // Spec v3.2: title = "Orçamento - NomeEmpresa - BitrixCompanyId"
+    // Fix #4: Remove trailing " - XXXX" (bitrix_id suffix) to avoid duplication in title
+    const clientName = rawClientName.replace(/\s*-\s*\d+\s*$/, "").trim();
+
     const payload: Record<string, unknown> = {
       title: `Orçamento - ${clientName} - ${companyId}`,
       company_id: companyId,
@@ -190,7 +199,12 @@ serve(async (req) => {
 
       if (freightType) {
         const freight: Record<string, unknown> = { type: freightType };
-        if (freightType === "FOB_PRE" && Number.isFinite(freightValue) && freightValue > 0) {
+        // Fix #1: Send value for any FOB type that has a value (not just FOB_PRE)
+        if (Number.isFinite(freightValue) && freightValue > 0) {
+          // If type is FOB but has a value, upgrade to FOB_PRE
+          if (freightType === "FOB") {
+            freight.type = "FOB_PRE";
+          }
           freight.value = freightValue;
         }
         payload.freight = freight;
