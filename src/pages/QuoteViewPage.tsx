@@ -488,10 +488,6 @@ export default function QuoteViewPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${id}/editar`)}>
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Editar
-                </DropdownMenuItem>
                 {quote.status === "sent" && (
                   <DropdownMenuItem
                     onClick={async () => {
@@ -513,6 +509,10 @@ export default function QuoteViewPage() {
                     Cancelar Sincronização
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${id}/editar`)}>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Editar
+                </DropdownMenuItem>
                 <Sheet>
                   <SheetTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
