@@ -300,7 +300,7 @@ export function AIMockupAssistant({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Pergunte sobre o mockup..."
-                className="flex-1 h-10"
+                className="flex-1 h-10 focus-visible:ring-[hsl(145,80%,45%)] focus-visible:border-[hsl(145,80%,45%)]"
                 disabled={isLoading}
               />
               <Button
