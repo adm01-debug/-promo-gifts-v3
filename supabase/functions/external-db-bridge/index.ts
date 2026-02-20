@@ -370,8 +370,8 @@ function mapTechniqueOrderByToExternal(orderBy: { column: string; ascending?: bo
     ativo: 'ativo',
     estimated_days: 'tempo_producao_dias',
     tempo_producao_dias: 'tempo_producao_dias',
-    ordem_exibicao: 'ordem_grupo',
-    display_order: 'ordem_grupo',
+    ordem_exibicao: 'nome',
+    display_order: 'nome',
   };
   return {
     ...orderBy,
