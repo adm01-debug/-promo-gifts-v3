@@ -30,29 +30,42 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
     const root = ReactDOM.createRoot(container);
     const templateRef = React.createRef<HTMLDivElement>();
     
+    root.render(
+      React.createElement(PropostaComercialTailwind, { data, ref: templateRef, isDraft: options?.isDraft || false })
+    );
+
+    // Poll until React renders (max 2s) instead of fixed 3s wait
+    const renderStart = Date.now();
     await new Promise<void>((resolve) => {
-      root.render(
-        React.createElement(PropostaComercialTailwind, { data, ref: templateRef, isDraft: options?.isDraft || false })
-      );
-      // Wait 3s: 2s for React + images, +1s for Google Fonts to load via @import
-      setTimeout(resolve, 3000);
+      const check = () => {
+        if (templateRef.current || Date.now() - renderStart > 2000) {
+          resolve();
+        } else {
+          requestAnimationFrame(check);
+        }
+      };
+      requestAnimationFrame(check);
     });
 
     const wrapper = templateRef.current || container.firstElementChild as HTMLElement;
     if (!wrapper) throw new Error("Failed to render proposal template");
 
-    // Wait for all images to load
+    // Wait for all images + Google Fonts in parallel
     const images = wrapper.querySelectorAll("img");
-    await Promise.all(
-      Array.from(images).map(
-        (img) =>
-          new Promise<void>((resolve) => {
-            if (img.complete) return resolve();
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          })
-      )
+    const imgPromises = Array.from(images).map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete) return resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+          setTimeout(resolve, 5000);
+        })
     );
+    const fontPromise = document.fonts?.ready
+      ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1000))])
+      : new Promise(r => setTimeout(r, 500));
+
+    await Promise.all([...imgPromises, fontPromise]);
 
     // Find all page elements
     const pageElements = wrapper.querySelectorAll(".proposal-page");
@@ -90,7 +103,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
           width: 794,
           height: 1123,
           windowWidth: 794,
-          imageTimeout: 15000,
+          imageTimeout: 5000,
         });
 
         // JPEG com qualidade 0.92 — visualmente idêntico ao PNG, ~5-8x menor

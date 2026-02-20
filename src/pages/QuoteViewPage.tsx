@@ -265,8 +265,8 @@ export default function QuoteViewPage() {
 
     setIsSyncing(true);
 
-    // ── Log: início da sincronização ────────────────────────────────────────
-    await logQuoteHistory(quote.id, "sync_started", "Sincronização com Bitrix24 iniciada");
+    // ── Log: início da sincronização (fire-and-forget — não bloqueia) ───────
+    logQuoteHistory(quote.id, "sync_started", "Sincronização com Bitrix24 iniciada").catch(() => {});
 
     try {
       // ── 1. Generate PDF blob client-side ────────────────────────────────────
@@ -287,19 +287,19 @@ export default function QuoteViewPage() {
 
         if (uploadError) {
           console.warn("PDF upload failed, syncing without PDF:", uploadError);
-          await logQuoteHistory(quote.id, "sync_pdf_error", `Falha no upload do PDF: ${uploadError.message}`);
+          logQuoteHistory(quote.id, "sync_pdf_error", `Falha no upload do PDF: ${uploadError.message}`).catch(() => {});
         } else {
           const { data: urlData } = supabase.storage
             .from("art-files")
             .getPublicUrl(storagePath);
           pdfStorageUrl = urlData.publicUrl;
-          await logQuoteHistory(quote.id, "sync_pdf_ok", `PDF gerado e enviado: ${filename}`, {
+          logQuoteHistory(quote.id, "sync_pdf_ok", `PDF gerado e enviado: ${filename}`, {
             newValue: pdfStorageUrl,
-          });
+          }).catch(() => {});
         }
       } catch (pdfErr: any) {
         console.warn("PDF generation failed, syncing without PDF:", pdfErr);
-        await logQuoteHistory(quote.id, "sync_pdf_error", `Erro ao gerar PDF: ${pdfErr?.message || "desconhecido"}`);
+        logQuoteHistory(quote.id, "sync_pdf_error", `Erro ao gerar PDF: ${pdfErr?.message || "desconhecido"}`).catch(() => {});
       }
 
       // ── 3. Invoke edge function with URL only (no base64 in body) ───────────
