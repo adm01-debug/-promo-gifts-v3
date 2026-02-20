@@ -82,7 +82,7 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
         if (i > 0) pdf.addPage();
 
         const canvas = await html2canvas(pages[i] as HTMLElement, {
-          scale: 4,
+          scale: 2,          // 2x = ~190 DPI — qualidade profissional de impressão
           useCORS: true,
           allowTaint: true,
           logging: false,
@@ -93,10 +93,11 @@ export async function generateProposalPDFv2(data: ProposalTemplateData, options?
           imageTimeout: 15000,
         });
 
-        const imgData = canvas.toDataURL("image/png");
+        // JPEG com qualidade 0.92 — visualmente idêntico ao PNG, ~5-8x menor
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
         const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
       }
     } finally {
       // Always remove the temporary style, even if html2canvas throws
