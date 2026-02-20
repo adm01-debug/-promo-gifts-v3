@@ -135,8 +135,23 @@ serve(async (req) => {
           : pers.area_cm2 != null
             ? `${pers.area_cm2}cm²`
             : "";
+
+        // Spec v3.3: engraving.type = "Technique | Location"
+        // Location is encoded in notes field: "LocationName — tableCode | WxHcm"
+        let engravingType = pers.technique_name || "Personalização";
+        if (pers.notes) {
+          const notesRaw = String(pers.notes);
+          const [locationPart] = notesRaw.split(" | ");
+          if (locationPart) {
+            const locationName = locationPart.split(" — ")[0]?.trim();
+            if (locationName) {
+              engravingType = `${engravingType} | ${locationName}`;
+            }
+          }
+        }
+
         product.engraving = {
-          type: pers.technique_name || "Personalização",
+          type: engravingType,
           unit_price: Math.round(engravingUnit * 100) / 100,
           total_price: Math.round(engravingTotal * 100) / 100,
           size: sizeStr,
