@@ -1,11 +1,9 @@
-import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Info, Palette, Ruler, MapPin, Layers, DollarSign, Package, Wrench, TrendingDown, ArrowRight, Loader2 } from "lucide-react";
-import { invokeExternalRpc } from "@/lib/external-rpc";
-import type { CustomizationPriceResponseV6 } from "@/types/customization";
+import { Info, Palette, Ruler, MapPin, Layers, DollarSign, Package, Wrench, TrendingDown } from "lucide-react";
+
 
 const QUANTITY_TIERS = [
   { min: 1, max: 9 },
@@ -80,67 +78,10 @@ function getCurrentTierLabel(qty: number) {
 }
 
 /** Component that fetches and shows next tier pricing */
-function NextTierHint({ personalization, currentQty }: { personalization: Personalization; currentQty: number }) {
-  const [nextPrice, setNextPrice] = useState<CustomizationPriceResponseV6 | null>(null);
-  const [loading, setLoading] = useState(false);
-
+function NextTierHint({ currentQty }: { currentQty: number }) {
   const nextTier = getNextTier(currentQty);
-  const parsed = parseNotesField(personalization.notes || "");
-
-  // Parse dimensions from notes
-  let widthCm: number | null = null;
-  let heightCm: number | null = null;
-  if (parsed.dimensions) {
-    const dimMatch = parsed.dimensions.match(/([\d.]+)\s*[×x]\s*([\d.]+)/);
-    if (dimMatch) {
-      widthCm = parseFloat(dimMatch[1]);
-      heightCm = parseFloat(dimMatch[2]);
-    }
-  }
-  if (!widthCm && personalization.width_cm) widthCm = personalization.width_cm;
-  if (!heightCm && personalization.height_cm) heightCm = personalization.height_cm;
-
-  const areaId = personalization.technique_id;
-
-  useEffect(() => {
-    if (!nextTier || !areaId) return;
-
-    let cancelled = false;
-    setLoading(true);
-
-    const fetchNextPrice = async () => {
-      try {
-        const rpcParams: Record<string, unknown> = {
-          p_area_id: areaId,
-          p_quantidade: nextTier.min,
-          p_num_cores: personalization.colors_count ?? 1,
-        };
-        if (widthCm && widthCm > 0) rpcParams.p_largura_cm = widthCm;
-        if (heightCm && heightCm > 0) rpcParams.p_altura_cm = heightCm;
-
-        const result = await invokeExternalRpc<CustomizationPriceResponseV6>(
-          "fn_get_customization_price",
-          rpcParams
-        );
-        if (!cancelled && result?.success) {
-          setNextPrice(result);
-        }
-      } catch {
-        // silently fail
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchNextPrice();
-    return () => { cancelled = true; };
-  }, [nextTier?.min, areaId]);
 
   if (!nextTier) return null;
-
-  const currentUnitRounded = currentQty > 0
-    ? Math.round(((personalization.total_cost || 0) / currentQty) * 100) / 100
-    : 0;
 
   const unitsNeeded = nextTier.min - currentQty;
   const nextTierLabel = nextTier.max ? `${nextTier.min}-${nextTier.max}` : `${nextTier.min}+`;
@@ -155,31 +96,9 @@ function NextTierHint({ personalization, currentQty }: { personalization: Person
         Faltam <span className="font-bold text-foreground">{unitsNeeded} {unitsNeeded === 1 ? "unidade" : "unidades"}</span> para a faixa de{" "}
         <span className="font-bold text-foreground">{nextTierLabel} un</span>
       </div>
-      {loading ? (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Loader2 className="h-3 w-3 animate-spin" />
-          Calculando...
-        </div>
-      ) : nextPrice && currentUnitRounded > 0 && nextPrice.preco_unitario < currentUnitRounded ? (
-        <div className="flex items-center gap-3 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground">Atual:</span>
-            <span className="font-semibold">{fmt(currentUnitRounded)}/un</span>
-          </div>
-          <ArrowRight className="h-3 w-3 text-muted-foreground" />
-          <div className="flex items-center gap-1.5">
-            <span className="text-muted-foreground">Próxima:</span>
-            <span className="font-semibold text-primary">{fmt(nextPrice.preco_unitario)}/un</span>
-          </div>
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
-            -{Math.round((1 - nextPrice.preco_unitario / currentUnitRounded) * 100)}%
-          </Badge>
-        </div>
-      ) : null}
     </div>
   );
 }
-
 export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
   const personalizations = item.personalizations || [];
   const allInUnit = item.unit_price + personalizations.reduce((sum, p) => {
@@ -354,8 +273,8 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
                         </div>
 
                         {/* Next Tier Hint */}
-                        {p.technique_id && (
-                          <NextTierHint personalization={p} currentQty={item.quantity} />
+                        {getNextTier(item.quantity) && (
+                          <NextTierHint currentQty={item.quantity} />
                         )}
                       </div>
                     );
