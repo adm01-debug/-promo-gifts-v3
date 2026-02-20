@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -702,15 +703,19 @@ export function GlobalSearchPalette() {
         
         {/* Voice search button */}
         {isVoiceSupported && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleOpenVoiceOverlay}
-            className="shrink-0 h-10 w-10 rounded-lg border-border hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all"
-            title="Busca por voz"
-          >
-            <Mic className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleOpenVoiceOverlay}
+                className="shrink-0 h-10 w-10 rounded-lg border-border hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all"
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-card border-border">Fala comigo Bebê!</TooltipContent>
+          </Tooltip>
         )}
       </div>
       
