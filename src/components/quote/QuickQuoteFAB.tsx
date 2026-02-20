@@ -7,6 +7,7 @@ import {
   X,
   Wand2,
   Calculator,
+  ShoppingCart,
   Package,
   Users,
   Sparkles,
@@ -49,6 +50,14 @@ const quickActions: QuickAction[] = [
     href: "/simulador",
     color: "bg-green-500 text-white",
   },
+  {
+    id: "cart",
+    label: "Carrinho",
+    description: "Orçamento rápido",
+    icon: ShoppingCart,
+    href: "__open_cart__",
+    color: "bg-emerald-600 text-white",
+  },
 ];
 
 interface QuickQuoteFABProps {
@@ -69,6 +78,12 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
 
   const handleAction = (href: string) => {
     setIsOpen(false);
+
+    // Special: open cart popover via custom event
+    if (href === "__open_cart__") {
+      window.dispatchEvent(new CustomEvent("open-seller-cart"));
+      return;
+    }
     
     // If we have a product context, pass it along
     if (productId && href === "/orcamentos/novo") {
