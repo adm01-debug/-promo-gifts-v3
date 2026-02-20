@@ -61,7 +61,7 @@ export function CartHeaderButton() {
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent className="bg-card border-border">
-          Carrinho de Orçamento
+          Carrinho de Orçamentos
         </TooltipContent>
       </Tooltip>
 
