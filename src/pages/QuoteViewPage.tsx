@@ -700,29 +700,39 @@ export default function QuoteViewPage() {
             </div>
 
             {/* Totals — progressive breakdown */}
+            {(() => {
+              const productSubtotal = (quote.items || []).reduce((acc, item) => acc + item.quantity * item.unit_price, 0);
+              const personalizationTotal = (quote.items || []).reduce((acc, item) => {
+                return acc + (item.personalizations || []).reduce(
+                  (pAcc, p) => pAcc + ((p.unit_cost || 0) * item.quantity + (p.setup_cost || 0)), 0
+                );
+              }, 0);
+              const fullSubtotal = productSubtotal + personalizationTotal;
+              const discountValue = quote.discount_percent
+                ? Math.round(fullSubtotal * (quote.discount_percent / 100) * 100) / 100
+                : (quote.discount_amount || 0);
+              const shippingValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre")
+                ? (quote.shipping_cost || 0) : 0;
+              const computedTotal = fullSubtotal - discountValue + shippingValue;
+
+              return (
             <div className="flex justify-end">
               <div className="w-full max-w-sm rounded-lg border border-border overflow-hidden">
                 <div className="p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal produtos:</span>
-                    <span>{formatCurrency(quote.subtotal)}</span>
+                    <span>{formatCurrency(productSubtotal)}</span>
                   </div>
-                  {hasPersonalizations && (
+                  {hasPersonalizations && personalizationTotal > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Personalização:</span>
-                      <span>{formatCurrency(
-                        (quote.items || []).reduce((acc, item) => {
-                          return acc + (item.personalizations || []).reduce(
-                            (pAcc, p) => pAcc + ((p.unit_cost || 0) * item.quantity + (p.setup_cost || 0)), 0
-                          );
-                        }, 0)
-                      )}</span>
+                      <span>{formatCurrency(personalizationTotal)}</span>
                     </div>
                   )}
-                  {quote.discount_amount > 0 && (
+                  {discountValue > 0 && (
                     <div className="flex justify-between text-sm text-destructive">
                       <span>Desconto{quote.discount_percent ? ` (${quote.discount_percent}%)` : ""}:</span>
-                      <span>-{formatCurrency(quote.discount_amount)}</span>
+                      <span>-{formatCurrency(discountValue)}</span>
                     </div>
                   )}
                   {quote.shipping_type && (
@@ -740,11 +750,13 @@ export default function QuoteViewPage() {
                 <div className="bg-muted/50 border-t border-border px-4 py-3">
                   <div className="flex justify-between items-baseline">
                     <span className="font-bold text-lg">Total:</span>
-                    <span className="text-2xl font-bold text-primary">{formatCurrency(quote.total)}</span>
+                    <span className="text-2xl font-bold text-primary">{formatCurrency(computedTotal)}</span>
                   </div>
                 </div>
               </div>
             </div>
+              );
+            })()}
 
             {/* Condições Comerciais */}
             {(quote.payment_terms || quote.delivery_time) && (
