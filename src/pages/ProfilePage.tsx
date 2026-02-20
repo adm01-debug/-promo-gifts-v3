@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, Camera, Loader2, Save, Phone, Mail, Shield } from "lucide-react";
+import { User, Camera, Loader2, Save, Phone, Mail, Shield, PenTool, Trash2, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 
@@ -26,8 +26,10 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 export default function ProfilePage() {
   const { user, profile, role, refreshProfile } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingSignature, setIsUploadingSignature] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -190,7 +192,140 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Profile Form Card */}
+        {/* Signature Card */}
+        <Card className="border-border/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <PenTool className="h-5 w-5" />
+              Assinatura Eletrônica
+            </CardTitle>
+            <CardDescription>
+              Faça upload da sua assinatura escaneada (PNG sem fundo) para uso nas propostas comerciais
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center gap-4">
+              {profile?.signature_url ? (
+                <div className="relative group">
+                  <div className="border border-border rounded-lg p-4 bg-muted/30 min-h-[80px] flex items-center justify-center">
+                    <img
+                      src={profile.signature_url}
+                      alt="Sua assinatura"
+                      className="max-h-[60px] max-w-[280px] object-contain"
+                    />
+                  </div>
+                  <div className="flex gap-2 mt-3 justify-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => signatureInputRef.current?.click()}
+                      disabled={isUploadingSignature}
+                    >
+                      {isUploadingSignature ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <Upload className="h-4 w-4 mr-1" />
+                      )}
+                      Substituir
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={async () => {
+                        if (!user) return;
+                        try {
+                          await supabase.from("profiles").update({ signature_url: null }).eq("user_id", user.id);
+                          await refreshProfile();
+                          toast.success("Assinatura removida");
+                        } catch {
+                          toast.error("Erro ao remover assinatura");
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Remover
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => signatureInputRef.current?.click()}
+                  disabled={isUploadingSignature}
+                  className="w-full border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center gap-2 hover:border-primary/50 hover:bg-muted/30 transition-colors cursor-pointer"
+                >
+                  {isUploadingSignature ? (
+                    <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
+                  ) : (
+                    <>
+                      <PenTool className="h-8 w-8 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground font-medium">
+                        Clique para fazer upload da assinatura
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        PNG sem fundo • Máximo 2MB
+                      </span>
+                    </>
+                  )}
+                </button>
+              )}
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept="image/png"
+                onChange={async (e: ChangeEvent<HTMLInputElement>) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !user) return;
+
+                  if (!file.type.includes("png")) {
+                    toast.error("Apenas arquivos PNG são aceitos para assinatura");
+                    return;
+                  }
+                  if (file.size > 2 * 1024 * 1024) {
+                    toast.error("A assinatura deve ter no máximo 2MB");
+                    return;
+                  }
+
+                  setIsUploadingSignature(true);
+                  try {
+                    const fileName = `${user.id}/signature.png`;
+                    const { error: uploadError } = await supabase.storage
+                      .from("signatures")
+                      .upload(fileName, file, { upsert: true });
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = supabase.storage
+                      .from("signatures")
+                      .getPublicUrl(fileName);
+
+                    const signatureUrl = `${publicUrl}?t=${Date.now()}`;
+                    const { error: updateError } = await supabase
+                      .from("profiles")
+                      .update({ signature_url: signatureUrl })
+                      .eq("user_id", user.id);
+
+                    if (updateError) throw updateError;
+
+                    await refreshProfile();
+                    toast.success("Assinatura atualizada com sucesso");
+                  } catch (error) {
+                    console.error("Error uploading signature:", error);
+                    toast.error("Erro ao fazer upload da assinatura");
+                  } finally {
+                    setIsUploadingSignature(false);
+                    if (signatureInputRef.current) signatureInputRef.current.value = "";
+                  }
+                }}
+                className="hidden"
+              />
+              <p className="text-xs text-muted-foreground text-center">
+                Caso não envie uma assinatura, o sistema usará seu nome em fonte cursiva nas propostas.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-border/50">
           <CardHeader>
             <CardTitle>Informações Pessoais</CardTitle>

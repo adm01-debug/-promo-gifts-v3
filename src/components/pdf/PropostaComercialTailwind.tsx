@@ -16,7 +16,7 @@ const SIMPLE_FOOTER_H = 30;
 const CONTENT_PAD = 36;
 const CLIENT_BAR_H = 90;
 const TOTALS_H = 160;
-const NOTES_H = 160; // condições comerciais + aceite do cliente
+const NOTES_H = 260; // condições comerciais + aceite do cliente + assinatura vendedor
 const TABLE_HEADER_H = 38;
 const ROW_H = 76; // estimated row height
 

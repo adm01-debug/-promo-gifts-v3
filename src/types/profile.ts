@@ -11,6 +11,7 @@ export interface Profile {
   role: AppRole | null;
   avatar_url: string | null;
   phone: string | null;
+  signature_url: string | null;
   department: string | null;
   is_active: boolean | null;
   last_login_at: string | null;            // ISO datetime
