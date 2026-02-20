@@ -115,9 +115,10 @@ serve(async (req) => {
       if (allPers.length > 0) {
         // Support multiple personalizations: aggregate all into one engraving block
         const engravings = allPers.map((pers: any) => {
-          // Use DB values directly — no recalculation to avoid rounding divergence
-          const engravingUnit = Number(pers.unit_cost ?? 0);
+          // total_cost from DB is the source of truth (includes markup + min billing)
+          // unit_price = total_cost / qty rounded to 2 decimals — matches UI display
           const engravingTotal = Number(pers.total_cost ?? 0);
+          const engravingUnit = qty > 0 ? Math.round((engravingTotal / qty) * 100) / 100 : 0;
           const setupPrice = Number(pers.setup_cost ?? 0);
 
           // size: try structured fields first, then parse from notes "Local — CODE | WxHcm"
