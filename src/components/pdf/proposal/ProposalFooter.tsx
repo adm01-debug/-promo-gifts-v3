@@ -1,7 +1,5 @@
 import React from "react";
 import type { ProposalTemplateData } from "../ProposalHtmlTemplate";
-import { ProposalNotes } from "./ProposalNotes";
-import { ProposalSellerSignature } from "./ProposalSellerSignature";
 
 interface Props {
   data: ProposalTemplateData;
@@ -15,16 +13,6 @@ export function ProposalFooter({ data, isLastPage, pageNumber, totalPages }: Pro
 
   return (
     <div style={{ width: "794px", flexShrink: 0, marginTop: "auto" }}>
-      {/* Seller Signature only on last page */}
-      {isLastPage && <ProposalSellerSignature data={data} />}
-
-      {/* Condições Comerciais only on last page */}
-      {isLastPage && (
-        <div style={{ padding: "0 36px", marginBottom: "6px" }}>
-          <ProposalNotes data={data} />
-        </div>
-      )}
-
       {/* Page info */}
       <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 36px", fontSize: "8px", color: "#999", fontVariantNumeric: "tabular-nums" }}>
         <span>Página {pageNumber} de {totalPages}</span>

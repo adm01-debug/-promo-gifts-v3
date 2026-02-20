@@ -5,6 +5,7 @@ import { ProposalClientBar } from "./proposal/ProposalClientBar";
 import { ProposalProductTable } from "./proposal/ProposalProductTable";
 import { ProposalTotals } from "./proposal/ProposalTotals";
 import { ProposalNotes } from "./proposal/ProposalNotes";
+import { ProposalSellerSignature } from "./proposal/ProposalSellerSignature";
 import { ProposalFooter } from "./proposal/ProposalFooter";
 
 /* Compact client bar for continuation pages */
@@ -166,6 +167,10 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                 {isLast && (
                   <>
                     <ProposalTotals data={data} />
+                    <ProposalSellerSignature data={data} />
+                    <div style={{ marginTop: "6px" }}>
+                      <ProposalNotes data={data} />
+                    </div>
                   </>
                 )}
               </div>
