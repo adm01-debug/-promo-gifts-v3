@@ -103,7 +103,8 @@ export default function Auth() {
         
         if (!ipValidation.isAllowed && ipValidation.hasRestrictions) {
           await signOut();
-          await logLoginAttempt(data.email, userId, false, 'IP não autorizado: ' + ipValidation.currentIP);
+          const reason = ipValidation.reason || 'access_blocked';
+          await logLoginAttempt(data.email, userId, false, `${reason}: ${ipValidation.error}`);
           
           setIpBlocked(true);
           setBlockedIP(ipValidation.currentIP);
@@ -111,7 +112,7 @@ export default function Auth() {
           toast({
             variant: "destructive",
             title: "Acesso Bloqueado",
-            description: `Seu IP (${ipValidation.currentIP}) não está autorizado para acessar esta conta.`,
+            description: ipValidation.error || `Seu IP (${ipValidation.currentIP}) não está autorizado.`,
             duration: 10000,
           });
           return;

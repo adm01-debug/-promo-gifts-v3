@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_blocked_log: {
+        Row: {
+          block_reason: string
+          city: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          ip_address: string
+          state: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          block_reason: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address: string
+          state?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          block_reason?: string
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          ip_address?: string
+          state?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      access_security_settings: {
+        Row: {
+          block_unknown_locations: boolean
+          city_whitelist_enabled: boolean
+          id: string
+          ip_whitelist_enabled: boolean
+          lockout_duration_minutes: number
+          max_failed_attempts: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          block_unknown_locations?: boolean
+          city_whitelist_enabled?: boolean
+          id?: string
+          ip_whitelist_enabled?: boolean
+          lockout_duration_minutes?: number
+          max_failed_attempts?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          block_unknown_locations?: boolean
+          city_whitelist_enabled?: boolean
+          id?: string
+          ip_whitelist_enabled?: boolean
+          lockout_duration_minutes?: number
+          max_failed_attempts?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           category: string
@@ -295,6 +367,39 @@ export type Database = {
           icon?: string
           id?: string
           is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      city_whitelist: {
+        Row: {
+          city_name: string
+          country_code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          city_name: string
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city_name?: string
+          country_code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          state?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1121,6 +1226,36 @@ export type Database = {
           created_by?: string | null
           id?: string
           is_active?: boolean
+        }
+        Relationships: []
+      }
+      ip_whitelist: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          ip_address: string
+          is_active: boolean
+          label: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ip_address: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ip_address?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
