@@ -127,7 +127,7 @@ export function QuoteItemsList({ items, techniques, onItemUpdate, onItemRemove }
                         <span>•</span>
                         <div className="flex items-center gap-1">
                           <div
-                            className="w-3 h-3 rounded-full border"
+                            className="w-3 h-3 rounded-full border border-border"
                             style={{ backgroundColor: item.color_hex }}
                           />
                           <span>{item.color_name}</span>
