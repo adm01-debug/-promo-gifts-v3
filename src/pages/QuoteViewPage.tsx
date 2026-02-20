@@ -725,6 +725,17 @@ export default function QuoteViewPage() {
                       <span>-{formatCurrency(quote.discount_amount)}</span>
                     </div>
                   )}
+                  {quote.shipping_type && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Frete:</span>
+                      <span>{
+                        quote.shipping_type === "cif" ? "CIF — Cortesia" :
+                        quote.shipping_type === "fob" && !quote.shipping_cost ? "FOB — Por conta do cliente" :
+                        quote.shipping_type === "fob" || quote.shipping_type === "fob_pre" ? `FOB — Repassado ao cliente (${formatCurrency(quote.shipping_cost || 0)})` :
+                        formatCurrency(quote.shipping_cost || 0)
+                      }</span>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-muted/50 border-t border-border px-4 py-3">
                   <div className="flex justify-between items-baseline">
