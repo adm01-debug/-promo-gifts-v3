@@ -251,7 +251,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Erro ao conectar com o Expert");
+        throw new Error(errorData.error || "Erro ao conectar com o Oráculo");
       }
 
       const reader = response.body?.getReader();
@@ -341,7 +341,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
               </div>
               <div>
                 <DialogTitle className="text-lg flex items-center gap-2">
-                  Expert
+                  Oráculo
                   <Sparkles className="h-4 w-4 text-primary" />
                 </DialogTitle>
                 <p className="text-xs text-muted-foreground">
@@ -535,7 +535,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                     <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                       <Bot className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="font-medium mb-2">Olá! Sou o Expert</h3>
+                    <h3 className="font-medium mb-2">Olá! Sou o Oráculo</h3>
                     <p className="text-sm text-muted-foreground max-w-[300px] mx-auto">
                       {clientId 
                         ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"} com base no perfil e histórico de compras.`
@@ -638,7 +638,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Pergunte ao Expert..."
+                  placeholder="Pergunte ao Oráculo..."
                   disabled={isLoading}
                   className="flex-1"
                 />
