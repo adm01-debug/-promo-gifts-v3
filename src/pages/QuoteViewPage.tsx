@@ -728,7 +728,12 @@ export default function QuoteViewPage() {
                             </td>
                           )}
                           <td className="p-3 text-center font-medium">{item.quantity}</td>
-                          <td className="p-3 text-right text-muted-foreground">{formatCurrency(item.unit_price)}</td>
+                          <td className="p-3 text-right text-muted-foreground">
+                            {formatCurrency(item.unit_price + (allPersonalizations.reduce((sum, p) => {
+                              const pTotal = p.total_cost || 0;
+                              return sum + (item.quantity > 0 ? Math.round((pTotal / item.quantity) * 100) / 100 : 0);
+                            }, 0)))}
+                          </td>
                           <td className="p-3 text-right font-semibold">{formatCurrency(itemTotal)}</td>
                         </tr>
                       );
