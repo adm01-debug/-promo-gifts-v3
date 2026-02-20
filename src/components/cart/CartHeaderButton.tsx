@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "./CartCompanyPicker";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 function formatCurrency(value: number) {
@@ -22,6 +22,13 @@ export function CartHeaderButton() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+
+  // Listen for FAB "open cart" event
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener("open-seller-cart", handler);
+    return () => window.removeEventListener("open-seller-cart", handler);
+  }, []);
   const {
     carts,
     activeCart,
