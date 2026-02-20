@@ -145,7 +145,7 @@ export function AIMockupAssistant({
       >
         <Button
           size="lg"
-          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group bg-[hsl(270,85%,72%)] hover:bg-[hsl(270,85%,65%)] text-white border-0"
+          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group bg-[hsl(270,90%,80%)] hover:bg-[hsl(270,90%,75%)] text-white border-0"
           onClick={() => setIsOpen(true)}
         >
           <motion.div
@@ -177,11 +177,11 @@ export function AIMockupAssistant({
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 p-3 border-b bg-[hsl(270,85%,72%)]/10 cursor-pointer"
+        className="flex items-center gap-3 p-3 border-b bg-[hsl(270,90%,80%)]/15 cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="p-2 rounded-lg bg-[hsl(270,85%,72%)]/20">
-          <Bot className="h-4 w-4 text-[hsl(270,85%,72%)]" />
+        <div className="p-2 rounded-lg bg-[hsl(270,90%,80%)]/25">
+          <Bot className="h-4 w-4 text-[hsl(270,90%,80%)]" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm">Helô — Assistente de Mockup</h3>
@@ -306,7 +306,7 @@ export function AIMockupAssistant({
               <Button
                 type="submit"
                 size="icon"
-                className="h-10 w-10 shrink-0 bg-[hsl(270,85%,72%)] hover:bg-[hsl(270,85%,65%)] text-white"
+                className="h-10 w-10 shrink-0 bg-[hsl(270,90%,80%)] hover:bg-[hsl(270,90%,75%)] text-white"
                 disabled={!input.trim() || isLoading}
               >
                 {isLoading ? (
