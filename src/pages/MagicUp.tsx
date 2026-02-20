@@ -158,18 +158,18 @@ export default function MagicUp() {
     queryKey: ["magic-up-clients", debouncedClientSearch],
     queryFn: async () => {
       if (debouncedClientSearch.length < 3) return [];
-      const [byRazao, byTitle] = await Promise.all([
+      const [byRazao, byNomeFantasia] = await Promise.all([
         searchCrm<CrmCompany>("companies", "razao_social", debouncedClientSearch, {
-          select: "id, razao_social, nome_fantasia, title, ramo_atividade, logo_url",
+          select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url",
           limit: 20,
         }),
-        searchCrm<CrmCompany>("companies", "title", debouncedClientSearch, {
-          select: "id, razao_social, nome_fantasia, title, ramo_atividade, logo_url",
+        searchCrm<CrmCompany>("companies", "nome_fantasia", debouncedClientSearch, {
+          select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url",
           limit: 20,
         }),
       ]);
       const map = new Map<string, CrmCompany>();
-      [...byRazao, ...byTitle].forEach(c => map.set(c.id, c));
+      [...byRazao, ...byNomeFantasia].forEach(c => map.set(c.id, c));
       return Array.from(map.values()).slice(0, 20);
     },
     enabled: debouncedClientSearch.length >= 3,
