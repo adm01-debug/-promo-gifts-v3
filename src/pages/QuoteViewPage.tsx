@@ -52,6 +52,13 @@ function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/** Recalculate personalization total using rounded unit price to match UI display */
+function calcPersTotal(totalCost: number, qty: number): number {
+  if (qty <= 0) return totalCost;
+  const roundedUnit = Math.round((totalCost / qty) * 100) / 100;
+  return Math.round(roundedUnit * qty * 100) / 100;
+}
+
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -98,7 +105,7 @@ export default function QuoteViewPage() {
     // Recalculate totals client-side to ensure discount covers products + personalization
     const prodSub = (quote.items || []).reduce((s, i) => s + i.quantity * i.unit_price, 0);
     const persSub = (quote.items || []).reduce((s, i) =>
-      s + (i.personalizations || []).reduce((ps, p) => ps + (p.total_cost || 0), 0), 0
+      s + (i.personalizations || []).reduce((ps, p) => ps + calcPersTotal(p.total_cost || 0, i.quantity), 0), 0
     );
     const fullSubtotal = prodSub + persSub;
     const discountValue = quote.discount_percent
@@ -643,7 +650,7 @@ export default function QuoteViewPage() {
                     {quote.items?.map((item, index) => {
                       const allPersonalizations = item.personalizations || [];
                       const personalizationCost = allPersonalizations.reduce(
-                        (acc, p) => acc + (p.total_cost || 0), 0
+                        (acc, p) => acc + calcPersTotal(p.total_cost || 0, item.quantity), 0
                       );
                       const itemTotal = item.quantity * item.unit_price + personalizationCost;
 
@@ -736,7 +743,7 @@ export default function QuoteViewPage() {
               const productSubtotal = (quote.items || []).reduce((acc, item) => acc + item.quantity * item.unit_price, 0);
               const personalizationTotal = (quote.items || []).reduce((acc, item) => {
                 return acc + (item.personalizations || []).reduce(
-                  (pAcc, p) => pAcc + (p.total_cost || 0), 0
+                  (pAcc, p) => pAcc + calcPersTotal(p.total_cost || 0, item.quantity), 0
                 );
               }, 0);
               const fullSubtotal = productSubtotal + personalizationTotal;
