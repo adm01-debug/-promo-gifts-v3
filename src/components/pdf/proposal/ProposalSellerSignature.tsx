@@ -22,7 +22,7 @@ export function ProposalSellerSignature({ data }: Props) {
       padding: "0 36px",
       marginBottom: "10px",
       display: "flex",
-      justifyContent: "flex-end",
+      justifyContent: "flex-start",
     }}>
       <div style={{
         textAlign: "center",
