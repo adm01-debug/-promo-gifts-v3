@@ -98,7 +98,7 @@ export default function QuoteViewPage() {
     // Recalculate totals client-side to ensure discount covers products + personalization
     const prodSub = (quote.items || []).reduce((s, i) => s + i.quantity * i.unit_price, 0);
     const persSub = (quote.items || []).reduce((s, i) =>
-      s + (i.personalizations || []).reduce((ps, p) => ps + ((p.unit_cost || 0) * i.quantity + (p.setup_cost || 0)), 0), 0
+      s + (i.personalizations || []).reduce((ps, p) => ps + (p.total_cost || 0), 0), 0
     );
     const fullSubtotal = prodSub + persSub;
     const discountValue = quote.discount_percent
@@ -715,7 +715,7 @@ export default function QuoteViewPage() {
               const productSubtotal = (quote.items || []).reduce((acc, item) => acc + item.quantity * item.unit_price, 0);
               const personalizationTotal = (quote.items || []).reduce((acc, item) => {
                 return acc + (item.personalizations || []).reduce(
-                  (pAcc, p) => pAcc + ((p.unit_cost || 0) * item.quantity + (p.setup_cost || 0)), 0
+                  (pAcc, p) => pAcc + (p.total_cost || 0), 0
                 );
               }, 0);
               const fullSubtotal = productSubtotal + personalizationTotal;
