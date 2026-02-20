@@ -7,10 +7,33 @@ import { ProposalTotals } from "./proposal/ProposalTotals";
 import { ProposalNotes } from "./proposal/ProposalNotes";
 import { ProposalFooter } from "./proposal/ProposalFooter";
 
+/* Compact client bar for continuation pages */
+function ProposalClientBarCompact({ data }: { data: ProposalTemplateData }) {
+  const company = data.client.company || data.client.name;
+  const contact = data.client.contactName || "";
+  return (
+    <div style={{
+      padding: "6px 12px",
+      marginTop: "6px",
+      marginBottom: "8px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      borderBottom: "1px solid #e0e0e0",
+      fontSize: "11px",
+      color: "#666",
+    }}>
+      <span><strong style={{ color: "#333" }}>{company}</strong>{data.client.cnpj ? ` — CNPJ: ${data.client.cnpj}` : ""}</span>
+      {contact && <span>Solicitante: <strong style={{ color: "#333" }}>{contact}</strong></span>}
+    </div>
+  );
+}
+
 const PAGE_W = 794;
 const PAGE_H = 1123;
 const FIRST_HEADER_H = 128;
 const CONT_HEADER_H = 60;
+const CONT_CLIENT_H = 60; // compact client bar on continuation pages
 const FULL_FOOTER_H = 190;
 const SIMPLE_FOOTER_H = 30;
 const CONTENT_PAD = 36;
@@ -45,19 +68,19 @@ function paginateItems(items: ProposalItem[]) {
 
   // Middle/last pages
   while (remaining.length > 0) {
-    const contPageAvailable = PAGE_H - CONT_HEADER_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
+    const contPageAvailable = PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
     const contPageRows = Math.floor(contPageAvailable / ROW_H);
 
     // If this is the last chunk, account for totals+notes+full footer
     if (remaining.length <= contPageRows) {
       // Check if totals+notes+full footer fit
-      const spaceNeeded = remaining.length * ROW_H + TABLE_HEADER_H + TOTALS_H + NOTES_H + FULL_FOOTER_H + CONT_HEADER_H + 40;
+      const spaceNeeded = remaining.length * ROW_H + TABLE_HEADER_H + TOTALS_H + NOTES_H + FULL_FOOTER_H + CONT_HEADER_H + CONT_CLIENT_H + 40;
       if (spaceNeeded <= PAGE_H) {
         pages.push(remaining);
         remaining = [];
       } else {
         // Split: put some on this page, rest on next with totals
-        const fitRows = Math.floor((PAGE_H - CONT_HEADER_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30) / ROW_H);
+        const fitRows = Math.floor((PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30) / ROW_H);
         pages.push(remaining.slice(0, fitRows));
         remaining = remaining.slice(fitRows);
       }
@@ -125,6 +148,7 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
 
               <div style={{ padding: `0 ${CONTENT_PAD}px`, flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 {isFirst && <ProposalClientBar data={data} />}
+                {!isFirst && <ProposalClientBarCompact data={data} />}
 
                 <ProposalProductTable
                   items={pageItems}
