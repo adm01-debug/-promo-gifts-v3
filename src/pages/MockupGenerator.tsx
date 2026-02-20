@@ -35,7 +35,7 @@ import { MockupResultCard } from "@/components/mockup/MockupResultCard";
 import { MockupConfigPanel } from "@/components/mockup/MockupConfigPanel";
 import { MockupHistoryPanel } from "@/components/mockup/MockupHistoryPanel";
 import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
-import { GenerateFAB } from "@/components/mockup/GenerateButton";
+
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 
@@ -454,13 +454,7 @@ export default function MockupGenerator() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Mobile FAB */}
-      <GenerateFAB
-        onClick={mg.generateMockup}
-        isLoading={mg.isLoading}
-        isReady={!!(mg.selectedProduct && mg.selectedTechnique && mg.hasLogo)}
-        disabled={!mg.selectedProduct || !mg.selectedTechnique || !mg.hasLogo || mg.isLoading}
-      />
+      {/* Mobile FAB removed - only AI Assistant remains */}
 
       {/* Technique Color Configuration Dialog */}
       <TechniqueColorConfigDialog

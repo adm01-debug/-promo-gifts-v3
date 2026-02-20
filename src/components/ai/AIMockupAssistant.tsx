@@ -145,7 +145,7 @@ export function AIMockupAssistant({
       >
         <Button
           size="lg"
-          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group"
+          className="h-14 w-14 rounded-full shadow-lg gap-0 p-0 relative overflow-hidden group bg-[hsl(270,80%,60%)] hover:bg-[hsl(270,80%,50%)] text-white border-0"
           onClick={() => setIsOpen(true)}
         >
           <motion.div
