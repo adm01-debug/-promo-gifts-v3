@@ -104,7 +104,7 @@ serve(async (req) => {
         offer_id: offerId,
         product_name: productName,
         sku,
-        price: Math.round(unitPrice * 100) / 100,
+        price: Math.round(unitPrice * 10000) / 10000,
         quantity: qty,
       };
 
@@ -143,8 +143,8 @@ serve(async (req) => {
 
         product.engraving = {
           type: engravingType,
-          unit_price: Math.round(engravingUnit * 100) / 100,
-          total_price: Math.round(engravingTotal * 100) / 100,
+          unit_price: Math.round(engravingUnit * 10000) / 10000,
+          total_price: Math.round(engravingTotal * 10000) / 10000,
           size: sizeStr,
         };
       }
