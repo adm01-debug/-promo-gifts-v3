@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toTitleCase } from '@/lib/textUtils';
 
+// Categorias ocultas que não devem aparecer na navegação
+const HIDDEN_CATEGORIES = ['GRAVAÇÃO | MOCHILA', 'GRAVACAO | MOCHILA'];
+
 // Interface para a view categories_tree_visual
 export interface CategoryTreeItem {
   id: string;
