@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Package, Crown } from "lucide-react";
+import { Shield, ShieldCheck, ShieldAlert, Users, UserCog, Loader2, KeyRound, Package, Crown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +37,7 @@ import {
 import { PasswordResetApproval } from "@/components/admin/PasswordResetApproval";
 import { usePasswordResetRequests } from "@/hooks/usePasswordResetRequests";
 import { ProductsManager } from "@/components/admin/ProductsManager";
+import { AccessSecurityManager } from "@/components/admin/AccessSecurityManager";
 
 type AppRole = "admin" | "manager" | "vendedor";
 
@@ -245,6 +246,10 @@ export default function AdminPanel() {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="access-security" className="gap-2">
+              <ShieldAlert className="h-4 w-4" />
+              Segurança de Acesso
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users">
@@ -348,6 +353,11 @@ export default function AdminPanel() {
 
           <TabsContent value="password-reset">
             <PasswordResetApproval />
+          </TabsContent>
+
+          <TabsContent value="access-security">
+            <AccessSecurityManager />
+          </TabsContent>
           </TabsContent>
         </Tabs>
 

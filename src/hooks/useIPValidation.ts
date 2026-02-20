@@ -6,6 +6,8 @@ interface IPValidationResult {
   currentIP: string | null;
   hasRestrictions: boolean;
   error?: string;
+  reason?: string;
+  details?: Record<string, unknown>;
 }
 
 export function useIPValidation() {
@@ -23,53 +25,30 @@ export function useIPValidation() {
     }
   }, []);
 
-  // Validar IP para um usuário específico (por email)
-  const validateIPForUser = useCallback(async (email: string): Promise<IPValidationResult> => {
-    setIsValidating(true);
-    
+  // Validar IP para um usuário específico (por email) - pré-login
+  const validateIPForUser = useCallback(async (_email: string): Promise<IPValidationResult> => {
     try {
-      // 1. Buscar IP atual
       const currentIP = await fetchCurrentIP();
-      
-      if (!currentIP) {
-        return {
-          isAllowed: false,
-          currentIP: null,
-          hasRestrictions: false,
-          error: 'Não foi possível identificar seu IP'
-        };
-      }
-
-      // 2. Buscar user_id pelo email usando uma edge function ou verificação após login
-      // Como não temos acesso direto antes do login, vamos usar uma abordagem diferente:
-      // Buscar os IPs permitidos para o usuário que está tentando fazer login
-      
-      // Primeiro, precisamos buscar o user_id pelo email na tabela profiles ou auth
-      // Porém, antes do login não temos acesso. Então a validação será feita após a autenticação.
-      
       return {
-        isAllowed: true, // Será validado após login
+        isAllowed: true, // Validação completa acontece após login via edge function
         currentIP,
         hasRestrictions: false
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         isAllowed: false,
         currentIP: null,
         hasRestrictions: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
       };
-    } finally {
-      setIsValidating(false);
     }
   }, [fetchCurrentIP]);
 
-  // Validar IP para usuário autenticado
-  const validateIPForAuthenticatedUser = useCallback(async (userId: string): Promise<IPValidationResult> => {
+  // Validar IP e cidade para usuário autenticado via edge function
+  const validateIPForAuthenticatedUser = useCallback(async (_userId: string): Promise<IPValidationResult> => {
     setIsValidating(true);
     
     try {
-      // 1. Buscar IP atual
       const currentIP = await fetchCurrentIP();
       
       if (!currentIP) {
@@ -81,39 +60,66 @@ export function useIPValidation() {
         };
       }
 
-      // 2. Buscar IPs permitidos do usuário
-      const { data: allowedIPs, error } = await supabase
-        .from('user_allowed_ips')
-        .select('ip_address, is_active')
-        .eq('user_id', userId)
-        .eq('is_active', true);
+      // Chamar edge function validate-access
+      const { data, error } = await supabase.functions.invoke('validate-access', {
+        body: {
+          ip: currentIP,
+          userAgent: navigator.userAgent,
+        },
+      });
 
-      if (error) throw error;
-
-      // 3. Se não há IPs configurados, permitir acesso
-      if (!allowedIPs || allowedIPs.length === 0) {
+      if (error) {
+        console.error('Error calling validate-access:', error);
+        // Em caso de erro na validação, permitir acesso (fail-open)
         return {
           isAllowed: true,
           currentIP,
-          hasRestrictions: false
+          hasRestrictions: false,
+          error: error.message
         };
       }
 
-      // 4. Verificar se o IP atual está na lista
-      const isAllowed = allowedIPs.some(ip => ip.ip_address === currentIP);
+      if (!data) {
+        return { isAllowed: true, currentIP, hasRestrictions: false };
+      }
+
+      const result = data as { allowed: boolean; reason: string; details?: Record<string, unknown> };
+
+      if (!result.allowed) {
+        let errorMsg = 'Acesso negado';
+        if (result.reason === 'ip_not_whitelisted') {
+          errorMsg = `Seu IP (${currentIP}) não está autorizado para acessar o sistema.`;
+        } else if (result.reason === 'city_not_whitelisted') {
+          const details = result.details || {};
+          errorMsg = `Acesso negado: sua localização (${details.detected_city || 'desconhecida'}) não está autorizada.`;
+        } else if (result.reason === 'too_many_attempts') {
+          const details = result.details || {};
+          errorMsg = `IP bloqueado temporariamente por excesso de tentativas. Tente novamente em ${details.lockout_minutes || 15} minutos.`;
+        }
+
+        return {
+          isAllowed: false,
+          currentIP,
+          hasRestrictions: true,
+          error: errorMsg,
+          reason: result.reason,
+          details: result.details,
+        };
+      }
 
       return {
-        isAllowed,
+        isAllowed: true,
         currentIP,
-        hasRestrictions: true,
-        error: isAllowed ? undefined : 'Acesso negado: seu IP não está autorizado para esta conta'
+        hasRestrictions: result.reason !== 'no_settings',
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error('Error in IP validation:', error);
+      // Fail-open: se não conseguir validar, permite
       return {
-        isAllowed: false,
+        isAllowed: true,
         currentIP: null,
         hasRestrictions: false,
-        error: error.message
+        error: error instanceof Error ? error.message : 'Erro desconhecido'
       };
     } finally {
       setIsValidating(false);
