@@ -147,10 +147,13 @@ serve(async (req) => {
             }
           }
 
+          // Recalculate total from rounded unit to ensure subtotal parity with proposal
+          const engravingTotalRounded = engravingUnit * qty;
+
           return {
             type: engravingType,
             unit_price: engravingUnit,
-            total_price: engravingTotal,
+            total_price: Math.round(engravingTotalRounded * 100) / 100,
             setup_price: setupPrice,
             size: sizeStr,
           };
