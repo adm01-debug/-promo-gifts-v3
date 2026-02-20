@@ -2539,6 +2539,7 @@ export type Database = {
           preferences: Json | null
           role: string | null
           role_id: string | null
+          signature_url: string | null
           updated_at: string
           user_id: string
         }
@@ -2555,6 +2556,7 @@ export type Database = {
           preferences?: Json | null
           role?: string | null
           role_id?: string | null
+          signature_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -2571,6 +2573,7 @@ export type Database = {
           preferences?: Json | null
           role?: string | null
           role_id?: string | null
+          signature_url?: string | null
           updated_at?: string
           user_id?: string
         }

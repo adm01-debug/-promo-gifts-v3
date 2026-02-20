@@ -44,6 +44,7 @@ export interface ProposalTemplateData {
     name: string;
     email?: string;
     phone?: string;
+    signatureUrl?: string;
   };
   items: ProposalItem[];
   subtotal: number;

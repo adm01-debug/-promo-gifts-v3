@@ -65,7 +65,7 @@ export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { fetchQuote, isLoading, logQuoteHistory } = useQuotes();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -128,7 +128,9 @@ export default function QuoteViewPage() {
         cnpj: clientCnpj,
       },
       seller: {
-        name: user?.email || "Vendedor",
+        name: profile?.full_name || user?.email || "Vendedor",
+        email: user?.email || undefined,
+        signatureUrl: profile?.signature_url || undefined,
       },
       items: quote.items?.map((item) => ({
         name: item.product_name,
@@ -166,7 +168,7 @@ export default function QuoteViewPage() {
       paymentTerms: quote.payment_terms || undefined,
       deliveryTime: quote.delivery_time || undefined,
     };
-  }, [quote, user, clientCnpj]);
+  }, [quote, user, profile, clientCnpj]);
 
   const handleDownloadPDF = async () => {
     if (!proposalData) return;
