@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, RefreshCw, Truck, Undo2, User, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { formatPaymentTerms, formatDeliveryTime } from "@/components/pdf/ProposalHtmlTemplate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -822,7 +823,7 @@ export default function QuoteViewPage() {
                         <CreditCard className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                         <div>
                           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pagamento</p>
-                          <p className="text-sm font-medium mt-0.5">{quote.payment_terms}</p>
+                          <p className="text-sm font-medium mt-0.5">{formatPaymentTerms(quote.payment_terms) || quote.payment_terms}</p>
                         </div>
                       </div>
                     )}
@@ -831,7 +832,7 @@ export default function QuoteViewPage() {
                         <Package className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                         <div>
                           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Prazo de Entrega</p>
-                          <p className="text-sm font-medium mt-0.5">{quote.delivery_time}</p>
+                          <p className="text-sm font-medium mt-0.5">{formatDeliveryTime(quote.delivery_time) || quote.delivery_time}</p>
                         </div>
                       </div>
                     )}
