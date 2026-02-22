@@ -279,7 +279,10 @@ export function ExternalCategoryFilter({
       </div>
 
       {/* Árvore de categorias */}
-      <ScrollArea className={cn("pr-2", compact ? "max-h-[40vh]" : "max-h-[55vh]")}>
+      <div 
+        className={cn("pr-2 overflow-y-auto overscroll-contain", compact ? "max-h-[40vh]" : "max-h-[55vh]")}
+        style={{ overscrollBehavior: 'contain' }}
+      >
         <div className="space-y-0.5">
           {filteredTree.length > 0 ? (
             filteredTree.map((node) => renderCategoryNode(node))
@@ -289,7 +292,7 @@ export function ExternalCategoryFilter({
             </p>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
