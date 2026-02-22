@@ -1433,6 +1433,100 @@ export type Database = {
           },
         ]
       }
+      mockup_prompt_configs: {
+        Row: {
+          ai_model: string
+          config_key: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          label: string
+          prompt_text: string
+          technique_id: string | null
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          ai_model?: string
+          config_key: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          prompt_text: string
+          technique_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          ai_model?: string
+          config_key?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          prompt_text?: string
+          technique_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mockup_prompt_configs_technique_id_fkey"
+            columns: ["technique_id"]
+            isOneToOne: false
+            referencedRelation: "personalization_techniques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mockup_prompt_history: {
+        Row: {
+          ai_model: string
+          change_notes: string | null
+          changed_at: string
+          changed_by: string | null
+          config_id: string
+          id: string
+          prompt_text: string
+          version: number
+        }
+        Insert: {
+          ai_model: string
+          change_notes?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          config_id: string
+          id?: string
+          prompt_text: string
+          version: number
+        }
+        Update: {
+          ai_model?: string
+          change_notes?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          config_id?: string
+          id?: string
+          prompt_text?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mockup_prompt_history_config_id_fkey"
+            columns: ["config_id"]
+            isOneToOne: false
+            referencedRelation: "mockup_prompt_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mockup_templates: {
         Row: {
           areas: Json
