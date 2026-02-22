@@ -446,9 +446,8 @@ export async function fetchPromobrindProducts(options?: {
           ? variantImagesByCode 
           : legacyImages;
         
-        // PRIORIDADE 3: Fallback para imagem principal do produto (mesmo comportamento de fetchPromobrindProductById)
-        const productPrimaryImg = productImgs.find(img => img.isPrimary)?.url || productImgs[0]?.url || null;
-        const thumbnailImage = finalImages[0] || variant.selected_thumbnail || productPrimaryImg;
+        // SEM fallback para imagem primária do produto — color.image deve ser APENAS da cor específica
+        const thumbnailImage = finalImages[0] || variant.selected_thumbnail || null;
         
         colors.push({
           name: variant.color_name,
