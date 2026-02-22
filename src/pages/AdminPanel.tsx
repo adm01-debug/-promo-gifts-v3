@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, ShieldAlert, Users, UserCog, Loader2, KeyRound, Package, Crown, Pencil, Brain } from "lucide-react";
+import { Shield, ShieldCheck, ShieldAlert, Users, UserCog, Loader2, KeyRound, Package, Crown, Pencil, Brain, Palette } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -50,6 +50,8 @@ import { usePasswordResetRequests } from "@/hooks/usePasswordResetRequests";
 import { ProductsManager } from "@/components/admin/ProductsManager";
 import { AccessSecurityManager } from "@/components/admin/AccessSecurityManager";
 import { MockupPromptManager } from "@/components/admin/MockupPromptManager";
+import { EngravingRegistrationContent } from "@/pages/EngravingRegistrationPage";
+import { useSearchParams } from "react-router-dom";
 
 type AppRole = "admin" | "manager" | "vendedor";
 
@@ -86,6 +88,8 @@ const roleConfig: Record<AppRole, { label: string; icon: React.ReactNode; varian
 
 export default function AdminPanel() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get("tab") || "users";
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
@@ -283,7 +287,7 @@ export default function AdminPanel() {
         </div>
 
         {/* Tabs for Users, Products and Password Reset */}
-        <Tabs defaultValue="users" className="space-y-4">
+        <Tabs defaultValue={defaultTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
@@ -305,6 +309,10 @@ export default function AdminPanel() {
             <TabsTrigger value="access-security" className="gap-2">
               <ShieldAlert className="h-4 w-4" />
               Segurança de Acesso
+            </TabsTrigger>
+            <TabsTrigger value="personalizacao" className="gap-2">
+              <Palette className="h-4 w-4" />
+              Personalização
             </TabsTrigger>
             <TabsTrigger value="prompts-ia" className="gap-2">
               <Brain className="h-4 w-4" />
@@ -428,6 +436,10 @@ export default function AdminPanel() {
 
           <TabsContent value="access-security">
             <AccessSecurityManager />
+          </TabsContent>
+
+          <TabsContent value="personalizacao">
+            <EngravingRegistrationContent />
           </TabsContent>
 
           <TabsContent value="prompts-ia">
