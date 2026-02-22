@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, SkipForward, Sparkles, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useOnboarding, ONBOARDING_STEPS } from "@/hooks/useOnboarding";
+import { ONBOARDING_STEPS } from "@/hooks/useOnboarding";
+import { useOnboardingContext } from "@/contexts/OnboardingContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 interface TooltipPosition {
@@ -22,7 +23,7 @@ export function OnboardingTour() {
     nextStep,
     prevStep,
     skipTour,
-  } = useOnboarding();
+  } = useOnboardingContext();
 
   const navigate = useNavigate();
   const location = useLocation();
