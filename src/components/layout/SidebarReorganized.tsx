@@ -126,10 +126,7 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-const bottomNavItems: NavItem[] = [
-  { icon: User, label: "Meu Perfil", href: "/perfil" },
-  { icon: Settings, label: "Configurações", href: "/configuracoes" },
-];
+const bottomNavItems: NavItem[] = [];
 
 export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
@@ -325,13 +322,6 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
               );
             })}
           </nav>
-
-          {/* Bottom navigation */}
-          <div className="px-2 py-4 border-t border-sidebar-border space-y-0.5">
-            {bottomNavItems
-              .filter((item) => !item.adminOnly || isAdmin)
-              .map(renderNavLink)}
-          </div>
         </div>
       </aside>
     </>
