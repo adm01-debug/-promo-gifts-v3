@@ -138,17 +138,27 @@ export function StepLocation({ wizard }: StepLocationProps) {
                     </span>
                   </div>
 
-                  {/* Techniques as compact pills */}
+                  {/* Techniques as compact pills with dimensions */}
                   <div className="flex flex-wrap gap-1">
-                    {location.availableTechniques.slice(0, 3).map(tech => (
-                      <span
-                        key={tech.id}
-                        className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground"
-                      >
-                        <Palette className="h-2.5 w-2.5" />
-                        {tech.techniqueName}
-                      </span>
-                    ))}
+                    {location.availableTechniques.slice(0, 3).map(tech => {
+                      const techMaxW = tech.efetivaLarguraMax || tech.areaMaxWidth;
+                      const techMaxH = tech.efetivaAlturaMax || tech.areaMaxHeight;
+                      const hasDims = techMaxW && techMaxH;
+                      return (
+                        <span
+                          key={tech.id}
+                          className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground"
+                        >
+                          <Palette className="h-2.5 w-2.5" />
+                          {tech.techniqueName}
+                          {hasDims && (
+                            <span className="text-muted-foreground/70 ml-0.5">
+                              ({techMaxW}×{techMaxH}cm)
+                            </span>
+                          )}
+                        </span>
+                      );
+                    })}
                     {location.availableTechniques.length > 3 && (
                       <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground">
                         +{location.availableTechniques.length - 3}
