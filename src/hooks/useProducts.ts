@@ -102,7 +102,7 @@ const COLOR_GROUP_KEYWORDS: Record<string, string[]> = {
   'Vermelho': ['vermelho', 'red', 'bordô', 'vinho', 'cereja', 'coral', 'carmim', 'rubi'],
   'Amarelo': ['amarelo', 'yellow', 'dourado', 'ouro', 'gold', 'mostarda'],
   'Laranja': ['laranja', 'orange', 'tangerina', 'pêssego'],
-  'Rosa': ['rosa', 'pink', 'magenta', 'fúcsia', 'salmão', 'flamingo', 'bebê'],
+  'Rosa': ['rosa', 'pink', 'magenta', 'fúcsia', 'salmão', 'flamingo', 'rosa bebê'],
   'Roxo': ['roxo', 'purple', 'lilás', 'violeta', 'lavanda', 'uva'],
   'Preto': ['preto', 'black', 'negro', 'grafite', 'chumbo'],
   'Branco': ['branco', 'white', 'off-white', 'creme', 'gelo', 'pérola', 'neve'],
