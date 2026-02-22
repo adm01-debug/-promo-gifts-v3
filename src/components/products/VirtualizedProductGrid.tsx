@@ -6,6 +6,7 @@ import { ProductCard } from "./ProductCard";
 import { ProductCardSkeleton } from "./ProductCardSkeleton";
 import { InlineFilterBar } from "@/components/filters/StickyFilterBar";
 import type { Product } from "@/hooks/useProducts";
+import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 
 interface VirtualizedProductGridProps {
   products: Product[];
@@ -28,6 +29,8 @@ interface VirtualizedProductGridProps {
   viewMode?: "grid" | "list";
   onViewModeChange?: (mode: "grid" | "list") => void;
   showFilterBar?: boolean;
+  /** Filtros de cor ativos para mostrar imagem específica da cor no card */
+  activeColorFilter?: ActiveColorFilter | null;
 }
 
 export function VirtualizedProductGrid({
@@ -50,6 +53,7 @@ export function VirtualizedProductGrid({
   viewMode = "grid",
   onViewModeChange,
   showFilterBar = true,
+  activeColorFilter,
 }: VirtualizedProductGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -213,6 +217,7 @@ export function VirtualizedProductGrid({
                       onToggleCompare={onToggleCompare}
                       canAddToCompare={canAddToCompare}
                       hideCategoryBadges
+                      activeColorFilter={activeColorFilter}
                     />
                   </motion.div>
                 ))}
