@@ -64,6 +64,9 @@ const StockDashboardPage = lazyWithRetry(() => import("./pages/StockDashboardPag
 const AdvancedPriceSearchPage = lazyWithRetry(() => import("./pages/AdvancedPriceSearchPage"));
 const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
 
+// Orders Pages
+const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
+
 // User Pages
 const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
 
@@ -187,6 +190,10 @@ const App = () => {
                                         <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
                                         <Route path="/mockup-generator" element={<MockupGenerator />} />
                                         <Route path="/magic-up" element={<MagicUp />} />
+
+                                        {/* Orders */}
+                                        <Route path="/pedidos" element={<OrdersPage />} />
+                                        <Route path="/pedidos/:id" element={<OrdersPage />} />
 
                                         {/* User Routes */}
                                         <Route path="/perfil" element={<ProfilePage />} />
