@@ -286,39 +286,59 @@ export default function AdminPanel() {
           </Card>
         </div>
 
-        {/* Tabs for Users, Products and Password Reset */}
+        {/* Tabs organized in logical groups */}
         <Tabs defaultValue={defaultTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="h-4 w-4" />
-              Usuários
-            </TabsTrigger>
-            <TabsTrigger value="products" className="gap-2">
-              <Package className="h-4 w-4" />
-              Produtos
-            </TabsTrigger>
-            <TabsTrigger value="password-reset" className="gap-2">
-              <KeyRound className="h-4 w-4" />
-              Reset de Senha
-              {pendingCount > 0 && (
-                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                  {pendingCount}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="access-security" className="gap-2">
-              <ShieldAlert className="h-4 w-4" />
-              Segurança de Acesso
-            </TabsTrigger>
-            <TabsTrigger value="personalizacao" className="gap-2">
-              <Palette className="h-4 w-4" />
-              Personalização
-            </TabsTrigger>
-            <TabsTrigger value="prompts-ia" className="gap-2">
-              <Brain className="h-4 w-4" />
-              Prompts IA
-            </TabsTrigger>
-          </TabsList>
+          <div className="space-y-3">
+            {/* Group 1: Usuários & Segurança */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Usuários & Segurança</p>
+              <TabsList className="w-auto">
+                <TabsTrigger value="users" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Usuários
+                </TabsTrigger>
+                <TabsTrigger value="password-reset" className="gap-2">
+                  <KeyRound className="h-4 w-4" />
+                  Reset de Senha
+                  {pendingCount > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                      {pendingCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="access-security" className="gap-2">
+                  <ShieldAlert className="h-4 w-4" />
+                  Segurança de Acesso
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Group 2: Cadastros */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">Cadastros</p>
+              <TabsList className="w-auto">
+                <TabsTrigger value="products" className="gap-2">
+                  <Package className="h-4 w-4" />
+                  Produtos
+                </TabsTrigger>
+                <TabsTrigger value="personalizacao" className="gap-2">
+                  <Palette className="h-4 w-4" />
+                  Personalização
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Group 3: IA & Automação */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">IA & Automação</p>
+              <TabsList className="w-auto">
+                <TabsTrigger value="prompts-ia" className="gap-2">
+                  <Brain className="h-4 w-4" />
+                  Prompts IA
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          </div>
 
           <TabsContent value="users">
             {/* Users Table */}
