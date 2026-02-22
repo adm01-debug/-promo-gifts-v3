@@ -461,8 +461,8 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                 <Skeleton className="h-6 w-3/4" />
               </>
             ) : supplierOptions.length > 0 ? (
-              <ScrollArea className="max-h-48">
-                <div className="space-y-2 pr-2">
+              <div className="max-h-48 overflow-y-auto overscroll-contain pr-2" style={{ overscrollBehavior: 'contain' }}>
+                <div className="space-y-2">
                   {supplierOptions
                     .filter(s => !supplierSearch || s.name.toLowerCase().includes(supplierSearch.toLowerCase()))
                     .map((supplier) => (
@@ -481,7 +481,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                     </div>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             ) : (
               <p className="text-xs text-muted-foreground">Nenhum fornecedor disponível</p>
             )}
@@ -960,8 +960,8 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         {/* Técnicas de Gravação (#2) */}
         {techniqueOptions.length > 0 && (
           <FilterSection id="tecnicas" title="Técnicas de Gravação" icon={<Paintbrush className="h-4 w-4" />}>
-            <ScrollArea className="max-h-40">
-              <div className="space-y-2 pr-3">
+            <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
+              <div className="space-y-2">
                 {techniqueOptions.map(tech => (
                   <div key={tech.id} className="flex items-center gap-2">
                     <Checkbox
@@ -984,7 +984,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                   </div>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </FilterSection>
         )}
 
