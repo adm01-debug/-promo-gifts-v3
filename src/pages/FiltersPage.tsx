@@ -428,8 +428,17 @@ export default function FiltersPage() {
       });
     }
 
-    // Nota: NÃO filtrar por existência de imagem da cor.
-    // Produtos que têm a cor mas sem imagem específica ainda devem aparecer (com thumbnail padrão).
+    // Se filtro de cor ativo, ocultar produtos sem imagem específica da cor
+    if (hasColorFilter && (hasGroupFilter || hasVariationFilter)) {
+      const activeColorFilter: ActiveColorFilter = {
+        groups: filters.colorGroups,
+        variations: filters.colorVariations,
+      };
+      result = result.filter((product) => {
+        const colorImage = resolveColorImage(product, activeColorFilter);
+        return !!colorImage;
+      });
+    }
 
 
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
