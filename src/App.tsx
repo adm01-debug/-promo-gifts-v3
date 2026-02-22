@@ -190,7 +190,7 @@ const App = () => {
 
                                         {/* User Routes */}
                                         <Route path="/perfil" element={<ProfilePage />} />
-                                        <Route path="/seguranca" element={<SecurityPage />} />
+                                        <Route path="/seguranca" element={<Navigate to="/admin/seguranca" replace />} />
 
                                         {/* Analytics */}
                                         <Route path="/bi" element={<BIDashboard />} />
