@@ -491,7 +491,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         {/* Público-Alvo */}
         <FilterSection id="publico" title="Público-Alvo">
           {publicoAlvoOptions.length > 0 ? (
-            <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+            <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
               {publicoAlvoOptions.map((publico) => (
                 <div key={publico} className="flex items-center gap-2">
                   <Checkbox
@@ -991,7 +991,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         {/* Tags (#2) */}
         {tagOptions.length > 0 && (
           <FilterSection id="tags" title="Tags" icon={<Tag className="h-4 w-4" />}>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
               {tagOptions.slice(0, 20).map(tag => (
                 <button
                   key={tag.id}
