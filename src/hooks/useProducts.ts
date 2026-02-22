@@ -8,6 +8,10 @@ export interface ProductColor {
   group: string;
   /** Código do fornecedor (supplier_code) — usado para vincular imagens à cor */
   code?: string;
+  /** Imagem principal desta cor (thumbnail da variante) */
+  image?: string;
+  /** Todas as imagens desta cor */
+  images?: string[];
 }
 
 // Interface adaptada para compatibilidade com o sistema E componentes mock
@@ -246,11 +250,17 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
     
     const code = c.code || c.color_code || c.supplier_code || undefined;
     
+    // Preservar imagem e imagens da cor (vêm do enriquecimento em external-db)
+    const image = c.image || undefined;
+    const images = c.images?.length ? c.images : undefined;
+    
     return {
       name,
       hex: hex || '#CCCCCC',
       group,
       code,
+      image,
+      images,
     };
   });
 }
