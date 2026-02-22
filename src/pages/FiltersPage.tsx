@@ -7,6 +7,7 @@ import { VirtualizedProductGrid } from "@/components/products/VirtualizedProduct
 import { ProductList } from "@/components/products/ProductList";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 import { useProducts } from "@/hooks/useProducts";
+import { resolveColorImage, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -427,7 +428,20 @@ export default function FiltersPage() {
       });
     }
 
-    // Filtro por categorias usando tabela product_category_assignments
+    // Se filtro de cor ativo, ocultar produtos que não possuem imagem específica da cor
+    // (só mostra produtos onde a imagem da cor realmente existe nas variações)
+    if (hasColorFilter && (hasGroupFilter || hasVariationFilter)) {
+      const activeColorFilter: ActiveColorFilter = {
+        groups: filters.colorGroups,
+        variations: filters.colorVariations,
+      };
+      result = result.filter((product) => {
+        const colorImage = resolveColorImage(product, activeColorFilter);
+        return !!colorImage;
+      });
+    }
+
+
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
       result = result.filter((p) => categoryFilteredProductIds.has(p.id));
     } else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) {
