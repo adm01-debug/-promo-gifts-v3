@@ -1,4 +1,4 @@
-import { HelpCircle } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -16,16 +16,17 @@ export function RestartTourButton() {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          variant="ghost"
-          size="icon"
+          variant="outline"
+          size="sm"
           onClick={restartTour}
-          className="h-8 w-8"
+          className="h-8 gap-1.5 text-xs border-border hover:bg-primary/10 hover:text-primary"
         >
-          <HelpCircle className="h-4 w-4" />
+          <RotateCcw className="h-3.5 w-3.5" />
+          Reiniciar Tour
         </Button>
       </TooltipTrigger>
       <TooltipContent>
-        <p>Reiniciar tour</p>
+        <p>Rever o tour guiado do sistema</p>
       </TooltipContent>
     </Tooltip>
   );
