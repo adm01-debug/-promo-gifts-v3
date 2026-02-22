@@ -25,60 +25,95 @@ export function resolveColorImage(
 ): string | undefined {
   if (!activeColors) return undefined;
   if (!activeColors.groups.length && !activeColors.variations.length) return undefined;
-  if (!product.variations?.length) return undefined;
 
-  // Build lookup: color name → variation (with image)
-  const variationByColorName = new Map<string, any>();
-  for (const v of product.variations) {
-    if (v.color?.name) {
-      variationByColorName.set(v.color.name.toLowerCase(), v);
+
+  // Strategy 1: Search in product.variations (enriched color data with images)
+  if (product.variations?.length) {
+    // Build lookup: color name → variation (with image)
+    const variationByColorName = new Map<string, any>();
+    for (const v of product.variations) {
+      if (v.color?.name) {
+        variationByColorName.set(v.color.name.toLowerCase(), v);
+      }
     }
-  }
 
-  // Also build lookup by group using product.colors
-  const colorNamesByGroup = new Map<string, string[]>();
-  for (const c of product.colors) {
-    const group = c.group.toLowerCase();
-    if (!colorNamesByGroup.has(group)) colorNamesByGroup.set(group, []);
-    colorNamesByGroup.get(group)!.push(c.name.toLowerCase());
-  }
+    // Prioridade 1: Variação específica (ex: "azul-marinho")
+    if (activeColors.variations.length > 0) {
+      for (const variationSlug of activeColors.variations) {
+        const slugNormalized = variationSlug.toLowerCase().replace(/-/g, ' ');
+        for (const [colorName, variation] of variationByColorName) {
+          if (colorName.includes(slugNormalized) || slugNormalized.includes(colorName)) {
+            const img = getVariationImage(variation);
+            if (img) return img;
+          }
+        }
+      }
+    }
 
-  // Prioridade 1: Variação específica (ex: "azul-marinho")
-  if (activeColors.variations.length > 0) {
-    for (const variationSlug of activeColors.variations) {
-      const slugNormalized = variationSlug.toLowerCase().replace(/-/g, ' ');
-      // Try exact match first
-      for (const [colorName, variation] of variationByColorName) {
-        if (colorName.includes(slugNormalized) || slugNormalized.includes(colorName)) {
-          const img = getVariationImage(variation);
-          if (img) return img;
+    // Prioridade 2: Grupo de cor (ex: "azul")
+    if (activeColors.groups.length > 0) {
+      // Map colors by group for lookup
+      const colorNamesByGroup = new Map<string, string[]>();
+      for (const c of product.colors) {
+        const group = c.group.toLowerCase();
+        if (!colorNamesByGroup.has(group)) colorNamesByGroup.set(group, []);
+        colorNamesByGroup.get(group)!.push(c.name.toLowerCase());
+      }
+
+      for (const groupSlug of activeColors.groups) {
+        const groupNormalized = groupSlug.toLowerCase().replace(/-/g, ' ');
+
+        // Try colors-by-group mapping
+        const colorsInGroup = colorNamesByGroup.get(groupNormalized) || [];
+        for (const colorName of colorsInGroup) {
+          const variation = variationByColorName.get(colorName);
+          if (variation) {
+            const img = getVariationImage(variation);
+            if (img) return img;
+          }
+        }
+
+        // Fallback: fuzzy match on variation color names
+        for (const [colorName, variation] of variationByColorName) {
+          if (colorName.includes(groupNormalized) || groupNormalized.includes(colorName)) {
+            const img = getVariationImage(variation);
+            if (img) return img;
+          }
         }
       }
     }
   }
 
-  // Prioridade 2: Grupo de cor (ex: "rosa") — find first color in that group with an image
-  if (activeColors.groups.length > 0) {
-    for (const groupSlug of activeColors.groups) {
-      const groupNormalized = groupSlug.toLowerCase().replace(/-/g, ' ');
-      
-      // Use the colors-by-group mapping to find color names in this group
-      const colorsInGroup = colorNamesByGroup.get(groupNormalized) || [];
-      
-      // Try each color in the group
-      for (const colorName of colorsInGroup) {
-        const variation = variationByColorName.get(colorName);
-        if (variation) {
-          const img = getVariationImage(variation);
-          if (img) return img;
+  // Strategy 2: Search directly in product.colors (which may have image/images fields from enrichment)
+  if (product.colors?.length) {
+    const colorsWithImages = product.colors.filter((c: any) => c.image || c.images?.length);
+    if (colorsWithImages.length > 0) {
+      // Prioridade 1: Variação específica
+      if (activeColors.variations.length > 0) {
+        for (const variationSlug of activeColors.variations) {
+          const slugNormalized = variationSlug.toLowerCase().replace(/-/g, ' ');
+          for (const color of colorsWithImages) {
+            const colorName = color.name.toLowerCase();
+            if (colorName.includes(slugNormalized) || slugNormalized.includes(colorName)) {
+              const img = getColorImage(color);
+              if (img) return img;
+            }
+          }
         }
       }
 
-      // Fallback: try fuzzy match on variation color names
-      for (const [colorName, variation] of variationByColorName) {
-        if (colorName.includes(groupNormalized) || groupNormalized.includes(colorName)) {
-          const img = getVariationImage(variation);
-          if (img) return img;
+      // Prioridade 2: Grupo de cor
+      if (activeColors.groups.length > 0) {
+        for (const groupSlug of activeColors.groups) {
+          const groupNormalized = groupSlug.toLowerCase().replace(/-/g, ' ');
+          for (const color of colorsWithImages) {
+            const group = color.group.toLowerCase();
+            const colorName = color.name.toLowerCase();
+            if (group === groupNormalized || colorName.includes(groupNormalized) || groupNormalized.includes(colorName)) {
+              const img = getColorImage(color);
+              if (img) return img;
+            }
+          }
         }
       }
     }
@@ -98,6 +133,20 @@ function getVariationImage(variation: any): string | undefined {
   }
   if (variation.image) {
     return typeof variation.image === 'string' ? variation.image : variation.image.url;
+  }
+  return undefined;
+}
+
+/**
+ * Extrai a melhor imagem de um ProductColor (pode ter image/images do enriquecimento)
+ */
+function getColorImage(color: any): string | undefined {
+  if (color.images?.length > 0) {
+    const img = color.images[0];
+    return typeof img === 'string' ? img : (img?.url || img?.src || img?.image_url);
+  }
+  if (color.image) {
+    return typeof color.image === 'string' ? color.image : color.image.url;
   }
   return undefined;
 }
