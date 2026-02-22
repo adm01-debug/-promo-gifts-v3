@@ -61,7 +61,10 @@ export function CommemorativeDateFilter({
       )}
 
       {/* Lista de datas */}
-      <ScrollArea className={cn("pr-2", compact ? "max-h-40" : "max-h-56")}>
+      <div 
+        className={cn("overflow-y-auto overscroll-contain pr-2", compact ? "max-h-40" : "max-h-56")}
+        style={{ overscrollBehavior: 'contain' }}
+      >
         <div className="space-y-1.5">
           {activeDates.map((date) => (
             <CommemorativeDateItem
@@ -73,7 +76,7 @@ export function CommemorativeDateFilter({
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

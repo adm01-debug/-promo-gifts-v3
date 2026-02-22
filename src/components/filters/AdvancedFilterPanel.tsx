@@ -682,8 +682,8 @@ export function AdvancedFilterPanel({
           icon={<Paintbrush className="h-4 w-4" />}
           badge={filters.techniques.length}
         >
-          <ScrollArea className="h-40">
-            <div className="space-y-2 pr-3">
+            <div className="h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
+              <div className="space-y-2">
               {techniqueOptions.map(tech => (
                 <div key={tech.id} className="flex items-center gap-2">
                   <Checkbox
@@ -705,8 +705,8 @@ export function AdvancedFilterPanel({
                   </Label>
                 </div>
               ))}
+              </div>
             </div>
-          </ScrollArea>
         </FilterSection>
 
         {/* Fornecedores */}
@@ -716,8 +716,8 @@ export function AdvancedFilterPanel({
           icon={<Truck className="h-4 w-4" />}
           badge={filters.suppliers.length}
         >
-          <ScrollArea className="h-32">
-            <div className="space-y-2 pr-3">
+            <div className="h-32 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
+              <div className="space-y-2">
               {supplierOptions.map(supplier => (
                 <div key={supplier.id} className="flex items-center gap-2">
                   <Checkbox
@@ -738,8 +738,8 @@ export function AdvancedFilterPanel({
                   </Label>
                 </div>
               ))}
+              </div>
             </div>
-          </ScrollArea>
         </FilterSection>
 
         {/* Faixa de Preço */}
