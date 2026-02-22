@@ -827,6 +827,12 @@ export default function FiltersPage() {
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
                   showFilterBar={true}
+                  // Filtro de cor ativo → imagem específica da cor no card
+                  activeColorFilter={
+                    (filters.colorGroups.length > 0 || filters.colorVariations.length > 0)
+                      ? { groups: filters.colorGroups, variations: filters.colorVariations }
+                      : null
+                  }
                 />
               ) : (
                 <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 

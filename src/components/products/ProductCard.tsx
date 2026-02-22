@@ -14,6 +14,7 @@ import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { NoveltyBadge } from "./NoveltyBadge";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { getSupplierColors } from "@/lib/supplier-colors";
+import { resolveColorImage, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 
 export interface ProductCardProps {
   product: Product;
@@ -33,6 +34,8 @@ export interface ProductCardProps {
   isNovelty?: boolean;
   /** Dias restantes como novidade (para mostrar no badge) */
   noveltyDaysRemaining?: number;
+  /** Filtros de cor ativos - quando presente, o card mostra a imagem da cor filtrada */
+  activeColorFilter?: ActiveColorFilter | null;
 }
 
 export function ProductCard({ 
@@ -50,6 +53,7 @@ export function ProductCard({
   hideCategoryBadges = false,
   isNovelty = false,
   noveltyDaysRemaining,
+  activeColorFilter,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
@@ -159,34 +163,49 @@ export function ProductCard({
         )}
         
         {/* Briefing v3: usar og_image_url (MAIN, cor individual) para cards com variante /card */}
+        {/* Color filter: quando filtro de cor ativo, mostrar imagem da variante correspondente */}
         {(() => {
-          const rawUrl = product.og_image_url || product.images[0];
+          const colorSpecificImage = resolveColorImage(product, activeColorFilter);
+          const rawUrl = colorSpecificImage || product.og_image_url || product.images[0];
           const cardUrl = rawUrl ? getCdnUrl(rawUrl, 'card') : '/placeholder.svg';
-          const srcSetVal = rawUrl ? getSrcSet(rawUrl) : undefined;
+          const srcSetVal = colorSpecificImage ? undefined : (rawUrl ? getSrcSet(rawUrl) : undefined);
+          const activeColorName = getActiveColorName(product, activeColorFilter);
           return (
-            <img
-              src={cardUrl}
-              srcSet={srcSetVal}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-              alt={product.name}
-              title={product.name}
-              className={cn(
-                "w-full h-full object-cover transition-all duration-700 ease-out",
-                "group-hover:scale-110",
-                imageLoaded ? "opacity-100" : "opacity-0"
+            <>
+              <img
+                src={cardUrl}
+                srcSet={srcSetVal}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                alt={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
+                title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
+                className={cn(
+                  "w-full h-full object-cover transition-all duration-700 ease-out",
+                  "group-hover:scale-110",
+                  imageLoaded ? "opacity-100" : "opacity-0"
+                )}
+                loading="lazy"
+                onLoad={() => setImageLoaded(true)}
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (!img.dataset.fallback) {
+                    img.dataset.fallback = '1';
+                    img.srcset = '';
+                    img.src = product.images[0] || '/placeholder.svg';
+                  }
+                }}
+              />
+              {/* Badge indicando cor filtrada */}
+              {activeColorName && colorSpecificImage && (
+                <div className="absolute top-2 right-2 z-10 sm:hidden">
+                  <Badge 
+                    variant="secondary" 
+                    className="text-[10px] px-1.5 py-0.5 bg-card/90 backdrop-blur-sm shadow-sm"
+                  >
+                    {activeColorName}
+                  </Badge>
+                </div>
               )}
-              loading="lazy"
-              onLoad={() => setImageLoaded(true)}
-              onError={(e) => {
-                // Fallback: se CDN falhar, tentar imagem original
-                const img = e.currentTarget;
-                if (!img.dataset.fallback) {
-                  img.dataset.fallback = '1';
-                  img.srcset = '';
-                  img.src = product.images[0] || '/placeholder.svg';
-                }
-              }}
-            />
+            </>
           );
         })()}
 
