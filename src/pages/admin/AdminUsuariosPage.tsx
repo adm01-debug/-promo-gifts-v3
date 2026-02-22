@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil } from "lucide-react";
+import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil, Camera, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -34,6 +35,7 @@ interface UserWithRole {
   user_id: string;
   full_name: string | null;
   email: string | null;
+  avatar_url: string | null;
   role: AppRole;
   created_at: string;
   is_active: boolean | null;
@@ -68,7 +70,8 @@ export default function AdminUsuariosPage() {
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [dialogUser, setDialogUser] = useState<UserWithRole | null>(null);
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
-  const [editForm, setEditForm] = useState({ full_name: "", email: "", is_active: true });
+  const [editForm, setEditForm] = useState({ full_name: "", email: "", is_active: true, avatar_url: "" });
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const { pendingCount } = usePasswordResetRequests();
 
@@ -77,7 +80,7 @@ export default function AdminUsuariosPage() {
     try {
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, user_id, full_name, email, is_active, created_at")
+        .select("id, user_id, full_name, email, avatar_url, is_active, created_at")
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -95,6 +98,7 @@ export default function AdminUsuariosPage() {
           user_id: profile.user_id,
           full_name: profile.full_name,
           email: profile.email,
+          avatar_url: profile.avatar_url,
           role: (userRole?.role as AppRole) || "vendedor",
           created_at: profile.created_at,
           is_active: profile.is_active,
@@ -151,7 +155,70 @@ export default function AdminUsuariosPage() {
       full_name: userItem.full_name || "",
       email: userItem.email || "",
       is_active: userItem.is_active !== false,
+      avatar_url: userItem.avatar_url || "",
     });
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editUser || !e.target.files?.[0]) return;
+    const file = e.target.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Imagem deve ter no máximo 5MB");
+      return;
+    }
+    setIsUploadingAvatar(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const filePath = `${editUser.user_id}/avatar.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl + `?t=${Date.now()}`;
+
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("user_id", editUser.user_id);
+
+      setEditForm((f) => ({ ...f, avatar_url: publicUrl }));
+      setUsers((prev) =>
+        prev.map((u) => u.user_id === editUser.user_id ? { ...u, avatar_url: publicUrl } : u)
+      );
+      toast.success("Foto atualizada com sucesso");
+    } catch (error: any) {
+      console.error("Error uploading avatar:", error);
+      toast.error("Erro ao enviar foto", { description: error.message });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!editUser) return;
+    setIsUploadingAvatar(true);
+    try {
+      await supabase
+        .from("profiles")
+        .update({ avatar_url: null })
+        .eq("user_id", editUser.user_id);
+
+      setEditForm((f) => ({ ...f, avatar_url: "" }));
+      setUsers((prev) =>
+        prev.map((u) => u.user_id === editUser.user_id ? { ...u, avatar_url: null } : u)
+      );
+      toast.success("Foto removida");
+    } catch (error: any) {
+      toast.error("Erro ao remover foto");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
   };
 
   const handleSaveEdit = async () => {
@@ -305,13 +372,21 @@ export default function AdminUsuariosPage() {
                         return (
                           <TableRow key={userItem.id}>
                             <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                {userItem.role === "admin" && <Crown className="h-4 w-4 text-primary" />}
-                                {userItem.role === "manager" && <ShieldCheck className="h-4 w-4 text-muted-foreground" />}
-                                {userItem.full_name || "Sem nome"}
-                                {userItem.user_id === user?.id && (
-                                  <Badge variant="outline" className="text-xs">Você</Badge>
-                                )}
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={userItem.avatar_url || undefined} alt={userItem.full_name || ""} />
+                                  <AvatarFallback className="text-xs bg-muted">
+                                    {(userItem.full_name || "?").charAt(0).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex items-center gap-2">
+                                  {userItem.role === "admin" && <Crown className="h-4 w-4 text-primary" />}
+                                  {userItem.role === "manager" && <ShieldCheck className="h-4 w-4 text-muted-foreground" />}
+                                  {userItem.full_name || "Sem nome"}
+                                  {userItem.user_id === user?.id && (
+                                    <Badge variant="outline" className="text-xs">Você</Badge>
+                                  )}
+                                </div>
                               </div>
                             </TableCell>
                             <TableCell className="text-muted-foreground">{userItem.email || "-"}</TableCell>
@@ -425,6 +500,45 @@ export default function AdminUsuariosPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* Avatar Upload */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative group">
+                  <Avatar className="h-20 w-20 border-2 border-border">
+                    <AvatarImage src={editForm.avatar_url || undefined} alt={editForm.full_name} />
+                    <AvatarFallback className="text-xl bg-muted">
+                      {(editForm.full_name || "?").charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <label
+                    htmlFor="avatar-upload"
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    {isUploadingAvatar ? (
+                      <Loader2 className="h-5 w-5 animate-spin text-white" />
+                    ) : (
+                      <Camera className="h-5 w-5 text-white" />
+                    )}
+                  </label>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={isUploadingAvatar}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground">Foto do Usuário</Label>
+                  {editForm.avatar_url && (
+                    <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-destructive hover:text-destructive" onClick={handleRemoveAvatar} disabled={isUploadingAvatar}>
+                      <X className="h-3 w-3 mr-1" />
+                      Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="edit-name">Nome Completo</Label>
                 <Input id="edit-name" value={editForm.full_name} onChange={(e) => setEditForm((f) => ({ ...f, full_name: e.target.value }))} placeholder="Nome do usuário" />
