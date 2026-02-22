@@ -47,6 +47,7 @@ interface NavGroup {
   icon: typeof Package;
   items: NavItem[];
   defaultOpen?: boolean;
+  adminOnly?: boolean;
 }
 
 interface NavItem {
@@ -110,13 +111,24 @@ const navGroups: NavGroup[] = [
       { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
+  {
+    id: "admin",
+    label: "Admin",
+    icon: ShieldCheck,
+    adminOnly: true,
+    defaultOpen: false,
+    items: [
+      { icon: Users, label: "Usuários", href: "/admin/usuarios", adminOnly: true },
+      { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", adminOnly: true },
+      { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true },
+      { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
+    ],
+  },
 ];
 
 const bottomNavItems: NavItem[] = [
-  
   { icon: User, label: "Meu Perfil", href: "/perfil" },
   { icon: Lock, label: "Segurança", href: "/seguranca" },
-  { icon: ShieldCheck, label: "Admin", href: "/admin", adminOnly: true },
   { icon: Settings, label: "Configurações", href: "/configuracoes" },
 ];
 
@@ -266,6 +278,8 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
           {/* Main navigation with groups */}
           <nav className="flex-1 px-2 space-y-1 overflow-y-auto scrollbar-thin">
             {navGroups.map((group) => {
+              // Hide admin-only groups for non-admins
+              if (group.adminOnly && !isAdmin) return null;
               const GroupIcon = group.icon;
               const isGroupOpen = openGroups[group.id];
               const hasActiveItem = group.items.some((item) => isItemActive(item.href, item.exact));

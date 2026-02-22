@@ -48,7 +48,10 @@ const QuoteViewPage = lazyWithRetry(() => import("./pages/QuoteViewPage"));
 const QuotesKanbanPage = lazyWithRetry(() => import("./pages/QuotesKanbanPage"));
 
 // Admin Pages
-const AdminPanel = lazyWithRetry(() => import("./pages/AdminPanel"));
+const AdminUsuariosPage = lazyWithRetry(() => import("./pages/admin/AdminUsuariosPage"));
+const AdminSegurancaPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaPage"));
+const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadastrosPage"));
+const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
 const ProductRegistrationPage = lazyWithRetry(() => import("./pages/ProductRegistrationPage"));
 const EngravingRegistrationPage = lazyWithRetry(() => import("./pages/EngravingRegistrationPage"));
 
@@ -161,11 +164,15 @@ const App = () => {
                                         <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
                                         {/* Admin */}
-                                        <Route path="/configuracoes" element={<Navigate to="/admin" replace />} />
-                                        <Route path="/admin" element={<AdminPanel />} />
-                                        <Route path="/admin/personalizacao" element={<Navigate to="/cadastro-gravacao" replace />} />
-                                        <Route path="/cadastro-produtos" element={<Navigate to="/admin?tab=products" replace />} />
-                                        <Route path="/cadastro-gravacao" element={<Navigate to="/admin?tab=personalizacao" replace />} />
+                                        <Route path="/configuracoes" element={<Navigate to="/admin/usuarios" replace />} />
+                                        <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
+                                        <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
+                                        <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
+                                        <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
+                                        <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
+                                        <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
+                                        <Route path="/cadastro-produtos" element={<Navigate to="/admin/cadastros" replace />} />
+                                        <Route path="/cadastro-gravacao" element={<Navigate to="/admin/cadastros" replace />} />
                                         <Route path="/admin/permissoes" element={<PermissionsPage />} />
                                         <Route path="/admin/roles" element={<RolesPage />} />
                                         <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
