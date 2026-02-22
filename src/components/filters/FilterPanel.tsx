@@ -1013,7 +1013,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Opções Rápidas (#2) */}
         <FilterSection id="opcoes-rapidas" title="Opções Rápidas" icon={<Sparkles className="h-4 w-4" />}>
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain" style={{ overscrollBehavior: 'contain' }}>
             <div className="flex items-center gap-2">
               <Checkbox
                 id="filter-isKit"
