@@ -73,8 +73,6 @@ const navGroups: NavGroup[] = [
       { icon: Filter, label: "Super Filtro", href: "/filtros" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: PackagePlus, label: "Gestão de Produtos", href: "/cadastro-produtos", requiredPermission: { action: 'create', resource: 'products' } },
-      { icon: Palette, label: "Gestão de Personalização", href: "/cadastro-gravacao", requiredPermission: { action: 'create', resource: 'products' } },
     ],
   },
   {

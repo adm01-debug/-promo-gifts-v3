@@ -164,8 +164,8 @@ const App = () => {
                                         <Route path="/configuracoes" element={<Navigate to="/admin" replace />} />
                                         <Route path="/admin" element={<AdminPanel />} />
                                         <Route path="/admin/personalizacao" element={<Navigate to="/cadastro-gravacao" replace />} />
-                                        <Route path="/cadastro-produtos" element={<ProductRegistrationPage />} />
-                                        <Route path="/cadastro-gravacao" element={<EngravingRegistrationPage />} />
+                                        <Route path="/cadastro-produtos" element={<Navigate to="/admin?tab=products" replace />} />
+                                        <Route path="/cadastro-gravacao" element={<Navigate to="/admin?tab=personalizacao" replace />} />
                                         <Route path="/admin/permissoes" element={<PermissionsPage />} />
                                         <Route path="/admin/roles" element={<RolesPage />} />
                                         <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />

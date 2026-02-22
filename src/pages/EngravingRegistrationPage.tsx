@@ -10,9 +10,68 @@ import { GroupPersonalizationManager } from "@/components/admin/GroupPersonaliza
 import { ProductPersonalizationManager } from "@/components/admin/ProductPersonalizationManager";
 import { TechniquesManager } from "@/components/admin/TechniquesManager";
 
-export default function EngravingRegistrationPage() {
+export function EngravingRegistrationContent() {
   const [activeTab, setActiveTab] = useState("techniques");
 
+  return (
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full max-w-4xl grid-cols-6">
+          <TabsTrigger value="techniques" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            <span className="hidden sm:inline">Técnicas</span>
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            <span className="hidden sm:inline">Preços</span>
+          </TabsTrigger>
+          <TabsTrigger value="groups" className="flex items-center gap-2">
+            <FolderOpen className="h-4 w-4" />
+            <span className="hidden sm:inline">Grupos</span>
+          </TabsTrigger>
+          <TabsTrigger value="group-rules" className="flex items-center gap-2">
+            <Layers className="h-4 w-4" />
+            <span className="hidden sm:inline">Regras</span>
+          </TabsTrigger>
+          <TabsTrigger value="products" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            <span className="hidden sm:inline">Por Produto</span>
+          </TabsTrigger>
+          <TabsTrigger value="manage" className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            <span className="hidden sm:inline">Cadastro</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="techniques">
+          <TechniquesPanel />
+        </TabsContent>
+
+        <TabsContent value="pricing">
+          <PricingPanel />
+        </TabsContent>
+
+        <TabsContent value="groups">
+          <ProductGroupsManager />
+        </TabsContent>
+
+        <TabsContent value="group-rules">
+          <GroupPersonalizationManager />
+        </TabsContent>
+
+        <TabsContent value="products">
+          <ProductPersonalizationManager />
+        </TabsContent>
+
+        <TabsContent value="manage">
+          <TechniquesManager />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+export default function EngravingRegistrationPage() {
   return (
     <MainLayout>
       <div className="container mx-auto py-6 space-y-6">
@@ -21,59 +80,7 @@ export default function EngravingRegistrationPage() {
           description="Configure técnicas, preços, grupos e regras de personalização"
           icon={<Palette className="h-8 w-8" />}
         />
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full max-w-4xl grid-cols-6">
-            <TabsTrigger value="techniques" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Técnicas</span>
-            </TabsTrigger>
-            <TabsTrigger value="pricing" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              <span className="hidden sm:inline">Preços</span>
-            </TabsTrigger>
-            <TabsTrigger value="groups" className="flex items-center gap-2">
-              <FolderOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Grupos</span>
-            </TabsTrigger>
-            <TabsTrigger value="group-rules" className="flex items-center gap-2">
-              <Layers className="h-4 w-4" />
-              <span className="hidden sm:inline">Regras</span>
-            </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              <span className="hidden sm:inline">Por Produto</span>
-            </TabsTrigger>
-            <TabsTrigger value="manage" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              <span className="hidden sm:inline">Cadastro</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="techniques">
-            <TechniquesPanel />
-          </TabsContent>
-
-          <TabsContent value="pricing">
-            <PricingPanel />
-          </TabsContent>
-
-          <TabsContent value="groups">
-            <ProductGroupsManager />
-          </TabsContent>
-
-          <TabsContent value="group-rules">
-            <GroupPersonalizationManager />
-          </TabsContent>
-
-          <TabsContent value="products">
-            <ProductPersonalizationManager />
-          </TabsContent>
-
-          <TabsContent value="manage">
-            <TechniquesManager />
-          </TabsContent>
-        </Tabs>
+        <EngravingRegistrationContent />
       </div>
     </MainLayout>
   );
