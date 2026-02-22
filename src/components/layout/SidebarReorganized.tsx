@@ -128,7 +128,7 @@ const navGroups: NavGroup[] = [
 
 const bottomNavItems: NavItem[] = [
   { icon: User, label: "Meu Perfil", href: "/perfil" },
-  { icon: Lock, label: "Segurança", href: "/seguranca" },
+  { icon: Lock, label: "Segurança", href: "/admin/seguranca" },
   { icon: Settings, label: "Configurações", href: "/configuracoes" },
 ];
 

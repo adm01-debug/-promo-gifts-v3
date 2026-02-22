@@ -1,6 +1,8 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { AccessSecurityManager } from "@/components/admin/AccessSecurityManager";
-import { ShieldCheck } from "lucide-react";
+import { SecurityDashboard } from "@/components/security/SecurityDashboard";
+import { ShieldCheck, Shield, Lock } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminSegurancaPage() {
   return (
@@ -12,11 +14,30 @@ export default function AdminSegurancaPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Segurança</h1>
-            <p className="text-muted-foreground">Gerencie restrições de acesso por IP e geolocalização</p>
+            <p className="text-muted-foreground">Central de segurança e restrições de acesso</p>
           </div>
         </div>
 
-        <AccessSecurityManager />
+        <Tabs defaultValue="central" className="space-y-6">
+          <TabsList className="h-auto p-1">
+            <TabsTrigger value="central" className="gap-2 px-4 py-2.5">
+              <Shield className="h-4 w-4" />
+              Central de Segurança
+            </TabsTrigger>
+            <TabsTrigger value="restricoes" className="gap-2 px-4 py-2.5">
+              <Lock className="h-4 w-4" />
+              Restrições de Acesso
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="central">
+            <SecurityDashboard />
+          </TabsContent>
+
+          <TabsContent value="restricoes">
+            <AccessSecurityManager />
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );
