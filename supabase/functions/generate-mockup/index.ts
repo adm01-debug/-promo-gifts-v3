@@ -1,5 +1,6 @@
 /// <reference lib="deno.ns" />
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +8,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -24,6 +24,7 @@ serve(async (req) => {
       logoUrl,
       techniqueName,
       techniquePrompt,
+      techniqueId,
       positionX, 
       positionY, 
       logoWidthCm, 
@@ -33,7 +34,6 @@ serve(async (req) => {
       productName 
     } = await req.json();
 
-    // Accept either base64 data or a URL for the logo
     let logoImageSrc = logoBase64 || logoUrl;
 
     if (!productImageUrl || !logoImageSrc) {
@@ -43,8 +43,6 @@ serve(async (req) => {
       );
     }
 
-    // SVG files should already be converted to PNG on the client side
-    // but add a safety check just in case
     const isSvg = typeof logoImageSrc === "string" && 
       (logoImageSrc.startsWith("data:image/svg+xml") || logoImageSrc.endsWith(".svg"));
     
@@ -63,18 +61,83 @@ serve(async (req) => {
     console.log(`Position: ${positionX}%, ${positionY}%`);
     console.log(`Size: ${logoWidthCm}cm x ${logoHeightCm}cm, Rotation: ${logoRotation}°, Scale: ${logoScale}%`);
 
-    // Calculate precise position description
-    // positionX: 0%=far left, 50%=center, 100%=far right
-    // positionY: 0%=very top, 50%=center, 100%=very bottom
+    // Calculate position descriptions
     const horizontalPos = positionX < 25 ? "far left" : positionX < 40 ? "left of center" : positionX > 75 ? "far right" : positionX > 60 ? "right of center" : "horizontally centered";
     const verticalPos = positionY < 25 ? "near the very top" : positionY < 40 ? "in the upper third" : positionY > 75 ? "near the very bottom" : positionY > 60 ? "in the lower third" : "vertically centered";
     const positionDesc = `${verticalPos}, ${horizontalPos}`;
-
-    // Calculate relative size (assuming product is ~30cm on average)
     const relativeSize = ((logoWidthCm + logoHeightCm) / 2) / 30;
     const sizeDesc = relativeSize < 0.15 ? "small" : relativeSize < 0.3 ? "medium-sized" : "large";
 
-    const prompt = `You are a professional product mockup generator. Apply the provided company logo onto the product image at the EXACT position specified.
+    const scaleInstruction = logoScale < 100 
+      ? `\n- Logo fill: the logo should fill only ${logoScale}% of the engraving area, leaving proportional empty space around it`
+      : logoScale > 100
+      ? `\n- Logo fill: the logo should OVERFLOW beyond the engraving area boundaries, scaled to ${logoScale}% of the area (the logo appears ${Math.round(logoScale / 100 * 10) / 10}x larger than the base engraving zone)`
+      : '';
+    const rotationInstruction = logoRotation ? `\n- Logo rotation: ${logoRotation}° clockwise from its natural upright orientation` : '';
+
+    // Try to load prompt from database
+    let promptTemplate: string | null = null;
+    let aiModel = "google/gemini-2.5-flash-image-preview";
+
+    try {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      );
+
+      // Try technique-specific prompt first
+      if (techniqueId) {
+        const { data: techConfig } = await supabaseClient
+          .from('mockup_prompt_configs')
+          .select('prompt_text, ai_model')
+          .eq('config_key', `technique_${techniqueId}`)
+          .eq('is_active', true)
+          .single();
+
+        if (techConfig) {
+          console.log("Using technique-specific prompt config");
+          // Technique prompt is appended to technique description
+        }
+      }
+
+      // Load main prompt
+      const { data: mainConfig } = await supabaseClient
+        .from('mockup_prompt_configs')
+        .select('prompt_text, ai_model')
+        .eq('config_key', 'main_prompt')
+        .eq('is_active', true)
+        .single();
+
+      if (mainConfig) {
+        promptTemplate = mainConfig.prompt_text;
+        aiModel = mainConfig.ai_model;
+        console.log(`Using DB prompt template (model: ${aiModel})`);
+      }
+    } catch (dbErr) {
+      console.warn("Could not load prompt from DB, using default:", dbErr);
+    }
+
+    // Build the final prompt
+    let prompt: string;
+    
+    if (promptTemplate) {
+      // Replace template variables
+      prompt = promptTemplate
+        .replace(/\{\{productName\}\}/g, productName)
+        .replace(/\{\{techniquePrompt\}\}/g, techniquePrompt)
+        .replace(/\{\{positionX\}\}/g, String(positionX))
+        .replace(/\{\{positionY\}\}/g, String(positionY))
+        .replace(/\{\{horizontalPos\}\}/g, horizontalPos)
+        .replace(/\{\{verticalPos\}\}/g, verticalPos)
+        .replace(/\{\{positionDesc\}\}/g, positionDesc)
+        .replace(/\{\{sizeDesc\}\}/g, sizeDesc)
+        .replace(/\{\{logoWidthCm\}\}/g, String(logoWidthCm))
+        .replace(/\{\{logoHeightCm\}\}/g, String(logoHeightCm))
+        .replace(/\{\{scaleInstruction\}\}/g, scaleInstruction)
+        .replace(/\{\{rotationInstruction\}\}/g, rotationInstruction);
+    } else {
+      // Fallback hardcoded prompt (legacy)
+      prompt = `You are a professional product mockup generator. Apply the provided company logo onto the product image at the EXACT position specified.
 
 Product: ${productName}
 Technique: ${techniquePrompt}
@@ -83,7 +146,7 @@ EXACT LOGO POSITION (this is critical, do NOT deviate):
 - Horizontal: ${positionX}% from the left edge (${horizontalPos})
 - Vertical: ${positionY}% from the top edge (${verticalPos})
 - The logo must be placed at EXACTLY this coordinate on the product surface: ${positionDesc}
-- Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)${logoScale < 100 ? `\n- Logo fill: the logo should fill only ${logoScale}% of the engraving area, leaving proportional empty space around it` : logoScale > 100 ? `\n- Logo fill: the logo should OVERFLOW beyond the engraving area boundaries, scaled to ${logoScale}% of the area (the logo appears ${Math.round(logoScale / 100 * 10) / 10}x larger than the base engraving zone)` : ''}${logoRotation ? `\n- Logo rotation: ${logoRotation}° clockwise from its natural upright orientation` : ''}
+- Logo size: ${sizeDesc} (approximately ${logoWidthCm}cm x ${logoHeightCm}cm)${scaleInstruction}${rotationInstruction}
 
 STRICT RULES - MUST FOLLOW ALL:
 1. Place the logo at EXACTLY the specified position (${positionX}% horizontal, ${positionY}% vertical). This is the most important rule.
@@ -95,8 +158,10 @@ STRICT RULES - MUST FOLLOW ALL:
 7. Maintain identical background, lighting, and photography style.
 
 Output the final image maintaining the exact same dimensions and aspect ratio as the original product photo.`;
+    }
 
     console.log("Sending request to Lovable AI Gateway...");
+    console.log(`Model: ${aiModel}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -105,27 +170,14 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
+        model: aiModel,
         messages: [
           {
             role: "user",
             content: [
-              {
-                type: "text",
-                text: prompt
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: productImageUrl
-                }
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: logoImageSrc
-                }
-              }
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: productImageUrl } },
+              { type: "image_url", image_url: { url: logoImageSrc } },
             ]
           }
         ],
@@ -157,7 +209,6 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
     const data = await response.json();
     console.log("AI Gateway response received");
 
-    // Extract the generated image from the response
     const generatedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!generatedImage) {
