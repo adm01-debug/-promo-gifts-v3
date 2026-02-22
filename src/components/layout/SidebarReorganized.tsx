@@ -82,12 +82,12 @@ const navGroups: NavGroup[] = [
     icon: Wrench,
     defaultOpen: false,
     items: [
+      { icon: Wand2, label: "Mockups", href: "/mockup-generator" },
+      { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
       { icon: Calculator, label: "Simulador", href: "/simulador" },
       { icon: Calculator, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
       { icon: Package, label: "Montador de Kits", href: "/montar-kit" },
-      { icon: Wand2, label: "Mockups", href: "/mockup-generator" },
-      { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
     ],
   },
   {
