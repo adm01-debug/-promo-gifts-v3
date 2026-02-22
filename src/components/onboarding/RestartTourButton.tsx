@@ -5,10 +5,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { useOnboardingContext } from "@/contexts/OnboardingContext";
 
 export function RestartTourButton() {
-  const { restartTour, hasCompletedTour, isLoading } = useOnboarding();
+  const { restartTour, hasCompletedTour, isLoading } = useOnboardingContext();
 
   if (isLoading || !hasCompletedTour) return null;
 

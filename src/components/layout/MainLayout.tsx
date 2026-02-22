@@ -16,6 +16,7 @@ import { GlobalCommandBar } from "@/components/command/GlobalCommandBar";
 import { ScrollToTopButton, ScrollProgressIndicator } from "@/components/common/ScrollProgress";
 import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
 import { SellerCartProvider } from "@/contexts/SellerCartContext";
+import { OnboardingProvider } from "@/contexts/OnboardingContext";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   useScrollLockFix();
 
   return (
+    <OnboardingProvider>
     <SellerCartProvider>
     <GlobalCommandBar>
       <div className="min-h-screen bg-background print:min-h-0">
@@ -123,5 +125,6 @@ export function MainLayout({ children }: MainLayoutProps) {
       </div>
     </GlobalCommandBar>
     </SellerCartProvider>
+    </OnboardingProvider>
   );
 }
