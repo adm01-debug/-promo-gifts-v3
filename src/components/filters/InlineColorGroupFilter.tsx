@@ -8,17 +8,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { useColorSystem, isLightColor } from '@/hooks/useColorSystem';
 import type { ColorFilterSelection } from './ColorGroupFilter';
 
 // =====================================================
-// SWATCH COM RADIX TOOLTIP (#10)
+// SWATCH COM RADIX TOOLTIP
 // =====================================================
 
 interface InlineColorSwatchProps {
@@ -27,6 +22,9 @@ interface InlineColorSwatchProps {
   onClick: () => void;
   label: string;
   size?: 'sm' | 'md' | 'lg';
+  hasVariations?: boolean;
+  isExpanded?: boolean;
+  onExpandToggle?: () => void;
 }
 
 function InlineColorSwatch({
@@ -35,57 +33,81 @@ function InlineColorSwatch({
   onClick,
   label,
   size = 'md',
+  hasVariations,
+  isExpanded,
+  onExpandToggle,
 }: InlineColorSwatchProps) {
   const sizeClasses = { sm: 'w-6 h-6', md: 'w-8 h-8', lg: 'w-10 h-10' };
   const isTransparent = !hexCode || hexCode.toLowerCase() === '#ffffff';
   const isLight = isLightColor(hexCode);
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <div className="relative">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={onClick}
+            aria-label={`Filtrar por cor ${label}`}
+            className={cn(
+              sizeClasses[size],
+              'rounded-full border-2 transition-all duration-200 flex items-center justify-center',
+              'hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2',
+              isSelected
+                ? 'ring-2 ring-offset-1'
+                : 'border-border hover:border-muted-foreground/50',
+              isTransparent && 'bg-gradient-to-br from-gray-100 to-gray-200'
+            )}
+            style={{
+              backgroundColor: isTransparent ? undefined : (hexCode || '#ccc'),
+              ...(isSelected ? {
+                borderColor: hexCode || '#ccc',
+                ['--tw-ring-color' as string]: hexCode || '#ccc',
+              } : {}),
+            }}
+          >
+            {isSelected && (
+              <Check
+                className={cn(
+                  'w-4 h-4',
+                  isLight ? 'text-gray-800' : 'text-white'
+                )}
+              />
+            )}
+            {isTransparent && !isSelected && (
+              <div className="w-full h-full rounded-full border border-dashed border-gray-300" />
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">
+          {label}{hasVariations ? ' (clique ▾ para variações)' : ''}
+        </TooltipContent>
+      </Tooltip>
+      {/* Indicador de variações */}
+      {hasVariations && (
         <button
           type="button"
-          onClick={onClick}
-          aria-label={`Filtrar por cor ${label}`}
+          onClick={(e) => { e.stopPropagation(); onExpandToggle?.(); }}
           className={cn(
-            sizeClasses[size],
-            'rounded-full border-2 transition-all duration-200 flex items-center justify-center',
-            'hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2',
-            isSelected
-              ? 'ring-2 ring-offset-1'
-              : 'border-border hover:border-muted-foreground/50',
-            isTransparent && 'bg-gradient-to-br from-gray-100 to-gray-200'
+            "absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center",
+            "bg-background border border-border shadow-sm hover:bg-muted transition-colors",
+            isExpanded && "bg-primary/10 border-primary/40"
           )}
-          style={{
-            backgroundColor: isTransparent ? undefined : (hexCode || '#ccc'),
-            ...(isSelected ? {
-              borderColor: hexCode || '#ccc',
-              ['--tw-ring-color' as string]: hexCode || '#ccc',
-            } : {}),
-          }}
+          aria-label={`Expandir variações de ${label}`}
         >
-          {isSelected && (
-            <Check
-              className={cn(
-                'w-4 h-4',
-                isLight ? 'text-gray-800' : 'text-white'
-              )}
-            />
-          )}
-          {isTransparent && !isSelected && (
-            <div className="w-full h-full rounded-full border border-dashed border-gray-300" />
+          {isExpanded ? (
+            <ChevronUp className="w-2.5 h-2.5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-2.5 h-2.5 text-muted-foreground" />
           )}
         </button>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="text-xs">
-        {label}
-      </TooltipContent>
-    </Tooltip>
+      )}
+    </div>
   );
 }
 
 // =====================================================
-// COMPONENTE INLINE (#1 - substitui Popover na sidebar)
+// COMPONENTE INLINE
 // =====================================================
 
 interface InlineColorGroupFilterProps {
@@ -109,16 +131,11 @@ export function InlineColorGroupFilter({
     [selection]
   );
 
-  const toggleGroup = (slug: string, groupId: string) => {
+  const toggleGroup = (slug: string) => {
     const isSelected = selection.groups.includes(slug);
     const newGroups = isSelected
       ? selection.groups.filter(g => g !== slug)
       : [...selection.groups, slug];
-
-    if (!isSelected) {
-      setExpandedGroups(prev => new Set(prev).add(groupId));
-    }
-
     onChange({ ...selection, groups: newGroups });
   };
 
@@ -156,18 +173,26 @@ export function InlineColorGroupFilter({
 
   if (!colorData) return null;
 
+  // Groups that have variations (more than 1)
+  const groupsWithVariations = new Set(
+    colorData.groups.filter(g => g.variations.length > 1).map(g => g.id)
+  );
+
   return (
     <TooltipProvider delayDuration={200}>
       <div className="space-y-3">
         {/* Swatches grid */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           {colorData.groups.map(group => (
             <InlineColorSwatch
               key={group.id}
               hexCode={group.hex_code}
               isSelected={selection.groups.includes(group.slug)}
-              onClick={() => toggleGroup(group.slug, group.id)}
+              onClick={() => toggleGroup(group.slug)}
               label={group.name}
+              hasVariations={showVariations && groupsWithVariations.has(group.id)}
+              isExpanded={expandedGroups.has(group.id)}
+              onExpandToggle={() => toggleExpand(group.id)}
             />
           ))}
         </div>
@@ -194,53 +219,45 @@ export function InlineColorGroupFilter({
           colorData.groups
             .filter(g => expandedGroups.has(g.id) && g.variations.length > 1)
             .map(group => (
-              <Collapsible
-                key={group.id}
-                open={expandedGroups.has(group.id)}
-                onOpenChange={() => toggleExpand(group.id)}
-              >
-                <CollapsibleTrigger className="flex items-center gap-2 text-sm w-full py-1 hover:text-primary transition-colors">
+              <div key={group.id} className="rounded-lg border border-border/50 bg-muted/20 p-2.5 space-y-2">
+                <div className="flex items-center gap-2 text-sm">
                   <div
                     className="w-4 h-4 rounded-full border"
                     style={{ backgroundColor: group.hex_code || '#ccc' }}
                   />
-                  <span className="font-medium">{group.name}</span>
+                  <span className="font-medium text-xs">{group.name}</span>
                   <Badge variant="outline" className="text-[10px] h-4 ml-auto">
-                    {group.variations.length} tons
+                    {group.variations.length} variações
                   </Badge>
-                  {expandedGroups.has(group.id) ? (
-                    <ChevronUp className="h-3.5 w-3.5" />
-                  ) : (
-                    <ChevronDown className="h-3.5 w-3.5" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-6 pt-1.5">
-                  <div className="flex flex-wrap gap-1.5">
-                    {group.variations.map(v => (
-                      <button
-                        key={v.id}
-                        onClick={() => toggleVariation(v.slug)}
-                        aria-label={`Filtrar por ${v.name}`}
-                        className={cn(
-                          'flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all border hover:bg-accent',
-                          selection.variations.includes(v.slug)
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border'
-                        )}
-                      >
-                        <div
-                          className="w-3 h-3 rounded-full border"
-                          style={{ backgroundColor: v.hex_code || group.hex_code || '#ccc' }}
-                        />
-                        {v.name}
-                        {selection.variations.includes(v.slug) && (
-                          <Check className="w-3 h-3" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+                </div>
+                <div 
+                  className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto overscroll-contain"
+                  style={{ overscrollBehavior: 'contain' }}
+                >
+                  {group.variations.map(v => (
+                    <button
+                      key={v.id}
+                      onClick={() => toggleVariation(v.slug)}
+                      aria-label={`Filtrar por ${v.name}`}
+                      className={cn(
+                        'flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all border hover:bg-accent',
+                        selection.variations.includes(v.slug)
+                          ? 'border-primary bg-primary/10 text-primary font-medium'
+                          : 'border-border'
+                      )}
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full border flex-shrink-0"
+                        style={{ backgroundColor: v.hex_code || group.hex_code || '#ccc' }}
+                      />
+                      {v.name}
+                      {selection.variations.includes(v.slug) && (
+                        <Check className="w-3 h-3 flex-shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
 
         {/* Nuances/Acabamentos */}
