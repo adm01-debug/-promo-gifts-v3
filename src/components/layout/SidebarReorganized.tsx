@@ -73,6 +73,7 @@ const navGroups: NavGroup[] = [
       { icon: Filter, label: "Super Filtro", href: "/filtros" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
+      { icon: Package, label: "Dashboard Estoque", href: "/estoque" },
     ],
   },
   {
@@ -85,7 +86,6 @@ const navGroups: NavGroup[] = [
       { icon: Calculator, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
       { icon: Package, label: "Montador de Kits", href: "/montar-kit" },
-      { icon: Package, label: "Dashboard Estoque", href: "/estoque" },
       { icon: Wand2, label: "Mockups", href: "/mockup-generator" },
       { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
     ],
