@@ -429,16 +429,6 @@ export default function FiltersPage() {
       });
     }
 
-    // Paridade visual: ocultar produtos que passaram no filtro de cor mas NÃO têm imagem específica
-    const hasColorFilterActive = hasGroupFilter || hasVariationFilter || hasNuanceFilter || hasLegacyColors;
-    if (hasColorFilterActive) {
-      const activeColorFilter: ActiveColorFilter = {
-        groups: filters.colorGroups || [],
-        variations: filters.colorVariations || [],
-      };
-      result = result.filter(p => resolveColorImage(p, activeColorFilter) !== undefined);
-    }
-
 
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
       result = result.filter((p) => categoryFilteredProductIds.has(p.id));

@@ -370,8 +370,8 @@ export async function fetchPromobrindProducts(options?: {
         operation: 'select',
         select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
         filters: { is_active: true },
-        orderBy: { column: 'display_order', ascending: true },
-        limit: 5000,
+        orderBy: { column: 'id', ascending: true },
+        limit: 10000,
       }).catch(err => {
         console.warn('Não foi possível buscar imagens da tabela product_images:', err);
         return [] as any[];
