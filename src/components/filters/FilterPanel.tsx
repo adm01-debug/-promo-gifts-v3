@@ -390,32 +390,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Preço - com inputs numéricos editáveis (#6) */}
         <FilterSection id="preco" title="Faixa de Preço">
-          <div className="space-y-3 px-1">
-            {/* Presets rápidos */}
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { label: 'Até R$50', range: [0, 50] },
-                { label: 'R$50–150', range: [50, 150] },
-                { label: 'R$150–300', range: [150, 300] },
-                { label: 'R$300+', range: [300, 9999] },
-              ].map((preset) => {
-                const isActive = filters.priceRange[0] === preset.range[0] && filters.priceRange[1] === preset.range[1];
-                return (
-                  <button
-                    key={preset.label}
-                    onClick={() => onFilterChange({ ...filters, priceRange: isActive ? [0, 9999] : preset.range as [number, number] })}
-                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors border ${
-                      isActive
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                );
-              })}
-            </div>
-            {/* Inputs manuais */}
+          <div className="px-1">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-1 flex-1">
                 <span className="text-muted-foreground text-xs">R$</span>
