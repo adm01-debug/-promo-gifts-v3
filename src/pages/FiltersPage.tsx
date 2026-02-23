@@ -642,97 +642,26 @@ export default function FiltersPage() {
 
   return (
     <MainLayout>
-      <div className="space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
-                Super Filtro
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                {filteredProducts.length} produtos encontrados
-              </p>
-            </div>
+      <div className="space-y-0 animate-fade-in">
+        {/* Compact Header — single dense row */}
+        <div className="flex items-center gap-3 flex-wrap mb-3">
+          {/* Title + count */}
+          <h1 className="text-xl font-display font-bold text-foreground whitespace-nowrap">
+            Super Filtro
+          </h1>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {filteredProducts.length} produtos
+          </span>
 
-            <div className="flex items-center gap-2">
-              {/* Voice search button */}
-              {isSupported && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={() => {
-                    setVoiceOverlayOpen(true);
-                    startListening();
-                  }}
-                  title="Busca por voz"
-                >
-                  <Mic className="h-4 w-4" />
-                </Button>
-              )}
-
-              {/* Mobile filter button - abre sheet */}
-              <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="lg:hidden">
-                    <SlidersHorizontal className="h-4 w-4 mr-2" />
-                    Filtros
-                    {activeFiltersCount > 0 && (
-                      <Badge variant="secondary" className="ml-2">
-                        {activeFiltersCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80 flex flex-col p-0">
-                  <SheetHeader className="px-6 pt-6 pb-2">
-                    <SheetTitle>Filtros</SheetTitle>
-                  </SheetHeader>
-                  <div className="flex-1 overflow-y-auto px-6 pb-4">
-                    <FilterPanel
-                      filters={filters}
-                      onFilterChange={handleFilterChange}
-                      onReset={handleReset}
-                      activeFiltersCount={activeFiltersCount}
-                      products={realProducts}
-                    />
-                  </div>
-                  <div className="sticky bottom-0 border-t bg-background px-6 py-3 flex gap-2">
-                    {activeFiltersCount > 0 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          handleReset();
-                        }}
-                        className="text-xs"
-                      >
-                        Limpar ({activeFiltersCount})
-                      </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => setMobileFiltersOpen(false)}
-                    >
-                      Ver {filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''}
-                    </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-
-          {/* Active filters summary */}
+          {/* Active filters inline */}
           {activeFiltersSummary.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-xs text-muted-foreground">·</span>
               {activeFiltersSummary.map((filter) => (
                 <Badge
                   key={filter.key}
                   variant="secondary"
-                  className="gap-1 cursor-pointer hover:bg-destructive/20"
+                  className="gap-1 cursor-pointer hover:bg-destructive/20 text-xs py-0.5 px-2"
                   onClick={() => clearSingleFilter(filter.key)}
                 >
                   {filter.label}: {filter.value}
@@ -743,14 +672,83 @@ export default function FiltersPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleReset}
-                className="text-muted-foreground"
+                className="text-muted-foreground h-6 px-2 text-xs"
                 aria-label="Limpar todos os filtros ativos"
               >
-              Limpar todos
-            </Button>
-            
+                Limpar todos
+              </Button>
             </div>
           )}
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {isSupported && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => {
+                  setVoiceOverlayOpen(true);
+                  startListening();
+                }}
+                title="Busca por voz"
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            )}
+
+            <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="lg:hidden h-8">
+                  <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+                  Filtros
+                  {activeFiltersCount > 0 && (
+                    <Badge variant="secondary" className="ml-1.5 text-xs">
+                      {activeFiltersCount}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-80 flex flex-col p-0">
+                <SheetHeader className="px-6 pt-6 pb-2">
+                  <SheetTitle>Filtros</SheetTitle>
+                </SheetHeader>
+                <div className="flex-1 overflow-y-auto px-6 pb-4">
+                  <FilterPanel
+                    filters={filters}
+                    onFilterChange={handleFilterChange}
+                    onReset={handleReset}
+                    activeFiltersCount={activeFiltersCount}
+                    products={realProducts}
+                  />
+                </div>
+                <div className="sticky bottom-0 border-t bg-background px-6 py-3 flex gap-2">
+                  {activeFiltersCount > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        handleReset();
+                      }}
+                      className="text-xs"
+                    >
+                      Limpar ({activeFiltersCount})
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setMobileFiltersOpen(false)}
+                  >
+                    Ver {filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''}
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
 
         {/* Main content */}
