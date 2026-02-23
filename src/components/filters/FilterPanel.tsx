@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { DebouncedPriceInput } from "./DebouncedPriceInput";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -394,24 +395,24 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-1 flex-1">
                 <span className="text-muted-foreground text-xs">R$</span>
-                <Input
-                  type="number"
+                <DebouncedPriceInput
                   value={filters.priceRange[0]}
-                  onChange={(e) => onFilterChange({ ...filters, priceRange: [Number(e.target.value) || 0, filters.priceRange[1]] })}
-                  className={`h-8 text-sm transition-colors ${filters.priceRange[0] > 0 ? 'border-primary/60' : ''}`}
+                  onChange={(v) => onFilterChange({ ...filters, priceRange: [v, filters.priceRange[1]] })}
+                  fallback={0}
                   min={0}
+                  className={filters.priceRange[0] > 0 ? 'border-primary/60' : ''}
                 />
               </div>
               <span className="text-muted-foreground text-xs">até</span>
               <div className="flex items-center gap-1 flex-1">
                 <span className="text-muted-foreground text-xs">R$</span>
-                <Input
-                  type="number"
+                <DebouncedPriceInput
                   value={filters.priceRange[1] >= 9999 ? '' : filters.priceRange[1]}
-                  onChange={(e) => onFilterChange({ ...filters, priceRange: [filters.priceRange[0], Number(e.target.value) || 9999] })}
-                  className={`h-8 text-sm transition-colors ${filters.priceRange[1] < 9999 ? 'border-primary/60' : ''}`}
+                  onChange={(v) => onFilterChange({ ...filters, priceRange: [filters.priceRange[0], v || 9999] })}
+                  fallback={9999}
                   placeholder="Sem limite"
                   min={0}
+                  className={filters.priceRange[1] < 9999 ? 'border-primary/60' : ''}
                 />
               </div>
             </div>

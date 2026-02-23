@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { DebouncedPriceInput } from "./DebouncedPriceInput";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -753,21 +754,19 @@ export function AdvancedFilterPanel({
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-1 flex-1">
                 <span className="text-muted-foreground text-xs">R$</span>
-                <Input
-                  type="number"
+                <DebouncedPriceInput
                   value={filters.priceRange[0]}
-                  onChange={(e) => updateFilter('priceRange', [Number(e.target.value), filters.priceRange[1]])}
-                  className={`h-8 text-sm transition-colors ${filters.priceRange[0] > 0 ? 'border-primary/60' : ''}`}
+                  onChange={(v) => updateFilter('priceRange', [v, filters.priceRange[1]])}
+                  className={filters.priceRange[0] > 0 ? 'border-primary/60' : ''}
                 />
               </div>
               <span className="text-muted-foreground text-xs">até</span>
               <div className="flex items-center gap-1 flex-1">
                 <span className="text-muted-foreground text-xs">R$</span>
-                <Input
-                  type="number"
+                <DebouncedPriceInput
                   value={filters.priceRange[1]}
-                  onChange={(e) => updateFilter('priceRange', [filters.priceRange[0], Number(e.target.value)])}
-                  className={`h-8 text-sm transition-colors ${filters.priceRange[1] < 1000 ? 'border-primary/60' : ''}`}
+                  onChange={(v) => updateFilter('priceRange', [filters.priceRange[0], v])}
+                  className={filters.priceRange[1] < 1000 ? 'border-primary/60' : ''}
                 />
               </div>
             </div>
