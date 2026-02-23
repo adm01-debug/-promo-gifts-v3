@@ -86,6 +86,83 @@ function getColorImage(color: ProductColor): string | undefined {
 /**
  * Retorna o nome da cor que está sendo filtrada para o badge
  */
+/**
+ * Resolve o estoque da variação que corresponde ao filtro de cor ativo.
+ * Retorna { stock, stockStatus } ou undefined se nenhum filtro ativo.
+ */
+export function resolveColorStock(
+  product: Product,
+  activeColors: ActiveColorFilter | null | undefined
+): { stock: number; stockStatus: 'in-stock' | 'low-stock' | 'out-of-stock' } | undefined {
+  if (!activeColors) return undefined;
+  if (!activeColors.groups.length && !activeColors.variations.length) return undefined;
+  if (!product.variations?.length) return undefined;
+
+  const matchVariation = (variationSlug: string) => {
+    // Try matching via product.colors first to find the color code
+    const colorMatch = product.colors.find(c => c.variationSlug === variationSlug);
+    if (colorMatch?.code) {
+      const variant = product.variations!.find((v: any) =>
+        v.sku === colorMatch.code || v.color?.name === colorMatch.name
+      );
+      if (variant) return variant;
+    }
+    // Direct match via variation color name
+    const slugNorm = variationSlug.replace(/-/g, ' ').toLowerCase();
+    return product.variations!.find((v: any) =>
+      v.color?.name?.toLowerCase() === slugNorm ||
+      v.color?.name?.toLowerCase().includes(slugNorm)
+    );
+  };
+
+  const matchGroup = (groupSlug: string) => {
+    const colorMatch = product.colors.find(c => c.groupSlug === groupSlug);
+    if (colorMatch?.code) {
+      const variant = product.variations!.find((v: any) =>
+        v.sku === colorMatch.code || v.color?.name === colorMatch.name
+      );
+      if (variant) return variant;
+    }
+    // Sum all variants in this group
+    const groupColors = product.colors.filter(c => c.groupSlug === groupSlug);
+    if (groupColors.length > 0) {
+      let totalStock = 0;
+      for (const gc of groupColors) {
+        const v = product.variations!.find((v: any) => v.color?.name === gc.name);
+        if (v) totalStock += (v.stock ?? 0);
+      }
+      return { stock: totalStock };
+    }
+    return undefined;
+  };
+
+  let stock = 0;
+
+  // Prioridade 1: Variação específica
+  if (activeColors.variations.length > 0) {
+    for (const slug of activeColors.variations) {
+      const v = matchVariation(slug);
+      if (v) {
+        stock = v.stock ?? 0;
+        return { stock, stockStatus: stock <= 0 ? 'out-of-stock' : stock < 10 ? 'low-stock' : 'in-stock' };
+      }
+    }
+  }
+
+  // Prioridade 2: Grupo - soma estoques de todas variações do grupo
+  if (activeColors.groups.length > 0) {
+    for (const slug of activeColors.groups) {
+      const result = matchGroup(slug);
+      if (result) {
+        stock = result.stock ?? 0;
+        return { stock, stockStatus: stock <= 0 ? 'out-of-stock' : stock < 10 ? 'low-stock' : 'in-stock' };
+      }
+    }
+  }
+
+  return undefined;
+}
+
 export function getActiveColorName(
   product: Product,
   activeColors: ActiveColorFilter | null | undefined

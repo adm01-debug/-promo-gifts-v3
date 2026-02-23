@@ -1,5 +1,6 @@
 import { ProductCard } from "./ProductCard";
 import type { Product } from "@/hooks/useProducts";
+import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useEffect, useState, useRef } from "react";
 
 export interface ProductGridProps {
@@ -14,8 +15,8 @@ export interface ProductGridProps {
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
   highlightColors?: string[];
-  /** Esconder badges de categoria nos cards (útil em layouts compactos) */
   hideCategoryBadges?: boolean;
+  activeColorFilter?: ActiveColorFilter | null;
 }
 
 function ProductCardWrapper({ 
@@ -73,6 +74,7 @@ export function ProductGrid({
   canAddToCompare = true,
   highlightColors,
   hideCategoryBadges = true,
+  activeColorFilter,
 }: ProductGridProps) {
   const [isGridVisible, setIsGridVisible] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -122,6 +124,7 @@ export function ProductGrid({
           canAddToCompare={canAddToCompare}
           highlightColors={highlightColors}
           hideCategoryBadges={hideCategoryBadges}
+          activeColorFilter={activeColorFilter}
         />
       ))}
     </div>
