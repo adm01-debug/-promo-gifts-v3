@@ -279,21 +279,37 @@ export async function fetchPromobrindProducts(options?: {
     async function paginatedFetch<T>(
       options: Omit<InvokeOptions, 'offset'> & { limit: number },
     ): Promise<T[]> {
-      const PAGE_SIZE = options.limit;
-      let allRecords: T[] = [];
-      let offset = 0;
-      const MAX_PAGES = 20; // segurança contra loops infinitos
-
-      for (let page = 0; page < MAX_PAGES; page++) {
-        const result = await invokeExternalDb<T>({ ...options, offset, limit: PAGE_SIZE });
-        allRecords.push(...result.records);
-        offset += result.records.length;
-        
-        // Parar se retornou menos que o page size (última página)
-        if (result.records.length < PAGE_SIZE) break;
-        // Parar se já buscamos tudo
-        if (result.count && allRecords.length >= result.count) break;
+      // Supabase external projects may limit rows per query (default 1000).
+      // Strategy: fetch first page, then fetch remaining pages in parallel.
+      const PAGE_SIZE = Math.min(options.limit, 1000);
+      
+      // First page — sequential to get count
+      const firstResult = await invokeExternalDb<T>({ ...options, offset: 0, limit: PAGE_SIZE });
+      const allRecords: T[] = [...firstResult.records];
+      
+      if (firstResult.records.length < PAGE_SIZE || !firstResult.count || allRecords.length >= firstResult.count) {
+        return allRecords;
       }
+      
+      // Fetch remaining pages in parallel
+      const totalCount = firstResult.count;
+      const remainingPages: number[] = [];
+      for (let offset = PAGE_SIZE; offset < totalCount; offset += PAGE_SIZE) {
+        remainingPages.push(offset);
+      }
+      
+      const parallelResults = await Promise.all(
+        remainingPages.map(offset =>
+          invokeExternalDb<T>({ ...options, offset, limit: PAGE_SIZE })
+            .then(r => r.records)
+            .catch(() => [] as T[])
+        )
+      );
+      
+      for (const records of parallelResults) {
+        allRecords.push(...records);
+      }
+      
       return allRecords;
     }
 
