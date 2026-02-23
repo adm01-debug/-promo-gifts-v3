@@ -381,28 +381,29 @@ export default function FiltersPage() {
         return product.colors.some((color: any) => {
           const colorName = (color.name || '').toLowerCase();
           const colorGroup = (color.group || '').toLowerCase();
+          const colorGroupSlug = color.groupSlug || '';
+          const colorVariationSlug = color.variationSlug || '';
           const colorNuance = (color.nuance || color.finish || '').toLowerCase();
 
           // Se há variações selecionadas, elas têm prioridade sobre grupos
-          // (narrowing: "Amarelo Banana" é mais específico que "Amarelo")
           if (hasVariationFilter) {
             const matchesVariation = filters.colorVariations.some(slug =>
+              colorVariationSlug === slug ||
               colorName.includes(slug.toLowerCase().replace(/-/g, ' '))
             );
             if (matchesVariation) {
-              // Se há também nuance selecionada, exige que ambos coincidam
               if (hasNuanceFilter) {
                 return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
               }
               return true;
             }
-            // Se há grupos selecionados mas não é a variação certa, não passa
             if (hasGroupFilter) return false;
           }
 
-          // Filtro por grupo (sem variações específicas selecionadas)
+          // Filtro por grupo — usa groupSlug do banco com fallback keyword
           if (hasGroupFilter) {
             const matchesGroup = filters.colorGroups.some(slug =>
+              colorGroupSlug === slug ||
               colorGroup.includes(slug.toLowerCase()) ||
               colorName.includes(slug.toLowerCase())
             );

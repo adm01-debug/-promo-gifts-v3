@@ -297,13 +297,14 @@ export async function fetchPromobrindProducts(options?: {
       return allRecords;
     }
 
-    const [variantsRecords, suppliersResult, imagesRecords] = await Promise.all([
+    const [variantsRecords, suppliersResult, imagesRecords, colorVariationsRecords, colorGroupsRecords] = await Promise.all([
       // Buscar cores das variantes (paginado para suportar catálogos grandes)
       paginatedFetch<{
         product_id: string;
         color_name: string | null;
         color_hex: string | null;
         color_code: string | null;
+        color_id: string | null;
         sku: string | null;
         stock_quantity: number | null;
         images: string[] | null;
@@ -312,7 +313,7 @@ export async function fetchPromobrindProducts(options?: {
       }>({
         table: 'product_variants',
         operation: 'select',
-        select: 'product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
+        select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_images, selected_thumbnail',
         filters: { is_active: true },
         limit: 5000,
       }).catch(err => {
@@ -359,12 +360,57 @@ export async function fetchPromobrindProducts(options?: {
         console.warn('Não foi possível buscar imagens da tabela product_images:', err);
         return [] as any[];
       }),
+
+      // Buscar color_variations (para mapear color_id → group_id)
+      invokeExternalDb<{
+        id: string;
+        name: string;
+        slug: string;
+        group_id: string;
+      }>({
+        table: 'color_variations',
+        operation: 'select',
+        select: 'id, name, slug, group_id',
+        filters: { is_active: true },
+        limit: 500,
+      }).catch(err => {
+        console.warn('Não foi possível buscar color_variations:', err);
+        return { records: [] } as { records: { id: string; name: string; slug: string; group_id: string }[] };
+      }),
+
+      // Buscar color_groups (para mapear group_id → slug/name)
+      invokeExternalDb<{
+        id: string;
+        name: string;
+        slug: string;
+      }>({
+        table: 'color_groups',
+        operation: 'select',
+        select: 'id, name, slug',
+        filters: { is_active: true },
+        limit: 100,
+      }).catch(err => {
+        console.warn('Não foi possível buscar color_groups:', err);
+        return { records: [] } as { records: { id: string; name: string; slug: string }[] };
+      }),
     ]);
     
     // Mapear fornecedores por ID
     const suppliersMap = new Map<string, string>();
     suppliersResult.records.forEach(s => {
       suppliersMap.set(s.id, s.name);
+    });
+
+    // Mapear color_variations: id → { slug, group_id }
+    const colorVariationMap = new Map<string, { name: string; slug: string; group_id: string }>();
+    (colorVariationsRecords as any)?.records?.forEach?.((v: any) => {
+      colorVariationMap.set(v.id, { name: v.name, slug: v.slug, group_id: v.group_id });
+    });
+
+    // Mapear color_groups: id → { name, slug }
+    const colorGroupMap = new Map<string, { name: string; slug: string }>();
+    (colorGroupsRecords as any)?.records?.forEach?.((g: any) => {
+      colorGroupMap.set(g.id, { name: g.name, slug: g.slug });
     });
     
     // Agrupar imagens por produto (com metadados expandidos — Briefing v3)
@@ -414,6 +460,9 @@ export async function fetchPromobrindProducts(options?: {
       stock?: number;
       image?: string;
       images?: string[];
+      groupSlug?: string;
+      groupName?: string;
+      variationSlug?: string;
     }>>();
     
     variantsRecords.forEach(variant => {
@@ -449,6 +498,23 @@ export async function fetchPromobrindProducts(options?: {
         // SEM fallback para imagem primária do produto — color.image deve ser APENAS da cor específica
         const thumbnailImage = finalImages[0] || variant.selected_thumbnail || null;
         
+        // Resolver grupo e variação via hierarquia do banco: color_id → color_variations → color_groups
+        let groupSlug: string | undefined;
+        let groupName: string | undefined;
+        let variationSlug: string | undefined;
+        
+        if (variant.color_id) {
+          const variation = colorVariationMap.get(variant.color_id);
+          if (variation) {
+            variationSlug = variation.slug;
+            const group = colorGroupMap.get(variation.group_id);
+            if (group) {
+              groupSlug = group.slug;
+              groupName = group.name;
+            }
+          }
+        }
+        
         colors.push({
           name: variant.color_name,
           hex: variant.color_hex || '#CCCCCC',
@@ -457,6 +523,9 @@ export async function fetchPromobrindProducts(options?: {
           stock: variant.stock_quantity ?? undefined,
           image: thumbnailImage || undefined,
           images: finalImages.length > 0 ? finalImages : undefined,
+          groupSlug,
+          groupName,
+          variationSlug,
         });
       }
     });
