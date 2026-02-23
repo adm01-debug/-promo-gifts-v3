@@ -260,7 +260,6 @@ export default function Index() {
           new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
         );
         break;
-      case "newest":
     }
 
     return result;

@@ -493,6 +493,7 @@ export function ProductCard({
               {displayStock.toLocaleString('pt-BR')} un.
             </span>
           </div>
+          </div>
           );
         })()}
 
