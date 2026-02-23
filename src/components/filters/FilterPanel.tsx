@@ -5,7 +5,7 @@ import { toTitleCase } from "@/lib/textUtils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -390,36 +390,51 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Preço - com inputs numéricos editáveis (#6) */}
         <FilterSection id="preco" title="Faixa de Preço">
-          <div className="space-y-4 px-1">
-            <Slider
-              value={[filters.priceRange[0], filters.priceRange[1]]}
-              onValueChange={(value) =>
-                onFilterChange({ ...filters, priceRange: [value[0], value[1]] })
-              }
-              min={0}
-              max={9999}
-              step={10}
-              className="w-full"
-            />
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">R$</span>
+          <div className="space-y-3 px-1">
+            {/* Presets rápidos */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: 'Até R$50', range: [0, 50] },
+                { label: 'R$50–150', range: [50, 150] },
+                { label: 'R$150–300', range: [150, 300] },
+                { label: 'R$300+', range: [300, 9999] },
+              ].map((preset) => {
+                const isActive = filters.priceRange[0] === preset.range[0] && filters.priceRange[1] === preset.range[1];
+                return (
+                  <button
+                    key={preset.label}
+                    onClick={() => onFilterChange({ ...filters, priceRange: isActive ? [0, 9999] : preset.range as [number, number] })}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors border ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Inputs manuais */}
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-1 flex-1">
+                <span className="text-muted-foreground text-xs">R$</span>
                 <Input
                   type="number"
                   value={filters.priceRange[0]}
                   onChange={(e) => onFilterChange({ ...filters, priceRange: [Number(e.target.value) || 0, filters.priceRange[1]] })}
-                  className="w-20 h-8 text-sm"
+                  className={`h-8 text-sm transition-colors ${filters.priceRange[0] > 0 ? 'border-primary/60' : ''}`}
                   min={0}
                 />
               </div>
-              <span className="text-muted-foreground">até</span>
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">R$</span>
+              <span className="text-muted-foreground text-xs">até</span>
+              <div className="flex items-center gap-1 flex-1">
+                <span className="text-muted-foreground text-xs">R$</span>
                 <Input
                   type="number"
                   value={filters.priceRange[1] >= 9999 ? '' : filters.priceRange[1]}
                   onChange={(e) => onFilterChange({ ...filters, priceRange: [filters.priceRange[0], Number(e.target.value) || 9999] })}
-                  className="w-20 h-8 text-sm"
+                  className={`h-8 text-sm transition-colors ${filters.priceRange[1] < 9999 ? 'border-primary/60' : ''}`}
                   placeholder="Sem limite"
                   min={0}
                 />
