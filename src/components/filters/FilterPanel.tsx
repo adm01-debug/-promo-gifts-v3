@@ -61,6 +61,7 @@ export interface FilterState {
   // Tags
   tags: string[];
   priceRange: [number, number];
+  minStock: number;
   inStock: boolean;
   isKit: boolean;
   featured: boolean;
@@ -98,6 +99,7 @@ export const defaultFilters: FilterState = {
   techniques: [],
   tags: [],
   priceRange: [0, 9999],
+  minStock: 0,
   inStock: false,
   isKit: false,
   featured: false,
@@ -387,6 +389,24 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             }
             compact
           />
+        </FilterSection>
+
+        {/* Estoque */}
+        <FilterSection id="estoque" title="Estoque">
+          <div className="px-1">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground text-xs whitespace-nowrap">Mínimo por cor</span>
+              <DebouncedPriceInput
+                value={filters.minStock || ''}
+                onChange={(v) => onFilterChange({ ...filters, minStock: v })}
+                fallback={0}
+                placeholder="Ex: 500"
+                min={0}
+                className={filters.minStock > 0 ? 'border-primary/60' : ''}
+              />
+              <span className="text-muted-foreground text-xs">un.</span>
+            </div>
+          </div>
         </FilterSection>
 
         {/* Preço - com inputs numéricos editáveis (#6) */}

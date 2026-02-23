@@ -743,8 +743,31 @@ export function AdvancedFilterPanel({
             </div>
         </FilterSection>
 
-        {/* Faixa de Preço */}
+        {/* Estoque */}
         <FilterSection 
+          id="stock" 
+          title="Estoque" 
+          icon={<Package className="h-4 w-4" />}
+          badge={filters.minStock > 0 ? 1 : 0}
+        >
+          <div className="px-1">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground text-xs whitespace-nowrap">Mínimo por cor</span>
+              <DebouncedPriceInput
+                value={filters.minStock || ''}
+                onChange={(v) => updateFilter('minStock', v)}
+                fallback={0}
+                placeholder="Ex: 500"
+                min={0}
+                className={filters.minStock > 0 ? 'border-primary/60' : ''}
+              />
+              <span className="text-muted-foreground text-xs">un.</span>
+            </div>
+          </div>
+        </FilterSection>
+
+        {/* Faixa de Preço */}
+        <FilterSection
           id="price" 
           title="Faixa de Preço" 
           icon={<DollarSign className="h-4 w-4" />}
