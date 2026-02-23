@@ -164,16 +164,17 @@ export default function Index() {
     if (filters.colorGroups?.length) {
       result = result.filter((p) => 
         p.colors?.some((c: any) => {
+          const colorGroupSlug = c.groupSlug || '';
           const colorGroup = (c.group || '').toLowerCase().trim();
           const colorName = (c.name || '').toLowerCase().trim();
           
           return filters.colorGroups.some(slug => {
             const slugLower = slug.toLowerCase().trim();
-            // Match exato no grupo
+            // Match direto pelo groupSlug do banco
+            if (colorGroupSlug === slugLower) return true;
+            // Fallback keyword
             if (colorGroup === slugLower) return true;
-            // Match parcial no grupo
             if (colorGroup.includes(slugLower) || slugLower.includes(colorGroup)) return true;
-            // Match no nome da cor (fallback)
             if (colorName.includes(slugLower) || slugLower.includes(colorName.split(/[\s-]/)[0])) return true;
             return false;
           });
@@ -185,12 +186,14 @@ export default function Index() {
     if (filters.colorVariations?.length) {
       result = result.filter((p) => 
         p.colors?.some((c: any) => {
+          const colorVariationSlug = c.variationSlug || '';
           const colorName = (c.name || '').toLowerCase().trim();
           return filters.colorVariations.some(slug => {
             const slugLower = slug.toLowerCase().trim();
-            // Converter slug para palavras (ex: "azul-royal" -> ["azul", "royal"])
+            // Match direto pelo variationSlug do banco
+            if (colorVariationSlug === slugLower) return true;
+            // Fallback keyword
             const slugWords = slugLower.split('-');
-            // Match se todas as palavras do slug estão no nome da cor
             return slugWords.every(word => colorName.includes(word));
           });
         }) || false

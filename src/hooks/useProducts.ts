@@ -6,6 +6,10 @@ export interface ProductColor {
   name: string;
   hex: string;
   group: string;
+  /** Slug do grupo de cor vindo do banco (ex: "rosa", "azul") */
+  groupSlug?: string;
+  /** Slug da variação de cor vindo do banco (ex: "rosa-flamingo", "azul-marinho") */
+  variationSlug?: string;
   /** Código do fornecedor (supplier_code) — usado para vincular imagens à cor */
   code?: string;
   /** Imagem principal desta cor (thumbnail da variante) */
@@ -239,7 +243,10 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
     
     // Se c é um objeto com propriedades
     const name = c.name || c.color_name || 'Sem cor';
-    const group = c.group || c.color_group || detectColorGroup(name);
+    // Priorizar grupo vindo do banco de dados (groupSlug/groupName) sobre keyword detection
+    const groupSlug = c.groupSlug || undefined;
+    const variationSlug = c.variationSlug || undefined;
+    const group = c.groupName || c.group || c.color_group || detectColorGroup(name);
     
     // Prioriza hex do objeto, depois busca em mapeamento conhecido
     let hex = c.hex || c.hex_code || c.color_hex;
@@ -258,6 +265,8 @@ function normalizeColors(colors: any[] | undefined): ProductColor[] {
       name,
       hex: hex || '#CCCCCC',
       group,
+      groupSlug,
+      variationSlug,
       code,
       image,
       images,
