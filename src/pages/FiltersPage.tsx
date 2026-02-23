@@ -74,6 +74,7 @@ export default function FiltersPage() {
     const tags = getArr('tags'); if (tags.length) f.tags = tags;
     const pMin = get('priceMin'); const pMax = get('priceMax');
     if (pMin || pMax) f.priceRange = [pMin ? parseInt(pMin) : 0, pMax ? parseInt(pMax) : 9999];
+    const ms = get('minStock'); if (ms) f.minStock = parseInt(ms);
     if (get('inStock') === '1') f.inStock = true;
     if (get('isKit') === '1') f.isKit = true;
     if (get('featured') === '1') f.featured = true;
@@ -113,6 +114,7 @@ export default function FiltersPage() {
     setArr('tags', filters.tags || []);
     if (filters.priceRange[0] > 0) params.set('priceMin', String(filters.priceRange[0]));
     if (filters.priceRange[1] < 9999) params.set('priceMax', String(filters.priceRange[1]));
+    if (filters.minStock > 0) params.set('minStock', String(filters.minStock));
     if (filters.inStock) params.set('inStock', '1');
     if (filters.isKit) params.set('isKit', '1');
     if (filters.featured) params.set('featured', '1');
@@ -334,6 +336,7 @@ export default function FiltersPage() {
     if (filters.segmentosAtividade?.length > 0) count++;
     if ((filters.materialGroups?.length || 0) + (filters.materialTypes?.length || 0) + filters.materiais.length > 0) count++;
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 9999) count++;
+    if (filters.minStock > 0) count++;
     if (filters.inStock) count++;
     if (filters.isKit) count++;
     if (filters.featured) count++;
@@ -525,7 +528,17 @@ export default function FiltersPage() {
       );
     }
 
-    // Filtro por estoque
+    // Filtro por estoque mínimo por variante (cor)
+    if (filters.minStock > 0) {
+      result = result.filter((product) => {
+        if (product.variations && product.variations.length > 0) {
+          return product.variations.some((v: any) => (v.stock ?? 0) >= filters.minStock);
+        }
+        return (product.stock || 0) >= filters.minStock;
+      });
+    }
+
+    // Filtro por estoque (boolean)
     if (filters.inStock) {
       result = result.filter((product) => (product.stock || 0) > 0);
     }
