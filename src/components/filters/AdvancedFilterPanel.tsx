@@ -749,32 +749,50 @@ export function AdvancedFilterPanel({
           icon={<DollarSign className="h-4 w-4" />}
           badge={filters.priceRange[0] > 0 || filters.priceRange[1] < 1000 ? 1 : 0}
         >
-          <div className="space-y-4 px-1">
-            <Slider
-              value={filters.priceRange}
-              onValueChange={(value) => updateFilter('priceRange', value as [number, number])}
-              min={0}
-              max={1000}
-              step={10}
-            />
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">R$</span>
+          <div className="space-y-3 px-1">
+            {/* Presets rápidos */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { label: 'Até R$50', range: [0, 50] },
+                { label: 'R$50–150', range: [50, 150] },
+                { label: 'R$150–300', range: [150, 300] },
+                { label: 'R$300+', range: [300, 1000] },
+              ].map((preset) => {
+                const isActive = filters.priceRange[0] === preset.range[0] && filters.priceRange[1] === preset.range[1];
+                return (
+                  <button
+                    key={preset.label}
+                    onClick={() => updateFilter('priceRange', isActive ? [0, 1000] : preset.range as [number, number])}
+                    className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors border ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Inputs manuais */}
+            <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-1 flex-1">
+                <span className="text-muted-foreground text-xs">R$</span>
                 <Input
                   type="number"
                   value={filters.priceRange[0]}
                   onChange={(e) => updateFilter('priceRange', [Number(e.target.value), filters.priceRange[1]])}
-                  className="w-20 h-8 text-sm"
+                  className={`h-8 text-sm transition-colors ${filters.priceRange[0] > 0 ? 'border-primary/60' : ''}`}
                 />
               </div>
-              <span className="text-muted-foreground">até</span>
-              <div className="flex items-center gap-1">
-                <span className="text-muted-foreground">R$</span>
+              <span className="text-muted-foreground text-xs">até</span>
+              <div className="flex items-center gap-1 flex-1">
+                <span className="text-muted-foreground text-xs">R$</span>
                 <Input
                   type="number"
                   value={filters.priceRange[1]}
                   onChange={(e) => updateFilter('priceRange', [filters.priceRange[0], Number(e.target.value)])}
-                  className="w-20 h-8 text-sm"
+                  className={`h-8 text-sm transition-colors ${filters.priceRange[1] < 1000 ? 'border-primary/60' : ''}`}
                 />
               </div>
             </div>
