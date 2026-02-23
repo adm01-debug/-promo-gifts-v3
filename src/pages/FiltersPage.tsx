@@ -429,8 +429,15 @@ export default function FiltersPage() {
       });
     }
 
-    // Imagem da cor é resolvida no momento da renderização (não como filtro)
-    // Todos os produtos que possuem a cor selecionada devem aparecer
+    // Paridade visual: ocultar produtos que passaram no filtro de cor mas NÃO têm imagem específica
+    const hasColorFilterActive = hasGroupFilter || hasVariationFilter || hasNuanceFilter || hasLegacyColors;
+    if (hasColorFilterActive) {
+      const activeColorFilter: ActiveColorFilter = {
+        groups: filters.colorGroups || [],
+        variations: filters.colorVariations || [],
+      };
+      result = result.filter(p => resolveColorImage(p, activeColorFilter) !== undefined);
+    }
 
 
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
