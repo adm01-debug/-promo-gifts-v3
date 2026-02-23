@@ -58,11 +58,13 @@ export function resolveColorImage(
         const img = getColorImage(match);
         if (img) return img;
       }
-      // Fallback keyword
+      // Fallback keyword pelo grupo detectado
       const groupNormalized = groupSlug.toLowerCase().replace(/-/g, ' ');
       const fallback = product.colors.find(c => {
         const colorGroup = c.group.toLowerCase();
-        return colorGroup === groupNormalized || colorGroup.includes(groupNormalized);
+        const colorName = c.name.toLowerCase();
+        return colorGroup === groupNormalized || colorGroup.includes(groupNormalized)
+          || colorName.includes(groupNormalized);
       });
       if (fallback) {
         const img = getColorImage(fallback);
