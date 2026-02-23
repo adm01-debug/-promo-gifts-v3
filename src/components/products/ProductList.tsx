@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ProductListItem } from "./ProductListItem";
 import type { Product } from "@/hooks/useProducts";
+import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 
 export interface ProductListProps {
   products: Product[];
@@ -14,6 +15,7 @@ export interface ProductListProps {
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
   highlightColors?: string[];
+  activeColorFilter?: ActiveColorFilter | null;
 }
 
 function ProductListItemWrapper({
@@ -58,6 +60,7 @@ export function ProductList({
   onToggleCompare,
   canAddToCompare = true,
   highlightColors,
+  activeColorFilter,
 }: ProductListProps) {
   if (products.length === 0) {
     return (
@@ -92,6 +95,7 @@ export function ProductList({
           onToggleCompare={onToggleCompare}
           canAddToCompare={canAddToCompare}
           highlightColors={highlightColors}
+          activeColorFilter={activeColorFilter}
         />
       ))}
     </div>

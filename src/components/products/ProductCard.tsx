@@ -14,7 +14,7 @@ import { ProductCategoryBadges } from "./ProductCategoryBadges";
 import { NoveltyBadge } from "./NoveltyBadge";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { getSupplierColors } from "@/lib/supplier-colors";
-import { resolveColorImage, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
+import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 
 export interface ProductCardProps {
   product: Product;
@@ -470,7 +470,12 @@ export function ProductCard({
         </h3>
 
         {/* Price & Stock */}
-        <div className="flex items-end justify-between pt-0.5 sm:pt-1">
+        {(() => {
+          const colorStock = resolveColorStock(product, activeColorFilter);
+          const displayStock = colorStock?.stock ?? product.stock;
+          const displayStatus = colorStock?.stockStatus ?? product.stockStatus;
+          return (
+          <div className="flex items-end justify-between pt-0.5 sm:pt-1">
           <div>
             <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">A partir de</p>
             <span className="text-base sm:text-xl font-display font-bold text-foreground">
@@ -479,16 +484,17 @@ export function ProductCard({
           </div>
 
           <div className="flex flex-col items-end gap-0.5 sm:gap-1">
-            <span className={cn("stock-indicator text-[10px] sm:text-xs", getStockStatusColor(product.stockStatus))}>
+            <span className={cn("stock-indicator text-[10px] sm:text-xs", getStockStatusColor(displayStatus))}>
               <Package className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-              <span className="hidden sm:inline">{getStockStatusLabel(product.stockStatus)}</span>
-              <span className="sm:hidden">{product.stockStatus === 'in-stock' ? '✓' : product.stockStatus === 'low-stock' ? '!' : '✗'}</span>
+              <span className="hidden sm:inline">{getStockStatusLabel(displayStatus)}</span>
+              <span className="sm:hidden">{displayStatus === 'in-stock' ? '✓' : displayStatus === 'low-stock' ? '!' : '✗'}</span>
             </span>
             <span className="text-[10px] sm:text-xs text-muted-foreground">
-              {product.stock.toLocaleString('pt-BR')} un.
+              {displayStock.toLocaleString('pt-BR')} un.
             </span>
           </div>
-        </div>
+          );
+        })()}
 
         {/* Materials - Hidden on mobile */}
         {Array.isArray(product.materials) && product.materials.length > 0 && (

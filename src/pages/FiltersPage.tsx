@@ -906,6 +906,11 @@ export default function FiltersPage() {
                     isInCompare={isInCompare}
                     onToggleCompare={toggleCompare}
                     canAddToCompare={canAddMore}
+                    activeColorFilter={
+                      (filters.colorGroups.length > 0 || filters.colorVariations.length > 0)
+                        ? { groups: filters.colorGroups, variations: filters.colorVariations }
+                        : null
+                    }
                   />
                 </div>
               )

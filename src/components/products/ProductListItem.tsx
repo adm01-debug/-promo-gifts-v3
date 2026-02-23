@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
+import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
+import { getCdnUrl } from "@/utils/image-utils";
 
 interface ProductListItemProps {
   product: Product;
@@ -17,6 +19,7 @@ interface ProductListItemProps {
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
   highlightColors?: string[];
+  activeColorFilter?: ActiveColorFilter | null;
 }
 
 export function ProductListItem({
@@ -30,6 +33,7 @@ export function ProductListItem({
   onToggleCompare,
   canAddToCompare = true,
   highlightColors = [],
+  activeColorFilter,
 }: ProductListItemProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -82,16 +86,23 @@ export function ProductListItem({
         {!imageLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 animate-pulse" />
         )}
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          className={cn(
-            "w-full h-full object-cover transition-all duration-500",
-            imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105",
-            isHovered && "scale-110"
-          )}
-          onLoad={() => setImageLoaded(true)}
-        />
+        {(() => {
+          const colorImg = resolveColorImage(product, activeColorFilter);
+          const rawUrl = colorImg || product.images[0];
+          const imgUrl = rawUrl ? getCdnUrl(rawUrl, 'card') : '/placeholder.svg';
+          return (
+            <img
+              src={imgUrl}
+              alt={product.name}
+              className={cn(
+                "w-full h-full object-cover transition-all duration-500",
+                imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105",
+                isHovered && "scale-110"
+              )}
+              onLoad={() => setImageLoaded(true)}
+            />
+          );
+        })()}
         
         {/* Badges overlay */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -149,20 +160,26 @@ export function ProductListItem({
         </div>
 
         {/* Bottom row */}
-        <div className="flex items-center justify-between mt-2">
-          {/* Stock */}
-          <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5", stock.class)}>
-            <Package className="h-2.5 w-2.5 mr-1" />
-            {stock.label}
-          </Badge>
+        {(() => {
+          const colorStock = resolveColorStock(product, activeColorFilter);
+          const displayStock = colorStock?.stock ?? product.stock;
+          const displayStatus = colorStock?.stockStatus ?? product.stockStatus;
+          const stockCfg = stockConfig[displayStatus];
+          return (
+          <div className="flex items-center justify-between mt-2">
+            <Badge variant="outline" className={cn("text-[10px] px-2 py-0.5", stockCfg.class)}>
+              <Package className="h-2.5 w-2.5 mr-1" />
+              {stockCfg.label} ({displayStock.toLocaleString('pt-BR')})
+            </Badge>
 
-          {/* Price */}
-          <div className="text-right">
-            <span className="font-display font-bold text-lg text-foreground">
-              R$ {product.price.toFixed(2).replace('.', ',')}
-            </span>
+            <div className="text-right">
+              <span className="font-display font-bold text-lg text-foreground">
+                R$ {product.price.toFixed(2).replace('.', ',')}
+              </span>
+            </div>
           </div>
-        </div>
+          );
+        })()}
       </div>
 
       {/* Actions */}
