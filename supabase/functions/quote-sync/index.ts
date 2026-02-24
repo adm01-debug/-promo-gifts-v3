@@ -65,7 +65,7 @@ serve(async (req) => {
       case "sync_quote": {
         // Sync a single quote to Bitrix via N8N
         const { quoteId } = data;
-        
+
         if (!quoteId) {
           throw new Error("quoteId is required");
         }
@@ -76,13 +76,15 @@ serve(async (req) => {
 
         // Fetch quote with all related data
         const quoteData = await fetchQuoteData(supabase, quoteId);
-        
+
         if (!quoteData) {
           throw new Error("Quote not found");
         }
 
         // Send to N8N webhook
         const n8nResponse = await sendToN8N(quoteData);
+        // Also sync to SalesPro pipeline
+        await sendToSalesPro(quoteData);
 
         // Update quote sync status
         const { error: updateError } = await supabase
@@ -106,7 +108,7 @@ serve(async (req) => {
             bitrix_deal_id: n8nResponse.bitrix_deal_id,
             bitrix_quote_id: n8nResponse.bitrix_quote_id,
           }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
@@ -126,7 +128,7 @@ serve(async (req) => {
             const quoteData = await fetchQuoteData(supabase, quote.id);
             if (quoteData) {
               const response = await sendToN8N(quoteData);
-              
+
               await supabase
                 .from("quotes")
                 .update({
@@ -148,11 +150,11 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({
             success: true,
-            synced: results.filter(r => r.success).length,
-            failed: results.filter(r => !r.success).length,
+            synced: results.filter((r) => r.success).length,
+            failed: results.filter((r) => !r.success).length,
             results,
           }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
@@ -180,7 +182,7 @@ serve(async (req) => {
             status: response.status,
             message: response.ok ? "Webhook connection successful" : "Webhook connection failed",
           }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
 
@@ -190,10 +192,10 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Quote sync error:", error);
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
 
@@ -201,7 +203,8 @@ async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData
   // Fetch quote with client info
   const { data: quote, error: quoteError } = await supabase
     .from("quotes")
-    .select(`
+    .select(
+      `
       *,
       bitrix_clients (
         id,
@@ -215,7 +218,8 @@ async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData
       profiles!quotes_seller_id_fkey (
         full_name
       )
-    `)
+    `,
+    )
     .eq("id", quoteId)
     .single();
 
@@ -227,7 +231,8 @@ async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData
   // Fetch quote items with personalizations
   const { data: items, error: itemsError } = await supabase
     .from("quote_items")
-    .select(`
+    .select(
+      `
       *,
       quote_item_personalizations (
         *,
@@ -236,7 +241,8 @@ async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData
           code
         )
       )
-    `)
+    `,
+    )
     .eq("quote_id", quoteId)
     .order("sort_order");
 
@@ -284,7 +290,7 @@ async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData
 
 async function sendToN8N(quoteData: QuoteData): Promise<any> {
   const webhookUrl = Deno.env.get("N8N_QUOTE_WEBHOOK_URL");
-  
+
   if (!webhookUrl) {
     throw new Error("N8N_QUOTE_WEBHOOK_URL not configured");
   }
