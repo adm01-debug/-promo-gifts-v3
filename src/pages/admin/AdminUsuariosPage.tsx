@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil, Camera, X, Plus, Trash2 } from "lucide-react";
+import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil, Camera, X, Plus, Trash2, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,6 +83,9 @@ export default function AdminUsuariosPage() {
   // Delete user state
   const [deleteUser, setDeleteUser] = useState<UserWithRole | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -320,6 +323,19 @@ export default function AdminUsuariosPage() {
   const managerCount = users.filter((u) => u.role === "manager").length;
   const vendedorCount = users.filter((u) => u.role === "vendedor").length;
 
+  // Sort alphabetically and filter by search
+  const filteredUsers = users
+    .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || "", "pt-BR", { sensitivity: "base" }))
+    .filter((u) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        (u.full_name || "").toLowerCase().includes(q) ||
+        (u.email || "").toLowerCase().includes(q) ||
+        roleConfig[u.role].label.toLowerCase().includes(q)
+      );
+    });
+
   return (
     <MainLayout>
       <div className="container mx-auto py-8 space-y-8">
@@ -414,14 +430,25 @@ export default function AdminUsuariosPage() {
                   Novo Usuário
                 </Button>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Search */}
+                <div className="relative max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nome, email ou role..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+
                 {isLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                ) : users.length === 0 ? (
+                ) : filteredUsers.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
-                    Nenhum usuário encontrado
+                    {searchQuery ? "Nenhum usuário encontrado para esta busca" : "Nenhum usuário encontrado"}
                   </div>
                 ) : (
                   <Table>
@@ -436,7 +463,7 @@ export default function AdminUsuariosPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {users.map((userItem) => {
+                      {filteredUsers.map((userItem) => {
                         const config = roleConfig[userItem.role];
                         return (
                           <TableRow key={userItem.id}>
