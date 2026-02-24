@@ -1,14 +1,16 @@
 /// <reference lib="deno.ns" />
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const crmUrl = Deno.env.get("CRM_SUPABASE_URL");
+const crmKey = Deno.env.get("CRM_SUPABASE_ANON_KEY");
 const n8nWebhookUrl = Deno.env.get("N8N_QUOTE_WEBHOOK_URL");
 
 interface QuoteData {
@@ -18,6 +20,7 @@ interface QuoteData {
   client_name?: string;
   client_email?: string;
   client_phone?: string;
+  client_company?: string;
   seller_id?: string;
   seller_name?: string;
   status: string;
@@ -27,6 +30,10 @@ interface QuoteData {
   total: number;
   notes?: string;
   valid_until?: string;
+  payment_terms?: string;
+  delivery_time?: string;
+  shipping_type?: string;
+  shipping_cost?: number;
   items: QuoteItemData[];
   created_at: string;
 }
@@ -49,8 +56,7 @@ interface PersonalizationData {
   total_cost: number;
 }
 
-serve(async (req) => {
-  // Handle CORS preflight
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -63,43 +69,28 @@ serve(async (req) => {
 
     switch (action) {
       case "sync_quote": {
-        // Sync a single quote to Bitrix via N8N
         const { quoteId } = data;
+        if (!quoteId) throw new Error("quoteId is required");
 
-        if (!quoteId) {
-          throw new Error("quoteId is required");
+        // Fetch quote from external CRM database
+        const quoteData = await fetchQuoteFromCRM(quoteId);
+        if (!quoteData) throw new Error("Quote not found in CRM");
+
+        // Send to N8N if configured
+        let n8nResponse: any = {};
+        if (n8nWebhookUrl) {
+          try {
+            n8nResponse = await sendToN8N(quoteData);
+          } catch (err) {
+            console.error("N8N sync failed (non-blocking):", err);
+          }
         }
 
-        if (!n8nWebhookUrl) {
-          throw new Error("N8N_QUOTE_WEBHOOK_URL not configured");
-        }
-
-        // Fetch quote with all related data
-        const quoteData = await fetchQuoteData(supabase, quoteId);
-
-        if (!quoteData) {
-          throw new Error("Quote not found");
-        }
-
-        // Send to N8N webhook
-        const n8nResponse = await sendToN8N(quoteData);
-        // Also sync to SalesPro pipeline
+        // Send to SalesPro
         await sendToSalesPro(quoteData);
 
-        // Update quote sync status
-        const { error: updateError } = await supabase
-          .from("quotes")
-          .update({
-            synced_to_bitrix: true,
-            synced_at: new Date().toISOString(),
-            bitrix_deal_id: n8nResponse.bitrix_deal_id || null,
-            bitrix_quote_id: n8nResponse.bitrix_quote_id || null,
-          })
-          .eq("id", quoteId);
-
-        if (updateError) {
-          console.error("Error updating quote sync status:", updateError);
-        }
+        // Update sync status in CRM
+        await updateCRMSyncStatus(quoteId, n8nResponse);
 
         return new Response(
           JSON.stringify({
@@ -113,8 +104,10 @@ serve(async (req) => {
       }
 
       case "sync_all_pending": {
-        // Sync all unsent quotes
-        const { data: pendingQuotes, error: fetchError } = await supabase
+        if (!crmUrl || !crmKey) throw new Error("CRM database not configured");
+        const crm = createClient(crmUrl, crmKey);
+
+        const { data: pendingQuotes, error: fetchError } = await crm
           .from("quotes")
           .select("id")
           .eq("synced_to_bitrix", false)
@@ -125,19 +118,14 @@ serve(async (req) => {
         const results = [];
         for (const quote of pendingQuotes || []) {
           try {
-            const quoteData = await fetchQuoteData(supabase, quote.id);
+            const quoteData = await fetchQuoteFromCRM(quote.id);
             if (quoteData) {
-              const response = await sendToN8N(quoteData);
-
-              await supabase
-                .from("quotes")
-                .update({
-                  synced_to_bitrix: true,
-                  synced_at: new Date().toISOString(),
-                  bitrix_deal_id: response.bitrix_deal_id || null,
-                })
-                .eq("id", quote.id);
-
+              let response: any = {};
+              if (n8nWebhookUrl) {
+                try { response = await sendToN8N(quoteData); } catch { /* skip */ }
+              }
+              await sendToSalesPro(quoteData);
+              await updateCRMSyncStatus(quote.id, response);
               results.push({ id: quote.id, success: true });
             }
           } catch (syncErr) {
@@ -159,29 +147,41 @@ serve(async (req) => {
       }
 
       case "test_webhook": {
-        // Test the N8N webhook connection
-        if (!n8nWebhookUrl) {
-          throw new Error("N8N_QUOTE_WEBHOOK_URL not configured");
+        const results: Record<string, any> = {};
+
+        // Test N8N
+        if (n8nWebhookUrl) {
+          try {
+            const response = await fetch(n8nWebhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ test: true, timestamp: new Date().toISOString() }),
+            });
+            results.n8n = { success: response.ok, status: response.status };
+          } catch (e) {
+            results.n8n = { success: false, error: String(e) };
+          }
         }
 
-        const testPayload = {
-          test: true,
-          timestamp: new Date().toISOString(),
-          message: "Test from Lovable quote-sync function",
-        };
-
-        const response = await fetch(n8nWebhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(testPayload),
-        });
+        // Test SalesPro
+        const salesProUrl = Deno.env.get("SALESPRO_WEBHOOK_URL");
+        const apiKey = Deno.env.get("QUOTE_SYNC_API_KEY");
+        if (salesProUrl && apiKey) {
+          try {
+            const response = await fetch(salesProUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+              body: JSON.stringify({ test: true, timestamp: new Date().toISOString(), source: "gifts-store" }),
+            });
+            const body = await response.text();
+            results.salespro = { success: response.ok, status: response.status, body };
+          } catch (e) {
+            results.salespro = { success: false, error: String(e) };
+          }
+        }
 
         return new Response(
-          JSON.stringify({
-            success: response.ok,
-            status: response.status,
-            message: response.ok ? "Webhook connection successful" : "Webhook connection failed",
-          }),
+          JSON.stringify({ success: true, results }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
@@ -199,58 +199,49 @@ serve(async (req) => {
   }
 });
 
-async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData | null> {
-  // Fetch quote with client info
-  const { data: quote, error: quoteError } = await supabase
+// ===== Fetch quote data from external CRM database =====
+async function fetchQuoteFromCRM(quoteId: string): Promise<QuoteData | null> {
+  if (!crmUrl || !crmKey) {
+    throw new Error("CRM database credentials not configured (CRM_SUPABASE_URL / CRM_SUPABASE_ANON_KEY)");
+  }
+
+  const crm = createClient(crmUrl, crmKey);
+
+  // Fetch quote
+  const { data: quote, error: quoteError } = await crm
     .from("quotes")
-    .select(
-      `
-      *,
-      bitrix_clients (
-        id,
-        bitrix_id,
-        name,
-        email,
-        phone,
-        ramo,
-        nicho
-      ),
-      profiles!quotes_seller_id_fkey (
-        full_name
-      )
-    `,
-    )
+    .select("*")
     .eq("id", quoteId)
     .single();
 
   if (quoteError || !quote) {
-    console.error("Error fetching quote:", quoteError);
+    console.error("Error fetching quote from CRM:", quoteError);
     return null;
   }
 
   // Fetch quote items with personalizations
-  const { data: items, error: itemsError } = await supabase
+  const { data: items, error: itemsError } = await crm
     .from("quote_items")
-    .select(
-      `
-      *,
-      quote_item_personalizations (
-        *,
-        personalization_techniques (
-          name,
-          code
-        )
-      )
-    `,
-    )
+    .select("*, quote_item_personalizations(*)")
     .eq("quote_id", quoteId)
     .order("sort_order");
 
   if (itemsError) {
-    console.error("Error fetching quote items:", itemsError);
+    console.error("Error fetching quote items from CRM:", itemsError);
   }
 
-  // Format the data for N8N/Bitrix
+  // Fetch seller name from local profiles
+  let sellerName: string | undefined;
+  if (quote.seller_id) {
+    const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", quote.seller_id)
+      .single();
+    sellerName = profile?.full_name;
+  }
+
   const formattedItems: QuoteItemData[] = (items || []).map((item: any) => ({
     product_id: item.product_id,
     product_name: item.product_name,
@@ -260,7 +251,7 @@ async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData
     subtotal: Number(item.subtotal),
     color_name: item.color_name,
     personalizations: (item.quote_item_personalizations || []).map((p: any) => ({
-      technique_name: p.personalization_techniques?.name || "Unknown",
+      technique_name: p.technique_name || "Unknown",
       colors_count: p.colors_count,
       positions_count: p.positions_count,
       total_cost: Number(p.total_cost),
@@ -270,34 +261,56 @@ async function fetchQuoteData(supabase: any, quoteId: string): Promise<QuoteData
   return {
     id: quote.id,
     quote_number: quote.quote_number,
-    client_id: quote.bitrix_clients?.bitrix_id || quote.client_id,
-    client_name: quote.bitrix_clients?.name,
-    client_email: quote.bitrix_clients?.email,
-    client_phone: quote.bitrix_clients?.phone,
+    client_id: quote.client_id,
+    client_name: quote.client_name,
+    client_email: quote.client_email,
+    client_phone: quote.client_phone,
+    client_company: quote.client_company,
     seller_id: quote.seller_id,
-    seller_name: quote.profiles?.full_name,
+    seller_name: sellerName,
     status: quote.status,
-    subtotal: Number(quote.subtotal),
-    discount_percent: Number(quote.discount_percent),
-    discount_amount: Number(quote.discount_amount),
-    total: Number(quote.total),
+    subtotal: Number(quote.subtotal || 0),
+    discount_percent: Number(quote.discount_percent || 0),
+    discount_amount: Number(quote.discount_amount || 0),
+    total: Number(quote.total || 0),
     notes: quote.notes,
     valid_until: quote.valid_until,
+    payment_terms: quote.payment_terms,
+    delivery_time: quote.delivery_time,
+    shipping_type: quote.shipping_type,
+    shipping_cost: Number(quote.shipping_cost || 0),
     items: formattedItems,
     created_at: quote.created_at,
   };
 }
 
-async function sendToN8N(quoteData: QuoteData): Promise<any> {
-  const webhookUrl = Deno.env.get("N8N_QUOTE_WEBHOOK_URL");
+// ===== Update sync status in CRM =====
+async function updateCRMSyncStatus(quoteId: string, n8nResponse: any): Promise<void> {
+  if (!crmUrl || !crmKey) return;
+  const crm = createClient(crmUrl, crmKey);
 
-  if (!webhookUrl) {
-    throw new Error("N8N_QUOTE_WEBHOOK_URL not configured");
+  const { error } = await crm
+    .from("quotes")
+    .update({
+      synced_to_bitrix: true,
+      synced_at: new Date().toISOString(),
+      bitrix_deal_id: n8nResponse?.bitrix_deal_id || null,
+      bitrix_quote_id: n8nResponse?.bitrix_quote_id || null,
+    })
+    .eq("id", quoteId);
+
+  if (error) {
+    console.error("Error updating CRM sync status:", error);
   }
+}
+
+// ===== Send to N8N =====
+async function sendToN8N(quoteData: QuoteData): Promise<any> {
+  if (!n8nWebhookUrl) throw new Error("N8N_QUOTE_WEBHOOK_URL not configured");
 
   console.log("Sending quote to N8N:", quoteData.quote_number);
 
-  const response = await fetch(webhookUrl, {
+  const response = await fetch(n8nWebhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -309,18 +322,17 @@ async function sendToN8N(quoteData: QuoteData): Promise<any> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("N8N webhook error:", errorText);
     throw new Error(`N8N webhook failed: ${response.status} - ${errorText}`);
   }
 
   try {
     return await response.json();
   } catch {
-    // N8N might return empty response on success
     return { success: true };
   }
 }
 
+// ===== Send to SalesPro CRM =====
 async function sendToSalesPro(quoteData: QuoteData): Promise<void> {
   const webhookUrl = Deno.env.get("SALESPRO_WEBHOOK_URL");
   const apiKey = Deno.env.get("QUOTE_SYNC_API_KEY");
