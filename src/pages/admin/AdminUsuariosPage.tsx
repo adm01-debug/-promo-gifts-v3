@@ -691,7 +691,6 @@ export default function AdminUsuariosPage() {
                   </button>
                 </div>
               </div>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="create-role">Role</Label>
                 <Select value={createForm.role} onValueChange={(value) => setCreateForm((f) => ({ ...f, role: value as AppRole }))}>
