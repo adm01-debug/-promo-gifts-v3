@@ -49,6 +49,7 @@ import { InfoTooltip } from "@/components/common/ContextualTooltips";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
+import { useDebounce } from "@/hooks/useDebounce";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
@@ -135,8 +136,11 @@ export default function Index() {
   }, [filters]);
 
 
+  // Debounce da busca para evitar buscas a cada tecla digitada
+  const debouncedSearchQuery = useDebounce(searchQuery, 350);
+
   // Busca fuzzy de produtos - tolerante a erros de digitação
-  const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(realProducts, searchQuery);
+  const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(realProducts, debouncedSearchQuery);
 
   // Filtrar e ordenar produtos - USANDO PRODUTOS REAIS
   const filteredProducts = useMemo(() => {

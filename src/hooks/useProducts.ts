@@ -443,7 +443,9 @@ export function useProducts(
 
       return result;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 10 * 60 * 1000, // 10 minutos - produtos não mudam frequentemente
+    gcTime: 30 * 60 * 1000,    // 30 minutos no garbage collector
+    refetchOnWindowFocus: false, // Evita refetch desnecessário ao alternar abas
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     ...options,
