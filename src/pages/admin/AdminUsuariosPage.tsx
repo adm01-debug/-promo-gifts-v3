@@ -3,6 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -690,6 +691,7 @@ export default function AdminUsuariosPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                <PasswordStrengthIndicator password={createForm.password} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="create-role">Role</Label>
