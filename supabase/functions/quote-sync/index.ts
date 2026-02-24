@@ -320,3 +320,51 @@ async function sendToN8N(quoteData: QuoteData): Promise<any> {
     return { success: true };
   }
 }
+
+async function sendToSalesPro(quoteData: QuoteData): Promise<void> {
+  const webhookUrl = Deno.env.get("SALESPRO_WEBHOOK_URL");
+  const apiKey = Deno.env.get("QUOTE_SYNC_API_KEY");
+
+  if (!webhookUrl) {
+    console.warn("SALESPRO_WEBHOOK_URL not configured, skipping SalesPro sync");
+    return;
+  }
+
+  if (!apiKey) {
+    console.warn("QUOTE_SYNC_API_KEY not configured, skipping SalesPro sync");
+    return;
+  }
+
+  console.log("Sending quote to SalesPro:", quoteData.quote_number);
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        action: "create_or_update_quote",
+        quote: quoteData,
+        source: "gifts-store",
+        timestamp: new Date().toISOString(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("SalesPro webhook error:", response.status, errorText);
+    } else {
+      console.log("SalesPro sync successful for quote:", quoteData.quote_number);
+      try {
+        const result = await response.json();
+        console.log("SalesPro response:", JSON.stringify(result));
+      } catch {
+        await response.text();
+      }
+    }
+  } catch (err) {
+    console.error("SalesPro sync failed:", err);
+  }
+}
