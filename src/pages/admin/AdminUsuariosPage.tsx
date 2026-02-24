@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil, Camera, X } from "lucide-react";
+import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil, Camera, X, Plus, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,6 +74,15 @@ export default function AdminUsuariosPage() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const { pendingCount } = usePasswordResetRequests();
+
+  // Create user state
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({ full_name: "", email: "", password: "", role: "vendedor" as AppRole });
+
+  // Delete user state
+  const [deleteUser, setDeleteUser] = useState<UserWithRole | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -253,6 +262,60 @@ export default function AdminUsuariosPage() {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!createForm.email || !createForm.password) {
+      toast.error("Email e senha são obrigatórios");
+      return;
+    }
+    if (createForm.password.length < 6) {
+      toast.error("A senha deve ter no mínimo 6 caracteres");
+      return;
+    }
+    setIsCreating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users", {
+        body: {
+          action: "create",
+          email: createForm.email.trim(),
+          password: createForm.password,
+          full_name: createForm.full_name.trim(),
+          role: createForm.role,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Usuário criado com sucesso");
+      setIsCreateOpen(false);
+      setCreateForm({ full_name: "", email: "", password: "", role: "vendedor" });
+      fetchUsers();
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      toast.error("Erro ao criar usuário", { description: error.message });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteUser) return;
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-users", {
+        body: { action: "delete", user_id: deleteUser.user_id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success("Usuário excluído com sucesso");
+      setUsers((prev) => prev.filter((u) => u.user_id !== deleteUser.user_id));
+      setDeleteUser(null);
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast.error("Erro ao excluir usuário", { description: error.message });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const adminCount = users.filter((u) => u.role === "admin").length;
   const managerCount = users.filter((u) => u.role === "manager").length;
   const vendedorCount = users.filter((u) => u.role === "vendedor").length;
@@ -339,11 +402,17 @@ export default function AdminUsuariosPage() {
 
           <TabsContent value="users">
             <Card className="border-border/50">
-              <CardHeader>
-                <CardTitle>Gerenciamento de Usuários e Roles</CardTitle>
-                <CardDescription>
-                  Atribua roles aos usuários: Admin (acesso total), Gerente (acesso intermediário) ou Vendedor (acesso básico)
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Gerenciamento de Usuários e Roles</CardTitle>
+                  <CardDescription>
+                    Atribua roles aos usuários: Admin (acesso total), Gerente (acesso intermediário) ou Vendedor (acesso básico)
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Usuário
+                </Button>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
@@ -410,9 +479,14 @@ export default function AdminUsuariosPage() {
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 {userItem.user_id !== user?.id && (
-                                  <Button variant="outline" size="sm" onClick={() => openRoleDialog(userItem)} disabled={updatingUserId === userItem.user_id}>
-                                    {updatingUserId === userItem.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Alterar Role"}
-                                  </Button>
+                                  <>
+                                    <Button variant="outline" size="sm" onClick={() => openRoleDialog(userItem)} disabled={updatingUserId === userItem.user_id}>
+                                      {updatingUserId === userItem.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Alterar Role"}
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setDeleteUser(userItem)} title="Excluir usuário">
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
                                 )}
                               </div>
                             </TableCell>
@@ -561,6 +635,74 @@ export default function AdminUsuariosPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Create User Dialog */}
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Novo Usuário</DialogTitle>
+              <DialogDescription>Crie um novo usuário para o sistema</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-name">Nome Completo</Label>
+                <Input id="create-name" value={createForm.full_name} onChange={(e) => setCreateForm((f) => ({ ...f, full_name: e.target.value }))} placeholder="Nome do usuário" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-email">Email *</Label>
+                <Input id="create-email" type="email" value={createForm.email} onChange={(e) => setCreateForm((f) => ({ ...f, email: e.target.value }))} placeholder="email@exemplo.com" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-password">Senha *</Label>
+                <Input id="create-password" type="password" value={createForm.password} onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))} placeholder="Mínimo 6 caracteres" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-role">Role</Label>
+                <Select value={createForm.role} onValueChange={(value) => setCreateForm((f) => ({ ...f, role: value as AppRole }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="vendedor">Vendedor</SelectItem>
+                    <SelectItem value="manager">Gerente</SelectItem>
+                    <SelectItem value="admin">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
+              <Button onClick={handleCreateUser} disabled={isCreating}>
+                {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                Criar Usuário
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete User Confirmation */}
+        <AlertDialog open={!!deleteUser} onOpenChange={(open) => !open && setDeleteUser(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir <span className="font-semibold">{deleteUser?.full_name || deleteUser?.email}</span>?
+                Esta ação é irreversível e removerá todos os dados associados a este usuário.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteUser}
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );
