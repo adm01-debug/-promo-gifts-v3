@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil, Camera, X, Plus, Trash2, Search } from "lucide-react";
+import { Shield, ShieldCheck, Users, UserCog, Loader2, KeyRound, Crown, Pencil, Camera, X, Plus, Trash2, Search, Eye, EyeOff } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,6 +86,9 @@ export default function AdminUsuariosPage() {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Show password state
+  const [showPassword, setShowPassword] = useState(false);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -681,7 +684,13 @@ export default function AdminUsuariosPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="create-password">Senha *</Label>
-                <Input id="create-password" type="password" value={createForm.password} onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))} placeholder="Mínimo 6 caracteres" />
+                <div className="relative">
+                  <Input id="create-password" type={showPassword ? "text" : "password"} value={createForm.password} onChange={(e) => setCreateForm((f) => ({ ...f, password: e.target.value }))} placeholder="Mínimo 6 caracteres" className="pr-10" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="create-role">Role</Label>
