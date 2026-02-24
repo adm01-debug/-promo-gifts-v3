@@ -717,4 +717,42 @@ return await response.json();
 
 ---
 
+async function sendToSalesPro(quoteData: QuoteData): Promise<void> {
+const salesProUrl = Deno.env.get("SALESPRO_WEBHOOK_URL");
+const apiKey = Deno.env.get("QUOTE_SYNC_API_KEY");
+
+if (!salesProUrl || !apiKey) {
+console.warn("SalesPro webhook not configured, skipping sync");
+return;
+}
+
+console.log("Sending quote to SalesPro:", quoteData.quote_number);
+
+try {
+const response = await fetch(salesProUrl, {
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"x-api-key": apiKey,
+},
+body: JSON.stringify({
+action: "create_or_update_quote",
+quote: quoteData,
+timestamp: new Date().toISOString(),
+}),
+});
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("SalesPro webhook error:", errorText);
+    } else {
+      const result = await response.json();
+      console.log("SalesPro sync success:", result);
+    }
+
+} catch (err) {
+console.error("SalesPro sync failed:", err);
+}
+}
+
 _Documento gerado para referência em novos projetos. Atualizado em: 2025-12-31_
