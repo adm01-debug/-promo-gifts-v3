@@ -92,18 +92,7 @@ export function useProductFuzzySearch(
       ...fuzzyItems.filter(p => !seenIds.has(p.id)),
     ];
 
-    if (combined.length > 0) {
-      return { results: combined, hasSearch: true };
-    }
-
-    // 5) Fallback: busca parcial em outros campos
-    const fallbackResults = products.filter(p => {
-      if ((p.sku || '').toLowerCase().includes(queryLower)) return true;
-      if ((p.supplier_reference || '').toLowerCase().includes(queryLower)) return true;
-      if ((p.brand || '').toLowerCase().includes(queryLower)) return true;
-      return false;
-    });
-    return { results: fallbackResults, hasSearch: true };
+    return { results: combined, hasSearch: true };
   }, [products, searchQuery, fuse]);
 }
 
