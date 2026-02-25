@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import { ChevronDown, ChevronUp, ChevronsUpDown, RefreshCw, Search, X, Gem, Building2, Gift, Palette, Sparkles, Filter, Paintbrush, Clock, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { toTitleCase } from "@/lib/textUtils";
@@ -114,6 +115,24 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
   const [supplierSearch, setSupplierSearch] = useState('');
+
+  // Debounced search - local state updates immediately, filter updates after delay
+  const [localSearch, setLocalSearch] = useState(filters.search);
+  const debouncedSearch = useDebounce(localSearch, 500);
+
+  // Sync debounced value to filters
+  useEffect(() => {
+    if (debouncedSearch !== filters.search) {
+      onFilterChange({ ...filters, search: debouncedSearch });
+    }
+  }, [debouncedSearch]);
+
+  // Sync external filter changes back to local (e.g. reset)
+  useEffect(() => {
+    if (filters.search !== localSearch && filters.search === '') {
+      setLocalSearch('');
+    }
+  }, [filters.search]);
   const { data: categoryIcons = [] } = useCategoryIcons();
 
   // Extrair opções dinâmicas de Público-Alvo e Endomarketing dos produtos reais (#8)
@@ -342,14 +361,14 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           <div className="relative">
             <Input
               placeholder="Nome, SKU, descrição..."
-              value={filters.search}
-              onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
               className="pr-8"
               aria-label="Buscar produtos por nome, SKU ou descrição"
             />
-            {filters.search && (
+            {localSearch && (
               <button
-                onClick={() => onFilterChange({ ...filters, search: '' })}
+                onClick={() => { setLocalSearch(''); onFilterChange({ ...filters, search: '' }); }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 aria-label="Limpar busca"
               >
