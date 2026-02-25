@@ -141,6 +141,20 @@ export interface PromobrindProduct {
   box_weight_kg?: number | null;            // Peso em kg
   box_quantity?: number | null;             // Quantidade por caixa master
   box_volume_cm3?: number | null;           // Volume em cm³
+  
+  // Vídeos do produto (enriquecido em runtime via product_videos)
+  product_videos?: Array<{
+    id: string;
+    url_stream: string | null;
+    url_hls: string | null;
+    url_thumbnail: string | null;
+    url_original: string | null;
+    source_youtube_id: string | null;
+    video_type: string | null;
+    display_order: number;
+    is_primary: boolean;
+    title: string | null;
+  }> | null;
 }
 
 // ============================================
@@ -851,6 +865,50 @@ export async function fetchPromobrindProductById(
       }
     } catch (err) {
       console.warn('Não foi possível buscar cores das variantes para produto:', productId, err);
+    }
+
+    // Buscar vídeos da tabela product_videos
+    try {
+      const videosResult = await invokeExternalDb<{
+        id: string;
+        url_stream: string | null;
+        url_hls: string | null;
+        url_thumbnail: string | null;
+        url_original: string | null;
+        source_youtube_id: string | null;
+        video_type: string | null;
+        display_order: number;
+        is_primary: boolean;
+        title: string | null;
+        cloudflare_status: string | null;
+      }>({
+        table: 'product_videos',
+        operation: 'select',
+        select: 'id, url_stream, url_hls, url_thumbnail, url_original, source_youtube_id, video_type, display_order, is_primary, title, cloudflare_status',
+        filters: { product_id: productId, is_active: true },
+        orderBy: { column: 'display_order', ascending: true },
+        limit: 20,
+      });
+
+      if (videosResult.records.length > 0) {
+        // Filtrar apenas vídeos prontos (cloudflare_status = 'ready' ou null para YouTube direto)
+        product.product_videos = videosResult.records
+          .filter(v => !v.cloudflare_status || v.cloudflare_status === 'ready')
+          .map(v => ({
+            id: v.id,
+            url_stream: v.url_stream,
+            url_hls: v.url_hls,
+            url_thumbnail: v.url_thumbnail,
+            url_original: v.url_original,
+            source_youtube_id: v.source_youtube_id,
+            video_type: v.video_type,
+            display_order: v.display_order,
+            is_primary: v.is_primary,
+            title: v.title,
+          }));
+      }
+    } catch (err) {
+      console.warn('Não foi possível buscar vídeos do produto:', productId, err);
     }
   }
 

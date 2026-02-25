@@ -173,6 +173,7 @@ export default function ProductDetail() {
             <ProductGallery
               images={displayImages}
               video={product.video}
+              productVideos={product.productVideos}
               productName={product.name}
               colors={product.variations?.map((variation) => ({
                 name: variation.color.name,
