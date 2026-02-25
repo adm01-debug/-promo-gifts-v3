@@ -16,7 +16,7 @@ const fuseOptions: IFuseOptions<Product> = {
     { name: 'category_name', weight: 0.07 },
     { name: 'description', weight: 0.05 },
   ],
-  threshold: 0.25,
+  threshold: 0.4,
   distance: 100,
   includeScore: true,
   minMatchCharLength: 2,
@@ -84,7 +84,7 @@ export function useProductFuzzySearch(
     // 3) Busca fuzzy para pegar variações/erros de digitação (só resultados relevantes)
     const fuseResults = fuse.search(query);
     const fuzzyItems = fuseResults
-      .filter(r => (r.score ?? 1) < 0.3) // só matches com boa relevância
+      .filter(r => (r.score ?? 1) < 0.45) // só matches com relevância razoável
       .map(r => r.item);
 
     // 4) Mesclar: nome exato primeiro, depois fuzzy (sem duplicatas)
