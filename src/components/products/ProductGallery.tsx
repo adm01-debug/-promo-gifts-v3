@@ -5,6 +5,20 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { sortByColorGroup } from "@/utils/colorSorting";
 import { getCdnUrl } from "@/utils/image-utils";
+
+interface ProductVideo {
+  id: string;
+  url_stream: string | null;
+  url_hls: string | null;
+  url_thumbnail: string | null;
+  url_original: string | null;
+  source_youtube_id: string | null;
+  video_type: string | null;
+  display_order: number;
+  is_primary: boolean;
+  title: string | null;
+}
+
 interface ColorMedia {
   name: string;
   hex: string;
@@ -19,6 +33,7 @@ interface ProductGalleryProps {
   images: string[];         // Imagens gerais (primeira = todas as cores)
   video?: string;           // Vídeo geral
   videos?: string[];        // Múltiplos vídeos gerais
+  productVideos?: ProductVideo[]; // Vídeos estruturados da tabela product_videos
   productName: string;
   colors?: ColorMedia[];
   onColorSelect?: (colorIndex: number) => void;
@@ -29,6 +44,7 @@ export function ProductGallery({
   images, 
   video,
   videos = [],
+  productVideos = [],
   productName, 
   colors,
   onColorSelect,
@@ -36,6 +52,8 @@ export function ProductGallery({
 }: ProductGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isVideoPlayerOpen, setIsVideoPlayerOpen] = useState(false);
+  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -43,6 +61,9 @@ export function ProductGallery({
   const [isAnimating, setIsAnimating] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0 });
   const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  // Vídeos disponíveis (da tabela product_videos)
+  const hasProductVideos = productVideos.length > 0;
 
   // Determinar mídias a exibir baseado na cor selecionada
   const selectedColor = colors?.[selectedColorIndex];
@@ -221,6 +242,29 @@ export function ProductGallery({
         
         <div className="relative rounded-2xl overflow-hidden shadow-lg border border-border/50 group-hover:shadow-2xl group-hover:border-primary/20 transition-all duration-500">
           <ImageView />
+
+          {/* Play button - top right corner */}
+          {hasProductVideos && (
+            <button
+              onClick={() => {
+                setActiveVideoIndex(0);
+                setIsVideoPlayerOpen(true);
+              }}
+              className={cn(
+                "absolute top-4 right-4 z-20 flex items-center gap-2",
+                "px-3 py-2 rounded-full",
+                "bg-destructive hover:bg-destructive/90 text-destructive-foreground",
+                "shadow-xl hover:shadow-2xl hover:scale-105",
+                "transition-all duration-300",
+                "animate-fade-in"
+              )}
+            >
+              <Play className="h-4 w-4 fill-white" />
+              <span className="text-xs font-semibold">
+                {productVideos.length > 1 ? `${productVideos.length} vídeos` : 'Vídeo'}
+              </span>
+            </button>
+          )}
 
           {/* Navigation arrows */}
           {allMedia.length > 1 && (
@@ -556,6 +600,93 @@ export function ProductGallery({
                 </button>
               ))}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Player Dialog */}
+      <Dialog open={isVideoPlayerOpen} onOpenChange={setIsVideoPlayerOpen}>
+        <DialogContent className="max-w-4xl w-full p-0 bg-black border-none overflow-hidden">
+          <div className="relative w-full">
+            {/* Header com controles */}
+            <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
+              <div className="flex items-center gap-2">
+                {productVideos.length > 1 && (
+                  <span className="text-white/80 text-sm font-medium">
+                    Vídeo {activeVideoIndex + 1} de {productVideos.length}
+                  </span>
+                )}
+                {productVideos[activeVideoIndex]?.title && (
+                  <span className="text-white/60 text-sm">
+                    — {productVideos[activeVideoIndex].title}
+                  </span>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-full text-white hover:bg-white/20"
+                onClick={() => setIsVideoPlayerOpen(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Video player */}
+            <div className="aspect-video w-full bg-black">
+              {productVideos[activeVideoIndex]?.url_stream ? (
+                <iframe
+                  src={`${productVideos[activeVideoIndex].url_stream}?autoplay=true&poster=${encodeURIComponent(productVideos[activeVideoIndex].url_thumbnail || '')}`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : productVideos[activeVideoIndex]?.source_youtube_id ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${productVideos[activeVideoIndex].source_youtube_id}?autoplay=1&rel=0`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : productVideos[activeVideoIndex]?.url_hls ? (
+                <video
+                  src={productVideos[activeVideoIndex].url_hls!}
+                  controls
+                  autoPlay
+                  className="w-full h-full"
+                  poster={productVideos[activeVideoIndex].url_thumbnail || undefined}
+                />
+              ) : null}
+            </div>
+
+            {/* Thumbnails de vídeos múltiplos */}
+            {productVideos.length > 1 && (
+              <div className="flex gap-2 p-3 bg-black/95 overflow-x-auto">
+                {productVideos.map((pv, idx) => (
+                  <button
+                    key={pv.id}
+                    onClick={() => setActiveVideoIndex(idx)}
+                    className={cn(
+                      "relative shrink-0 w-24 aspect-video rounded-lg overflow-hidden transition-all duration-200",
+                      activeVideoIndex === idx
+                        ? "ring-2 ring-primary scale-105"
+                        : "opacity-60 hover:opacity-100"
+                    )}
+                  >
+                    {pv.url_thumbnail ? (
+                      <img src={pv.url_thumbnail} alt={pv.title || `Vídeo ${idx + 1}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <Play className="h-4 w-4 text-foreground" />
+                      </div>
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Play className="h-5 w-5 text-white drop-shadow-lg fill-white/50" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

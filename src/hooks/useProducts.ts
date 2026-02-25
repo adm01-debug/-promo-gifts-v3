@@ -89,6 +89,19 @@ export interface Product {
   variations?: any[];
   kitItems?: any[];
   video?: string;
+  /** Vídeos do produto vindos da tabela product_videos */
+  productVideos?: Array<{
+    id: string;
+    url_stream: string | null;
+    url_hls: string | null;
+    url_thumbnail: string | null;
+    url_original: string | null;
+    source_youtube_id: string | null;
+    video_type: string | null;
+    display_order: number;
+    is_primary: boolean;
+    title: string | null;
+  }>;
 }
 
 export interface ProductFilters {
@@ -401,6 +414,9 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
     
     // Variações (para exibir estoque por cor e thumbnails na galeria)
     variations: variations.length > 0 ? variations : undefined,
+    
+    // Vídeos do produto
+    productVideos: p.product_videos?.length ? p.product_videos : undefined,
   };
 }
 
