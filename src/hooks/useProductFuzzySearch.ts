@@ -66,33 +66,44 @@ export function useProductFuzzySearch(
       return { results: products, hasSearch: false };
     }
 
-    // Primeiro: tentar match exato de SKU (alta prioridade)
     const queryLower = query.toLowerCase();
+
+    // 1) Match exato de SKU
     const exactSkuMatch = products.filter(p => 
       (p.sku || '').toLowerCase() === queryLower
     );
-    
     if (exactSkuMatch.length > 0) {
       return { results: exactSkuMatch, hasSearch: true };
     }
 
-    // Segundo: busca fuzzy
-    const fuseResults = fuse.search(query);
-    const mappedResults = fuseResults.map(r => r.item);
+    // 2) Produtos cujo NOME contém o termo (prioridade máxima)
+    const nameMatches = products.filter(p =>
+      p.name.toLowerCase().includes(queryLower)
+    );
 
-    // Se fuzzy não encontrou nada, tentar busca parcial clássica como fallback
-    if (mappedResults.length === 0) {
-      const fallbackResults = products.filter(p => {
-        if ((p.sku || '').toLowerCase().includes(queryLower)) return true;
-        if ((p.supplier_reference || '').toLowerCase().includes(queryLower)) return true;
-        if (p.name.toLowerCase().includes(queryLower)) return true;
-        if ((p.brand || '').toLowerCase().includes(queryLower)) return true;
-        return false;
-      });
-      return { results: fallbackResults, hasSearch: true };
+    // 3) Busca fuzzy para pegar variações/erros de digitação
+    const fuseResults = fuse.search(query);
+    const fuzzyItems = fuseResults.map(r => r.item);
+
+    // 4) Mesclar: nome exato primeiro, depois fuzzy (sem duplicatas)
+    const seenIds = new Set(nameMatches.map(p => p.id));
+    const combined = [
+      ...nameMatches,
+      ...fuzzyItems.filter(p => !seenIds.has(p.id)),
+    ];
+
+    if (combined.length > 0) {
+      return { results: combined, hasSearch: true };
     }
 
-    return { results: mappedResults, hasSearch: true };
+    // 5) Fallback: busca parcial em outros campos
+    const fallbackResults = products.filter(p => {
+      if ((p.sku || '').toLowerCase().includes(queryLower)) return true;
+      if ((p.supplier_reference || '').toLowerCase().includes(queryLower)) return true;
+      if ((p.brand || '').toLowerCase().includes(queryLower)) return true;
+      return false;
+    });
+    return { results: fallbackResults, hasSearch: true };
   }, [products, searchQuery, fuse]);
 }
 
