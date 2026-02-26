@@ -8,13 +8,11 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = "product-grid-columns";
 
-export type ColumnCount = 3 | 4 | 5 | 6;
+export type ColumnCount = 3 | 4 | 5 | 6 | 8;
 
-// Custom 6-column grid icon (3x2 grid of small squares)
-function Grid6Icon() {
+// Custom grid icon with configurable columns
+function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
   const size = 14;
-  const cols = 3;
-  const rows = 2;
   const gap = 1.5;
   const cellW = (size - (cols - 1) * gap) / cols;
   const cellH = (size - (rows - 1) * gap) / rows;
@@ -28,7 +26,7 @@ function Grid6Icon() {
           y={r * (cellH + gap)}
           width={cellW}
           height={cellH}
-          rx={1}
+          rx={0.8}
           fill="currentColor"
         />
       );
@@ -52,7 +50,8 @@ const columnOptions: ColumnOption[] = [
   { value: 3, label: "3 colunas", icon: <Columns3 className="h-3.5 w-3.5" />, minWidth: 0 },
   { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-3.5 w-3.5" />, minWidth: 640 },
   { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-3.5 w-3.5" />, minWidth: 1024 },
-  { value: 6, label: "6 colunas", icon: <Grid6Icon />, minWidth: 1280 },
+  { value: 6, label: "6 colunas", icon: <GridCustomIcon cols={3} rows={2} />, minWidth: 1280 },
+  { value: 8, label: "8 colunas", icon: <GridCustomIcon cols={4} rows={2} />, minWidth: 1536 },
 ];
 
 function getDefaultColumns(): ColumnCount {
@@ -60,7 +59,7 @@ function getDefaultColumns(): ColumnCount {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = parseInt(saved, 10) as ColumnCount;
-      if ([3, 4, 5, 6].includes(parsed)) return parsed;
+      if ([3, 4, 5, 6, 8].includes(parsed)) return parsed;
     }
   } catch {}
   return 5;
