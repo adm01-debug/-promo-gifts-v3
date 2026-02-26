@@ -602,7 +602,7 @@ export default function Index() {
         <div className="space-y-6">
           <div className="space-y-4">
             {/* Filters and controls */}
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               {/* Left - Filters & Sort */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
@@ -628,7 +628,7 @@ export default function Index() {
                 </Sheet>
 
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="w-44">
+                  <SelectTrigger className="w-32 sm:w-44">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Ordenar" />
                   </SelectTrigger>
@@ -659,7 +659,7 @@ export default function Index() {
               {/* Right - Column selector + View mode toggle (unified) */}
               <div className="flex items-center gap-1 flex-shrink-0">
                 {viewMode === "grid" && (
-                  <ColumnSelector value={gridColumns} onChange={setGridColumns} />
+                  <div className="hidden sm:block"><ColumnSelector value={gridColumns} onChange={setGridColumns} /></div>
                 )}
                 <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
                   <Button
