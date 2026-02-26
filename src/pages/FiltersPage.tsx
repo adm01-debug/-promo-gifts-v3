@@ -560,20 +560,23 @@ export default function FiltersPage() {
 
     // isKit e featured não existem no banco externo, ignorar por enquanto
 
-    // Ordenação
-    switch (sortBy) {
-      case "name":
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "price-asc":
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case "stock":
-        result.sort((a, b) => (b.stock || 0) - (a.stock || 0));
-        break;
+    // Ordenação — pular ordenação por nome quando há busca ativa (preservar relevância)
+    const skipSort = hasFuzzySearch && sortBy === 'name';
+    if (!skipSort) {
+      switch (sortBy) {
+        case "name":
+          result.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case "price-asc":
+          result.sort((a, b) => a.price - b.price);
+          break;
+        case "price-desc":
+          result.sort((a, b) => b.price - a.price);
+          break;
+        case "stock":
+          result.sort((a, b) => (b.stock || 0) - (a.stock || 0));
+          break;
+      }
     }
 
     return result;
