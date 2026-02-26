@@ -182,7 +182,7 @@ export function SmartSearchInput({
       <div className="relative">
         <button
           type="button"
-          className="absolute left-3 top-1/2 -translate-y-1/2 p-0 bg-transparent border-none cursor-pointer hover:text-primary transition-colors"
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-0 bg-transparent border-none cursor-pointer hover:text-primary transition-colors"
           onClick={() => {
             if (query.trim()) {
               addToHistory(query);
@@ -193,7 +193,7 @@ export function SmartSearchInput({
           tabIndex={-1}
           aria-label="Buscar"
         >
-          <Search className="h-5 w-5" style={{ color: 'hsl(30, 75%, 50%)' }} />
+          <Search className="h-4 w-4 text-primary" />
         </button>
         
         <Input
