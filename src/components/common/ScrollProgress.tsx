@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion, useScroll, useSpring, useMotionValueEvent } from "framer-motion";
+import { motion, useScroll, useSpring, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowUp } from "lucide-react";
 
@@ -12,7 +12,6 @@ interface ScrollProgressProps {
 
 /**
  * ScrollProgressIndicator - Barra de progresso de scroll (AN-12)
- * Mostra visualmente quanto o usuário scrollou na página
  */
 export function ScrollProgressIndicator({
   className,
@@ -59,40 +58,44 @@ export function ScrollToTopButton({
   threshold?: number;
   className?: string;
 }) {
-  const { scrollY } = useScroll();
   const [isVisible, setIsVisible] = useState(false);
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    setIsVisible(latest > threshold);
-  });
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsVisible(window.scrollY > threshold);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [threshold]);
   
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <motion.button
-      className={cn(
-        "fixed bottom-[10.5rem] lg:bottom-[6.5rem] right-4 lg:right-6 z-40 p-3 rounded-full",
-        "bg-primary text-primary-foreground shadow-lg",
-        "hover:shadow-xl hover:scale-105 active:scale-95",
-        "transition-transform duration-200",
-        className
+    <AnimatePresence>
+      {isVisible && (
+        <motion.button
+          className={cn(
+            "fixed bottom-[10.5rem] lg:bottom-[6.5rem] right-4 lg:right-6 z-40 p-3 rounded-full",
+            "bg-primary text-primary-foreground shadow-lg",
+            "hover:shadow-xl hover:scale-105 active:scale-95",
+            "transition-transform duration-200",
+            className
+          )}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleScrollToTop}
+          aria-label="Voltar ao topo"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </motion.button>
       )}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ 
-        opacity: isVisible ? 1 : 0,
-        scale: isVisible ? 1 : 0.8,
-        pointerEvents: isVisible ? "auto" : "none",
-      }}
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={handleScrollToTop}
-      aria-label="Voltar ao topo"
-    >
-      <ArrowUp className="h-5 w-5" />
-    </motion.button>
+    </AnimatePresence>
   );
 }
-
 export default ScrollProgressIndicator;
