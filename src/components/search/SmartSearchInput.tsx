@@ -180,7 +180,21 @@ export function SmartSearchInput({
   return (
     <div ref={containerRef} className={cn("relative w-full", className)}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <button
+          type="button"
+          className="absolute left-3 top-1/2 -translate-y-1/2 p-0 bg-transparent border-none cursor-pointer hover:text-primary transition-colors"
+          onClick={() => {
+            if (query.trim()) {
+              addToHistory(query);
+              navigate(`/?search=${encodeURIComponent(query)}`);
+              setIsFocused(false);
+            }
+          }}
+          tabIndex={-1}
+          aria-label="Buscar"
+        >
+          <Search className="h-4 w-4 text-muted-foreground hover:text-primary" />
+        </button>
         
         <Input
           ref={inputRef}
