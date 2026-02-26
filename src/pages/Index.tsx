@@ -19,6 +19,7 @@ import {
 
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGrid } from "@/components/products/ProductGrid";
+import { ColumnSelector, getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { ProductList } from "@/components/products/ProductList";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
@@ -72,6 +73,7 @@ export default function Index() {
 
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
@@ -660,6 +662,11 @@ export default function Index() {
                 </Select>
               </div>
 
+              {/* Column count selector */}
+              {viewMode === "grid" && (
+                <ColumnSelector value={gridColumns} onChange={setGridColumns} />
+              )}
+
               {/* View mode toggle */}
               <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
                 <Button
@@ -766,6 +773,7 @@ export default function Index() {
                   isInCompare={isInCompare}
                   onToggleCompare={toggleCompare}
                   canAddToCompare={canAddMore}
+                  columns={gridColumns}
                   highlightColors={[]}
                 />
               ) : (

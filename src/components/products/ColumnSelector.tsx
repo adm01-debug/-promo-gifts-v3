@@ -1,0 +1,110 @@
+import { useState, useEffect } from "react";
+import { Grid2x2, Grid3x3, LayoutGrid, Columns3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { motion, AnimatePresence } from "framer-motion";
+
+const STORAGE_KEY = "product-grid-columns";
+
+export type ColumnCount = 3 | 4 | 5 | 6;
+
+interface ColumnOption {
+  value: ColumnCount;
+  label: string;
+  icon: React.ReactNode;
+  minWidth: number; // minimum screen width in px
+}
+
+const columnOptions: ColumnOption[] = [
+  { value: 3, label: "3 colunas", icon: <Columns3 className="h-3.5 w-3.5" />, minWidth: 0 },
+  { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-3.5 w-3.5" />, minWidth: 640 },
+  { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-3.5 w-3.5" />, minWidth: 1024 },
+  { value: 6, label: "6 colunas", icon: <LayoutGrid className="h-3.5 w-3.5" />, minWidth: 1280 },
+];
+
+function getDefaultColumns(): ColumnCount {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = parseInt(saved, 10) as ColumnCount;
+      if ([3, 4, 5, 6].includes(parsed)) return parsed;
+    }
+  } catch {}
+  return 5;
+}
+
+function getAvailableOptions(screenWidth: number): ColumnOption[] {
+  return columnOptions.filter((opt) => screenWidth >= opt.minWidth);
+}
+
+interface ColumnSelectorProps {
+  value: ColumnCount;
+  onChange: (cols: ColumnCount) => void;
+  className?: string;
+}
+
+export function ColumnSelector({ value, onChange, className }: ColumnSelectorProps) {
+  const isMobile = useIsMobile();
+  const [screenWidth, setScreenWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1280);
+
+  useEffect(() => {
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const available = getAvailableOptions(screenWidth);
+
+  // Clamp value to available options
+  useEffect(() => {
+    const maxAvailable = available[available.length - 1]?.value ?? 3;
+    if (value > maxAvailable) {
+      onChange(maxAvailable);
+    }
+  }, [available, value, onChange]);
+
+  if (isMobile || available.length <= 1) return null;
+
+  return (
+    <div className={cn("flex items-center gap-0.5 p-0.5 rounded-lg bg-secondary/60 border border-border/30", className)}>
+      <AnimatePresence mode="popLayout">
+        {available.map((opt) => (
+          <Tooltip key={opt.value}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-7 w-7 relative transition-all duration-200",
+                  value === opt.value 
+                    ? "text-primary-foreground" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                onClick={() => {
+                  onChange(opt.value);
+                  try { localStorage.setItem(STORAGE_KEY, String(opt.value)); } catch {}
+                }}
+              >
+                {value === opt.value && (
+                  <motion.div
+                    layoutId="column-selector-bg"
+                    className="absolute inset-0 rounded-md bg-primary shadow-sm"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{opt.icon}</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs bg-popover text-popover-foreground border border-border z-50">
+              {opt.label}
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export { getDefaultColumns, STORAGE_KEY };
