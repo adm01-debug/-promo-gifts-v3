@@ -114,7 +114,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         
         {/* Scroll to Top Button - adjusted position for mobile nav */}
         <div className="print:hidden">
-          <ScrollToTopButton threshold={400} />
+          <ScrollToTopButton threshold={150} />
         </div>
         
         {/* Floating Compare Bar */}
