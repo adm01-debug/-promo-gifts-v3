@@ -707,7 +707,7 @@ export default function FiltersPage() {
           </aside>
 
           {/* Right content: headers + products */}
-          <div className="flex-1 min-w-0 space-y-3">
+          <div className="flex-1 min-w-0 space-y-6">
             {/* Single header line: Title + Search + Sort + Presets + Layout */}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex-shrink-0">
