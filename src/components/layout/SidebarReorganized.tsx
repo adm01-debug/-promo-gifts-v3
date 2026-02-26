@@ -208,7 +208,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
           <TooltipTrigger asChild>
             <div>{linkContent}</div>
           </TooltipTrigger>
-          <TooltipContent side="right" className="bg-card border-border z-[60]">
+          <TooltipContent side="right" className="bg-card border-border z-[100]">
             {item.label}
           </TooltipContent>
         </Tooltip>
@@ -241,7 +241,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
           isCollapsed ? "w-16" : "w-64"
         )}
       >
-        <div className="flex flex-col h-full pt-16 lg:pt-4">
+        <div className={cn("flex flex-col h-full pt-16 lg:pt-4", isCollapsed && "overflow-visible")}>
           {/* Collapse toggle (desktop only) */}
           <div className="hidden lg:flex items-center justify-between px-2 mb-4">
             {!isCollapsed && hasAnyGroupOpen && (
