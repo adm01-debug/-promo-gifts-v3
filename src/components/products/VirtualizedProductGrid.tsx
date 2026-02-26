@@ -62,10 +62,17 @@ export function VirtualizedProductGrid({
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  // Consistent gap values based on column count
+  const getGapPx = () => {
+    if (columns >= 8) return 8;  // gap-2
+    if (columns >= 6) return 12; // gap-3
+    return 16; // gap-4
+  };
+  const gapPx = getGapPx();
+
   // Calculate rows based on columns
   const rowCount = Math.ceil(products.length / columns);
-  // Card height calculation: image (aspect-[4/5] on ~280px width = ~350px) + content (~140px) + gap (16px) = ~510px
-  const estimatedRowHeight = 520;
+  const estimatedRowHeight = columns >= 8 ? 420 : columns >= 6 ? 460 : 520;
 
   const virtualizer = useVirtualizer({
     count: hasMore ? rowCount + 1 : rowCount, // Add 1 for loading row
@@ -196,10 +203,10 @@ export function VirtualizedProductGrid({
                   transform: `translateY(${virtualRow.start}px)`,
                   display: "grid",
                   gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                  gap: "1rem",
+                  columnGap: `${gapPx}px`,
                   paddingLeft: "0.5rem",
                   paddingRight: "1.5rem",
-                  paddingBottom: "1rem",
+                  paddingBottom: `${gapPx}px`,
                   isolation: "isolate", // Cria stacking context isolado para evitar conflitos de z-index
                 }}
               >
