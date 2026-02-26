@@ -823,7 +823,7 @@ export default function FiltersPage() {
                 </div>
               </div>
             )}
-            {/* Presets moved to header */}
+            
             {filteredProducts.length > 0 ? (
               viewMode === "grid" ? (
                 <VirtualizedProductGrid
