@@ -31,6 +31,7 @@ interface SellerCartContextType {
   updateCartStatus: (cartId: string, status: CartStatus) => void;
   duplicateCart: (cartId: string) => void;
   moveItemToCart: (itemId: string, targetCartId: string) => void;
+  duplicateItemToCart: (itemId: string, targetCartId: string) => void;
 }
 
 const SellerCartContext = createContext<SellerCartContextType | undefined>(undefined);
@@ -52,6 +53,7 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
     updateCartStatus: updateCartStatusMutation,
     duplicateCart: duplicateCartMutation,
     moveItemToCart: moveItemMutation,
+    duplicateItemToCart: duplicateItemMutation,
   } = useSellerCarts();
 
   const [activeCartId, setActiveCartId] = useState<string | null>(null);
@@ -133,6 +135,10 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
     moveItemMutation.mutate({ itemId, targetCartId });
   }, [moveItemMutation]);
 
+  const duplicateItemToCart = useCallback((itemId: string, targetCartId: string) => {
+    duplicateItemMutation.mutate({ itemId, targetCartId });
+  }, [duplicateItemMutation]);
+
   return (
     <SellerCartContext.Provider
       value={{
@@ -154,6 +160,7 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
         updateCartStatus,
         duplicateCart: duplicateCartFn,
         moveItemToCart,
+        duplicateItemToCart,
       }}
     >
       {children}
