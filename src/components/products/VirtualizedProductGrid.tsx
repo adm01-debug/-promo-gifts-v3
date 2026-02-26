@@ -31,6 +31,8 @@ interface VirtualizedProductGridProps {
   showFilterBar?: boolean;
   /** Filtros de cor ativos para mostrar imagem específica da cor no card */
   activeColorFilter?: ActiveColorFilter | null;
+  /** Column selector React node to render in the filter bar */
+  columnSelector?: React.ReactNode;
 }
 
 export function VirtualizedProductGrid({
@@ -54,6 +56,7 @@ export function VirtualizedProductGrid({
   onViewModeChange,
   showFilterBar = true,
   activeColorFilter,
+  columnSelector,
 }: VirtualizedProductGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -131,7 +134,7 @@ export function VirtualizedProductGrid({
         {/* Barra de filtros sticky DENTRO do container de scroll */}
         {showFilterBar && onSortChange && onOpenFilters && onClearFilters && onViewModeChange && (
           <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-2.5 mb-2">
-            <InlineFilterBar
+             <InlineFilterBar
               activeFiltersCount={activeFiltersCount}
               totalProducts={products.length}
               sortBy={sortBy}
@@ -140,6 +143,7 @@ export function VirtualizedProductGrid({
               onClearFilters={onClearFilters}
               viewMode={viewMode}
               onViewModeChange={onViewModeChange}
+              columnSelector={columnSelector}
             />
           </div>
         )}

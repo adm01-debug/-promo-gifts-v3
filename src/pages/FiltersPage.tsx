@@ -5,6 +5,7 @@ import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/F
 import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
+import { ColumnSelector, getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 import { useProducts } from "@/hooks/useProducts";
 import { resolveColorImage, type ActiveColorFilter } from "@/utils/color-image-resolver";
@@ -139,6 +140,7 @@ export default function FiltersPage() {
   });
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
   const [commandAction, setCommandAction] = useState<string | null>(null);
   const [appliedFilters, setAppliedFilters] = useState<Array<{ type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit"; label: string }>>([]);
@@ -831,6 +833,10 @@ export default function FiltersPage() {
                   isInCompare={isInCompare}
                   onToggleCompare={toggleCompare}
                   canAddToCompare={canAddMore}
+                  columns={gridColumns}
+                  columnSelector={
+                    <ColumnSelector value={gridColumns} onChange={setGridColumns} />
+                  }
                   // Props para barra de filtros interna
                   activeFiltersCount={activeFiltersCount}
                   sortBy={sortBy}
