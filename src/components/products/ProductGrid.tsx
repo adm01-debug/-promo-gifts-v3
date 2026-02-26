@@ -17,6 +17,7 @@ export interface ProductGridProps {
   highlightColors?: string[];
   hideCategoryBadges?: boolean;
   activeColorFilter?: ActiveColorFilter | null;
+  columns?: number;
 }
 
 function ProductCardWrapper({ 
@@ -61,6 +62,13 @@ function ProductCardWrapper({
   );
 }
 
+const columnClasses: Record<number, string> = {
+  3: "grid-cols-2 sm:grid-cols-3",
+  4: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
+  5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+  6: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+};
+
 export function ProductGrid({ 
   products,
   onProductClick,
@@ -75,6 +83,7 @@ export function ProductGrid({
   highlightColors,
   hideCategoryBadges = true,
   activeColorFilter,
+  columns = 5,
 }: ProductGridProps) {
   const [isGridVisible, setIsGridVisible] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -105,7 +114,7 @@ export function ProductGrid({
   return (
     <div 
       ref={gridRef}
-      className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4"
+      className={`grid ${columnClasses[columns] || columnClasses[5]} gap-2 sm:gap-3 lg:gap-4`}
     >
       {products.map((product, index) => (
         <ProductCardWrapper
