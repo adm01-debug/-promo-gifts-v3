@@ -502,7 +502,7 @@ export default function Index() {
           <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
             {/* Header with Search */}
             <div className="flex flex-col gap-3 sm:gap-4">
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-4 flex-wrap">
             <div className="flex-shrink-0">
               <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">Catálogo de Produtos</h1>
               <p className="text-muted-foreground text-sm sm:text-base mt-0.5">
@@ -510,7 +510,7 @@ export default function Index() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2">
               {/* Smart Search with Autocomplete & History */}
               <SmartSearchInput
                 placeholder="Buscar produtos, categorias, fornecedores..."
