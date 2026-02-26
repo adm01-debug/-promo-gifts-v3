@@ -64,12 +64,12 @@ export function VirtualizedProductGrid({
 
   // Column gap varies by density, row gap is always consistent (16px = gap-y-4)
   const getColumnGapPx = () => {
-    if (columns >= 8) return 8;  // gap-x-2
-    if (columns >= 6) return 12; // gap-x-3
-    return 16; // gap-x-4
+    if (columns >= 8) return 16;  // gap-x-4 (doubled from 8)
+    if (columns >= 6) return 24;  // gap-x-6 (doubled from 12)
+    return 32; // gap-x-8 (doubled from 16)
   };
   const colGapPx = getColumnGapPx();
-  const rowGapPx = 16; // Always gap-y-4, matching ProductGrid
+  const rowGapPx = 32; // gap-y-8 (doubled from 16), matching ProductGrid
 
   // Calculate rows based on columns
   const rowCount = Math.ceil(products.length / columns);
