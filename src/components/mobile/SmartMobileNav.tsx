@@ -41,11 +41,11 @@ const mainNavItems: NavItem[] = [
 
 const quickActions: NavItem[] = [
   { icon: FileText, label: "Novo Orçamento", href: "/orcamentos/novo" },
+  { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
   { icon: Wand2, label: "Mockup", href: "/mockup-generator" },
   { icon: Calculator, label: "Simulador", href: "/simulador" },
   { icon: Heart, label: "Favoritos", href: "/favoritos" },
   { icon: BarChart3, label: "Dashboard", href: "/bi" },
-  { icon: ShoppingCart, label: "Pedidos", href: "/pedidos" },
 ];
 
 export function SmartMobileNav() {
