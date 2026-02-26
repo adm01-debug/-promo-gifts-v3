@@ -846,7 +846,7 @@ export default function FiltersPage() {
                   onClearFilters={handleReset}
                   viewMode={viewMode}
                   onViewModeChange={setViewMode}
-                  showFilterBar={true}
+                  showFilterBar={false}
                   // Filtro de cor ativo → imagem específica da cor no card
                   activeColorFilter={
                     (filters.colorGroups.length > 0 || filters.colorVariations.length > 0)
@@ -858,61 +858,7 @@ export default function FiltersPage() {
                 <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 
                   bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
                   scrollbar-products shadow-inner p-4">
-                  {/* Barra de filtros inline para modo lista */}
-                  <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-2.5 mb-4 -mt-4 -mx-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setMobileFiltersOpen(true)}
-                          className="gap-2 h-8"
-                        >
-                          <SlidersHorizontal className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline text-xs">Filtros</span>
-                          {activeFiltersCount > 0 && (
-                            <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 flex items-center justify-center text-[10px]">
-                              {activeFiltersCount}
-                            </Badge>
-                          )}
-                        </Button>
-                        {activeFiltersCount > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleReset}
-                            className="gap-1 text-muted-foreground hover:text-foreground h-8 px-2"
-                          >
-                            <X className="h-3 w-3" />
-                            <span className="hidden sm:inline text-xs">Limpar</span>
-                          </Button>
-                        )}
-                        <span className="text-xs text-muted-foreground">
-                          <strong className="text-foreground">{filteredProducts.length}</strong> produtos
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <select 
-                          value={sortBy} 
-                          onChange={(e) => setSortBy(e.target.value)}
-                          className="h-8 text-xs border border-border rounded-md px-2 bg-background"
-                        >
-                          <option value="name">Nome A-Z</option>
-                          <option value="price-asc">Menor preço</option>
-                          <option value="price-desc">Maior preço</option>
-                          <option value="stock">Maior estoque</option>
-                        </select>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => setViewMode("grid")}
-                          className="h-8 px-3 text-xs"
-                        >
-                          Grade
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                  
                   <ProductList
                     products={filteredProducts}
                     onProductClick={(productId) => navigate(`/produto/${productId}`)}
