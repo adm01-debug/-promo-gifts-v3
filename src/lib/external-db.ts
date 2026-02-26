@@ -289,47 +289,38 @@ export async function fetchPromobrindProducts(options?: {
     const uniqueSupplierIds = [...new Set(products.map(p => p.supplier_id).filter(Boolean))] as string[];
     
     // Executar buscas em paralelo (incluindo imagens da nova tabela product_images)
-    // Helper para paginar buscas grandes (evita perda silenciosa de dados)
-    async function paginatedFetch<T>(
-      options: Omit<InvokeOptions, 'offset'> & { limit: number },
+    // OTIMIZAÇÃO: filtrar por product_id para evitar baixar o catálogo inteiro (~25k imagens, ~8k variantes)
+    // A bridge suporta arrays como filtro IN automaticamente.
+    
+    // Helper para buscar dados filtrados por product_id em chunks (evita URLs muito longas)
+    async function fetchByProductIds<T>(
+      baseOptions: Omit<InvokeOptions, 'offset' | 'filters'> & { limit: number; filters?: Record<string, unknown> },
+      ids: string[],
     ): Promise<T[]> {
-      // Supabase external projects may limit rows per query (default 1000).
-      // Strategy: fetch first page, then fetch remaining pages in parallel.
-      const PAGE_SIZE = Math.min(options.limit, 1000);
-      
-      // First page — sequential to get count
-      const firstResult = await invokeExternalDb<T>({ ...options, offset: 0, limit: PAGE_SIZE });
-      const allRecords: T[] = [...firstResult.records];
-      
-      if (firstResult.records.length < PAGE_SIZE || !firstResult.count || allRecords.length >= firstResult.count) {
-        return allRecords;
+      const CHUNK_SIZE = 200; // IDs por request — equilibra tamanho de payload vs número de requests
+      const chunks: string[][] = [];
+      for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+        chunks.push(ids.slice(i, i + CHUNK_SIZE));
       }
       
-      // Fetch remaining pages in parallel
-      const totalCount = firstResult.count;
-      const remainingPages: number[] = [];
-      for (let offset = PAGE_SIZE; offset < totalCount; offset += PAGE_SIZE) {
-        remainingPages.push(offset);
-      }
-      
-      const parallelResults = await Promise.all(
-        remainingPages.map(offset =>
-          invokeExternalDb<T>({ ...options, offset, limit: PAGE_SIZE })
-            .then(r => r.records)
-            .catch(() => [] as T[])
-        )
+      const results = await Promise.all(
+        chunks.map(async (chunk) => {
+          const filters = { ...baseOptions.filters, product_id: chunk };
+          const result = await invokeExternalDb<T>({
+            ...baseOptions,
+            filters,
+            offset: 0,
+          });
+          return result.records;
+        })
       );
       
-      for (const records of parallelResults) {
-        allRecords.push(...records);
-      }
-      
-      return allRecords;
+      return results.flat();
     }
 
     const [variantsRecords, suppliersResult, imagesRecords, colorVariationsRecords, colorGroupsRecords] = await Promise.all([
-      // Buscar cores das variantes (paginado para suportar catálogos grandes)
-      paginatedFetch<{
+      // Buscar cores das variantes FILTRADAS pelos product_ids da página
+      fetchByProductIds<{
         product_id: string;
         color_name: string | null;
         color_hex: string | null;
@@ -345,8 +336,8 @@ export async function fetchPromobrindProducts(options?: {
         operation: 'select',
         select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_images, selected_thumbnail',
         filters: { is_active: true },
-        limit: 5000,
-      }).catch(err => {
+        limit: 1000,
+      }, productIds).catch(err => {
         console.warn('Não foi possível buscar cores das variantes:', err);
         return [] as any[];
       }),
@@ -364,9 +355,8 @@ export async function fetchPromobrindProducts(options?: {
           })
         : Promise.resolve({ records: [] } as { records: { id: string; name: string; code: string }[] }),
       
-      // Buscar imagens da tabela product_images (paginado — 9.245+ registros)
-      // Briefing v3: expandido com is_og_image, title_text, url_original, filename, applies_to_color
-      paginatedFetch<{
+      // Buscar imagens FILTRADAS pelos product_ids da página
+      fetchByProductIds<{
         product_id: string;
         url_cdn: string;
         url_original: string | null;
@@ -384,9 +374,8 @@ export async function fetchPromobrindProducts(options?: {
         operation: 'select',
         select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
         filters: { is_active: true },
-        orderBy: { column: 'id', ascending: true },
-        limit: 10000,
-      }).catch(err => {
+        limit: 1000,
+      }, productIds).catch(err => {
         console.warn('Não foi possível buscar imagens da tabela product_images:', err);
         return [] as any[];
       }),
