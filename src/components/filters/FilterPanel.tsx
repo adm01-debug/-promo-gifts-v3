@@ -338,20 +338,20 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
         <div className="flex items-center gap-1 -ml-3">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => { onReset(); toast.success('Filtros resetados'); }}
-            className="text-muted-foreground hover:text-foreground text-xs h-7 px-2"
+            className="text-xs h-7 px-3 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
             aria-label="Resetar todos os filtros"
           >
             <RefreshCw className="h-3.5 w-3.5 mr-1" />
             Reset
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={collapseAllSections}
-            className="text-muted-foreground hover:text-foreground text-xs h-7 px-2"
+            className="text-xs h-7 px-3 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
             aria-label="Colapsar todas as seções de filtro"
           >
             <ChevronsUpDown className="h-3.5 w-3.5 mr-1" />
