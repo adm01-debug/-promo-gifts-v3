@@ -24,7 +24,7 @@ import { ProductList } from "@/components/products/ProductList";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
-import { QuickFilter } from "@/components/filters/QuickFiltersBar";
+
 
 import { CategorySidebarPanel } from "@/components/categories";
 import { SmartSearchInput } from "@/components/search";
@@ -77,7 +77,7 @@ export default function Index() {
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
-  const [activeQuickFilterId, setActiveQuickFilterId] = useState<string | undefined>();
+  
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(12);
   const [selectedExternalCategory, setSelectedExternalCategory] = useState<{ id: string; name: string } | null>(null);
@@ -342,92 +342,9 @@ export default function Index() {
     };
   }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
 
-  // Quick filters
-  const quickFilters: QuickFilter[] = useMemo(
-    () => [
-      {
-        id: "all",
-        label: "Todos",
-        icon: <Layers className="h-4 w-4 text-orange" />,
-        filter: {},
-      },
-      {
-        id: "featured",
-        label: "Destaques",
-        icon: <Sparkles className="h-4 w-4 text-orange" />,
-        filter: { featured: true },
-      },
-      {
-        id: "new",
-        label: "Novidades",
-        icon: <TrendingUp className="h-4 w-4 text-orange" />,
-        filter: { newArrival: true },
-      },
-      {
-        id: "kits",
-        label: "Kits",
-        icon: <Package className="h-4 w-4 text-orange" />,
-        filter: { isKit: true },
-      },
-    ],
-    [],
-  );
-
-  // Stats as compact badges
-  const statBadges = useMemo(
-    () => [
-      {
-        id: "products",
-        label: "Produtos",
-        value: filteredProducts.length,
-        icon: <Package className="h-4 w-4" />,
-      },
-      {
-        id: "categories",
-        label: "Categorias",
-        value: CATEGORIES.length,
-        icon: <Layers className="h-4 w-4" />,
-      },
-      {
-        id: "suppliers",
-        label: "Fornecedores",
-        value: SUPPLIERS.length,
-        icon: <Users className="h-4 w-4" />,
-      },
-      {
-        id: "favorites",
-        label: "Favoritos",
-        value: favoriteCount,
-        icon: <TrendingUp className="h-4 w-4" />,
-      },
-    ],
-    [filteredProducts, favoriteCount],
-  );
-
-  // Handlers
-  const handleQuickFilter = (filter: QuickFilter) => {
-    setActiveQuickFilterId(filter.id);
-
-    if (filter.id === "all") {
-      setFilters(defaultFilters);
-      setSortBy("name");
-      return;
-    }
-
-    const newFilters = { ...defaultFilters };
-    if ("featured" in filter.filter) newFilters.featured = true;
-    if ("isKit" in filter.filter) newFilters.isKit = true;
-
-    setFilters(newFilters);
-
-    if ("newArrival" in filter.filter) {
-      setSortBy("newest");
-    }
-  };
-
   const resetFilters = () => {
     setFilters(defaultFilters);
-    setActiveQuickFilterId(undefined);
+    setFilters(defaultFilters);
     setSortBy("name");
   };
 
@@ -534,26 +451,9 @@ export default function Index() {
               </div>
             </div>
 
-          {/* Quick Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            {quickFilters.map((filter) => (
-              <Button
-                key={filter.id}
-                variant={activeQuickFilterId === filter.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleQuickFilter(filter)}
-                className={cn(
-                  "h-8 gap-1.5 text-xs font-semibold tracking-wide",
-                  activeQuickFilterId === filter.id && "bg-primary text-primary-foreground"
-                )}
-              >
-                {filter.icon}
-                {filter.label}
-              </Button>
-            ))}
-
-            {/* Mobile category toggle */}
-            {!isDesktop && (
+          {/* Mobile category toggle */}
+          {!isDesktop && (
+            <div className="flex items-center gap-2">
               <Sheet>
                 <SheetTrigger asChild>
                   <div className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide cursor-pointer hover:bg-muted/50 transition-colors">
@@ -569,8 +469,8 @@ export default function Index() {
                   />
                 </SheetContent>
               </Sheet>
-            )}
-          </div>
+            </div>
+          )}
 
 
         {/* External Category Filter Badge */}
