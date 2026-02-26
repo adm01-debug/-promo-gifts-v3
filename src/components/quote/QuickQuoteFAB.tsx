@@ -185,10 +185,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
               <Plus className="h-6 w-6" />
             </motion.div>
             
-            {/* Pulse effect when closed */}
-            {!isOpen && (
-              <span className="absolute inset-0 rounded-full bg-[#39FF14] animate-ping opacity-20" />
-            )}
+            {/* No pulse effect */}
           </motion.button>
         </TooltipTrigger>
         <TooltipContent side="left" className="bg-card border-border">
