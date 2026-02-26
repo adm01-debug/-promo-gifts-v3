@@ -419,18 +419,20 @@ export default function Index() {
           <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
             {/* Header with Search */}
             <div className="flex flex-col gap-3 sm:gap-4">
-              <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
-              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">Catálogo de Produtos</h1>
-              <p className="text-muted-foreground text-sm sm:text-base mt-0.5">
-                Explore nossa coleção completa de brindes corporativos
-              </p>
+              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">
+                Catálogo de Produtos
+                <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
+                  · {filteredProducts.length.toLocaleString("pt-BR")} itens
+                </span>
+              </h1>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-1 min-w-0 max-w-xl">
               {/* Smart Search with Autocomplete & History */}
               <SmartSearchInput
-                placeholder="Buscar produtos, categorias, fornecedores..."
+                placeholder="Buscar produtos..."
                 onSelect={(result) => {
                   if (result.type === "product") {
                     navigate(`/produto/${result.id}`);
@@ -442,7 +444,7 @@ export default function Index() {
                     handleSearch(result.label);
                   }
                 }}
-                className="w-full lg:w-96"
+                className="flex-1"
               />
 
               {/* Recently Viewed Popover */}
