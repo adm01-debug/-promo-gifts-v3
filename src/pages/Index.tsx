@@ -8,18 +8,17 @@ import {
   Layers,
   Filter,
   ArrowUpDown,
-  LayoutGrid,
-  List,
   User,
   X,
   Palette,
-  Sparkles,
   Loader2,
 } from "lucide-react";
 
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGrid } from "@/components/products/ProductGrid";
-import { ColumnSelector, getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
+import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
+import { LayoutPopover } from "@/components/products/LayoutPopover";
+import { StatsPopover } from "@/components/products/StatsPopover";
 import { ProductList } from "@/components/products/ProductList";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
@@ -344,7 +343,6 @@ export default function Index() {
 
   const resetFilters = () => {
     setFilters(defaultFilters);
-    setFilters(defaultFilters);
     setSortBy("name");
   };
 
@@ -416,97 +414,83 @@ export default function Index() {
 
         {/* Main content */}
         <div className="flex-1 min-w-0">
-          <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
-            {/* Header with Search */}
-            <div className="flex flex-col gap-3 sm:gap-4">
-              <div className="flex items-center gap-3">
-            <div className="flex-shrink-0">
-              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">
-                Catálogo de Produtos
-                <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
-                  · {filteredProducts.length.toLocaleString("pt-BR")} itens
-                </span>
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-2 flex-1 min-w-0 max-w-xl">
-              {/* Smart Search with Autocomplete & History */}
-              <SmartSearchInput
-                placeholder="Buscar produtos..."
-                onSelect={(result) => {
-                  if (result.type === "product") {
-                    navigate(`/produto/${result.id}`);
-                  } else if (result.type === "category") {
-                    setFilters(prev => ({ ...prev, categories: [parseInt(result.id)] }));
-                  } else if (result.type === "supplier") {
-                    setFilters(prev => ({ ...prev, suppliers: [result.id] }));
-                  } else {
-                    handleSearch(result.label);
-                  }
-                }}
-                className="flex-1"
-              />
-
-              {/* Recently Viewed Popover */}
-              <RecentlyViewedPopover maxVisible={10} />
-            </div>
-              </div>
-            </div>
-
-          {/* Mobile category toggle */}
-          {!isDesktop && (
-            <div className="flex items-center gap-2">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <div className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide cursor-pointer hover:bg-muted/50 transition-colors">
-                    <span className="text-orange"><Layers className="h-4 w-4" /></span>
-                    <span className="text-foreground/70">Categorias</span>
-                  </div>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-80 p-0">
-                  <CategorySidebarPanel
-                    selectedCategoryId={selectedExternalCategory?.id}
-                    onSelectCategory={handleExternalCategorySelect}
-                    className="h-full border-none"
-                  />
-                </SheetContent>
-              </Sheet>
-            </div>
-          )}
-
-
-        {/* External Category Filter Badge */}
-        {selectedExternalCategory && (
-          <Card className="border-amber-500/30 bg-amber-500/5">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Layers className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm">
-                    Categoria: <strong>{selectedExternalCategory.name}</strong>
+          <div className="space-y-3 p-4 sm:p-6">
+            {/* Line 1: Title + Search + Recently Viewed */}
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0">
+                <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">
+                  Catálogo de Produtos
+                  <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
+                    · {filteredProducts.length.toLocaleString("pt-BR")} itens
                   </span>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setSelectedExternalCategory(null)}
-                  className="h-7 px-2"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                </h1>
               </div>
-            </CardContent>
-          </Card>
-        )}
 
+              <div className="flex items-center gap-2 flex-1 min-w-0 max-w-xl">
+                <SmartSearchInput
+                  placeholder="Buscar produtos..."
+                  onSelect={(result) => {
+                    if (result.type === "product") {
+                      navigate(`/produto/${result.id}`);
+                    } else if (result.type === "category") {
+                      setFilters(prev => ({ ...prev, categories: [parseInt(result.id)] }));
+                    } else if (result.type === "supplier") {
+                      setFilters(prev => ({ ...prev, suppliers: [result.id] }));
+                    } else {
+                      handleSearch(result.label);
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <RecentlyViewedPopover maxVisible={10} />
+              </div>
+            </div>
 
-        {/* Main Content */}
-        <div className="space-y-6">
-          <div className="space-y-4">
-            {/* Filters and controls */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              {/* Left - Filters & Sort */}
+            {/* External Category Filter Badge */}
+            {selectedExternalCategory && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-primary" />
+                      <span className="text-sm">
+                        Categoria: <strong>{selectedExternalCategory.name}</strong>
+                      </span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSelectedExternalCategory(null)}
+                      className="h-7 px-2"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Line 2: Filters + Sort + Stats + Layout */}
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Mobile category toggle */}
+                {!isDesktop && (
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-1.5">
+                        <Layers className="h-4 w-4" />
+                        <span className="text-xs">Categorias</span>
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-80 p-0">
+                      <CategorySidebarPanel
+                        selectedCategoryId={selectedExternalCategory?.id}
+                        onSelectCategory={handleExternalCategorySelect}
+                        className="h-full border-none"
+                      />
+                    </SheetContent>
+                  </Sheet>
+                )}
                 <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
                   <SheetTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -542,46 +526,16 @@ export default function Index() {
                     <SelectItem value="newest">Novidades</SelectItem>
                   </SelectContent>
                 </Select>
+                <StatsPopover stats={statBadges} />
               </div>
 
-              {/* Center - Stat Badges */}
-              <div className="hidden lg:flex items-center gap-2 justify-center flex-1 min-w-0 overflow-x-auto scrollbar-none">
-                {statBadges.map((stat) => (
-                  <div
-                    key={stat.id}
-                    className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide"
-                  >
-                    <span className="text-orange">{stat.icon}</span>
-                    <span className="font-bold text-foreground">{stat.value}</span>
-                    <span className="text-foreground/70">{stat.label}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Right - Column selector + View mode toggle (unified) */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {viewMode === "grid" && (
-                  <div className="hidden sm:block"><ColumnSelector value={gridColumns} onChange={setGridColumns} /></div>
-                )}
-                <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn("h-8 w-8", viewMode === "grid" && "bg-card shadow-sm")}
-                    onClick={() => setViewMode("grid")}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn("h-8 w-8", viewMode === "list" && "bg-card shadow-sm")}
-                    onClick={() => setViewMode("list")}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              {/* Right - Layout popover */}
+              <LayoutPopover
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                gridColumns={gridColumns}
+                setGridColumns={setGridColumns}
+              />
             </div>
 
             {/* Active filters display */}
@@ -688,7 +642,7 @@ export default function Index() {
                 />
               )}
 
-              {/* Infinite scroll trigger - elemento observado */}
+              {/* Infinite scroll trigger */}
               {!isLoading && hasMoreProducts && (
                 <div 
                   ref={loadMoreRef}
@@ -717,8 +671,6 @@ export default function Index() {
               )}
             </div>
           </div>
-        </div>
-        </div>
         </div>
       </div>
 
