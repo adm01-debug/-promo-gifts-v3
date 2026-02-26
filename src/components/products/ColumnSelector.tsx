@@ -12,7 +12,7 @@ export type ColumnCount = 3 | 4 | 5 | 6 | 8;
 
 // Custom grid icon with configurable columns
 function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
-  const size = 16;
+  const size = 18;
   const gap = 1.5;
   const cellW = (size - (cols - 1) * gap) / cols;
   const cellH = (size - (rows - 1) * gap) / rows;
@@ -33,7 +33,7 @@ function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
     }
   }
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="h-4 w-4">
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="h-5 w-5">
       {rects}
     </svg>
   );
@@ -47,9 +47,9 @@ interface ColumnOption {
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 3, label: "3 colunas", icon: <Columns3 className="h-3.5 w-3.5" />, minWidth: 0 },
-  { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-3.5 w-3.5" />, minWidth: 640 },
-  { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-3.5 w-3.5" />, minWidth: 1024 },
+  { value: 3, label: "3 colunas", icon: <Columns3 className="h-5 w-5" />, minWidth: 0 },
+  { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-5 w-5" />, minWidth: 640 },
+  { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-5 w-5" />, minWidth: 1024 },
   { value: 6, label: "6 colunas", icon: <GridCustomIcon cols={3} rows={2} />, minWidth: 1280 },
   { value: 8, label: "8 colunas", icon: <GridCustomIcon cols={4} rows={3} />, minWidth: 1536 },
 ];
@@ -98,7 +98,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
   if (isMobile || available.length <= 1) return null;
 
   return (
-    <div className={cn("flex items-center gap-0.5 p-0.5 rounded-lg bg-secondary/60 border border-border/30", className)}>
+    <div className={cn("flex items-center gap-0 p-0.5 rounded-lg bg-secondary/60 border border-border/30", className)}>
       <AnimatePresence mode="popLayout">
         {available.map((opt) => (
           <Tooltip key={opt.value}>
@@ -107,7 +107,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-9 w-9 min-w-0 p-0 relative transition-all duration-200",
+                  "h-8 w-8 min-w-0 p-0 relative transition-all duration-200",
                   value === opt.value 
                     ? "text-primary-foreground" 
                     : "text-muted-foreground hover:text-foreground"

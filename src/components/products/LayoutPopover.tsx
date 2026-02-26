@@ -30,7 +30,7 @@ export function LayoutPopover({
           <span className="hidden sm:inline text-xs">Layout</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 p-3" sideOffset={8}>
+      <PopoverContent align="end" className="w-56 p-3" sideOffset={8}>
         <div className="space-y-3">
           {/* View Mode */}
           <div>
