@@ -12,7 +12,7 @@ export type ColumnCount = 3 | 4 | 5 | 6 | 8;
 
 // Custom grid icon with configurable columns
 function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
-  const size = 14;
+  const size = 16;
   const gap = 1.5;
   const cellW = (size - (cols - 1) * gap) / cols;
   const cellH = (size - (rows - 1) * gap) / rows;
@@ -26,14 +26,14 @@ function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
           y={r * (cellH + gap)}
           width={cellW}
           height={cellH}
-          rx={0.8}
+          rx={0.6}
           fill="currentColor"
         />
       );
     }
   }
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="h-3.5 w-3.5">
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="h-4 w-4">
       {rects}
     </svg>
   );
