@@ -328,7 +328,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-start gap-2">
         <div className="flex items-center gap-2">
           {activeFiltersCount > 0 && (
             <Badge variant="secondary" className="rounded-full">
