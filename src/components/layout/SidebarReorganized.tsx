@@ -272,7 +272,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
           </div>
 
           {/* Main navigation with groups */}
-          <nav className="flex-1 px-2 space-y-1 overflow-y-auto scrollbar-thin">
+          <nav className={cn("flex-1 px-2 space-y-1 scrollbar-thin", isCollapsed ? "overflow-visible" : "overflow-y-auto")}>
             {navGroups.map((group) => {
               // Hide admin-only groups for non-admins
               if (group.adminOnly && !isAdmin) return null;
