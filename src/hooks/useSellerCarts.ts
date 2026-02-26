@@ -19,6 +19,8 @@ export interface SellerCart {
   company_name: string;
   company_location: string | null;
   company_logo_url: string | null;
+  notes: string | null;
+  status: string;
   created_at: string;
   updated_at: string;
   items: SellerCartItem[];
@@ -59,6 +61,8 @@ export interface CreateCartInput {
   company_logo_url?: string;
 }
 
+export type CartStatus = "novo" | "em_negociacao" | "pronto_orcamento";
+
 const QUERY_KEY = "seller-carts";
 
 // ============================================
@@ -95,6 +99,8 @@ export function useSellerCarts() {
 
       return carts.map(cart => ({
         ...cart,
+        notes: (cart as any).notes ?? null,
+        status: (cart as any).status ?? "novo",
         items: (items || []).filter(i => i.cart_id === cart.id),
       }));
     },
@@ -125,7 +131,7 @@ export function useSellerCarts() {
         }
         throw error;
       }
-      return { ...data, items: [] } as SellerCart;
+      return { ...data, notes: null, status: "novo", items: [] } as SellerCart;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
@@ -142,7 +148,6 @@ export function useSellerCarts() {
         .from("seller_carts")
         .delete()
         .eq("id", cartId);
-
       if (error) throw error;
     },
     onSuccess: () => {
@@ -154,7 +159,6 @@ export function useSellerCarts() {
   // Add item to cart
   const addItem = useMutation({
     mutationFn: async ({ cartId, item }: { cartId: string; item: AddToCartInput }) => {
-      // Check if product already exists in cart
       const { data: existing } = await supabase
         .from("seller_cart_items")
         .select("id, quantity")
@@ -163,7 +167,6 @@ export function useSellerCarts() {
         .maybeSingle();
 
       if (existing) {
-        // Update quantity
         const { error } = await supabase
           .from("seller_cart_items")
           .update({ quantity: existing.quantity + (item.quantity || 1) })
@@ -186,7 +189,6 @@ export function useSellerCarts() {
         if (error) throw error;
       }
 
-      // Touch cart updated_at
       await supabase
         .from("seller_carts")
         .update({ updated_at: new Date().toISOString() })
@@ -225,6 +227,127 @@ export function useSellerCarts() {
     },
   });
 
+  // Update item notes
+  const updateItemNotes = useMutation({
+    mutationFn: async ({ itemId, notes }: { itemId: string; notes: string }) => {
+      const { error } = await supabase
+        .from("seller_cart_items")
+        .update({ notes: notes || null })
+        .eq("id", itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
+
+  // Update item sort order
+  const updateItemSortOrder = useMutation({
+    mutationFn: async (items: { id: string; sort_order: number }[]) => {
+      const promises = items.map(({ id, sort_order }) =>
+        supabase.from("seller_cart_items").update({ sort_order }).eq("id", id)
+      );
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
+
+  // Update cart notes
+  const updateCartNotes = useMutation({
+    mutationFn: async ({ cartId, notes }: { cartId: string; notes: string }) => {
+      const { error } = await supabase
+        .from("seller_carts")
+        .update({ notes: notes || null } as any)
+        .eq("id", cartId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
+
+  // Update cart status
+  const updateCartStatus = useMutation({
+    mutationFn: async ({ cartId, status }: { cartId: string; status: CartStatus }) => {
+      const { error } = await supabase
+        .from("seller_carts")
+        .update({ status } as any)
+        .eq("id", cartId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
+
+  // Duplicate cart
+  const duplicateCart = useMutation({
+    mutationFn: async (sourceCartId: string) => {
+      if (!userId) throw new Error("Não autenticado");
+      const sourceCart = (cartsQuery.data || []).find(c => c.id === sourceCartId);
+      if (!sourceCart) throw new Error("Carrinho não encontrado");
+
+      // Create new cart
+      const { data: newCart, error: cartErr } = await supabase
+        .from("seller_carts")
+        .insert({
+          seller_id: userId,
+          company_id: sourceCart.company_id,
+          company_name: sourceCart.company_name,
+          company_location: sourceCart.company_location,
+          company_logo_url: sourceCart.company_logo_url,
+        })
+        .select()
+        .single();
+      if (cartErr) throw cartErr;
+
+      // Copy items
+      if (sourceCart.items.length > 0) {
+        const newItems = sourceCart.items.map(i => ({
+          cart_id: newCart.id,
+          product_id: i.product_id,
+          product_name: i.product_name,
+          product_sku: i.product_sku,
+          product_image_url: i.product_image_url,
+          product_price: i.product_price,
+          quantity: i.quantity,
+          color_name: i.color_name,
+          color_hex: i.color_hex,
+          notes: i.notes,
+          sort_order: i.sort_order,
+        }));
+        const { error: itemsErr } = await supabase.from("seller_cart_items").insert(newItems);
+        if (itemsErr) throw itemsErr;
+      }
+
+      return newCart.id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      toast.success("Carrinho duplicado com sucesso");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  // Move item to another cart
+  const moveItemToCart = useMutation({
+    mutationFn: async ({ itemId, targetCartId }: { itemId: string; targetCartId: string }) => {
+      const { error } = await supabase
+        .from("seller_cart_items")
+        .update({ cart_id: targetCartId })
+        .eq("id", itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      toast.success("Item movido para outro carrinho");
+    },
+  });
+
   // Computed
   const carts = cartsQuery.data || [];
   const totalItems = carts.reduce((sum, c) => sum + c.items.length, 0);
@@ -240,6 +363,12 @@ export function useSellerCarts() {
     addItem,
     removeItem,
     updateItemQuantity,
+    updateItemNotes,
+    updateItemSortOrder,
+    updateCartNotes,
+    updateCartStatus,
+    duplicateCart,
+    moveItemToCart,
     refetch: cartsQuery.refetch,
   };
 }

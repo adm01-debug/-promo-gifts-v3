@@ -153,6 +153,7 @@ const App = () => {
                                         <Route path="/novidades" element={<NoveltiesPage />} />
                                         <Route path="/favoritos" element={<FavoritesPage />} />
                                         <Route path="/carrinhos" element={<SellerCartsPage />} />
+                                        <Route path="/carrinhos/:cartId" element={<SellerCartsPage />} />
                                         <Route path="/comparar" element={<ComparePage />} />
                                         <Route path="/colecoes" element={<CollectionsPage />} />
                                         <Route path="/colecoes/:id" element={<CollectionDetailPage />} />
