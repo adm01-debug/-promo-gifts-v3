@@ -5,7 +5,7 @@ import {
   Package,
   TrendingUp,
   Users,
-  
+  Layers,
   Filter,
   ArrowUpDown,
   User,
@@ -92,7 +92,7 @@ export default function Index() {
 
   // Hook para buscar produtos por categorias (usa tabela product_category_assignments)
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
-    categoryIds: selectedExternalCategory ? [selectedExternalCategory.id] : [],
+    categoryIds: filters.categories?.map(String) || [],
     includeDescendants: true,
   });
   
@@ -107,7 +107,7 @@ export default function Index() {
   // Reset pagination when filters change
   useEffect(() => {
     setDisplayCount(ITEMS_PER_PAGE);
-  }, [filters, sortBy, searchQuery, selectedExternalCategory]);
+  }, [filters, sortBy, searchQuery]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
