@@ -666,26 +666,18 @@ export default function FiltersPage() {
   return (
     <MainLayout>
       <div className="space-y-3 animate-fade-in">
-        {/* Line 1: Title (sidebar-aligned) + Search + Presets (grid-aligned) */}
-        <div className="flex gap-6">
-          {/* Left: Title aligned with sidebar */}
-          <div className="hidden lg:flex items-center w-80 shrink-0">
-            <h1 className="font-display text-xl sm:text-2xl font-bold whitespace-nowrap">
+        {/* Line 1: Title + Search + Presets */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-shrink-0">
+            <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
               Super Filtro
-              <span className="text-muted-foreground font-normal text-sm ml-2">
+              <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
                 · {filteredProducts.length.toLocaleString("pt-BR")} itens
               </span>
             </h1>
           </div>
-          {/* Mobile title */}
-          <h1 className="lg:hidden font-display text-xl font-bold whitespace-nowrap">
-            Super Filtro
-            <span className="text-muted-foreground font-normal text-sm ml-2">
-              · {filteredProducts.length.toLocaleString("pt-BR")} itens
-            </span>
-          </h1>
-          {/* Right: Search + Presets aligned with grid */}
-          <div className="flex-1 min-w-0 flex items-center gap-2">
+
+          <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xl">
             <SmartSearchInput
               placeholder="Buscar produtos..."
               onSelect={(result) => {
@@ -705,13 +697,9 @@ export default function FiltersPage() {
           </div>
         </div>
 
-        {/* Line 2: Sort + Active filters (grid-aligned) + Layout */}
-        <div className="flex gap-6">
-          {/* Spacer matching sidebar width */}
-          <div className="hidden lg:block w-80 shrink-0" />
-          {/* Content aligned with grid */}
-          <div className="flex-1 min-w-0 flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Line 2: Filters + Sort + Active filters + Layout */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-shrink-0">
               <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="sm" className="lg:hidden">
@@ -814,7 +802,6 @@ export default function FiltersPage() {
                 gridColumns={gridColumns}
                 setGridColumns={setGridColumns}
               />
-            </div>
           </div>
         </div>
 
