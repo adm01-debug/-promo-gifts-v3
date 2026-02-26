@@ -149,6 +149,7 @@ interface InlineFilterBarProps {
   onClearFilters: () => void;
   viewMode: "grid" | "list";
   onViewModeChange: (mode: "grid" | "list") => void;
+  columnSelector?: React.ReactNode;
 }
 
 export function InlineFilterBar({
@@ -160,6 +161,7 @@ export function InlineFilterBar({
   onClearFilters,
   viewMode,
   onViewModeChange,
+  columnSelector,
 }: InlineFilterBarProps) {
   return (
     <div className="flex items-center justify-between gap-3">
@@ -202,6 +204,8 @@ export function InlineFilterBar({
 
         {/* Right side - Sort & View */}
         <div className="flex items-center gap-2">
+          {/* Column selector */}
+          {viewMode === "grid" && columnSelector}
           {/* View mode toggle */}
           <div className="hidden sm:flex border border-border rounded-md p-0.5">
             <Button
