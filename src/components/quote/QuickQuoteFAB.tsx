@@ -173,7 +173,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               isOpen
                 ? "bg-muted text-muted-foreground"
-                : "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-[#39FF14] text-black hover:bg-[#32e612]"
             )}
             aria-label={isOpen ? "Fechar menu" : "Ações rápidas"}
             aria-expanded={isOpen}
@@ -187,7 +187,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
             
             {/* Pulse effect when closed */}
             {!isOpen && (
-              <span className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" />
+              <span className="absolute inset-0 rounded-full bg-[#39FF14] animate-ping opacity-20" />
             )}
           </motion.button>
         </TooltipTrigger>
