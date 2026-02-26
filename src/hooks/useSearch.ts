@@ -129,6 +129,17 @@ export function useSearch(products: Product[] = []) {
       .filter(r => (r.score ?? 1) < 0.45)
       .map(r => r.item);
 
+    // Ordenar cada grupo pela posição do termo no nome
+    const sortByPos = (arr: Product[]) =>
+      arr.sort((a, b) => {
+        const posA = a.name.toLowerCase().indexOf(searchLower);
+        const posB = b.name.toLowerCase().indexOf(searchLower);
+        return (posA === -1 ? 9999 : posA) - (posB === -1 ? 9999 : posB);
+      });
+    sortByPos(startsWithProducts);
+    sortByPos(exactWordProducts);
+    sortByPos(containsProducts);
+
     // Mesclar sem duplicatas, na ordem de prioridade
     const seenIds = new Set<string>();
     const orderedProducts: Product[] = [];

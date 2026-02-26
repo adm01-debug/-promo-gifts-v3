@@ -103,7 +103,19 @@ export function useProductFuzzySearch(
       .filter(r => (r.score ?? 1) < 0.45)
       .map(r => r.item);
 
-    // 4) Mesclar por ordem de relevância (sem duplicatas):
+    // 4) Ordenar cada grupo pela posição do termo no nome (mais cedo = mais relevante)
+    const sortByPosition = (arr: Product[]) =>
+      arr.sort((a, b) => {
+        const posA = a.name.toLowerCase().indexOf(queryLower);
+        const posB = b.name.toLowerCase().indexOf(queryLower);
+        return (posA === -1 ? 9999 : posA) - (posB === -1 ? 9999 : posB);
+      });
+
+    sortByPosition(nameStartsWith);
+    sortByPosition(nameIsExactWord);
+    sortByPosition(nameContains);
+
+    // 5) Mesclar por ordem de relevância (sem duplicatas):
     //    começa com > palavra exata > contém > fuzzy
     const seenIds = new Set<string>();
     const combined: Product[] = [];

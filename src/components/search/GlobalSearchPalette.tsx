@@ -557,6 +557,17 @@ export function GlobalSearchPalette() {
             }
           }
 
+          // Ordenar cada grupo pela posição do termo no nome
+          const sortByPos = (arr: typeof filteredProducts) =>
+            arr.sort((a, b) => {
+              const posA = a.name.toLowerCase().indexOf(searchLower);
+              const posB = b.name.toLowerCase().indexOf(searchLower);
+              return (posA === -1 ? 9999 : posA) - (posB === -1 ? 9999 : posB);
+            });
+          sortByPos(startsWithGroup);
+          sortByPos(exactWordGroup);
+          sortByPos(containsGroup);
+
           const orderedProducts = [...startsWithGroup, ...exactWordGroup, ...containsGroup, ...otherGroup];
 
           orderedProducts.forEach((p) => {
