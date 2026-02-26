@@ -13,6 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -22,9 +29,12 @@ import {
 import { 
   Filter, 
   SlidersHorizontal, 
+  ArrowUpDown,
   X,
   Mic
 } from "lucide-react";
+import { LayoutPopover } from "@/components/products/LayoutPopover";
+import { SmartSearchInput } from "@/components/search";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -657,49 +667,33 @@ export default function FiltersPage() {
 
   return (
     <MainLayout>
-      <div className="space-y-0 animate-fade-in">
-        {/* Compact Header — single dense row */}
-        <div className="flex items-center gap-3 flex-wrap mb-3">
-          {/* Title + count */}
-          <h1 className="text-xl font-display font-bold text-foreground whitespace-nowrap">
-            Super Filtro
-          </h1>
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
-            {filteredProducts.length} produtos
-          </span>
+      <div className="space-y-3 animate-fade-in">
+        {/* Line 1: Title + Search + Presets + Mic */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-shrink-0">
+            <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
+              Super Filtro
+              <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
+                · {filteredProducts.length.toLocaleString("pt-BR")} itens
+              </span>
+            </h1>
+          </div>
 
-          {/* Active filters inline */}
-          {activeFiltersSummary.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs text-muted-foreground">·</span>
-              {activeFiltersSummary.map((filter) => (
-                <Badge
-                  key={filter.key}
-                  variant="secondary"
-                  className="gap-1 cursor-pointer hover:bg-destructive/20 text-xs py-0.5 px-2"
-                  onClick={() => clearSingleFilter(filter.key)}
-                >
-                  {filter.label}: {filter.value}
-                  <X className="h-3 w-3" />
-                </Badge>
-              ))}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleReset}
-                className="text-muted-foreground h-6 px-2 text-xs"
-                aria-label="Limpar todos os filtros ativos"
-              >
-                Limpar todos
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xl">
+            <SmartSearchInput
+              placeholder="Buscar produtos..."
+              onSelect={(result) => {
+                if (result.type === "product") {
+                  navigate(`/produto/${result.id}`);
+                } else {
+                  handleFilterChange({ ...filters, search: result.label });
+                }
+              }}
+              className="flex-1"
+            />
+          </div>
 
-          {/* Spacer */}
-          <div className="flex-1" />
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <PresetsBar
               currentFilters={filters}
               onApplyPreset={(f, id) => handleApplyPreset(f, id)}
@@ -720,14 +714,19 @@ export default function FiltersPage() {
                 <Mic className="h-4 w-4" />
               </Button>
             )}
+          </div>
+        </div>
 
+        {/* Line 2: Filters (mobile) + Sort + Active filters + Layout */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:hidden h-8">
-                  <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+                <Button variant="outline" size="sm" className="lg:hidden">
+                  <Filter className="h-4 w-4 mr-2" />
                   Filtros
                   {activeFiltersCount > 0 && (
-                    <Badge variant="secondary" className="ml-1.5 text-xs">
+                    <Badge variant="secondary" className="ml-2">
                       {activeFiltersCount}
                     </Badge>
                   )}
@@ -744,10 +743,6 @@ export default function FiltersPage() {
                     onReset={handleReset}
                     activeFiltersCount={activeFiltersCount}
                     products={realProducts}
-                    viewMode={viewMode}
-                    onViewModeChange={setViewMode}
-                    gridColumns={gridColumns}
-                    onGridColumnsChange={setGridColumns}
                   />
                 </div>
                 <div className="sticky bottom-0 border-t bg-background px-6 py-3 flex gap-2">
@@ -773,6 +768,60 @@ export default function FiltersPage() {
                 </div>
               </SheetContent>
             </Sheet>
+
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v)}>
+              <SelectTrigger className="w-32 sm:w-44">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Ordenar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Nome A-Z</SelectItem>
+                <SelectItem value="price_asc">Menor Preço</SelectItem>
+                <SelectItem value="price_desc">Maior Preço</SelectItem>
+                <SelectItem value="stock">Maior Estoque</SelectItem>
+                <SelectItem value="newest">Novidades</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Active filters inline */}
+            {activeFiltersSummary.length > 0 && (
+              <div className="hidden sm:flex items-center gap-1.5 flex-wrap">
+                {activeFiltersSummary.slice(0, 3).map((filter) => (
+                  <Badge
+                    key={filter.key}
+                    variant="secondary"
+                    className="gap-1 cursor-pointer hover:bg-destructive/20 text-xs py-0.5 px-2"
+                    onClick={() => clearSingleFilter(filter.key)}
+                  >
+                    {filter.label}: {filter.value}
+                    <X className="h-3 w-3" />
+                  </Badge>
+                ))}
+                {activeFiltersSummary.length > 3 && (
+                  <Badge variant="outline" className="text-xs py-0.5 px-2">
+                    +{activeFiltersSummary.length - 3}
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleReset}
+                  className="text-muted-foreground h-6 px-2 text-xs"
+                >
+                  Limpar
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Right - Layout popover */}
+          <div className="hidden sm:block">
+            <LayoutPopover
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              gridColumns={gridColumns}
+              setGridColumns={setGridColumns}
+            />
           </div>
         </div>
 
@@ -787,10 +836,6 @@ export default function FiltersPage() {
                   onReset={handleReset}
                   activeFiltersCount={activeFiltersCount}
                   products={realProducts}
-                  viewMode={viewMode}
-                  onViewModeChange={setViewMode}
-                  gridColumns={gridColumns}
-                  onGridColumnsChange={setGridColumns}
                 />
               </div>
               {/* Sticky footer (#24) */}
