@@ -28,10 +28,8 @@ import {
 } from "@/components/ui/sheet";
 import { 
   Filter, 
-  SlidersHorizontal, 
   ArrowUpDown,
   X,
-  Mic
 } from "lucide-react";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { SmartSearchInput } from "@/components/search";
