@@ -372,6 +372,25 @@ export function ProductCard({
               variant="icon"
               className="h-11 w-11 min-h-[44px] min-w-[44px]"
             />
+
+            {/* Quick View */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[44px] min-w-[44px]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQuickViewOpen(true);
+                  }}
+                  aria-label="Visualização rápida"
+                >
+                  <Eye className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="left">Quick View</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -414,29 +433,6 @@ export function ProductCard({
           </div>
         )}
 
-        {/* View button overlay on hover */}
-        <div
-          className={cn(
-            "absolute inset-0 flex items-center justify-center z-10",
-            "transition-all duration-400",
-            isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
-          )}
-        >
-          <div className="flex gap-2">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="rounded-full shadow-2xl bg-card/95 backdrop-blur-md hover:bg-card hover:scale-105 transition-all duration-200"
-              onClick={(e) => {
-                e.stopPropagation();
-                setQuickViewOpen(true);
-              }}
-            >
-              <Eye className="h-5 w-5 mr-2" />
-              Quick View
-            </Button>
-          </div>
-        </div>
       </div>
 
       {/* Content - elevated z-index to stay above image container */}
