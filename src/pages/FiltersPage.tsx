@@ -815,7 +815,7 @@ export default function FiltersPage() {
         {/* Main content */}
         <div className="flex gap-6">
           {/* Sidebar - Desktop with sticky footer (#24) */}
-          <aside className="hidden lg:flex lg:flex-col w-80 shrink-0 sticky top-20 max-h-[calc(100vh-6rem)] self-start">
+          <aside className="hidden lg:flex lg:flex-col w-80 shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] self-start">
               <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin pr-2 space-y-4">
                 <FilterPanel
                   filters={filters}
