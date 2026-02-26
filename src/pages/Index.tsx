@@ -341,6 +341,17 @@ export default function Index() {
     };
   }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
 
+  // Stats for popover
+  const statBadges = useMemo(
+    () => [
+      { id: "products", label: "Produtos", value: filteredProducts.length, icon: <Package className="h-4 w-4" /> },
+      { id: "categories", label: "Categorias", value: CATEGORIES.length, icon: <Layers className="h-4 w-4" /> },
+      { id: "suppliers", label: "Fornecedores", value: SUPPLIERS.length, icon: <Users className="h-4 w-4" /> },
+      { id: "favorites", label: "Favoritos", value: favoriteCount, icon: <TrendingUp className="h-4 w-4" /> },
+    ],
+    [filteredProducts, favoriteCount],
+  );
+
   const resetFilters = () => {
     setFilters(defaultFilters);
     setSortBy("name");
@@ -416,9 +427,9 @@ export default function Index() {
         <div className="flex-1 min-w-0">
           <div className="space-y-3 p-4 sm:p-6">
             {/* Line 1: Title + Search + Recently Viewed */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="flex-shrink-0">
-                <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">
+                <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                   Catálogo de Produtos
                   <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
                     · {filteredProducts.length.toLocaleString("pt-BR")} itens
@@ -426,7 +437,7 @@ export default function Index() {
                 </h1>
               </div>
 
-              <div className="flex items-center gap-2 flex-1 min-w-0 max-w-xl">
+              <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xl">
                 <SmartSearchInput
                   placeholder="Buscar produtos..."
                   onSelect={(result) => {
@@ -442,7 +453,9 @@ export default function Index() {
                   }}
                   className="flex-1"
                 />
-                <RecentlyViewedPopover maxVisible={10} />
+                <div className="hidden sm:block">
+                  <RecentlyViewedPopover maxVisible={10} />
+                </div>
               </div>
             </div>
 
@@ -471,7 +484,7 @@ export default function Index() {
             )}
 
             {/* Line 2: Filters + Sort + Stats + Layout */}
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Mobile category toggle */}
                 {!isDesktop && (
@@ -526,16 +539,20 @@ export default function Index() {
                     <SelectItem value="newest">Novidades</SelectItem>
                   </SelectContent>
                 </Select>
-                <StatsPopover stats={statBadges} />
+                <div className="hidden sm:block">
+                  <StatsPopover stats={statBadges} />
+                </div>
               </div>
 
               {/* Right - Layout popover */}
-              <LayoutPopover
-                viewMode={viewMode}
-                setViewMode={setViewMode}
-                gridColumns={gridColumns}
-                setGridColumns={setGridColumns}
-              />
+              <div className="hidden sm:block">
+                <LayoutPopover
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  gridColumns={gridColumns}
+                  setGridColumns={setGridColumns}
+                />
+              </div>
             </div>
 
             {/* Active filters display */}
