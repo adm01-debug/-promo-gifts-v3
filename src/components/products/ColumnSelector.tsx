@@ -12,7 +12,7 @@ export type ColumnCount = 3 | 4 | 5 | 6 | 8;
 
 // Custom grid icon with configurable columns
 function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
-  const size = 18;
+  const size = 20;
   const gap = 1.5;
   const cellW = (size - (cols - 1) * gap) / cols;
   const cellH = (size - (rows - 1) * gap) / rows;
@@ -33,7 +33,7 @@ function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
     }
   }
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="h-5 w-5">
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="h-6 w-6">
       {rects}
     </svg>
   );
@@ -47,9 +47,9 @@ interface ColumnOption {
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 3, label: "3 colunas", icon: <Columns3 className="h-5 w-5" />, minWidth: 0 },
-  { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-5 w-5" />, minWidth: 640 },
-  { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-5 w-5" />, minWidth: 1024 },
+  { value: 3, label: "3 colunas", icon: <Columns3 className="h-6 w-6" />, minWidth: 0 },
+  { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-6 w-6" />, minWidth: 640 },
+  { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-6 w-6" />, minWidth: 1024 },
   { value: 6, label: "6 colunas", icon: <GridCustomIcon cols={3} rows={2} />, minWidth: 1280 },
   { value: 8, label: "8 colunas", icon: <GridCustomIcon cols={4} rows={3} />, minWidth: 1536 },
 ];
@@ -120,7 +120,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
                 {value === opt.value && (
                   <motion.div
                     layoutId="column-selector-bg"
-                    className="absolute inset-0 rounded-md bg-primary shadow-sm"
+                    className="absolute inset-0.5 rounded-md bg-primary shadow-sm"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
