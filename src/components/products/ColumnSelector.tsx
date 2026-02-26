@@ -51,7 +51,7 @@ const columnOptions: ColumnOption[] = [
   { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-3.5 w-3.5" />, minWidth: 640 },
   { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-3.5 w-3.5" />, minWidth: 1024 },
   { value: 6, label: "6 colunas", icon: <GridCustomIcon cols={3} rows={2} />, minWidth: 1280 },
-  { value: 8, label: "8 colunas", icon: <GridCustomIcon cols={4} rows={2} />, minWidth: 1536 },
+  { value: 8, label: "8 colunas", icon: <GridCustomIcon cols={4} rows={3} />, minWidth: 1536 },
 ];
 
 function getDefaultColumns(): ColumnCount {
