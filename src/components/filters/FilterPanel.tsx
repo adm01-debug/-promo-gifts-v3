@@ -116,6 +116,47 @@ export const defaultFilters: FilterState = {
   sortBy: 'name',
 };
 
+// Extracted outside FilterPanel to prevent re-mounting Collapsible on every render
+function FilterSection({
+  id,
+  title,
+  icon,
+  children,
+  openSections,
+  onToggle,
+}: {
+  id: string;
+  title: string;
+  icon?: React.ReactNode;
+  children: React.ReactNode;
+  openSections: string[];
+  onToggle: (id: string) => void;
+}) {
+  const isOpen = openSections.includes(id);
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={() => onToggle(id)}>
+      <CollapsibleTrigger className={cn(
+        "flex items-center justify-between w-full py-3 text-sm font-medium transition-colors",
+        isOpen ? "text-primary" : "text-foreground hover:text-primary"
+      )}>
+        <div className="flex items-center gap-2">
+          {icon}
+          <span>{title}</span>
+        </div>
+        {isOpen ? (
+          <ChevronUp className="h-4 w-4" />
+        ) : (
+          <ChevronDown className="h-4 w-4" />
+        )}
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pb-4 space-y-2">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [], viewMode, onViewModeChange, gridColumns, onGridColumnsChange }: FilterPanelProps) {
   const [openSections, setOpenSections] = useState<string[]>([]);
   const [materialSearch, setMaterialSearch] = useState('');
@@ -285,41 +326,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     onFilterChange({ ...filters, [key]: !filters[key] });
   };
 
-  const FilterSection = ({
-    id,
-    title,
-    icon,
-    children,
-  }: {
-    id: string;
-    title: string;
-    icon?: React.ReactNode;
-    children: React.ReactNode;
-  }) => {
-    const isOpen = openSections.includes(id);
 
-    return (
-      <Collapsible open={isOpen} onOpenChange={() => toggleSection(id)}>
-        <CollapsibleTrigger className={cn(
-          "flex items-center justify-between w-full py-3 text-sm font-medium transition-colors",
-          isOpen ? "text-primary" : "text-foreground hover:text-primary"
-        )}>
-          <div className="flex items-center gap-2">
-            {icon}
-            <span>{title}</span>
-          </div>
-          {isOpen ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )}
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pb-4 space-y-2">
-          {children}
-        </CollapsibleContent>
-      </Collapsible>
-    );
-  };
 
   const collapseAllSections = useCallback(() => {
     setOpenSections([]);
@@ -363,7 +370,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
       <div className="divide-y divide-border">
         {/* Cores - Inline com Radix Tooltip (#1 + #10) */}
-        <FilterSection id="cores" title="Cores" icon={<Palette className="h-4 w-4" />}>
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="cores" title="Cores" icon={<Palette className="h-4 w-4" />}>
           <InlineColorGroupFilter
             selection={{
               groups: filters.colorGroups,
@@ -384,7 +391,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Categorias - Sistema com categorias externas */}
-        <FilterSection id="categorias" title="Categorias">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="categorias" title="Categorias">
           <ExternalCategoryFilter
             selectedCategories={filters.categories}
             onCategoriesChange={(categories) => 
@@ -395,7 +402,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Estoque */}
-        <FilterSection id="estoque" title="Estoque">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="estoque" title="Estoque">
           <div className="px-1">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground text-xs whitespace-nowrap">Mínimo por cor</span>
@@ -413,7 +420,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Preço - com inputs numéricos editáveis (#6) */}
-        <FilterSection id="preco" title="Faixa de Preço">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="preco" title="Faixa de Preço">
           <div className="px-1">
             <div className="flex items-center gap-2 text-sm">
               <div className="flex items-center gap-1 flex-1">
@@ -443,7 +450,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Fornecedores - com busca (#7) */}
-        <FilterSection id="fornecedores" title="Fornecedores">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="fornecedores" title="Fornecedores">
           <div className="space-y-2">
             {/* Busca de fornecedores */}
             {!suppliersLoading && supplierOptions.length > 0 && (
@@ -503,7 +510,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Público-Alvo */}
-        <FilterSection id="publico" title="Público-Alvo">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="publico" title="Público-Alvo">
           {publicoAlvoOptions.length > 0 ? (
             <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
               {publicoAlvoOptions.map((publico) => (
@@ -525,7 +532,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Datas Comemorativas - Agora com dados reais da API */}
-        <FilterSection id="datas-comemorativas" title="Datas Comemorativas">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="datas-comemorativas" title="Datas Comemorativas">
           <CommemorativeDateFilter
             selectedDates={filters.datasComemorativas}
             onToggleDate={(slug) => toggleArrayFilter('datasComemorativas', slug)}
@@ -535,7 +542,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Endomarketing */}
-        <FilterSection id="endomarketing" title="Endomarketing">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="endomarketing" title="Endomarketing">
           {endomarketingOptions.length > 0 ? (
             <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
               {endomarketingOptions.map((endo) => (
@@ -557,7 +564,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Materiais - Sistema Dinâmico com Accordion */}
-        <FilterSection id="materiais" title="Materiais">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="materiais" title="Materiais">
           <div className="space-y-3">
             {/* Badges dos materiais selecionados */}
             {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
@@ -781,7 +788,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Ramos de Atividade (Nichos/Segmentos) - Sistema Hierárquico */}
-        <FilterSection id="ramos-atividade" title="Nichos/Segmentos">
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="ramos-atividade" title="Nichos/Segmentos">
           <div className="space-y-3">
             {/* Badges dos ramos/segmentos selecionados */}
             {(filters.ramosAtividade.length > 0 || filters.segmentosAtividade.length > 0) && (
@@ -973,7 +980,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Técnicas de Gravação (#2) */}
         {techniqueOptions.length > 0 && (
-          <FilterSection id="tecnicas" title="Técnicas de Gravação" icon={<Paintbrush className="h-4 w-4" />}>
+          <FilterSection openSections={openSections} onToggle={toggleSection} id="tecnicas" title="Técnicas de Gravação" icon={<Paintbrush className="h-4 w-4" />}>
             <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
               <div className="space-y-2">
                 {techniqueOptions.map(tech => (
@@ -1004,7 +1011,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
         {/* Tags (#2) */}
         {tagOptions.length > 0 && (
-          <FilterSection id="tags" title="Tags" icon={<Tag className="h-4 w-4" />}>
+          <FilterSection openSections={openSections} onToggle={toggleSection} id="tags" title="Tags" icon={<Tag className="h-4 w-4" />}>
             <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
               {tagOptions.slice(0, 20).map(tag => (
                 <button
@@ -1026,7 +1033,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         )}
 
         {/* Opções Rápidas (#2) */}
-        <FilterSection id="opcoes-rapidas" title="Opções Rápidas" icon={<Sparkles className="h-4 w-4" />}>
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="opcoes-rapidas" title="Opções Rápidas" icon={<Sparkles className="h-4 w-4" />}>
           <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain" style={{ overscrollBehavior: 'contain' }}>
             <div className="flex items-center gap-2">
               <Checkbox
@@ -1094,7 +1101,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </FilterSection>
 
         {/* Ordenação (#2) */}
-        <FilterSection id="ordenacao" title="Ordenar por" icon={<Filter className="h-4 w-4" />}>
+        <FilterSection openSections={openSections} onToggle={toggleSection} id="ordenacao" title="Ordenar por" icon={<Filter className="h-4 w-4" />}>
           <Select
             value={filters.sortBy || 'name'}
             onValueChange={(value) => onFilterChange({ ...filters, sortBy: value })}
