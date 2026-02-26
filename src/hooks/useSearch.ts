@@ -112,11 +112,36 @@ export function useSearch(products: Product[] = []) {
       return results;
     }
 
-    // Search products - busca fuzzy tolerante a erros
-    const matchingProducts = productFuse.search(searchTerm).slice(0, 5);
+    // Search products - busca fuzzy com priorização por relevância
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Separar por relevância: começa com > palavra exata > contém > fuzzy
+    const startsWithProducts = products.filter(p => p.name.toLowerCase().startsWith(searchLower));
+    const wordBoundaryRegex = new RegExp(`\\b${searchLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    const exactWordProducts = products.filter(p => 
+      !p.name.toLowerCase().startsWith(searchLower) && wordBoundaryRegex.test(p.name)
+    );
+    const containsProducts = products.filter(p => {
+      const nl = p.name.toLowerCase();
+      return !nl.startsWith(searchLower) && !wordBoundaryRegex.test(p.name) && nl.includes(searchLower);
+    });
+    const fuzzyOnly = productFuse.search(searchTerm)
+      .filter(r => (r.score ?? 1) < 0.45)
+      .map(r => r.item);
 
-    matchingProducts.forEach((result) => {
-      const product = result.item;
+    // Mesclar sem duplicatas, na ordem de prioridade
+    const seenIds = new Set<string>();
+    const orderedProducts: Product[] = [];
+    for (const group of [startsWithProducts, exactWordProducts, containsProducts, fuzzyOnly]) {
+      for (const p of group) {
+        if (!seenIds.has(p.id)) {
+          seenIds.add(p.id);
+          orderedProducts.push(p);
+        }
+      }
+    }
+
+    orderedProducts.slice(0, 5).forEach((product) => {
       results.push({
         type: "product",
         id: product.id,
