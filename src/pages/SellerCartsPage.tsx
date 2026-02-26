@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useMemo, useRef, useEffect, useContext } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { SellerCart, SellerCartItem, CartStatus } from "@/hooks/useSellerCarts";
@@ -886,6 +886,7 @@ export default function SellerCartsPage() {
 
 function SellerCartsContent() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { cartId: routeCartId } = useParams<{ cartId?: string }>();
   const {
     carts,
@@ -915,6 +916,13 @@ function SellerCartsContent() {
   const allProducts: any[] = productsCtx?.products || [];
 
   const [showNewCart, setShowNewCart] = useState(false);
+
+  // Auto-open new cart picker when navigating to /carrinhos/novo
+  useEffect(() => {
+    if (location.pathname === "/carrinhos/novo") {
+      setShowNewCart(true);
+    }
+  }, [location.pathname]);
   const [cartNotesOpen, setCartNotesOpen] = useState(false);
   const [localCartNotes, setLocalCartNotes] = useState("");
   const debounceNotesRef = useRef<ReturnType<typeof setTimeout>>();

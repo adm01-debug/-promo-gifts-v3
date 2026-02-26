@@ -95,9 +95,10 @@ const navGroups: NavGroup[] = [
     id: "carts",
     label: "Carrinhos",
     icon: ShoppingCart,
-    defaultOpen: false,
+    defaultOpen: true,
     items: [
-      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
+      { icon: Plus, label: "Novo Carrinho", href: "/carrinhos/novo" },
+      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
     ],
   },
   {
@@ -117,7 +118,6 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: Heart, label: "Favoritos", href: "/favoritos" },
-      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
       { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
