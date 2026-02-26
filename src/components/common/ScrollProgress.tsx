@@ -61,21 +61,91 @@ export function ScrollToTopButton({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    const getScrollableContainer = (): Element | Window => {
+      // Search for scrollable container: first inside main, then parents, then window
+      const main = document.getElementById("main-content");
+      if (main) {
+        // Check children first (deep search)
+        const allElements = main.querySelectorAll("*");
+        for (const el of allElements) {
+          const style = window.getComputedStyle(el);
+          if (
+            (style.overflowY === "auto" || style.overflowY === "scroll") &&
+            el.scrollHeight > el.clientHeight
+          ) {
+            return el;
+          }
+        }
+        // Check parents
+        let parent: Element | null = main.parentElement;
+        while (parent) {
+          const style = window.getComputedStyle(parent);
+          if (
+            (style.overflowY === "auto" || style.overflowY === "scroll") &&
+            parent.scrollHeight > parent.clientHeight
+          ) {
+            return parent;
+          }
+          parent = parent.parentElement;
+        }
+      }
+      return window;
+    };
+
+    let scrollTarget: Element | Window | null = null;
+
     const handleScroll = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-      console.log('[ScrollToTop] scrollTop:', scrollTop, 'threshold:', threshold);
+      const scrollTop =
+        scrollTarget instanceof Window
+          ? window.scrollY
+          : (scrollTarget as Element).scrollTop;
       setIsVisible(scrollTop > threshold);
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    document.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
+
+    // Delay to let layout settle
+    const timer = setTimeout(() => {
+      scrollTarget = getScrollableContainer();
+      scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
+      handleScroll();
+    }, 500);
+
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("scroll", handleScroll);
+      clearTimeout(timer);
+      if (scrollTarget) {
+        scrollTarget.removeEventListener("scroll", handleScroll);
+      }
     };
   }, [threshold]);
-  
+
   const handleScrollToTop = () => {
+    const main = document.getElementById("main-content");
+    if (main) {
+      // Check children first
+      const allElements = main.querySelectorAll("*");
+      for (const el of allElements) {
+        const style = window.getComputedStyle(el);
+        if (
+          (style.overflowY === "auto" || style.overflowY === "scroll") &&
+          el.scrollHeight > el.clientHeight
+        ) {
+          el.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+      }
+      // Check parents
+      let parent: Element | null = main.parentElement;
+      while (parent) {
+        const style = window.getComputedStyle(parent);
+        if (
+          (style.overflowY === "auto" || style.overflowY === "scroll") &&
+          parent.scrollHeight > parent.clientHeight
+        ) {
+          parent.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+        parent = parent.parentElement;
+      }
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
