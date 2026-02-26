@@ -5,13 +5,13 @@
  * sugestões inteligentes com "também compraram", duplicar item entre carrinhos.
  */
 
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { SellerCart, SellerCartItem, CartStatus } from "@/hooks/useSellerCarts";
 import { useCartTemplates, CartTemplateItem } from "@/hooks/useCartTemplates";
-import { useProductsContext } from "@/contexts/ProductsContext";
+import { ProductsContext } from "@/contexts/ProductsContext";
 import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -815,7 +815,7 @@ function MobileSummarySheet({
   if (cart.items.length === 0) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 xl:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
       <motion.div
         className="bg-card border-t border-border shadow-2xl rounded-t-2xl"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
@@ -906,14 +906,9 @@ function SellerCartsContent() {
 
   const { templates, saveTemplate, deleteTemplate } = useCartTemplates();
 
-  // Products context for stock alerts + suggestions
-  let allProducts: any[] = [];
-  try {
-    const ctx = useProductsContext();
-    allProducts = ctx.products || [];
-  } catch {
-    // ProductsContext may not be available
-  }
+  // Products context for stock alerts + suggestions (safe access without violating hooks rules)
+  const productsCtx = useContext(ProductsContext);
+  const allProducts: any[] = productsCtx?.products || [];
 
   const [showNewCart, setShowNewCart] = useState(false);
   const [cartNotesOpen, setCartNotesOpen] = useState(false);
@@ -1088,15 +1083,22 @@ function SellerCartsContent() {
     toast.success("Template aplicado ao carrinho");
   }, [addToActiveCart]);
 
+  const [confirmQuoteCart, setConfirmQuoteCart] = useState<SellerCart | null>(null);
+
   const handleGenerateQuote = useCallback((cart: SellerCart) => {
+    setConfirmQuoteCart(cart);
+  }, []);
+
+  const confirmGenerateQuote = useCallback(() => {
+    if (!confirmQuoteCart) return;
     navigate("/orcamentos/novo", {
       state: {
         fromCart: true,
-        cartId: cart.id,
-        companyId: cart.company_id,
-        companyName: cart.company_name,
-        companyLocation: cart.company_location,
-        items: cart.items.map(i => ({
+        cartId: confirmQuoteCart.id,
+        companyId: confirmQuoteCart.company_id,
+        companyName: confirmQuoteCart.company_name,
+        companyLocation: confirmQuoteCart.company_location,
+        items: confirmQuoteCart.items.map(i => ({
           product_id: i.product_id,
           product_name: i.product_name,
           product_sku: i.product_sku,
@@ -1108,8 +1110,9 @@ function SellerCartsContent() {
         })),
       },
     });
-    deleteCart(cart.id);
-  }, [navigate, deleteCart]);
+    deleteCart(confirmQuoteCart.id);
+    setConfirmQuoteCart(null);
+  }, [confirmQuoteCart, navigate, deleteCart]);
 
   const otherCarts = useMemo(
     () => carts.filter(c => c.id !== activeCartId),
@@ -1129,7 +1132,7 @@ function SellerCartsContent() {
   }, [activeCart]);
 
   return (
-    <div className="space-y-6 animate-fade-in pb-32 xl:pb-0">
+    <div className="space-y-6 animate-fade-in pb-32 md:pb-0">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -1513,18 +1516,25 @@ function SellerCartsContent() {
                 />
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs gap-1.5"
-                    onClick={() => {
+                  <DeleteConfirmDialog
+                    trigger={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs gap-1.5 w-full"
+                      >
+                        <Eraser className="h-3.5 w-3.5" />
+                        Limpar
+                      </Button>
+                    }
+                    title="Limpar todos os itens?"
+                    description={`${activeCart.items.length} itens serão removidos do carrinho de ${activeCart.company_name}.`}
+                    onConfirm={() => {
                       activeCart.items.forEach(i => removeItem(i.id));
                       toast.success("Carrinho limpo");
                     }}
-                  >
-                    <Eraser className="h-3.5 w-3.5" />
-                    Limpar
-                  </Button>
+                    itemName="itens"
+                  />
                   <Button
                     variant="outline"
                     size="sm"
@@ -1625,6 +1635,17 @@ function SellerCartsContent() {
           onGenerateQuote={() => handleGenerateQuote(activeCart)}
         />
       )}
+
+      {/* Confirm generate quote dialog */}
+      <DeleteConfirmDialog
+        trigger={<span />}
+        title={`Gerar orçamento para ${confirmQuoteCart?.company_name}?`}
+        description={`Os ${confirmQuoteCart?.items.length || 0} itens serão transferidos para um novo orçamento e o carrinho será removido.`}
+        onConfirm={confirmGenerateQuote}
+        itemName="carrinho"
+        open={!!confirmQuoteCart}
+        onOpenChange={(open) => { if (!open) setConfirmQuoteCart(null); }}
+      />
     </div>
   );
 }

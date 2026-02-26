@@ -8,7 +8,7 @@ interface ProductsContextType {
   getProductsByIds: (ids: string[]) => Product[];
 }
 
-const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
+export const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
 export function ProductsProvider({ children }: { children: ReactNode }) {
   const { data: products = [], isLoading } = useProducts(undefined, {
