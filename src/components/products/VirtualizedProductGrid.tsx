@@ -76,10 +76,11 @@ export function VirtualizedProductGrid({
   const estimatedRowHeight = columns >= 8 ? 420 : columns >= 6 ? 460 : 520;
 
   const virtualizer = useVirtualizer({
-    count: hasMore ? rowCount + 1 : rowCount, // Add 1 for loading row
+    count: hasMore ? rowCount + 1 : rowCount,
     getScrollElement: () => parentRef.current,
     estimateSize: () => estimatedRowHeight,
-    overscan: 3, // Render 3 extra rows above/below viewport
+    overscan: 3,
+    measureElement: (el) => el.getBoundingClientRect().height,
   });
 
   const virtualItems = virtualizer.getVirtualItems();
@@ -196,6 +197,8 @@ export function VirtualizedProductGrid({
             return (
               <div
                 key={virtualRow.key}
+                data-index={virtualRow.index}
+                ref={virtualizer.measureElement}
                 style={{
                   position: "absolute",
                   top: 0,
@@ -208,7 +211,7 @@ export function VirtualizedProductGrid({
                   paddingLeft: "0.5rem",
                   paddingRight: "1.5rem",
                   paddingBottom: `${rowGapPx}px`,
-                  isolation: "isolate", // Cria stacking context isolado para evitar conflitos de z-index
+                  isolation: "isolate",
                 }}
               >
                 {rowProducts.map((product, colIndex) => (
