@@ -260,176 +260,8 @@ export function ProductCard({
           )}
         </div>
 
-        {/* Quick actions - FAB pattern: "+" button expands to show all actions */}
-        <div
-          ref={actionsRef}
-          className={cn(
-            "absolute top-3 right-3 flex flex-col-reverse items-end gap-2 z-20",
-            "transition-all duration-300 ease-out",
-          )}
-        >
-          {/* Main FAB "+" button - visible on hover */}
-          <button
-            className={cn(
-              "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg border border-border/50",
-              "transition-all duration-300 ease-out",
-              "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              // Visibility: always on mobile (for fav), on hover for desktop
-              "opacity-100 translate-x-0 md:opacity-0 md:translate-x-4",
-              "md:group-hover:opacity-100 md:group-hover:translate-x-0",
-              actionsOpen
-                ? "bg-muted text-muted-foreground rotate-45"
-                : "bg-[#39FF14] text-black hover:bg-[#32e612]"
-            )}
-            onClick={(e) => {
-              e.stopPropagation();
-              setActionsOpen(!actionsOpen);
-            }}
-            aria-label={actionsOpen ? "Fechar ações" : "Ações rápidas"}
-            aria-expanded={actionsOpen}
-          >
-            <Plus className="h-4 w-4 md:h-5 md:w-5 transition-transform duration-200" />
-          </button>
 
-          {/* Expanded actions */}
-          <div
-            className={cn(
-              "flex flex-col gap-2 transition-all duration-300 ease-out origin-bottom",
-              actionsOpen
-                ? "opacity-100 scale-100 translate-y-0"
-                : "opacity-0 scale-75 translate-y-4 pointer-events-none"
-            )}
-          >
-            {/* Favorite */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className={cn(
-                    "h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
-                    "hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200",
-                    "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
-                    isFavorited && "bg-destructive/10 border-destructive/30"
-                  )}
-                  onClick={handleFavorite}
-                  aria-label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                >
-                  <Heart
-                    className={cn(
-                      "h-4 w-4 md:h-5 md:w-5 transition-all duration-300",
-                      isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill"
-                    )}
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">{isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}</TooltipContent>
-            </Tooltip>
-
-            {/* Compare */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className={cn(
-                    "h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
-                    "hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200",
-                    "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
-                    isInCompare && "bg-primary/10 border-primary/30"
-                  )}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleCompare(e);
-                  }}
-                  disabled={!isInCompare && !canAddToCompare}
-                  aria-label={isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
-                >
-                  <GitCompare
-                    className={cn(
-                      "h-4 w-4 md:h-5 md:w-5 transition-all duration-300",
-                      isInCompare && "text-primary scale-110"
-                    )}
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Collection */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCollectionModalOpen(true);
-                  }}
-                  aria-label="Adicionar à coleção"
-                >
-                  <FolderPlus className="h-4 w-4 md:h-5 md:w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Adicionar à coleção</TooltipContent>
-            </Tooltip>
-
-            {/* Share */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShare?.(product);
-                  }}
-                  aria-label="Compartilhar produto"
-                >
-                  <Share2 className="h-4 w-4 md:h-5 md:w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Compartilhar</TooltipContent>
-            </Tooltip>
-
-            {/* Add to Cart */}
-            <QuickAddToQuote
-              productId={product.id}
-              productName={product.name}
-              productSku={product.sku}
-              productImageUrl={product.og_image_url || product.images[0]}
-              productPrice={product.price}
-              minQuantity={product.minQuantity || 1}
-              variant="icon"
-              className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
-            />
-
-            {/* Quick View */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setQuickViewOpen(true);
-                  }}
-                  aria-label="Visualização rápida"
-                >
-                  <Eye className="h-4 w-4 md:h-5 md:w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Quick View</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
+        {/* Colors and gradient remain inside overflow-hidden, actions moved outside */}
 
         {/* Color variations - Bottom */}
         {product.colors.length > 0 && (
@@ -472,7 +304,177 @@ export function ProductCard({
 
       </div>
 
-      {/* Content - elevated z-index to stay above image container */}
+      {/* Quick actions FAB - OUTSIDE overflow-hidden container */}
+      <div
+        ref={actionsRef}
+        className={cn(
+          "absolute top-3 right-3 flex flex-col items-end gap-2 z-30",
+          "transition-all duration-300 ease-out",
+          // Only show on hover (desktop)
+          "opacity-100 translate-x-0 md:opacity-0 md:translate-x-4",
+          "md:group-hover:opacity-100 md:group-hover:translate-x-0",
+        )}
+      >
+        {/* Main FAB "+" button */}
+        <button
+          className={cn(
+            "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg",
+            "transition-all duration-300 ease-out",
+            "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            actionsOpen
+              ? "bg-muted text-muted-foreground rotate-45"
+              : "bg-[#39FF14] text-black hover:bg-[#32e612]"
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActionsOpen(!actionsOpen);
+          }}
+          aria-label={actionsOpen ? "Fechar ações" : "Ações rápidas"}
+          aria-expanded={actionsOpen}
+        >
+          <Plus className="h-4 w-4 md:h-5 md:w-5 transition-transform duration-200" />
+        </button>
+
+        {/* Expanded actions - grow downward */}
+        <div
+          className={cn(
+            "flex flex-col gap-2 transition-all duration-300 ease-out origin-top",
+            actionsOpen
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-75 -translate-y-4 pointer-events-none"
+          )}
+        >
+          {/* Favorite */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
+                  "hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200",
+                  "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
+                  isFavorited && "bg-destructive/10 border-destructive/30"
+                )}
+                onClick={handleFavorite}
+                aria-label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+              >
+                <Heart
+                  className={cn(
+                    "h-4 w-4 md:h-5 md:w-5 transition-all duration-300",
+                    isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill"
+                  )}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}</TooltipContent>
+          </Tooltip>
+
+          {/* Compare */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className={cn(
+                  "h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
+                  "hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200",
+                  "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
+                  isInCompare && "bg-primary/10 border-primary/30"
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleCompare(e);
+                }}
+                disabled={!isInCompare && !canAddToCompare}
+                aria-label={isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
+              >
+                <GitCompare
+                  className={cn(
+                    "h-4 w-4 md:h-5 md:w-5 transition-all duration-300",
+                    isInCompare && "text-primary scale-110"
+                  )}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Collection */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCollectionModalOpen(true);
+                }}
+                aria-label="Adicionar à coleção"
+              >
+                <FolderPlus className="h-4 w-4 md:h-5 md:w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Adicionar à coleção</TooltipContent>
+          </Tooltip>
+
+          {/* Share */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare?.(product);
+                }}
+                aria-label="Compartilhar produto"
+              >
+                <Share2 className="h-4 w-4 md:h-5 md:w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Compartilhar</TooltipContent>
+          </Tooltip>
+
+          {/* Add to Cart */}
+          <QuickAddToQuote
+            productId={product.id}
+            productName={product.name}
+            productSku={product.sku}
+            productImageUrl={product.og_image_url || product.images[0]}
+            productPrice={product.price}
+            minQuantity={product.minQuantity || 1}
+            variant="icon"
+            className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
+          />
+
+          {/* Quick View */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setQuickViewOpen(true);
+                }}
+                aria-label="Visualização rápida"
+              >
+                <Eye className="h-4 w-4 md:h-5 md:w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Quick View</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+
       <div className="relative p-2.5 sm:p-4 space-y-2 sm:space-y-3 bg-card" style={{ zIndex: 10 }}>
         {/* Category Badges - Ícones das categorias (escondido em layouts compactos) */}
         {!hideCategoryBadges && (
