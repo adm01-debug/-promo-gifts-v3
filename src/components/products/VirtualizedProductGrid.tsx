@@ -62,13 +62,14 @@ export function VirtualizedProductGrid({
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Consistent gap values based on column count
-  const getGapPx = () => {
-    if (columns >= 8) return 8;  // gap-2
-    if (columns >= 6) return 12; // gap-3
-    return 16; // gap-4
+  // Column gap varies by density, row gap is always consistent (16px = gap-y-4)
+  const getColumnGapPx = () => {
+    if (columns >= 8) return 8;  // gap-x-2
+    if (columns >= 6) return 12; // gap-x-3
+    return 16; // gap-x-4
   };
-  const gapPx = getGapPx();
+  const colGapPx = getColumnGapPx();
+  const rowGapPx = 16; // Always gap-y-4, matching ProductGrid
 
   // Calculate rows based on columns
   const rowCount = Math.ceil(products.length / columns);
@@ -203,10 +204,10 @@ export function VirtualizedProductGrid({
                   transform: `translateY(${virtualRow.start}px)`,
                   display: "grid",
                   gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                  columnGap: `${gapPx}px`,
+                  columnGap: `${colGapPx}px`,
                   paddingLeft: "0.5rem",
                   paddingRight: "1.5rem",
-                  paddingBottom: `${gapPx}px`,
+                  paddingBottom: `${rowGapPx}px`,
                   isolation: "isolate", // Cria stacking context isolado para evitar conflitos de z-index
                 }}
               >
