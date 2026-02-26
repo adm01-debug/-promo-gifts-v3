@@ -324,7 +324,7 @@ export function ProductCard({
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             actionsOpen
               ? "bg-muted text-muted-foreground rotate-45"
-              : "bg-orange text-orange-foreground hover:bg-orange-hover"
+              : "bg-orange/60 text-orange-foreground hover:bg-orange/80"
           )}
           onClick={(e) => {
             e.stopPropagation();
