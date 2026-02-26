@@ -807,6 +807,7 @@ export default function FiltersPage() {
                 setViewMode={setViewMode}
                 gridColumns={gridColumns}
                 setGridColumns={setGridColumns}
+              />
             </div>
           </div>
         </div>
