@@ -63,6 +63,7 @@ export function ScrollToTopButton({
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      console.log('[ScrollToTop] scrollTop:', scrollTop, 'threshold:', threshold);
       setIsVisible(scrollTop > threshold);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
