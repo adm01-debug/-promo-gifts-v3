@@ -5,7 +5,7 @@ import {
   Package,
   TrendingUp,
   Users,
-  Layers,
+  
   Filter,
   ArrowUpDown,
   User,
@@ -25,7 +25,7 @@ import { ProductListSkeleton } from "@/components/products/ProductListItemSkelet
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 
 
-import { CategorySidebarPanel } from "@/components/categories";
+
 import { SmartSearchInput } from "@/components/search";
 import { useSearch } from "@/hooks/useSearch";
 import { Button } from "@/components/ui/button";
@@ -79,8 +79,6 @@ export default function Index() {
   
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(12);
-  const [selectedExternalCategory, setSelectedExternalCategory] = useState<{ id: string; name: string } | null>(null);
-  const [categorySidebarOpen, setCategorySidebarOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1280px)");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -402,29 +400,10 @@ export default function Index() {
     setTimeout(() => setIsSearching(false), 300);
   }, [addToHistory]);
 
-  // Handle external category selection
-  const handleExternalCategorySelect = useCallback((categoryId: string | null, categoryName?: string) => {
-    if (categoryId && categoryName) {
-      setSelectedExternalCategory({ id: categoryId, name: categoryName });
-    } else {
-      setSelectedExternalCategory(null);
-    }
-  }, []);
 
   return (
     <MainLayout>
-      <div className="flex">
-        {/* Category Sidebar - Desktop only */}
-        {isDesktop && (
-          <CategorySidebarPanel
-            selectedCategoryId={selectedExternalCategory?.id}
-            onSelectCategory={handleExternalCategorySelect}
-            isCollapsed={!categorySidebarOpen}
-            onToggleCollapse={() => setCategorySidebarOpen(!categorySidebarOpen)}
-            className="sticky top-0 h-[calc(100vh-4rem)] hidden xl:flex"
-          />
-        )}
-
+      <div>
         {/* Main content */}
         <div className="flex-1 min-w-0">
           <div className="space-y-3 p-4 sm:p-6">
@@ -461,51 +440,10 @@ export default function Index() {
               </div>
             </div>
 
-            {/* External Category Filter Badge */}
-            {selectedExternalCategory && (
-              <Card className="border-primary/30 bg-primary/5">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4 text-primary" />
-                      <span className="text-sm">
-                        Categoria: <strong>{selectedExternalCategory.name}</strong>
-                      </span>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setSelectedExternalCategory(null)}
-                      className="h-7 px-2"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Line 2: Filters + Sort + Stats + Layout */}
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Mobile category toggle */}
-                {!isDesktop && (
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" size="sm" className="gap-1.5">
-                        <Layers className="h-4 w-4" />
-                        <span className="text-xs">Categorias</span>
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="left" className="w-80 p-0">
-                      <CategorySidebarPanel
-                        selectedCategoryId={selectedExternalCategory?.id}
-                        onSelectCategory={handleExternalCategorySelect}
-                        className="h-full border-none"
-                      />
-                    </SheetContent>
-                  </Sheet>
-                )}
                 <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
                   <SheetTrigger asChild>
                     <Button variant="outline" size="sm">
