@@ -699,21 +699,6 @@ export default function FiltersPage() {
               onApplyPreset={(f, id) => handleApplyPreset(f, id)}
               activePresetId={activePresetId}
             />
-
-            {isSupported && (
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => {
-                  setVoiceOverlayOpen(true);
-                  startListening();
-                }}
-                title="Busca por voz"
-              >
-                <Mic className="h-4 w-4" />
-              </Button>
-            )}
           </div>
         </div>
 
