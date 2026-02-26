@@ -98,7 +98,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
   if (isMobile || available.length <= 1) return null;
 
   return (
-    <div className={cn("flex items-center gap-0.5 p-0.5 rounded-lg bg-secondary/60 border border-border/30", className)}>
+    <div className={cn("flex items-center gap-0 p-0.5 rounded-lg bg-secondary/60 border border-border/30", className)}>
       <AnimatePresence mode="popLayout">
         {available.map((opt) => (
           <Tooltip key={opt.value}>
@@ -107,7 +107,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "h-7 w-7 relative transition-all duration-200",
+                  "h-7 w-7 min-w-0 p-0 relative transition-all duration-200",
                   value === opt.value 
                     ? "text-primary-foreground" 
                     : "text-muted-foreground hover:text-foreground"
