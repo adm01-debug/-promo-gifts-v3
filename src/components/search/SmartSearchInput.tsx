@@ -193,7 +193,7 @@ export function SmartSearchInput({
           tabIndex={-1}
           aria-label="Buscar"
         >
-          <Search className="h-4 w-4 text-muted-foreground hover:text-primary" />
+          <Search className="h-4 w-4 text-primary" />
         </button>
         
         <Input
