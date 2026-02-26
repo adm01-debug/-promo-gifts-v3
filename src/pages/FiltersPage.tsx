@@ -708,7 +708,7 @@ export default function FiltersPage() {
 
           {/* Right content: headers + products */}
           <div className="flex-1 min-w-0 space-y-3">
-            {/* Line 1: Title + Search + Presets */}
+            {/* Single header line: Title + Search + Sort + Presets + Layout */}
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex-shrink-0">
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
@@ -718,7 +718,8 @@ export default function FiltersPage() {
                   </span>
                 </h1>
               </div>
-              <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xl">
+
+              <div className="flex items-center gap-2 flex-1 min-w-0">
                 <SmartSearchInput
                   placeholder="Buscar produtos..."
                   onSelect={(result) => {
@@ -730,20 +731,11 @@ export default function FiltersPage() {
                   }}
                   className="flex-1"
                 />
-                <PresetsBar
-                  currentFilters={filters}
-                  onApplyPreset={(f, id) => handleApplyPreset(f, id)}
-                  activePresetId={activePresetId}
-                />
-              </div>
-            </div>
 
-            {/* Line 2: Filters + Sort + Active filters + Layout */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Mobile filter trigger */}
                 <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="outline" size="sm" className="lg:hidden">
+                    <Button variant="outline" size="sm" className="lg:hidden shrink-0">
                       <Filter className="h-4 w-4 mr-2" />
                       Filtros
                       {activeFiltersCount > 0 && (
@@ -789,7 +781,7 @@ export default function FiltersPage() {
                 </Sheet>
 
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v)}>
-                  <SelectTrigger className="w-32 sm:w-44">
+                  <SelectTrigger className="w-32 sm:w-44 shrink-0">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
                     <SelectValue placeholder="Ordenar" />
                   </SelectTrigger>
@@ -802,46 +794,51 @@ export default function FiltersPage() {
                   </SelectContent>
                 </Select>
 
-                {/* Active filters inline */}
-                {activeFiltersSummary.length > 0 && (
-                  <div className="hidden sm:flex items-center gap-1.5 flex-wrap">
-                    {activeFiltersSummary.slice(0, 3).map((filter) => (
-                      <Badge
-                        key={filter.key}
-                        variant="secondary"
-                        className="gap-1 cursor-pointer hover:bg-destructive/20 text-xs py-0.5 px-2"
-                        onClick={() => clearSingleFilter(filter.key)}
-                      >
-                        {filter.label}: {filter.value}
-                        <X className="h-3 w-3" />
-                      </Badge>
-                    ))}
-                    {activeFiltersSummary.length > 3 && (
-                      <Badge variant="outline" className="text-xs py-0.5 px-2">
-                        +{activeFiltersSummary.length - 3}
-                      </Badge>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleReset}
-                      className="text-muted-foreground h-6 px-2 text-xs"
-                    >
-                      Limpar
-                    </Button>
-                  </div>
-                )}
+                <PresetsBar
+                  currentFilters={filters}
+                  onApplyPreset={(f, id) => handleApplyPreset(f, id)}
+                  activePresetId={activePresetId}
+                />
+
+                <div className="hidden sm:block shrink-0">
+                  <LayoutPopover
+                    viewMode={viewMode}
+                    setViewMode={setViewMode}
+                    gridColumns={gridColumns}
+                    setGridColumns={setGridColumns}
+                  />
+                </div>
               </div>
 
-              {/* Right - Layout popover */}
-              <div className="hidden sm:block">
-                <LayoutPopover
-                  viewMode={viewMode}
-                  setViewMode={setViewMode}
-                  gridColumns={gridColumns}
-                  setGridColumns={setGridColumns}
-                />
-              </div>
+              {/* Active filters inline */}
+              {activeFiltersSummary.length > 0 && (
+                <div className="hidden sm:flex items-center gap-1.5 flex-wrap w-full">
+                  {activeFiltersSummary.slice(0, 3).map((filter) => (
+                    <Badge
+                      key={filter.key}
+                      variant="secondary"
+                      className="gap-1 cursor-pointer hover:bg-destructive/20 text-xs py-0.5 px-2"
+                      onClick={() => clearSingleFilter(filter.key)}
+                    >
+                      {filter.label}: {filter.value}
+                      <X className="h-3 w-3" />
+                    </Badge>
+                  ))}
+                  {activeFiltersSummary.length > 3 && (
+                    <Badge variant="outline" className="text-xs py-0.5 px-2">
+                      +{activeFiltersSummary.length - 3}
+                    </Badge>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleReset}
+                    className="text-muted-foreground h-6 px-2 text-xs"
+                  >
+                    Limpar
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Products grid */}
