@@ -3402,7 +3402,9 @@ export type Database = {
           company_name: string
           created_at: string
           id: string
+          notes: string | null
           seller_id: string
+          status: string
           updated_at: string
         }
         Insert: {
@@ -3412,7 +3414,9 @@ export type Database = {
           company_name: string
           created_at?: string
           id?: string
+          notes?: string | null
           seller_id: string
+          status?: string
           updated_at?: string
         }
         Update: {
@@ -3422,7 +3426,9 @@ export type Database = {
           company_name?: string
           created_at?: string
           id?: string
+          notes?: string | null
           seller_id?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []

@@ -272,6 +272,7 @@ export default {
         "count-up": "count-up 0.4s ease-out forwards",
         "spin-slow": "spin-slow 3s linear infinite",
         "sound-wave": "sound-wave 0.5s ease-in-out infinite",
+        "pulse-subtle": "pulse-subtle 2s ease-in-out infinite",
       },
     },
   },

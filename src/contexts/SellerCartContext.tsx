@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { useSellerCarts, SellerCart, AddToCartInput, CreateCartInput } from "@/hooks/useSellerCarts";
+import { useSellerCarts, SellerCart, AddToCartInput, CreateCartInput, CartStatus } from "@/hooks/useSellerCarts";
 import { toast } from "sonner";
 
 interface SellerCartContextType {
@@ -25,6 +25,12 @@ interface SellerCartContextType {
   addToActiveCart: (item: AddToCartInput) => void;
   removeItem: (itemId: string) => void;
   updateItemQuantity: (itemId: string, quantity: number) => void;
+  updateItemNotes: (itemId: string, notes: string) => void;
+  updateItemSortOrder: (items: { id: string; sort_order: number }[]) => void;
+  updateCartNotes: (cartId: string, notes: string) => void;
+  updateCartStatus: (cartId: string, status: CartStatus) => void;
+  duplicateCart: (cartId: string) => void;
+  moveItemToCart: (itemId: string, targetCartId: string) => void;
 }
 
 const SellerCartContext = createContext<SellerCartContextType | undefined>(undefined);
@@ -40,11 +46,16 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
     addItem,
     removeItem: removeItemMutation,
     updateItemQuantity: updateQtyMutation,
+    updateItemNotes: updateNotesMutation,
+    updateItemSortOrder: updateSortMutation,
+    updateCartNotes: updateCartNotesMutation,
+    updateCartStatus: updateCartStatusMutation,
+    duplicateCart: duplicateCartMutation,
+    moveItemToCart: moveItemMutation,
   } = useSellerCarts();
 
   const [activeCartId, setActiveCartId] = useState<string | null>(null);
 
-  // Auto-select first cart if no active cart
   const resolvedActiveCartId = activeCartId && carts.find(c => c.id === activeCartId)
     ? activeCartId
     : carts.length > 0 ? carts[0].id : null;
@@ -98,6 +109,30 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
     updateQtyMutation.mutate({ itemId, quantity });
   }, [updateQtyMutation]);
 
+  const updateItemNotes = useCallback((itemId: string, notes: string) => {
+    updateNotesMutation.mutate({ itemId, notes });
+  }, [updateNotesMutation]);
+
+  const updateItemSortOrder = useCallback((items: { id: string; sort_order: number }[]) => {
+    updateSortMutation.mutate(items);
+  }, [updateSortMutation]);
+
+  const updateCartNotes = useCallback((cartId: string, notes: string) => {
+    updateCartNotesMutation.mutate({ cartId, notes });
+  }, [updateCartNotesMutation]);
+
+  const updateCartStatus = useCallback((cartId: string, status: CartStatus) => {
+    updateCartStatusMutation.mutate({ cartId, status });
+  }, [updateCartStatusMutation]);
+
+  const duplicateCartFn = useCallback((cartId: string) => {
+    duplicateCartMutation.mutate(cartId);
+  }, [duplicateCartMutation]);
+
+  const moveItemToCart = useCallback((itemId: string, targetCartId: string) => {
+    moveItemMutation.mutate({ itemId, targetCartId });
+  }, [moveItemMutation]);
+
   return (
     <SellerCartContext.Provider
       value={{
@@ -113,6 +148,12 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
         addToActiveCart,
         removeItem,
         updateItemQuantity,
+        updateItemNotes,
+        updateItemSortOrder,
+        updateCartNotes,
+        updateCartStatus,
+        duplicateCart: duplicateCartFn,
+        moveItemToCart,
       }}
     >
       {children}
