@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import { ChevronDown, ChevronUp, ChevronsUpDown, RefreshCw, Search, X, Gem, Building2, Gift, Palette, Sparkles, Filter, Paintbrush, Clock, Tag } from "lucide-react";
+import { ChevronDown, ChevronUp, ChevronsUpDown, RefreshCw, Search, X, Gem, Building2, Gift, Palette, Sparkles, Filter, Paintbrush, Clock, Tag, LayoutGrid, List, Settings2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { toTitleCase } from "@/lib/textUtils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { ColumnSelector } from "@/components/products/ColumnSelector";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import { useMaterialFilter } from "@/hooks/useMaterialFilter";
 import { useSuppliers } from "@/hooks/useSuppliers";
@@ -79,6 +80,11 @@ interface FilterPanelProps {
   onReset: () => void;
   activeFiltersCount: number;
   products?: Array<{ tags?: { publicoAlvo?: string[]; endomarketing?: string[]; ramo?: string[]; nicho?: string[] } }>;
+  // Layout controls
+  viewMode?: "grid" | "list";
+  onViewModeChange?: (mode: "grid" | "list") => void;
+  gridColumns?: import("@/components/products/ColumnSelector").ColumnCount;
+  onGridColumnsChange?: (cols: import("@/components/products/ColumnSelector").ColumnCount) => void;
 }
 
 export const defaultFilters: FilterState = {
@@ -110,7 +116,7 @@ export const defaultFilters: FilterState = {
   sortBy: 'name',
 };
 
-export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [] }: FilterPanelProps) {
+export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [], viewMode, onViewModeChange, gridColumns, onGridColumnsChange }: FilterPanelProps) {
   const [openSections, setOpenSections] = useState<string[]>([]);
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
@@ -354,6 +360,69 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
           </Button>
         </div>
       </div>
+
+      {/* Layout & Sort controls */}
+      {(onViewModeChange || onGridColumnsChange) && (
+        <div className="space-y-3 rounded-lg border border-border/50 bg-secondary/30 p-3">
+          {/* Sort */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1.5">Ordenar por</p>
+            <Select value={filters.sortBy || 'name'} onValueChange={(val) => onFilterChange({ ...filters, sortBy: val })}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Nome A-Z</SelectItem>
+                <SelectItem value="price_asc">Menor Preço</SelectItem>
+                <SelectItem value="price_desc">Maior Preço</SelectItem>
+                <SelectItem value="stock">Maior Estoque</SelectItem>
+                <SelectItem value="newest">Novidades</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* View mode */}
+          {onViewModeChange && viewMode && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">Visualização</p>
+              <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "flex-1 h-7 gap-1.5 text-xs",
+                    viewMode === "grid" && "bg-card shadow-sm"
+                  )}
+                  onClick={() => onViewModeChange("grid")}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  Grid
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "flex-1 h-7 gap-1.5 text-xs",
+                    viewMode === "list" && "bg-card shadow-sm"
+                  )}
+                  onClick={() => onViewModeChange("list")}
+                >
+                  <List className="h-3.5 w-3.5" />
+                  Lista
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Columns */}
+          {viewMode === "grid" && onGridColumnsChange && gridColumns && (
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">Colunas</p>
+              <ColumnSelector value={gridColumns} onChange={onGridColumnsChange} />
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="divide-y divide-border">
         {/* Busca textual */}
