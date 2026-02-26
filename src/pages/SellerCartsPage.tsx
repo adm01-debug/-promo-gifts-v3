@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyState } from "@/components/common/EmptyState";
-import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { DeleteConfirmDialog, ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -594,18 +594,22 @@ function SmartSuggestions({ cart, allProducts }: { cart: SellerCart; allProducts
 
     // "Also bought" suggestion based on category similarity
     if (allProducts.length > 0 && cart.items.length > 0) {
-      const cartCategories = new Set(
+      const cartCategoryNames = new Set(
         cart.items
-          .map(i => allProducts.find(p => p.id === i.product_id)?.category)
+          .map(i => {
+            const prod = allProducts.find(p => p.id === i.product_id);
+            return prod?.category_name || prod?.category?.name;
+          })
           .filter(Boolean)
       );
       const cartProductIds = new Set(cart.items.map(i => i.product_id));
-      const similar = allProducts.find(p =>
-        !cartProductIds.has(p.id) &&
-        p.category &&
-        cartCategories.has(p.category) &&
-        p.is_active !== false
-      );
+      const similar = allProducts.find(p => {
+        const pCatName = p.category_name || p.category?.name;
+        return !cartProductIds.has(p.id) &&
+          pCatName &&
+          cartCategoryNames.has(pCatName) &&
+          p.is_active !== false;
+      });
       if (similar) {
         tips.push({
           icon: Sparkles,
@@ -1084,6 +1088,8 @@ function SellerCartsContent() {
   }, [addToActiveCart]);
 
   const [confirmQuoteCart, setConfirmQuoteCart] = useState<SellerCart | null>(null);
+  const [confirmDeleteCart, setConfirmDeleteCart] = useState(false);
+  const [confirmClearCart, setConfirmClearCart] = useState(false);
 
   const handleGenerateQuote = useCallback((cart: SellerCart) => {
     setConfirmQuoteCart(cart);
@@ -1301,18 +1307,15 @@ function SellerCartsContent() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <DeleteConfirmDialog
-                  trigger={
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive gap-1.5 text-xs">
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Excluir
-                    </Button>
-                  }
-                  title={`Excluir carrinho de ${activeCart.company_name}?`}
-                  description={`Todos os ${activeCart.items.length} itens serão removidos. Esta ação não pode ser desfeita.`}
-                  onConfirm={() => deleteCart(activeCart.id)}
-                  itemName="carrinho"
-                />
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive gap-1.5 text-xs"
+                onClick={() => setConfirmDeleteCart(true)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Excluir
+              </Button>
               </div>
             </Card>
 
@@ -1516,25 +1519,15 @@ function SellerCartsContent() {
                 />
 
                 <div className="grid grid-cols-2 gap-2">
-                  <DeleteConfirmDialog
-                    trigger={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs gap-1.5 w-full"
-                      >
-                        <Eraser className="h-3.5 w-3.5" />
-                        Limpar
-                      </Button>
-                    }
-                    title="Limpar todos os itens?"
-                    description={`${activeCart.items.length} itens serão removidos do carrinho de ${activeCart.company_name}.`}
-                    onConfirm={() => {
-                      activeCart.items.forEach(i => removeItem(i.id));
-                      toast.success("Carrinho limpo");
-                    }}
-                    itemName="itens"
-                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs gap-1.5 w-full"
+                    onClick={() => setConfirmClearCart(true)}
+                  >
+                    <Eraser className="h-3.5 w-3.5" />
+                    Limpar
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -1637,14 +1630,43 @@ function SellerCartsContent() {
       )}
 
       {/* Confirm generate quote dialog */}
-      <DeleteConfirmDialog
-        trigger={<span />}
-        title={`Gerar orçamento para ${confirmQuoteCart?.company_name}?`}
-        description={`Os ${confirmQuoteCart?.items.length || 0} itens serão transferidos para um novo orçamento e o carrinho será removido.`}
-        onConfirm={confirmGenerateQuote}
-        itemName="carrinho"
+      <ConfirmDialog
         open={!!confirmQuoteCart}
         onOpenChange={(open) => { if (!open) setConfirmQuoteCart(null); }}
+        variant="warning"
+        title={`Gerar orçamento para ${confirmQuoteCart?.company_name}?`}
+        description={`Os ${confirmQuoteCart?.items.length || 0} itens serão transferidos para um novo orçamento e o carrinho será removido.`}
+        confirmLabel="Gerar Orçamento"
+        cancelLabel="Cancelar"
+        onConfirm={confirmGenerateQuote}
+      />
+
+      {/* Confirm delete cart dialog */}
+      <DeleteConfirmDialog
+        open={confirmDeleteCart}
+        onOpenChange={setConfirmDeleteCart}
+        entityName="carrinho"
+        itemName={activeCart?.company_name}
+        onConfirm={() => {
+          if (activeCart) deleteCart(activeCart.id);
+          setConfirmDeleteCart(false);
+        }}
+      />
+
+      {/* Confirm clear cart dialog */}
+      <ConfirmDialog
+        open={confirmClearCart}
+        onOpenChange={setConfirmClearCart}
+        variant="warning"
+        title="Limpar todos os itens?"
+        description={`${activeCart?.items.length || 0} itens serão removidos do carrinho de ${activeCart?.company_name}.`}
+        confirmLabel="Limpar"
+        cancelLabel="Cancelar"
+        onConfirm={() => {
+          activeCart?.items.forEach(i => removeItem(i.id));
+          toast.success("Carrinho limpo");
+          setConfirmClearCart(false);
+        }}
       />
     </div>
   );
