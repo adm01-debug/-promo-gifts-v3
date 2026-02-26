@@ -535,7 +535,31 @@ export function GlobalSearchPalette() {
             if (filteredProducts.length === 0) filteredProducts = productsData.slice(0, 8);
           }
 
-          filteredProducts.forEach((p) => {
+          // Priorizar resultados: nome começa com > palavra exata > contém > outros
+          const searchLower = searchQuery.toLowerCase();
+          const wordBoundaryRegex = new RegExp(`\\b${searchLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          
+          const startsWithGroup: typeof filteredProducts = [];
+          const exactWordGroup: typeof filteredProducts = [];
+          const containsGroup: typeof filteredProducts = [];
+          const otherGroup: typeof filteredProducts = [];
+
+          for (const p of filteredProducts) {
+            const nameLower = p.name.toLowerCase();
+            if (nameLower.startsWith(searchLower)) {
+              startsWithGroup.push(p);
+            } else if (wordBoundaryRegex.test(p.name)) {
+              exactWordGroup.push(p);
+            } else if (nameLower.includes(searchLower)) {
+              containsGroup.push(p);
+            } else {
+              otherGroup.push(p);
+            }
+          }
+
+          const orderedProducts = [...startsWithGroup, ...exactWordGroup, ...containsGroup, ...otherGroup];
+
+          orderedProducts.forEach((p) => {
             allResults.push({
               id: p.id,
               title: p.name,
