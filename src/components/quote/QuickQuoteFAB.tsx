@@ -96,7 +96,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 hidden lg:block" style={{ bottom: 'calc(7.5rem + env(safe-area-inset-bottom))' }}>
+    <div className="fixed bottom-6 right-6 z-40 hidden lg:block" style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom))' }}>
       <AnimatePresence>
         {isOpen && (
           <>
