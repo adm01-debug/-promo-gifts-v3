@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Grid2x2, Grid3x3, LayoutGrid, Columns3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -10,18 +9,50 @@ const STORAGE_KEY = "product-grid-columns";
 
 export type ColumnCount = 3 | 4 | 5 | 6;
 
+// Custom grid icons that visually represent the actual column count
+function GridIcon({ cols, className }: { cols: number; className?: string }) {
+  const size = 14;
+  const gap = 1.5;
+  const rows = 2;
+  const totalGapX = (cols - 1) * gap;
+  const totalGapY = (rows - 1) * gap;
+  const cellW = (size - totalGapX) / cols;
+  const cellH = (size - totalGapY) / rows;
+  const rects: React.ReactNode[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      rects.push(
+        <rect
+          key={`${r}-${c}`}
+          x={c * (cellW + gap)}
+          y={r * (cellH + gap)}
+          width={cellW}
+          height={cellH}
+          rx={1}
+          fill="currentColor"
+        />
+      );
+    }
+  }
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className={className}>
+      {rects}
+    </svg>
+  );
+}
+
 interface ColumnOption {
   value: ColumnCount;
   label: string;
   icon: React.ReactNode;
-  minWidth: number; // minimum screen width in px
+  minWidth: number;
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 3, label: "3 colunas", icon: <Columns3 className="h-3.5 w-3.5" />, minWidth: 0 },
-  { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-3.5 w-3.5" />, minWidth: 640 },
-  { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-3.5 w-3.5" />, minWidth: 1024 },
-  { value: 6, label: "6 colunas", icon: <LayoutGrid className="h-3.5 w-3.5" />, minWidth: 1280 },
+  { value: 3, label: "3 colunas", icon: <GridIcon cols={3} />, minWidth: 0 },
+  { value: 4, label: "4 colunas", icon: <GridIcon cols={4} />, minWidth: 640 },
+  { value: 5, label: "5 colunas", icon: <GridIcon cols={5} />, minWidth: 1024 },
+  { value: 6, label: "6 colunas", icon: <GridIcon cols={6} />, minWidth: 1280 },
 ];
 
 function getDefaultColumns(): ColumnCount {
