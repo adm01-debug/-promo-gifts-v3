@@ -115,7 +115,7 @@ export function ProductGrid({
   return (
     <div 
       ref={gridRef}
-      className={`grid ${columnClasses[columns] || columnClasses[5]} gap-2 sm:gap-3 lg:gap-4`}
+      className={`grid ${columnClasses[columns] || columnClasses[5]} ${columns >= 8 ? 'gap-1.5 sm:gap-2' : 'gap-2 sm:gap-3 lg:gap-4'}`}
     >
       {products.map((product, index) => (
         <ProductCardWrapper
