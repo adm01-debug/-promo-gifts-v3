@@ -336,7 +336,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-1 -ml-3">
+        <div className="flex items-center gap-1 -ml-1">
           <Button
             variant="outline"
             size="sm"
