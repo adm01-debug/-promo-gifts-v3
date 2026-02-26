@@ -15,6 +15,7 @@ import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { GlobalCommandBar } from "@/components/command/GlobalCommandBar";
 import { ScrollToTopButton, ScrollProgressIndicator } from "@/components/common/ScrollProgress";
 import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
+import { BackButton } from "@/components/common/BackButton";
 import { SellerCartProvider } from "@/contexts/SellerCartContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 
@@ -79,7 +80,10 @@ export function MainLayout({ children }: MainLayoutProps) {
               role="main"
               aria-label="Conteúdo principal"
             >
-              {/* Persistent Breadcrumbs */}
+              {/* Back Button + Breadcrumbs */}
+              <div className="print:hidden">
+                <BackButton className="mb-1" />
+              </div>
               <div className="print:hidden">
                 <PersistentBreadcrumbs className="mb-4" />
               </div>
