@@ -45,7 +45,7 @@ import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { EmptyState } from "@/components/common/EmptyState";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
-import { RecentlyViewedBar } from "@/components/products/RecentlyViewedBar";
+import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
 import { InfoTooltip } from "@/components/common/ContextualTooltips";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
@@ -502,39 +502,40 @@ export default function Index() {
           <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
             {/* Header with Search */}
             <div className="flex flex-col gap-3 sm:gap-4">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
-            <div>
+              <div className="flex items-center justify-between gap-3">
+            <div className="flex-shrink-0">
               <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold">Catálogo de Produtos</h1>
-              <p className="text-muted-foreground text-sm sm:text-base mt-1">
+              <p className="text-muted-foreground text-sm sm:text-base mt-0.5">
                 Explore nossa coleção completa de brindes corporativos
               </p>
             </div>
 
-            {/* Smart Search with Autocomplete & History */}
-            <SmartSearchInput
-              placeholder="Buscar produtos, categorias, fornecedores..."
-              onSelect={(result) => {
-                if (result.type === "product") {
-                  navigate(`/produto/${result.id}`);
-                } else if (result.type === "category") {
-                  setFilters(prev => ({ ...prev, categories: [parseInt(result.id)] }));
-                } else if (result.type === "supplier") {
-                  setFilters(prev => ({ ...prev, suppliers: [result.id] }));
-                } else {
-                  handleSearch(result.label);
-                }
-              }}
-              className="w-full lg:w-96"
-            />
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Smart Search with Autocomplete & History */}
+              <SmartSearchInput
+                placeholder="Buscar produtos, categorias, fornecedores..."
+                onSelect={(result) => {
+                  if (result.type === "product") {
+                    navigate(`/produto/${result.id}`);
+                  } else if (result.type === "category") {
+                    setFilters(prev => ({ ...prev, categories: [parseInt(result.id)] }));
+                  } else if (result.type === "supplier") {
+                    setFilters(prev => ({ ...prev, suppliers: [result.id] }));
+                  } else {
+                    handleSearch(result.label);
+                  }
+                }}
+                className="w-full lg:w-96"
+              />
+
+              {/* Recently Viewed Popover */}
+              <RecentlyViewedPopover maxVisible={10} />
+            </div>
               </div>
             </div>
 
-          {/* Recently Viewed Bar */}
-          <RecentlyViewedBar maxVisible={6} className="mb-2" />
-
-          {/* Quick Filters + Stats - All in one line */}
+          {/* Quick Filters */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Quick Filters */}
             {quickFilters.map((filter) => (
               <Button
                 key={filter.id}
@@ -550,25 +551,6 @@ export default function Index() {
                 {filter.label}
               </Button>
             ))}
-
-            {/* Separator */}
-            <div className="h-6 w-px bg-border/50 mx-1" />
-
-            {/* Stat Badges */}
-            {statBadges.map((stat) => (
-              <div
-                key={stat.id}
-                className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide"
-              >
-                <span className="text-orange">{stat.icon}</span>
-                <span className="font-bold text-foreground">{stat.value}</span>
-                <span className="text-foreground/70">{stat.label}</span>
-              </div>
-            ))}
-
-            {/* Separator */}
-            <div className="h-6 w-px bg-border/50 mx-1" />
-
 
             {/* Mobile category toggle */}
             {!isDesktop && (
@@ -620,9 +602,9 @@ export default function Index() {
         <div className="space-y-6">
           <div className="space-y-4">
             {/* Filters and controls */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* Filter button */}
+            <div className="flex items-center justify-between gap-3">
+              {/* Left - Filters & Sort */}
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
                   <SheetTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -645,7 +627,6 @@ export default function Index() {
                   </SheetContent>
                 </Sheet>
 
-                {/* Sort */}
                 <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
                   <SelectTrigger className="w-44">
                     <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -657,34 +638,47 @@ export default function Index() {
                     <SelectItem value="price-desc">Maior Preço</SelectItem>
                     <SelectItem value="stock">Maior Estoque</SelectItem>
                     <SelectItem value="newest">Novidades</SelectItem>
-                    
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Column count selector */}
-              {viewMode === "grid" && (
-                <ColumnSelector value={gridColumns} onChange={setGridColumns} />
-              )}
+              {/* Center - Stat Badges */}
+              <div className="hidden lg:flex items-center gap-2 justify-center flex-1 min-w-0 overflow-x-auto scrollbar-none">
+                {statBadges.map((stat) => (
+                  <div
+                    key={stat.id}
+                    className="flex items-center gap-1.5 h-8 px-3 rounded-md border border-border/50 bg-card text-xs font-semibold tracking-wide"
+                  >
+                    <span className="text-orange">{stat.icon}</span>
+                    <span className="font-bold text-foreground">{stat.value}</span>
+                    <span className="text-foreground/70">{stat.label}</span>
+                  </div>
+                ))}
+              </div>
 
-              {/* View mode toggle */}
-              <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn("h-8 w-8", viewMode === "grid" && "bg-card shadow-sm")}
-                  onClick={() => setViewMode("grid")}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn("h-8 w-8", viewMode === "list" && "bg-card shadow-sm")}
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
+              {/* Right - Column selector + View mode toggle (unified) */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {viewMode === "grid" && (
+                  <ColumnSelector value={gridColumns} onChange={setGridColumns} />
+                )}
+                <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("h-8 w-8", viewMode === "grid" && "bg-card shadow-sm")}
+                    onClick={() => setViewMode("grid")}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn("h-8 w-8", viewMode === "list" && "bg-card shadow-sm")}
+                    onClick={() => setViewMode("list")}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
