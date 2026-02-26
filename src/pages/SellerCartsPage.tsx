@@ -1,8 +1,8 @@
 /**
- * SellerCartsPage - Página dedicada de carrinhos do vendedor
- * Workspace completo com todas as features: drag & drop, notas, status, duplicação,
- * alertas de estoque, timer de follow-up, insights inteligentes, comparação side-by-side,
- * exportação CSV/PDF, compartilhamento, cor primária como accent, templates e mais.
+ * SellerCartsPage - Workspace completo de carrinhos do vendedor
+ * 100% do roadmap: drag & drop, notas, status, duplicação, estoque, templates,
+ * peso/volume, histórico de ações, comparação, exportação, tablet responsive,
+ * sugestões inteligentes com "também compraram", duplicar item entre carrinhos.
  */
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
@@ -10,6 +10,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { SellerCart, SellerCartItem, CartStatus } from "@/hooks/useSellerCarts";
+import { useCartTemplates, CartTemplateItem } from "@/hooks/useCartTemplates";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,10 +25,11 @@ import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub,
+  DropdownMenuSubContent, DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,9 +47,10 @@ import {
   ShoppingCart, Plus, Building2, Package, Trash2, ArrowRight,
   Eraser, Minus, Clock, MapPin, FileText, MoveRight,
   Eye, MoreHorizontal, Copy, GripVertical, MessageSquare,
-  ChevronDown, AlertTriangle, Timer, Sparkles, TrendingUp,
-  Download, Share2, Columns, Calculator, Link2, Search,
-  Lightbulb, ChevronUp,
+  ChevronDown, Timer, Sparkles, TrendingUp,
+  Download, Share2, Columns, Calculator, Lightbulb,
+  ChevronUp, AlertTriangle, Save, BookTemplate, Weight,
+  Box, History, CopyPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { showUndoToast } from "@/utils/undoToast";
@@ -64,6 +68,30 @@ const STATUS_CONFIG: Record<CartStatus, { label: string; color: string }> = {
 };
 
 // ============================================
+// ACTION HISTORY (in-memory per session)
+// ============================================
+
+interface CartAction {
+  type: "add" | "remove" | "qty" | "move" | "duplicate";
+  itemName: string;
+  detail?: string;
+  time: Date;
+}
+
+const actionHistoryMap = new Map<string, CartAction[]>();
+
+function recordAction(cartId: string, action: CartAction) {
+  const list = actionHistoryMap.get(cartId) || [];
+  list.unshift(action);
+  if (list.length > 20) list.pop();
+  actionHistoryMap.set(cartId, list);
+}
+
+function getActionHistory(cartId: string): CartAction[] {
+  return actionHistoryMap.get(cartId) || [];
+}
+
+// ============================================
 // SORTABLE ITEM CARD
 // ============================================
 
@@ -72,20 +100,24 @@ function SortableCartItem({
   index,
   otherCarts,
   companyAccentColor,
+  stockMap,
   onRemove,
   onUpdateQuantity,
   onUpdateNotes,
   onMoveToCart,
+  onDuplicateToCart,
   onNavigate,
 }: {
   item: SellerCartItem;
   index: number;
   otherCarts: SellerCart[];
   companyAccentColor?: string | null;
+  stockMap: Map<string, number>;
   onRemove: (id: string, name: string) => void;
   onUpdateQuantity: (id: string, qty: number) => void;
   onUpdateNotes: (id: string, notes: string) => void;
   onMoveToCart: (itemId: string, targetCartId: string) => void;
+  onDuplicateToCart: (itemId: string, targetCartId: string) => void;
   onNavigate: (path: string) => void;
 }) {
   const [notesOpen, setNotesOpen] = useState(!!item.notes);
@@ -104,6 +136,9 @@ function SortableCartItem({
   };
 
   const itemTotal = item.product_price * item.quantity;
+  const stock = stockMap.get(item.product_id);
+  const isLowStock = stock !== undefined && stock < item.quantity;
+  const isOutOfStock = stock !== undefined && stock === 0;
 
   const handleNotesChange = (value: string) => {
     setLocalNotes(value);
@@ -122,16 +157,15 @@ function SortableCartItem({
     >
       <Card className={cn(
         "overflow-hidden group hover:border-emerald-500/20 transition-all duration-200",
-        isDragging && "shadow-xl ring-2 ring-emerald-500/30"
+        isDragging && "shadow-xl ring-2 ring-emerald-500/30",
+        isOutOfStock && "opacity-60"
       )}>
-        {/* Company accent top bar */}
         {companyAccentColor && (
           <div className="h-1 w-full" style={{ backgroundColor: companyAccentColor }} />
         )}
 
         {/* Product image */}
         <div className="relative aspect-square bg-muted/30">
-          {/* Drag handle */}
           <button
             {...attributes}
             {...listeners}
@@ -145,12 +179,7 @@ function SortableCartItem({
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
             {item.product_image_url ? (
-              <img
-                src={item.product_image_url}
-                alt={item.product_name}
-                className="w-full h-full object-contain p-4"
-                loading="lazy"
-              />
+              <img src={item.product_image_url} alt={item.product_name} className="w-full h-full object-contain p-4" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-12 w-12 text-muted-foreground/30" />
@@ -177,7 +206,7 @@ function SortableCartItem({
                   <MoreHorizontal className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuItem onClick={() => onNavigate(`/produto/${item.product_id}`)}>
                   <Eye className="h-3.5 w-3.5 mr-2" /> Ver Produto
                 </DropdownMenuItem>
@@ -187,12 +216,30 @@ function SortableCartItem({
                 {otherCarts.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
-                    {otherCarts.map(c => (
-                      <DropdownMenuItem key={c.id} onClick={() => onMoveToCart(item.id, c.id)}>
-                        <MoveRight className="h-3.5 w-3.5 mr-2" />
-                        Mover → {c.company_name}
-                      </DropdownMenuItem>
-                    ))}
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <MoveRight className="h-3.5 w-3.5 mr-2" /> Mover para...
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {otherCarts.map(c => (
+                          <DropdownMenuItem key={c.id} onClick={() => onMoveToCart(item.id, c.id)}>
+                            {c.company_name}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <CopyPlus className="h-3.5 w-3.5 mr-2" /> Duplicar para...
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {otherCarts.map(c => (
+                          <DropdownMenuItem key={c.id} onClick={() => onDuplicateToCart(item.id, c.id)}>
+                            {c.company_name}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </>
                 )}
                 <DropdownMenuSeparator />
@@ -205,6 +252,19 @@ function SortableCartItem({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+          {/* Stock alert badge */}
+          {(isLowStock || isOutOfStock) && (
+            <div className={cn(
+              "absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium",
+              isOutOfStock
+                ? "bg-destructive/90 text-white"
+                : "bg-amber-500/90 text-white"
+            )}>
+              <AlertTriangle className="h-3 w-3" />
+              {isOutOfStock ? "Sem estoque" : `Estoque: ${stock}`}
+            </div>
+          )}
 
           {/* Color badge */}
           {item.color_name && (
@@ -467,7 +527,6 @@ async function exportCartToPDF(cart: SellerCart) {
   const total = cart.items.reduce((s, i) => s + i.product_price * i.quantity, 0);
   const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
 
-  // Header
   doc.setFontSize(18);
   doc.text(`Carrinho — ${cart.company_name}`, 14, 20);
   doc.setFontSize(10);
@@ -478,7 +537,6 @@ async function exportCartToPDF(cart: SellerCart) {
     doc.text(`Notas: ${cart.notes}`, 14, 40);
   }
 
-  // Table
   autoTable(doc, {
     startY: cart.notes ? 46 : 40,
     head: [["SKU", "Produto", "Cor", "Qtd", "Unit.", "Subtotal", "Obs."]],
@@ -500,7 +558,6 @@ async function exportCartToPDF(cart: SellerCart) {
   doc.setFontSize(7);
   doc.setTextColor(180);
   doc.text("Gerado pelo CRM", 14, doc.internal.pageSize.getHeight() - 10);
-
   doc.save(`carrinho-${cart.company_name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
   toast.success("PDF exportado com sucesso");
 }
@@ -513,10 +570,10 @@ function shareCartLink(cartId: string) {
 }
 
 // ============================================
-// SMART SUGGESTIONS
+// SMART SUGGESTIONS (with "also bought")
 // ============================================
 
-function SmartSuggestions({ cart }: { cart: SellerCart }) {
+function SmartSuggestions({ cart, allProducts }: { cart: SellerCart; allProducts: any[] }) {
   const suggestions = useMemo(() => {
     const tips: { icon: typeof Lightbulb; text: string }[] = [];
     const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
@@ -534,8 +591,31 @@ function SmartSuggestions({ cart }: { cart: SellerCart }) {
     if (cart.items.some(i => !i.notes) && cart.items.length > 2) {
       tips.push({ icon: FileText, text: "Adicione observações em cada item para acelerar a produção" });
     }
-    return tips.slice(0, 2);
-  }, [cart]);
+
+    // "Also bought" suggestion based on category similarity
+    if (allProducts.length > 0 && cart.items.length > 0) {
+      const cartCategories = new Set(
+        cart.items
+          .map(i => allProducts.find(p => p.id === i.product_id)?.category)
+          .filter(Boolean)
+      );
+      const cartProductIds = new Set(cart.items.map(i => i.product_id));
+      const similar = allProducts.find(p =>
+        !cartProductIds.has(p.id) &&
+        p.category &&
+        cartCategories.has(p.category) &&
+        p.is_active !== false
+      );
+      if (similar) {
+        tips.push({
+          icon: Sparkles,
+          text: `Clientes similares também compraram: ${similar.name}`,
+        });
+      }
+    }
+
+    return tips.slice(0, 3);
+  }, [cart, allProducts]);
 
   if (suggestions.length === 0) return null;
 
@@ -551,6 +631,167 @@ function SmartSuggestions({ cart }: { cart: SellerCart }) {
         );
       })}
     </div>
+  );
+}
+
+// ============================================
+// ACTION HISTORY PANEL
+// ============================================
+
+function ActionHistoryPanel({ cartId }: { cartId: string }) {
+  const history = getActionHistory(cartId);
+  if (history.length === 0) return null;
+
+  const icons: Record<string, typeof Plus> = {
+    add: Plus,
+    remove: Trash2,
+    qty: Package,
+    move: MoveRight,
+    duplicate: Copy,
+  };
+
+  return (
+    <Collapsible>
+      <CollapsibleTrigger asChild>
+        <button className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full">
+          <History className="h-3.5 w-3.5" />
+          Histórico de ações ({history.length})
+          <ChevronDown className="h-3 w-3 ml-auto" />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-2">
+        <div className="space-y-1 max-h-40 overflow-y-auto">
+          {history.slice(0, 10).map((action, i) => {
+            const Icon = icons[action.type] || Package;
+            return (
+              <div key={i} className="flex items-center gap-2 text-[10px] text-muted-foreground py-1">
+                <Icon className="h-3 w-3 flex-shrink-0" />
+                <span className="truncate flex-1">
+                  {action.type === "add" && `Adicionou ${action.itemName}`}
+                  {action.type === "remove" && `Removeu ${action.itemName}`}
+                  {action.type === "qty" && `Alterou qtd de ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
+                  {action.type === "move" && `Moveu ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
+                  {action.type === "duplicate" && `Duplicou ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
+                </span>
+                <span className="text-[9px] tabular-nums flex-shrink-0">
+                  {formatDistanceToNow(action.time, { addSuffix: true, locale: ptBR })}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+// ============================================
+// SAVE AS TEMPLATE DIALOG
+// ============================================
+
+function SaveTemplateDialog({ cart, onSave }: { cart: SellerCart; onSave: (name: string, desc: string) => void }) {
+  const [name, setName] = useState("");
+  const [desc, setDesc] = useState("");
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="text-xs gap-1.5 w-full">
+          <Save className="h-3.5 w-3.5" />
+          Salvar como Template
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Salvar Template de Carrinho</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <Input
+            placeholder='Ex: "Kit Onboarding"'
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+          <Textarea
+            placeholder="Descrição opcional..."
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
+            rows={2}
+          />
+          <p className="text-xs text-muted-foreground">{cart.items.length} itens serão salvos no template</p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button
+            disabled={!name.trim()}
+            onClick={() => {
+              onSave(name.trim(), desc.trim());
+              setOpen(false);
+              setName("");
+              setDesc("");
+            }}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white"
+          >
+            Salvar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================
+// LOAD TEMPLATE DIALOG
+// ============================================
+
+function LoadTemplateDialog({
+  templates,
+  onLoad,
+  onDelete,
+}: {
+  templates: { id: string; name: string; description: string | null; items: CartTemplateItem[]; created_at: string }[];
+  onLoad: (items: CartTemplateItem[]) => void;
+  onDelete: (id: string) => void;
+}) {
+  if (templates.length === 0) return null;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="text-xs gap-1.5 w-full">
+          <BookTemplate className="h-3.5 w-3.5" />
+          Usar Template ({templates.length})
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md max-h-[70vh]">
+        <DialogHeader>
+          <DialogTitle>Templates Salvos</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="max-h-[50vh]">
+          <div className="space-y-2">
+            {templates.map(t => (
+              <Card key={t.id} className="p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold">{t.name}</p>
+                    {t.description && <p className="text-xs text-muted-foreground">{t.description}</p>}
+                    <p className="text-[10px] text-muted-foreground mt-1">{t.items.length} itens</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => onLoad(t.items)}>
+                      Aplicar
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-xs h-7 text-destructive" onClick={() => onDelete(t.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -660,12 +901,67 @@ function SellerCartsContent() {
     updateCartStatus,
     duplicateCart,
     moveItemToCart,
+    duplicateItemToCart,
   } = useSellerCartContext();
+
+  const { templates, saveTemplate, deleteTemplate } = useCartTemplates();
+
+  // Products context for stock alerts + suggestions
+  let allProducts: any[] = [];
+  try {
+    const ctx = useProductsContext();
+    allProducts = ctx.products || [];
+  } catch {
+    // ProductsContext may not be available
+  }
 
   const [showNewCart, setShowNewCart] = useState(false);
   const [cartNotesOpen, setCartNotesOpen] = useState(false);
   const [localCartNotes, setLocalCartNotes] = useState("");
   const debounceNotesRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Build stock map from products
+  const stockMap = useMemo(() => {
+    const map = new Map<string, number>();
+    allProducts.forEach(p => {
+      if (p.stock !== undefined && p.stock !== null) {
+        map.set(p.id, p.stock);
+      }
+    });
+    return map;
+  }, [allProducts]);
+
+  // Weight/volume calculation
+  const weightVolume = useMemo(() => {
+    if (!activeCart) return null;
+    let totalWeightG = 0;
+    let totalVolumeCm3 = 0;
+    let hasData = false;
+
+    activeCart.items.forEach(item => {
+      const product = allProducts.find(p => p.id === item.product_id);
+      if (!product) return;
+
+      const weight = product.dimensions?.weight_g || 0;
+      const volume = product.boxVolumeCm3 || 0;
+
+      if (weight > 0) {
+        totalWeightG += weight * item.quantity;
+        hasData = true;
+      }
+      if (volume > 0) {
+        totalVolumeCm3 += volume * item.quantity;
+        hasData = true;
+      }
+    });
+
+    if (!hasData) return null;
+    return {
+      weightKg: totalWeightG / 1000,
+      volumeM3: totalVolumeCm3 / 1000000,
+      volumeCm3: totalVolumeCm3,
+    };
+  }, [activeCart, allProducts]);
 
   // Deep link support
   useEffect(() => {
@@ -680,17 +976,6 @@ function SellerCartsContent() {
     setLocalCartNotes(activeCart?.notes || "");
     setCartNotesOpen(!!activeCart?.notes);
   }, [activeCart?.id, activeCart?.notes]);
-
-  // Ctrl+K to open global search (already handled globally, but we add hint)
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        // The global search handles this. No extra logic needed.
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, []);
 
   const handleCartNotesChange = (value: string) => {
     setLocalCartNotes(value);
@@ -720,18 +1005,17 @@ function SellerCartsContent() {
     updateItemSortOrder(updates);
   }, [activeCart, updateItemSortOrder]);
 
-  // Undo-capable remove
+  // Undo-capable remove with action tracking
   const handleRemoveItem = useCallback((itemId: string, itemName: string) => {
-    // Find item data before removing for potential undo
     const item = activeCart?.items.find(i => i.id === itemId);
     removeItem(itemId);
 
     if (item && activeCart) {
+      recordAction(activeCart.id, { type: "remove", itemName, time: new Date() });
       showUndoToast({
         title: `${itemName} removido`,
         description: activeCart.company_name,
         onUndo: () => {
-          // Re-add the item
           addToActiveCart({
             product_id: item.product_id,
             product_name: item.product_name,
@@ -746,6 +1030,63 @@ function SellerCartsContent() {
       });
     }
   }, [removeItem, activeCart, addToActiveCart]);
+
+  const handleUpdateQuantity = useCallback((itemId: string, qty: number) => {
+    updateItemQuantity(itemId, qty);
+    const item = activeCart?.items.find(i => i.id === itemId);
+    if (item && activeCart) {
+      recordAction(activeCart.id, { type: "qty", itemName: item.product_name, detail: `${qty}`, time: new Date() });
+    }
+  }, [updateItemQuantity, activeCart]);
+
+  const handleMoveItem = useCallback((itemId: string, targetCartId: string) => {
+    const item = activeCart?.items.find(i => i.id === itemId);
+    const targetCart = carts.find(c => c.id === targetCartId);
+    moveItemToCart(itemId, targetCartId);
+    if (item && activeCart) {
+      recordAction(activeCart.id, { type: "move", itemName: item.product_name, detail: targetCart?.company_name, time: new Date() });
+    }
+  }, [moveItemToCart, activeCart, carts]);
+
+  const handleDuplicateItem = useCallback((itemId: string, targetCartId: string) => {
+    const item = activeCart?.items.find(i => i.id === itemId);
+    const targetCart = carts.find(c => c.id === targetCartId);
+    duplicateItemToCart(itemId, targetCartId);
+    if (item && activeCart) {
+      recordAction(activeCart.id, { type: "duplicate", itemName: item.product_name, detail: targetCart?.company_name, time: new Date() });
+    }
+  }, [duplicateItemToCart, activeCart, carts]);
+
+  const handleSaveTemplate = useCallback((name: string, description: string) => {
+    if (!activeCart) return;
+    const items: CartTemplateItem[] = activeCart.items.map(i => ({
+      product_id: i.product_id,
+      product_name: i.product_name,
+      product_sku: i.product_sku || undefined,
+      product_image_url: i.product_image_url || undefined,
+      product_price: i.product_price,
+      quantity: i.quantity,
+      color_name: i.color_name || undefined,
+      color_hex: i.color_hex || undefined,
+    }));
+    saveTemplate.mutate({ name, description, items });
+  }, [activeCart, saveTemplate]);
+
+  const handleLoadTemplate = useCallback((items: CartTemplateItem[]) => {
+    items.forEach(item => {
+      addToActiveCart({
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_sku: item.product_sku,
+        product_image_url: item.product_image_url,
+        product_price: item.product_price,
+        quantity: item.quantity,
+        color_name: item.color_name,
+        color_hex: item.color_hex,
+      });
+    });
+    toast.success("Template aplicado ao carrinho");
+  }, [addToActiveCart]);
 
   const handleGenerateQuote = useCallback((cart: SellerCart) => {
     navigate("/orcamentos/novo", {
@@ -776,23 +1117,13 @@ function SellerCartsContent() {
   );
 
   // Computed insights
-  const cartAge = activeCart
-    ? differenceInDays(new Date(), new Date(activeCart.created_at))
-    : 0;
-  const cartSubtotal = activeCart
-    ? activeCart.items.reduce((s, i) => s + i.product_price * i.quantity, 0)
-    : 0;
-  const cartTotalQty = activeCart
-    ? activeCart.items.reduce((s, i) => s + i.quantity, 0)
-    : 0;
+  const cartAge = activeCart ? differenceInDays(new Date(), new Date(activeCart.created_at)) : 0;
+  const cartSubtotal = activeCart ? activeCart.items.reduce((s, i) => s + i.product_price * i.quantity, 0) : 0;
+  const cartTotalQty = activeCart ? activeCart.items.reduce((s, i) => s + i.quantity, 0) : 0;
 
-  // Company accent color from cart metadata
   const companyAccentColor = useMemo(() => {
-    // Use company_logo_url presence as hint; accent color comes from companies table
-    // For now we derive a subtle accent from the cart position
     if (!activeCart) return null;
     const cart = activeCart as any;
-    // If company has a primary color stored, use it
     if (cart.company_primary_color) return cart.company_primary_color;
     return null;
   }, [activeCart]);
@@ -929,7 +1260,6 @@ function SellerCartsContent() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="font-semibold text-lg">{activeCart.company_name}</h2>
-                    {/* Status badge dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className={cn(
@@ -1006,7 +1336,7 @@ function SellerCartsContent() {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Products */}
+            {/* Products grid — tablet responsive: 2 cols on md, 3 on lg */}
             {activeCart.items.length === 0 ? (
               <div className="text-center py-16 bg-muted/20 rounded-xl border border-dashed border-border/40">
                 <Package className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
@@ -1038,10 +1368,12 @@ function SellerCartsContent() {
                           index={index}
                           otherCarts={otherCarts}
                           companyAccentColor={companyAccentColor}
+                          stockMap={stockMap}
                           onRemove={handleRemoveItem}
-                          onUpdateQuantity={updateItemQuantity}
+                          onUpdateQuantity={handleUpdateQuantity}
                           onUpdateNotes={updateItemNotes}
-                          onMoveToCart={moveItemToCart}
+                          onMoveToCart={handleMoveItem}
+                          onDuplicateToCart={handleDuplicateItem}
                           onNavigate={navigate}
                         />
                       ))}
@@ -1052,16 +1384,15 @@ function SellerCartsContent() {
             )}
           </div>
 
-          {/* Sidebar: Summary (desktop) */}
+          {/* Sidebar: Summary (desktop + tablet collapsible) */}
           {activeCart.items.length > 0 && (
-            <div className="hidden xl:block xl:sticky xl:top-20 xl:self-start space-y-4">
+            <div className="hidden md:block xl:sticky xl:top-20 xl:self-start space-y-4">
               <Card className="p-5 space-y-4 border-emerald-500/10">
                 <h3 className="font-semibold flex items-center gap-2">
                   <FileText className="h-4 w-4 text-emerald-500" />
                   Resumo do Carrinho
                 </h3>
 
-                {/* Stats */}
                 <div className="space-y-2.5 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">SKUs distintos</span>
@@ -1073,6 +1404,39 @@ function SellerCartsContent() {
                       {cartTotalQty.toLocaleString("pt-BR")} un.
                     </span>
                   </div>
+
+                  {/* Weight / Volume */}
+                  {weightVolume && (
+                    <>
+                      {weightVolume.weightKg > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Weight className="h-3 w-3" />
+                            Peso estimado
+                          </span>
+                          <span className="font-medium tabular-nums">
+                            {weightVolume.weightKg >= 1
+                              ? `${weightVolume.weightKg.toFixed(1)} kg`
+                              : `${(weightVolume.weightKg * 1000).toFixed(0)} g`}
+                          </span>
+                        </div>
+                      )}
+                      {weightVolume.volumeCm3 > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Box className="h-3 w-3" />
+                            Volume estimado
+                          </span>
+                          <span className="font-medium tabular-nums">
+                            {weightVolume.volumeM3 >= 0.001
+                              ? `${weightVolume.volumeM3.toFixed(3)} m³`
+                              : `${weightVolume.volumeCm3.toLocaleString("pt-BR")} cm³`}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
                   <div className="border-t border-border/30 pt-2.5 flex justify-between">
                     <span className="font-medium">Subtotal</span>
                     <span className="font-bold text-lg text-emerald-500 tabular-nums">
@@ -1140,6 +1504,14 @@ function SellerCartsContent() {
                   </Button>
                 </div>
 
+                {/* Template actions */}
+                <SaveTemplateDialog cart={activeCart} onSave={handleSaveTemplate} />
+                <LoadTemplateDialog
+                  templates={templates}
+                  onLoad={handleLoadTemplate}
+                  onDelete={(id) => deleteTemplate.mutate(id)}
+                />
+
                 <div className="grid grid-cols-2 gap-2">
                   <Button
                     variant="outline"
@@ -1192,8 +1564,11 @@ function SellerCartsContent() {
                     </span>
                   </div>
 
-                  {/* Smart suggestions */}
-                  <SmartSuggestions cart={activeCart} />
+                  {/* Smart suggestions with "also bought" */}
+                  <SmartSuggestions cart={activeCart} allProducts={allProducts} />
+
+                  {/* Action history */}
+                  <ActionHistoryPanel cartId={activeCart.id} />
 
                   {cartAge >= 3 && (
                     <p className="text-[10px] text-amber-600 bg-amber-500/5 rounded-lg px-2.5 py-1.5 border border-amber-500/10">

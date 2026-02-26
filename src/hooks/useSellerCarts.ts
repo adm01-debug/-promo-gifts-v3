@@ -348,6 +348,34 @@ export function useSellerCarts() {
     },
   });
 
+  // Duplicate item to another cart
+  const duplicateItemToCart = useMutation({
+    mutationFn: async ({ itemId, targetCartId }: { itemId: string; targetCartId: string }) => {
+      // Find the item in current carts
+      const allItems = (cartsQuery.data || []).flatMap(c => c.items);
+      const item = allItems.find(i => i.id === itemId);
+      if (!item) throw new Error("Item não encontrado");
+
+      const { error } = await supabase.from("seller_cart_items").insert({
+        cart_id: targetCartId,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_sku: item.product_sku,
+        product_image_url: item.product_image_url,
+        product_price: item.product_price,
+        quantity: item.quantity,
+        color_name: item.color_name,
+        color_hex: item.color_hex,
+        notes: item.notes,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      toast.success("Item duplicado para outro carrinho");
+    },
+  });
+
   // Computed
   const carts = cartsQuery.data || [];
   const totalItems = carts.reduce((sum, c) => sum + c.items.length, 0);
@@ -369,6 +397,7 @@ export function useSellerCarts() {
     updateCartStatus,
     duplicateCart,
     moveItemToCart,
+    duplicateItemToCart,
     refetch: cartsQuery.refetch,
   };
 }
