@@ -193,7 +193,7 @@ export function SmartSearchInput({
           tabIndex={-1}
           aria-label="Buscar"
         >
-          <Search className="h-4 w-4 text-primary" />
+          <Search className="h-5 w-5" style={{ color: 'hsl(30, 75%, 50%)' }} />
         </button>
         
         <Input
