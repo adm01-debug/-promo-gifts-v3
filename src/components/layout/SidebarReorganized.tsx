@@ -92,6 +92,15 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    id: "carts",
+    label: "Carrinhos",
+    icon: ShoppingCart,
+    defaultOpen: false,
+    items: [
+      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
+    ],
+  },
+  {
     id: "quotes",
     label: "Orçamentos",
     icon: FileText,
