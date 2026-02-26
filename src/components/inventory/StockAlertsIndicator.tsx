@@ -332,7 +332,7 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
             </div>
 
             {/* List */}
-            <ScrollArea className="max-h-[400px]">
+            <ScrollArea className="h-[400px]">
               <div className="p-3 space-y-1.5">
                 <AnimatePresence>
                   {filteredByTab.map((item, index) => (
