@@ -34,6 +34,7 @@ const ProductDetail = lazyWithRetry(() => import("./pages/ProductDetail"));
 const FiltersPage = lazyWithRetry(() => import("./pages/FiltersPage"));
 const NoveltiesPage = lazyWithRetry(() => import("./pages/NoveltiesPage"));
 const FavoritesPage = lazyWithRetry(() => import("./pages/FavoritesPage"));
+const SellerCartsPage = lazyWithRetry(() => import("./pages/SellerCartsPage"));
 const ComparePage = lazyWithRetry(() => import("./pages/ComparePage"));
 const CollectionsPage = lazyWithRetry(() => import("./pages/CollectionsPage"));
 const CollectionDetailPage = lazyWithRetry(() => import("./pages/CollectionDetailPage"));
@@ -151,6 +152,7 @@ const App = () => {
                                         <Route path="/filtros" element={<FiltersPage />} />
                                         <Route path="/novidades" element={<NoveltiesPage />} />
                                         <Route path="/favoritos" element={<FavoritesPage />} />
+                                        <Route path="/carrinhos" element={<SellerCartsPage />} />
                                         <Route path="/comparar" element={<ComparePage />} />
                                         <Route path="/colecoes" element={<CollectionsPage />} />
                                         <Route path="/colecoes/:id" element={<CollectionDetailPage />} />

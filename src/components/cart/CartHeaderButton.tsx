@@ -112,6 +112,12 @@ export function CartHeaderButton() {
                     <ShoppingCart className="h-3.5 w-3.5 text-emerald-500" />
                   </div>
                   <h3 className="font-semibold text-sm">Carrinhos</h3>
+                  <button
+                    className="text-[10px] text-muted-foreground hover:text-emerald-500 font-medium underline-offset-2 hover:underline transition-colors"
+                    onClick={() => { setOpen(false); navigate("/carrinhos"); }}
+                  >
+                    Ver todos →
+                  </button>
                   <span className="text-[10px] text-muted-foreground font-medium tabular-nums">
                     {carts.length}/3
                   </span>

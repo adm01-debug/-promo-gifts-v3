@@ -108,6 +108,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: Heart, label: "Favoritos", href: "/favoritos" },
+      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
       { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },

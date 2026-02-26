@@ -121,6 +121,14 @@ export function EnhancedSpotlight() {
         category: "Navegação",
       },
       {
+        id: "seller-carts",
+        title: "Carrinhos",
+        description: "Gerenciar carrinhos de orçamento",
+        icon: <ShoppingCart className="h-4 w-4" />,
+        action: () => navigate("/carrinhos"),
+        category: "Navegação",
+      },
+      {
         id: "compare",
         title: "Comparar Produtos",
         description: "Comparação lado a lado",
