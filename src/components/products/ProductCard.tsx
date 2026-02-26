@@ -179,8 +179,8 @@ export function ProductCard({
                 alt={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
                 title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
                 className={cn(
-                  "w-full h-full object-cover transition-all duration-700 ease-out",
-                  "group-hover:scale-110",
+                  "w-full h-full object-contain transition-all duration-700 ease-out",
+                  "group-hover:scale-105",
                   imageLoaded ? "opacity-100" : "opacity-0"
                 )}
                 loading="lazy"
