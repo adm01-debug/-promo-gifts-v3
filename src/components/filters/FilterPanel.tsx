@@ -363,28 +363,6 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
 
 
       <div className="divide-y divide-border">
-        {/* Busca textual */}
-        <FilterSection id="search" title="Buscar" icon={<Search className="h-4 w-4" />}>
-          <div className="relative">
-            <Input
-              placeholder="Nome, SKU, descrição..."
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-              className="pr-8"
-              aria-label="Buscar produtos por nome, SKU ou descrição"
-            />
-            {localSearch && (
-              <button
-                onClick={() => { setLocalSearch(''); onFilterChange({ ...filters, search: '' }); }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="Limpar busca"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </FilterSection>
-
         {/* Cores - Inline com Radix Tooltip (#1 + #10) */}
         <FilterSection id="cores" title="Cores" icon={<Palette className="h-4 w-4" />}>
           <InlineColorGroupFilter
