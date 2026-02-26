@@ -245,26 +245,28 @@ export default function Index() {
       });
     }
 
-    // Ordenar
-    switch (sortBy) {
-      case "name":
-        result.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "price-asc":
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case "price-desc":
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case "stock":
-        result.sort((a, b) => (b.stock || 0) - (a.stock || 0));
-        break;
-      case "newest":
-        // Ordenar por data de criação se disponível
-        result.sort((a, b) => 
-          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-        );
-        break;
+    // Ordenar — pular ordenação por nome quando há busca ativa (preservar relevância)
+    const skipSort = hasFuzzySearch && sortBy === 'name';
+    if (!skipSort) {
+      switch (sortBy) {
+        case "name":
+          result.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case "price-asc":
+          result.sort((a, b) => a.price - b.price);
+          break;
+        case "price-desc":
+          result.sort((a, b) => b.price - a.price);
+          break;
+        case "stock":
+          result.sort((a, b) => (b.stock || 0) - (a.stock || 0));
+          break;
+        case "newest":
+          result.sort((a, b) => 
+            new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+          );
+          break;
+      }
     }
 
     return result;
