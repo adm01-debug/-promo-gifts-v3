@@ -76,23 +76,46 @@ export function useProductFuzzySearch(
       return { results: exactSkuMatch, hasSearch: true };
     }
 
-    // 2) Produtos cujo NOME contém o termo (prioridade máxima)
-    const nameMatches = products.filter(p =>
-      p.name.toLowerCase().includes(queryLower)
-    );
+    // 2) Produtos cujo NOME contém o termo — separados por relevância
+    const nameStartsWith: Product[] = [];
+    const nameIsExactWord: Product[] = [];
+    const nameContains: Product[] = [];
+
+    for (const p of products) {
+      const nameLower = p.name.toLowerCase();
+      if (nameLower.startsWith(queryLower)) {
+        // Nome começa com o termo (ex: "CHAVEIRO DE METAL")
+        nameStartsWith.push(p);
+      } else {
+        // Verificar se o termo aparece como palavra inteira (ex: "CANETA E CHAVEIRO")
+        const wordBoundary = new RegExp(`\\b${queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (wordBoundary.test(p.name)) {
+          nameIsExactWord.push(p);
+        } else if (nameLower.includes(queryLower)) {
+          nameContains.push(p);
+        }
+      }
+    }
 
     // 3) Busca fuzzy para pegar variações/erros de digitação (só resultados relevantes)
     const fuseResults = fuse.search(query);
     const fuzzyItems = fuseResults
-      .filter(r => (r.score ?? 1) < 0.45) // só matches com relevância razoável
+      .filter(r => (r.score ?? 1) < 0.45)
       .map(r => r.item);
 
-    // 4) Mesclar: nome exato primeiro, depois fuzzy (sem duplicatas)
-    const seenIds = new Set(nameMatches.map(p => p.id));
-    const combined = [
-      ...nameMatches,
-      ...fuzzyItems.filter(p => !seenIds.has(p.id)),
-    ];
+    // 4) Mesclar por ordem de relevância (sem duplicatas):
+    //    começa com > palavra exata > contém > fuzzy
+    const seenIds = new Set<string>();
+    const combined: Product[] = [];
+
+    for (const group of [nameStartsWith, nameIsExactWord, nameContains, fuzzyItems]) {
+      for (const p of group) {
+        if (!seenIds.has(p.id)) {
+          seenIds.add(p.id);
+          combined.push(p);
+        }
+      }
+    }
 
     return { results: combined, hasSearch: true };
   }, [products, searchQuery, fuse]);
