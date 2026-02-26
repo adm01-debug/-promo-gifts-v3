@@ -208,7 +208,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
           <TooltipTrigger asChild>
             <div>{linkContent}</div>
           </TooltipTrigger>
-          <TooltipContent side="right" className="bg-card border-border">
+          <TooltipContent side="right" className="bg-card border-border z-[60]">
             {item.label}
           </TooltipContent>
         </Tooltip>
@@ -235,7 +235,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
         role="navigation"
         aria-label="Menu principal"
         className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-out",
+          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-out overflow-visible",
           "lg:static lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           isCollapsed ? "w-16" : "w-64"
