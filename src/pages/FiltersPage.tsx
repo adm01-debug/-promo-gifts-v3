@@ -700,6 +700,12 @@ export default function FiltersPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <PresetsBar
+              currentFilters={filters}
+              onApplyPreset={(f, id) => handleApplyPreset(f, id)}
+              activePresetId={activePresetId}
+            />
+
             {isSupported && (
               <Button
                 variant="outline"
@@ -817,12 +823,7 @@ export default function FiltersPage() {
                 </div>
               </div>
             )}
-            {/* Presets Bar - Above products */}
-            <PresetsBar
-              currentFilters={filters}
-              onApplyPreset={(f) => handleApplyPreset(f)}
-              activePresetId={activePresetId}
-            />
+            {/* Presets moved to header */}
             {filteredProducts.length > 0 ? (
               viewMode === "grid" ? (
                 <VirtualizedProductGrid
