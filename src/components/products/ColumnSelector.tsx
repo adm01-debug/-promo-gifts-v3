@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Columns3, Grid2x2, Grid3x3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -9,15 +10,14 @@ const STORAGE_KEY = "product-grid-columns";
 
 export type ColumnCount = 3 | 4 | 5 | 6;
 
-// Custom grid icons that visually represent the actual column count
-function GridIcon({ cols, className }: { cols: number; className?: string }) {
+// Custom 6-column grid icon (3x2 grid of small squares)
+function Grid6Icon() {
   const size = 14;
-  const gap = 1.5;
+  const cols = 3;
   const rows = 2;
-  const totalGapX = (cols - 1) * gap;
-  const totalGapY = (rows - 1) * gap;
-  const cellW = (size - totalGapX) / cols;
-  const cellH = (size - totalGapY) / rows;
+  const gap = 1.5;
+  const cellW = (size - (cols - 1) * gap) / cols;
+  const cellH = (size - (rows - 1) * gap) / rows;
   const rects: React.ReactNode[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -35,7 +35,7 @@ function GridIcon({ cols, className }: { cols: number; className?: string }) {
     }
   }
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className={className}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="h-3.5 w-3.5">
       {rects}
     </svg>
   );
@@ -49,10 +49,10 @@ interface ColumnOption {
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 3, label: "3 colunas", icon: <GridIcon cols={3} />, minWidth: 0 },
-  { value: 4, label: "4 colunas", icon: <GridIcon cols={4} />, minWidth: 640 },
-  { value: 5, label: "5 colunas", icon: <GridIcon cols={5} />, minWidth: 1024 },
-  { value: 6, label: "6 colunas", icon: <GridIcon cols={6} />, minWidth: 1280 },
+  { value: 3, label: "3 colunas", icon: <Columns3 className="h-3.5 w-3.5" />, minWidth: 0 },
+  { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-3.5 w-3.5" />, minWidth: 640 },
+  { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-3.5 w-3.5" />, minWidth: 1024 },
+  { value: 6, label: "6 colunas", icon: <Grid6Icon />, minWidth: 1280 },
 ];
 
 function getDefaultColumns(): ColumnCount {
