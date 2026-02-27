@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { useClientFuzzySearch } from "@/hooks/useGenericFuzzySearch";
-import { Check, ChevronsUpDown, Building2, Search } from "lucide-react";
+import { Check, ChevronsUpDown, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,11 +28,33 @@ interface Client {
   nicho?: string;
   primary_color_name?: string;
   primary_color_hex?: string;
+  logo_url?: string | null;
 }
 
 interface QuoteClientSelectorProps {
   selectedClient: Client | null;
   onClientSelect: (client: Client | null) => void;
+}
+
+function CompanyAvatar({ name, logoUrl, colorHex }: { name: string; logoUrl?: string | null; colorHex?: string | null }) {
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt=""
+        className="w-8 h-8 rounded object-contain bg-background border border-border flex-shrink-0"
+      />
+    );
+  }
+  
+  return (
+    <div 
+      className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground flex-shrink-0"
+      style={{ backgroundColor: colorHex || "hsl(var(--primary))" }}
+    >
+      {name.substring(0, 2).toUpperCase()}
+    </div>
+  );
 }
 
 export function QuoteClientSelector({ selectedClient, onClientSelect }: QuoteClientSelectorProps) {
@@ -41,7 +63,6 @@ export function QuoteClientSelector({ selectedClient, onClientSelect }: QuoteCli
 
   const { data: clients = [], isLoading } = useCrmCompanySelector();
 
-  // Busca fuzzy de clientes - tolerante a erros de digitação
   const { results: filteredClients } = useClientFuzzySearch(clients, searchQuery);
 
   return (
@@ -55,12 +76,11 @@ export function QuoteClientSelector({ selectedClient, onClientSelect }: QuoteCli
         >
           {selectedClient ? (
             <div className="flex items-center gap-3 text-left">
-              <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{ backgroundColor: selectedClient.primary_color_hex || "hsl(var(--primary))" }}
-              >
-                {selectedClient.name.substring(0, 2).toUpperCase()}
-              </div>
+              <CompanyAvatar 
+                name={selectedClient.name} 
+                logoUrl={selectedClient.logo_url} 
+                colorHex={selectedClient.primary_color_hex} 
+              />
               <div className="flex flex-col">
                 <span className="font-medium">{selectedClient.name}</span>
                 {selectedClient.ramo && (
@@ -71,22 +91,22 @@ export function QuoteClientSelector({ selectedClient, onClientSelect }: QuoteCli
           ) : (
             <span className="text-muted-foreground flex items-center gap-2">
               <Building2 className="h-4 w-4" />
-              Selecionar cliente...
+              Selecionar empresa...
             </span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0 bg-popover border" align="start">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-popover border" align="start">
         <Command>
           <CommandInput 
-            placeholder="Buscar cliente..." 
+            placeholder="Buscar empresa..." 
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
           <CommandList>
             <CommandEmpty>
-              {isLoading ? "Carregando..." : "Nenhum cliente encontrado."}
+              {isLoading ? "Carregando..." : "Nenhuma empresa encontrada."}
             </CommandEmpty>
             <CommandGroup>
               {filteredClients.map((client) => (
@@ -94,21 +114,23 @@ export function QuoteClientSelector({ selectedClient, onClientSelect }: QuoteCli
                   key={client.id}
                   value={client.name}
                   onSelect={() => {
-                    onClientSelect(client);
+                    onClientSelect({
+                      ...client,
+                      logo_url: client.logo_url,
+                    });
                     setOpen(false);
                   }}
-                  className="flex items-center gap-3 py-3"
+                  className="flex items-center gap-3 py-2"
                 >
-                  <div 
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                    style={{ backgroundColor: client.primary_color_hex || "hsl(var(--primary))" }}
-                  >
-                    {client.name.substring(0, 2).toUpperCase()}
-                  </div>
+                  <CompanyAvatar 
+                    name={client.name} 
+                    logoUrl={client.logo_url} 
+                    colorHex={client.primary_color_hex} 
+                  />
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="font-medium truncate">{client.name}</span>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      {client.ramo && <span>{client.ramo}</span>}
+                      {client.ramo && <span className="truncate">{client.ramo}</span>}
                       {client.nicho && (
                         <Badge variant="secondary" className="text-xs py-0">
                           {client.nicho}
