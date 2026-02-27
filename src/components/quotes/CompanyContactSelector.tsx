@@ -24,6 +24,25 @@ interface CompanyOption {
   nome_fantasia: string | null;
   ramo_atividade: string | null;
   cnpj: string | null;
+  logo_url: string | null;
+}
+
+function CompanyAvatar({ name, logoUrl, size = "md" }: { name: string; logoUrl?: string | null; size?: "sm" | "md" }) {
+  const dim = size === "sm" ? "w-7 h-7 text-[10px]" : "w-8 h-8 text-xs";
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt=""
+        className={cn(dim, "rounded object-contain bg-background border border-border flex-shrink-0")}
+      />
+    );
+  }
+  return (
+    <div className={cn(dim, "rounded-full flex items-center justify-center font-bold text-primary-foreground bg-primary flex-shrink-0")}>
+      {name.substring(0, 2).toUpperCase()}
+    </div>
+  );
 }
 
 interface ContactOption {
@@ -232,7 +251,7 @@ export function CompanyContactSelector({
     queryKey: ["quote-companies-selector"],
     queryFn: async () => {
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
+        select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj, logo_url",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
@@ -244,6 +263,7 @@ export function CompanyContactSelector({
         nome_fantasia: c.nome_fantasia,
         ramo_atividade: (c as any).ramo_atividade || null,
         cnpj: c.cnpj,
+        logo_url: (c as any).logo_url || null,
       }));
     },
     staleTime: 15 * 60 * 1000,
@@ -312,11 +332,11 @@ export function CompanyContactSelector({
       // Search both razao_social and nome_fantasia for better coverage
       const [byRazao, byNomeFantasia] = await Promise.all([
         searchCrm<CrmCompany>("companies", "razao_social", debouncedSearch, {
-          select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
+        select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj, logo_url",
           limit: 50,
         }),
         searchCrm<CrmCompany>("companies", "nome_fantasia", debouncedSearch, {
-          select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
+          select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj, logo_url",
           limit: 50,
         }),
       ]);
@@ -333,6 +353,7 @@ export function CompanyContactSelector({
             nome_fantasia: c.nome_fantasia,
             ramo_atividade: (c as any).ramo_atividade || null,
             cnpj: c.cnpj,
+            logo_url: (c as any).logo_url || null,
           });
         }
       }
@@ -390,7 +411,7 @@ export function CompanyContactSelector({
     queryFn: async () => {
       if (!companyId) return null;
       const data = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj",
+        select: "id, razao_social, nome_fantasia, ramo_atividade, cnpj, logo_url",
         filters: { id: companyId },
         limit: 1,
       });
@@ -403,6 +424,7 @@ export function CompanyContactSelector({
         nome_fantasia: c.nome_fantasia,
         ramo_atividade: (c as any).ramo_atividade || null,
         cnpj: c.cnpj,
+        logo_url: (c as any).logo_url || null,
       };
     },
     enabled: !!companyId,
@@ -470,9 +492,7 @@ export function CompanyContactSelector({
                 setTimeout(() => setIsOpen(true), 50);
               }}
             >
-              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-primary-foreground bg-primary flex-shrink-0 text-xs">
-                {selectedCompany.name.substring(0, 2).toUpperCase()}
-              </div>
+              <CompanyAvatar name={selectedCompany.name} logoUrl={selectedCompany.logo_url} />
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="font-medium text-sm truncate">{selectedCompany.name}</span>
                 <div className="flex items-center gap-2">
@@ -603,9 +623,7 @@ export function CompanyContactSelector({
                                 )}
                                 onClick={() => handleSelectCompany(company.id)}
                               >
-                                <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-primary-foreground bg-primary flex-shrink-0 text-[10px]">
-                                  {company.name.substring(0, 2).toUpperCase()}
-                                </div>
+                                <CompanyAvatar name={company.name} logoUrl={company.logo_url} size="sm" />
                                 <div className="flex flex-col flex-1 min-w-0">
                                   <span className="text-sm font-medium truncate">{company.name}</span>
                                   <div className="flex items-center gap-1.5">
