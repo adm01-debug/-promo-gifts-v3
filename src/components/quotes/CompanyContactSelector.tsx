@@ -11,7 +11,9 @@ import { Building2, User, Search, X, ChevronDown, Loader2, Phone, Mail, Check } 
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { selectCrm, searchCrm } from "@/lib/crm-db";
 import { getCompanyDisplayName, type CrmCompany, type CrmContact, type CrmContactEmail, type CrmContactPhone } from "@/types/crm";
 
@@ -458,132 +460,180 @@ export function CompanyContactSelector({
           <Building2 className="h-4 w-4" />
           Empresa
         </Label>
-        <div ref={wrapperRef} className="relative">
-          {/* Trigger / Display */}
-          {!isOpen ? (
-            <button
-              type="button"
-              className={cn(
-                "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
-                "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-                "hover:bg-accent/50 transition-colors"
-              )}
-              onClick={() => setIsOpen(true)}
+        <div ref={wrapperRef} className="relative z-40">
+          {/* Se há empresa selecionada, mostrar chip */}
+          {selectedCompany && !isOpen ? (
+            <div
+              className="flex items-center gap-3 w-full rounded-md border border-border bg-background px-3 py-2 min-h-[44px] cursor-pointer group hover:border-primary/50 transition-colors"
+              onClick={() => {
+                handleClearCompany();
+                setTimeout(() => setIsOpen(true), 50);
+              }}
             >
-              <div className={cn("flex flex-col", !selectedCompany && "text-muted-foreground")}>
-                {selectedCompany ? (
-                  <>
-                    <span className="truncate">{selectedCompany.name}</span>
-                    {selectedCompany.ramo_atividade && (
-                      <span className="text-xs text-muted-foreground truncate">
-                        {selectedCompany.ramo_atividade}
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span>Selecione uma empresa</span>
-                )}
+              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-primary-foreground bg-primary flex-shrink-0 text-xs">
+                {selectedCompany.name.substring(0, 2).toUpperCase()}
               </div>
-              <div className="flex items-center gap-1">
-                {selectedCompany && (
-                  <span
-                    role="button"
-                    className="p-0.5 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleClearCompany();
-                    }}
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </span>
-                )}
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </div>
-            </button>
-          ) : (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                autoFocus
-                placeholder="Buscar empresa por nome, CNPJ, cidade..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-8"
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    setIsOpen(false);
-                    setSearchTerm("");
-                  }
-                }}
-              />
-              <span
-                role="button"
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-muted text-muted-foreground cursor-pointer"
-                onClick={() => {
-                  setIsOpen(false);
-                  setSearchTerm("");
-                }}
-              >
-                <X className="h-3.5 w-3.5" />
-              </span>
-            </div>
-          )}
-
-          {/* Dropdown */}
-          {isOpen && (
-            <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover shadow-lg max-h-[280px] overflow-y-auto">
-              {loadingCompanies ? (
-                <div className="flex items-center justify-center py-6">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : filteredCompanies.length === 0 && !loadingSearch ? (
-                <div className="py-4 text-center text-sm text-muted-foreground">
-                  {searchTerm.length >= 2 ? "Nenhuma empresa encontrada" : "Digite para buscar..."}
-                </div>
-              ) : (
-                <>
-                  {/* "Sem empresa" option */}
-                  <button
-                    type="button"
-                    className={cn(
-                      "flex w-full items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent/50 transition-colors text-left",
-                      !companyId && "bg-accent"
-                    )}
-                    onClick={() => handleSelectCompany("")}
-                  >
-                    <span className="text-muted-foreground">Sem empresa</span>
-                  </button>
-
-                  {filteredCompanies.map((company) => (
-                    <button
-                      key={company.id}
-                      type="button"
-                      className={cn(
-                        "flex w-full items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent/50 transition-colors text-left",
-                        companyId === company.id && "bg-accent"
-                      )}
-                      onClick={() => handleSelectCompany(company.id)}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{company.name}</p>
-                        {company.ramo_atividade && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {company.ramo_atividade}
-                          </p>
-                        )}
-                      </div>
-                    </button>
-                  ))}
-
-                  {loadingSearch && searchTerm.length >= 2 && (
-                    <div className="flex items-center justify-center py-2 text-xs text-muted-foreground gap-1.5">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Buscando no servidor...
-                    </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="font-medium text-sm truncate">{selectedCompany.name}</span>
+                <div className="flex items-center gap-2">
+                  {selectedCompany.razao_social && selectedCompany.razao_social !== selectedCompany.name && (
+                    <span className="text-xs text-muted-foreground truncate">{selectedCompany.razao_social}</span>
                   )}
-                </>
-              )}
+                  {selectedCompany.cnpj && (
+                    <>
+                      {selectedCompany.razao_social && selectedCompany.razao_social !== selectedCompany.name && <span className="text-xs text-muted-foreground">·</span>}
+                      <span className="text-xs text-muted-foreground font-mono">{selectedCompany.cnpj}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <X className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
             </div>
+          ) : (
+            <>
+              {/* Campo de busca — z-50 + isolate para ficar acima do backdrop-blur */}
+              <div className="relative z-50 isolate">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  autoFocus={isOpen}
+                  placeholder="Buscar empresa por nome, CNPJ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onFocus={() => setIsOpen(true)}
+                  className="pl-9 h-11 bg-background"
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setIsOpen(false);
+                      setSearchTerm("");
+                    }
+                  }}
+                />
+                {(loadingCompanies || loadingSearch) && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                )}
+              </div>
+
+              {/* Backdrop overlay */}
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[2px]"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setSearchTerm("");
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+
+              {/* Dropdown de resultados */}
+              <AnimatePresence>
+                {isOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="absolute z-50 w-full mt-1 rounded-lg border border-primary/30 bg-popover shadow-xl shadow-black/25 overflow-hidden ring-1 ring-primary/10"
+                  >
+                    {/* Header com contagem */}
+                    <div className="flex items-center justify-between px-3 py-2 border-b border-border/50 bg-muted/30">
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {loadingCompanies
+                          ? "Carregando..."
+                          : searchTerm.trim().length >= 2
+                            ? `${filteredCompanies.length} resultado${filteredCompanies.length !== 1 ? "s" : ""}`
+                            : `${filteredCompanies.length} empresa${filteredCompanies.length !== 1 ? "s" : ""} disponíve${filteredCompanies.length !== 1 ? "is" : "l"}`
+                        }
+                      </span>
+                      {loadingSearch && searchTerm.length >= 2 && (
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          servidor...
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Lista com scroll */}
+                    <div className="relative">
+                      <ScrollArea style={{ height: `${Math.min(Math.max((filteredCompanies.length + 1), 2) * 56, 280)}px` }}>
+                        {/* "Sem empresa" option */}
+                        <button
+                          type="button"
+                          className={cn(
+                            "flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors duration-150",
+                            "hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:outline-none",
+                            "border-b border-border/30",
+                            !companyId && "bg-primary/5"
+                          )}
+                          onClick={() => handleSelectCompany("")}
+                        >
+                          <span className="text-sm text-muted-foreground">Sem empresa</span>
+                        </button>
+
+                        {filteredCompanies.length === 0 && !loadingCompanies ? (
+                          <div className="flex flex-col items-center justify-center gap-2 py-6 text-center px-4">
+                            <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
+                              <Building2 className="h-5 w-5 text-muted-foreground/60" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">
+                                Nenhuma empresa encontrada
+                              </p>
+                              <p className="text-xs text-muted-foreground/60 mt-0.5">
+                                Tente buscar por nome, CNPJ ou ramo de atividade
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="py-0">
+                            {filteredCompanies.map((company, index) => (
+                              <button
+                                key={company.id}
+                                type="button"
+                                className={cn(
+                                  "flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors duration-150",
+                                  "hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:outline-none",
+                                  index < filteredCompanies.length - 1 && "border-b border-border/30",
+                                  companyId === company.id && "bg-primary/5"
+                                )}
+                                onClick={() => handleSelectCompany(company.id)}
+                              >
+                                <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-primary-foreground bg-primary flex-shrink-0 text-[10px]">
+                                  {company.name.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div className="flex flex-col flex-1 min-w-0">
+                                  <span className="text-sm font-medium truncate">{company.name}</span>
+                                  <div className="flex items-center gap-1.5">
+                                    {company.razao_social && company.razao_social !== company.name && (
+                                      <span className="text-xs text-muted-foreground truncate">{company.razao_social}</span>
+                                    )}
+                                    {company.cnpj && (
+                                      <>
+                                        {company.razao_social && company.razao_social !== company.name && <span className="text-xs text-muted-foreground/50">·</span>}
+                                        <span className="text-[11px] text-muted-foreground/70 font-mono truncate">{company.cnpj}</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </ScrollArea>
+
+                      {filteredCompanies.length > 4 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-popover to-transparent pointer-events-none" />
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </>
           )}
         </div>
       </div>
