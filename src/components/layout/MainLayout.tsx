@@ -93,8 +93,8 @@ export function MainLayout({ children }: MainLayoutProps) {
               </PageTransition>
             </main>
             
-            {/* Restart Tour Button - hidden on mobile, shown on desktop */}
-            <div className="fixed bottom-4 left-4 z-40 print:hidden hidden lg:block">
+            {/* Restart Tour Button - positioned to avoid sidebar footer collision */}
+            <div className="fixed bottom-4 left-[270px] z-40 print:hidden hidden lg:block">
               <RestartTourButton />
             </div>
             

@@ -164,13 +164,14 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
         role="navigation"
         aria-label="Menu principal"
         className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-out overflow-visible",
-          "lg:static lg:z-auto",
+          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-out",
+          isCollapsed ? "overflow-visible" : "overflow-hidden",
+          "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           isCollapsed ? "w-16" : "w-64"
         )}
       >
-        <div className={cn("flex flex-col h-full pt-16 lg:pt-0", isCollapsed && "overflow-visible")}>
+        <div className={cn("flex flex-col h-full pt-16 lg:pt-0 min-h-0", isCollapsed && "overflow-visible")}>
           {/* Brand Header */}
           <SidebarBrandHeader isCollapsed={isCollapsed} />
 
@@ -218,7 +219,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
           {/* Navigation Groups */}
           <nav
             className={cn(
-              "flex-1 px-2 scrollbar-thin",
+              "flex-1 min-h-0 px-2 scrollbar-thin",
               isCollapsed ? "overflow-visible" : "overflow-y-auto",
               isCollapsed ? "space-y-0" : "space-y-0.5"
             )}
