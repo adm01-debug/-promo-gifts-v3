@@ -19,8 +19,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export function PasskeyManager() {
+interface PasskeyManagerProps {
+  targetUserId?: string;
+}
+
+export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
   const { user } = useAuth();
+  const effectiveUserId = targetUserId || user?.id;
+  const isManagingOther = !!targetUserId && targetUserId !== user?.id;
+  
   const {
     isSupported,
     isLoading,
@@ -34,11 +41,11 @@ export function PasskeyManager() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchPasskeys(user.id);
+    if (effectiveUserId) {
+      fetchPasskeys(effectiveUserId);
     }
     checkPlatformAuthenticator().then(setHasPlatformAuth);
-  }, [user?.id, fetchPasskeys, checkPlatformAuthenticator]);
+  }, [effectiveUserId, fetchPasskeys, checkPlatformAuthenticator]);
 
   const handleRegister = async () => {
     if (user?.id && user?.email) {
@@ -69,7 +76,9 @@ export function PasskeyManager() {
             Passkeys / Biometria
           </CardTitle>
           <CardDescription>
-            Login biométrico usando Face ID, Touch ID ou Windows Hello
+            {isManagingOther
+              ? 'Passkeys registradas deste usuário'
+              : 'Login biométrico usando Face ID, Touch ID ou Windows Hello'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -99,7 +108,9 @@ export function PasskeyManager() {
               Passkeys / Biometria
             </CardTitle>
             <CardDescription>
-              Login rápido e seguro usando Face ID, Touch ID ou Windows Hello
+              {isManagingOther
+                ? 'Passkeys registradas deste usuário'
+                : 'Login rápido e seguro usando Face ID, Touch ID ou Windows Hello'}
             </CardDescription>
           </div>
           <Badge variant={passkeys.length > 0 ? "default" : "secondary"} className={passkeys.length > 0 ? "bg-success" : ""}>
@@ -108,8 +119,8 @@ export function PasskeyManager() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Platform authenticator status */}
-        {!hasPlatformAuth && (
+        {/* Platform authenticator status - only show for own account */}
+        {!isManagingOther && !hasPlatformAuth && (
           <div className="flex items-center gap-3 p-4 rounded-lg bg-warning/10 border border-warning/30">
             <div className="p-2 rounded-full bg-warning/20">
               <Fingerprint className="h-5 w-5 text-warning" />
@@ -177,8 +188,10 @@ export function PasskeyManager() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Remover passkey?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Você não poderá mais usar este dispositivo para fazer login biométrico.
-                        Esta ação não pode ser desfeita.
+                        {isManagingOther
+                          ? 'Este usuário não poderá mais usar este dispositivo para login biométrico.'
+                          : 'Você não poderá mais usar este dispositivo para fazer login biométrico.'}
+                        {' '}Esta ação não pode ser desfeita.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -198,7 +211,7 @@ export function PasskeyManager() {
         )}
 
         {/* Empty state */}
-        {passkeys.length === 0 && hasPlatformAuth && (
+        {passkeys.length === 0 && (
           <div className="text-center py-6 space-y-3">
             <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
               <Fingerprint className="h-6 w-6 text-muted-foreground" />
@@ -206,14 +219,16 @@ export function PasskeyManager() {
             <div>
               <p className="font-medium text-foreground">Nenhuma passkey registrada</p>
               <p className="text-sm text-muted-foreground">
-                Adicione uma passkey para fazer login mais rápido
+                {isManagingOther
+                  ? 'Este usuário não possui passkeys registradas'
+                  : 'Adicione uma passkey para fazer login mais rápido'}
               </p>
             </div>
           </div>
         )}
 
-        {/* Register button */}
-        {hasPlatformAuth && (
+        {/* Register button - only for own account */}
+        {!isManagingOther && hasPlatformAuth && (
           <Button
             onClick={handleRegister}
             disabled={isLoading}
@@ -230,7 +245,7 @@ export function PasskeyManager() {
 
         {/* Info */}
         <p className="text-xs text-muted-foreground text-center">
-          Passkeys são armazenadas de forma segura no seu dispositivo e usam biometria
+          Passkeys são armazenadas de forma segura no dispositivo e usam biometria
           (Face ID, Touch ID) ou PIN para autenticação.
         </p>
       </CardContent>

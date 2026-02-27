@@ -11,14 +11,15 @@ interface TwoFactorSettings {
   created_at: string;
 }
 
-export function use2FA() {
+export function use2FA(targetUserId?: string) {
   const { user } = useAuth();
+  const effectiveUserId = targetUserId || user?.id;
   const [settings, setSettings] = useState<TwoFactorSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingSecret, setPendingSecret] = useState<string | null>(null);
 
   const fetchSettings = useCallback(async () => {
-    if (!user) {
+    if (!effectiveUserId) {
       setSettings(null);
       setIsLoading(false);
       return;
@@ -28,7 +29,7 @@ export function use2FA() {
       const { data, error } = await supabase
         .from('user_2fa_settings')
         .select('id, user_id, is_enabled, enabled_at, created_at')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .maybeSingle();
 
       if (error) throw error;
@@ -38,7 +39,7 @@ export function use2FA() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [effectiveUserId]);
 
   useEffect(() => {
     fetchSettings();
@@ -80,7 +81,7 @@ export function use2FA() {
   }, []);
 
   const enable2FA = useCallback(async (token: string): Promise<{ success: boolean; error?: string }> => {
-    if (!user || !pendingSecret) {
+    if (!effectiveUserId || !pendingSecret) {
       return { success: false, error: 'Nenhum secret pendente' };
     }
 
@@ -98,7 +99,7 @@ export function use2FA() {
       const { error } = await supabase
         .from('user_2fa_settings')
         .upsert({
-          user_id: user.id,
+          user_id: effectiveUserId,
           totp_secret: pendingSecret,
           is_enabled: true,
           backup_codes: backupCodes,
@@ -114,10 +115,10 @@ export function use2FA() {
     } catch (error: any) {
       return { success: false, error: error.message };
     }
-  }, [user, pendingSecret, verifyToken, fetchSettings]);
+  }, [effectiveUserId, pendingSecret, verifyToken, fetchSettings]);
 
-  const disable2FA = useCallback(async (token: string): Promise<{ success: boolean; error?: string }> => {
-    if (!user) {
+  const disable2FA = useCallback(async (token?: string): Promise<{ success: boolean; error?: string }> => {
+    if (!effectiveUserId) {
       return { success: false, error: 'Usuário não autenticado' };
     }
 
@@ -126,16 +127,20 @@ export function use2FA() {
       const { data: currentSettings } = await supabase
         .from('user_2fa_settings')
         .select('totp_secret')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .single();
 
       if (!currentSettings?.totp_secret) {
         return { success: false, error: '2FA não está habilitado' };
       }
 
-      // Verificar token
-      if (!verifyToken(currentSettings.totp_secret, token)) {
-        return { success: false, error: 'Código inválido' };
+      // Se token fornecido, verificar. Admin pode desativar sem token se targetUserId diferente
+      if (token) {
+        if (!verifyToken(currentSettings.totp_secret, token)) {
+          return { success: false, error: 'Código inválido' };
+        }
+      } else if (!targetUserId) {
+        return { success: false, error: 'Código necessário' };
       }
 
       const { error } = await supabase
@@ -146,7 +151,7 @@ export function use2FA() {
           backup_codes: null,
           enabled_at: null,
         })
-        .eq('user_id', user.id);
+        .eq('user_id', effectiveUserId);
 
       if (error) throw error;
 
@@ -155,7 +160,7 @@ export function use2FA() {
     } catch (error: any) {
       return { success: false, error: error.message };
     }
-  }, [user, verifyToken, fetchSettings]);
+  }, [effectiveUserId, targetUserId, verifyToken, fetchSettings]);
 
   return {
     settings,
