@@ -117,6 +117,30 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'update_password') {
+      const { user_id, new_password } = payload;
+
+      if (!user_id || !new_password) {
+        return new Response(JSON.stringify({ error: 'user_id e new_password são obrigatórios' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user_id, { password: new_password });
+
+      if (updateError) {
+        console.error('Error updating password:', updateError);
+        return new Response(JSON.stringify({ error: updateError.message }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      console.log(`User ${user_id} password updated by admin ${caller.email}`);
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     if (action === 'delete') {
       const { user_id } = payload;
 
