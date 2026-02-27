@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { use2FA } from '@/hooks/use2FA';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAllowedIPs } from '@/hooks/useAllowedIPs';
@@ -30,7 +31,8 @@ import {
   Bell,
   History,
   MapPin,
-  Fingerprint
+  Fingerprint,
+  Users
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -70,9 +72,22 @@ interface SecurityNotification {
   created_at: string;
 }
 
+interface UserProfile {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+}
+
 export function SecurityDashboard() {
-  const { user } = useAuth();
-  const { is2FAEnabled, isLoading: is2FALoading } = use2FA();
+  const { user, isAdmin } = useAuth();
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  
+  const effectiveUserId = selectedUserId || user?.id;
+  const isManagingOther = !!selectedUserId && selectedUserId !== user?.id;
+  const selectedUser = users.find(u => u.user_id === selectedUserId);
+  
+  const { is2FAEnabled, isLoading: is2FALoading } = use2FA(isManagingOther ? selectedUserId! : undefined);
   const { allowedIPs } = useAllowedIPs();
   const [metrics, setMetrics] = useState<SecurityMetrics>({
     score: 0,
@@ -87,14 +102,31 @@ export function SecurityDashboard() {
   const [notifications, setNotifications] = useState<SecurityNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Load users list for admin
   useEffect(() => {
-    if (user) {
+    if (isAdmin) {
+      loadUsers();
+    }
+  }, [isAdmin]);
+
+  const loadUsers = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email')
+      .eq('is_active', true)
+      .order('full_name');
+    
+    if (data) setUsers(data);
+  };
+
+  useEffect(() => {
+    if (effectiveUserId) {
       loadSecurityData();
     }
-  }, [user, is2FAEnabled, allowedIPs]);
+  }, [effectiveUserId, is2FAEnabled, allowedIPs]);
 
   const loadSecurityData = async () => {
-    if (!user) return;
+    if (!effectiveUserId) return;
     setIsLoading(true);
 
     try {
@@ -102,7 +134,7 @@ export function SecurityDashboard() {
       const { data: attempts } = await supabase
         .from('login_attempts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -112,13 +144,13 @@ export function SecurityDashboard() {
       const { count: devicesCount } = await supabase
         .from('user_known_devices')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+        .eq('user_id', effectiveUserId);
 
       // Load security notifications
       const { data: notifs } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', effectiveUserId)
         .eq('type', 'security')
         .order('created_at', { ascending: false })
         .limit(10);
@@ -185,7 +217,9 @@ export function SecurityDashboard() {
     recommendations.push({
       icon: <Key className="h-4 w-4" />,
       title: 'Ativar autenticação de dois fatores',
-      description: 'Adiciona uma camada extra de segurança à sua conta',
+      description: isManagingOther 
+        ? 'Este usuário não possui 2FA ativado'
+        : 'Adiciona uma camada extra de segurança à sua conta',
       priority: 'high',
     });
   }
@@ -193,7 +227,7 @@ export function SecurityDashboard() {
     recommendations.push({
       icon: <Globe className="h-4 w-4" />,
       title: 'Configurar restrição de IP',
-      description: 'Limite o acesso à sua conta por endereços IP específicos',
+      description: 'Limite o acesso por endereços IP específicos',
       priority: 'medium',
     });
   }
@@ -208,6 +242,46 @@ export function SecurityDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Admin User Selector */}
+      {isAdmin && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="pt-4 pb-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-primary">
+                <Users className="h-5 w-5" />
+                <span className="font-medium text-sm">Gerenciar segurança de:</span>
+              </div>
+              <Select
+                value={selectedUserId || user?.id || ''}
+                onValueChange={(value) => setSelectedUserId(value === user?.id ? null : value)}
+              >
+                <SelectTrigger className="w-[350px] bg-background">
+                  <SelectValue placeholder="Selecione um usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((u) => (
+                    <SelectItem key={u.user_id} value={u.user_id}>
+                      <div className="flex items-center gap-2">
+                        <span>{u.full_name || 'Sem nome'}</span>
+                        <span className="text-muted-foreground text-xs">({u.email})</span>
+                        {u.user_id === user?.id && (
+                          <Badge variant="secondary" className="text-xs ml-1">Você</Badge>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isManagingOther && (
+                <Badge variant="outline" className="border-primary text-primary">
+                  Gerenciando: {selectedUser?.full_name || selectedUser?.email}
+                </Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Security Score Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Main Score Card */}
@@ -218,7 +292,9 @@ export function SecurityDashboard() {
               Pontuação de Segurança
             </CardTitle>
             <CardDescription>
-              Avaliação geral da segurança da sua conta
+              {isManagingOther 
+                ? `Avaliação de segurança de ${selectedUser?.full_name || selectedUser?.email}`
+                : 'Avaliação geral da segurança da sua conta'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -501,15 +577,18 @@ export function SecurityDashboard() {
         </TabsContent>
 
         <TabsContent value="mfa">
-          <TwoFactorSetup />
+          <TwoFactorSetup 
+            targetUserId={isManagingOther ? selectedUserId! : undefined}
+            targetUserEmail={isManagingOther ? selectedUser?.email || undefined : undefined}
+          />
         </TabsContent>
 
         <TabsContent value="passkeys">
-          <PasskeyManager />
+          <PasskeyManager targetUserId={isManagingOther ? selectedUserId! : undefined} />
         </TabsContent>
 
         <TabsContent value="devices">
-          <KnownDevicesManager />
+          <KnownDevicesManager targetUserId={isManagingOther ? selectedUserId! : undefined} />
         </TabsContent>
 
         <TabsContent value="ips">
@@ -532,7 +611,9 @@ export function SecurityDashboard() {
                 Histórico de Logins
               </CardTitle>
               <CardDescription>
-                Todas as tentativas de login na sua conta
+                {isManagingOther 
+                  ? `Tentativas de login de ${selectedUser?.full_name || selectedUser?.email}`
+                  : 'Todas as tentativas de login na sua conta'}
               </CardDescription>
             </CardHeader>
             <CardContent>

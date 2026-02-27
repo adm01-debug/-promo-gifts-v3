@@ -76,8 +76,9 @@ function getDeviceInfo(): DeviceInfo {
   };
 }
 
-export function useDeviceDetection() {
+export function useDeviceDetection(targetUserId?: string) {
   const { user } = useAuth();
+  const effectiveUserId = targetUserId || user?.id;
 
   const checkDevice = useCallback(async (): Promise<{
     isNewDevice: boolean;
@@ -115,12 +116,12 @@ export function useDeviceDetection() {
   }, [user]);
 
   const getKnownDevices = useCallback(async () => {
-    if (!user) return [];
+    if (!effectiveUserId) return [];
 
     const { data, error } = await supabase
       .from('user_known_devices')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', effectiveUserId)
       .order('last_seen_at', { ascending: false });
 
     if (error) {
@@ -129,16 +130,16 @@ export function useDeviceDetection() {
     }
 
     return data || [];
-  }, [user]);
+  }, [effectiveUserId]);
 
   const removeDevice = useCallback(async (deviceId: string): Promise<boolean> => {
-    if (!user) return false;
+    if (!effectiveUserId) return false;
 
     const { error } = await supabase
       .from('user_known_devices')
       .delete()
       .eq('id', deviceId)
-      .eq('user_id', user.id);
+      .eq('user_id', effectiveUserId);
 
     if (error) {
       console.error('Error removing device:', error);
@@ -146,16 +147,16 @@ export function useDeviceDetection() {
     }
 
     return true;
-  }, [user]);
+  }, [effectiveUserId]);
 
   const trustDevice = useCallback(async (deviceId: string): Promise<boolean> => {
-    if (!user) return false;
+    if (!effectiveUserId) return false;
 
     const { error } = await supabase
       .from('user_known_devices')
       .update({ is_trusted: true })
       .eq('id', deviceId)
-      .eq('user_id', user.id);
+      .eq('user_id', effectiveUserId);
 
     if (error) {
       console.error('Error trusting device:', error);
@@ -163,7 +164,7 @@ export function useDeviceDetection() {
     }
 
     return true;
-  }, [user]);
+  }, [effectiveUserId]);
 
   return {
     checkDevice,

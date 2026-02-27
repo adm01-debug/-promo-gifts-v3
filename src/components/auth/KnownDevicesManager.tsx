@@ -31,16 +31,21 @@ interface KnownDevice {
   is_trusted: boolean;
 }
 
-export function KnownDevicesManager() {
+interface KnownDevicesManagerProps {
+  targetUserId?: string;
+}
+
+export function KnownDevicesManager({ targetUserId }: KnownDevicesManagerProps) {
   const [devices, setDevices] = useState<KnownDevice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { getKnownDevices, removeDevice, trustDevice, getDeviceInfo } = useDeviceDetection();
+  const { getKnownDevices, removeDevice, trustDevice, getDeviceInfo } = useDeviceDetection(targetUserId);
   const { toast } = useToast();
   const currentFingerprint = getDeviceInfo().fingerprint;
+  const isManagingOther = !!targetUserId;
 
   useEffect(() => {
     loadDevices();
-  }, []);
+  }, [targetUserId]);
 
   const loadDevices = async () => {
     setIsLoading(true);
@@ -95,6 +100,7 @@ export function KnownDevicesManager() {
   };
 
   const isCurrentDevice = (device: KnownDevice) => {
+    if (isManagingOther) return false;
     return device.device_fingerprint === currentFingerprint;
   };
 
@@ -117,7 +123,9 @@ export function KnownDevicesManager() {
           Dispositivos Conhecidos
         </CardTitle>
         <CardDescription>
-          Gerencie os dispositivos que têm acesso à sua conta
+          {isManagingOther
+            ? 'Dispositivos que têm acesso à conta deste usuário'
+            : 'Gerencie os dispositivos que têm acesso à sua conta'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

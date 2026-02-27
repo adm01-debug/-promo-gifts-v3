@@ -24,10 +24,17 @@ import { useToast } from '@/hooks/use-toast';
 import { use2FA } from '@/hooks/use2FA';
 import { useAuth } from '@/contexts/AuthContext';
 
-export function TwoFactorSetup() {
+interface TwoFactorSetupProps {
+  targetUserId?: string;
+  targetUserEmail?: string;
+}
+
+export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetupProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { is2FAEnabled, isLoading, generateSecret, enable2FA, disable2FA } = use2FA();
+  const { is2FAEnabled, isLoading, generateSecret, enable2FA, disable2FA } = use2FA(targetUserId);
+  
+  const isManagingOther = !!targetUserId && targetUserId !== user?.id;
   
   const [setupMode, setSetupMode] = useState(false);
   const [disableMode, setDisableMode] = useState(false);
@@ -37,8 +44,9 @@ export function TwoFactorSetup() {
   const [copied, setCopied] = useState(false);
 
   const handleStartSetup = () => {
-    if (!user?.email) return;
-    const data = generateSecret(user.email);
+    const email = targetUserEmail || user?.email;
+    if (!email) return;
+    const data = generateSecret(email);
     setQrData(data);
     setSetupMode(true);
   };
@@ -75,9 +83,31 @@ export function TwoFactorSetup() {
   };
 
   const handleDisable = async () => {
-    if (verificationCode.length !== 6) return;
-    
     setIsSubmitting(true);
+    
+    // Admin desativando de outro usuário não precisa de token
+    if (isManagingOther) {
+      const result = await disable2FA();
+      setIsSubmitting(false);
+      if (result.success) {
+        toast({
+          title: '2FA Desativado',
+          description: 'Autenticação de dois fatores foi desativada para este usuário.',
+        });
+        setDisableMode(false);
+        setVerificationCode('');
+      } else {
+        toast({
+          title: 'Erro',
+          description: result.error || 'Não foi possível desativar o 2FA.',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+    
+    if (verificationCode.length !== 6) { setIsSubmitting(false); return; }
+    
     const result = await disable2FA(verificationCode);
     setIsSubmitting(false);
 
@@ -119,7 +149,9 @@ export function TwoFactorSetup() {
           <CardTitle>Autenticação de Dois Fatores (2FA)</CardTitle>
         </div>
         <CardDescription>
-          Adicione uma camada extra de segurança à sua conta usando um aplicativo autenticador.
+          {isManagingOther
+            ? 'Gerencie a autenticação de dois fatores deste usuário.'
+            : 'Adicione uma camada extra de segurança à sua conta usando um aplicativo autenticador.'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -130,51 +162,83 @@ export function TwoFactorSetup() {
               <span className="font-medium">2FA está ativo</span>
             </div>
             
-            <Dialog open={disableMode} onOpenChange={setDisableMode}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="text-destructive">
-                  <ShieldOff className="h-4 w-4 mr-2" />
-                  Desativar 2FA
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Desativar 2FA</DialogTitle>
-                  <DialogDescription>
-                    Digite o código do seu aplicativo autenticador para confirmar.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="flex justify-center">
-                    <InputOTP
-                      maxLength={6}
-                      value={verificationCode}
-                      onChange={setVerificationCode}
-                    >
-                      <InputOTPGroup>
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                      </InputOTPGroup>
-                    </InputOTP>
-                  </div>
-                  <Button
-                    onClick={handleDisable}
-                    disabled={verificationCode.length !== 6 || isSubmitting}
-                    className="w-full"
-                    variant="destructive"
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : null}
-                    Confirmar Desativação
+            {isManagingOther ? (
+              <Dialog open={disableMode} onOpenChange={setDisableMode}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="text-destructive">
+                    <ShieldOff className="h-4 w-4 mr-2" />
+                    Desativar 2FA (Admin)
                   </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Desativar 2FA</DialogTitle>
+                    <DialogDescription>
+                      Tem certeza que deseja desativar o 2FA deste usuário? Isso reduzirá a segurança da conta.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <Button
+                      onClick={handleDisable}
+                      disabled={isSubmitting}
+                      className="w-full"
+                      variant="destructive"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
+                      Confirmar Desativação
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            ) : (
+              <Dialog open={disableMode} onOpenChange={setDisableMode}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="text-destructive">
+                    <ShieldOff className="h-4 w-4 mr-2" />
+                    Desativar 2FA
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Desativar 2FA</DialogTitle>
+                    <DialogDescription>
+                      Digite o código do seu aplicativo autenticador para confirmar.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={6}
+                        value={verificationCode}
+                        onChange={setVerificationCode}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                    <Button
+                      onClick={handleDisable}
+                      disabled={verificationCode.length !== 6 || isSubmitting}
+                      className="w-full"
+                      variant="destructive"
+                    >
+                      {isSubmitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
+                      Confirmar Desativação
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         ) : (
           <Dialog open={setupMode} onOpenChange={(open) => {
