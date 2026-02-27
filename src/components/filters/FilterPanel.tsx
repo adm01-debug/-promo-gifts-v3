@@ -111,6 +111,8 @@ interface FilterPanelProps {
   onViewModeChange?: (mode: "grid" | "list") => void;
   gridColumns?: import("@/components/products/ColumnSelector").ColumnCount;
   onGridColumnsChange?: (cols: import("@/components/products/ColumnSelector").ColumnCount) => void;
+  /** Melhoria #11: total de resultados filtrados para footer sticky */
+  filteredResultsCount?: number;
 }
 
 export const defaultFilters: FilterState = {
@@ -339,7 +341,7 @@ function GroupSeparator({ label, icon: Icon }: { label: string; icon: React.Comp
 // ============================================
 // COMPONENTE PRINCIPAL
 // ============================================
-export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [], viewMode, onViewModeChange, gridColumns, onGridColumnsChange }: FilterPanelProps) {
+export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [], viewMode, onViewModeChange, gridColumns, onGridColumnsChange, filteredResultsCount }: FilterPanelProps) {
   // Melhoria #4: Seções prioritárias abertas por padrão
   const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias']);
   const [materialSearch, setMaterialSearch] = useState('');

@@ -680,33 +680,25 @@ export default function FiltersPage() {
                   onReset={handleReset}
                   activeFiltersCount={activeFiltersCount}
                   products={realProducts}
+                  filteredResultsCount={filteredProducts.length}
                 />
               </div>
-              {/* Sticky footer (#24) */}
-              {(activeFiltersCount > 0 || filteredProducts.length !== realProducts.length) && (
-                <div className="border-t bg-background/95 backdrop-blur-sm px-3 py-2.5 flex items-center gap-2 shrink-0 mt-1">
-                  <div className="flex-1 min-w-0">
-                    <span className="text-xs text-muted-foreground">
-                      {activeFiltersCount > 0 && (
-                        <span className="font-medium text-primary">{activeFiltersCount} filtro{activeFiltersCount > 1 ? 's' : ''}</span>
-                      )}
-                      {activeFiltersCount > 0 && ' · '}
-                      <span className="font-semibold text-foreground">{filteredProducts.length}</span> produto{filteredProducts.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                  {activeFiltersCount > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleReset}
-                      className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      Limpar
-                    </Button>
-                  )}
+              {/* Melhoria #11: Footer Sticky Premium */}
+              <div className="border-t border-border/40 bg-gradient-to-t from-card via-card to-card/80 px-3 py-2.5 shrink-0 mt-1">
+                <div className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                  activeFiltersCount > 0
+                    ? "bg-gradient-to-r from-orange to-orange-hover text-orange-foreground shadow-md shadow-orange/20"
+                    : "bg-muted/60 text-muted-foreground"
+                }`}>
+                  <Filter className="h-4 w-4" />
+                  <span>
+                    {activeFiltersCount > 0 
+                      ? `Ver ${filteredProducts.length.toLocaleString('pt-BR')} resultado${filteredProducts.length !== 1 ? 's' : ''}`
+                      : `${filteredProducts.length.toLocaleString('pt-BR')} produtos disponíveis`
+                    }
+                  </span>
                 </div>
-              )}
+              </div>
           </aside>
 
           {/* Right content: headers + products */}
@@ -759,6 +751,7 @@ export default function FiltersPage() {
                         onReset={handleReset}
                         activeFiltersCount={activeFiltersCount}
                         products={realProducts}
+                        filteredResultsCount={filteredProducts.length}
                       />
                     </div>
                     <div className="sticky bottom-0 border-t bg-background px-6 py-3 flex gap-2">
