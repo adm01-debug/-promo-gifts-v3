@@ -97,7 +97,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
   const dropdownHeight = filteredCompanies.length === 0 ? 80 : Math.max(dynamicHeight, 80);
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative w-full z-40">
       {/* Campo de busca unificado */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -114,7 +114,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
         )}
       </div>
 
-      {/* Backdrop overlay */}
+      {/* Backdrop overlay — positioned below the search input */}
       <AnimatePresence>
         {showDropdown && (
           <motion.div
@@ -122,7 +122,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+            className="fixed inset-0 z-30 bg-black/20"
             onClick={() => setIsFocused(false)}
           />
         )}
