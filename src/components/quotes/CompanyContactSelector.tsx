@@ -380,7 +380,7 @@ export function CompanyContactSelector({
       }
     }
 
-    return merged.slice(0, 50);
+    return merged.slice(0, 100);
   }, [companies, searchTerm, fuse, serverResults]);
 
   // Fetch selected company by ID if not in local cache
