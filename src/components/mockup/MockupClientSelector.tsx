@@ -98,8 +98,8 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
 
   return (
     <div ref={containerRef} className="relative w-full z-40">
-      {/* Campo de busca unificado */}
-      <div className="relative">
+      {/* Campo de busca — z-50 + isolate para ficar acima do backdrop-blur */}
+      <div className="relative z-50 isolate">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           ref={inputRef}
@@ -107,7 +107,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          className="pl-9 h-11"
+          className="pl-9 h-11 bg-background"
         />
         {isLoading && (
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
