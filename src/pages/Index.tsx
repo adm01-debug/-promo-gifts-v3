@@ -345,8 +345,8 @@ export default function Index() {
   const statBadges = useMemo(
     () => {
       const totalVariants = filteredProducts.reduce((sum, p) => sum + (p.colors?.length || 0), 0);
-      const uniqueCategories = new Set(filteredProducts.map(p => p.category_name).filter(Boolean));
-      const uniqueSuppliers = new Set(filteredProducts.map(p => p.supplier?.name).filter(Boolean));
+      const uniqueCategories = new Set(filteredProducts.map(p => p.category?.name || p.category_name).filter(Boolean).filter(n => n !== "Sem categoria"));
+      const uniqueSuppliers = new Set(filteredProducts.map(p => p.supplier?.name).filter(Boolean).filter(n => n !== "Sem fornecedor"));
       return [
         { id: "products", label: "Produtos Únicos", value: filteredProducts.length, icon: <Package className="h-4 w-4" /> },
         { id: "variants", label: "Variações", value: totalVariants, icon: <Layers className="h-4 w-4" /> },
