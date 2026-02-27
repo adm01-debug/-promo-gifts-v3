@@ -50,7 +50,7 @@ import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 import { useDebounce } from "@/hooks/useDebounce";
-import { useCategoriesTree } from "@/hooks/useCategoriesTree";
+import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
@@ -97,8 +97,8 @@ export default function Index() {
     includeDescendants: true,
   });
 
-  // Estatísticas de categorias da árvore externa (mesma base do Super Filtro)
-  const { stats: categoryStats } = useCategoriesTree();
+  // Total de categorias da mesma fonte do Super Filtro
+  const { data: externalCategories = [] } = useExternalCategoriesQuery();
   
   // Estado de loading combinado
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
@@ -355,7 +355,7 @@ export default function Index() {
           .filter((id) => id && id !== "0")
       );
       const uniqueSuppliers = new Set(filteredProducts.map(p => p.supplier?.name).filter(Boolean).filter(n => n !== "Sem fornecedor"));
-      const categoriesCount = categoryStats.total || uniqueCategoryIds.size;
+      const categoriesCount = externalCategories.length || uniqueCategoryIds.size;
 
       return [
         { id: "products", label: "Produtos Únicos", value: filteredProducts.length, icon: <Package className="h-4 w-4" /> },
@@ -365,7 +365,7 @@ export default function Index() {
         { id: "favorites", label: "Favoritos", value: favoriteCount, icon: <TrendingUp className="h-4 w-4" /> },
       ];
     },
-    [filteredProducts, favoriteCount, categoryStats.total],
+    [filteredProducts, favoriteCount, externalCategories.length],
   );
 
   const resetFilters = () => {
