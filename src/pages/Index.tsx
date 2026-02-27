@@ -50,6 +50,7 @@ import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useCategoriesTree } from "@/hooks/useCategoriesTree";
 
 type ViewMode = "grid" | "list";
 type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
@@ -95,6 +96,9 @@ export default function Index() {
     categoryIds: filters.categories?.map(String) || [],
     includeDescendants: true,
   });
+
+  // Estatísticas de categorias da árvore externa (mesma base do Super Filtro)
+  const { stats: categoryStats } = useCategoriesTree();
   
   // Estado de loading combinado
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
@@ -345,17 +349,23 @@ export default function Index() {
   const statBadges = useMemo(
     () => {
       const totalVariants = filteredProducts.reduce((sum, p) => sum + (p.colors?.length || 0), 0);
-      const uniqueCategories = new Set(filteredProducts.map(p => p.category?.name || p.category_name).filter(Boolean).filter(n => n !== "Sem categoria"));
+      const uniqueCategoryIds = new Set(
+        filteredProducts
+          .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ""))
+          .filter((id) => id && id !== "0")
+      );
       const uniqueSuppliers = new Set(filteredProducts.map(p => p.supplier?.name).filter(Boolean).filter(n => n !== "Sem fornecedor"));
+      const categoriesCount = categoryStats.total || uniqueCategoryIds.size;
+
       return [
         { id: "products", label: "Produtos Únicos", value: filteredProducts.length, icon: <Package className="h-4 w-4" /> },
         { id: "variants", label: "Variações", value: totalVariants, icon: <Layers className="h-4 w-4" /> },
-        { id: "categories", label: "Categorias", value: uniqueCategories.size, icon: <Layers className="h-4 w-4" /> },
+        { id: "categories", label: "Categorias", value: categoriesCount, icon: <Layers className="h-4 w-4" /> },
         { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size, icon: <Users className="h-4 w-4" /> },
         { id: "favorites", label: "Favoritos", value: favoriteCount, icon: <TrendingUp className="h-4 w-4" /> },
       ];
     },
-    [filteredProducts, favoriteCount],
+    [filteredProducts, favoriteCount, categoryStats.total],
   );
 
   const resetFilters = () => {
