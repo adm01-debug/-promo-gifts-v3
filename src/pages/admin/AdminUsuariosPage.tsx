@@ -297,7 +297,12 @@ export default function AdminUsuariosPage() {
       fetchUsers();
     } catch (error: any) {
       console.error("Error creating user:", error);
-      toast.error("Erro ao criar usuário", { description: error.message });
+      const msg = error.message || "";
+      if (msg.toLowerCase().includes("already been registered") || msg.toLowerCase().includes("already exists")) {
+        toast.error("Este e-mail já está cadastrado", { description: "Já existe um usuário com este e-mail no sistema." });
+      } else {
+        toast.error("Erro ao criar usuário", { description: msg });
+      }
     } finally {
       setIsCreating(false);
     }
