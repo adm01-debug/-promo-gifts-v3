@@ -20,6 +20,7 @@ export function SidebarUserFooter({ isCollapsed }: SidebarUserFooterProps) {
   const navigate = useNavigate();
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Vendedor";
+  const firstName = displayName.split(" ")[0];
   const initials = displayName
     .split(" ")
     .map((n) => n[0])
@@ -44,7 +45,7 @@ export function SidebarUserFooter({ isCollapsed }: SidebarUserFooterProps) {
 
   if (isCollapsed) {
     return (
-      <div className="px-2 py-3 border-t border-sidebar-border/50">
+      <div className="px-2 py-2 border-t border-sidebar-border/50 shrink-0">
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <button
@@ -64,14 +65,15 @@ export function SidebarUserFooter({ isCollapsed }: SidebarUserFooterProps) {
   }
 
   return (
-    <div className="px-3 py-3 border-t border-sidebar-border/50">
+    <div className="px-3 py-2 border-t border-sidebar-border/50 shrink-0">
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group">
             {avatarElement}
             <div className="flex flex-col min-w-0 flex-1 text-left">
-              <span className="text-sm font-medium text-sidebar-foreground truncate">
-                {displayName}
+              <span className="text-sm font-medium text-sidebar-foreground truncate max-w-[140px]">
+                {firstName}
               </span>
               <span className="text-[11px] text-sidebar-foreground/40">{roleName}</span>
             </div>
@@ -83,6 +85,10 @@ export function SidebarUserFooter({ isCollapsed }: SidebarUserFooterProps) {
           align="start"
           className="w-56 mb-1"
         >
+          <div className="px-3 py-2 border-b">
+            <p className="text-sm font-medium">{displayName}</p>
+            <p className="text-xs text-muted-foreground">{user?.email}</p>
+          </div>
           <DropdownMenuItem onClick={() => navigate("/perfil")}>
             <Settings className="mr-2 h-4 w-4" />
             Configurações
