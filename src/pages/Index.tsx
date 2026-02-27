@@ -345,11 +345,13 @@ export default function Index() {
   const statBadges = useMemo(
     () => {
       const totalVariants = filteredProducts.reduce((sum, p) => sum + (p.colors?.length || 0), 0);
+      const uniqueCategories = new Set(filteredProducts.map(p => p.category_name).filter(Boolean));
+      const uniqueSuppliers = new Set(filteredProducts.map(p => p.supplier?.name).filter(Boolean));
       return [
         { id: "products", label: "Produtos Únicos", value: filteredProducts.length, icon: <Package className="h-4 w-4" /> },
         { id: "variants", label: "Variações", value: totalVariants, icon: <Layers className="h-4 w-4" /> },
-        { id: "categories", label: "Categorias", value: CATEGORIES.length, icon: <Layers className="h-4 w-4" /> },
-        { id: "suppliers", label: "Fornecedores", value: SUPPLIERS.length, icon: <Users className="h-4 w-4" /> },
+        { id: "categories", label: "Categorias", value: uniqueCategories.size, icon: <Layers className="h-4 w-4" /> },
+        { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size, icon: <Users className="h-4 w-4" /> },
         { id: "favorites", label: "Favoritos", value: favoriteCount, icon: <TrendingUp className="h-4 w-4" /> },
       ];
     },
