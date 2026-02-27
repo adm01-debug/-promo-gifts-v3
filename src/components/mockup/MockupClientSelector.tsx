@@ -1,6 +1,6 @@
 /**
  * MockupClientSelector — Combobox com busca na API externa do CRM
- * Reutiliza useCrmCompanySelector + fuzzy search (mesmo padrão do módulo de orçamentos)
+ * Padrão visual unificado com logo da empresa (mesmo do carrinho)
  */
 
 import { useState } from "react";
@@ -29,6 +29,26 @@ interface MockupClientSelectorProps {
   onClientSelect: (client: MockupClient | null) => void;
 }
 
+function CompanyAvatar({ name, logoUrl, size = "md" }: { name: string; logoUrl?: string | null; size?: "sm" | "md" }) {
+  const dim = size === "sm" ? "w-7 h-7" : "w-8 h-8";
+  
+  if (logoUrl) {
+    return (
+      <img
+        src={logoUrl}
+        alt=""
+        className={cn(dim, "rounded object-contain bg-background border border-border flex-shrink-0")}
+      />
+    );
+  }
+  
+  return (
+    <div className={cn(dim, "rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary flex-shrink-0")}>
+      {name.substring(0, 2).toUpperCase()}
+    </div>
+  );
+}
+
 export function MockupClientSelector({ selectedClient, onClientSelect }: MockupClientSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,11 +68,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
         >
           {selectedClient ? (
             <div className="flex items-center gap-3 text-left">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary"
-              >
-                {selectedClient.name.substring(0, 2).toUpperCase()}
-              </div>
+              <CompanyAvatar name={selectedClient.name} logoUrl={selectedClient.logo_url} />
               <div className="flex flex-col">
                 <span className="font-medium">{selectedClient.name}</span>
                 {selectedClient.ramo && (
@@ -69,7 +85,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0 bg-popover border" align="start">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-popover border" align="start">
         <Command>
           <CommandInput
             placeholder="Buscar empresa..."
@@ -98,17 +114,13 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
                     setOpen(false);
                     setSearchQuery("");
                   }}
-                  className="flex items-center gap-3 py-3"
+                  className="flex items-center gap-3 py-2"
                 >
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground bg-primary shrink-0"
-                  >
-                    {company.name.substring(0, 2).toUpperCase()}
-                  </div>
+                  <CompanyAvatar name={company.name} logoUrl={company.logo_url} size="sm" />
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="font-medium truncate">{company.name}</span>
                     {company.ramo && (
-                      <span className="text-xs text-muted-foreground">{company.ramo}</span>
+                      <span className="text-xs text-muted-foreground truncate">{company.ramo}</span>
                     )}
                   </div>
                   <Check
