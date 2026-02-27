@@ -1,21 +1,16 @@
-import { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
-import { 
-  Package, 
-  Users, 
-  Filter, 
-  Heart, 
+import { useState, useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import {
+  Package,
+  Users,
+  Filter,
+  Heart,
   GitCompare,
   FolderOpen,
-  Settings,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   ChevronsDownUp,
   ShieldCheck,
-  User,
-  Cloud,
-  Palette,
   Calculator,
   Wand2,
   Sparkles,
@@ -23,46 +18,24 @@ import {
   ShoppingCart,
   Star,
   Wrench,
-  Lock,
   Zap,
-  PackagePlus,
   DollarSign,
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRBAC } from "@/hooks/useRBAC";
+import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
+import { SidebarUserFooter } from "./sidebar/SidebarUserFooter";
+import { SidebarQuickSearch } from "./sidebar/SidebarQuickSearch";
+import { SidebarNavGroup, type NavGroup } from "./sidebar/SidebarNavGroup";
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
 }
 
-interface NavGroup {
-  id: string;
-  label: string;
-  icon: typeof Package;
-  items: NavItem[];
-  defaultOpen?: boolean;
-  adminOnly?: boolean;
-}
-
-interface NavItem {
-  icon: typeof Package;
-  label: string;
-  href: string;
-  tourId?: string;
-  adminOnly?: boolean;
-  requiredPermission?: { action: string; resource: string };
-  badge?: string | number;
-  isCta?: boolean;
-  exact?: boolean;
-}
-
-// Reorganized navigation in 4 logical groups
 const navGroups: NavGroup[] = [
   {
     id: "catalog",
@@ -97,7 +70,7 @@ const navGroups: NavGroup[] = [
     icon: ShoppingCart,
     defaultOpen: true,
     items: [
-      { icon: Plus, label: "Novo Carrinho", href: "/carrinhos/novo" },
+      { icon: Plus, label: "Novo Carrinho", href: "/carrinhos/novo", isCta: true },
       { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
     ],
   },
@@ -107,7 +80,7 @@ const navGroups: NavGroup[] = [
     icon: FileText,
     defaultOpen: true,
     items: [
-      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo" },
+      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true },
     ],
   },
@@ -136,8 +109,6 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-const bottomNavItems: NavItem[] = [];
-
 export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -149,16 +120,15 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     return initial;
   });
   const { isAdmin } = useAuth();
-  const { hasPermission } = useRBAC();
 
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
   const collapseAllGroups = () => {
     setOpenGroups((prev) => {
       const collapsed: Record<string, boolean> = {};
-      Object.keys(prev).forEach((key) => { collapsed[key] = false; });
+      Object.keys(prev).forEach((key) => {
+        collapsed[key] = false;
+      });
       return collapsed;
     });
   };
@@ -172,67 +142,16 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
     }));
   };
 
-  const isItemActive = (href: string, exact?: boolean) => {
-    if (href === "/" || exact) return location.pathname === href;
-    return location.pathname.startsWith(href);
-  };
-
-  const renderNavLink = (item: NavItem) => {
-    // Ocultar itens admin se usuário não for admin/manager
-    if (item.adminOnly && !isAdmin) return null;
-    // Ocultar itens baseado em permissão específica
-    if (item.requiredPermission && !hasPermission(item.requiredPermission.action, item.requiredPermission.resource)) return null;
-    
-    const isActive = isItemActive(item.href, item.exact);
-    const Icon = item.icon;
-
-    const linkContent = (
-      <NavLink
-        to={item.href}
-        data-tour={item.tourId}
-        className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group",
-          "hover:text-orange",
-          isActive ? "text-orange font-medium" : "text-sidebar-foreground/70"
-        )}
-        onClick={() => isOpen && onToggle()}
-      >
-        <Icon className={cn(
-          "h-4 w-4 shrink-0 transition-colors",
-          isActive ? "text-orange" : "group-hover:text-orange"
-        )} />
-        {!isCollapsed && (
-          <span className="truncate">{item.label}</span>
-        )}
-        {!isCollapsed && item.badge && (
-          <span className="ml-auto bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-            {item.badge}
-          </span>
-        )}
-      </NavLink>
-    );
-
-    if (isCollapsed) {
-      return (
-        <Tooltip key={item.href} delayDuration={0}>
-          <TooltipTrigger asChild>
-            <div>{linkContent}</div>
-          </TooltipTrigger>
-          <TooltipContent side="right" className="bg-card border-border z-[100]">
-            {item.label}
-          </TooltipContent>
-        </Tooltip>
-      );
-    }
-
-    return <div key={item.href}>{linkContent}</div>;
-  };
+  const filteredGroups = useMemo(
+    () => navGroups.filter((g) => !g.adminOnly || isAdmin),
+    [isAdmin]
+  );
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={onToggle}
           aria-hidden="true"
@@ -251,87 +170,82 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
           isCollapsed ? "w-16" : "w-64"
         )}
       >
-        <div className={cn("flex flex-col h-full pt-16 lg:pt-4", isCollapsed && "overflow-visible")}>
-          {/* Collapse toggle (desktop only) */}
-          <div className="hidden lg:flex items-center justify-between px-2 mb-4">
+        <div className={cn("flex flex-col h-full pt-16 lg:pt-0", isCollapsed && "overflow-visible")}>
+          {/* Brand Header */}
+          <SidebarBrandHeader isCollapsed={isCollapsed} />
+
+          {/* Quick Search */}
+          <SidebarQuickSearch isCollapsed={isCollapsed} />
+
+          {/* Collapse controls (desktop) */}
+          <div className="hidden lg:flex items-center justify-between px-2 mb-1">
             {!isCollapsed && hasAnyGroupOpen && (
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 gap-1.5 text-xs border-sidebar-border hover:bg-orange/10 hover:text-orange hover:border-orange/30"
+                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange hover:border-orange/30 text-sidebar-foreground/40"
                 onClick={collapseAllGroups}
               >
-                <ChevronsDownUp className="h-3.5 w-3.5" />
-                Closer
+                <ChevronsDownUp className="h-3 w-3" />
+                Fechar
               </Button>
             )}
             {!isCollapsed && !hasAnyGroupOpen && <div />}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:bg-orange/10 hover:text-orange ml-auto"
-              onClick={toggleCollapse}
-              aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 hover:bg-sidebar-accent/50 hover:text-orange ml-auto text-sidebar-foreground/30"
+                  onClick={toggleCollapse}
+                  aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+                >
+                  {isCollapsed ? (
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              {isCollapsed && (
+                <TooltipContent side="right" className="bg-card border-border z-[100]">
+                  Expandir menu
+                </TooltipContent>
               )}
-            </Button>
+            </Tooltip>
           </div>
 
-          {/* Main navigation with groups */}
-          <nav className={cn("flex-1 px-2 space-y-1 scrollbar-thin", isCollapsed ? "overflow-visible" : "overflow-y-auto")}>
-            {navGroups.map((group) => {
-              // Hide admin-only groups for non-admins
-              if (group.adminOnly && !isAdmin) return null;
-              const GroupIcon = group.icon;
-              const isGroupOpen = openGroups[group.id];
-              const hasActiveItem = group.items.some((item) => isItemActive(item.href, item.exact));
-
-              if (isCollapsed) {
-                // When collapsed, just show the group items as flat list with tooltips
-                return (
-                  <div key={group.id} className="space-y-0.5">
-                    {group.items.map(renderNavLink)}
-                  </div>
-                );
-              }
-
-              return (
-                <Collapsible
-                  key={group.id}
-                  open={isGroupOpen}
-                  onOpenChange={() => toggleGroup(group.id)}
-                >
-                  <CollapsibleTrigger asChild>
-                    <button
-                      className={cn(
-                        "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-colors",
-                        "hover:bg-muted/50 text-sidebar-foreground/70",
-                        hasActiveItem && "text-primary font-medium"
-                      )}
-                    >
-                      <GroupIcon className="h-4 w-4 shrink-0" />
-                      <span className="flex-1 text-left text-sm font-medium">
-                        {group.label}
-                      </span>
-                      <ChevronDown
-                        className={cn(
-                          "h-4 w-4 transition-transform duration-200",
-                          isGroupOpen && "rotate-180"
-                        )}
-                      />
-                    </button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pl-4 mt-1 space-y-0.5">
-                    {group.items.map(renderNavLink)}
-                  </CollapsibleContent>
-                </Collapsible>
-              );
-            })}
+          {/* Navigation Groups */}
+          <nav
+            className={cn(
+              "flex-1 px-2 scrollbar-thin",
+              isCollapsed ? "overflow-visible" : "overflow-y-auto",
+              isCollapsed ? "space-y-0" : "space-y-0.5"
+            )}
+          >
+            {filteredGroups.map((group, index) => (
+              <div key={group.id}>
+                {/* Separator between groups */}
+                {index > 0 && !isCollapsed && (
+                  <div className="my-2 mx-3 h-px bg-gradient-to-r from-transparent via-sidebar-border/50 to-transparent" />
+                )}
+                {index > 0 && isCollapsed && (
+                  <div className="my-1 mx-auto w-1 h-1 rounded-full bg-sidebar-border/40" />
+                )}
+                <SidebarNavGroup
+                  group={group}
+                  isOpen={openGroups[group.id] ?? false}
+                  isCollapsed={isCollapsed}
+                  onToggle={() => toggleGroup(group.id)}
+                  onMobileClose={onToggle}
+                  isMobileSidebarOpen={isOpen}
+                />
+              </div>
+            ))}
           </nav>
+
+          {/* User Profile Footer */}
+          <SidebarUserFooter isCollapsed={isCollapsed} />
         </div>
       </aside>
     </>
