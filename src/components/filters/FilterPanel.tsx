@@ -342,8 +342,8 @@ function GroupSeparator({ label, icon: Icon }: { label: string; icon: React.Comp
 // COMPONENTE PRINCIPAL
 // ============================================
 export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCount, products = [], viewMode, onViewModeChange, gridColumns, onGridColumnsChange, filteredResultsCount }: FilterPanelProps) {
-  // Melhoria #4: Seções prioritárias abertas por padrão
-  const [openSections, setOpenSections] = useState<string[]>(['cores', 'categorias']);
+  // Todas as seções fechadas por padrão — vendedor abre gradativamente
+  const [openSections, setOpenSections] = useState<string[]>([]);
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
   const [supplierSearch, setSupplierSearch] = useState('');
