@@ -72,7 +72,7 @@ export function AdvancedFilterPanel({
   activeFiltersCount,
   className 
 }: AdvancedFilterPanelProps) {
-  const [openSections, setOpenSections] = useState<string[]>(['search', 'categories', 'stock', 'materials', 'colors']);
+  const [openSections, setOpenSections] = useState<string[]>([]);
   const [categorySearch, setCategorySearch] = useState('');
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
