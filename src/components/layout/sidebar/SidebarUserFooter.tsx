@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Settings, LogOut, ChevronUp } from "lucide-react";
+import { RestartTourButton } from "@/components/onboarding/RestartTourButton";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -66,7 +67,9 @@ export function SidebarUserFooter({ isCollapsed }: SidebarUserFooterProps) {
 
   return (
     <div className="px-3 py-2 border-t border-sidebar-border/50 shrink-0">
-
+      <div className="opacity-60 mb-2">
+        <RestartTourButton />
+      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group">
