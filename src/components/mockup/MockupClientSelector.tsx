@@ -122,7 +122,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="fixed inset-0 z-30 bg-black/20"
+            className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[2px]"
             onClick={() => setIsFocused(false)}
           />
         )}
