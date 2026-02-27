@@ -37,6 +37,83 @@ interface ProductSearchComboboxProps {
   className?: string;
 }
 
+// Fuse.js config for fuzzy fallback (level 4)
+const fuseOptions: Fuse.IFuseOptions<Product> = {
+  keys: [
+    { name: 'name', weight: 0.5 },
+    { name: 'sku', weight: 0.5 },
+  ],
+  threshold: 0.4,
+  distance: 100,
+  includeScore: true,
+  minMatchCharLength: 2,
+  ignoreLocation: true,
+  findAllMatches: true,
+};
+
+/**
+ * 4-level relevance search matching the catalog pattern:
+ * 1. Name starts with query
+ * 2. Exact word match in name
+ * 3. Name contains query as substring
+ * 4. Fuzzy match (Fuse.js) for typo tolerance
+ */
+function searchWithRelevance(products: Product[], query: string, fuse: Fuse<Product>): Product[] {
+  const queryLower = query.toLowerCase();
+
+  // Exact SKU match — highest priority
+  const exactSku = products.filter(p => (p.sku || '').toLowerCase() === queryLower);
+  if (exactSku.length > 0) return exactSku.slice(0, 50);
+
+  const nameStartsWith: Product[] = [];
+  const nameIsExactWord: Product[] = [];
+  const nameContains: Product[] = [];
+
+  for (const p of products) {
+    const nameLower = p.name.toLowerCase();
+    if (nameLower.startsWith(queryLower)) {
+      nameStartsWith.push(p);
+    } else {
+      const wordBoundary = new RegExp(`\\b${queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (wordBoundary.test(p.name)) {
+        nameIsExactWord.push(p);
+      } else if (nameLower.includes(queryLower)) {
+        nameContains.push(p);
+      }
+    }
+  }
+
+  // Fuzzy fallback
+  const fuseResults = fuse.search(query);
+  const fuzzyItems = fuseResults.filter(r => (r.score ?? 1) < 0.45).map(r => r.item);
+
+  // Sort each group by position of query in name
+  const sortByPosition = (arr: Product[]) =>
+    arr.sort((a, b) => {
+      const posA = a.name.toLowerCase().indexOf(queryLower);
+      const posB = b.name.toLowerCase().indexOf(queryLower);
+      return (posA === -1 ? 9999 : posA) - (posB === -1 ? 9999 : posB);
+    });
+
+  sortByPosition(nameStartsWith);
+  sortByPosition(nameIsExactWord);
+  sortByPosition(nameContains);
+
+  // Merge without duplicates: starts > exact word > contains > fuzzy
+  const seenIds = new Set<string>();
+  const combined: Product[] = [];
+  for (const group of [nameStartsWith, nameIsExactWord, nameContains, fuzzyItems]) {
+    for (const p of group) {
+      if (!seenIds.has(p.id)) {
+        seenIds.add(p.id);
+        combined.push(p);
+      }
+    }
+  }
+
+  return combined.slice(0, 50);
+}
+
 export function ProductSearchCombobox({
   products,
   selectedProduct,
@@ -48,29 +125,16 @@ export function ProductSearchCombobox({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [isSearching, setIsSearching] = React.useState(false);
-  
-  // Debounce search input for better performance
-  const debouncedSearch = useDebounce(search, 300);
 
-  // Criar instância do Fuse.js para busca fuzzy
-  const fuse = React.useMemo(() => new Fuse(products, {
-    keys: [
-      { name: 'name', weight: 0.5 },
-      { name: 'sku', weight: 0.5 },
-    ],
-    threshold: 0.35,
-    distance: 100,
-    minMatchCharLength: 2,
-    ignoreLocation: true,
-  }), [products]);
+  const debouncedSearch = useDebounce(search, 350);
 
-  // Filter products based on debounced search - busca fuzzy tolerante a erros
+  const fuse = React.useMemo(() => new Fuse(products, fuseOptions), [products]);
+
+  // Use 4-level relevance search
   const filteredProducts = React.useMemo(() => {
     setIsSearching(false);
-    if (!debouncedSearch.trim()) return products.slice(0, 50); // Show first 50 when no search
-    
-    const fuseResults = fuse.search(debouncedSearch);
-    return fuseResults.map(r => r.item).slice(0, 50);
+    if (!debouncedSearch.trim() || debouncedSearch.trim().length < 2) return products.slice(0, 50);
+    return searchWithRelevance(products, debouncedSearch.trim(), fuse);
   }, [products, debouncedSearch, fuse]);
 
   // Show searching indicator when typing
