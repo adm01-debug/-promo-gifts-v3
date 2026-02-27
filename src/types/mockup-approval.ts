@@ -60,7 +60,8 @@ export interface MockupApprovalData {
 }
 
 export interface PantoneColorEntry {
+  /** Pantone code or color name */
   name: string;
+  /** Hex color code */
   hex: string;
-  percentage?: number;
 }

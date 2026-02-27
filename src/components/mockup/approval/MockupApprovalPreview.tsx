@@ -12,7 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Loader2, X } from "lucide-react";
+import { Download, FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MockupApprovalTemplate } from "./MockupApprovalTemplate";
 import type { MockupApprovalData } from "@/types/mockup-approval";
@@ -45,10 +45,31 @@ export function MockupApprovalPreview({ data, open, onOpenChange }: MockupApprov
 
       const imgData = canvas.toDataURL("image/jpeg", 0.92);
       const pdf = new jsPDF("portrait", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-      pdf.addImage(imgData, "JPEG", 0, 0, pageWidth, pageHeight);
+      // Calculate proportional dimensions to avoid stretching
+      const canvasAspect = canvas.width / canvas.height;
+      const pageAspect = pageWidth / pageHeight;
+
+      let imgWidth: number;
+      let imgHeight: number;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (canvasAspect > pageAspect) {
+        // Canvas is wider than page → fit to width
+        imgWidth = pageWidth;
+        imgHeight = pageWidth / canvasAspect;
+        offsetY = 0; // align to top
+      } else {
+        // Canvas is taller than page → fit to height
+        imgHeight = pageHeight;
+        imgWidth = pageHeight * canvasAspect;
+        offsetX = (pageWidth - imgWidth) / 2; // center horizontally
+      }
+
+      pdf.addImage(imgData, "JPEG", offsetX, offsetY, imgWidth, imgHeight);
 
       const filename = `mockup-aprovacao-${data.documentNumber.replace(/[/\s]/g, "-")}.pdf`;
       pdf.save(filename);
