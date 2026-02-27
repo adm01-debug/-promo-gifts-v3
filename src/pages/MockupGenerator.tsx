@@ -38,11 +38,14 @@ import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
+import { MockupLayoutButtons } from "@/components/mockup/approval/MockupLayoutButtons";
+import { useAuth } from "@/contexts/AuthContext";
 
 // ─── Component ───────────────────────────────────────────────────────
 
 export default function MockupGenerator() {
   const mg = useMockupGenerator();
+  const { profile } = useAuth();
 
   // Technique change confirmation
   const [pendingTechnique, setPendingTechnique] = useState<any>(null);
@@ -368,6 +371,31 @@ export default function MockupGenerator() {
                   beforeImage={mg.beforeImage}
                   annotations={mg.mockupAnnotations}
                   onAnnotationsChange={mg.setMockupAnnotations}
+                />
+
+                {/* Layout Approval Buttons */}
+                <MockupLayoutButtons
+                  generatedMockup={mg.generatedMockup}
+                  product={mg.selectedProduct ? {
+                    name: mg.selectedProduct.name,
+                    sku: mg.selectedProduct.sku,
+                    imageUrl: mg.getProductImage() || undefined,
+                    color: mg.productSelection?.selectedColor?.name,
+                    colorHex: mg.productSelection?.selectedColor?.hex,
+                    material: mg.selectedProduct.materials?.[0],
+                  } : null}
+                  technique={mg.selectedTechnique ? {
+                    name: mg.selectedTechnique.name,
+                    code: mg.selectedTechnique.code,
+                    maxWidth: 'maxWidth' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxWidth : null,
+                    maxHeight: 'maxHeight' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxHeight : null,
+                    locationName: 'locationName' in mg.selectedTechnique ? (mg.selectedTechnique as any).locationName : null,
+                  } : null}
+                  client={mg.selectedClient}
+                  seller={profile ? { name: profile.full_name || "—", email: profile.email || undefined } : null}
+                  activeArea={mg.activeArea || null}
+                  pantoneColors={mg.logoColorAnalysis.colors}
+                  colorsCount={mg.techniqueColorConfig?.colorCount}
                 />
 
                 {/* Batch results */}
