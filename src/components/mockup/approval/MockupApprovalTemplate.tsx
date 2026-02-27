@@ -277,9 +277,6 @@ function PantoneSection({ colors }: { colors: MockupApprovalData["pantoneColors"
             <th style={{ textAlign: "left", padding: "6px 10px", backgroundColor: DARK, color: "#fff", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Swatch</th>
             <th style={{ textAlign: "left", padding: "6px 10px", backgroundColor: DARK, color: "#fff", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Código Pantone</th>
             <th style={{ textAlign: "left", padding: "6px 10px", backgroundColor: DARK, color: "#fff", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Hex</th>
-            {colors.some(c => c.percentage !== undefined) && (
-              <th style={{ textAlign: "right", padding: "6px 10px", backgroundColor: DARK, color: "#fff", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.5px" }}>%</th>
-            )}
           </tr>
         </thead>
         <tbody>
@@ -293,11 +290,6 @@ function PantoneSection({ colors }: { colors: MockupApprovalData["pantoneColors"
               </td>
               <td style={{ padding: "6px 10px", fontWeight: 600 }}>{color.name}</td>
               <td style={{ padding: "6px 10px", fontFamily: "'Roboto Mono', monospace", fontSize: "11px", color: "#666" }}>{color.hex.toUpperCase()}</td>
-              {colors.some(c => c.percentage !== undefined) && (
-                <td style={{ padding: "6px 10px", textAlign: "right", fontWeight: 500 }}>
-                  {color.percentage !== undefined ? `${color.percentage}%` : "—"}
-                </td>
-              )}
             </tr>
           ))}
         </tbody>

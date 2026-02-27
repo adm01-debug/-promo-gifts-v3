@@ -3,9 +3,9 @@
  * Two modes: AI (uses existing generated mockup) and Static (high-res composition).
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { FileText, Sparkles, ImageIcon, Loader2 } from "lucide-react";
+import { Sparkles, ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { MockupApprovalPreview } from "./MockupApprovalPreview";
 import type { MockupApprovalData } from "@/types/mockup-approval";
@@ -67,7 +67,6 @@ export function MockupLayoutButtons({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [approvalData, setApprovalData] = useState<MockupApprovalData | null>(null);
   const [isGeneratingStatic, setIsGeneratingStatic] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const buildApprovalData = useCallback((mockupUrl: string, mode: 'ai' | 'static'): MockupApprovalData => {
     const now = new Date();
@@ -103,9 +102,8 @@ export function MockupLayoutButtons({
         colorsCount: colorsCount,
       },
       pantoneColors: (pantoneColors || []).map(c => ({
-        name: c.pantoneCode || c.name,
+        name: c.selectedPantone || c.pantoneMatch?.name || c.name,
         hex: c.hex,
-        percentage: c.percentage,
       })),
       mockupImageUrl: mockupUrl,
       layoutMode: mode,
@@ -130,7 +128,6 @@ export function MockupLayoutButtons({
 
     setIsGeneratingStatic(true);
     try {
-      // Create high-res canvas composition
       const canvas = document.createElement("canvas");
       canvas.width = 1024;
       canvas.height = 1024;
@@ -138,8 +135,8 @@ export function MockupLayoutButtons({
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, 1024, 1024);
 
-      // Load product image
-      const productImg = await loadImage(product.imageUrl);
+      // Load product image with CORS fallback
+      const productImg = await loadImageWithFallback(product.imageUrl);
       // Draw product centered, fitting
       const pScale = Math.min(1024 / productImg.width, 1024 / productImg.height) * 0.85;
       const pW = productImg.width * pScale;
@@ -147,14 +144,29 @@ export function MockupLayoutButtons({
       ctx.drawImage(productImg, (1024 - pW) / 2, (1024 - pH) / 2, pW, pH);
 
       // Load logo
-      const logoImg = await loadImage(activeArea.logoPreview);
-      // Position logo based on area settings (percentage-based)
-      const logoScale = 0.2; // ~20% of canvas for the logo
-      const lW = 1024 * logoScale;
-      const lH = lW * (logoImg.height / logoImg.width);
-      const lX = (activeArea.positionX / 100) * 1024 - lW / 2;
-      const lY = (activeArea.positionY / 100) * 1024 - lH / 2;
-      ctx.drawImage(logoImg, lX, lY, lW, lH);
+      const logoImg = await loadImageWithFallback(activeArea.logoPreview);
+      
+      // Calculate logo size proportionally based on technique dimensions relative to product
+      // Use the area dimensions (logoWidth × logoHeight in cm) relative to technique max
+      const techMaxW = technique?.maxWidth || 10;
+      const techMaxH = technique?.maxHeight || 10;
+      const logoRatioW = (activeArea.logoWidth || techMaxW) / techMaxW;
+      const logoRatioH = (activeArea.logoHeight || techMaxH) / techMaxH;
+      
+      // Logo occupies a proportional area of the product rendering zone
+      const maxLogoZone = pW * 0.5; // max 50% of product width
+      const lW = maxLogoZone * logoRatioW;
+      const aspectRatio = logoImg.height / logoImg.width;
+      const lH = Math.min(lW * aspectRatio, pH * 0.5 * logoRatioH);
+      const finalLW = lH / aspectRatio > lW ? lW : lH / aspectRatio;
+      
+      // Position based on percentage within the product area
+      const productLeft = (1024 - pW) / 2;
+      const productTop = (1024 - pH) / 2;
+      const lX = productLeft + (activeArea.positionX / 100) * pW - finalLW / 2;
+      const lY = productTop + (activeArea.positionY / 100) * pH - lH / 2;
+      
+      ctx.drawImage(logoImg, lX, lY, finalLW, lH);
 
       const dataUrl = canvas.toDataURL("image/png");
       const data = buildApprovalData(dataUrl, "static");
@@ -162,11 +174,11 @@ export function MockupLayoutButtons({
       setPreviewOpen(true);
     } catch (err) {
       console.error("Static composition error:", err);
-      toast.error("Erro ao gerar composição estática.");
+      toast.error("Erro ao gerar composição estática. Verifique se as imagens estão acessíveis.");
     } finally {
       setIsGeneratingStatic(false);
     }
-  }, [product, activeArea, buildApprovalData]);
+  }, [product, activeArea, technique, buildApprovalData]);
 
   // Don't show if no product/technique selected
   if (!product || !technique || !activeArea) return null;
@@ -211,13 +223,33 @@ export function MockupLayoutButtons({
   );
 }
 
-/* ─── Util ─── */
-function loadImage(src: string): Promise<HTMLImageElement> {
+/* ─── Util: Load image with CORS fallback ─── */
+async function loadImageWithFallback(src: string): Promise<HTMLImageElement> {
+  // Try with CORS first
+  try {
+    return await loadImage(src, true);
+  } catch {
+    // Fallback: fetch as blob to bypass CORS
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const img = await loadImage(blobUrl, false);
+      URL.revokeObjectURL(blobUrl);
+      return img;
+    } catch {
+      // Last resort: try without CORS attribute (will taint canvas but at least renders)
+      return loadImage(src, false);
+    }
+  }
+}
+
+function loadImage(src: string, useCors: boolean): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    if (useCors) img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
-    img.onerror = reject;
+    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
     img.src = src;
   });
 }
