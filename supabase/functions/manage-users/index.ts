@@ -90,6 +90,33 @@ serve(async (req) => {
       });
     }
 
+    if (action === 'update_email') {
+      const { user_id, new_email } = payload;
+
+      if (!user_id || !new_email) {
+        return new Response(JSON.stringify({ error: 'user_id e new_email são obrigatórios' }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user_id, { email: new_email });
+
+      if (updateError) {
+        console.error('Error updating email:', updateError);
+        return new Response(JSON.stringify({ error: updateError.message }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      // Update profile email too
+      await supabaseAdmin.from('profiles').update({ email: new_email }).eq('user_id', user_id);
+
+      console.log(`User ${user_id} email updated to ${new_email} by admin ${caller.email}`);
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     if (action === 'delete') {
       const { user_id } = payload;
 
