@@ -173,7 +173,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               isOpen
                 ? "bg-muted text-muted-foreground"
-                : "bg-[#39FF14] text-black hover:bg-[#32e612]"
+                : "bg-[#39FF14]/60 text-black hover:bg-[#39FF14]/80"
             )}
             aria-label={isOpen ? "Fechar menu" : "Ações rápidas"}
             aria-expanded={isOpen}
