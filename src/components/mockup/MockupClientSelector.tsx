@@ -102,7 +102,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
       {/* Dropdown de resultados */}
       {showDropdown && (
         <div className="absolute z-50 w-full mt-1 rounded-md border border-border bg-popover shadow-md overflow-hidden">
-          <ScrollArea className="max-h-[260px]">
+          <ScrollArea className="h-[260px]">
             {filteredCompanies.length === 0 ? (
               <div className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground">
                 <Building2 className="h-4 w-4" />
