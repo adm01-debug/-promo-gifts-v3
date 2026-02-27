@@ -196,12 +196,12 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
                         <div className="flex flex-col flex-1 min-w-0">
                           <span className="text-sm font-medium truncate">{company.name}</span>
                           <div className="flex items-center gap-1.5">
-                            {company.ramo && (
-                              <span className="text-xs text-muted-foreground truncate">{company.ramo}</span>
+                            {company.razao_social && company.razao_social !== company.name && (
+                              <span className="text-xs text-muted-foreground truncate">{company.razao_social}</span>
                             )}
                             {company.cnpj && (
                               <>
-                                {company.ramo && <span className="text-xs text-muted-foreground/50">·</span>}
+                                {company.razao_social && company.razao_social !== company.name && <span className="text-xs text-muted-foreground/50">·</span>}
                                 <span className="text-[11px] text-muted-foreground/70 font-mono truncate">{company.cnpj}</span>
                               </>
                             )}
