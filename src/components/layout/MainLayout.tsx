@@ -5,7 +5,7 @@ import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { SidebarReorganized } from "./SidebarReorganized";
 import { PageTransition } from "@/components/effects";
 import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
-import { RestartTourButton } from "@/components/onboarding/RestartTourButton";
+
 import { ExpertChatButton } from "@/components/expert/ExpertChatButton";
 import { SkipToContent } from "@/components/common/SkipToContent";
 import { EnhancedSpotlight } from "@/components/common/EnhancedSpotlight";
@@ -93,10 +93,8 @@ export function MainLayout({ children }: MainLayoutProps) {
               </PageTransition>
             </main>
             
-            {/* Restart Tour Button - positioned to avoid sidebar footer collision */}
-            <div className="fixed bottom-4 left-[270px] z-40 print:hidden hidden lg:block">
-              <RestartTourButton />
-            </div>
+
+
             
             {/* Expert Chat Button - hidden on mobile and on mockup generator (has its own assistant) */}
             {!isMockupGenerator && (
