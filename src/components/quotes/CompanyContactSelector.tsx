@@ -125,12 +125,6 @@ function ContactDropdown({
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {selected?.email && (
-            <Badge variant="outline" className="text-xs gap-1 px-1.5">
-              <Mail className="h-3 w-3" />
-              <span className="hidden sm:inline max-w-[120px] truncate">{selected.email}</span>
-            </Badge>
-          )}
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </div>
       </button>
@@ -160,14 +154,6 @@ function ContactDropdown({
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{contact.name}</p>
                 {contact.cargo && <p className="text-xs text-muted-foreground">{contact.cargo}</p>}
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {contact.email && (
-                  <Badge variant="outline" className="text-xs gap-1 px-1.5">
-                    <Mail className="h-3 w-3" />
-                    <span className="hidden sm:inline max-w-[120px] truncate">{contact.email}</span>
-                  </Badge>
-                )}
               </div>
             </button>
           ))}
@@ -212,14 +198,6 @@ function SingleContactDisplay({
         <span className="truncate font-medium">{contact.name}</span>
         {contact.cargo && (
           <span className="text-xs text-muted-foreground hidden sm:inline">· {contact.cargo}</span>
-        )}
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {contact.email && (
-          <Badge variant="outline" className="text-xs gap-1 px-1.5">
-            <Mail className="h-3 w-3" />
-            <span className="hidden sm:inline max-w-[120px] truncate">{contact.email}</span>
-          </Badge>
         )}
       </div>
     </div>
