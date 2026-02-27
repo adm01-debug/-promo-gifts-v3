@@ -353,7 +353,7 @@ export function CompanyContactSelector({
 
   // Merge server (priority) + local results, deduplicated
   const filteredCompanies = useMemo(() => {
-    if (!searchTerm.trim()) return companies?.slice(0, 30) || [];
+    if (!searchTerm.trim()) return companies || [];
 
     // Server results take priority (they search all 51k+ records)
     const seen = new Set<string>();
