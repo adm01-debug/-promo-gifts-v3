@@ -343,12 +343,16 @@ export default function Index() {
 
   // Stats for popover
   const statBadges = useMemo(
-    () => [
-      { id: "products", label: "Produtos", value: filteredProducts.length, icon: <Package className="h-4 w-4" /> },
-      { id: "categories", label: "Categorias", value: CATEGORIES.length, icon: <Layers className="h-4 w-4" /> },
-      { id: "suppliers", label: "Fornecedores", value: SUPPLIERS.length, icon: <Users className="h-4 w-4" /> },
-      { id: "favorites", label: "Favoritos", value: favoriteCount, icon: <TrendingUp className="h-4 w-4" /> },
-    ],
+    () => {
+      const totalVariants = filteredProducts.reduce((sum, p) => sum + (p.colors?.length || 0), 0);
+      return [
+        { id: "products", label: "Produtos Únicos", value: filteredProducts.length, icon: <Package className="h-4 w-4" /> },
+        { id: "variants", label: "Variações", value: totalVariants, icon: <Layers className="h-4 w-4" /> },
+        { id: "categories", label: "Categorias", value: CATEGORIES.length, icon: <Layers className="h-4 w-4" /> },
+        { id: "suppliers", label: "Fornecedores", value: SUPPLIERS.length, icon: <Users className="h-4 w-4" /> },
+        { id: "favorites", label: "Favoritos", value: favoriteCount, icon: <TrendingUp className="h-4 w-4" /> },
+      ];
+    },
     [filteredProducts, favoriteCount],
   );
 
