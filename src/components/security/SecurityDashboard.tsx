@@ -255,7 +255,7 @@ export function SecurityDashboard() {
                 value={selectedUserId || user?.id || ''}
                 onValueChange={(value) => setSelectedUserId(value === user?.id ? null : value)}
               >
-                <SelectTrigger className="w-[350px] bg-background">
+                <SelectTrigger className="w-[500px] bg-background">
                   <SelectValue placeholder="Selecione um usuário" />
                 </SelectTrigger>
                 <SelectContent>
