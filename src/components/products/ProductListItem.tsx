@@ -82,7 +82,7 @@ export function ProductListItem({
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image */}
-      <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-muted shrink-0">
+      <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-white dark:bg-card shrink-0">
         {!imageLoaded && (
           <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 animate-pulse" />
         )}
