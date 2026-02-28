@@ -275,7 +275,7 @@ function PantoneSection({ colors }: { colors: MockupApprovalData["pantoneColors"
 function ApprovalFooter({ printDate, seller }: { printDate: string; seller: MockupApprovalData["seller"] }) {
   return (
     <div style={{ width: "794px", flexShrink: 0, marginTop: "auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 36px", fontSize: "11px", color: "#000000", fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "center", padding: "4px 36px", fontSize: "11px", color: "#000000", fontFamily: "'Montserrat', sans-serif", gap: "40px" }}>
         <span></span>
         {seller.email && (
           <span style={{ textAlign: "left" }}>{seller.email}</span>
