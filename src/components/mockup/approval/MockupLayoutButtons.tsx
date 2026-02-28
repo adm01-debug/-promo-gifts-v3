@@ -185,7 +185,7 @@ export function MockupLayoutButtons({
 
   return (
     <>
-      <div className="flex items-center gap-2 pt-2 border-t border-border/50">
+      <div className="flex items-center gap-2">
         <Button
           variant="outline"
           size="sm"
