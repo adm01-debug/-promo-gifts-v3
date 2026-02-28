@@ -315,8 +315,9 @@ export default function MockupGenerator() {
                           heightCm: mg.selectedProduct.dimensions?.height_cm ?? null,
                           widthCm: mg.selectedProduct.dimensions?.width_cm ?? null,
                           diameterCm: mg.selectedProduct.dimensions?.diameter_cm ?? null,
-                          capacityMl: (mg.selectedProduct as any).capacity_ml ?? null,
-                          weightG: (mg.selectedProduct as any).weight_g ?? null,
+                          depthCm: mg.selectedProduct.dimensions?.length_cm ?? null,
+                          capacityMl: mg.selectedProduct.dimensions?.capacity_ml ?? null,
+                          weightG: mg.selectedProduct.dimensions?.weight_g ?? null,
                         } : null}
                         technique={mg.selectedTechnique ? {
                           name: mg.selectedTechnique.name,

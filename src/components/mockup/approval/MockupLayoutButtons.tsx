@@ -27,6 +27,7 @@ interface MockupLayoutButtonsProps {
     heightCm?: number | null;
     widthCm?: number | null;
     diameterCm?: number | null;
+    depthCm?: number | null;
     capacityMl?: number | null;
     weightG?: number | null;
   } | null;
@@ -108,6 +109,7 @@ export function MockupLayoutButtons({
         heightCm: product?.heightCm,
         widthCm: product?.widthCm,
         diameterCm: product?.diameterCm,
+        depthCm: product?.depthCm,
         capacityMl: product?.capacityMl,
         weightG: product?.weightG,
       },
