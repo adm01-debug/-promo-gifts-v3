@@ -138,7 +138,7 @@ export function EnhancedProductCard({
       {getUrgencyBadge()}
 
       {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container">
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container p-3">
         {/* Skeleton */}
         {!imageLoaded && (
           <div className="absolute inset-0 animate-shimmer" />
@@ -148,7 +148,7 @@ export function EnhancedProductCard({
           src={product.images[0]}
           alt={product.name}
           className={cn(
-            "w-full h-full object-contain transition-all duration-700 p-3",
+            "w-full h-full object-contain transition-all duration-700",
             imageLoaded ? "opacity-100" : "opacity-0"
           )}
           animate={{
