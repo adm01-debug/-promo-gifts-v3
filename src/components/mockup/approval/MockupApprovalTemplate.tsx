@@ -302,7 +302,7 @@ function ProductSpecsStrip({ product }: { product: MockupApprovalData["product"]
   if (specs.length === 0) return null;
 
   return (
-    <div style={{ marginTop: "16px", padding: "12px 0", borderTop: "1px solid #e8e8e8" }}>
+    <div style={{ marginTop: "16px", padding: "12px 0" }}>
       <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: GREEN, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>
         Especificações do Produto
       </div>
