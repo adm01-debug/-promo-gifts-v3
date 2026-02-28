@@ -811,7 +811,7 @@ export function LogoPositionEditor({
           {/* ─── LADO DIREITO: Tamanho da Logo ─── */}
           <div className="w-1/2 space-y-3">
             <div className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-primary" />
+              <Ruler className="h-4 w-4 text-primary" />
               <span className="text-xs font-semibold">Tamanho da Logo</span>
             </div>
 
