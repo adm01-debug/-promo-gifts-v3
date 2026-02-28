@@ -48,13 +48,14 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
               <div style={{
                 width: "483px",
                 height: "630px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid #e8e8e8",
                 borderRadius: "8px",
                 overflow: "hidden",
                 backgroundColor: "#fafafa",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
               }}>
                 <img
                   src={data.mockupImageUrl}
@@ -64,12 +65,14 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
                 />
               </div>
               <div style={{
-                marginTop: "6px",
+                marginTop: "4px",
                 textAlign: "center",
-                fontSize: "9px",
-                color: "#999",
+                fontSize: "10px",
+                color: "#777",
                 textTransform: "uppercase",
-                letterSpacing: "0.5px",
+                letterSpacing: "1px",
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 600,
               }}>
                 {data.layoutMode === "ai" ? "Gerado com IA" : "Composição Estática"}
               </div>
