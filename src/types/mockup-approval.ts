@@ -33,6 +33,12 @@ export interface MockupApprovalData {
     colorHex?: string;
     material?: string;
     dimensions?: string;
+    /** Physical specs for display */
+    heightCm?: number | null;
+    widthCm?: number | null;
+    diameterCm?: number | null;
+    capacityMl?: number | null;
+    weightG?: number | null;
   };
 
   /** Personalization / technique info */

@@ -111,6 +111,35 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
                   {data.product.color && <span>Cor: <strong style={{ color: "#333" }}>{data.product.color}</strong></span>}
                   {data.product.material && <span>Material: <strong style={{ color: "#333" }}>{data.product.material}</strong></span>}
                 </div>
+                {/* Physical specs badges */}
+                {(() => {
+                  const specs: { label: string; value: string }[] = [];
+                  if (data.product.diameterCm) specs.push({ label: "Ø", value: `${data.product.diameterCm} cm` });
+                  if (data.product.heightCm) specs.push({ label: "Alt", value: `${data.product.heightCm} cm` });
+                  if (data.product.widthCm) specs.push({ label: "Larg", value: `${data.product.widthCm} cm` });
+                  if (data.product.capacityMl) specs.push({ label: "Cap", value: `${data.product.capacityMl} ml` });
+                  if (data.product.weightG) specs.push({ label: "Peso", value: `${data.product.weightG} g` });
+                  if (specs.length === 0) return null;
+                  return (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "8px" }}>
+                      {specs.map((s, i) => (
+                        <span key={i} style={{
+                          display: "inline-block",
+                          fontSize: "9px",
+                          fontWeight: 600,
+                          color: "#555",
+                          backgroundColor: "#f0f0f0",
+                          border: "1px solid #e0e0e0",
+                          borderRadius: "3px",
+                          padding: "2px 6px",
+                          fontFamily: "'Montserrat', sans-serif",
+                        }}>
+                          {s.label}: {s.value}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Personalization */}

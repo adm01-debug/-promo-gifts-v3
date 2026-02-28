@@ -312,6 +312,11 @@ export default function MockupGenerator() {
                           color: mg.productSelection?.selectedColor?.name,
                           colorHex: mg.productSelection?.selectedColor?.hex,
                           material: mg.selectedProduct.materials?.[0],
+                          heightCm: mg.selectedProduct.dimensions?.height_cm ?? null,
+                          widthCm: mg.selectedProduct.dimensions?.width_cm ?? null,
+                          diameterCm: mg.selectedProduct.dimensions?.diameter_cm ?? null,
+                          capacityMl: (mg.selectedProduct as any).capacity_ml ?? null,
+                          weightG: (mg.selectedProduct as any).weight_g ?? null,
                         } : null}
                         technique={mg.selectedTechnique ? {
                           name: mg.selectedTechnique.name,
