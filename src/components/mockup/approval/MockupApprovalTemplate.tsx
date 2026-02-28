@@ -80,7 +80,7 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
 
             {/* Right: Product info + Personalization stacked */}
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "14px" }}>
-              {/* Product info (no image) */}
+              {/* Product info — compact, name + SKU + color only */}
               <div style={{ border: "1px solid #e8e8e8", borderRadius: "6px", padding: "14px", backgroundColor: "#fafafa" }}>
                 <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: GREEN, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
                   Produto
@@ -109,39 +109,7 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
                 )}
                 <div style={{ display: "flex", gap: "16px", marginTop: "8px", fontSize: "11px", color: "#666" }}>
                   {data.product.color && <span>Cor: <strong style={{ color: "#333" }}>{data.product.color}</strong></span>}
-                  {data.product.material && <span>Material: <strong style={{ color: "#333" }}>{data.product.material}</strong></span>}
                 </div>
-                {/* Physical specs badges */}
-                {(() => {
-                  const specs: { label: string; value: string }[] = [];
-                  if (data.product.material) specs.push({ label: "Material", value: data.product.material });
-                  if (data.product.diameterCm) specs.push({ label: "Ø Diâmetro", value: `${data.product.diameterCm} cm` });
-                  if (data.product.heightCm) specs.push({ label: "Altura", value: `${data.product.heightCm} cm` });
-                  if (data.product.widthCm) specs.push({ label: "Largura", value: `${data.product.widthCm} cm` });
-                  if (data.product.depthCm) specs.push({ label: "Profund.", value: `${data.product.depthCm} cm` });
-                  if (data.product.capacityMl) specs.push({ label: "Capacidade", value: data.product.capacityMl >= 1000 ? `${(data.product.capacityMl / 1000).toFixed(1)} L` : `${data.product.capacityMl} ml` });
-                  if (data.product.weightG) specs.push({ label: "Peso", value: data.product.weightG >= 1000 ? `${(data.product.weightG / 1000).toFixed(1)} kg` : `${data.product.weightG} g` });
-                  if (specs.length === 0) return null;
-                  return (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "8px" }}>
-                      {specs.map((s, i) => (
-                        <span key={i} style={{
-                          display: "inline-block",
-                          fontSize: "9px",
-                          fontWeight: 600,
-                          color: "#555",
-                          backgroundColor: "#f0f0f0",
-                          border: "1px solid #e0e0e0",
-                          borderRadius: "3px",
-                          padding: "2px 6px",
-                          fontFamily: "'Montserrat', sans-serif",
-                        }}>
-                          {s.label}: {s.value}
-                        </span>
-                      ))}
-                    </div>
-                  );
-                })()}
               </div>
 
               {/* Personalization */}
@@ -159,12 +127,15 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
                   )}
                 </div>
               </div>
-              {/* Pantone colors — compact, inside right column */}
+              {/* Pantone colors */}
               {data.pantoneColors.length > 0 && (
                 <PantoneSection colors={data.pantoneColors} />
               )}
             </div>
           </div>
+
+          {/* Product Specs — horizontal strip with icons */}
+          <ProductSpecsStrip product={data.product} />
 
           {/* Notes */}
           {data.notes && (
@@ -314,6 +285,64 @@ function ApprovalFooter({ printDate, seller }: { printDate: string; seller: Mock
         )}
       </div>
       <div style={{ width: "794px", height: "40px", backgroundColor: GREEN }} />
+    </div>
+  );
+}
+
+/* ─── Product Specs Strip — horizontal with SVG icons ─── */
+function ProductSpecsStrip({ product }: { product: MockupApprovalData["product"] }) {
+  const specs: { icon: string; label: string; value: string }[] = [];
+  if (product.material) specs.push({ icon: "◆", label: "Material", value: product.material });
+  if (product.diameterCm) specs.push({ icon: "⊙", label: "Diâmetro", value: `${product.diameterCm} cm` });
+  if (product.heightCm) specs.push({ icon: "↕", label: "Altura", value: `${product.heightCm} cm` });
+  if (product.widthCm) specs.push({ icon: "↔", label: "Largura", value: `${product.widthCm} cm` });
+  if (product.depthCm) specs.push({ icon: "⇔", label: "Profund.", value: `${product.depthCm} cm` });
+  if (product.capacityMl) specs.push({ icon: "◉", label: "Capacidade", value: product.capacityMl >= 1000 ? `${(product.capacityMl / 1000).toFixed(1)} L` : `${product.capacityMl} ml` });
+  if (product.weightG) specs.push({ icon: "⚖", label: "Peso", value: product.weightG >= 1000 ? `${(product.weightG / 1000).toFixed(1)} kg` : `${product.weightG} g` });
+  if (specs.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: "16px", padding: "12px 0", borderTop: "1px solid #e8e8e8" }}>
+      <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: GREEN, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>
+        Especificações do Produto
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        {specs.map((s, i) => (
+          <div key={i} style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            backgroundColor: "#f5f5f5",
+            border: "1px solid #e0e0e0",
+            borderRadius: "6px",
+            padding: "6px 10px",
+            minWidth: "90px",
+          }}>
+            <div style={{
+              width: "26px",
+              height: "26px",
+              borderRadius: "5px",
+              backgroundColor: "#1a1a1a",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "13px",
+              color: GREEN,
+              flexShrink: 0,
+            }}>
+              {s.icon}
+            </div>
+            <div>
+              <div style={{ fontSize: "8px", color: "#999", textTransform: "uppercase", letterSpacing: "0.3px", fontFamily: "'Montserrat', sans-serif", fontWeight: 600 }}>
+                {s.label}
+              </div>
+              <div style={{ fontSize: "11px", fontWeight: 700, color: "#222", fontFamily: "'Montserrat', sans-serif" }}>
+                {s.value}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
