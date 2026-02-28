@@ -323,6 +323,8 @@ export default function MockupGenerator() {
                         client={mg.selectedClient}
                         seller={profile ? { name: profile.full_name || "—", email: profile.email || undefined } : null}
                         activeArea={mg.activeArea || null}
+                        productHeightCm={mg.selectedProduct?.dimensions?.height_cm ?? (mg.selectedProduct?.metadata?.height_mm ? mg.selectedProduct.metadata.height_mm / 10 : null)}
+                        productWidthCm={mg.selectedProduct?.dimensions?.width_cm ?? mg.selectedProduct?.dimensions?.diameter_cm ?? (mg.selectedProduct?.metadata?.width_mm ? mg.selectedProduct.metadata.width_mm / 10 : null)}
                         pantoneColors={mg.logoColorAnalysis.colors}
                         colorsCount={mg.techniqueColorConfig?.colorCount}
                       />
