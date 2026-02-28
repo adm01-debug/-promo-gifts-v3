@@ -110,105 +110,6 @@ export default function MockupGenerator() {
       />
 
       <div className="space-y-6">
-        {/* Header */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-6 border border-primary/20">
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl" />
-          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 ring-2 ring-primary/20">
-                <Sparkles className="h-7 w-7 text-primary animate-pulse" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                  Gerador de Mockups
-                </h1>
-                <p className="text-muted-foreground mt-1">
-                  Crie visualizações de produtos personalizados com IA
-                </p>
-              </div>
-            </div>
-
-            {/* Auto-save indicator + Undo/Redo */}
-            <div className="flex items-center gap-2">
-              {/* Undo/Redo buttons */}
-              <div className="flex items-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        disabled={!mg.positionHistory.canUndo}
-                        onClick={() => {
-                          const state = mg.positionHistory.undo();
-                          if (state) mg.updateActiveArea(state);
-                        }}
-                      >
-                        <Undo2 className="h-4 w-4" />
-                      </Button>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>Desfazer (Ctrl+Z)</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        disabled={!mg.positionHistory.canRedo}
-                        onClick={() => {
-                          const state = mg.positionHistory.redo();
-                          if (state) mg.updateActiveArea(state);
-                        }}
-                      >
-                        <Redo2 className="h-4 w-4" />
-                      </Button>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>Refazer (Ctrl+Shift+Z)</TooltipContent>
-                </Tooltip>
-              </div>
-
-              {mg.isDraftSaving ? (
-                <Badge variant="secondary" className="flex items-center gap-1.5">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Salvando...
-                </Badge>
-              ) : mg.lastSaved ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex">
-                      <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
-                        <Cloud className="h-3 w-3 text-green-500" />
-                        Salvo
-                      </Badge>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Último salvamento: {format(mg.lastSaved, "HH:mm:ss", { locale: ptBR })}
-                  </TooltipContent>
-                </Tooltip>
-              ) : mg.draftError ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="inline-flex">
-                      <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
-                        <CloudOff className="h-3 w-3" />
-                        Erro ao salvar
-                      </Badge>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>{mg.draftError}</TooltipContent>
-                </Tooltip>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
         {/* Wizard Progress */}
         <MockupWizard
           currentStep={mg.wizardStep}
@@ -257,16 +158,94 @@ export default function MockupGenerator() {
           </Alert>
         )}
 
-        {/* Tabs */}
+        {/* Tabs + Undo/Redo/Save inline */}
         <Tabs value={mg.activeTab} onValueChange={mg.setActiveTab} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="generator" className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4" /> Gerar Mockup
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <History className="h-4 w-4" /> Histórico ({mg.mockupHistory.length})
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex items-center justify-between gap-2">
+            <TabsList>
+              <TabsTrigger value="generator" className="flex items-center gap-2">
+                <Wand2 className="h-4 w-4" /> Gerar Mockup
+              </TabsTrigger>
+              <TabsTrigger value="history" className="flex items-center gap-2">
+                <History className="h-4 w-4" /> Histórico ({mg.mockupHistory.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="flex items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={!mg.positionHistory.canUndo}
+                      onClick={() => {
+                        const state = mg.positionHistory.undo();
+                        if (state) mg.updateActiveArea(state);
+                      }}
+                    >
+                      <Undo2 className="h-4 w-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Desfazer (Ctrl+Z)</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      disabled={!mg.positionHistory.canRedo}
+                      onClick={() => {
+                        const state = mg.positionHistory.redo();
+                        if (state) mg.updateActiveArea(state);
+                      }}
+                    >
+                      <Redo2 className="h-4 w-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Refazer (Ctrl+Shift+Z)</TooltipContent>
+              </Tooltip>
+
+              <div className="ml-1">
+                {mg.isDraftSaving ? (
+                  <Badge variant="secondary" className="flex items-center gap-1.5">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Salvando...
+                  </Badge>
+                ) : mg.lastSaved ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex">
+                        <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
+                          <Cloud className="h-3 w-3 text-green-500" />
+                          Salvo
+                        </Badge>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Último salvamento: {format(mg.lastSaved, "HH:mm:ss", { locale: ptBR })}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : mg.draftError ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex">
+                        <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
+                          <CloudOff className="h-3 w-3" />
+                          Erro ao salvar
+                        </Badge>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>{mg.draftError}</TooltipContent>
+                  </Tooltip>
+                ) : null}
+              </div>
+            </div>
+          </div>
 
           <TabsContent value="generator">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
