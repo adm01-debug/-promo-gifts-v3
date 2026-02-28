@@ -276,7 +276,7 @@ function ApprovalFooter({ printDate, seller }: { printDate: string; seller: Mock
   return (
     <div style={{ width: "794px", flexShrink: 0, marginTop: "auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 36px", fontSize: "8px", color: "#000000", fontFamily: "'Montserrat', sans-serif" }}>
-        <span>Aprovação de Layout — Promo Brindes</span>
+        <span></span>
         {seller.email && (
           <span>{seller.email}</span>
         )}
