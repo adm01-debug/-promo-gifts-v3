@@ -37,6 +37,7 @@ export interface MockupApprovalData {
     heightCm?: number | null;
     widthCm?: number | null;
     diameterCm?: number | null;
+    depthCm?: number | null;
     capacityMl?: number | null;
     weightG?: number | null;
   };

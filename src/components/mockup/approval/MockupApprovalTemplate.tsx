@@ -114,11 +114,13 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
                 {/* Physical specs badges */}
                 {(() => {
                   const specs: { label: string; value: string }[] = [];
-                  if (data.product.diameterCm) specs.push({ label: "Ø", value: `${data.product.diameterCm} cm` });
-                  if (data.product.heightCm) specs.push({ label: "Alt", value: `${data.product.heightCm} cm` });
-                  if (data.product.widthCm) specs.push({ label: "Larg", value: `${data.product.widthCm} cm` });
-                  if (data.product.capacityMl) specs.push({ label: "Cap", value: `${data.product.capacityMl} ml` });
-                  if (data.product.weightG) specs.push({ label: "Peso", value: `${data.product.weightG} g` });
+                  if (data.product.material) specs.push({ label: "Material", value: data.product.material });
+                  if (data.product.diameterCm) specs.push({ label: "Ø Diâmetro", value: `${data.product.diameterCm} cm` });
+                  if (data.product.heightCm) specs.push({ label: "Altura", value: `${data.product.heightCm} cm` });
+                  if (data.product.widthCm) specs.push({ label: "Largura", value: `${data.product.widthCm} cm` });
+                  if (data.product.depthCm) specs.push({ label: "Profund.", value: `${data.product.depthCm} cm` });
+                  if (data.product.capacityMl) specs.push({ label: "Capacidade", value: data.product.capacityMl >= 1000 ? `${(data.product.capacityMl / 1000).toFixed(1)} L` : `${data.product.capacityMl} ml` });
+                  if (data.product.weightG) specs.push({ label: "Peso", value: data.product.weightG >= 1000 ? `${(data.product.weightG / 1000).toFixed(1)} kg` : `${data.product.weightG} g` });
                   if (specs.length === 0) return null;
                   return (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", marginTop: "8px" }}>
