@@ -986,12 +986,9 @@ html[data-scroll-locked] body {
 
 /* ===== COMPONENTES ===== */
 @layer components {
-  /* Product image container - ALWAYS white, regardless of theme */
+  /* Product image container - ALWAYS white */
   .product-img-container {
-    background-color: #ffffff;
-  }
-  .dark .product-img-container {
-    background-color: hsl(var(--card));
+    background-color: hsl(0 0% 100%) !important;
   }
 
   /* Card Variants */

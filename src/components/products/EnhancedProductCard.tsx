@@ -138,7 +138,7 @@ export function EnhancedProductCard({
       {getUrgencyBadge()}
 
       {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container p-3">
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container">
         {/* Skeleton */}
         {!imageLoaded && (
           <div className="absolute inset-0 animate-shimmer" />

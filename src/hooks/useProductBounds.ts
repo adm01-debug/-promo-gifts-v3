@@ -10,12 +10,24 @@ const DEFAULT: ProductBounds = {
   imageAspectRatio: 1,
 };
 
+type ProductBoundsDetectOptions = {
+  whiteThreshold?: number;
+  alphaThreshold?: number;
+  margin?: number;
+  maxSize?: number;
+};
+
 /**
  * Hook that detects the product's real bounding box in its catalog image.
  * Returns fraction values used for cm→px scaling.
  */
-export function useProductBounds(imageUrl: string | null | undefined): ProductBounds {
+export function useProductBounds(
+  imageUrl: string | null | undefined,
+  options?: ProductBoundsDetectOptions
+): ProductBounds {
   const [bounds, setBounds] = useState<ProductBounds>(DEFAULT);
+
+  const optionsKey = `${options?.whiteThreshold ?? ""}|${options?.alphaThreshold ?? ""}|${options?.margin ?? ""}|${options?.maxSize ?? ""}`;
 
   useEffect(() => {
     if (!imageUrl) {
@@ -25,12 +37,15 @@ export function useProductBounds(imageUrl: string | null | undefined): ProductBo
 
     let cancelled = false;
 
-    detectProductBounds(imageUrl).then((result) => {
+    detectProductBounds(imageUrl, options).then((result) => {
       if (!cancelled) setBounds(result);
     });
 
-    return () => { cancelled = true; };
-  }, [imageUrl]);
+    return () => {
+      cancelled = true;
+    };
+  }, [imageUrl, optionsKey]);
 
   return bounds;
 }
+

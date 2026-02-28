@@ -15,7 +15,7 @@ import { NoveltyBadge } from "./NoveltyBadge";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
-
+import { useProductBounds } from "@/hooks/useProductBounds";
 export interface ProductCardProps {
   product: Product;
   onClick?: () => void;
@@ -143,6 +143,23 @@ export function ProductCard({
     product.colors.some(color => color.group === group)
   );
 
+  const colorSpecificImage = resolveColorImage(product, activeColorFilter);
+  const rawImageUrl = colorSpecificImage || product.og_image_url || product.images[0] || null;
+  const cardImageUrl = rawImageUrl ? getCdnUrl(rawImageUrl, "card") : "/placeholder.svg";
+  const cardSrcSet = colorSpecificImage ? undefined : (rawImageUrl ? getSrcSet(rawImageUrl) : undefined);
+  const activeColorName = getActiveColorName(product, activeColorFilter);
+
+  const imageBounds = useProductBounds(cardImageUrl !== "/placeholder.svg" ? cardImageUrl : null, {
+    whiteThreshold: 230,
+    margin: 0.01,
+    maxSize: 384,
+  });
+
+  const isOversizedImage = imageBounds.detected && imageBounds.fractionX >= 0.86 && imageBounds.fractionY >= 0.86;
+  const baseImageScale = isOversizedImage ? 0.88 : 1;
+  const hoverScale = isHovered ? 1.03 : 1;
+  const computedImageScale = Number((baseImageScale * hoverScale).toFixed(3));
+
   return (
     <article
       className={cn(
@@ -161,7 +178,7 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container p-3" style={{ zIndex: 0 }}>
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container" style={{ zIndex: 0 }}>
         {/* Skeleton loader with shimmer */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
@@ -169,50 +186,41 @@ export function ProductCard({
         
         {/* Briefing v3: usar og_image_url (MAIN, cor individual) para cards com variante /card */}
         {/* Color filter: quando filtro de cor ativo, mostrar imagem da variante correspondente */}
-        {(() => {
-          const colorSpecificImage = resolveColorImage(product, activeColorFilter);
-          const rawUrl = colorSpecificImage || product.og_image_url || product.images[0];
-          const cardUrl = rawUrl ? getCdnUrl(rawUrl, 'card') : '/placeholder.svg';
-          const srcSetVal = colorSpecificImage ? undefined : (rawUrl ? getSrcSet(rawUrl) : undefined);
-          const activeColorName = getActiveColorName(product, activeColorFilter);
-          return (
-            <>
-              <img
-                src={cardUrl}
-                srcSet={srcSetVal}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                alt={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
-                title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
-                className={cn(
-                  "w-full h-full object-contain transition-all duration-700 ease-out",
-                  "group-hover:scale-105",
-                  imageLoaded ? "opacity-100" : "opacity-0"
-                )}
-                loading="lazy"
-                onLoad={() => setImageLoaded(true)}
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  if (!img.dataset.fallback) {
-                    img.dataset.fallback = '1';
-                    img.srcset = '';
-                    img.src = product.images[0] || '/placeholder.svg';
-                  }
-                }}
-              />
-              {/* Badge indicando cor filtrada */}
-              {activeColorName && colorSpecificImage && (
-                <div className="absolute top-2 right-2 z-10 sm:hidden">
-                  <Badge 
-                    variant="secondary" 
-                    className="text-[10px] px-1.5 py-0.5 bg-card/90 backdrop-blur-sm shadow-sm"
-                  >
-                    {activeColorName}
-                  </Badge>
-                </div>
-              )}
-            </>
-          );
-        })()}
+        <>
+          <img
+            src={cardImageUrl}
+            srcSet={cardSrcSet}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+            alt={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
+            title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
+            className={cn(
+              "w-full h-full object-contain transition-all duration-700 ease-out",
+              imageLoaded ? "opacity-100" : "opacity-0"
+            )}
+            style={{ transform: `scale(${computedImageScale})` }}
+            loading="lazy"
+            onLoad={() => setImageLoaded(true)}
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (!img.dataset.fallback) {
+                img.dataset.fallback = '1';
+                img.srcset = '';
+                img.src = product.images[0] || '/placeholder.svg';
+              }
+            }}
+          />
+          {/* Badge indicando cor filtrada */}
+          {activeColorName && colorSpecificImage && (
+            <div className="absolute top-2 right-2 z-10 sm:hidden">
+              <Badge 
+                variant="secondary" 
+                className="text-[10px] px-1.5 py-0.5 bg-card/90 backdrop-blur-sm shadow-sm"
+              >
+                {activeColorName}
+              </Badge>
+            </div>
+          )}
+        </>
 
         {/* Gradient overlay on hover */}
         <div 
