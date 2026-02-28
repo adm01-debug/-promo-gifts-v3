@@ -273,14 +273,6 @@ function ApprovalFooter({ printDate, seller }: { printDate: string; seller: Mock
             <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10.5px", color: "#333", textTransform: "uppercase", letterSpacing: "0.5px" }}>
               {seller.name}
             </div>
-            {seller.email && (
-              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "10.5px", color: "#777", marginTop: "1px" }}>
-                {seller.email}
-              </div>
-            )}
-            <div style={{ fontSize: "7px", color: "#333", marginTop: "4px", lineHeight: "1.3", fontWeight: 600 }}>
-              Documento gerado eletronicamente por {seller.name} em {printDate}
-            </div>
           </div>
         </div>
       )}
