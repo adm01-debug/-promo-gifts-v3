@@ -64,6 +64,8 @@ interface MockupLayoutButtonsProps {
   pantoneColors?: DetectedColor[];
   /** Number of colors from technique config */
   colorsCount?: number;
+  /** Callback to save the generated static mockup to history */
+  onStaticGenerated?: (dataUrl: string) => void;
 }
 
 export function MockupLayoutButtons({
@@ -77,6 +79,7 @@ export function MockupLayoutButtons({
   productWidthCm,
   pantoneColors,
   colorsCount,
+  onStaticGenerated,
 }: MockupLayoutButtonsProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [approvalData, setApprovalData] = useState<MockupApprovalData | null>(null);
@@ -244,6 +247,8 @@ export function MockupLayoutButtons({
       ctx.restore();
 
       const dataUrl = canvas.toDataURL("image/png");
+      // Save to history automatically
+      onStaticGenerated?.(dataUrl);
       const data = buildApprovalData(dataUrl, "static");
       setApprovalData(data);
       setPreviewOpen(true);

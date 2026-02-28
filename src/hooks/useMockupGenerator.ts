@@ -762,5 +762,6 @@ export function useMockupGenerator() {
     filteredTechniques,
     getProductImage,
     resetForm,
+    saveMockupToHistory,
   };
 }
