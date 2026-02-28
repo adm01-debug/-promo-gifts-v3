@@ -161,7 +161,7 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-secondary/50 to-muted/30" style={{ zIndex: 0 }}>
+      <div className="relative aspect-[4/5] overflow-hidden bg-white dark:bg-card" style={{ zIndex: 0 }}>
         {/* Skeleton loader with shimmer */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
@@ -184,7 +184,7 @@ export function ProductCard({
                 alt={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
                 title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
                 className={cn(
-                  "w-full h-full object-contain p-4 transition-all duration-700 ease-out",
+                  "w-full h-full object-contain p-3 transition-all duration-700 ease-out",
                   "group-hover:scale-105",
                   imageLoaded ? "opacity-100" : "opacity-0"
                 )}
