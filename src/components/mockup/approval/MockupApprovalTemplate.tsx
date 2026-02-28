@@ -195,8 +195,8 @@ function ClientSection({ client }: { client: MockupApprovalData["client"] }) {
       borderRadius: "6px",
     }}>
       <div>
-        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
-          Empresa
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0", display: "flex", alignItems: "center", gap: "5px" }}>
+          <span style={{ fontSize: "14px" }}>🏢</span> Empresa
         </p>
         <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{client.name}</p>
         {client.cnpj && (
@@ -206,14 +206,12 @@ function ClientSection({ client }: { client: MockupApprovalData["client"] }) {
           <p style={{ fontSize: "11px", color: "#666", margin: "2px 0 0 0" }}>☎ {client.phone}</p>
         )}
       </div>
-      {client.contactName && (
-        <div style={{ textAlign: "right" }}>
-          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
-            Solicitante
-          </p>
-          <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{client.contactName}</p>
-        </div>
-      )}
+      <div style={{ textAlign: "right" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "5px" }}>
+          <span style={{ fontSize: "14px" }}>👤</span> Solicitante
+        </p>
+        <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{client.contactName || "—"}</p>
+      </div>
     </div>
   );
 }
