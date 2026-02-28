@@ -427,6 +427,7 @@ export function useMockupGenerator() {
 
   const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea) => {
     if (!user || !selectedProduct || !selectedTechnique || !area.logoPreview) return;
+
     try {
       let logoUrl = area.logoPreview;
       if (area.logoPreview.startsWith("data:")) {
@@ -435,19 +436,47 @@ export function useMockupGenerator() {
           area.logoPreview,
           `${selectedProduct.sku || "product"}-${selectedTechnique.code || "tech"}`
         );
-        if (uploadedUrl) {
-          logoUrl = uploadedUrl;
-        } else {
-          logoUrl = "";
-        }
+        logoUrl = uploadedUrl || "";
       }
+
+      // Validate FK targets (external data may not exist in local tables)
+      let safeProductId: string | null = null;
+      if (selectedProduct.id) {
+        const { data: productRow } = await supabase
+          .from("products" as any)
+          .select("id")
+          .eq("id", selectedProduct.id)
+          .maybeSingle();
+        if (productRow) safeProductId = selectedProduct.id;
+      }
+
+      let safeTechniqueId: string | null = null;
+      if (selectedTechnique.id) {
+        const { data: techRow } = await supabase
+          .from("personalization_techniques")
+          .select("id")
+          .eq("id", selectedTechnique.id)
+          .maybeSingle();
+        if (techRow) safeTechniqueId = selectedTechnique.id;
+      }
+
+      let safeClientId: string | null = null;
+      if (selectedClient?.id) {
+        const { data: clientRow } = await supabase
+          .from("bitrix_clients")
+          .select("id")
+          .eq("id", selectedClient.id)
+          .maybeSingle();
+        if (clientRow) safeClientId = selectedClient.id;
+      }
+
       const { error } = await supabase.from("generated_mockups").insert({
         seller_id: user.id,
-        client_id: selectedClient?.id || null,
-        product_id: selectedProduct.id,
+        client_id: safeClientId,
+        product_id: safeProductId,
         product_name: selectedProduct.name,
         product_sku: selectedProduct.sku,
-        technique_id: selectedTechnique.id,
+        technique_id: safeTechniqueId,
         technique_name: selectedTechnique.name,
         logo_url: logoUrl,
         mockup_url: mockupUrl,
@@ -457,6 +486,7 @@ export function useMockupGenerator() {
         logo_height_cm: area.logoHeight,
         annotations: mockupAnnotations.length > 0 ? mockupAnnotations : null,
       });
+
       if (error) throw error;
       fetchHistory();
     } catch (error) {
