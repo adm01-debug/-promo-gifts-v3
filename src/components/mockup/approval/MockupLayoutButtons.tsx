@@ -180,35 +180,56 @@ export function MockupLayoutButtons({
       const scaleByH = (renderedImgH * bounds.fractionY) / physH;
       const cmToPx = Math.min(scaleByW, scaleByH);
 
-      let lW = activeArea.logoWidth * cmToPx;
-      let lH = activeArea.logoHeight * cmToPx;
+      let areaW = activeArea.logoWidth * cmToPx;
+      let areaH = activeArea.logoHeight * cmToPx;
       const minPx = 40;
-      if (lW < minPx && lH < minPx) {
-        const boost = minPx / Math.max(lW, lH);
-        lW *= boost;
-        lH *= boost;
+      if (areaW < minPx && areaH < minPx) {
+        const boost = minPx / Math.max(areaW, areaH);
+        areaW *= boost;
+        areaH *= boost;
       }
 
-      // Apply user scale (same as editor's CSS transform scale)
-      const userScale = (activeArea.logoScale ?? 100) / 100;
-      lW *= userScale;
-      lH *= userScale;
+      // Position: same as editor (left/top % of full container/canvas)
+      const areaX = (activeArea.positionX / 100) * CANVAS_SIZE - areaW / 2;
+      const areaY = (activeArea.positionY / 100) * CANVAS_SIZE - areaH / 2;
 
-      // Position: positionX/Y are % of the entire canvas (matching editor's left/top %)
-      const lX = (activeArea.positionX / 100) * CANVAS_SIZE - lW / 2;
-      const lY = (activeArea.positionY / 100) * CANVAS_SIZE - lH / 2;
-
-      // Apply rotation if needed
-      const rotation = activeArea.logoRotation || 0;
-      if (rotation !== 0) {
-        ctx.save();
-        ctx.translate(lX + lW / 2, lY + lH / 2);
-        ctx.rotate((rotation * Math.PI) / 180);
-        ctx.drawImage(logoImg, -lW / 2, -lH / 2, lW, lH);
-        ctx.restore();
+      // Replicate editor's inner <img className="object-contain" transform scale/rotate>
+      const logoAR = logoImg.naturalWidth / logoImg.naturalHeight;
+      const areaAR = areaW / areaH;
+      let containW: number;
+      let containH: number;
+      if (logoAR > areaAR) {
+        containW = areaW;
+        containH = areaW / logoAR;
       } else {
-        ctx.drawImage(logoImg, lX, lY, lW, lH);
+        containH = areaH;
+        containW = areaH * logoAR;
       }
+      const offsetX = (areaW - containW) / 2;
+      const offsetY = (areaH - containH) / 2;
+
+      const rotation = ((activeArea.logoRotation || 0) * Math.PI) / 180;
+      const userScale = (activeArea.logoScale ?? 100) / 100;
+
+      // Parent container in editor uses overflow-hidden; replicate by clipping the area rect
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(areaX, areaY, areaW, areaH);
+      ctx.clip();
+
+      // Transform around area center (same visual behavior as CSS transform on child image)
+      ctx.translate(areaX + areaW / 2, areaY + areaH / 2);
+      ctx.rotate(rotation);
+      ctx.scale(userScale, userScale);
+
+      ctx.drawImage(
+        logoImg,
+        -areaW / 2 + offsetX,
+        -areaH / 2 + offsetY,
+        containW,
+        containH
+      );
+      ctx.restore();
 
       const dataUrl = canvas.toDataURL("image/png");
       const data = buildApprovalData(dataUrl, "static");
