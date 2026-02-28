@@ -306,7 +306,7 @@ function ProductSpecsStrip({ product }: { product: MockupApprovalData["product"]
       <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10px", color: GREEN, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>
         Especificações do Produto
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "14px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "18px" }}>
         {specs.map((s, i) => (
           <div key={i} style={{
             display: "flex",
