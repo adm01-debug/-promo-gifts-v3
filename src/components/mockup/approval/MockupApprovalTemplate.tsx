@@ -85,12 +85,22 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
                 <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: GREEN, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>
                   Produto
                 </div>
-                <div style={{ fontWeight: 700, fontSize: "14px", color: "#111", marginBottom: "6px" }}>{data.product.name}</div>
+                <div style={{ fontWeight: 700, fontSize: "13px", color: "#111", marginBottom: "6px" }}>{data.product.name}</div>
                 {data.product.sku && (
                   <span style={{
                     display: "inline-block",
-                    background: data.product.colorHex || "#2e7d32",
-                    color: getContrastColor(data.product.colorHex || "#2e7d32"),
+                    background: (() => {
+                      const hex = data.product.colorHex || "#2e7d32";
+                      const c = hex.replace("#", "");
+                      const lum = (0.299 * parseInt(c.substring(0, 2), 16) + 0.587 * parseInt(c.substring(2, 4), 16) + 0.114 * parseInt(c.substring(4, 6), 16)) / 255;
+                      return lum > 0.85 ? "#333333" : hex;
+                    })(),
+                    color: (() => {
+                      const hex = data.product.colorHex || "#2e7d32";
+                      const c = hex.replace("#", "");
+                      const lum = (0.299 * parseInt(c.substring(0, 2), 16) + 0.587 * parseInt(c.substring(2, 4), 16) + 0.114 * parseInt(c.substring(4, 6), 16)) / 255;
+                      return lum > 0.85 ? "#ffffff" : getContrastColor(hex);
+                    })(),
                     fontSize: "10px", padding: "1px 5px", borderRadius: "3px",
                     fontWeight: 700, fontFamily: "'Roboto Mono', monospace",
                   }}>
@@ -221,9 +231,9 @@ function ClientSection({ client }: { client: MockupApprovalData["client"] }) {
 
 function InfoCell({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ padding: "6px 8px", backgroundColor: "#fff", borderRadius: "4px", border: "1px solid #f0f0f0" }}>
+    <div style={{ padding: "4px 6px", backgroundColor: "#fff", borderRadius: "4px", border: "1px solid #f0f0f0" }}>
       <div style={{ fontSize: "9px", color: "#999", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</div>
-      <div style={{ fontSize: "13px", fontWeight: 600, color: "#222", marginTop: "2px" }}>{value}</div>
+      <div style={{ fontSize: "11px", fontWeight: 600, color: "#222", marginTop: "2px" }}>{value}</div>
     </div>
   );
 }
