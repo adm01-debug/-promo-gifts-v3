@@ -333,6 +333,11 @@ export default function MockupGenerator() {
                         productWidthCm={mg.selectedProduct?.dimensions?.width_cm ?? mg.selectedProduct?.dimensions?.diameter_cm ?? (mg.selectedProduct?.metadata?.width_mm ? mg.selectedProduct.metadata.width_mm / 10 : null)}
                         pantoneColors={mg.logoColorAnalysis.colors}
                         colorsCount={mg.techniqueColorConfig?.colorCount}
+                        onStaticGenerated={(dataUrl) => {
+                          if (mg.activeArea) {
+                            mg.saveMockupToHistory(dataUrl, mg.activeArea);
+                          }
+                        }}
                       />
                     }
                   />
