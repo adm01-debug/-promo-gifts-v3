@@ -44,10 +44,10 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
           {/* Main layout: Big mockup LEFT + All info RIGHT */}
           <div style={{ display: "flex", gap: "20px", marginTop: "16px" }}>
             {/* Left: Large mockup image */}
-            <div style={{ flex: "0 0 420px" }}>
+            <div style={{ flex: "0 0 483px" }}>
               <div style={{
-                width: "420px",
-                height: "420px",
+                width: "483px",
+                height: "630px",
                 border: "1px solid #e0e0e0",
                 borderRadius: "8px",
                 overflow: "hidden",
@@ -115,13 +115,12 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
                   )}
                 </div>
               </div>
+              {/* Pantone colors — compact, inside right column */}
+              {data.pantoneColors.length > 0 && (
+                <PantoneSection colors={data.pantoneColors} />
+              )}
             </div>
           </div>
-
-          {/* Pantone table — compact */}
-          {data.pantoneColors.length > 0 && (
-            <PantoneSection colors={data.pantoneColors} />
-          )}
 
           {/* Notes */}
           {data.notes && (
