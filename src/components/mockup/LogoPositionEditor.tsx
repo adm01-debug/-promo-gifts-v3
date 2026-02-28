@@ -2,7 +2,7 @@ import { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { processLogoForLaser, processLogoForSerigrafia } from "@/utils/laser-logo-processor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Move, RotateCw, RotateCcw, Target, Eye, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler, Palette } from "lucide-react";
+import { Move, RotateCw, RotateCcw, Target, Lock, FlipHorizontal2, FlipVertical2, Minus, Plus, Ruler, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,8 @@ interface LogoPositionEditorProps {
   onRotationChange?: (rotation: number) => void;
   onSizeChange: (width: number, height: number) => void;
   onLogoScaleChange?: (scale: number) => void;
+  /** Slot for action buttons rendered in the card header (e.g. Layout buttons) */
+  headerActions?: React.ReactNode;
 }
 
 type TechniqueFilter = {
@@ -212,10 +214,11 @@ export function LogoPositionEditor({
   onSizeChange,
   onRotationChange,
   onLogoScaleChange,
+  headerActions,
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const productBounds = useProductBounds(productImageUrl);
-  const [showPreviewMode, setShowPreviewMode] = useState(true);
+  const showPreviewMode = true; // Always on — Preview toggle removed
 
   // ── Canvas-based logo processing (Laser + Serigrafia) ──────────────────────
   // Laser: converts all visible pixels to a single solid tone (claro/escuro).
@@ -459,15 +462,7 @@ export function LogoPositionEditor({
               Arraste o logo para posicionar. Use os sliders para ajustar tamanho.
             </CardDescription>
           </div>
-          <Button
-            variant={showPreviewMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowPreviewMode(!showPreviewMode)}
-            className="gap-1.5"
-          >
-            <Eye className="h-3.5 w-3.5" />
-            Preview
-          </Button>
+          {headerActions}
         </div>
       </CardHeader>
 

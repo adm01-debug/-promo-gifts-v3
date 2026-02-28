@@ -304,6 +304,31 @@ export default function MockupGenerator() {
                     onLogoScaleChange={(s) => mg.updateActiveArea({ logoScale: s })}
                     techniqueColorConfig={mg.techniqueColorConfig}
                     onColorConfigClick={() => setColorConfigDialogOpen(true)}
+                    headerActions={
+                      <MockupLayoutButtons
+                        generatedMockup={mg.generatedMockup}
+                        product={mg.selectedProduct ? {
+                          name: mg.selectedProduct.name,
+                          sku: mg.selectedProduct.sku,
+                          imageUrl: mg.getProductImage() || undefined,
+                          color: mg.productSelection?.selectedColor?.name,
+                          colorHex: mg.productSelection?.selectedColor?.hex,
+                          material: mg.selectedProduct.materials?.[0],
+                        } : null}
+                        technique={mg.selectedTechnique ? {
+                          name: mg.selectedTechnique.name,
+                          code: mg.selectedTechnique.code,
+                          maxWidth: 'maxWidth' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxWidth : null,
+                          maxHeight: 'maxHeight' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxHeight : null,
+                          locationName: 'locationName' in mg.selectedTechnique ? (mg.selectedTechnique as any).locationName : null,
+                        } : null}
+                        client={mg.selectedClient}
+                        seller={profile ? { name: profile.full_name || "—", email: profile.email || undefined } : null}
+                        activeArea={mg.activeArea || null}
+                        pantoneColors={mg.logoColorAnalysis.colors}
+                        colorsCount={mg.techniqueColorConfig?.colorCount}
+                      />
+                    }
                   />
                 ) : (
                   <Card className="border-dashed border-2">
@@ -352,30 +377,7 @@ export default function MockupGenerator() {
                   onAnnotationsChange={mg.setMockupAnnotations}
                 />
 
-                {/* Layout Approval Buttons */}
-                <MockupLayoutButtons
-                  generatedMockup={mg.generatedMockup}
-                  product={mg.selectedProduct ? {
-                    name: mg.selectedProduct.name,
-                    sku: mg.selectedProduct.sku,
-                    imageUrl: mg.getProductImage() || undefined,
-                    color: mg.productSelection?.selectedColor?.name,
-                    colorHex: mg.productSelection?.selectedColor?.hex,
-                    material: mg.selectedProduct.materials?.[0],
-                  } : null}
-                  technique={mg.selectedTechnique ? {
-                    name: mg.selectedTechnique.name,
-                    code: mg.selectedTechnique.code,
-                    maxWidth: 'maxWidth' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxWidth : null,
-                    maxHeight: 'maxHeight' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxHeight : null,
-                    locationName: 'locationName' in mg.selectedTechnique ? (mg.selectedTechnique as any).locationName : null,
-                  } : null}
-                  client={mg.selectedClient}
-                  seller={profile ? { name: profile.full_name || "—", email: profile.email || undefined } : null}
-                  activeArea={mg.activeArea || null}
-                  pantoneColors={mg.logoColorAnalysis.colors}
-                  colorsCount={mg.techniqueColorConfig?.colorCount}
-                />
+
 
                 {/* Batch results */}
                 {mg.generatedBatchMockups.length > 1 && (
