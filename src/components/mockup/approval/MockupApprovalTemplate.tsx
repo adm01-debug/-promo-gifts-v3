@@ -266,13 +266,7 @@ function ApprovalFooter({ printDate, seller }: { printDate: string; seller: Mock
       {seller.name && (
         <div style={{ padding: "0 50px 8px 50px", display: "flex", justifyContent: "center" }}>
           <div style={{ textAlign: "center", minWidth: "220px" }}>
-            <div style={{ fontFamily: "'Sacramento', cursive", fontSize: "24px", color: "#1a1a1a", lineHeight: 1, whiteSpace: "nowrap" }}>
-              {seller.name}
-            </div>
-            <div style={{ width: "100%", height: "1px", backgroundColor: "#999", margin: "2px auto 4px auto" }} />
-            <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "10.5px", color: "#333", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              {seller.name}
-            </div>
+            <div style={{ width: "100%", height: "1px", backgroundColor: "#999", margin: "0 auto 4px auto" }} />
             {seller.email && (
               <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "10.5px", color: "#777", marginTop: "1px" }}>
                 {seller.email}
