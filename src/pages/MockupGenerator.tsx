@@ -9,7 +9,7 @@ import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, Image as ImageIcon, Wand2, History, Sparkles, Cloud, CloudOff, AlertCircle, CheckCircle2, Undo2, Redo2 } from "lucide-react";
+import { Loader2, Image as ImageIcon, Wand2, History, Cloud, CloudOff, AlertCircle, CheckCircle2, Undo2, Redo2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
@@ -256,7 +256,6 @@ export default function MockupGenerator() {
                 selectedTechnique={mg.selectedTechnique}
                 selectedClient={mg.selectedClient}
                 isLoadingData={mg.isLoadingData}
-                isLoading={mg.isLoading}
                 personalizationAreas={mg.personalizationAreas}
                 filteredTechniques={mg.filteredTechniques}
                 onProductSelect={(sel) => {
@@ -265,7 +264,6 @@ export default function MockupGenerator() {
                 }}
                 onTechniqueSelect={handleTechniqueChange}
                 onClientSelect={mg.setSelectedClient}
-                
                 onReset={mg.resetForm}
                 activeAreaId={mg.activeAreaId}
                 onAreasChange={mg.setPersonalizationAreas}

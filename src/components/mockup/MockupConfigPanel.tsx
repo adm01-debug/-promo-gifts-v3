@@ -2,7 +2,7 @@
  * MockupConfigPanel — Configuration form for mockup generation
  * 
  * Extracted from MockupGenerator.tsx to reduce god-component size.
- * Handles: Client, Product, Technique selection + Areas + Generate button.
+ * Handles: Client, Product, Technique selection + Areas.
  */
 
 import { Loader2, Paintbrush, RefreshCw, Info, ChevronDown } from "lucide-react";
@@ -47,7 +47,6 @@ interface MockupConfigPanelProps {
   selectedTechnique: Technique | null;
   selectedClient: MockupClient | null;
   isLoadingData: boolean;
-  isLoading: boolean;
   personalizationAreas: PersonalizationArea[];
   onProductSelect: (selection: MockupProductSelection | null) => void;
   onTechniqueSelect: (technique: Technique | null) => void;
@@ -77,7 +76,6 @@ export function MockupConfigPanel({
   selectedTechnique,
   selectedClient,
   isLoadingData,
-  isLoading,
   personalizationAreas,
   onProductSelect,
   onTechniqueSelect,
