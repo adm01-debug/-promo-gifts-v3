@@ -173,27 +173,37 @@ function ApprovalHeader({ documentNumber, date }: { documentNumber: string; date
   );
 }
 
-/* ─── Client Section ─── */
+/* ─── Client Section — pixel-perfect replica of ProposalClientBar ─── */
 function ClientSection({ client }: { client: MockupApprovalData["client"] }) {
   return (
     <div style={{
-      backgroundColor: "#f5f5f5", borderLeft: `6px solid ${GREEN}`,
-      padding: "14px 20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+      backgroundColor: "#f8f9fa",
+      padding: "10px 18px",
+      marginTop: "12px",
+      marginBottom: "14px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      borderRadius: "6px",
     }}>
       <div>
-        <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: GREEN, textTransform: "uppercase", margin: "0 0 4px 0" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
           Empresa
-        </div>
-        <div style={{ fontWeight: 600, fontSize: "15px", color: "#222" }}>{client.name}</div>
-        {client.cnpj && <div style={{ fontSize: "11px", color: "#666", marginTop: "2px", fontWeight: 700 }}>CNPJ: {client.cnpj}</div>}
-        {client.phone && <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>☎ {client.phone}</div>}
+        </p>
+        <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{client.name}</p>
+        {client.cnpj && (
+          <p style={{ fontSize: "11px", color: "#666", margin: "3px 0 0 0", fontWeight: 700 }}>CNPJ: {client.cnpj}</p>
+        )}
+        {client.phone && (
+          <p style={{ fontSize: "11px", color: "#666", margin: "2px 0 0 0" }}>☎ {client.phone}</p>
+        )}
       </div>
       {client.contactName && (
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "11px", color: GREEN, textTransform: "uppercase", margin: "0 0 4px 0" }}>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "13px", color: "#00c853", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px 0" }}>
             Solicitante
-          </div>
-          <div style={{ fontWeight: 600, fontSize: "15px", color: "#222" }}>{client.contactName}</div>
+          </p>
+          <p style={{ fontWeight: 700, fontSize: "15px", color: "#1a1a1a", margin: 0 }}>{client.contactName}</p>
         </div>
       )}
     </div>
