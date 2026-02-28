@@ -262,25 +262,18 @@ function PantoneSection({ colors }: { colors: MockupApprovalData["pantoneColors"
 function ApprovalFooter({ printDate, seller }: { printDate: string; seller: MockupApprovalData["seller"] }) {
   return (
     <div style={{ width: "794px", flexShrink: 0, marginTop: "auto" }}>
-      {/* Seller signature — compact, inside footer area */}
-      {seller.name && (
-        <div style={{ padding: "0 50px 8px 50px", display: "flex", justifyContent: "center" }}>
-          <div style={{ textAlign: "center", minWidth: "220px" }}>
-            <div style={{ width: "100%", height: "1px", backgroundColor: "#999", margin: "0 auto 4px auto" }} />
-            {seller.email && (
-              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "10.5px", color: "#777", marginTop: "1px" }}>
-                {seller.email}
-              </div>
-            )}
-            <div style={{ fontSize: "7px", color: "#333", marginTop: "4px", lineHeight: "1.3", fontWeight: 600 }}>
-              Documento gerado eletronicamente por {seller.name} em {printDate}
-            </div>
-          </div>
-        </div>
-      )}
-      <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 36px", fontSize: "8px", color: "#999" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "4px 36px 4px 36px", fontSize: "8px", color: "#999" }}>
         <span>Aprovação de Layout — Promo Brindes</span>
-        
+        {seller.email && (
+          <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "10.5px", color: "#777" }}>
+            {seller.email}
+          </span>
+        )}
+        {seller.name && (
+          <span style={{ fontSize: "7px", color: "#333", fontWeight: 600 }}>
+            Documento gerado eletronicamente por {seller.name} em {printDate}
+          </span>
+        )}
       </div>
       <div style={{ width: "794px", height: "40px", backgroundColor: GREEN }} />
     </div>
