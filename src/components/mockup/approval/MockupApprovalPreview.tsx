@@ -89,7 +89,7 @@ export function MockupApprovalPreview({ data, open, onOpenChange }: MockupApprov
           <div>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Aprovação de Mockup
+              Aprovação de Layout
             </DialogTitle>
             <DialogDescription>
               Ref. {data.documentNumber} — {data.client.name}
