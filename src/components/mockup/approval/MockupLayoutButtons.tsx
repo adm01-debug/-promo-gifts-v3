@@ -7,6 +7,7 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { detectProductBounds } from "@/lib/product-bounds-detector";
 import { MockupApprovalPreview } from "./MockupApprovalPreview";
 import type { MockupApprovalData } from "@/types/mockup-approval";
 import type { MockupClient } from "@/components/mockup/MockupConfigPanel";
@@ -46,8 +47,13 @@ interface MockupLayoutButtonsProps {
     logoPreview?: string | null;
     positionX: number;
     positionY: number;
+    logoRotation?: number;
+    logoScale?: number;
     name: string;
   } | null;
+  /** Physical product dimensions in cm */
+  productHeightCm?: number | null;
+  productWidthCm?: number | null;
   /** Pantone colors from logo analysis */
   pantoneColors?: DetectedColor[];
   /** Number of colors from technique config */
@@ -61,6 +67,8 @@ export function MockupLayoutButtons({
   client,
   seller,
   activeArea,
+  productHeightCm,
+  productWidthCm,
   pantoneColors,
   colorsCount,
 }: MockupLayoutButtonsProps) {
@@ -128,45 +136,79 @@ export function MockupLayoutButtons({
 
     setIsGeneratingStatic(true);
     try {
+      const CANVAS_SIZE = 1024;
       const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 1024;
+      canvas.width = CANVAS_SIZE;
+      canvas.height = CANVAS_SIZE;
       const ctx = canvas.getContext("2d")!;
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 1024, 1024);
+      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
       // Load product image with CORS fallback
       const productImg = await loadImageWithFallback(product.imageUrl);
-      // Draw product centered, fitting
-      const pScale = Math.min(1024 / productImg.width, 1024 / productImg.height) * 0.85;
-      const pW = productImg.width * pScale;
-      const pH = productImg.height * pScale;
-      ctx.drawImage(productImg, (1024 - pW) / 2, (1024 - pH) / 2, pW, pH);
+
+      // Detect product bounds (same as editor's useProductBounds)
+      const bounds = await detectProductBounds(product.imageUrl);
+
+      // Draw product centered with object-contain logic (matches editor)
+      const imgAR = productImg.naturalWidth / productImg.naturalHeight;
+      let renderedImgW: number, renderedImgH: number;
+      if (imgAR > 1) {
+        renderedImgW = CANVAS_SIZE;
+        renderedImgH = CANVAS_SIZE / imgAR;
+      } else {
+        renderedImgH = CANVAS_SIZE;
+        renderedImgW = CANVAS_SIZE * imgAR;
+      }
+      const imgLeft = (CANVAS_SIZE - renderedImgW) / 2;
+      const imgTop = (CANVAS_SIZE - renderedImgH) / 2;
+      ctx.drawImage(productImg, imgLeft, imgTop, renderedImgW, renderedImgH);
 
       // Load logo
       const logoImg = await loadImageWithFallback(activeArea.logoPreview);
-      
-      // Calculate logo size proportionally based on technique dimensions relative to product
-      // Use the area dimensions (logoWidth × logoHeight in cm) relative to technique max
-      const techMaxW = technique?.maxWidth || 10;
-      const techMaxH = technique?.maxHeight || 10;
-      const logoRatioW = (activeArea.logoWidth || techMaxW) / techMaxW;
-      const logoRatioH = (activeArea.logoHeight || techMaxH) / techMaxH;
-      
-      // Logo occupies a proportional area of the product rendering zone
-      const maxLogoZone = pW * 0.5; // max 50% of product width
-      const lW = maxLogoZone * logoRatioW;
-      const aspectRatio = logoImg.height / logoImg.width;
-      const lH = Math.min(lW * aspectRatio, pH * 0.5 * logoRatioH);
-      const finalLW = lH / aspectRatio > lW ? lW : lH / aspectRatio;
-      
-      // Position based on percentage within the product area
-      const productLeft = (1024 - pW) / 2;
-      const productTop = (1024 - pH) / 2;
-      const lX = productLeft + (activeArea.positionX / 100) * pW - finalLW / 2;
-      const lY = productTop + (activeArea.positionY / 100) * pH - lH / 2;
-      
-      ctx.drawImage(logoImg, lX, lY, finalLW, lH);
+
+      // ── Replicate editor's cm→px scaling logic exactly ──
+      const effectiveMaxW = technique?.maxWidth && technique.maxWidth > 0 ? technique.maxWidth : null;
+      const effectiveMaxH = technique?.maxHeight && technique.maxHeight > 0 ? technique.maxHeight : null;
+      const prodH = productHeightCm && productHeightCm > 0 ? productHeightCm : null;
+      const prodW = productWidthCm && productWidthCm > 0 ? productWidthCm : null;
+
+      const physW = prodW || (prodH ? prodH * 0.4 : (effectiveMaxW ? effectiveMaxW * 2 : 8));
+      const physH = prodH || (prodW ? prodW * 2.5 : (effectiveMaxH ? effectiveMaxH * 2.5 : 20));
+
+      const scaleByW = (renderedImgW * bounds.fractionX) / physW;
+      const scaleByH = (renderedImgH * bounds.fractionY) / physH;
+      const cmToPx = Math.min(scaleByW, scaleByH);
+
+      let lW = activeArea.logoWidth * cmToPx;
+      let lH = activeArea.logoHeight * cmToPx;
+      const minPx = 40;
+      if (lW < minPx && lH < minPx) {
+        const boost = minPx / Math.max(lW, lH);
+        lW *= boost;
+        lH *= boost;
+      }
+
+      // Apply user scale (same as editor's CSS transform scale)
+      const userScale = (activeArea.logoScale ?? 100) / 100;
+      lW *= userScale;
+      lH *= userScale;
+
+      // Position: positionX/Y are % of the entire canvas (matching editor's left/top %)
+      const lX = (activeArea.positionX / 100) * CANVAS_SIZE - lW / 2;
+      const lY = (activeArea.positionY / 100) * CANVAS_SIZE - lH / 2;
+
+      // Apply rotation if needed
+      const rotation = activeArea.logoRotation || 0;
+      if (rotation !== 0) {
+        ctx.save();
+        ctx.translate(lX + lW / 2, lY + lH / 2);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.drawImage(logoImg, -lW / 2, -lH / 2, lW, lH);
+        ctx.restore();
+      } else {
+        ctx.drawImage(logoImg, lX, lY, lW, lH);
+      }
 
       const dataUrl = canvas.toDataURL("image/png");
       const data = buildApprovalData(dataUrl, "static");
@@ -178,7 +220,7 @@ export function MockupLayoutButtons({
     } finally {
       setIsGeneratingStatic(false);
     }
-  }, [product, activeArea, technique, buildApprovalData]);
+  }, [product, activeArea, technique, productHeightCm, productWidthCm, buildApprovalData]);
 
   // Don't show if no product/technique selected
   if (!product || !technique || !activeArea) return null;
