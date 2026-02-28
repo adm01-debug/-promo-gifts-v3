@@ -262,7 +262,7 @@ function PantoneSection({ colors }: { colors: MockupApprovalData["pantoneColors"
 function ApprovalFooter({ printDate, seller }: { printDate: string; seller: MockupApprovalData["seller"] }) {
   return (
     <div style={{ width: "794px", flexShrink: 0, marginTop: "auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 36px", fontSize: "8px", color: "#999", fontFamily: "'Montserrat', sans-serif" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 36px", fontSize: "8px", color: "#000000", fontFamily: "'Montserrat', sans-serif" }}>
         <span>Aprovação de Layout — Promo Brindes</span>
         {seller.email && (
           <span>{seller.email}</span>
