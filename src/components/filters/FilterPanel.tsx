@@ -817,7 +817,8 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         ) : (
           <ScrollArea className="h-48">
             <div className="space-y-1.5 pr-3">
-              {materialGroups
+              {[...materialGroups]
+                .sort((a, b) => a.group_name.localeCompare(b.group_name, 'pt-BR'))
                 .filter(g => !materialSearch || g.group_name.toLowerCase().includes(materialSearch.toLowerCase()) || getTypesForGroup(g.group_slug).some(t => t.type_name.toLowerCase().includes(materialSearch.toLowerCase())))
                 .map(group => {
                   const types = getTypesForGroup(group.group_slug);
@@ -841,7 +842,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
                       {isOpen && types.length > 0 && (
                         <div className="px-2 pb-2 pt-1 border-t border-border/30">
                           <div className="space-y-1 pl-6">
-                            {types.filter(t => !materialSearch || t.type_name.toLowerCase().includes(materialSearch.toLowerCase())).map(type => {
+                            {[...types].sort((a, b) => a.type_name.localeCompare(b.type_name, 'pt-BR')).filter(t => !materialSearch || t.type_name.toLowerCase().includes(materialSearch.toLowerCase())).map(type => {
                               const isTypeSelected = materialFilterState.selectedTypes.includes(type.type_slug);
                               return (
                                 <div key={type.type_slug} className={cn("flex items-center gap-2 py-1 px-2 rounded-md transition-colors", isTypeSelected ? "bg-orange/10" : "hover:bg-muted/50")}>
