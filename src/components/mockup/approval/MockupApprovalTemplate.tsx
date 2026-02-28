@@ -280,7 +280,7 @@ function ApprovalFooter({ printDate, seller }: { printDate: string; seller: Mock
       )}
       <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 36px", fontSize: "8px", color: "#999" }}>
         <span>Aprovação de Layout — Promo Brindes</span>
-        <span>Gerado em: {printDate}</span>
+        
       </div>
       <div style={{ width: "794px", height: "40px", backgroundColor: GREEN }} />
     </div>
