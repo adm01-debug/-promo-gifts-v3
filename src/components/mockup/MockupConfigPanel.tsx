@@ -15,7 +15,6 @@ import { Wand2 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { TechniqueTooltip } from "./TechniqueTooltip";
-import { GenerateButton } from "./GenerateButton";
 import { MockupClientSelector } from "./MockupClientSelector";
 import { MockupProductSelector, type MockupProductSelection } from "./MockupProductSelector";
 import { MultiAreaManager, type PersonalizationArea } from "./MultiAreaManager";
@@ -53,7 +52,6 @@ interface MockupConfigPanelProps {
   onProductSelect: (selection: MockupProductSelection | null) => void;
   onTechniqueSelect: (technique: Technique | null) => void;
   onClientSelect: (client: MockupClient | null) => void;
-  onGenerate: () => void;
   onReset: () => void;
   filteredTechniques: Technique[];
   // Multi-area props
@@ -84,7 +82,6 @@ export function MockupConfigPanel({
   onProductSelect,
   onTechniqueSelect,
   onClientSelect,
-  onGenerate,
   onReset,
   filteredTechniques,
   activeAreaId,
@@ -96,7 +93,7 @@ export function MockupConfigPanel({
   logoColorAnalysis,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
-  const stepsRemaining = [!selectedClient, !productSelection, !selectedTechnique, !hasLogo].filter(Boolean).length;
+  
 
   return (
     <Card>
