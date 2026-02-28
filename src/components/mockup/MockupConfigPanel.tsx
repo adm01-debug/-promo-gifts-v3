@@ -245,16 +245,8 @@ export function MockupConfigPanel({
               </MobileCollapsibleSection>
             )}
 
-            {/* Action Buttons */}
+            {/* Reset Button */}
             <div className="flex gap-2 pt-4">
-              <GenerateButton
-                onClick={onGenerate}
-                isLoading={isLoading}
-                isReady={!!(selectedClient && productSelection && selectedTechnique && hasLogo)}
-                stepsRemaining={stepsRemaining}
-                disabled={!selectedClient || !productSelection || !selectedTechnique || !hasLogo || isLoading}
-                className="flex-1"
-              />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" onClick={onReset} aria-label="Limpar formulário">
