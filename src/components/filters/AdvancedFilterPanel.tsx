@@ -487,7 +487,8 @@ export function AdvancedFilterPanel({
               <ScrollArea className="h-56">
                 <div className="space-y-1.5 pr-3">
                   {/* Grupos de materiais com design aprimorado */}
-                  {materialGroups
+                  {[...materialGroups]
+                    .sort((a, b) => a.group_name.localeCompare(b.group_name, 'pt-BR'))
                     .filter(g => 
                       !materialSearch || 
                       g.group_name.toLowerCase().includes(materialSearch.toLowerCase()) ||
@@ -585,7 +586,8 @@ export function AdvancedFilterPanel({
                           {isOpen && types.length > 0 && (
                             <div className="px-2.5 pb-2.5 space-y-0.5">
                               <div className="border-t border-border/30 pt-2 ml-8">
-                                {types
+                                {[...types]
+                                  .sort((a, b) => a.type_name.localeCompare(b.type_name, 'pt-BR'))
                                   .filter(t => 
                                     !materialSearch || 
                                     t.type_name.toLowerCase().includes(materialSearch.toLowerCase())
