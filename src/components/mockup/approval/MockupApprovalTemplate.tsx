@@ -6,9 +6,10 @@
 
 import React, { forwardRef } from "react";
 import type { MockupApprovalData } from "@/types/mockup-approval";
+import { LogoWithTransparentBg } from "@/components/pdf/proposal/LogoWithTransparentBg";
 
 const GREEN = "#00c853";
-const DARK = "#2d2d2d";
+const DARK = "#000000";
 
 export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupApprovalData }>(
   ({ data }, ref) => {
@@ -113,56 +114,59 @@ export const MockupApprovalTemplate = forwardRef<HTMLDivElement, { data: MockupA
 
 MockupApprovalTemplate.displayName = "MockupApprovalTemplate";
 
-/* ─── Header ─── */
+/* ─── Header — pixel-perfect replica of ProposalHeader ─── */
 function ApprovalHeader({ documentNumber, date }: { documentNumber: string; date: string }) {
-  const H = 130;
+  const H = 128;
   const W = 794;
   const barH = 7;
-  const darkStart = 340;
-  const greenStart = 310;
-  const darkEnd = 390;
-  const greenEnd = 360;
+  const darkStart = 380;
+  const greenStart = 350;
+  const darkEnd = 430;
+  const greenEnd = 400;
 
   return (
-    <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0, marginBottom: "16px" }}>
+    <div style={{ position: "relative", width: `${W}px`, height: `${H}px`, flexShrink: 0 }}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", top: 0, left: 0 }}>
         <rect x="0" y="0" width={W} height={H} fill="#ffffff" />
-        <polygon points={`${darkStart},0 ${W},0 ${W},${H} ${darkEnd},${H}`} fill={DARK} />
+        <polygon points={`${darkStart},0 ${W},0 ${W},${H} ${darkEnd},${H}`} fill="#000000" />
         <polygon points={`${greenStart},0 ${darkStart},0 ${darkEnd},${H} ${greenEnd},${H}`} fill={GREEN} />
         <rect x="0" y={H - barH} width={W} height={barH} fill={GREEN} />
       </svg>
 
-      {/* Logo */}
+      {/* Logo — same position/size as ProposalHeader */}
       <div style={{
-        position: "absolute", zIndex: 10, top: 0, left: "24px",
-        bottom: `${barH}px`, width: "280px",
-        display: "flex", alignItems: "center", justifyContent: "flex-start",
+        position: "absolute",
+        zIndex: 10,
+        top: "0",
+        left: "50px",
+        bottom: `${barH}px`,
+        width: "234px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "center",
         padding: "10px 14px",
       }}>
-        <img
-          src="/images/promo-brindes-logo.png"
+        <LogoWithTransparentBg
+          src="/images/promo-brindes-logo-v2.png"
           alt="Promo Brindes"
-          crossOrigin="anonymous"
-          style={{ width: "100%", height: "auto", display: "block", mixBlendMode: "multiply" as any }}
+          style={{ width: "100%", height: "auto", display: "block" }}
         />
       </div>
 
-      {/* Title */}
-      <div style={{
-        position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff",
-        top: "50%", right: "32px", transform: "translateY(-55%)",
-      }}>
-        <p style={{
-          fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "22px",
-          textTransform: "uppercase", letterSpacing: "3px", margin: "0 0 6px 0", lineHeight: 1, whiteSpace: "nowrap",
-        }}>
+      {/* Title block — same structure as ProposalHeader */}
+      <div style={{ position: "absolute", zIndex: 10, textAlign: "right", color: "#ffffff", top: "0", bottom: "0", right: "32px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "flex-end" }}>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 900, fontSize: "20px", textTransform: "uppercase", letterSpacing: "3px", margin: "0 0 6px 0", lineHeight: 1, whiteSpace: "nowrap" }}>
           Aprovação de Mockup
         </p>
-        <p style={{
-          fontSize: "12px", opacity: 0.95, fontWeight: 400, lineHeight: "1.8", margin: 0,
-          fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif",
-        }}>
-          Ref.&nbsp;{documentNumber} • {date}
+        <p style={{ fontSize: "13px", opacity: 0.95, fontWeight: 400, lineHeight: "1.7", margin: 0, fontVariantNumeric: "tabular-nums", fontFamily: "'Montserrat', sans-serif", whiteSpace: "nowrap", letterSpacing: "0px" }}>
+          Ref.&nbsp;{documentNumber}
+        </p>
+        <p style={{ fontSize: "13px", opacity: 0.85, margin: "0 0 6px 0", fontFamily: "'Montserrat', sans-serif", fontWeight: 400 }}>
+          {date}
+        </p>
+        <p style={{ fontSize: "12px", opacity: 0.7, margin: 0, fontFamily: "'Montserrat', sans-serif", fontWeight: 400, whiteSpace: "nowrap" }}>
+          (11) 4637-5517 &nbsp;|&nbsp; www.promobrindes.com.br
         </p>
       </div>
     </div>
