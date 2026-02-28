@@ -24,6 +24,11 @@ interface MockupLayoutButtonsProps {
     color?: string;
     colorHex?: string;
     material?: string;
+    heightCm?: number | null;
+    widthCm?: number | null;
+    diameterCm?: number | null;
+    capacityMl?: number | null;
+    weightG?: number | null;
   } | null;
   /** Selected technique */
   technique: {
@@ -100,6 +105,11 @@ export function MockupLayoutButtons({
         color: product?.color,
         colorHex: product?.colorHex,
         material: product?.material,
+        heightCm: product?.heightCm,
+        widthCm: product?.widthCm,
+        diameterCm: product?.diameterCm,
+        capacityMl: product?.capacityMl,
+        weightG: product?.weightG,
       },
       personalization: {
         techniqueName: technique?.name || "—",
