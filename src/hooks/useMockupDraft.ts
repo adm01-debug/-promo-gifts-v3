@@ -114,29 +114,48 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
         }
       }
 
+      const payload = {
+        user_id: user.id,
+        draft_key: draftKey,
+        product_id: safeProductId,
+        product_name: data.productName,
+        technique_id: safeTechniqueId,
+        technique_name: data.techniqueName,
+        client_id: safeClientId,
+        client_name: data.clientName,
+        personalization_areas: areasWithoutLogos as unknown as any,
+        logo_data: safeLogoData,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Try upsert first
       const { error: upsertError } = await supabase
         .from("mockup_drafts")
-        .upsert({
-          user_id: user.id,
-          draft_key: draftKey,
-          product_id: safeProductId,
-          product_name: data.productName,
-          technique_id: safeTechniqueId,
-          technique_name: data.techniqueName,
-          client_id: safeClientId,
-          client_name: data.clientName,
-          personalization_areas: areasWithoutLogos as unknown as any,
-          logo_data: safeLogoData,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: "user_id,draft_key",
-        });
+        .upsert(payload, { onConflict: "user_id,draft_key" });
 
       if (upsertError) {
-        throw upsertError;
+        // If FK violation or conflict, try update-only as fallback
+        if (upsertError.code === "23503" || upsertError.code === "409") {
+          const { product_id, technique_id, client_id, ...safePayload } = payload as any;
+          const { error: updateError } = await supabase
+            .from("mockup_drafts")
+            .update({
+              ...safePayload,
+              product_id: null,
+              technique_id: null,
+              client_id: null,
+            })
+            .eq("user_id", user.id)
+            .eq("draft_key", draftKey);
+
+          if (updateError) throw updateError;
+        } else {
+          throw upsertError;
+        }
       }
 
       setLastSaved(new Date());
+      setError(null);
       return true;
     } catch (err: any) {
       console.error("Erro ao salvar rascunho no backend:", err);
