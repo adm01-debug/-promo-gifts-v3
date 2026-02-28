@@ -265,7 +265,7 @@ export default function MockupGenerator() {
                 }}
                 onTechniqueSelect={handleTechniqueChange}
                 onClientSelect={mg.setSelectedClient}
-                onGenerate={mg.generateMockup}
+                
                 onReset={mg.resetForm}
                 activeAreaId={mg.activeAreaId}
                 onAreasChange={mg.setPersonalizationAreas}
