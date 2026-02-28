@@ -30,43 +30,43 @@ html[data-scroll-locked] body {
     --font-display: 'Outfit', system-ui, sans-serif;
 
     /* ===== BASE ===== */
-    --background: 40 20% 95%;
-    --foreground: 225 25% 12%;
+    --background: 220 14% 96%;
+    --foreground: 222 25% 10%;
     
     /* ===== CARDS ===== */
-    --card: 40 25% 97%;
-    --card-foreground: 225 25% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 25% 10%;
     --card-elevated: 0 0% 100%;
     
     /* ===== POPOVER/DIALOG ===== */
     --popover: 0 0% 100%;
-    --popover-foreground: 225 25% 12%;
+    --popover-foreground: 222 25% 10%;
     
-    /* ===== CORES PRIMÁRIAS ===== */
-    --primary: 252 87% 64%;
-    --primary-hover: 252 87% 58%;
-    --primary-active: 252 87% 52%;
-    --primary-glow: 252 90% 75%;
+    /* ===== CORES PRIMÁRIAS (LARANJA — IGUAL DARK) ===== */
+    --primary: 25 95% 53%;
+    --primary-hover: 25 95% 48%;
+    --primary-active: 25 95% 43%;
+    --primary-glow: 25 95% 63%;
     --primary-foreground: 0 0% 100%;
     
     /* ===== CORES SECUNDÁRIAS ===== */
-    --secondary: 40 30% 92%;
-    --secondary-foreground: 225 25% 20%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 222 25% 18%;
     
     /* ===== MUTED ===== */
-    --muted: 40 20% 90%;
-    --muted-foreground: 225 22% 38%;
+    --muted: 220 14% 90%;
+    --muted-foreground: 220 12% 46%;
     
     /* ===== SEMANTIC COLORS ===== */
-    --surface: 40 28% 98%;
-    --surface-hover: 40 25% 96%;
-    --text-secondary: 225 22% 42%;
-    --interactive: 252 90% 60%;
-    --divider: 40 20% 85%;
+    --surface: 220 14% 98%;
+    --surface-hover: 220 14% 95%;
+    --text-secondary: 220 12% 42%;
+    --interactive: 25 95% 53%;
+    --divider: 220 14% 86%;
     
     /* ===== ACCENT ===== */
-    --accent: 40 30% 88%;
-    --accent-foreground: 225 25% 15%;
+    --accent: 220 14% 92%;
+    --accent-foreground: 222 25% 13%;
     
     /* ===== DESTRUCTIVE ===== */
     --destructive: 0 84% 60%;
@@ -93,43 +93,43 @@ html[data-scroll-locked] body {
     --highlight-bronze: 30 50% 50%;
     
     /* ===== BORDAS E INPUTS ===== */
-    --border: 40 20% 82%;
-    --input: 40 20% 88%;
-    --ring: 252 87% 64%;
+    --border: 220 14% 86%;
+    --input: 220 14% 90%;
+    --ring: 25 95% 53%;
     
     --radius: 0.75rem;
     
     /* ===== ELEVAÇÃO ===== */
     --elevated: 0 0% 100%;
-    --elevated-hover: 40 25% 98%;
+    --elevated-hover: 220 14% 97%;
     
     /* ===== GLASS MORPHISM ===== */
-    --glass-bg: 0 0% 100% / 0.7;
-    --glass-bg-strong: 0 0% 100% / 0.85;
-    --glass-bg-subtle: 0 0% 100% / 0.5;
-    --glass-border: 0 0% 100% / 0.3;
-    --glass-border-strong: 0 0% 100% / 0.5;
+    --glass-bg: 0 0% 100% / 0.8;
+    --glass-bg-strong: 0 0% 100% / 0.9;
+    --glass-bg-subtle: 0 0% 100% / 0.6;
+    --glass-border: 220 14% 86% / 0.4;
+    --glass-border-strong: 220 14% 86% / 0.6;
     --glass-blur: 12px;
     --glass-blur-strong: 20px;
-    --glass-shadow: 0 4px 30px hsl(225 25% 12% / 0.05);
+    --glass-shadow: 0 4px 30px hsl(222 25% 10% / 0.06);
     
     /* ===== SIDEBAR ===== */
-    --sidebar-background: 40 25% 97%;
-    --sidebar-foreground: 225 25% 12%;
-    --sidebar-primary: 252 87% 64%;
+    --sidebar-background: 220 14% 98%;
+    --sidebar-foreground: 222 25% 10%;
+    --sidebar-primary: 25 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 30% 92%;
-    --sidebar-accent-foreground: 225 25% 15%;
-    --sidebar-border: 40 20% 88%;
-    --sidebar-ring: 252 87% 64%;
+    --sidebar-accent: 220 14% 93%;
+    --sidebar-accent-foreground: 222 25% 13%;
+    --sidebar-border: 220 14% 90%;
+    --sidebar-ring: 25 95% 53%;
     
     /* ===== GRADIENTES ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(252 87% 64%), hsl(280 85% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(40 30% 92%), hsl(40 25% 97%));
+    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(25 95% 45%));
+    --gradient-secondary: linear-gradient(135deg, hsl(220 14% 92%), hsl(220 14% 96%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-surface: linear-gradient(180deg, hsl(40 25% 97%), hsl(40 20% 95%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(40 20% 82% / 0.5), transparent);
-    --gradient-hero: linear-gradient(135deg, hsl(252 87% 64% / 0.1) 0%, hsl(280 85% 60% / 0.05) 100%);
+    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 96%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(220 14% 86% / 0.5), transparent);
+    --gradient-hero: linear-gradient(135deg, hsl(25 95% 53% / 0.08) 0%, hsl(25 95% 45% / 0.04) 100%);
     --gradient-cta: linear-gradient(135deg, hsl(var(--orange)), hsl(var(--orange-hover)));
     --gradient-cta-hover: linear-gradient(135deg, hsl(var(--orange-hover)), hsl(var(--orange-active)));
     --gradient-novelty: linear-gradient(135deg, hsl(142 71% 45%), hsl(152 76% 40%));
@@ -137,17 +137,17 @@ html[data-scroll-locked] body {
     --gradient-overlay: linear-gradient(to top, hsl(var(--foreground) / 0.6), transparent);
     
     /* ===== SOMBRAS ===== */
-    --shadow-xs: 0 1px 2px hsl(225 25% 12% / 0.03);
-    --shadow-sm: 0 1px 3px hsl(225 25% 12% / 0.04), 0 1px 2px hsl(225 25% 12% / 0.03);
-    --shadow-md: 0 4px 6px -1px hsl(225 25% 12% / 0.05), 0 2px 4px -2px hsl(225 25% 12% / 0.04);
-    --shadow-lg: 0 10px 15px -3px hsl(225 25% 12% / 0.06), 0 4px 6px -4px hsl(225 25% 12% / 0.04);
-    --shadow-xl: 0 20px 25px -5px hsl(225 25% 12% / 0.08), 0 8px 10px -6px hsl(225 25% 12% / 0.05);
-    --shadow-glow: 0 0 20px hsl(252 87% 64% / 0.25);
-    --shadow-glow-primary: 0 0 20px hsl(252 87% 64% / 0.25);
-    --shadow-glow-secondary: 0 0 20px hsl(40 30% 92% / 0.3);
-    --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.25);
-    --shadow-glow-warning: 0 0 20px hsl(38 92% 50% / 0.3);
-    --shadow-header: 0 1px 3px hsl(225 25% 12% / 0.05), 0 1px 2px hsl(225 25% 12% / 0.03);
+    --shadow-xs: 0 1px 2px hsl(222 25% 10% / 0.04);
+    --shadow-sm: 0 1px 3px hsl(222 25% 10% / 0.06), 0 1px 2px hsl(222 25% 10% / 0.04);
+    --shadow-md: 0 4px 6px -1px hsl(222 25% 10% / 0.07), 0 2px 4px -2px hsl(222 25% 10% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(222 25% 10% / 0.08), 0 4px 6px -4px hsl(222 25% 10% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(222 25% 10% / 0.1), 0 8px 10px -6px hsl(222 25% 10% / 0.06);
+    --shadow-glow: 0 0 20px hsl(25 95% 53% / 0.2);
+    --shadow-glow-primary: 0 0 20px hsl(25 95% 53% / 0.2);
+    --shadow-glow-secondary: 0 0 20px hsl(220 14% 92% / 0.3);
+    --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.2);
+    --shadow-glow-warning: 0 0 20px hsl(38 92% 50% / 0.25);
+    --shadow-header: 0 1px 3px hsl(222 25% 10% / 0.06), 0 1px 2px hsl(222 25% 10% / 0.04);
     
     /* ===== SPACING RHYTHM ===== */
     --space-0: 0;
@@ -187,11 +187,11 @@ html[data-scroll-locked] body {
     --z-spotlight: 120;
     
     /* ===== CHART ===== */
-    --chart-1: 252 87% 64%;
+    --chart-1: 25 95% 53%;
     --chart-2: 142 71% 45%;
     --chart-3: 45 93% 47%;
-    --chart-4: 280 85% 60%;
-    --chart-5: 25 95% 53%;
+    --chart-4: 200 85% 55%;
+    --chart-5: 0 84% 60%;
     
     /* ===== CORES DE PRODUTOS ===== */
     --color-red: 0 84% 60%;
