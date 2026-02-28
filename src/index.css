@@ -986,6 +986,14 @@ html[data-scroll-locked] body {
 
 /* ===== COMPONENTES ===== */
 @layer components {
+  /* Product image container - ALWAYS white, regardless of theme */
+  .product-img-container {
+    background-color: #ffffff;
+  }
+  .dark .product-img-container {
+    background-color: hsl(var(--card));
+  }
+
   /* Card Variants */
   .card-base {
     @apply bg-card rounded-xl border border-border p-[var(--spacing-card)] transition-all duration-200;
