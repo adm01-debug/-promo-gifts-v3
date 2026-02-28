@@ -74,16 +74,56 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
       const firstLogo = data.personalizationAreas.find(a => a.logoPreview)?.logoPreview || null;
       const safeLogoData = firstLogo && firstLogo.startsWith("http") ? firstLogo : null;
 
+      // Verify product_id exists in local products table before saving
+      // Products from external DB won't have a matching row, so we skip the FK
+      let safeProductId: string | null = null;
+      if (data.productId) {
+        const { data: productRow } = await supabase
+          .from("products" as any)
+          .select("id")
+          .eq("id", data.productId)
+          .maybeSingle();
+        if (productRow) {
+          safeProductId = data.productId;
+        }
+      }
+
+      // Same check for technique_id
+      let safeTechniqueId: string | null = null;
+      if (data.techniqueId) {
+        const { data: techRow } = await supabase
+          .from("personalization_techniques")
+          .select("id")
+          .eq("id", data.techniqueId)
+          .maybeSingle();
+        if (techRow) {
+          safeTechniqueId = data.techniqueId;
+        }
+      }
+
+      // Same check for client_id
+      let safeClientId: string | null = null;
+      if (data.clientId) {
+        const { data: clientRow } = await supabase
+          .from("bitrix_clients")
+          .select("id")
+          .eq("id", data.clientId)
+          .maybeSingle();
+        if (clientRow) {
+          safeClientId = data.clientId;
+        }
+      }
+
       const { error: upsertError } = await supabase
         .from("mockup_drafts")
         .upsert({
           user_id: user.id,
           draft_key: draftKey,
-          product_id: data.productId || null,
+          product_id: safeProductId,
           product_name: data.productName,
-          technique_id: data.techniqueId || null,
+          technique_id: safeTechniqueId,
           technique_name: data.techniqueName,
-          client_id: data.clientId || null,
+          client_id: safeClientId,
           client_name: data.clientName,
           personalization_areas: areasWithoutLogos as unknown as any,
           logo_data: safeLogoData,
