@@ -316,6 +316,7 @@ export function MockupHistoryPanel({
               {totalPages > 1 && <span>Página {currentPage} de {totalPages}</span>}
             </div>
 
+            <>
             {viewMode === "grid" ? (
               <div
                 className="grid gap-4"
@@ -546,7 +547,8 @@ export function MockupHistoryPanel({
                   </div>
                 ))}
               </div>
-            )
+            )}
+            </>
 
             {/* Pagination */}
             {totalPages > 1 && (
