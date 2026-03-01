@@ -53,7 +53,6 @@ export interface GeneratedMockup {
   client_name?: string | null;
   created_at: string;
   client_id: string | null;
-  bitrix_clients?: { name: string } | null;
 }
 
 // ─── Technique prompt mapping ────────────────────────────────────────
@@ -163,11 +162,11 @@ export function useMockupGenerator() {
   const { data: customizationOptions } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
   const hasLogo = personalizationAreas.some(a => !!a.logoPreview);
 
-  // Derive unique clients from history for filter (denormalized client_name + legacy bitrix_clients join)
+  // Derive unique clients from history for filter (denormalized client_name)
   const historyClients = useMemo(() => {
     const map = new Map<string, { id: string; name: string }>();
     mockupHistory.forEach(m => {
-      const clientName = m.client_name || m.bitrix_clients?.name;
+      const clientName = m.client_name;
       const clientKey = m.client_id || clientName;
       if (clientKey && clientName) {
         map.set(clientKey, { id: m.client_id || clientName, name: clientName });
@@ -702,7 +701,7 @@ export function useMockupGenerator() {
       setProductSelection(null);
     }
     setSelectedTechnique(technique || null);
-    setSelectedClient(mockup.client_id ? { id: mockup.client_id, name: (mockup as any).bitrix_clients?.name || "Cliente" } : null);
+    setSelectedClient(mockup.client_id ? { id: mockup.client_id, name: mockup.client_name || "Cliente" } : null);
 
     const restoredArea: PersonalizationArea = {
       id: crypto.randomUUID(),
