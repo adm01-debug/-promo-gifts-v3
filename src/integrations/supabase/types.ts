@@ -1157,6 +1157,7 @@ export type Database = {
         Row: {
           annotations: Json | null
           client_id: string | null
+          client_name: string | null
           colors_count: number | null
           created_at: string
           id: string
@@ -1178,6 +1179,7 @@ export type Database = {
         Insert: {
           annotations?: Json | null
           client_id?: string | null
+          client_name?: string | null
           colors_count?: number | null
           created_at?: string
           id?: string
@@ -1199,6 +1201,7 @@ export type Database = {
         Update: {
           annotations?: Json | null
           client_id?: string | null
+          client_name?: string | null
           colors_count?: number | null
           created_at?: string
           id?: string
@@ -1218,13 +1221,6 @@ export type Database = {
           technique_name?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "generated_mockups_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "bitrix_clients"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "generated_mockups_product_id_fkey"
             columns: ["product_id"]

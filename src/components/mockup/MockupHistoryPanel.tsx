@@ -58,6 +58,7 @@ interface GeneratedMockup {
   colors_count: number | null;
   created_at: string;
   client_id: string | null;
+  client_name: string | null;
   annotations: any | null;
   bitrix_clients?: { name: string } | null;
 }
@@ -118,8 +119,14 @@ export function MockupHistoryPanel({
 
   const filteredMockups = useMemo(() => {
     return mockupHistory.filter((mockup) => {
-      if (filterClient === "none" && mockup.client_id !== null) return false;
-      if (filterClient !== "all" && filterClient !== "none" && mockup.client_id !== filterClient) return false;
+      // Client filter: check client_id OR client_name for matching
+      const mockupClientName = mockup.client_name || mockup.bitrix_clients?.name;
+      const hasClient = mockup.client_id || mockupClientName;
+      if (filterClient === "none" && hasClient) return false;
+      if (filterClient !== "all" && filterClient !== "none") {
+        // Match by client_id or by client_name (for entries without FK)
+        if (mockup.client_id !== filterClient && mockupClientName !== filterClient) return false;
+      }
       if (filterProduct && !mockup.product_name.toLowerCase().includes(filterProduct.toLowerCase())) return false;
       
       const selectedTech = techniques.find(t => t.id === filterTechnique);
@@ -357,8 +364,8 @@ export function MockupHistoryPanel({
                       </div>
                     )}
 
-                    {mockup.bitrix_clients?.name && (
-                      <p className="text-xs text-primary truncate font-medium">👤 {mockup.bitrix_clients.name}</p>
+                    {(mockup.client_name || mockup.bitrix_clients?.name) && (
+                      <p className="text-xs text-primary truncate font-medium">👤 {mockup.client_name || mockup.bitrix_clients?.name}</p>
                     )}
 
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
