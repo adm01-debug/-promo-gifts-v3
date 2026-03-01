@@ -41,11 +41,15 @@ export interface GeneratedMockup {
   technique_id: string | null;
   technique_name: string;
   mockup_url: string;
+  layout_url?: string | null;
   logo_url: string;
   position_x: number | null;
   position_y: number | null;
   logo_width_cm: number | null;
   logo_height_cm: number | null;
+  location_name?: string | null;
+  colors_count?: number | null;
+  annotations?: any[] | null;
   created_at: string;
   client_id: string | null;
   bitrix_clients?: { name: string } | null;
@@ -119,6 +123,7 @@ export function useMockupGenerator() {
   const [mockupToDelete, setMockupToDelete] = useState<string | null>(null);
   const [lastSavedRecordId, setLastSavedRecordId] = useState<string | null>(null);
   const [lastSavedMockupUrl, setLastSavedMockupUrl] = useState<string | null>(null);
+  const [lastSavedLayoutMode, setLastSavedLayoutMode] = useState<'ai' | 'static'>('ai');
 
   // Draft
   const [hasDraftRestored, setHasDraftRestored] = useState(false);
@@ -563,6 +568,7 @@ export function useMockupGenerator() {
           const recordId = await saveMockupToHistory(response.data.mockupUrl, primaryArea);
           if (recordId) {
             setLastSavedMockupUrl(response.data.mockupUrl);
+            setLastSavedLayoutMode('ai');
             setLastSavedRecordId(recordId);
           }
           showMockupSuccessToast({
@@ -609,6 +615,7 @@ export function useMockupGenerator() {
             // Only trigger layout capture for the last batch item
             if (recordId && area === areasWithLogos[areasWithLogos.length - 1]) {
               setLastSavedMockupUrl(response.data.mockupUrl);
+              setLastSavedLayoutMode('ai');
               setLastSavedRecordId(recordId);
             }
           }
@@ -670,6 +677,7 @@ export function useMockupGenerator() {
     setTechniqueColorConfig(null);
     setLastSavedRecordId(null);
     setLastSavedMockupUrl(null);
+    setLastSavedLayoutMode('ai');
     positionHistory.clear();
     clearDraft();
     logoColorAnalysis.clearAnalysis();
@@ -786,6 +794,8 @@ export function useMockupGenerator() {
     setLastSavedRecordId,
     lastSavedMockupUrl,
     setLastSavedMockupUrl,
+    lastSavedLayoutMode,
+    setLastSavedLayoutMode,
 
     // Draft
     isDraftSaving,

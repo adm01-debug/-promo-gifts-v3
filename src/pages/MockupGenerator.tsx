@@ -153,11 +153,11 @@ export default function MockupGenerator() {
         hex: c.hex,
       })),
       mockupImageUrl: mockupUrl,
-      layoutMode: mg.generatedMockup ? "ai" : "static",
+      layoutMode: mg.lastSavedLayoutMode,
     };
 
     return { data: approvalData, recordId: mg.lastSavedRecordId, userId: user.id };
-  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
+  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
 
   // Stable callback for layout capture completion
   const handleLayoutCaptured = useCallback(() => {
@@ -411,6 +411,7 @@ export default function MockupGenerator() {
                             const recordId = await mg.saveMockupToHistory(dataUrl, mg.activeArea, extra);
                             if (recordId) {
                               mg.setLastSavedMockupUrl(dataUrl);
+                              mg.setLastSavedLayoutMode('static');
                               mg.setLastSavedRecordId(recordId);
                             }
                           }
