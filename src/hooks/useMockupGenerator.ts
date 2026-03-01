@@ -50,6 +50,7 @@ export interface GeneratedMockup {
   location_name?: string | null;
   colors_count?: number | null;
   annotations?: any[] | null;
+  client_name?: string | null;
   created_at: string;
   client_id: string | null;
   bitrix_clients?: { name: string } | null;
@@ -162,12 +163,14 @@ export function useMockupGenerator() {
   const { data: customizationOptions } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
   const hasLogo = personalizationAreas.some(a => !!a.logoPreview);
 
-  // Derive unique clients from history for filter
+  // Derive unique clients from history for filter (denormalized client_name + legacy bitrix_clients join)
   const historyClients = useMemo(() => {
     const map = new Map<string, { id: string; name: string }>();
     mockupHistory.forEach(m => {
-      if (m.client_id && m.bitrix_clients?.name) {
-        map.set(m.client_id, { id: m.client_id, name: m.bitrix_clients.name });
+      const clientName = m.client_name || m.bitrix_clients?.name;
+      const clientKey = m.client_id || clientName;
+      if (clientKey && clientName) {
+        map.set(clientKey, { id: m.client_id || clientName, name: clientName });
       }
     });
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
@@ -340,7 +343,7 @@ export function useMockupGenerator() {
     try {
       let query = supabase
         .from("generated_mockups")
-        .select(`id, product_id, product_name, product_sku, technique_id, technique_name, mockup_url, layout_url, logo_url, position_x, position_y, logo_width_cm, logo_height_cm, location_name, colors_count, created_at, client_id, annotations, bitrix_clients(name)`)
+        .select(`id, product_id, product_name, product_sku, technique_id, technique_name, mockup_url, layout_url, logo_url, position_x, position_y, logo_width_cm, logo_height_cm, location_name, colors_count, created_at, client_id, client_name, annotations`)
         .order("created_at", { ascending: false });
       if (user?.id) query = query.eq("seller_id", user.id);
       const { data, error } = await query;
@@ -467,19 +470,15 @@ export function useMockupGenerator() {
         if (techRow) safeTechniqueId = selectedTechnique.id;
       }
 
-      let safeClientId: string | null = null;
-      if (selectedClient?.id) {
-        const { data: clientRow } = await supabase
-          .from("bitrix_clients")
-          .select("id")
-          .eq("id", selectedClient.id)
-          .maybeSingle();
-        if (clientRow) safeClientId = selectedClient.id;
-      }
+      // Client: skip FK validation — save client_id as-is (may be external CRM ID)
+      // and always denormalize client_name for filtering/display
+      const clientId = selectedClient?.id || null;
+      const clientName = selectedClient?.nome_fantasia || selectedClient?.razao_social || selectedClient?.name || null;
 
       const { data: insertedRow, error } = await supabase.from("generated_mockups").insert({
         seller_id: user.id,
-        client_id: safeClientId,
+        client_id: clientId,
+        client_name: clientName,
         product_id: safeProductId,
         product_name: selectedProduct.name,
         product_sku: selectedProduct.sku,
