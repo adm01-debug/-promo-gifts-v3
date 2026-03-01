@@ -276,7 +276,7 @@ export function MockupLayoutButtons({
           size="sm"
           onClick={handleLayoutStatic}
           disabled={!activeArea?.logoPreview || isGeneratingStatic}
-          className="flex-1 gap-1.5 bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40 transition-all"
+          className="flex-1 gap-1.5 !bg-primary hover:!bg-primary/80 !text-primary-foreground font-semibold shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40 transition-all disabled:!opacity-50"
         >
           {isGeneratingStatic ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -289,7 +289,7 @@ export function MockupLayoutButtons({
           size="sm"
           onClick={handleLayoutAI}
           disabled={!generatedMockup}
-          className="flex-1 gap-1.5 bg-primary hover:bg-primary/80 text-primary-foreground font-semibold shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40 transition-all"
+          className="flex-1 gap-1.5 !bg-primary hover:!bg-primary/80 !text-primary-foreground font-semibold shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40 transition-all disabled:!opacity-50"
         >
           <Sparkles className="h-3.5 w-3.5" />
           Gerar Layout - IA
