@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";
 import { useFilteredTechniques, useProductCustomizationOptionsForMockup, type TechniqueWithLimits } from "@/hooks/useMockupTechniques";
 import { usePositionHistory } from "@/hooks/usePositionHistory";
-import { uploadLogoToStorage, downloadImageFromUrl } from "@/lib/mockup-storage";
+import { uploadLogoToStorage, downloadImageAsPdfFromUrl } from "@/lib/mockup-storage";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useMockupWizardStep } from "@/components/mockup/MockupWizard";
 import { useLogoColorAnalysis } from "@/hooks/useLogoColorAnalysis";
@@ -640,8 +640,10 @@ export function useMockupGenerator() {
   const downloadMockup = async (url?: string) => {
     const mockupUrl = url || generatedMockup;
     if (!mockupUrl) return;
-    const fileName = `mockup-${selectedProduct?.sku || "produto"}-${selectedTechnique?.name || "tecnica"}.png`;
-    await downloadImageFromUrl(mockupUrl, fileName);
+    const safeSku = (selectedProduct?.sku || "produto").replace(/[^a-zA-Z0-9-_]/g, "-");
+    const safeTechnique = (selectedTechnique?.name || "tecnica").replace(/[^a-zA-Z0-9-_]/g, "-");
+    const fileName = `mockup-${safeSku}-${safeTechnique}.pdf`;
+    await downloadImageAsPdfFromUrl(mockupUrl, fileName);
   };
 
   const deleteMockup = async () => {

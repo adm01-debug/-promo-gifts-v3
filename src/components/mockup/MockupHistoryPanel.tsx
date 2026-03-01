@@ -428,7 +428,7 @@ export function MockupHistoryPanel({
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.mockup_url)}>
+                          <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
                             <Download className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -532,7 +532,7 @@ export function MockupHistoryPanel({
                       <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 [&>svg]:h-4 [&>svg]:w-4" />
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => onDownload(mockup.mockup_url)}>
+                          <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
                             <Download className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
