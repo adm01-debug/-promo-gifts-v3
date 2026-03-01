@@ -418,6 +418,8 @@ export default function MockupGenerator() {
                             }
                           }
                         }}
+                        onGenerateMockup={mg.generateMockup}
+                        isGeneratingMockup={mg.isLoading}
                       />
                     }
                   />

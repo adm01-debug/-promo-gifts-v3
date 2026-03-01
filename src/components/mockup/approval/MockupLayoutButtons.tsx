@@ -3,7 +3,7 @@
  * Two modes: AI (uses existing generated mockup) and Static (high-res composition).
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ImageIcon, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -69,6 +69,10 @@ interface MockupLayoutButtonsProps {
   onStaticGenerated?: (dataUrl: string, extra?: { locationName?: string; colorsCount?: number }) => void;
   /** Callback when layout image is captured from the approval template */
   onLayoutCaptured?: (layoutDataUrl: string) => void;
+  /** Trigger AI mockup generation (async) */
+  onGenerateMockup?: () => Promise<void>;
+  /** Whether AI mockup is currently being generated */
+  isGeneratingMockup?: boolean;
 }
 
 export function MockupLayoutButtons({
@@ -84,10 +88,13 @@ export function MockupLayoutButtons({
   colorsCount,
   onStaticGenerated,
   onLayoutCaptured,
+  onGenerateMockup,
+  isGeneratingMockup,
 }: MockupLayoutButtonsProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [approvalData, setApprovalData] = useState<MockupApprovalData | null>(null);
   const [isGeneratingStatic, setIsGeneratingStatic] = useState(false);
+  const pendingLayoutAI = useRef(false);
 
   const buildApprovalData = useCallback((mockupUrl: string, mode: 'ai' | 'static'): MockupApprovalData => {
     const now = new Date();
@@ -137,15 +144,32 @@ export function MockupLayoutButtons({
     };
   }, [client, seller, product, technique, activeArea, pantoneColors, colorsCount]);
 
-  const handleLayoutAI = useCallback(() => {
-    if (!generatedMockup) {
-      toast.error("Gere um mockup com IA primeiro.");
+  // When generatedMockup arrives and we were waiting for it, auto-open layout
+  useEffect(() => {
+    if (pendingLayoutAI.current && generatedMockup) {
+      pendingLayoutAI.current = false;
+      const data = buildApprovalData(generatedMockup, "ai");
+      setApprovalData(data);
+      setPreviewOpen(true);
+    }
+  }, [generatedMockup, buildApprovalData]);
+
+  const handleLayoutAI = useCallback(async () => {
+    if (generatedMockup) {
+      // Mockup already exists, open layout directly
+      const data = buildApprovalData(generatedMockup, "ai");
+      setApprovalData(data);
+      setPreviewOpen(true);
       return;
     }
-    const data = buildApprovalData(generatedMockup, "ai");
-    setApprovalData(data);
-    setPreviewOpen(true);
-  }, [generatedMockup, buildApprovalData]);
+    // No mockup yet — trigger generation, layout opens via useEffect above
+    if (onGenerateMockup) {
+      pendingLayoutAI.current = true;
+      await onGenerateMockup();
+    } else {
+      toast.error("Configure o gerador de mockup primeiro.");
+    }
+  }, [generatedMockup, buildApprovalData, onGenerateMockup]);
 
   const handleLayoutStatic = useCallback(async () => {
     if (!product?.imageUrl || !activeArea?.logoPreview) {
@@ -304,17 +328,21 @@ export function MockupLayoutButtons({
               <Button
                 size="sm"
                 onClick={handleLayoutAI}
-                disabled={!generatedMockup}
+                disabled={!activeArea?.logoPreview || isGeneratingMockup}
                 className="w-full gap-1.5 !bg-primary hover:!bg-primary/80 !text-primary-foreground font-semibold shadow-md shadow-primary/30 hover:shadow-lg hover:shadow-primary/40 transition-all disabled:!opacity-40 disabled:cursor-not-allowed"
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                {isGeneratingMockup ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="h-3.5 w-3.5" />
+                )}
                 Gerar Layout - IA
               </Button>
             </span>
           </TooltipTrigger>
-          {!generatedMockup && (
+          {!activeArea?.logoPreview && (
             <TooltipContent side="bottom">
-              <p>Clique em "Gerar Mockup" primeiro para criar a imagem com IA</p>
+              <p>Faça upload do logo primeiro</p>
             </TooltipContent>
           )}
         </Tooltip>
