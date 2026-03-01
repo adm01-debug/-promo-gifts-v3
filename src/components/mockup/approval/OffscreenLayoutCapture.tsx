@@ -29,10 +29,13 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
   const processedRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
 
-  // Track mount state
+  // Track mount state and reset processedRef on unmount
   useEffect(() => {
     mountedRef.current = true;
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+      processedRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
