@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Package,
@@ -112,14 +112,30 @@ const navGroups: NavGroup[] = [
 export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const isItemActive = (href: string, exact?: boolean) => {
+    if (href === "/" || exact) return location.pathname === href;
+    return location.pathname.startsWith(href);
+  };
+
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
     navGroups.forEach((group) => {
-      initial[group.id] = group.defaultOpen ?? false;
+      const hasActive = group.items.some((item) => isItemActive(item.href, item.exact));
+      initial[group.id] = hasActive || (group.defaultOpen ?? false);
     });
     return initial;
   });
   const { isAdmin } = useAuth();
+
+  // Auto-open group containing the active route on navigation
+  useEffect(() => {
+    navGroups.forEach((group) => {
+      const hasActive = group.items.some((item) => isItemActive(item.href, item.exact));
+      if (hasActive) {
+        setOpenGroups((prev) => prev[group.id] ? prev : { ...prev, [group.id]: true });
+      }
+    });
+  }, [location.pathname]);
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
