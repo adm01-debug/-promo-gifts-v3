@@ -65,7 +65,9 @@ interface MockupLayoutButtonsProps {
   /** Number of colors from technique config */
   colorsCount?: number;
   /** Callback to save the generated static mockup to history */
-  onStaticGenerated?: (dataUrl: string) => void;
+  onStaticGenerated?: (dataUrl: string, extra?: { locationName?: string; colorsCount?: number }) => void;
+  /** Callback when layout image is captured from the approval template */
+  onLayoutCaptured?: (layoutDataUrl: string) => void;
 }
 
 export function MockupLayoutButtons({
@@ -80,6 +82,7 @@ export function MockupLayoutButtons({
   pantoneColors,
   colorsCount,
   onStaticGenerated,
+  onLayoutCaptured,
 }: MockupLayoutButtonsProps) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [approvalData, setApprovalData] = useState<MockupApprovalData | null>(null);
@@ -248,7 +251,10 @@ export function MockupLayoutButtons({
 
       const dataUrl = canvas.toDataURL("image/png");
       // Save to history automatically
-      onStaticGenerated?.(dataUrl);
+      onStaticGenerated?.(dataUrl, {
+        locationName: technique?.locationName || activeArea?.name || undefined,
+        colorsCount: colorsCount,
+      });
       const data = buildApprovalData(dataUrl, "static");
       setApprovalData(data);
       setPreviewOpen(true);
@@ -297,6 +303,7 @@ export function MockupLayoutButtons({
           data={approvalData}
           open={previewOpen}
           onOpenChange={setPreviewOpen}
+          onLayoutCaptured={onLayoutCaptured}
         />
       )}
     </>

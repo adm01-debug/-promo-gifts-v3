@@ -333,7 +333,7 @@ export function useMockupGenerator() {
     try {
       let query = supabase
         .from("generated_mockups")
-        .select(`id, product_id, product_name, product_sku, technique_id, technique_name, mockup_url, logo_url, position_x, position_y, logo_width_cm, logo_height_cm, created_at, client_id, bitrix_clients(name)`)
+        .select(`id, product_id, product_name, product_sku, technique_id, technique_name, mockup_url, layout_url, logo_url, position_x, position_y, logo_width_cm, logo_height_cm, location_name, colors_count, created_at, client_id, annotations, bitrix_clients(name)`)
         .order("created_at", { ascending: false });
       if (user?.id) query = query.eq("seller_id", user.id);
       const { data, error } = await query;
@@ -425,7 +425,7 @@ export function useMockupGenerator() {
     return TECHNIQUE_PROMPTS.default;
   };
 
-  const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea) => {
+  const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea, extra?: { layoutUrl?: string; locationName?: string; colorsCount?: number }) => {
     if (!user || !selectedProduct || !selectedTechnique || !area.logoPreview) return;
 
     try {
@@ -480,12 +480,15 @@ export function useMockupGenerator() {
         technique_name: selectedTechnique.name,
         logo_url: logoUrl,
         mockup_url: mockupUrl,
+        layout_url: extra?.layoutUrl || null,
         position_x: area.positionX,
         position_y: area.positionY,
         logo_width_cm: area.logoWidth,
         logo_height_cm: area.logoHeight,
+        location_name: extra?.locationName || area.name || null,
+        colors_count: extra?.colorsCount || null,
         annotations: mockupAnnotations.length > 0 ? mockupAnnotations : null,
-      });
+      } as any);
 
       if (error) throw error;
       fetchHistory();

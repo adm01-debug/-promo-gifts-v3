@@ -1,9 +1,9 @@
 /**
  * MockupApprovalPreview — Full-page preview of the approval document
- * with PDF download capability.
+ * with PDF download capability and automatic layout capture.
  */
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,11 +21,44 @@ interface MockupApprovalPreviewProps {
   data: MockupApprovalData;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Fired once with the captured layout image data URL */
+  onLayoutCaptured?: (layoutDataUrl: string) => void;
 }
 
-export function MockupApprovalPreview({ data, open, onOpenChange }: MockupApprovalPreviewProps) {
+export function MockupApprovalPreview({ data, open, onOpenChange, onLayoutCaptured }: MockupApprovalPreviewProps) {
   const templateRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const hasCapturedRef = useRef(false);
+
+  // Auto-capture the layout once it renders
+  useEffect(() => {
+    if (!open || !onLayoutCaptured || hasCapturedRef.current) return;
+    // Wait for images to load and template to render
+    const timer = setTimeout(async () => {
+      if (!templateRef.current || hasCapturedRef.current) return;
+      hasCapturedRef.current = true;
+      try {
+        const html2canvas = (await import("html2canvas")).default;
+        const canvas = await html2canvas(templateRef.current, {
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+          logging: false,
+        });
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        onLayoutCaptured(dataUrl);
+      } catch (err) {
+        console.error("Layout capture error:", err);
+      }
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [open, onLayoutCaptured]);
+
+  // Reset capture flag when dialog closes
+  useEffect(() => {
+    if (!open) hasCapturedRef.current = false;
+  }, [open]);
 
   const handleExportPdf = useCallback(async () => {
     if (!templateRef.current) return;
@@ -45,10 +78,9 @@ export function MockupApprovalPreview({ data, open, onOpenChange }: MockupApprov
 
       const imgData = canvas.toDataURL("image/jpeg", 0.92);
       const pdf = new jsPDF("portrait", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
-      const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-      // Calculate proportional dimensions to avoid stretching
       const canvasAspect = canvas.width / canvas.height;
       const pageAspect = pageWidth / pageHeight;
 
@@ -58,15 +90,13 @@ export function MockupApprovalPreview({ data, open, onOpenChange }: MockupApprov
       let offsetY = 0;
 
       if (canvasAspect > pageAspect) {
-        // Canvas is wider than page → fit to width
         imgWidth = pageWidth;
         imgHeight = pageWidth / canvasAspect;
-        offsetY = 0; // align to top
+        offsetY = 0;
       } else {
-        // Canvas is taller than page → fit to height
         imgHeight = pageHeight;
         imgWidth = pageHeight * canvasAspect;
-        offsetX = (pageWidth - imgWidth) / 2; // center horizontally
+        offsetX = (pageWidth - imgWidth) / 2;
       }
 
       pdf.addImage(imgData, "JPEG", offsetX, offsetY, imgWidth, imgHeight);

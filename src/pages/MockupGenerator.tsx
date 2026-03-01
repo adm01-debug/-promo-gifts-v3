@@ -333,9 +333,38 @@ export default function MockupGenerator() {
                         productWidthCm={mg.selectedProduct?.dimensions?.width_cm ?? mg.selectedProduct?.dimensions?.diameter_cm ?? (mg.selectedProduct?.metadata?.width_mm ? mg.selectedProduct.metadata.width_mm / 10 : null)}
                         pantoneColors={mg.logoColorAnalysis.colors}
                         colorsCount={mg.techniqueColorConfig?.colorCount}
-                        onStaticGenerated={(dataUrl) => {
+                        onStaticGenerated={(dataUrl, extra) => {
                           if (mg.activeArea) {
-                            mg.saveMockupToHistory(dataUrl, mg.activeArea);
+                            mg.saveMockupToHistory(dataUrl, mg.activeArea, extra);
+                          }
+                        }}
+                        onLayoutCaptured={async (layoutDataUrl) => {
+                          // Upload layout image and update the latest history entry
+                          try {
+                            const { supabase } = await import("@/integrations/supabase/client");
+                            const blob = await (await fetch(layoutDataUrl)).blob();
+                            const fileName = `layout-${Date.now()}.jpg`;
+                            const storagePath = `mockup-layouts/${user?.id || "unknown"}/${fileName}`;
+                            const { error: uploadError } = await supabase.storage
+                              .from("mockup-assets")
+                              .upload(storagePath, blob, { contentType: "image/jpeg", upsert: true });
+                            if (uploadError) {
+                              console.error("Layout upload error:", uploadError);
+                              return;
+                            }
+                            const { data: urlData } = supabase.storage
+                              .from("mockup-assets")
+                              .getPublicUrl(storagePath);
+                            // Update the most recent history entry with layout_url
+                            if (mg.mockupHistory.length > 0) {
+                              const latestId = mg.mockupHistory[0].id;
+                              await supabase
+                                .from("generated_mockups")
+                                .update({ layout_url: urlData.publicUrl } as any)
+                                .eq("id", latestId);
+                            }
+                          } catch (err) {
+                            console.error("Layout capture save error:", err);
                           }
                         }}
                       />

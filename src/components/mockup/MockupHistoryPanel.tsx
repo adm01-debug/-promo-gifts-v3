@@ -29,6 +29,10 @@ import {
   Calendar,
   Columns2,
   X,
+  Ruler,
+  MapPin,
+  Palette,
+  FileImage,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -44,13 +48,17 @@ interface GeneratedMockup {
   technique_id: string | null;
   technique_name: string;
   mockup_url: string;
+  layout_url: string | null;
   logo_url: string;
   position_x: number | null;
   position_y: number | null;
   logo_width_cm: number | null;
   logo_height_cm: number | null;
+  location_name: string | null;
+  colors_count: number | null;
   created_at: string;
   client_id: string | null;
+  annotations: any | null;
   bitrix_clients?: { name: string } | null;
 }
 
@@ -294,13 +302,21 @@ export function MockupHistoryPanel({
                     </div>
                   </div>
 
-                  <div className="aspect-square bg-muted/30 overflow-hidden">
+                  <div className="aspect-[3/4] bg-muted/30 overflow-hidden">
                     <img
-                      src={mockup.mockup_url}
+                      src={mockup.layout_url || mockup.mockup_url}
                       alt={`Mockup de ${mockup.product_name}`}
                       className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
                     />
+                    {mockup.layout_url && (
+                      <div className="absolute bottom-1 left-1">
+                        <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-background/80 backdrop-blur-sm">
+                          <FileImage className="h-2.5 w-2.5 mr-0.5" />
+                          Layout
+                        </Badge>
+                      </div>
+                    )}
                   </div>
 
                   <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
@@ -314,9 +330,32 @@ export function MockupHistoryPanel({
                       </TooltipContent>
                     </Tooltip>
 
-                    <div className="flex items-center gap-2">
+                    {mockup.product_sku && (
+                      <span className="text-[10px] text-muted-foreground font-mono">{mockup.product_sku}</span>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-1">
                       <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
+                      {mockup.location_name && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {mockup.location_name}
+                        </Badge>
+                      )}
                     </div>
+
+                    {(mockup.logo_width_cm || mockup.logo_height_cm) && (
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <Ruler className="h-2.5 w-2.5" />
+                        {mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm
+                        {mockup.colors_count && (
+                          <span className="flex items-center gap-0.5 ml-1">
+                            <Palette className="h-2.5 w-2.5" />
+                            {mockup.colors_count} cor{mockup.colors_count > 1 ? "es" : ""}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {mockup.bitrix_clients?.name && (
                       <p className="text-xs text-primary truncate font-medium">👤 {mockup.bitrix_clients.name}</p>
