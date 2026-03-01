@@ -424,7 +424,7 @@ export default function MockupGenerator() {
                     }
                   />
                 ) : (
-                  <Card className="border-dashed border-2">
+                  <Card className="border-border/50">
                     <CardContent className="flex items-center justify-center py-16">
                       <div className="text-center text-muted-foreground max-w-xs">
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
