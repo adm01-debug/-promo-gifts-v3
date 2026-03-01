@@ -280,7 +280,7 @@ export function MockupLayoutButtons({
           className="flex-1 gap-1.5"
         >
           <Sparkles className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Layout</span> com IA
+          Gerar Layout - IA
         </Button>
         <Button
           variant="outline"
@@ -294,7 +294,7 @@ export function MockupLayoutButtons({
           ) : (
             <ImageIcon className="h-3.5 w-3.5" />
           )}
-          <span className="hidden sm:inline">Layout</span> sem IA
+          Gerar Layout
         </Button>
       </div>
 
