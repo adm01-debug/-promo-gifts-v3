@@ -335,7 +335,7 @@ export function useMockupGenerator() {
     }
   };
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     setIsLoadingHistory(true);
     try {
       let query = supabase
@@ -351,7 +351,7 @@ export function useMockupGenerator() {
     } finally {
       setIsLoadingHistory(false);
     }
-  };
+  }, [user?.id]);
 
   // ─── Handlers ───────────────────────────────────────────────────────
 
