@@ -106,6 +106,10 @@ export default function MockupGenerator() {
   const layoutCaptureRequest = useMemo((): LayoutCaptureRequest | null => {
     if (!mg.lastSavedRecordId || !user?.id || !mg.selectedProduct || !mg.selectedTechnique) return null;
     
+    // Use the saved mockup URL (not current generatedMockup which may be stale/null for static mode)
+    const mockupUrl = mg.lastSavedMockupUrl || mg.generatedMockup || "";
+    if (!mockupUrl) return null;
+
     const now = new Date();
     const dateStr = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
     const docNumber = `MK-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
@@ -148,12 +152,19 @@ export default function MockupGenerator() {
         name: c.selectedPantone || c.pantoneMatch?.name || c.name,
         hex: c.hex,
       })),
-      mockupImageUrl: mg.generatedMockup || "",
+      mockupImageUrl: mockupUrl,
       layoutMode: mg.generatedMockup ? "ai" : "static",
     };
 
     return { data: approvalData, recordId: mg.lastSavedRecordId, userId: user.id };
-  }, [mg.lastSavedRecordId, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
+  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
+
+  // Stable callback for layout capture completion
+  const handleLayoutCaptured = useCallback(() => {
+    mg.setLastSavedRecordId(null);
+    mg.setLastSavedMockupUrl(null);
+    mg.fetchHistory();
+  }, [mg.setLastSavedRecordId, mg.setLastSavedMockupUrl, mg.fetchHistory]);
 
   // ─── Render ─────────────────────────────────────────────────────────
 
@@ -162,10 +173,7 @@ export default function MockupGenerator() {
       {/* Offscreen layout capture - auto-captures approval document after mockup generation */}
       <OffscreenLayoutCapture
         request={layoutCaptureRequest}
-        onCaptured={() => {
-          mg.setLastSavedRecordId(null);
-          mg.fetchHistory();
-        }}
+        onCaptured={handleLayoutCaptured}
       />
 
       <GeneratingOverlay
@@ -401,7 +409,10 @@ export default function MockupGenerator() {
                         onStaticGenerated={async (dataUrl, extra) => {
                           if (mg.activeArea) {
                             const recordId = await mg.saveMockupToHistory(dataUrl, mg.activeArea, extra);
-                            if (recordId) mg.setLastSavedRecordId(recordId);
+                            if (recordId) {
+                              mg.setLastSavedMockupUrl(dataUrl);
+                              mg.setLastSavedRecordId(recordId);
+                            }
                           }
                         }}
                       />
