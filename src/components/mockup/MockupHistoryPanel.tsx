@@ -622,71 +622,81 @@ export function MockupHistoryPanel({
 
       {/* Lightbox Dialog */}
       <Dialog open={!!lightboxMockup} onOpenChange={(open) => { if (!open) closeLightbox(); }}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-0 bg-background/95 backdrop-blur-xl [&>button]:hidden">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-0 bg-black [&>button]:hidden">
           {lightboxMockup && (
-            <div className="relative flex flex-col items-center justify-center w-full h-full min-h-[70vh]">
-              {/* Top bar */}
-              <div className="absolute top-3 left-3 z-10">
-                <div className="bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md space-y-0.5">
-                  <p className="font-medium text-sm">{lightboxMockup.product_name}</p>
-                  {lightboxMockup.product_sku && (
-                    <p className="text-[10px] text-muted-foreground font-mono">{lightboxMockup.product_sku}</p>
-                  )}
-                  <div className="flex items-center gap-1.5">
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{lightboxMockup.technique_name}</Badge>
-                    {lightboxMockup.location_name && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                        <MapPin className="h-2.5 w-2.5" />
-                        {lightboxMockup.location_name}
-                      </Badge>
-                    )}
+            <div className="relative flex flex-col w-full h-full">
+              {/* Top bar — solid dark */}
+              <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-zinc-800 shrink-0">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm text-white truncate">{lightboxMockup.product_name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {lightboxMockup.product_sku && (
+                        <span className="text-[10px] text-zinc-400 font-mono">{lightboxMockup.product_sku}</span>
+                      )}
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{lightboxMockup.technique_name}</Badge>
+                      {lightboxMockup.location_name && (
+                        <span className="text-[10px] text-zinc-400 flex items-center gap-0.5">
+                          <MapPin className="h-2.5 w-2.5" /> {lightboxMockup.location_name}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {lightboxMockup.client_name && (
-                    <p className="text-xs text-primary font-medium">👤 {lightboxMockup.client_name}</p>
+                    <Badge variant="outline" className="text-[10px] border-primary/40 text-primary shrink-0">👤 {lightboxMockup.client_name}</Badge>
                   )}
-                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <span className="text-[10px] text-zinc-500 flex items-center gap-1 shrink-0">
                     <Clock className="h-3 w-3" />
                     {formatDistanceToNow(new Date(lightboxMockup.created_at), { addSuffix: true, locale: ptBR })}
-                  </p>
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0 ml-4">
+                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onLoadFromHistory(lightboxMockup)}>
+                    <RotateCcw className="h-3.5 w-3.5" /> Regenerar
+                  </Button>
+                  <ShareMenu mockupUrl={lightboxMockup.mockup_url} productName={lightboxMockup.product_name} techniqueName={lightboxMockup.technique_name} />
+                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
+                    <Download className="h-3.5 w-3.5" /> Baixar PDF
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={closeLightbox}>
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
 
-              {/* Action buttons */}
-              <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-                <Button size="sm" variant="secondary" className="gap-1.5 shadow-md" onClick={() => onLoadFromHistory(lightboxMockup)}>
-                  <RotateCcw className="h-4 w-4" /> Regenerar
-                </Button>
-                <ShareMenu mockupUrl={lightboxMockup.mockup_url} productName={lightboxMockup.product_name} techniqueName={lightboxMockup.technique_name} />
-                <Button size="sm" variant="secondary" className="gap-1.5 shadow-md" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
-                  <Download className="h-4 w-4" /> Baixar PDF
-                </Button>
-                <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={closeLightbox}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Zoom controls */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg">
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <span className="text-xs font-medium w-14 text-center">{Math.round(lightboxZoom * 100)}%</span>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setLightboxZoom(1)}>
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-
-              {/* Image */}
-              <div className="overflow-auto w-full h-full flex items-center justify-center p-8" style={{ cursor: lightboxZoom > 1 ? "grab" : "default" }}>
+              {/* Image area — clean black bg, no blur */}
+              <div
+                className="flex-1 overflow-auto flex items-center justify-center"
+                style={{ cursor: lightboxZoom > 1 ? "grab" : "default", minHeight: "70vh" }}
+              >
                 <img
                   src={lightboxMockup.layout_url || lightboxMockup.mockup_url}
                   alt={`Mockup de ${lightboxMockup.product_name}`}
-                  className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
-                  style={{ transform: `scale(${lightboxZoom})` }}
+                  className="max-h-[82vh] object-contain select-none"
+                  style={{
+                    transform: `scale(${lightboxZoom})`,
+                    transition: "transform 0.15s ease-out",
+                    imageRendering: lightboxZoom > 1.5 ? "auto" : undefined,
+                  }}
+                  draggable={false}
                 />
+              </div>
+
+              {/* Bottom zoom bar — compact */}
+              <div className="flex items-center justify-center py-2 bg-zinc-900 border-t border-zinc-800 shrink-0">
+                <div className="flex items-center gap-1">
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
+                    <ZoomOut className="h-3.5 w-3.5" />
+                  </Button>
+                  <span className="text-xs font-medium w-12 text-center text-zinc-300">{Math.round(lightboxZoom * 100)}%</span>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
+                    <ZoomIn className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => setLightboxZoom(1)}>
+                    <RotateCcw className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
