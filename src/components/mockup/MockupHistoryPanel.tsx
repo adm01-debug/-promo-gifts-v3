@@ -61,7 +61,6 @@ interface GeneratedMockup {
   client_id: string | null;
   client_name: string | null;
   annotations: any | null;
-  bitrix_clients?: { name: string } | null;
 }
 
 interface Technique {
@@ -140,7 +139,7 @@ export function MockupHistoryPanel({
   const filteredMockups = useMemo(() => {
     return mockupHistory.filter((mockup) => {
       // Client filter
-      const mockupClientName = mockup.client_name || mockup.bitrix_clients?.name;
+      const mockupClientName = mockup.client_name;
       const hasClient = mockup.client_id || mockupClientName;
       if (filterClient === "none" && hasClient) return false;
       if (filterClient !== "all" && filterClient !== "none") {
@@ -404,8 +403,8 @@ export function MockupHistoryPanel({
                         </div>
                       )}
 
-                      {(mockup.client_name || mockup.bitrix_clients?.name) && (
-                        <p className="text-xs text-primary truncate font-medium">👤 {mockup.client_name || mockup.bitrix_clients?.name}</p>
+                      {mockup.client_name && (
+                        <p className="text-xs text-primary truncate font-medium">👤 {mockup.client_name}</p>
                       )}
 
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -510,8 +509,8 @@ export function MockupHistoryPanel({
                         )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        {(mockup.client_name || mockup.bitrix_clients?.name) && (
-                          <span className="text-primary font-medium">👤 {mockup.client_name || mockup.bitrix_clients?.name}</span>
+                        {mockup.client_name && (
+                          <span className="text-primary font-medium">👤 {mockup.client_name}</span>
                         )}
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
