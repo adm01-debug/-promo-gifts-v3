@@ -199,9 +199,9 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
 
   // ─── State: Product list (search) ──────────────────────────────────
   return (
-    <div className="flex flex-col border rounded-lg overflow-hidden" style={{ maxHeight: '420px' }}>
+    <div className="flex flex-col rounded-lg overflow-hidden" style={{ maxHeight: '420px' }}>
       {/* Search */}
-      <div className="p-3 space-y-2 shrink-0 border-b">
+      <div className="p-3 space-y-2 shrink-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
