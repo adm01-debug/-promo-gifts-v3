@@ -7,6 +7,8 @@
 
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { LayoutPopover } from "@/components/products/LayoutPopover";
+import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +106,8 @@ export function MockupHistoryPanel({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
 
   const toggleCompareSelection = (id: string) => {
     setSelectedForCompare(prev => {
@@ -202,6 +206,12 @@ export function MockupHistoryPanel({
                 </Button>
               </>
             )}
+            <LayoutPopover
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              gridColumns={gridColumns}
+              setGridColumns={setGridColumns}
+            />
           </div>
         </div>
       </CardHeader>
@@ -306,127 +316,237 @@ export function MockupHistoryPanel({
               {totalPages > 1 && <span>Página {currentPage} de {totalPages}</span>}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {paginatedMockups.map((mockup) => (
-                <div
-                  key={mockup.id}
-                  className={cn(
-                    "group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
-                    selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
-                  )}
-                >
-                  {/* Compare checkbox */}
-                  <div className="absolute top-2 left-2 z-10">
+            {viewMode === "grid" ? (
+              <div
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
+                }}
+              >
+                {paginatedMockups.map((mockup) => (
+                  <div
+                    key={mockup.id}
+                    className={cn(
+                      "group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
+                      selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
+                    )}
+                  >
+                    {/* Compare checkbox */}
+                    <div className="absolute top-2 left-2 z-10">
+                      <div
+                        className={cn(
+                          "flex items-center justify-center w-6 h-6 rounded-md border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
+                          selectedForCompare.has(mockup.id) ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 opacity-0 group-hover:opacity-100"
+                        )}
+                        onClick={(e) => { e.stopPropagation(); toggleCompareSelection(mockup.id); }}
+                      >
+                        {selectedForCompare.has(mockup.id) && <span className="text-xs font-bold">✓</span>}
+                      </div>
+                    </div>
+
+                    <div className="aspect-[3/4] bg-muted/30 overflow-hidden">
+                      <img
+                        src={mockup.layout_url || mockup.mockup_url}
+                        alt={`Mockup de ${mockup.product_name}`}
+                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      {mockup.layout_url && (
+                        <div className="absolute bottom-1 left-1">
+                          <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-background/80 backdrop-blur-sm">
+                            <FileImage className="h-2.5 w-2.5 mr-0.5" />
+                            Layout
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="font-medium text-sm truncate cursor-default block">{mockup.product_name}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{mockup.product_name}</p>
+                          {mockup.product_sku && <p className="text-xs text-muted-foreground">SKU: {mockup.product_sku}</p>}
+                        </TooltipContent>
+                      </Tooltip>
+
+                      {mockup.product_sku && (
+                        <span className="text-[10px] text-muted-foreground font-mono">{mockup.product_sku}</span>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-1">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
+                        {mockup.location_name && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
+                            <MapPin className="h-2.5 w-2.5" />
+                            {mockup.location_name}
+                          </Badge>
+                        )}
+                      </div>
+
+                      {(mockup.logo_width_cm || mockup.logo_height_cm) && (
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Ruler className="h-2.5 w-2.5" />
+                          {mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm
+                          {mockup.colors_count && (
+                            <span className="flex items-center gap-0.5 ml-1">
+                              <Palette className="h-2.5 w-2.5" />
+                              {mockup.colors_count} cor{mockup.colors_count > 1 ? "es" : ""}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {(mockup.client_name || mockup.bitrix_clients?.name) && (
+                        <p className="text-xs text-primary truncate font-medium">👤 {mockup.client_name || mockup.bitrix_clients?.name}</p>
+                      )}
+
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
+                      </div>
+                    </div>
+
+                    {/* Overlay actions */}
+                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onLoadFromHistory(mockup)}>
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Regenerar</TooltipContent>
+                      </Tooltip>
+
+                      <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 shadow-md [&>svg]:h-4 [&>svg]:w-4" />
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.mockup_url)}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Baixar</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="destructive" className="h-8 w-8 shadow-md" onClick={() => onDelete(mockup.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Excluir</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* List view */
+              <div className="space-y-2">
+                {paginatedMockups.map((mockup) => (
+                  <div
+                    key={mockup.id}
+                    className={cn(
+                      "group flex items-center gap-4 p-3 border rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
+                      selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
+                    )}
+                  >
+                    {/* Compare checkbox */}
                     <div
                       className={cn(
-                        "flex items-center justify-center w-6 h-6 rounded-md border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
-                        selectedForCompare.has(mockup.id) ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 opacity-0 group-hover:opacity-100"
+                        "flex-shrink-0 flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all",
+                        selectedForCompare.has(mockup.id) ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"
                       )}
                       onClick={(e) => { e.stopPropagation(); toggleCompareSelection(mockup.id); }}
                     >
-                      {selectedForCompare.has(mockup.id) && <span className="text-xs font-bold">✓</span>}
+                      {selectedForCompare.has(mockup.id) && <span className="text-[10px] font-bold">✓</span>}
                     </div>
-                  </div>
 
-                  <div className="aspect-[3/4] bg-muted/30 overflow-hidden">
-                    <img
-                      src={mockup.layout_url || mockup.mockup_url}
-                      alt={`Mockup de ${mockup.product_name}`}
-                      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    {mockup.layout_url && (
-                      <div className="absolute bottom-1 left-1">
-                        <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-background/80 backdrop-blur-sm">
-                          <FileImage className="h-2.5 w-2.5 mr-0.5" />
-                          Layout
-                        </Badge>
+                    {/* Thumbnail */}
+                    <div className="flex-shrink-0 w-16 h-20 rounded-md bg-muted/30 overflow-hidden border">
+                      <img
+                        src={mockup.layout_url || mockup.mockup_url}
+                        alt={mockup.product_name}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm truncate">{mockup.product_name}</span>
+                        {mockup.product_sku && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono shrink-0">{mockup.product_sku}</Badge>
+                        )}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="font-medium text-sm truncate cursor-default block">{mockup.product_name}</span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{mockup.product_name}</p>
-                        {mockup.product_sku && <p className="text-xs text-muted-foreground">SKU: {mockup.product_sku}</p>}
-                      </TooltipContent>
-                    </Tooltip>
-
-                    {mockup.product_sku && (
-                      <span className="text-[10px] text-muted-foreground font-mono">{mockup.product_sku}</span>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-1">
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
-                      {mockup.location_name && (
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                          <MapPin className="h-2.5 w-2.5" />
-                          {mockup.location_name}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {(mockup.logo_width_cm || mockup.logo_height_cm) && (
-                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                        <Ruler className="h-2.5 w-2.5" />
-                        {mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
+                        {mockup.location_name && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
+                            <MapPin className="h-2.5 w-2.5" />
+                            {mockup.location_name}
+                          </Badge>
+                        )}
+                        {(mockup.logo_width_cm || mockup.logo_height_cm) && (
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <Ruler className="h-2.5 w-2.5" />
+                            {mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm
+                          </span>
+                        )}
                         {mockup.colors_count && (
-                          <span className="flex items-center gap-0.5 ml-1">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                             <Palette className="h-2.5 w-2.5" />
                             {mockup.colors_count} cor{mockup.colors_count > 1 ? "es" : ""}
                           </span>
                         )}
                       </div>
-                    )}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        {(mockup.client_name || mockup.bitrix_clients?.name) && (
+                          <span className="text-primary font-medium">👤 {mockup.client_name || mockup.bitrix_clients?.name}</span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
+                        </span>
+                      </div>
+                    </div>
 
-                    {(mockup.client_name || mockup.bitrix_clients?.name) && (
-                      <p className="text-xs text-primary truncate font-medium">👤 {mockup.client_name || mockup.bitrix_clients?.name}</p>
-                    )}
-
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
+                    {/* Actions */}
+                    <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => onLoadFromHistory(mockup)}>
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Regenerar</TooltipContent>
+                      </Tooltip>
+                      <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 [&>svg]:h-4 [&>svg]:w-4" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => onDownload(mockup.mockup_url)}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Baixar</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => onDelete(mockup.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Excluir</TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
-
-                  {/* Overlay actions */}
-                  <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onLoadFromHistory(mockup)}>
-                          <RotateCcw className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Regenerar</TooltipContent>
-                    </Tooltip>
-
-                    <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 shadow-md [&>svg]:h-4 [&>svg]:w-4" />
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.mockup_url)}>
-                          <Download className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Baixar</TooltipContent>
-                    </Tooltip>
-
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="icon" variant="destructive" className="h-8 w-8 shadow-md" onClick={() => onDelete(mockup.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Excluir</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )
 
             {/* Pagination */}
             {totalPages > 1 && (
