@@ -117,25 +117,39 @@ export function MockupHistoryPanel({
   const compareMode = selectedForCompare.size > 0;
   const compareMockups = mockupHistory.filter(m => selectedForCompare.has(m.id));
 
+  // Extract unique techniques from history
+  const historyTechniques = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const m of mockupHistory) {
+      if (m.technique_name) {
+        const tech = techniques.find(t => t.name === m.technique_name);
+        map.set(m.technique_name, tech?.id || m.technique_name);
+      }
+    }
+    return Array.from(map.entries()).map(([name, id]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [mockupHistory, techniques]);
+
   const filteredMockups = useMemo(() => {
     return mockupHistory.filter((mockup) => {
-      // Client filter: check client_id OR client_name for matching
+      // Client filter
       const mockupClientName = mockup.client_name || mockup.bitrix_clients?.name;
       const hasClient = mockup.client_id || mockupClientName;
       if (filterClient === "none" && hasClient) return false;
       if (filterClient !== "all" && filterClient !== "none") {
-        // Match by client_id or by client_name (for entries without FK)
         if (mockup.client_id !== filterClient && mockupClientName !== filterClient) return false;
       }
+      // Product filter (name + SKU)
       if (filterProduct) {
         const q = filterProduct.toLowerCase();
         const matchName = mockup.product_name.toLowerCase().includes(q);
         const matchSku = mockup.product_sku?.toLowerCase().includes(q);
         if (!matchName && !matchSku) return false;
       }
-      
-      const selectedTech = techniques.find(t => t.id === filterTechnique);
-      if (filterTechnique !== "all" && selectedTech && mockup.technique_name !== selectedTech.name) return false;
+      // Technique filter
+      if (filterTechnique !== "all") {
+        const selectedTech = historyTechniques.find(t => t.id === filterTechnique);
+        if (selectedTech && mockup.technique_name !== selectedTech.name) return false;
+      }
 
       // Date range filter
       if (filterDateRange !== "all") {
@@ -149,7 +163,7 @@ export function MockupHistoryPanel({
 
       return true;
     });
-  }, [mockupHistory, filterClient, filterProduct, filterTechnique, filterDateRange, techniques]);
+  }, [mockupHistory, filterClient, filterProduct, filterTechnique, filterDateRange, historyTechniques]);
 
   const totalPages = Math.ceil(filteredMockups.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -226,7 +240,7 @@ export function MockupHistoryPanel({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as técnicas</SelectItem>
-                {techniques.map((t) => (
+                {historyTechniques.map((t) => (
                   <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
                 ))}
               </SelectContent>
