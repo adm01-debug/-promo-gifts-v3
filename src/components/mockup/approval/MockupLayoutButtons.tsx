@@ -273,21 +273,10 @@ export function MockupLayoutButtons({
     <>
       <div className="flex items-center gap-2">
         <Button
-          variant="outline"
-          size="sm"
-          onClick={handleLayoutAI}
-          disabled={!generatedMockup}
-          className="flex-1 gap-1.5"
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          Gerar Layout - IA
-        </Button>
-        <Button
-          variant="outline"
           size="sm"
           onClick={handleLayoutStatic}
           disabled={!activeArea?.logoPreview || isGeneratingStatic}
-          className="flex-1 gap-1.5"
+          className="flex-1 gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {isGeneratingStatic ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -295,6 +284,15 @@ export function MockupLayoutButtons({
             <ImageIcon className="h-3.5 w-3.5" />
           )}
           Gerar Layout
+        </Button>
+        <Button
+          size="sm"
+          onClick={handleLayoutAI}
+          disabled={!generatedMockup}
+          className="flex-1 gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <Sparkles className="h-3.5 w-3.5" />
+          Gerar Layout - IA
         </Button>
       </div>
 
