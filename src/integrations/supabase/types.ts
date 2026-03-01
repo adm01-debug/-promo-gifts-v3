@@ -1157,8 +1157,11 @@ export type Database = {
         Row: {
           annotations: Json | null
           client_id: string | null
+          colors_count: number | null
           created_at: string
           id: string
+          layout_url: string | null
+          location_name: string | null
           logo_height_cm: number | null
           logo_url: string
           logo_width_cm: number | null
@@ -1175,8 +1178,11 @@ export type Database = {
         Insert: {
           annotations?: Json | null
           client_id?: string | null
+          colors_count?: number | null
           created_at?: string
           id?: string
+          layout_url?: string | null
+          location_name?: string | null
           logo_height_cm?: number | null
           logo_url: string
           logo_width_cm?: number | null
@@ -1193,8 +1199,11 @@ export type Database = {
         Update: {
           annotations?: Json | null
           client_id?: string | null
+          colors_count?: number | null
           created_at?: string
           id?: string
+          layout_url?: string | null
+          location_name?: string | null
           logo_height_cm?: number | null
           logo_url?: string
           logo_width_cm?: number | null
