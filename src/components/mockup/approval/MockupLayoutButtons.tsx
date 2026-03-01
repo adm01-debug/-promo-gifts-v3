@@ -314,7 +314,7 @@ export function MockupLayoutButtons({
           </TooltipTrigger>
           {!generatedMockup && (
             <TooltipContent side="bottom">
-              <p>Gere um mockup com IA primeiro</p>
+              <p>Clique em "Gerar Mockup" primeiro para criar a imagem com IA</p>
             </TooltipContent>
           )}
         </Tooltip>
