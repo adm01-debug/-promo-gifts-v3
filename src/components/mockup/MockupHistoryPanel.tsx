@@ -499,6 +499,9 @@ export function MockupHistoryPanel({
 
                     {/* Info */}
                     <div className="flex-1 min-w-0 space-y-1">
+                      {mockup.client_name && (
+                        <p className="text-sm text-primary font-semibold truncate">👤 {mockup.client_name}</p>
+                      )}
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-sm truncate">{mockup.product_name}</span>
                         {mockup.product_sku && (
@@ -527,9 +530,6 @@ export function MockupHistoryPanel({
                         )}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        {mockup.client_name && (
-                          <span className="text-primary font-medium">👤 {mockup.client_name}</span>
-                        )}
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
