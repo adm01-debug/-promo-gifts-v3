@@ -6,7 +6,7 @@
  * auto-clears and calls `onCaptured`.
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MockupApprovalTemplate } from "./MockupApprovalTemplate";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,7 @@ interface OffscreenLayoutCaptureProps {
 
 export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutCaptureProps) {
   const templateRef = useRef<HTMLDivElement>(null);
-  const isCapturingRef = useRef(false);
+  const [isCapturing, setIsCapturing] = useState(false);
   const processedRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
 
@@ -39,7 +39,7 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
   }, []);
 
   useEffect(() => {
-    if (!request || isCapturingRef.current || processedRef.current === request.recordId) return;
+    if (!request || isCapturing || processedRef.current === request.recordId) return;
 
     const capture = async () => {
       // Wait for template to render
@@ -68,7 +68,7 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
       await new Promise(r => setTimeout(r, 500));
       if (!templateRef.current || !mountedRef.current) return;
 
-      isCapturingRef.current = true;
+      setIsCapturing(true);
       processedRef.current = request.recordId;
       const currentRecordId = request.recordId;
 
@@ -104,10 +104,15 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
           .getPublicUrl(storagePath);
 
         // Update DB record
-        await supabase
+        const { error: updateError } = await supabase
           .from("generated_mockups")
           .update({ layout_url: urlData.publicUrl } as any)
           .eq("id", currentRecordId);
+
+        if (updateError) {
+          console.error("Layout auto-capture DB update error:", updateError);
+          return;
+        }
 
         console.log("Layout auto-captured for record:", currentRecordId);
         if (mountedRef.current) {
@@ -116,13 +121,12 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
       } catch (err) {
         console.error("Layout auto-capture error:", err);
       } finally {
-        isCapturingRef.current = false;
+        if (mountedRef.current) setIsCapturing(false);
       }
     };
 
     capture();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [request?.recordId]);
+  }, [request?.recordId, isCapturing]);
 
   if (!request) return null;
 
