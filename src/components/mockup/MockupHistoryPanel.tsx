@@ -127,7 +127,12 @@ export function MockupHistoryPanel({
         // Match by client_id or by client_name (for entries without FK)
         if (mockup.client_id !== filterClient && mockupClientName !== filterClient) return false;
       }
-      if (filterProduct && !mockup.product_name.toLowerCase().includes(filterProduct.toLowerCase())) return false;
+      if (filterProduct) {
+        const q = filterProduct.toLowerCase();
+        const matchName = mockup.product_name.toLowerCase().includes(q);
+        const matchSku = mockup.product_sku?.toLowerCase().includes(q);
+        if (!matchName && !matchSku) return false;
+      }
       
       const selectedTech = techniques.find(t => t.id === filterTechnique);
       if (filterTechnique !== "all" && selectedTech && mockup.technique_name !== selectedTech.name) return false;
@@ -207,7 +212,7 @@ export function MockupHistoryPanel({
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Produto</Label>
             <Input
-              placeholder="Buscar por nome..."
+              placeholder="Buscar por nome ou SKU..."
               value={filterProduct}
               onChange={(e) => { setFilterProduct(e.target.value); setCurrentPage(1); }}
               className="h-9"
