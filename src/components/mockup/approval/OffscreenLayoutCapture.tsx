@@ -39,8 +39,30 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
     if (!request || isCapturingRef.current || processedRef.current === request.recordId) return;
 
     const capture = async () => {
-      // Wait for template to render and images to load
-      await new Promise(r => setTimeout(r, 2000));
+      // Wait for template to render
+      await new Promise(r => setTimeout(r, 500));
+      if (!templateRef.current || !mountedRef.current) return;
+
+      // Wait for all images inside the template to load
+      const images = templateRef.current.querySelectorAll("img");
+      if (images.length > 0) {
+        await Promise.all(
+          Array.from(images).map(
+            (img) =>
+              img.complete
+                ? Promise.resolve()
+                : new Promise<void>((resolve) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve(); // don't block on broken images
+                    // Timeout safety: resolve after 8s even if image never loads
+                    setTimeout(resolve, 8000);
+                  })
+          )
+        );
+      }
+
+      // Extra buffer for rendering after images load
+      await new Promise(r => setTimeout(r, 500));
       if (!templateRef.current || !mountedRef.current) return;
 
       isCapturingRef.current = true;
