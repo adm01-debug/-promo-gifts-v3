@@ -69,7 +69,7 @@ export async function downloadImageFromUrl(
   fileName: string
 ): Promise<void> {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, { cache: "no-store" });
     const blob = await response.blob();
     const blobUrl = URL.createObjectURL(blob);
 
@@ -88,3 +88,76 @@ export async function downloadImageFromUrl(
     window.open(url, "_blank");
   }
 }
+
+/**
+ * Download an image URL wrapped inside a single-page PDF.
+ */
+export async function downloadImageAsPdfFromUrl(
+  url: string,
+  fileName: string
+): Promise<void> {
+  try {
+    const [{ jsPDF }, response] = await Promise.all([
+      import("jspdf"),
+      fetch(url, { cache: "no-store" }),
+    ]);
+
+    if (!response.ok) {
+      throw new Error(`Falha ao baixar imagem (${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const dataUrl = await blobToDataUrl(blob);
+    const imageInfo = await getImageInfo(dataUrl);
+
+    const orientation = imageInfo.width > imageInfo.height ? "landscape" : "portrait";
+    const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imageRatio = imageInfo.width / imageInfo.height;
+    const pageRatio = pageWidth / pageHeight;
+
+    let renderWidth = pageWidth;
+    let renderHeight = pageHeight;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (imageRatio > pageRatio) {
+      renderHeight = pageWidth / imageRatio;
+      offsetY = (pageHeight - renderHeight) / 2;
+    } else {
+      renderWidth = pageHeight * imageRatio;
+      offsetX = (pageWidth - renderWidth) / 2;
+    }
+
+    const imageFormat = blob.type.includes("png") ? "PNG" : "JPEG";
+    pdf.addImage(dataUrl, imageFormat, offsetX, offsetY, renderWidth, renderHeight, undefined, "FAST");
+
+    const pdfFileName = fileName.toLowerCase().endsWith(".pdf") ? fileName : `${fileName}.pdf`;
+    pdf.save(pdfFileName);
+  } catch (err) {
+    console.error("[mockup-storage] PDF download error:", err);
+    window.open(url, "_blank");
+  }
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Falha ao converter blob para data URL"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function getImageInfo(src: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => reject(new Error("Falha ao carregar imagem para PDF"));
+    img.src = src;
+  });
+}
+
