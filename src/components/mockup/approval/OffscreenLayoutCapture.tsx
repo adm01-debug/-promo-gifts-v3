@@ -6,7 +6,7 @@
  * auto-clears and calls `onCaptured`.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { MockupApprovalTemplate } from "./MockupApprovalTemplate";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,24 +20,32 @@ export interface LayoutCaptureRequest {
 
 interface OffscreenLayoutCaptureProps {
   request: LayoutCaptureRequest | null;
-  onCaptured?: () => void;
+  onCaptured?: (recordId: string) => void;
 }
 
 export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutCaptureProps) {
   const templateRef = useRef<HTMLDivElement>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
+  const isCapturingRef = useRef(false);
   const processedRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+
+  // Track mount state
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
-    if (!request || isCapturing || processedRef.current === request.recordId) return;
+    if (!request || isCapturingRef.current || processedRef.current === request.recordId) return;
 
     const capture = async () => {
       // Wait for template to render and images to load
       await new Promise(r => setTimeout(r, 2000));
-      if (!templateRef.current) return;
+      if (!templateRef.current || !mountedRef.current) return;
 
-      setIsCapturing(true);
+      isCapturingRef.current = true;
       processedRef.current = request.recordId;
+      const currentRecordId = request.recordId;
 
       try {
         const html2canvas = (await import("html2canvas")).default;
@@ -48,6 +56,9 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
           backgroundColor: "#ffffff",
           logging: false,
         });
+
+        if (!mountedRef.current) return;
+
         const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
 
         // Upload to storage
@@ -71,19 +82,22 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
         await supabase
           .from("generated_mockups")
           .update({ layout_url: urlData.publicUrl } as any)
-          .eq("id", request.recordId);
+          .eq("id", currentRecordId);
 
-        console.log("Layout auto-captured for record:", request.recordId);
-        onCaptured?.();
+        console.log("Layout auto-captured for record:", currentRecordId);
+        if (mountedRef.current) {
+          onCaptured?.(currentRecordId);
+        }
       } catch (err) {
         console.error("Layout auto-capture error:", err);
       } finally {
-        setIsCapturing(false);
+        isCapturingRef.current = false;
       }
     };
 
     capture();
-  }, [request, isCapturing, onCaptured]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [request?.recordId]);
 
   if (!request) return null;
 

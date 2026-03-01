@@ -118,6 +118,7 @@ export function useMockupGenerator() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mockupToDelete, setMockupToDelete] = useState<string | null>(null);
   const [lastSavedRecordId, setLastSavedRecordId] = useState<string | null>(null);
+  const [lastSavedMockupUrl, setLastSavedMockupUrl] = useState<string | null>(null);
 
   // Draft
   const [hasDraftRestored, setHasDraftRestored] = useState(false);
@@ -560,7 +561,10 @@ export function useMockupGenerator() {
         if (response.data?.mockupUrl) {
           setGeneratedMockup(response.data.mockupUrl);
           const recordId = await saveMockupToHistory(response.data.mockupUrl, primaryArea);
-          if (recordId) setLastSavedRecordId(recordId);
+          if (recordId) {
+            setLastSavedMockupUrl(response.data.mockupUrl);
+            setLastSavedRecordId(recordId);
+          }
           showMockupSuccessToast({
             mockupUrl: response.data.mockupUrl,
             productName: selectedProduct!.name,
@@ -602,7 +606,11 @@ export function useMockupGenerator() {
           if (response.data?.mockupUrl) {
             results.push({ areaName: area.name, url: response.data.mockupUrl });
             const recordId = await saveMockupToHistory(response.data.mockupUrl, area);
-            if (recordId) setLastSavedRecordId(recordId);
+            // Only trigger layout capture for the last batch item
+            if (recordId && area === areasWithLogos[areasWithLogos.length - 1]) {
+              setLastSavedMockupUrl(response.data.mockupUrl);
+              setLastSavedRecordId(recordId);
+            }
           }
         }
 
@@ -660,6 +668,8 @@ export function useMockupGenerator() {
     setBeforeImage(null);
     setHasUserInteractedPosition(false);
     setTechniqueColorConfig(null);
+    setLastSavedRecordId(null);
+    setLastSavedMockupUrl(null);
     positionHistory.clear();
     clearDraft();
     logoColorAnalysis.clearAnalysis();
@@ -774,6 +784,8 @@ export function useMockupGenerator() {
     historyClients,
     lastSavedRecordId,
     setLastSavedRecordId,
+    lastSavedMockupUrl,
+    setLastSavedMockupUrl,
 
     // Draft
     isDraftSaving,
