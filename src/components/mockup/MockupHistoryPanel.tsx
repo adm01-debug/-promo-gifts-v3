@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -107,7 +106,12 @@ export function MockupHistoryPanel({
   const [selectedForCompare, setSelectedForCompare] = useState<Set<string>>(new Set());
   const [showCompare, setShowCompare] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(() => getDefaultColumns());
+
+  const handleSetViewMode = (mode: "grid" | "list") => {
+    setViewMode(mode);
+    setCurrentPage(1);
+  };
 
   const toggleCompareSelection = (id: string) => {
     setSelectedForCompare(prev => {
@@ -208,7 +212,7 @@ export function MockupHistoryPanel({
             )}
             <LayoutPopover
               viewMode={viewMode}
-              setViewMode={setViewMode}
+              setViewMode={handleSetViewMode}
               gridColumns={gridColumns}
               setGridColumns={setGridColumns}
             />
@@ -316,7 +320,7 @@ export function MockupHistoryPanel({
               {totalPages > 1 && <span>Página {currentPage} de {totalPages}</span>}
             </div>
 
-            <>
+            
             {viewMode === "grid" ? (
               <div
                 className="grid gap-4"
@@ -548,7 +552,7 @@ export function MockupHistoryPanel({
                 ))}
               </div>
             )}
-            </>
+
 
             {/* Pagination */}
             {totalPages > 1 && (
