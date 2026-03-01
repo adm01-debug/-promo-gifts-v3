@@ -5,7 +5,7 @@
  * Includes: filters (client, product, technique, date), grid, pagination.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
@@ -34,7 +34,10 @@ import {
   MapPin,
   Palette,
   FileImage,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MockupHistorySkeleton } from "./MockupSkeleton";
@@ -106,6 +109,8 @@ export function MockupHistoryPanel({
   const [showCompare, setShowCompare] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => getDefaultColumns());
+  const [lightboxMockup, setLightboxMockup] = useState<GeneratedMockup | null>(null);
+  const [lightboxZoom, setLightboxZoom] = useState(1);
 
   const handleSetViewMode = (mode: "grid" | "list") => {
     setViewMode(mode);
@@ -185,6 +190,16 @@ export function MockupHistoryPanel({
     setFilterDateRange("all");
     setCurrentPage(1);
   };
+
+  const openLightbox = useCallback((mockup: GeneratedMockup) => {
+    setLightboxMockup(mockup);
+    setLightboxZoom(1);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setLightboxMockup(null);
+    setLightboxZoom(1);
+  }, []);
 
   return (
     <Card>
@@ -348,7 +363,10 @@ export function MockupHistoryPanel({
                       </div>
                     </div>
 
-                    <div className="aspect-[3/4] bg-muted/30 overflow-hidden">
+                    <div
+                      className="aspect-[3/4] bg-muted/30 overflow-hidden cursor-pointer"
+                      onClick={() => openLightbox(mockup)}
+                    >
                       <img
                         src={mockup.layout_url || mockup.mockup_url}
                         alt={`Mockup de ${mockup.product_name}`}
@@ -601,6 +619,79 @@ export function MockupHistoryPanel({
         mockups={compareMockups}
         onDownload={onDownload}
       />
+
+      {/* Lightbox Dialog */}
+      <Dialog open={!!lightboxMockup} onOpenChange={(open) => { if (!open) closeLightbox(); }}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-0 bg-background/95 backdrop-blur-xl [&>button]:hidden">
+          {lightboxMockup && (
+            <div className="relative flex flex-col items-center justify-center w-full h-full min-h-[70vh]">
+              {/* Top bar */}
+              <div className="absolute top-3 left-3 z-10">
+                <div className="bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md space-y-0.5">
+                  <p className="font-medium text-sm">{lightboxMockup.product_name}</p>
+                  {lightboxMockup.product_sku && (
+                    <p className="text-[10px] text-muted-foreground font-mono">{lightboxMockup.product_sku}</p>
+                  )}
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{lightboxMockup.technique_name}</Badge>
+                    {lightboxMockup.location_name && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
+                        <MapPin className="h-2.5 w-2.5" />
+                        {lightboxMockup.location_name}
+                      </Badge>
+                    )}
+                  </div>
+                  {lightboxMockup.client_name && (
+                    <p className="text-xs text-primary font-medium">👤 {lightboxMockup.client_name}</p>
+                  )}
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {formatDistanceToNow(new Date(lightboxMockup.created_at), { addSuffix: true, locale: ptBR })}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+                <Button size="sm" variant="secondary" className="gap-1.5 shadow-md" onClick={() => onLoadFromHistory(lightboxMockup)}>
+                  <RotateCcw className="h-4 w-4" /> Regenerar
+                </Button>
+                <ShareMenu mockupUrl={lightboxMockup.mockup_url} productName={lightboxMockup.product_name} techniqueName={lightboxMockup.technique_name} />
+                <Button size="sm" variant="secondary" className="gap-1.5 shadow-md" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
+                  <Download className="h-4 w-4" /> Baixar PDF
+                </Button>
+                <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={closeLightbox}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Zoom controls */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg">
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <span className="text-xs font-medium w-14 text-center">{Math.round(lightboxZoom * 100)}%</span>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setLightboxZoom(1)}>
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+
+              {/* Image */}
+              <div className="overflow-auto w-full h-full flex items-center justify-center p-8" style={{ cursor: lightboxZoom > 1 ? "grab" : "default" }}>
+                <img
+                  src={lightboxMockup.layout_url || lightboxMockup.mockup_url}
+                  alt={`Mockup de ${lightboxMockup.product_name}`}
+                  className="max-w-full max-h-[85vh] object-contain transition-transform duration-200"
+                  style={{ transform: `scale(${lightboxZoom})` }}
+                />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
