@@ -160,11 +160,11 @@ export default function MockupGenerator() {
   }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
 
   // Stable callback for layout capture completion
-  const handleLayoutCaptured = useCallback((recordId: string) => {
+  const handleLayoutCaptured = useCallback(() => {
     mg.setLastSavedRecordId(null);
     mg.setLastSavedMockupUrl(null);
     mg.fetchHistory();
-  }, [mg.fetchHistory]);
+  }, [mg.setLastSavedRecordId, mg.setLastSavedMockupUrl, mg.fetchHistory]);
 
   // ─── Render ─────────────────────────────────────────────────────────
 
@@ -408,10 +408,12 @@ export default function MockupGenerator() {
                         colorsCount={mg.techniqueColorConfig?.colorCount}
                         onStaticGenerated={async (dataUrl, extra) => {
                           if (mg.activeArea) {
-                            await mg.saveMockupToHistory(dataUrl, mg.activeArea, extra);
-                            // NOTE: We do NOT set lastSavedRecordId here because MockupLayoutButtons
-                            // opens MockupApprovalPreview which has its own layout capture via onLayoutCaptured.
-                            // Setting lastSavedRecordId would trigger OffscreenLayoutCapture causing a duplicate.
+                            const recordId = await mg.saveMockupToHistory(dataUrl, mg.activeArea, extra);
+                            if (recordId) {
+                              mg.setLastSavedMockupUrl(dataUrl);
+                              mg.setLastSavedLayoutMode('static');
+                              mg.setLastSavedRecordId(recordId);
+                            }
                           }
                         }}
                       />
