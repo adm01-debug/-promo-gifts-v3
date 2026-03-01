@@ -117,6 +117,7 @@ export function useMockupGenerator() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mockupToDelete, setMockupToDelete] = useState<string | null>(null);
+  const [lastSavedRecordId, setLastSavedRecordId] = useState<string | null>(null);
 
   // Draft
   const [hasDraftRestored, setHasDraftRestored] = useState(false);
@@ -425,8 +426,8 @@ export function useMockupGenerator() {
     return TECHNIQUE_PROMPTS.default;
   };
 
-  const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea, extra?: { layoutUrl?: string; locationName?: string; colorsCount?: number }) => {
-    if (!user || !selectedProduct || !selectedTechnique || !area.logoPreview) return;
+  const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea, extra?: { layoutUrl?: string; locationName?: string; colorsCount?: number }): Promise<string | null> => {
+    if (!user || !selectedProduct || !selectedTechnique || !area.logoPreview) return null;
 
     try {
       let logoUrl = area.logoPreview;
@@ -470,7 +471,7 @@ export function useMockupGenerator() {
         if (clientRow) safeClientId = selectedClient.id;
       }
 
-      const { error } = await supabase.from("generated_mockups").insert({
+      const { data: insertedRow, error } = await supabase.from("generated_mockups").insert({
         seller_id: user.id,
         client_id: safeClientId,
         product_id: safeProductId,
@@ -488,12 +489,14 @@ export function useMockupGenerator() {
         location_name: extra?.locationName || area.name || null,
         colors_count: extra?.colorsCount || null,
         annotations: mockupAnnotations.length > 0 ? mockupAnnotations : null,
-      } as any);
+      } as any).select("id").single();
 
       if (error) throw error;
       fetchHistory();
+      return insertedRow?.id || null;
     } catch (error) {
       console.error("Error saving to history:", error);
+      return null;
     }
   };
 
@@ -556,7 +559,8 @@ export function useMockupGenerator() {
         }
         if (response.data?.mockupUrl) {
           setGeneratedMockup(response.data.mockupUrl);
-          await saveMockupToHistory(response.data.mockupUrl, primaryArea);
+          const recordId = await saveMockupToHistory(response.data.mockupUrl, primaryArea);
+          if (recordId) setLastSavedRecordId(recordId);
           showMockupSuccessToast({
             mockupUrl: response.data.mockupUrl,
             productName: selectedProduct!.name,
@@ -597,7 +601,8 @@ export function useMockupGenerator() {
           }
           if (response.data?.mockupUrl) {
             results.push({ areaName: area.name, url: response.data.mockupUrl });
-            await saveMockupToHistory(response.data.mockupUrl, area);
+            const recordId = await saveMockupToHistory(response.data.mockupUrl, area);
+            if (recordId) setLastSavedRecordId(recordId);
           }
         }
 
@@ -767,6 +772,8 @@ export function useMockupGenerator() {
     loadFromHistory,
     handleShareMockup,
     historyClients,
+    lastSavedRecordId,
+    setLastSavedRecordId,
 
     // Draft
     isDraftSaving,
@@ -796,5 +803,6 @@ export function useMockupGenerator() {
     getProductImage,
     resetForm,
     saveMockupToHistory,
+    fetchHistory,
   };
 }

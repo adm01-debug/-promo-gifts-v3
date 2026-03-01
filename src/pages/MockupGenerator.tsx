@@ -5,7 +5,7 @@
  * This page component is now purely presentational.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,13 +39,16 @@ import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 import { MockupLayoutButtons } from "@/components/mockup/approval/MockupLayoutButtons";
+import { OffscreenLayoutCapture, type LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
 import { useAuth } from "@/contexts/AuthContext";
+import type { MockupApprovalData } from "@/types/mockup-approval";
 
 // ─── Component ───────────────────────────────────────────────────────
 
 export default function MockupGenerator() {
   const mg = useMockupGenerator();
   const { profile } = useAuth();
+  const user = mg.user;
 
   // Technique change confirmation
   const [pendingTechnique, setPendingTechnique] = useState<any>(null);
@@ -99,10 +102,72 @@ export default function MockupGenerator() {
     isLoading: mg.isLoading,
   });
 
+  // Build layout capture request when a new mockup is saved to history
+  const layoutCaptureRequest = useMemo((): LayoutCaptureRequest | null => {
+    if (!mg.lastSavedRecordId || !user?.id || !mg.selectedProduct || !mg.selectedTechnique) return null;
+    
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const docNumber = `MK-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
+
+    const approvalData: MockupApprovalData = {
+      documentNumber: docNumber,
+      date: dateStr,
+      client: {
+        name: mg.selectedClient?.nome_fantasia || mg.selectedClient?.razao_social || mg.selectedClient?.name || "—",
+        cnpj: mg.selectedClient?.cnpj,
+        logoUrl: mg.selectedClient?.logo_url || undefined,
+      },
+      seller: {
+        name: profile?.full_name || "—",
+        email: profile?.email || undefined,
+      },
+      product: {
+        name: mg.selectedProduct.name,
+        sku: mg.selectedProduct.sku,
+        imageUrl: mg.getProductImage() || undefined,
+        color: mg.productSelection?.selectedColor?.name,
+        colorHex: mg.productSelection?.selectedColor?.hex,
+        material: mg.selectedProduct.materials?.[0],
+        heightCm: mg.selectedProduct.dimensions?.height_cm ?? null,
+        widthCm: mg.selectedProduct.dimensions?.width_cm ?? null,
+        diameterCm: mg.selectedProduct.dimensions?.diameter_cm ?? null,
+        depthCm: mg.selectedProduct.dimensions?.length_cm ?? null,
+        capacityMl: mg.selectedProduct.dimensions?.capacity_ml ?? null,
+        weightG: mg.selectedProduct.dimensions?.weight_g ?? null,
+      },
+      personalization: {
+        techniqueName: mg.selectedTechnique.name,
+        techniqueCode: mg.selectedTechnique.code || undefined,
+        locationName: ('locationName' in mg.selectedTechnique ? (mg.selectedTechnique as any).locationName : null) || mg.activeArea?.name || "Frente",
+        widthCm: mg.activeArea?.logoWidth || 0,
+        heightCm: mg.activeArea?.logoHeight || 0,
+        colorsCount: mg.techniqueColorConfig?.colorCount,
+      },
+      pantoneColors: (mg.logoColorAnalysis.colors || []).map((c: any) => ({
+        name: c.selectedPantone || c.pantoneMatch?.name || c.name,
+        hex: c.hex,
+      })),
+      mockupImageUrl: mg.generatedMockup || "",
+      layoutMode: mg.generatedMockup ? "ai" : "static",
+    };
+
+    return { data: approvalData, recordId: mg.lastSavedRecordId, userId: user.id };
+  }, [mg.lastSavedRecordId, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
+
   // ─── Render ─────────────────────────────────────────────────────────
 
   return (
     <MainLayout>
+      {/* Offscreen layout capture - auto-captures approval document after mockup generation */}
+      <OffscreenLayoutCapture
+        request={layoutCaptureRequest}
+        onCaptured={() => {
+          mg.setLastSavedRecordId(null);
+          mg.fetchHistory();
+        }}
+      />
+
       <GeneratingOverlay
         isVisible={mg.isLoading}
         productName={mg.selectedProduct?.name}
@@ -333,38 +398,10 @@ export default function MockupGenerator() {
                         productWidthCm={mg.selectedProduct?.dimensions?.width_cm ?? mg.selectedProduct?.dimensions?.diameter_cm ?? (mg.selectedProduct?.metadata?.width_mm ? mg.selectedProduct.metadata.width_mm / 10 : null)}
                         pantoneColors={mg.logoColorAnalysis.colors}
                         colorsCount={mg.techniqueColorConfig?.colorCount}
-                        onStaticGenerated={(dataUrl, extra) => {
+                        onStaticGenerated={async (dataUrl, extra) => {
                           if (mg.activeArea) {
-                            mg.saveMockupToHistory(dataUrl, mg.activeArea, extra);
-                          }
-                        }}
-                        onLayoutCaptured={async (layoutDataUrl) => {
-                          // Upload layout image and update the latest history entry
-                          try {
-                            const { supabase } = await import("@/integrations/supabase/client");
-                            const blob = await (await fetch(layoutDataUrl)).blob();
-                            const fileName = `layout-${Date.now()}.jpg`;
-                            const storagePath = `mockup-layouts/${user?.id || "unknown"}/${fileName}`;
-                            const { error: uploadError } = await supabase.storage
-                              .from("mockup-assets")
-                              .upload(storagePath, blob, { contentType: "image/jpeg", upsert: true });
-                            if (uploadError) {
-                              console.error("Layout upload error:", uploadError);
-                              return;
-                            }
-                            const { data: urlData } = supabase.storage
-                              .from("mockup-assets")
-                              .getPublicUrl(storagePath);
-                            // Update the most recent history entry with layout_url
-                            if (mg.mockupHistory.length > 0) {
-                              const latestId = mg.mockupHistory[0].id;
-                              await supabase
-                                .from("generated_mockups")
-                                .update({ layout_url: urlData.publicUrl } as any)
-                                .eq("id", latestId);
-                            }
-                          } catch (err) {
-                            console.error("Layout capture save error:", err);
+                            const recordId = await mg.saveMockupToHistory(dataUrl, mg.activeArea, extra);
+                            if (recordId) mg.setLastSavedRecordId(recordId);
                           }
                         }}
                       />
