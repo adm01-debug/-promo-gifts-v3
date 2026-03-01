@@ -127,14 +127,14 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
   });
   const { isAdmin } = useAuth();
 
-  // Auto-open group containing the active route on navigation
+  // Auto-open only the group containing the active route, collapse others
   useEffect(() => {
+    const newState: Record<string, boolean> = {};
     navGroups.forEach((group) => {
       const hasActive = group.items.some((item) => isItemActive(item.href, item.exact));
-      if (hasActive) {
-        setOpenGroups((prev) => prev[group.id] ? prev : { ...prev, [group.id]: true });
-      }
+      newState[group.id] = hasActive;
     });
+    setOpenGroups(newState);
   }, [location.pathname]);
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
