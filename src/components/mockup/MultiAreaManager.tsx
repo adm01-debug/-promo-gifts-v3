@@ -71,7 +71,7 @@ export function MultiAreaManager({
         }
       }}
       className={cn(
-        "transition-all duration-200",
+        "transition-all duration-200 border-border/30",
         isDraggingOver && "ring-2 ring-primary border-primary bg-primary/5"
       )}
     >
