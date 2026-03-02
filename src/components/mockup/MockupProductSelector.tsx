@@ -134,7 +134,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   // ─── State: Product + Color confirmed ──────────────────────────────
   if (selection) {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/30 bg-card">
         <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden shrink-0">
           <img
             src={selection.imageUrl}
@@ -258,7 +258,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
           {isFilterPending ? (
             <div className="space-y-2 p-2">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-lg border">
+                <div key={i} className="flex items-center gap-4 p-3 rounded-lg border border-border/30">
                   <Skeleton className="w-12 h-12 rounded-md" />
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-3/4" />
@@ -305,7 +305,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                   >
                     <div
                       onClick={() => handleProductPick(product)}
-                      className="group flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border cursor-pointer transition-all duration-200 h-full"
+                      className="group flex items-center gap-3 px-3 py-2 rounded-lg border border-transparent hover:bg-accent/60 hover:border-border/30 cursor-pointer transition-all duration-200 h-full"
                     >
                       {/* Thumbnail */}
                       <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden shrink-0">
@@ -416,7 +416,7 @@ function ColorSelector({
     // Use effect-like behavior: call onSelect(null) after render
     setTimeout(() => onSelect(null), 0);
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border bg-card animate-pulse">
+      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/30 bg-card animate-pulse">
         <Skeleton className="w-11 h-11 rounded-lg" />
         <Skeleton className="h-4 w-40" />
       </div>
@@ -425,7 +425,7 @@ function ColorSelector({
 
   if (isLoading) {
     return (
-      <div className="border rounded-lg p-4 space-y-4">
+      <div className="border border-border/30 rounded-lg p-4 space-y-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
@@ -441,7 +441,7 @@ function ColorSelector({
   }
 
   return (
-    <div className="border rounded-lg p-4 space-y-4">
+    <div className="border border-border/30 rounded-lg p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={onBack}>
@@ -460,9 +460,9 @@ function ColorSelector({
       {/* No color option */}
       <button
         onClick={() => onSelect(null)}
-        className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-colors text-left text-sm text-muted-foreground"
+        className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border/30 hover:border-primary/50 hover:bg-muted/50 transition-colors text-left text-sm text-muted-foreground"
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 via-green-400 to-blue-400 border border-border shrink-0" />
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 via-green-400 to-blue-400 border border-border/30 shrink-0" />
         <span>Adicionar sem cor específica</span>
       </button>
 
@@ -481,8 +481,8 @@ function ColorSelector({
                 'relative flex items-center gap-2.5 p-3 rounded-lg border transition-all text-left',
                 'hover:border-primary/50 hover:bg-accent',
                 isOutOfStock
-                  ? 'opacity-60 border-border bg-muted/30'
-                  : 'border-border bg-card'
+                  ? 'opacity-60 border-border/30 bg-muted/30'
+                  : 'border-border/30 bg-card'
               )}
             >
               {variant.selected_thumbnail ? (
