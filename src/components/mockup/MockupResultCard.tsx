@@ -81,7 +81,7 @@ export function MockupResultCard({
   // Loading State
   if (isLoading) {
     return (
-      <Card className={cn("overflow-hidden", className)}>
+      <Card className={cn("overflow-hidden border-border/30", className)}>
         <CardContent className="py-12">
           <div className="text-center space-y-6">
             <div className="relative mx-auto w-24 h-24">
@@ -114,7 +114,7 @@ export function MockupResultCard({
     return (
       <Card
         className={cn(
-          "overflow-hidden transition-all duration-500",
+          "overflow-hidden transition-all duration-500 border-border/30",
           showSuccess && "ring-2 ring-success shadow-lg shadow-success/20",
           className
         )}

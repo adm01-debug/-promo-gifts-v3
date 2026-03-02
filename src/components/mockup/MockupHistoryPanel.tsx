@@ -202,7 +202,7 @@ export function MockupHistoryPanel({
   }, []);
 
   return (
-    <Card>
+    <Card className="border-border/30">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
