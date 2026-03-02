@@ -46,8 +46,8 @@ export function AreaCard({
       className={cn(
         "flex items-center gap-2 p-2.5 rounded-lg border transition-all duration-200 cursor-pointer group",
         isActive
-          ? "border-primary bg-primary/5 shadow-sm shadow-primary/10"
-          : "border-border hover:border-primary/50 hover:bg-muted/50"
+          ? "border-primary/60 bg-primary/5 shadow-sm shadow-primary/10"
+          : "border-border/30 hover:border-primary/40 hover:bg-muted/50"
       )}
       onClick={onSelect}
       role="button"
@@ -93,7 +93,7 @@ export function AreaCard({
       {area.logoPreview ? (
         <div className="flex items-center gap-1 flex-shrink-0">
           {/* Logo thumbnail */}
-          <div className="relative h-7 w-7 rounded border bg-background overflow-hidden">
+          <div className="relative h-7 w-7 rounded border border-border/30 bg-background overflow-hidden">
             <img src={area.logoPreview} alt="Logo" className="w-full h-full object-contain" />
           </div>
 
