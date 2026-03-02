@@ -346,7 +346,7 @@ export function MockupHistoryPanel({
                   <div
                     key={mockup.id}
                     className={cn(
-                      "group relative border rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
+                      "group relative border border-border/30 rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
                       selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
                     )}
                   >
@@ -472,7 +472,7 @@ export function MockupHistoryPanel({
                   <div
                     key={mockup.id}
                     className={cn(
-                      "group flex items-center gap-4 p-3 border rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
+                      "group flex items-center gap-4 p-3 border border-border/30 rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
                       selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
                     )}
                   >
