@@ -266,14 +266,9 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
     return (
       <div ref={ref}>
         <Popover open={isOpen} onOpenChange={setIsOpen}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} />
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent className="bg-card border-border">Notificações</TooltipContent>
-          </Tooltip>
+          <PopoverTrigger asChild>
+            <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} aria-label="Notificações" />
+          </PopoverTrigger>
 
           <PopoverContent
             className="w-[420px] p-0 rounded-xl border-border/50 shadow-xl overflow-hidden relative"

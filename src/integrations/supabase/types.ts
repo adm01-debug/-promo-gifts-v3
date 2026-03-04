@@ -73,6 +73,90 @@ export type Database = {
           },
         ]
       }
+      magic_up_generations: {
+        Row: {
+          client_name: string | null
+          created_at: string
+          generated_image_url: string | null
+          id: string
+          is_favorite: boolean | null
+          product_name: string | null
+          scene_category: string | null
+          scene_title: string | null
+          user_id: string
+        }
+        Insert: {
+          client_name?: string | null
+          created_at?: string
+          generated_image_url?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          product_name?: string | null
+          scene_category?: string | null
+          scene_title?: string | null
+          user_id: string
+        }
+        Update: {
+          client_name?: string | null
+          created_at?: string
+          generated_image_url?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          product_name?: string | null
+          scene_category?: string | null
+          scene_title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mockup_drafts: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          created_at: string
+          draft_key: string
+          id: string
+          logo_data: string | null
+          personalization_areas: Json | null
+          product_id: string | null
+          product_name: string | null
+          technique_id: string | null
+          technique_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          draft_key?: string
+          id?: string
+          logo_data?: string | null
+          personalization_areas?: Json | null
+          product_id?: string | null
+          product_name?: string | null
+          technique_id?: string | null
+          technique_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          draft_key?: string
+          id?: string
+          logo_data?: string | null
+          personalization_areas?: Json | null
+          product_id?: string | null
+          product_name?: string | null
+          technique_id?: string | null
+          technique_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
