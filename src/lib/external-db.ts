@@ -20,6 +20,71 @@ interface InvokeResult<T> {
   count: number;
 }
 
+interface BridgeResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+
+const BOOT_RETRY_ATTEMPTS = 3;
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function buildBridgeError(error: unknown): Promise<{ message: string; retryable: boolean }> {
+  let baseMessage = 'Erro desconhecido';
+  let status: number | undefined;
+  let responseBody = '';
+
+  if (error && typeof error === 'object') {
+    const maybeError = error as { message?: string; context?: Response };
+
+    if (typeof maybeError.message === 'string' && maybeError.message.trim()) {
+      baseMessage = maybeError.message;
+    }
+
+    if (maybeError.context instanceof Response) {
+      status = maybeError.context.status;
+      try {
+        responseBody = await maybeError.context.clone().text();
+      } catch {
+        // ignore body parse failures
+      }
+    }
+  }
+
+  const diagnostic = `${baseMessage} ${responseBody}`.toLowerCase();
+  const retryable =
+    status === 503 ||
+    diagnostic.includes('boot_error') ||
+    diagnostic.includes('function failed to start');
+
+  const details = responseBody ? `${baseMessage} | ${responseBody}` : baseMessage;
+  return { message: `Erro na bridge: ${details}`, retryable };
+}
+
+async function invokeBridge<T>(body: Record<string, unknown>): Promise<BridgeResponse<T>> {
+  for (let attempt = 1; attempt <= BOOT_RETRY_ATTEMPTS; attempt++) {
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
+
+    if (error) {
+      const parsed = await buildBridgeError(error);
+      if (parsed.retryable && attempt < BOOT_RETRY_ATTEMPTS) {
+        await sleep(250 * attempt);
+        continue;
+      }
+      throw new Error(parsed.message);
+    }
+
+    if (!data?.success) {
+      throw new Error(data?.error || 'Erro desconhecido no banco externo');
+    }
+
+    return data as BridgeResponse<T>;
+  }
+
+  throw new Error('Erro na bridge: tentativas esgotadas');
+}
+
 /**
  * Invoca o external-db-bridge para operações CRUD no banco Promobrind.
  * Esse é o método seguro e padronizado de acessar o banco externo,
@@ -28,24 +93,21 @@ interface InvokeResult<T> {
 export async function invokeExternalDb<T>(
   options: InvokeOptions
 ): Promise<InvokeResult<T>> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: options,
-  });
-
-  if (error) {
-    throw new Error(`Erro na bridge: ${error.message}`);
-  }
-
-  if (!data?.success) {
-    throw new Error(data?.error || 'Erro desconhecido no banco externo');
-  }
+  const response = await invokeBridge<InvokeResult<T> | T>(options as unknown as Record<string, unknown>);
+  const payload = response.data;
 
   // Para operações que retornam um único registro
-  if (options.operation !== 'select' && data.data && !Array.isArray(data.data)) {
-    return { records: [data.data as T], count: 1 };
+  if (
+    options.operation !== 'select' &&
+    payload &&
+    typeof payload === 'object' &&
+    !Array.isArray(payload) &&
+    !('records' in payload)
+  ) {
+    return { records: [payload as T], count: 1 };
   }
 
-  return data.data as InvokeResult<T>;
+  return payload as InvokeResult<T>;
 }
 
 /**
@@ -68,17 +130,11 @@ export async function invokeExternalDbDelete(
   table: string,
   id: string
 ): Promise<void> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: { table, operation: 'delete', id },
+  await invokeBridge<{ success: boolean; deleted_id: string }>({
+    table,
+    operation: 'delete',
+    id,
   });
-
-  if (error) {
-    throw new Error(`Erro na bridge: ${error.message}`);
-  }
-
-  if (!data?.success) {
-    throw new Error(data?.error || 'Erro ao excluir registro');
-  }
 }
 
 // ============================================
