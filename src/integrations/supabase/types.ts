@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      expert_conversations: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          id: string
+          seller_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          seller_id: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          seller_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      expert_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expert_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "expert_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -57,6 +116,140 @@ export type Database = {
           phone?: string | null
           preferences?: Json | null
           role?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      seller_cart_items: {
+        Row: {
+          cart_id: string
+          color_hex: string | null
+          color_name: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          product_id: string
+          product_image_url: string | null
+          product_name: string
+          product_price: number
+          product_sku: string | null
+          quantity: number
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          cart_id: string
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          product_image_url?: string | null
+          product_name: string
+          product_price?: number
+          product_sku?: string | null
+          quantity?: number
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cart_id?: string
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          product_image_url?: string | null
+          product_name?: string
+          product_price?: number
+          product_sku?: string | null
+          quantity?: number
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "seller_carts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seller_carts: {
+        Row: {
+          company_id: string
+          company_location: string | null
+          company_logo_url: string | null
+          company_name: string
+          created_at: string
+          id: string
+          notes: string | null
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          company_location?: string | null
+          company_logo_url?: string | null
+          company_name: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          company_location?: string | null
+          company_logo_url?: string | null
+          company_name?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_onboarding: {
+        Row: {
+          completed_at: string | null
+          completed_steps: Json | null
+          created_at: string
+          current_step: number
+          has_completed_tour: boolean
+          id: string
+          started_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_steps?: Json | null
+          created_at?: string
+          current_step?: number
+          has_completed_tour?: boolean
+          id?: string
+          started_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_steps?: Json | null
+          created_at?: string
+          current_step?: number
+          has_completed_tour?: boolean
+          id?: string
+          started_at?: string | null
           updated_at?: string
           user_id?: string
         }
