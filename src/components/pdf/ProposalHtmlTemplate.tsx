@@ -68,13 +68,23 @@ export function formatPaymentTerms(value?: string): string {
 }
 
 export function formatDeliveryTime(value?: string): string {
+  if (!value) return "";
+
+  // Handle date mode: "date:2026-03-20" → "Entrega até 20/03/2026"
+  if (value.startsWith("date:")) {
+    const iso = value.slice(5);
+    const [y, m, d] = iso.split("-");
+    if (y && m && d) return `Entrega até ${d}/${m}/${y}`;
+    return value;
+  }
+
   const map: Record<string, string> = {
     "14_dias": "14 dias após aprovação",
     "21_dias": "21 dias após aprovação",
     "28_dias": "28 dias após aprovação",
     "45_dias": "45 dias após aprovação",
   };
-  return value ? (map[value] || value) : "";
+  return map[value] || value;
 }
 
 export function formatShipping(type?: string, cost?: number): string {
