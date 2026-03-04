@@ -31,7 +31,7 @@ import {
   Plus,
   Search,
   User,
-  Calendar,
+  Calendar as CalendarIcon,
   Save,
   Send,
   Package,
@@ -45,6 +45,8 @@ import {
   ShoppingCart,
   Trash2,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 import { useQuotes, type QuoteItem, type QuoteItemPersonalization } from "@/hooks/useQuotes";
@@ -120,6 +122,8 @@ export default function QuoteBuilderPage() {
   // Commercial fields
   const [paymentTerms, setPaymentTerms] = useState<string>("");
   const [deliveryTime, setDeliveryTime] = useState<string>("");
+  const [deliveryMode, setDeliveryMode] = useState<"prazo" | "data">("prazo");
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(undefined);
   const [shippingType, setShippingType] = useState<string>("");
   const [shippingCost, setShippingCost] = useState<number>(0);
   
@@ -842,20 +846,90 @@ export default function QuoteBuilderPage() {
 
                 {/* Prazo Entrega */}
                 <div className="space-y-1">
-                  <Label className={cn("text-xs", validationErrors.includes("prazo_entrega") ? "text-destructive" : "text-muted-foreground")}>
-                    Prazo | Entrega {validationErrors.includes("prazo_entrega") && <span className="ml-1">*</span>}
-                  </Label>
-                  <Select value={deliveryTime} onValueChange={setDeliveryTime}>
-                    <SelectTrigger className={cn("h-8 text-xs", validationErrors.includes("prazo_entrega") && "border-destructive focus:ring-destructive/20")}>
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="14_dias">14 dias | Após aprovação</SelectItem>
-                      <SelectItem value="21_dias">21 dias | Após aprovação</SelectItem>
-                      <SelectItem value="28_dias">28 dias | Após aprovação</SelectItem>
-                      <SelectItem value="45_dias">45 dias | Após aprovação</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center justify-between">
+                    <Label className={cn("text-xs", validationErrors.includes("prazo_entrega") ? "text-destructive" : "text-muted-foreground")}>
+                      Prazo | Entrega {validationErrors.includes("prazo_entrega") && <span className="ml-1">*</span>}
+                    </Label>
+                    <div className="flex gap-0.5 rounded-md bg-muted p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeliveryMode("prazo");
+                          setDeliveryTime("");
+                          setDeliveryDate(undefined);
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 text-[10px] rounded-sm font-medium transition-colors",
+                          deliveryMode === "prazo"
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Prazo
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeliveryMode("data");
+                          setDeliveryTime("");
+                        }}
+                        className={cn(
+                          "px-2 py-0.5 text-[10px] rounded-sm font-medium transition-colors",
+                          deliveryMode === "data"
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Data
+                      </button>
+                    </div>
+                  </div>
+
+                  {deliveryMode === "prazo" ? (
+                    <Select value={deliveryTime} onValueChange={setDeliveryTime}>
+                      <SelectTrigger className={cn("h-8 text-xs", validationErrors.includes("prazo_entrega") && "border-destructive focus:ring-destructive/20")}>
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="14_dias">14 dias | Após aprovação</SelectItem>
+                        <SelectItem value="21_dias">21 dias | Após aprovação</SelectItem>
+                        <SelectItem value="28_dias">28 dias | Após aprovação</SelectItem>
+                        <SelectItem value="45_dias">45 dias | Após aprovação</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "h-8 w-full justify-start text-left text-xs font-normal",
+                            !deliveryDate && "text-muted-foreground",
+                            validationErrors.includes("prazo_entrega") && "border-destructive focus:ring-destructive/20"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-3.5 w-3.5" />
+                          {deliveryDate ? format(deliveryDate, "dd/MM/yyyy") : "Selecione a data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={deliveryDate}
+                          onSelect={(date) => {
+                            setDeliveryDate(date);
+                            if (date) {
+                              setDeliveryTime(`date:${format(date, "yyyy-MM-dd")}`);
+                            } else {
+                              setDeliveryTime("");
+                            }
+                          }}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </div>
 
                 {/* Frete */}
