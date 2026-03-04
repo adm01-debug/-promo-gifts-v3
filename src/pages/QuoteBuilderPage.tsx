@@ -187,6 +187,23 @@ export default function QuoteBuilderPage() {
             setDiscountType("amount");
             setDiscountValue(quote.discount_amount);
           }
+
+          // Restore commercial fields
+          if (quote.payment_terms) setPaymentTerms(quote.payment_terms);
+          if (quote.shipping_type) setShippingType(quote.shipping_type);
+          if (quote.shipping_cost) setShippingCost(quote.shipping_cost);
+
+          // Restore delivery time with mode detection
+          if (quote.delivery_time) {
+            if (quote.delivery_time.startsWith("date:")) {
+              setDeliveryMode("data");
+              const iso = quote.delivery_time.slice(5);
+              setDeliveryDate(new Date(iso + "T12:00:00"));
+            } else {
+              setDeliveryMode("prazo");
+            }
+            setDeliveryTime(quote.delivery_time);
+          }
           
           if (quote.items) {
             setItems(quote.items);
