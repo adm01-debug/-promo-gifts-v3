@@ -3,6 +3,7 @@
  */
 
 import { useState, useMemo, useCallback } from "react";
+import { formatDeliveryTime } from "@/components/pdf/ProposalHtmlTemplate";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "date", label: "Data", width: "100px" },
   { id: "time", label: "Hora", width: "70px" },
   { id: "value", label: "Valor", width: "140px", align: "right" },
+  { id: "delivery", label: "Entrega", width: "150px" },
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
 ];
 
@@ -294,6 +296,12 @@ export function QuotesConfigurableList({
         return (
           <span className="text-xs text-muted-foreground block">
             {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : "—"}
+          </span>
+        );
+      case "delivery":
+        return (
+          <span className="text-xs text-muted-foreground truncate block">
+            {quote.delivery_time ? formatDeliveryTime(quote.delivery_time) : "—"}
           </span>
         );
       default:
