@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      category_icons: {
+        Row: {
+          category_name: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          description?: string | null
+          icon: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expert_conversations: {
         Row: {
           client_id: string | null
@@ -154,6 +184,173 @@ export type Database = {
           technique_name?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          product_id: string | null
+          product_image_url: string | null
+          product_name: string | null
+          product_sku: string | null
+          quantity: number | null
+          unit_price: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          product_id?: string | null
+          product_image_url?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          quantity?: number | null
+          unit_price?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          product_id?: string | null
+          product_image_url?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          quantity?: number | null
+          unit_price?: number | null
+        }
+        Relationships: []
+      }
+      product_components: {
+        Row: {
+          component_code: string
+          component_name: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_personalizable: boolean
+          product_id: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          component_code: string
+          component_name: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_personalizable?: boolean
+          product_id: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          component_code?: string
+          component_name?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_personalizable?: boolean
+          product_id?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_group_members: {
+        Row: {
+          created_at: string
+          id: string
+          product_group_id: string
+          product_id: string
+          updated_at: string
+          use_group_rules: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_group_id: string
+          product_id: string
+          updated_at?: string
+          use_group_rules?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_group_id?: string
+          product_id?: string
+          updated_at?: string
+          use_group_rules?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_group_members_product_group_id_fkey"
+            columns: ["product_group_id"]
+            isOneToOne: false
+            referencedRelation: "product_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          group_code: string
+          group_name: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          group_code: string
+          group_name: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          group_code?: string
+          group_name?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      product_views: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          product_name: string | null
+          product_sku: string | null
+          seller_id: string | null
+          view_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          seller_id?: string | null
+          view_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          seller_id?: string | null
+          view_type?: string | null
         }
         Relationships: []
       }
