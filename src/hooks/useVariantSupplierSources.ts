@@ -49,16 +49,21 @@ export function useProductVariantsWithStock(productId: string | undefined) {
         color_name: string | null;
         color_hex: string | null;
         stock_quantity: number | null;
-        next_entry_date: string | null;
-        next_entry_quantity: number | null;
         selected_thumbnail: string | null;
       }>({
         table: 'product_variants',
         operation: 'select',
-        select: 'id, product_id, sku, color_code, color_name, color_hex, stock_quantity, next_entry_date, next_entry_quantity, selected_thumbnail',
+        select: 'id, product_id, sku, color_code, color_name, color_hex, stock_quantity, selected_thumbnail',
         filters: { product_id: productId, is_active: true },
         limit: 200,
       });
+
+      // Map to VariantWithStock (next_entry fields come from variant_supplier_sources if available)
+      return result.records.map(v => ({
+        ...v,
+        next_entry_date: null,
+        next_entry_quantity: null,
+      }));
 
       return result.records;
     },
