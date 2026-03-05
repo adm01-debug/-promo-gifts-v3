@@ -1,4 +1,4 @@
-import { useState, forwardRef } from "react";
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -99,12 +99,14 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
     <div className="fixed bottom-6 right-6 z-40 hidden lg:block" style={{ bottom: 'calc(11rem + env(safe-area-inset-bottom))' }}>
       <AnimatePresence>
         {isOpen && (
-          <>
+          <motion.div
+            key="fab-menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             {/* Backdrop */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               className="fixed inset-0 bg-background/40"
               onClick={() => setIsOpen(false)}
             />
@@ -155,7 +157,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
                 );
               })}
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
