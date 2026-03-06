@@ -145,17 +145,25 @@ export function GroupPersonalizationManager() {
   });
 
   // Fetch components for selected group
+  // NOTE: product_group_components table may not exist in local DB
   const { data: components, isLoading: componentsLoading } = useQuery({
     queryKey: ["group-components", selectedGroup],
     queryFn: async () => {
       if (!selectedGroup) return [];
-      const { data, error } = await supabase
-        .from("product_group_components")
-        .select("*")
-        .eq("product_group_id", selectedGroup)
-        .order("sort_order");
-      if (error) throw error;
-      return data as GroupComponent[];
+      try {
+        const { data, error } = await supabase
+          .from("product_group_components" as any)
+          .select("*")
+          .eq("product_group_id", selectedGroup)
+          .order("sort_order");
+        if (error) {
+          console.warn("[Admin] product_group_components not available:", error.message);
+          return [];
+        }
+        return data as GroupComponent[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!selectedGroup,
   });
@@ -165,13 +173,20 @@ export function GroupPersonalizationManager() {
     queryKey: ["group-locations", selectedGroup],
     queryFn: async () => {
       if (!components?.length) return [];
-      const componentIds = components.map((c) => c.id);
-      const { data, error } = await supabase
-        .from("product_group_locations")
-        .select("*")
-        .in("group_component_id", componentIds);
-      if (error) throw error;
-      return data as GroupLocation[];
+      try {
+        const componentIds = components.map((c) => c.id);
+        const { data, error } = await supabase
+          .from("product_group_locations" as any)
+          .select("*")
+          .in("group_component_id", componentIds);
+        if (error) {
+          console.warn("[Admin] product_group_locations not available:", error.message);
+          return [];
+        }
+        return data as GroupLocation[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!components?.length,
   });
@@ -197,16 +212,23 @@ export function GroupPersonalizationManager() {
     queryKey: ["group-location-techniques", selectedGroup],
     queryFn: async () => {
       if (!locations?.length) return [];
-      const locationIds = locations.map((l) => l.id);
-      const { data, error } = await supabase
-        .from("product_group_location_techniques")
-        .select(`
-          *,
-          technique:personalization_techniques(id, code, name)
-        `)
-        .in("group_location_id", locationIds);
-      if (error) throw error;
-      return data as GroupLocationTechnique[];
+      try {
+        const locationIds = locations.map((l) => l.id);
+        const { data, error } = await supabase
+          .from("product_group_location_techniques" as any)
+          .select(`
+            *,
+            technique:personalization_techniques(id, code, name)
+          `)
+          .in("group_location_id", locationIds);
+        if (error) {
+          console.warn("[Admin] product_group_location_techniques not available:", error.message);
+          return [];
+        }
+        return data as GroupLocationTechnique[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!locations?.length,
   });
@@ -214,7 +236,7 @@ export function GroupPersonalizationManager() {
   // Mutations
   const addComponentMutation = useMutation({
     mutationFn: async (data: { product_group_id: string; component_code: string; component_name: string }) => {
-      const { error } = await supabase.from("product_group_components").insert(data);
+      const { error } = await supabase.from("product_group_components" as any).insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -223,12 +245,12 @@ export function GroupPersonalizationManager() {
       setNewComponent({ code: "", name: "" });
       toast.success("Componente adicionado!");
     },
-    onError: () => toast.error("Erro ao adicionar componente"),
+    onError: () => toast.error("Erro ao adicionar componente — tabela pode não existir"),
   });
 
   const updateComponentMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; component_code?: string; component_name?: string; is_personalizable?: boolean; is_active?: boolean; sort_order?: number }) => {
-      const { error } = await supabase.from("product_group_components").update(data).eq("id", id);
+      const { error } = await supabase.from("product_group_components" as any).update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -239,7 +261,7 @@ export function GroupPersonalizationManager() {
 
   const deleteComponentMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_group_components").delete().eq("id", id);
+      const { error } = await supabase.from("product_group_components" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -258,7 +280,7 @@ export function GroupPersonalizationManager() {
       max_height_cm?: number;
       max_area_cm2?: number;
     }) => {
-      const { error } = await supabase.from("product_group_locations").insert(data);
+      const { error } = await supabase.from("product_group_locations" as any).insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -272,7 +294,7 @@ export function GroupPersonalizationManager() {
 
   const updateLocationMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; location_code?: string; location_name?: string; max_width_cm?: number | null; max_height_cm?: number | null; max_area_cm2?: number | null; area_image_url?: string | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_group_locations").update(data).eq("id", id);
+      const { error } = await supabase.from("product_group_locations" as any).update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -284,7 +306,7 @@ export function GroupPersonalizationManager() {
 
   const deleteLocationMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_group_locations").delete().eq("id", id);
+      const { error } = await supabase.from("product_group_locations" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -300,7 +322,7 @@ export function GroupPersonalizationManager() {
       technique_id: string;
       max_colors?: number;
     }) => {
-      const { error } = await supabase.from("product_group_location_techniques").insert(data);
+      const { error } = await supabase.from("product_group_location_techniques" as any).insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -315,7 +337,7 @@ export function GroupPersonalizationManager() {
 
   const updateTechniqueMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; is_default?: boolean; max_colors?: number | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_group_location_techniques").update(data).eq("id", id);
+      const { error } = await supabase.from("product_group_location_techniques" as any).update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -327,7 +349,7 @@ export function GroupPersonalizationManager() {
 
   const deleteTechniqueMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_group_location_techniques").delete().eq("id", id);
+      const { error } = await supabase.from("product_group_location_techniques" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -388,7 +410,7 @@ export function GroupPersonalizationManager() {
     for (let i = 0; i < reordered.length; i++) {
       if (reordered[i].sort_order !== i) {
         await supabase
-          .from("product_group_components")
+          .from("product_group_components" as any)
           .update({ sort_order: i })
           .eq("id", reordered[i].id);
       }
