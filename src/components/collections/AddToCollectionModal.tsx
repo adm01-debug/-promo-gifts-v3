@@ -22,12 +22,12 @@ interface AddToCollectionModalProps {
   productName: string;
 }
 
-export function AddToCollectionModal({
+export const AddToCollectionModal = forwardRef<HTMLDivElement, AddToCollectionModalProps>(({
   open,
   onOpenChange,
   productId,
   productName,
-}: AddToCollectionModalProps) {
+}, _ref) => {
   const {
     collections,
     createCollection,
