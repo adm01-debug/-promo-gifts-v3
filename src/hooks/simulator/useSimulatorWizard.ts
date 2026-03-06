@@ -273,54 +273,8 @@ export function useSimulatorWizard() {
         console.warn('Falha ao buscar opções de personalização v6:', err);
       }
 
-      // Fallback: BD local
-      const { data: productLocations, error: prodError } = await supabase
-        .from('product_components')
-        .select(`
-          id, component_code, component_name,
-          product_component_locations (
-            id, location_code, location_name, max_width_cm, max_height_cm, max_area_cm2, area_image_url,
-            product_component_location_techniques (
-              id, technique_id, max_colors, is_default, composed_code,
-              personalization_techniques (id, name, code)
-            )
-          )
-        `)
-        .eq('product_id', state.selectedProduct.id)
-        .eq('is_active', true)
-        .eq('is_personalizable', true);
-
-      if (prodError) throw prodError;
-
-      const locations: EngravingLocation[] = [];
-      productLocations?.forEach(comp => {
-        comp.product_component_locations?.forEach((loc: any) => {
-          locations.push({
-            id: loc.id,
-            componentId: comp.id,
-            componentCode: comp.component_code,
-            componentName: comp.component_name,
-            locationCode: loc.location_code,
-            locationName: loc.location_name,
-            maxWidthCm: loc.max_width_cm,
-            maxHeightCm: loc.max_height_cm,
-            maxAreaCm2: loc.max_area_cm2,
-            areaImageUrl: loc.area_image_url,
-            isFromGroup: false,
-            availableTechniques: loc.product_component_location_techniques?.map((lt: any) => ({
-              id: lt.id,
-              printAreaId: loc.id,
-              techniqueId: lt.personalization_techniques?.id || lt.technique_id,
-              techniqueName: lt.personalization_techniques?.name || 'Técnica',
-              techniqueCode: lt.personalization_techniques?.code || '',
-              maxColors: lt.max_colors,
-              isDefault: lt.is_default || false,
-            })) || [],
-          });
-        });
-      });
-
-      return locations;
+      // Sem dados do DB externo — retornar vazio
+      return [];
     },
     enabled: !!state.selectedProduct?.id,
     staleTime: 10 * 60 * 1000,

@@ -43,7 +43,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 
 // Tipos
 interface ProductLocation {
