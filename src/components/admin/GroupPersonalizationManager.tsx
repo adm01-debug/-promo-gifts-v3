@@ -236,7 +236,7 @@ export function GroupPersonalizationManager() {
   // Mutations
   const addComponentMutation = useMutation({
     mutationFn: async (data: { product_group_id: string; component_code: string; component_name: string }) => {
-      const { error } = await supabase.from("product_group_components").insert(data);
+      const { error } = await supabase.from("product_group_components" as any).insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -245,12 +245,12 @@ export function GroupPersonalizationManager() {
       setNewComponent({ code: "", name: "" });
       toast.success("Componente adicionado!");
     },
-    onError: () => toast.error("Erro ao adicionar componente"),
+    onError: () => toast.error("Erro ao adicionar componente — tabela pode não existir"),
   });
 
   const updateComponentMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; component_code?: string; component_name?: string; is_personalizable?: boolean; is_active?: boolean; sort_order?: number }) => {
-      const { error } = await supabase.from("product_group_components").update(data).eq("id", id);
+      const { error } = await supabase.from("product_group_components" as any).update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -261,7 +261,7 @@ export function GroupPersonalizationManager() {
 
   const deleteComponentMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_group_components").delete().eq("id", id);
+      const { error } = await supabase.from("product_group_components" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -280,7 +280,7 @@ export function GroupPersonalizationManager() {
       max_height_cm?: number;
       max_area_cm2?: number;
     }) => {
-      const { error } = await supabase.from("product_group_locations").insert(data);
+      const { error } = await supabase.from("product_group_locations" as any).insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -294,7 +294,7 @@ export function GroupPersonalizationManager() {
 
   const updateLocationMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; location_code?: string; location_name?: string; max_width_cm?: number | null; max_height_cm?: number | null; max_area_cm2?: number | null; area_image_url?: string | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_group_locations").update(data).eq("id", id);
+      const { error } = await supabase.from("product_group_locations" as any).update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -306,7 +306,7 @@ export function GroupPersonalizationManager() {
 
   const deleteLocationMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_group_locations").delete().eq("id", id);
+      const { error } = await supabase.from("product_group_locations" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -322,7 +322,7 @@ export function GroupPersonalizationManager() {
       technique_id: string;
       max_colors?: number;
     }) => {
-      const { error } = await supabase.from("product_group_location_techniques").insert(data);
+      const { error } = await supabase.from("product_group_location_techniques" as any).insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -337,7 +337,7 @@ export function GroupPersonalizationManager() {
 
   const updateTechniqueMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; is_default?: boolean; max_colors?: number | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_group_location_techniques").update(data).eq("id", id);
+      const { error } = await supabase.from("product_group_location_techniques" as any).update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -349,7 +349,7 @@ export function GroupPersonalizationManager() {
 
   const deleteTechniqueMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_group_location_techniques").delete().eq("id", id);
+      const { error } = await supabase.from("product_group_location_techniques" as any).delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
