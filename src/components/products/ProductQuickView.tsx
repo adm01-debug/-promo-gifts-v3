@@ -524,4 +524,5 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
       </DialogContent>
     </Dialog>
   );
-}
+});
+ProductQuickView.displayName = "ProductQuickView";
