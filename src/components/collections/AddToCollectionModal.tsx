@@ -195,4 +195,5 @@ export const AddToCollectionModal = forwardRef<HTMLDivElement, AddToCollectionMo
       </DialogContent>
     </Dialog>
   );
-}
+});
+AddToCollectionModal.displayName = "AddToCollectionModal";
