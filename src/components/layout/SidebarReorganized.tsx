@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/contexts/AuthContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
 import { SidebarUserFooter } from "./sidebar/SidebarUserFooter";
