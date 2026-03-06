@@ -260,4 +260,5 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       </aside>
     </>
   );
-}
+  }
+);
