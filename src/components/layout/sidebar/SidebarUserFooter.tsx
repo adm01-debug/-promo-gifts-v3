@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Settings, LogOut, ChevronUp } from "lucide-react";
@@ -16,7 +17,7 @@ interface SidebarUserFooterProps {
   isCollapsed: boolean;
 }
 
-export function SidebarUserFooter({ isCollapsed }: SidebarUserFooterProps) {
+export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterProps>(function SidebarUserFooter({ isCollapsed }, ref) {
   const { profile, role, signOut, user } = useAuth();
   const navigate = useNavigate();
 
