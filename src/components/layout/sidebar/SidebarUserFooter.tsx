@@ -104,4 +104,4 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
       </DropdownMenu>
     </div>
   );
-}
+});
