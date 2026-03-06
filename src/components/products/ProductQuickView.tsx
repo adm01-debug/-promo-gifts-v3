@@ -45,7 +45,7 @@ interface ProductQuickViewProps {
   onShare?: (product: Product) => void;
 }
 
-export function ProductQuickView({
+export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps>(({
   product,
   open,
   onOpenChange,
@@ -54,7 +54,7 @@ export function ProductQuickView({
   isInCompare = false,
   onToggleCompare,
   onShare,
-}: ProductQuickViewProps) {
+}, _ref) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
