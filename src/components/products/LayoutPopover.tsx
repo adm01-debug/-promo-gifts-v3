@@ -79,5 +79,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
         </div>
       </PopoverContent>
     </Popover>
-  );
-}
+    </div>
+    );
+  }
+);
