@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 import { fetchPromobrindProductBySku } from "@/lib/external-db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
