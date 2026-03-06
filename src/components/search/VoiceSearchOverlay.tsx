@@ -58,19 +58,20 @@ const filterColors: Record<AppliedFilter["type"], string> = {
   kit: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
 };
 
-export function VoiceSearchOverlay({
-  isOpen,
-  isListening,
-  transcript,
-  error,
-  onClose,
-  onToggleListening,
-  commandAction,
-  appliedFilters = [],
-  frequentCommands = [],
-  recentCommands = [],
-  onCommandSelect,
-}: VoiceSearchOverlayProps) {
+export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
+  function VoiceSearchOverlay({
+    isOpen,
+    isListening,
+    transcript,
+    error,
+    onClose,
+    onToggleListening,
+    commandAction,
+    appliedFilters = [],
+    frequentCommands = [],
+    recentCommands = [],
+    onCommandSelect,
+  }, ref) {
   // Close on escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
