@@ -48,7 +48,8 @@ interface PresetsBarProps {
   activePresetId?: string;
 }
 
-export function PresetsBar({ currentFilters, onApplyPreset, activePresetId }: PresetsBarProps) {
+export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
+  function PresetsBar({ currentFilters, onApplyPreset, activePresetId }, ref) {
   const { getStoredPresets, savePreset, updatePreset, deletePreset } = useFilterPresets();
   const [presets, setPresets] = useState<FilterPreset[]>(getStoredPresets());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
