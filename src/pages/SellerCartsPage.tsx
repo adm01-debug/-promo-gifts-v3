@@ -1619,9 +1619,9 @@ function SellerCartsContent() {
                       </div>
                       <Badge variant="outline" className={cn(
                         "text-[9px] px-1.5",
-                        STATUS_CONFIG[(cart.status as CartStatus) || "novo"].color
+                        getStatusCfg(cart.status).color
                       )}>
-                        {STATUS_CONFIG[(cart.status as CartStatus) || "novo"].label}
+                        {getStatusCfg(cart.status).label}
                       </Badge>
                     </button>
                   ))}
