@@ -1,3 +1,4 @@
+import React from "react";
 import { Heart, Share2, Calculator, FileText, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,16 @@ interface MobileProductActionsProps {
   onShare?: () => void;
 }
 
-export function MobileProductActions({
+export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProductActionsProps>(
+  function MobileProductActions({
+    productId,
+    productName,
+    productSku,
+    productPrice,
+    isFavorite,
+    onToggleFavorite,
+    onShare,
+  }, ref) {
   productId,
   productName,
   productSku,

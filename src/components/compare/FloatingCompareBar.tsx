@@ -1,3 +1,4 @@
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GitCompare, X, ChevronRight, Trash2 } from "lucide-react";
@@ -6,7 +7,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { cn } from "@/lib/utils";
 
-export function FloatingCompareBar() {
+export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
+  function FloatingCompareBar(_props, ref) {
   const navigate = useNavigate();
   const { getCompareProducts, removeFromCompare, clearCompare, compareCount } =
     useComparisonContext();
