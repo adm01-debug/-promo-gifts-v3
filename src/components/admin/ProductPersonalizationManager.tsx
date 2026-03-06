@@ -346,7 +346,7 @@ export function ProductPersonalizationManager() {
     try {
       // Fetch group components
       const { data: groupComponents } = await supabase
-        .from("product_group_components")
+        .from("product_group_components" as any)
         .select("*")
         .eq("product_group_id", productMembership.product_group_id);
 
