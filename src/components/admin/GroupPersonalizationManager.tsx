@@ -410,7 +410,7 @@ export function GroupPersonalizationManager() {
     for (let i = 0; i < reordered.length; i++) {
       if (reordered[i].sort_order !== i) {
         await supabase
-          .from("product_group_components")
+          .from("product_group_components" as any)
           .update({ sort_order: i })
           .eq("id", reordered[i].id);
       }
