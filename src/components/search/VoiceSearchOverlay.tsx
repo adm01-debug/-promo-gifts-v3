@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, MicOff, X, Palette, Tag, DollarSign, Package, Sparkles, CheckCircle2, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
