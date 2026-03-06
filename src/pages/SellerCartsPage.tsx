@@ -1286,9 +1286,9 @@ function SellerCartsContent() {
                       <DropdownMenuTrigger asChild>
                         <button className={cn(
                           "text-[10px] font-medium px-2 py-0.5 rounded-full border cursor-pointer hover:opacity-80 transition-opacity",
-                          STATUS_CONFIG[(activeCart.status as CartStatus) || "novo"].color
+                          getStatusCfg(activeCart.status).color
                         )}>
-                          {STATUS_CONFIG[(activeCart.status as CartStatus) || "novo"].label}
+                          {getStatusCfg(activeCart.status).label}
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start">
