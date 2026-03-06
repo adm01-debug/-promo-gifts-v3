@@ -111,4 +111,5 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
       </div>
     </div>
   );
-}
+  }
+);

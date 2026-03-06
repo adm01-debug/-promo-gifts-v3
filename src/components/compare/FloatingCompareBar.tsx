@@ -125,4 +125,5 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
       </motion.div>
     </AnimatePresence>
   );
-}
+  }
+);
