@@ -1,3 +1,4 @@
+import React from "react";
 import { Settings2, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -12,14 +13,16 @@ interface LayoutPopoverProps {
   setGridColumns: (cols: ColumnCount) => void;
 }
 
-export function LayoutPopover({
-  viewMode,
-  setViewMode,
-  gridColumns,
-  setGridColumns,
-}: LayoutPopoverProps) {
-  return (
-    <Popover>
+export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps>(
+  function LayoutPopover({
+    viewMode,
+    setViewMode,
+    gridColumns,
+    setGridColumns,
+  }, ref) {
+    return (
+      <div ref={ref}>
+      <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
