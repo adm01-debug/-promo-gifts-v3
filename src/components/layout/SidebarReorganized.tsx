@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Package,
@@ -108,7 +108,8 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
+export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
+  function SidebarReorganized({ isOpen, onToggle }, ref) {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isItemActive = (href: string, exact?: boolean) => {
@@ -175,6 +176,7 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
+        ref={ref}
         data-tour="sidebar"
         role="navigation"
         aria-label="Menu principal"
@@ -258,4 +260,5 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
       </aside>
     </>
   );
-}
+  }
+);

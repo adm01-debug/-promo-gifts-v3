@@ -1,3 +1,4 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { 
   Star, 
@@ -105,30 +106,34 @@ const trustBadges = {
   }
 };
 
-export function TrustBadge({ type, className }: TrustBadgeProps) {
-  const { icon: Icon, label, color } = trustBadges[type];
+export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
+  function TrustBadge({ type, className }, ref) {
+    const { icon: Icon, label, color } = trustBadges[type];
 
-  return (
-    <div className={cn(
-      "flex items-center gap-2 text-sm text-muted-foreground",
-      className
-    )}>
-      <Icon className={cn("w-4 h-4", color)} />
-      <span>{label}</span>
-    </div>
-  );
-}
+    return (
+      <div ref={ref} className={cn(
+        "flex items-center gap-2 text-sm text-muted-foreground",
+        className
+      )}>
+        <Icon className={cn("w-4 h-4", color)} />
+        <span>{label}</span>
+      </div>
+    );
+  }
+);
 
 // Trust badges row
-export function TrustBadgesRow({ className }: { className?: string }) {
-  return (
-    <div className={cn("flex flex-wrap gap-4", className)}>
-      <TrustBadge type="verified" />
-      <TrustBadge type="fast" />
-      <TrustBadge type="quality" />
-    </div>
-  );
-}
+export const TrustBadgesRow = React.forwardRef<HTMLDivElement, { className?: string }>(
+  function TrustBadgesRow({ className }, ref) {
+    return (
+      <div ref={ref} className={cn("flex flex-wrap gap-4", className)}>
+        <TrustBadge type="verified" />
+        <TrustBadge type="fast" />
+        <TrustBadge type="quality" />
+      </div>
+    );
+  }
+);
 
 // Star rating display
 interface StarRatingProps {

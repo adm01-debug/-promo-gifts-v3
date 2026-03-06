@@ -1,3 +1,4 @@
+import React from "react";
 import { Heart, Share2, Calculator, FileText, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,16 @@ interface MobileProductActionsProps {
   onShare?: () => void;
 }
 
-export function MobileProductActions({
+export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProductActionsProps>(
+  function MobileProductActions({
+    productId,
+    productName,
+    productSku,
+    productPrice,
+    isFavorite,
+    onToggleFavorite,
+    onShare,
+  }, ref) {
   productId,
   productName,
   productSku,
@@ -47,6 +57,7 @@ export function MobileProductActions({
 
   return (
     <div 
+      ref={ref}
       className="fixed bottom-16 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur-md border-t border-border"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
@@ -101,4 +112,5 @@ export function MobileProductActions({
       </div>
     </div>
   );
-}
+  }
+);

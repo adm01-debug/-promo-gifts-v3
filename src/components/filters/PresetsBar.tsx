@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { FilterPreset, useFilterPresets } from "./FilterPresets";
 import { FilterState, defaultFilters } from "./FilterPanel";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,8 @@ interface PresetsBarProps {
   activePresetId?: string;
 }
 
-export function PresetsBar({ currentFilters, onApplyPreset, activePresetId }: PresetsBarProps) {
+export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
+  function PresetsBar({ currentFilters, onApplyPreset, activePresetId }, ref) {
   const { getStoredPresets, savePreset, updatePreset, deletePreset } = useFilterPresets();
   const [presets, setPresets] = useState<FilterPreset[]>(getStoredPresets());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -127,7 +128,7 @@ export function PresetsBar({ currentFilters, onApplyPreset, activePresetId }: Pr
   const hasActiveFilters = JSON.stringify(currentFilters) !== JSON.stringify(defaultFilters);
 
   return (
-    <>
+    <div ref={ref} className="contents">
       <Popover>
         <PopoverTrigger asChild>
           <Button
@@ -338,6 +339,7 @@ export function PresetsBar({ currentFilters, onApplyPreset, activePresetId }: Pr
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
-}
+  }
+);

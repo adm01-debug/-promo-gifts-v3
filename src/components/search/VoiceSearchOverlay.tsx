@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, MicOff, X, Palette, Tag, DollarSign, Package, Sparkles, CheckCircle2, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -58,19 +58,20 @@ const filterColors: Record<AppliedFilter["type"], string> = {
   kit: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
 };
 
-export function VoiceSearchOverlay({
-  isOpen,
-  isListening,
-  transcript,
-  error,
-  onClose,
-  onToggleListening,
-  commandAction,
-  appliedFilters = [],
-  frequentCommands = [],
-  recentCommands = [],
-  onCommandSelect,
-}: VoiceSearchOverlayProps) {
+export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
+  function VoiceSearchOverlay({
+    isOpen,
+    isListening,
+    transcript,
+    error,
+    onClose,
+    onToggleListening,
+    commandAction,
+    appliedFilters = [],
+    frequentCommands = [],
+    recentCommands = [],
+    onCommandSelect,
+  }, ref) {
   // Close on escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -412,4 +413,5 @@ export function VoiceSearchOverlay({
       )}
     </AnimatePresence>
   );
-}
+  }
+);
