@@ -405,7 +405,7 @@ export function ProductPersonalizationManager() {
 
             // Fetch group techniques for this location
             const { data: groupTechniques } = await supabase
-              .from("product_group_location_techniques")
+              .from("product_group_location_techniques" as any)
               .select("*")
               .eq("group_location_id", gl.id);
 
