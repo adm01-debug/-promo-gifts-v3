@@ -205,7 +205,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
 
     return rawComponents.map((comp: any) => {
       const locations = productData?.source === "product" 
-        ? comp.product_component_locations 
+        ? comp.locations  // v6 format from invokeExternalRpc
         : comp.product_group_locations;
 
       return {
@@ -215,7 +215,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
         isPersonalizable: comp.is_personalizable,
         locations: (locations || []).map((loc: any) => {
           const techniques = productData?.source === "product"
-            ? loc.product_component_location_techniques
+            ? loc.techniques  // v6 format
             : loc.product_group_location_techniques;
 
           return {
@@ -227,11 +227,11 @@ export function ProductPersonalizationRules({ productId, productSku, productName
             maxArea: loc.max_area_cm2,
             areaImageUrl: loc.area_image_url,
             techniques: (techniques || []).map((tech: any) => ({
-              id: tech.personalization_techniques?.id,
-              name: tech.personalization_techniques?.name,
-              code: tech.personalization_techniques?.code,
-              description: tech.personalization_techniques?.description,
-              estimatedDays: tech.personalization_techniques?.estimated_days,
+              id: tech.id || tech.personalization_techniques?.id,
+              name: tech.name || tech.personalization_techniques?.name,
+              code: tech.code || tech.personalization_techniques?.code,
+              description: tech.description || tech.personalization_techniques?.description,
+              estimatedDays: tech.estimatedDays || tech.personalization_techniques?.estimated_days,
               maxColors: tech.max_colors,
               isDefault: tech.is_default,
             })).filter((t: any) => t.id),
