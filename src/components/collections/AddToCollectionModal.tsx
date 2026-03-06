@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Plus, Check, FolderPlus } from "lucide-react";
 import {
   Dialog,
@@ -22,12 +22,12 @@ interface AddToCollectionModalProps {
   productName: string;
 }
 
-export function AddToCollectionModal({
+export const AddToCollectionModal = forwardRef<HTMLDivElement, AddToCollectionModalProps>(({
   open,
   onOpenChange,
   productId,
   productName,
-}: AddToCollectionModalProps) {
+}, _ref) => {
   const {
     collections,
     createCollection,
@@ -195,4 +195,5 @@ export function AddToCollectionModal({
       </DialogContent>
     </Dialog>
   );
-}
+});
+AddToCollectionModal.displayName = "AddToCollectionModal";
