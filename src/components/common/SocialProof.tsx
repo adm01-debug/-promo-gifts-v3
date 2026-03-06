@@ -122,15 +122,17 @@ export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
 );
 
 // Trust badges row
-export function TrustBadgesRow({ className }: { className?: string }) {
-  return (
-    <div className={cn("flex flex-wrap gap-4", className)}>
-      <TrustBadge type="verified" />
-      <TrustBadge type="fast" />
-      <TrustBadge type="quality" />
-    </div>
-  );
-}
+export const TrustBadgesRow = React.forwardRef<HTMLDivElement, { className?: string }>(
+  function TrustBadgesRow({ className }, ref) {
+    return (
+      <div ref={ref} className={cn("flex flex-wrap gap-4", className)}>
+        <TrustBadge type="verified" />
+        <TrustBadge type="fast" />
+        <TrustBadge type="quality" />
+      </div>
+    );
+  }
+);
 
 // Star rating display
 interface StarRatingProps {
