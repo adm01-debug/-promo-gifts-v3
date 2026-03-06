@@ -208,28 +208,20 @@ export function SidebarReorganized({ isOpen, onToggle }: SidebarProps) {
               </Button>
             )}
             {!isCollapsed && !hasAnyGroupOpen && <div />}
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 hover:bg-sidebar-accent/50 hover:text-orange ml-auto text-sidebar-foreground/30"
-                  onClick={toggleCollapse}
-                  aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
-                >
-                  {isCollapsed ? (
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  ) : (
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              {isCollapsed && (
-                <TooltipContent side="right" className="bg-card border-border z-[100]">
-                  Expandir menu
-                </TooltipContent>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 hover:bg-sidebar-accent/50 hover:text-orange ml-auto text-sidebar-foreground/30"
+              onClick={toggleCollapse}
+              aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+              title={isCollapsed ? "Expandir menu" : "Recolher menu"}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronLeft className="h-3.5 w-3.5" />
               )}
-            </Tooltip>
+            </Button>
           </div>
 
           {/* Navigation Groups */}
