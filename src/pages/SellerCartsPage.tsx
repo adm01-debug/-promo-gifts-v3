@@ -67,6 +67,11 @@ const STATUS_CONFIG: Record<CartStatus, { label: string; color: string }> = {
   pronto_orcamento: { label: "Pronto p/ orçamento", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
 };
 
+/** Safe lookup — falls back to "novo" for unknown statuses (e.g. legacy 'draft') */
+function getStatusCfg(status: string | undefined | null) {
+  return STATUS_CONFIG[(status as CartStatus)] || STATUS_CONFIG.novo;
+}
+
 // ============================================
 // ACTION HISTORY (in-memory per session)
 // ============================================
