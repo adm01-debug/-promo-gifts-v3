@@ -38,14 +38,14 @@ interface SidebarNavGroupProps {
   isMobileSidebarOpen: boolean;
 }
 
-export function SidebarNavGroup({
+export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(function SidebarNavGroup({
   group,
   isOpen,
   isCollapsed,
   onToggle,
   onMobileClose,
   isMobileSidebarOpen,
-}: SidebarNavGroupProps) {
+}, ref) {
   const location = useLocation();
   const { isAdmin } = useAuth();
   const { hasPermission } = useRBAC();
