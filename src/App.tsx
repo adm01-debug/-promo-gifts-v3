@@ -53,8 +53,6 @@ const AdminUsuariosPage = lazyWithRetry(() => import("./pages/admin/AdminUsuario
 const AdminSegurancaPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaPage"));
 const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadastrosPage"));
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
-const ProductRegistrationPage = lazyWithRetry(() => import("./pages/ProductRegistrationPage"));
-const EngravingRegistrationPage = lazyWithRetry(() => import("./pages/EngravingRegistrationPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
