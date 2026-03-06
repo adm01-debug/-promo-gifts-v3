@@ -71,17 +71,4 @@ export function EngravingRegistrationContent() {
   );
 }
 
-export default function EngravingRegistrationPage() {
-  return (
-    <MainLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        <PageHeader
-          title="Gestão de Personalização"
-          description="Configure técnicas, preços, grupos e regras de personalização"
-          icon={<Palette className="h-8 w-8" />}
-        />
-        <EngravingRegistrationContent />
-      </div>
-    </MainLayout>
-  );
-}
+// Default export removed — only EngravingRegistrationContent is used (via AdminCadastrosPage)
