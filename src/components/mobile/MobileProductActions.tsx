@@ -24,14 +24,6 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
     onToggleFavorite,
     onShare,
   }, ref) {
-  productId,
-  productName,
-  productSku,
-  productPrice,
-  isFavorite,
-  onToggleFavorite,
-  onShare,
-}: MobileProductActionsProps) {
   const navigate = useNavigate();
 
   const handleQuickQuote = () => {
