@@ -380,7 +380,7 @@ export function ProductPersonalizationManager() {
 
         // Fetch group locations for this component
         const { data: groupLocations } = await supabase
-          .from("product_group_locations")
+          .from("product_group_locations" as any)
           .select("*")
           .eq("group_component_id", gc.id);
 
