@@ -3,7 +3,7 @@ import { ChevronDown, Plus } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRBAC } from "@/hooks/useRBAC";
 
@@ -156,23 +156,21 @@ export function SidebarNavGroup({
         </button>
       </CollapsibleTrigger>
 
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <CollapsibleContent forceMount asChild>
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="pl-3 mt-1 space-y-0.5 pb-1">
-                {group.items.map(renderNavLink)}
-              </div>
-            </motion.div>
-          </CollapsibleContent>
-        )}
-      </AnimatePresence>
+      {isOpen && (
+        <CollapsibleContent forceMount>
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="pl-3 mt-1 space-y-0.5 pb-1">
+              {group.items.map(renderNavLink)}
+            </div>
+          </motion.div>
+        </CollapsibleContent>
+      )}
     </Collapsible>
   );
 }

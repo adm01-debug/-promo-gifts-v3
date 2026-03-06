@@ -71,17 +71,15 @@ export function SidebarUserFooter({ isCollapsed }: SidebarUserFooterProps) {
         <RestartTourButton />
       </div>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group">
-            {avatarElement}
-            <div className="flex flex-col min-w-0 flex-1 text-left">
-              <span className="text-sm font-medium text-sidebar-foreground truncate max-w-[140px]">
-                {firstName}
-              </span>
-              <span className="text-[11px] text-sidebar-foreground/40">{roleName}</span>
-            </div>
-            <ChevronUp className="h-4 w-4 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
-          </button>
+        <DropdownMenuTrigger className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group outline-none">
+          {avatarElement}
+          <div className="flex flex-col min-w-0 flex-1 text-left">
+            <span className="text-sm font-medium text-sidebar-foreground truncate max-w-[140px]">
+              {firstName}
+            </span>
+            <span className="text-[11px] text-sidebar-foreground/40">{roleName}</span>
+          </div>
+          <ChevronUp className="h-4 w-4 text-sidebar-foreground/30 group-hover:text-sidebar-foreground/60 transition-colors shrink-0" />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           side="top"
