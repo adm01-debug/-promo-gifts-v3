@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Plus } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
@@ -37,14 +38,14 @@ interface SidebarNavGroupProps {
   isMobileSidebarOpen: boolean;
 }
 
-export function SidebarNavGroup({
+export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(function SidebarNavGroup({
   group,
   isOpen,
   isCollapsed,
   onToggle,
   onMobileClose,
   isMobileSidebarOpen,
-}: SidebarNavGroupProps) {
+}, ref) {
   const location = useLocation();
   const { isAdmin } = useAuth();
   const { hasPermission } = useRBAC();
@@ -173,4 +174,4 @@ export function SidebarNavGroup({
       )}
     </Collapsible>
   );
-}
+});
