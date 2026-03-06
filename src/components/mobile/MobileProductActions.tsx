@@ -57,6 +57,7 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
 
   return (
     <div 
+      ref={ref}
       className="fixed bottom-16 left-0 right-0 z-40 md:hidden bg-background/95 backdrop-blur-md border-t border-border"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
