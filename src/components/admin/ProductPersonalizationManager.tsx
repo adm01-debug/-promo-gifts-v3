@@ -256,17 +256,25 @@ export function ProductPersonalizationManager() {
   });
 
   // Fetch locations for all components
+  // NOTE: product_component_locations table may not exist in local DB
   const { data: locations } = useQuery({
     queryKey: ["component-locations", selectedProduct],
     queryFn: async () => {
       if (!components?.length) return [];
-      const componentIds = components.map((c) => c.id);
-      const { data, error } = await supabase
-        .from("product_component_locations")
-        .select("*")
-        .in("component_id", componentIds);
-      if (error) throw error;
-      return data as Location[];
+      try {
+        const componentIds = components.map((c) => c.id);
+        const { data, error } = await supabase
+          .from("product_component_locations" as any)
+          .select("*")
+          .in("component_id", componentIds);
+        if (error) {
+          console.warn("[Admin] product_component_locations table not available:", error.message);
+          return [];
+        }
+        return data as Location[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!components?.length,
   });
@@ -288,20 +296,28 @@ export function ProductPersonalizationManager() {
   });
 
   // Fetch location techniques
+  // NOTE: product_component_location_techniques table may not exist in local DB
   const { data: locationTechniques } = useQuery({
     queryKey: ["location-techniques", selectedProduct],
     queryFn: async () => {
       if (!locations?.length) return [];
-      const locationIds = locations.map((l) => l.id);
-      const { data, error } = await supabase
-        .from("product_component_location_techniques")
-        .select(`
-          *,
-          technique:personalization_techniques(id, code, name)
-        `)
-        .in("component_location_id", locationIds);
-      if (error) throw error;
-      return data as LocationTechnique[];
+      try {
+        const locationIds = locations.map((l) => l.id);
+        const { data, error } = await supabase
+          .from("product_component_location_techniques" as any)
+          .select(`
+            *,
+            technique:personalization_techniques(id, code, name)
+          `)
+          .in("component_location_id", locationIds);
+        if (error) {
+          console.warn("[Admin] product_component_location_techniques table not available:", error.message);
+          return [];
+        }
+        return data as LocationTechnique[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!locations?.length,
   });
