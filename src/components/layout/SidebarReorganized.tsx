@@ -177,6 +177,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       {/* Sidebar */}
       <aside
         ref={ref}
+        data-tour="sidebar"
         role="navigation"
         aria-label="Menu principal"
         className={cn(
