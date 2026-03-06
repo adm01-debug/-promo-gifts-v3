@@ -67,6 +67,11 @@ const STATUS_CONFIG: Record<CartStatus, { label: string; color: string }> = {
   pronto_orcamento: { label: "Pronto p/ orçamento", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
 };
 
+/** Safe lookup — falls back to "novo" for unknown statuses (e.g. legacy 'draft') */
+function getStatusCfg(status: string | undefined | null) {
+  return STATUS_CONFIG[(status as CartStatus)] || STATUS_CONFIG.novo;
+}
+
 // ============================================
 // ACTION HISTORY (in-memory per session)
 // ============================================
@@ -429,7 +434,7 @@ function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
             {carts.map(cart => {
               const subtotal = cart.items.reduce((s, i) => s + i.product_price * i.quantity, 0);
               const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
-              const statusCfg = STATUS_CONFIG[(cart.status as CartStatus) || "novo"];
+              const statusCfg = getStatusCfg(cart.status);
               return (
                 <Card key={cart.id} className="p-4 space-y-3">
                   <div className="flex items-center gap-2">
@@ -1281,9 +1286,9 @@ function SellerCartsContent() {
                       <DropdownMenuTrigger asChild>
                         <button className={cn(
                           "text-[10px] font-medium px-2 py-0.5 rounded-full border cursor-pointer hover:opacity-80 transition-opacity",
-                          STATUS_CONFIG[(activeCart.status as CartStatus) || "novo"].color
+                          getStatusCfg(activeCart.status).color
                         )}>
-                          {STATUS_CONFIG[(activeCart.status as CartStatus) || "novo"].label}
+                          {getStatusCfg(activeCart.status).label}
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start">
@@ -1614,9 +1619,9 @@ function SellerCartsContent() {
                       </div>
                       <Badge variant="outline" className={cn(
                         "text-[9px] px-1.5",
-                        STATUS_CONFIG[(cart.status as CartStatus) || "novo"].color
+                        getStatusCfg(cart.status).color
                       )}>
-                        {STATUS_CONFIG[(cart.status as CartStatus) || "novo"].label}
+                        {getStatusCfg(cart.status).label}
                       </Badge>
                     </button>
                   ))}
