@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, forwardRef } from "react";
 // framer-motion removido — transição via CSS animate-fade-in
 import {
   Heart,
