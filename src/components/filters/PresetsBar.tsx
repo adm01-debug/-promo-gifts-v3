@@ -128,7 +128,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
   const hasActiveFilters = JSON.stringify(currentFilters) !== JSON.stringify(defaultFilters);
 
   return (
-    <>
+    <div ref={ref} className="contents">
       <Popover>
         <PopoverTrigger asChild>
           <Button
