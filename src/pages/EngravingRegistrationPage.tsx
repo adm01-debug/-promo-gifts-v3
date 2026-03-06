@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Palette, Settings, DollarSign, FolderOpen, Layers, Package } from "lucide-react";
 import { TechniquesPanel } from "@/components/engraving/TechniquesPanel";
@@ -71,17 +69,4 @@ export function EngravingRegistrationContent() {
   );
 }
 
-export default function EngravingRegistrationPage() {
-  return (
-    <MainLayout>
-      <div className="container mx-auto py-6 space-y-6">
-        <PageHeader
-          title="Gestão de Personalização"
-          description="Configure técnicas, preços, grupos e regras de personalização"
-          icon={<Palette className="h-8 w-8" />}
-        />
-        <EngravingRegistrationContent />
-      </div>
-    </MainLayout>
-  );
-}
+// Default export removed — only EngravingRegistrationContent is used (via AdminCadastrosPage)
