@@ -158,7 +158,7 @@ export function SidebarNavGroup({
 
       <AnimatePresence initial={false}>
         {isOpen && (
-          <CollapsibleContent forceMount asChild>
+          <CollapsibleContent forceMount>
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
