@@ -152,46 +152,42 @@ export function ProductPersonalizationRules({ productId, productSku, productName
     enabled: productData?.source === "product",
   });
 
-  // Fetch group rules
+  // Fetch group rules — group products also use the v6 API since the
+  // local DB does not have product_group_components/locations tables.
   const { data: groupComponents, isLoading: loadingGroupRules } = useQuery({
-    queryKey: ["product-group-rules", productData?.groupId],
+    queryKey: ["product-group-rules", productData?.groupId, productData?.productDbId],
     queryFn: async () => {
-      if (!productData?.groupId || productData.source !== "group") return null;
+      if (!productData?.productDbId || productData.source !== "group") return null;
 
-      const { data: components } = await supabase
-        .from("product_group_components")
-        .select(`
-          id,
-          component_code,
-          component_name,
-          is_personalizable,
-          product_group_locations (
-            id,
-            location_code,
-            location_name,
-            max_width_cm,
-            max_height_cm,
-            max_area_cm2,
-            area_image_url,
-            product_group_location_techniques (
-              id,
-              is_default,
-              max_colors,
-              personalization_techniques (
-                id,
-                name,
-                code,
-                description,
-                estimated_days
-              )
-            )
-          )
-        `)
-        .eq("product_group_id", productData.groupId)
-        .eq("is_active", true)
-        .order("sort_order");
+      try {
+        const result = await invokeExternalRpc<any>(
+          'fn_get_product_customization_options',
+          { p_product_id: productData.productDbId }
+        );
 
-      return components;
+        if (!result?.locations?.length) return [];
+
+        return result.locations.map((loc: any) => ({
+          id: loc.location_code,
+          component_code: loc.location_code,
+          component_name: loc.location_name,
+          is_personalizable: true,
+          locations: [{
+            id: loc.location_code,
+            location_code: loc.location_code,
+            location_name: loc.location_name,
+            techniques: loc.options?.map((opt: any) => ({
+              id: opt.technique_id,
+              name: opt.tecnica_nome,
+              code: opt.codigo_tabela,
+              max_colors: opt.max_cores,
+            })) || [],
+          }],
+        }));
+      } catch (err) {
+        console.warn('Error fetching group rules via v6:', err);
+        return null;
+      }
     },
     enabled: productData?.source === "group",
   });
@@ -205,7 +201,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
 
     return rawComponents.map((comp: any) => {
       const locations = productData?.source === "product" 
-        ? comp.product_component_locations 
+        ? comp.locations  // v6 format from invokeExternalRpc
         : comp.product_group_locations;
 
       return {
@@ -215,7 +211,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
         isPersonalizable: comp.is_personalizable,
         locations: (locations || []).map((loc: any) => {
           const techniques = productData?.source === "product"
-            ? loc.product_component_location_techniques
+            ? loc.techniques  // v6 format
             : loc.product_group_location_techniques;
 
           return {
@@ -227,11 +223,11 @@ export function ProductPersonalizationRules({ productId, productSku, productName
             maxArea: loc.max_area_cm2,
             areaImageUrl: loc.area_image_url,
             techniques: (techniques || []).map((tech: any) => ({
-              id: tech.personalization_techniques?.id,
-              name: tech.personalization_techniques?.name,
-              code: tech.personalization_techniques?.code,
-              description: tech.personalization_techniques?.description,
-              estimatedDays: tech.personalization_techniques?.estimated_days,
+              id: tech.id || tech.personalization_techniques?.id,
+              name: tech.name || tech.personalization_techniques?.name,
+              code: tech.code || tech.personalization_techniques?.code,
+              description: tech.description || tech.personalization_techniques?.description,
+              estimatedDays: tech.estimatedDays || tech.personalization_techniques?.estimated_days,
               maxColors: tech.max_colors,
               isDefault: tech.is_default,
             })).filter((t: any) => t.id),
