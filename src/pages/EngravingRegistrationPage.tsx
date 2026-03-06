@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Palette, Settings, DollarSign, FolderOpen, Layers, Package } from "lucide-react";
 import { TechniquesPanel } from "@/components/engraving/TechniquesPanel";
