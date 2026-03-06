@@ -415,7 +415,7 @@ export function ProductPersonalizationManager() {
                 const composedCode = `${gc.component_code}-${gl.location_code}-${technique?.code || ""}`;
 
                 await supabase
-                  .from("product_component_location_techniques")
+                  .from("product_component_location_techniques" as any)
                   .insert({
                     component_location_id: newLocation.id,
                     technique_id: gt.technique_id,
