@@ -174,4 +174,4 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
       )}
     </Collapsible>
   );
-}
+});
