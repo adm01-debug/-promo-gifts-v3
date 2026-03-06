@@ -341,4 +341,5 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
       </AlertDialog>
     </>
   );
-}
+  }
+);

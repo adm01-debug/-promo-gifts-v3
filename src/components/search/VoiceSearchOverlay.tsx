@@ -413,4 +413,5 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       )}
     </AnimatePresence>
   );
-}
+  }
+);
