@@ -434,7 +434,7 @@ function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
             {carts.map(cart => {
               const subtotal = cart.items.reduce((s, i) => s + i.product_price * i.quantity, 0);
               const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
-              const statusCfg = STATUS_CONFIG[(cart.status as CartStatus) || "novo"];
+              const statusCfg = getStatusCfg(cart.status);
               return (
                 <Card key={cart.id} className="p-4 space-y-3">
                   <div className="flex items-center gap-2">
