@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 import { fetchPromobrindProductBySku } from "@/lib/external-db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -111,46 +112,42 @@ export function ProductPersonalizationRules({ productId, productSku, productName
     },
   });
 
-  // Fetch product-specific rules
+  // Fetch product-specific rules via external DB
   const { data: productComponents, isLoading: loadingProductRules } = useQuery({
     queryKey: ["product-custom-rules", productData?.productDbId],
     queryFn: async () => {
       if (!productData?.productDbId || productData.source !== "product") return null;
 
-      const { data: components } = await supabase
-        .from("product_components")
-        .select(`
-          id,
-          component_code,
-          component_name,
-          is_personalizable,
-          product_component_locations (
-            id,
-            location_code,
-            location_name,
-            max_width_cm,
-            max_height_cm,
-            max_area_cm2,
-            area_image_url,
-            product_component_location_techniques (
-              id,
-              is_default,
-              max_colors,
-              personalization_techniques (
-                id,
-                name,
-                code,
-                description,
-                estimated_days
-              )
-            )
-          )
-        `)
-        .eq("product_id", productData.productDbId)
-        .eq("is_active", true)
-        .order("sort_order");
+      try {
+        const result = await invokeExternalRpc<any>(
+          'fn_get_product_customization_options',
+          { p_product_id: productData.productDbId }
+        );
 
-      return components;
+        if (!result?.locations?.length) return [];
+
+        // Map v6 response to component-like structure for compatibility
+        return result.locations.map((loc: any) => ({
+          id: loc.location_code,
+          component_code: loc.location_code,
+          component_name: loc.location_name,
+          is_personalizable: true,
+          locations: [{
+            id: loc.location_code,
+            location_code: loc.location_code,
+            location_name: loc.location_name,
+            techniques: loc.options?.map((opt: any) => ({
+              id: opt.technique_id,
+              name: opt.tecnica_nome,
+              code: opt.codigo_tabela,
+              max_colors: opt.max_cores,
+            })) || [],
+          }],
+        }));
+      } catch (err) {
+        console.warn('Error fetching product rules via v6:', err);
+        return null;
+      }
     },
     enabled: productData?.source === "product",
   });

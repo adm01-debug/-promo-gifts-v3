@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeExternalRpc } from '@/lib/external-rpc';
 import { useExternalProductSearch } from '@/hooks/useExternalSimulator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -263,70 +263,40 @@ function TechniqueMultiSelector({
 }) {
   const { data: techniques, isLoading, error } = useQuery({
     queryKey: ['product-techniques-multi', productId],
-    queryFn: async () => {
-      const { data: components, error: compError } = await supabase
-        .from('product_components')
-        .select(`
-          id,
-          component_name,
-          component_code,
-          product_component_locations (
-            id,
-            location_name,
-            location_code,
-            max_width_cm,
-            max_height_cm,
-            max_area_cm2,
-            product_component_location_techniques (
-              id,
-              technique_id,
-              composed_code,
-              is_default,
-              max_colors,
-              personalization_techniques (
-                id,
-                name,
-                code,
-                description
-              )
-            )
-          )
-        `)
-        .eq('product_id', productId)
-        .eq('is_active', true)
-        .eq('is_personalizable', true);
+    queryFn: async (): Promise<ProductTechnique[]> => {
+      try {
+        const result = await invokeExternalRpc<any>(
+          'fn_get_product_customization_options',
+          { p_product_id: productId }
+        );
 
-      if (compError) throw compError;
-      if (!components?.length) return [];
+        if (!result?.locations?.length) return [];
 
-      const techList: ProductTechnique[] = [];
-      
-      for (const comp of components) {
-        for (const loc of comp.product_component_locations || []) {
-          for (const tech of loc.product_component_location_techniques || []) {
-            const technique = tech.personalization_techniques as any;
-            if (technique) {
-              techList.push({
-                id: tech.id,
-                techniqueId: tech.technique_id,
-                techniqueName: technique.name,
-                techniqueCode: technique.code,
-                componentName: comp.component_name,
-                locationName: loc.location_name,
-                locationCode: loc.location_code,
-                composedCode: tech.composed_code,
-                maxWidth: loc.max_width_cm,
-                maxHeight: loc.max_height_cm,
-                maxArea: loc.max_area_cm2,
-                maxColors: tech.max_colors,
-                isDefault: tech.is_default || false,
-              });
-            }
+        const techList: ProductTechnique[] = [];
+        for (const loc of result.locations) {
+          for (const opt of loc.options || []) {
+            techList.push({
+              id: opt.technique_id,
+              techniqueId: opt.technique_id,
+              techniqueName: opt.tecnica_nome || 'Técnica',
+              techniqueCode: opt.codigo_tabela || '',
+              componentName: loc.location_name,
+              locationName: loc.location_name,
+              locationCode: loc.location_code,
+              composedCode: opt.codigo_tabela,
+              maxWidth: null,
+              maxHeight: null,
+              maxArea: null,
+              maxColors: opt.max_cores ?? null,
+              isDefault: false,
+            });
           }
         }
+        return techList;
+      } catch (err) {
+        console.warn('Error fetching techniques via v6:', err);
+        return [];
       }
-
-      return techList;
     },
     enabled: !!productId,
   });

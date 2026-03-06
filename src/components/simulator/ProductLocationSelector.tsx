@@ -43,7 +43,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 
 // Tipos
 interface ProductLocation {
@@ -105,78 +105,47 @@ export function ProductLocationSelector({
   // Buscar locais de gravação do produto
   const { data: locations, isLoading } = useQuery({
     queryKey: ["product-locations", productId],
-    queryFn: async () => {
+    queryFn: async (): Promise<ProductLocation[]> => {
       if (!productId) return [];
 
-      // Buscar componentes do produto com suas localizações e técnicas
-      const { data: components, error: compError } = await supabase
-        .from("product_components")
-        .select(`
-          id,
-          component_name,
-          component_code,
-          is_personalizable,
-          product_component_locations (
-            id,
-            location_code,
-            location_name,
-            max_width_cm,
-            max_height_cm,
-            max_area_cm2,
-            area_image_url,
-            product_component_location_techniques (
-              id,
-              technique_id,
-              max_colors,
-              is_default,
-              personalization_techniques (
-                id,
-                name,
-                code
-              )
-            )
-          )
-        `)
-        .eq("product_id", productId)
-        .eq("is_active", true)
-        .eq("is_personalizable", true);
+      try {
+        const result = await invokeExternalRpc<any>(
+          'fn_get_product_customization_options',
+          { p_product_id: productId }
+        );
 
-      if (compError) {
-        console.error("Error fetching product locations:", compError);
-        return [];
-      }
+        if (!result?.locations?.length) return [];
 
-      // Transformar dados para formato mais amigável
-      const productLocations: ProductLocation[] = [];
-
-      components?.forEach((comp) => {
-        comp.product_component_locations?.forEach((loc: any) => {
-          const techniques: LocationTechnique[] = 
-            loc.product_component_location_techniques?.map((lt: any) => ({
-              id: lt.id,
-              technique_id: lt.personalization_techniques?.id || lt.technique_id,
-              technique_name: lt.personalization_techniques?.name || "Técnica",
-              technique_code: lt.personalization_techniques?.code || "",
-              max_colors: lt.max_colors,
-              is_default: lt.is_default || false,
-            })) || [];
+        const productLocations: ProductLocation[] = [];
+        result.locations.forEach((loc: any) => {
+          const techniques: LocationTechnique[] = loc.options?.map((opt: any) => ({
+            id: opt.technique_id,
+            technique_id: opt.technique_id,
+            technique_name: opt.tecnica_nome || "Técnica",
+            technique_code: opt.codigo_tabela || "",
+            max_colors: opt.max_cores ?? null,
+            is_default: false,
+          })) || [];
 
           productLocations.push({
-            id: loc.id,
-            component_id: comp.id,
-            component_name: comp.component_name,
+            id: loc.location_code,
+            component_id: loc.location_code,
+            component_name: loc.location_name,
             location_code: loc.location_code,
             location_name: loc.location_name,
-            max_width_cm: loc.max_width_cm,
-            max_height_cm: loc.max_height_cm,
-            max_area_cm2: loc.max_area_cm2,
-            area_image_url: loc.area_image_url,
+            max_width_cm: null,
+            max_height_cm: null,
+            max_area_cm2: null,
+            area_image_url: null,
             techniques,
           });
         });
-      });
 
-      return productLocations;
+        return productLocations;
+      } catch (err) {
+        console.warn("Error fetching product locations via v6:", err);
+        return [];
+      }
     },
     enabled: !!productId,
     staleTime: 10 * 60 * 1000,
