@@ -387,7 +387,7 @@ export function ProductPersonalizationManager() {
         if (groupLocations?.length) {
           for (const gl of groupLocations) {
             const { data: newLocation, error: locError } = await supabase
-              .from("product_component_locations")
+              .from("product_component_locations" as any)
               .insert({
                 component_id: newComponent.id,
                 location_code: gl.location_code,
