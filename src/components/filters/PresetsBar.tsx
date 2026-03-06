@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { FilterPreset, useFilterPresets } from "./FilterPresets";
 import { FilterState, defaultFilters } from "./FilterPanel";
 import { Button } from "@/components/ui/button";
