@@ -145,17 +145,25 @@ export function GroupPersonalizationManager() {
   });
 
   // Fetch components for selected group
+  // NOTE: product_group_components table may not exist in local DB
   const { data: components, isLoading: componentsLoading } = useQuery({
     queryKey: ["group-components", selectedGroup],
     queryFn: async () => {
       if (!selectedGroup) return [];
-      const { data, error } = await supabase
-        .from("product_group_components")
-        .select("*")
-        .eq("product_group_id", selectedGroup)
-        .order("sort_order");
-      if (error) throw error;
-      return data as GroupComponent[];
+      try {
+        const { data, error } = await supabase
+          .from("product_group_components" as any)
+          .select("*")
+          .eq("product_group_id", selectedGroup)
+          .order("sort_order");
+        if (error) {
+          console.warn("[Admin] product_group_components not available:", error.message);
+          return [];
+        }
+        return data as GroupComponent[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!selectedGroup,
   });
@@ -165,13 +173,20 @@ export function GroupPersonalizationManager() {
     queryKey: ["group-locations", selectedGroup],
     queryFn: async () => {
       if (!components?.length) return [];
-      const componentIds = components.map((c) => c.id);
-      const { data, error } = await supabase
-        .from("product_group_locations")
-        .select("*")
-        .in("group_component_id", componentIds);
-      if (error) throw error;
-      return data as GroupLocation[];
+      try {
+        const componentIds = components.map((c) => c.id);
+        const { data, error } = await supabase
+          .from("product_group_locations" as any)
+          .select("*")
+          .in("group_component_id", componentIds);
+        if (error) {
+          console.warn("[Admin] product_group_locations not available:", error.message);
+          return [];
+        }
+        return data as GroupLocation[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!components?.length,
   });
@@ -197,16 +212,23 @@ export function GroupPersonalizationManager() {
     queryKey: ["group-location-techniques", selectedGroup],
     queryFn: async () => {
       if (!locations?.length) return [];
-      const locationIds = locations.map((l) => l.id);
-      const { data, error } = await supabase
-        .from("product_group_location_techniques")
-        .select(`
-          *,
-          technique:personalization_techniques(id, code, name)
-        `)
-        .in("group_location_id", locationIds);
-      if (error) throw error;
-      return data as GroupLocationTechnique[];
+      try {
+        const locationIds = locations.map((l) => l.id);
+        const { data, error } = await supabase
+          .from("product_group_location_techniques" as any)
+          .select(`
+            *,
+            technique:personalization_techniques(id, code, name)
+          `)
+          .in("group_location_id", locationIds);
+        if (error) {
+          console.warn("[Admin] product_group_location_techniques not available:", error.message);
+          return [];
+        }
+        return data as GroupLocationTechnique[];
+      } catch {
+        return [];
+      }
     },
     enabled: !!locations?.length,
   });
