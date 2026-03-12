@@ -42,6 +42,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 export function SmartSearchInput({
   placeholder = "Buscar produtos, categorias, fornecedores...",
   onSelect,
+  onSearch,
   className,
   autoFocus = false,
 }: SmartSearchInputProps) {
