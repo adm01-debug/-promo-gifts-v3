@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDbSingle, invokeExternalDbDelete } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -263,13 +263,13 @@ export function ProductsManager() {
       };
 
       if (selectedProduct) {
-        // Update
-        const { error } = await supabase
-          .from("products")
-          .update(productData)
-          .eq("id", selectedProduct.id);
-
-        if (error) throw error;
+        // Update via external-db-bridge
+        const updated = await invokeExternalDbSingle<any>({
+          table: 'products',
+          operation: 'update',
+          id: selectedProduct.id,
+          data: productData,
+        });
         
         // Registrar auditoria de UPDATE
         const { oldFields, newFields } = getChangedFields(
@@ -299,14 +299,12 @@ export function ProductsManager() {
         
         toast.success("Produto atualizado com sucesso");
       } else {
-        // Create
-        const { data: newProduct, error } = await supabase
-          .from("products")
-          .insert(productData)
-          .select()
-          .single();
-
-        if (error) throw error;
+        // Create via external-db-bridge
+        const newProduct = await invokeExternalDbSingle<any>({
+          table: 'products',
+          operation: 'insert',
+          data: productData,
+        });
         
         // Registrar auditoria de INSERT
         if (newProduct) {
@@ -342,12 +340,8 @@ export function ProductsManager() {
     if (!selectedProduct) return;
 
     try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", selectedProduct.id);
-
-      if (error) throw error;
+      // Delete via external-db-bridge
+      await invokeExternalDbDelete('products', selectedProduct.id);
       
       // Registrar auditoria de DELETE
       await logAction({
