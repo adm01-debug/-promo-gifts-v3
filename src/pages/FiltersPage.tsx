@@ -48,19 +48,6 @@ export default function FiltersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isFavorite, toggleFavorite } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
-  
-  // Debounce da busca do FilterPanel para server-side search
-  const debouncedServerSearch = useDebounce(filters.search || '', 400);
-  // Debounce da busca da URL
-  const urlSearch = searchParams.get('search') || '';
-  const debouncedUrlSearch = useDebounce(urlSearch, 400);
-  // Combinar: prioridade para busca do FilterPanel, senão URL
-  const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
-
-  // Buscar produtos reais do banco de dados com busca server-side
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
-    serverSearchTerm ? { search: serverSearchTerm } : undefined
-  );
   const isInitialMount = useRef(true);
 
   // #22 Deep linking: deserialize filters from URL on mount
@@ -105,6 +92,19 @@ export default function FiltersPage() {
     
     return f;
   });
+
+  // Debounce da busca do FilterPanel para server-side search
+  const debouncedServerSearch = useDebounce(filters.search || '', 400);
+  // Debounce da busca da URL
+  const urlSearch = searchParams.get('search') || '';
+  const debouncedUrlSearch = useDebounce(urlSearch, 400);
+  // Combinar: prioridade para busca do FilterPanel, senão URL
+  const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
+
+  // Buscar produtos reais do banco de dados com busca server-side
+  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
+    serverSearchTerm ? { search: serverSearchTerm } : undefined
+  );
 
   // #22 Deep linking: serialize filters to URL on change
   useEffect(() => {
