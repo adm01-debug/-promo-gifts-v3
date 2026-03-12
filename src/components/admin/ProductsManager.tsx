@@ -193,6 +193,8 @@ export function ProductsManager() {
           is_featured: p.is_featured || p.is_bestseller || false,
           is_new: p.is_new || false,
           is_on_sale: p.is_on_sale || false,
+          is_kit: p.is_kit || false,
+          has_commercial_packaging: p.has_commercial_packaging || false,
           height_cm: p.height_cm || null,
           width_cm: p.width_cm || null,
           length_cm: p.length_cm || null,
