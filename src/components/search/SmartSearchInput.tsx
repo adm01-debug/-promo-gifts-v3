@@ -26,6 +26,8 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 interface SmartSearchInputProps {
   placeholder?: string;
   onSelect?: (result: SearchResult) => void;
+  /** Called when the user submits a plain text search (Enter key). If provided, prevents default navigation. */
+  onSearch?: (query: string) => void;
   className?: string;
   autoFocus?: boolean;
 }
