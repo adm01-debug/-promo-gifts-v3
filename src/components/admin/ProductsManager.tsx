@@ -263,13 +263,13 @@ export function ProductsManager() {
       };
 
       if (selectedProduct) {
-        // Update
-        const { error } = await supabase
-          .from("products")
-          .update(productData)
-          .eq("id", selectedProduct.id);
-
-        if (error) throw error;
+        // Update via external-db-bridge
+        const updated = await invokeExternalDbSingle<any>({
+          table: 'products',
+          operation: 'update',
+          id: selectedProduct.id,
+          data: productData,
+        });
         
         // Registrar auditoria de UPDATE
         const { oldFields, newFields } = getChangedFields(
@@ -299,14 +299,12 @@ export function ProductsManager() {
         
         toast.success("Produto atualizado com sucesso");
       } else {
-        // Create
-        const { data: newProduct, error } = await supabase
-          .from("products")
-          .insert(productData)
-          .select()
-          .single();
-
-        if (error) throw error;
+        // Create via external-db-bridge
+        const newProduct = await invokeExternalDbSingle<any>({
+          table: 'products',
+          operation: 'insert',
+          data: productData,
+        });
         
         // Registrar auditoria de INSERT
         if (newProduct) {
