@@ -170,7 +170,11 @@ export function SmartSearchInput({
   const handleQuickSuggestionClick = (label: string) => {
     setQuery(label);
     addToHistory(label);
-    navigate(`/?search=${encodeURIComponent(label)}`);
+    if (onSearch) {
+      onSearch(label);
+    } else {
+      navigate(`/?search=${encodeURIComponent(label)}`);
+    }
     setIsFocused(false);
   };
 
