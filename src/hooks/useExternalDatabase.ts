@@ -122,6 +122,31 @@ interface ExternalDatabaseState<T> {
   error: string | null;
 }
 
+async function extractFunctionErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof Error) {
+    const maybeContext = error as Error & { context?: Response };
+    if (maybeContext.context instanceof Response) {
+      try {
+        const raw = await maybeContext.context.clone().text();
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as { error?: string; details?: string; hint?: string };
+            const detailed = [parsed.error, parsed.details, parsed.hint].filter(Boolean).join(' | ');
+            if (detailed) return detailed;
+          } catch {
+            return `${error.message} | ${raw}`;
+          }
+        }
+      } catch {
+        // ignore parse failure
+      }
+    }
+    return error.message;
+  }
+
+  return 'Erro ao acessar banco externo';
+}
+
 export function useExternalDatabase<T = Record<string, unknown>>(tableName: ExternalTable) {
   const [state, setState] = useState<ExternalDatabaseState<T>>({
     data: [],
@@ -152,11 +177,12 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
       });
 
       if (error) {
-        throw new Error(error.message);
+        const message = await extractFunctionErrorMessage(error);
+        throw new Error(message);
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Erro desconhecido');
+      if (!data?.success) {
+        throw new Error(data?.error || 'Erro desconhecido');
       }
 
       if (operation === 'select') {
@@ -173,7 +199,7 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
         return data.data as T;
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao acessar banco externo';
+      const errorMessage = await extractFunctionErrorMessage(err);
       setState(prev => ({ ...prev, error: errorMessage, isLoading: false }));
       toast.error(errorMessage);
       return null;
@@ -195,20 +221,36 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
 
   const create = useCallback(async (data: Partial<T>) => {
     const result = await invoke('insert', { data });
-    if (result && !('records' in result)) {
-      toast.success('Registro criado com sucesso!');
-      return result as T;
+    if (!result) return null;
+
+    if ('records' in result) {
+      const created = result.records[0] || null;
+      if (created) {
+        toast.success('Registro criado com sucesso!');
+        return created as T;
+      }
+      return null;
     }
-    return null;
+
+    toast.success('Registro criado com sucesso!');
+    return result as T;
   }, [invoke]);
 
   const update = useCallback(async (id: string, data: Partial<T>) => {
     const result = await invoke('update', { id, data });
-    if (result && !('records' in result)) {
-      toast.success('Registro atualizado com sucesso!');
-      return result as T;
+    if (!result) return null;
+
+    if ('records' in result) {
+      const updated = result.records[0] || null;
+      if (updated) {
+        toast.success('Registro atualizado com sucesso!');
+        return updated as T;
+      }
+      return null;
     }
-    return null;
+
+    toast.success('Registro atualizado com sucesso!');
+    return result as T;
   }, [invoke]);
 
   const remove = useCallback(async (id: string) => {
