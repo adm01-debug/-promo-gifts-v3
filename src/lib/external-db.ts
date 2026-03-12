@@ -316,7 +316,7 @@ export async function fetchPromobrindProducts(options?: {
     // para suportar catálogos grandes (10k+). Mantemos pageSize = 1000 para evitar timeouts.
     const pageSize = 1000;
     let offset = 0;
-    let totalCount: number | null = null;
+    let loopCount: number | null = null;
 
     // Segurança: evita loops infinitos caso o count venha nulo/errado.
     const HARD_MAX = 200000;
