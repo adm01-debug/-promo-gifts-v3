@@ -356,7 +356,7 @@ export function ProductForm({
             </div>
           </FormSection>
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Footer */}
       <div className="flex justify-end gap-2 pt-4 border-t mt-4">
