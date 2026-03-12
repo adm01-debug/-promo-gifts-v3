@@ -75,4 +75,6 @@ export const defaultFormValues: ProductFormData = {
   is_featured: false,
   is_new: false,
   is_on_sale: false,
+  is_kit: false,
+  has_commercial_packaging: false,
 };
