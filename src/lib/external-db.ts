@@ -282,7 +282,10 @@ export async function fetchPromobrindProducts(options?: {
 
   let products: PromobrindProduct[] = [];
 
+  let totalCount: number | null = null;
+
   if (typeof options?.limit === 'number' && options.limit > 0) {
+    const fetchOffset = options?.offset ?? 0;
     let result: InvokeResult<PromobrindProduct>;
     try {
       result = await invokeExternalDb<PromobrindProduct>({
@@ -292,7 +295,7 @@ export async function fetchPromobrindProducts(options?: {
         select: PRODUCT_SELECT_FIELDS_WITH_SALE,
         orderBy,
         limit: options.limit,
-        offset: 0,
+        offset: fetchOffset,
       });
     } catch (err) {
       if (!shouldFallbackSelect(err)) throw err;
@@ -303,10 +306,11 @@ export async function fetchPromobrindProducts(options?: {
         select: PRODUCT_SELECT_FIELDS_LEGACY,
         orderBy,
         limit: options.limit,
-        offset: 0,
+        offset: fetchOffset,
       });
     }
     products = result.records;
+    totalCount = result.count;
   } else {
     // Paginação: o backend aplica default 500; aqui buscamos em páginas maiores
     // para suportar catálogos grandes (10k+). Mantemos pageSize = 1000 para evitar timeouts.
