@@ -340,12 +340,8 @@ export function ProductsManager() {
     if (!selectedProduct) return;
 
     try {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", selectedProduct.id);
-
-      if (error) throw error;
+      // Delete via external-db-bridge
+      await invokeExternalDbDelete('products', selectedProduct.id);
       
       // Registrar auditoria de DELETE
       await logAction({
