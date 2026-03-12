@@ -66,6 +66,7 @@ function FormSection({
 export function ProductForm({
   initialData,
   productImages: initialImages = [],
+  productId,
   onSubmit,
   onCancel,
   isSaving,
