@@ -973,9 +973,9 @@ serve(async (req) => {
           .eq('id', id);
 
         if (deleteError) {
-          console.error('Delete error:', deleteError);
+          console.error('Delete error:', deleteError.message, deleteError.details, deleteError.hint);
           return new Response(
-            JSON.stringify({ error: deleteError.message }),
+            JSON.stringify({ error: deleteError.message, details: deleteError.details, hint: deleteError.hint }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
