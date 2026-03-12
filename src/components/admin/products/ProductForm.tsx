@@ -283,16 +283,25 @@ export function ProductForm({
           <Separator />
 
           {/* ====== MATERIAIS ====== */}
-          <FormSection title="Materiais" icon={Tag} defaultOpen={false}>
-            <div className="space-y-1.5">
-              <Label htmlFor="materials">Materiais (separados por vírgula)</Label>
-              <Input
-                id="materials"
-                {...register('materials')}
-                placeholder="Ex: Plástico, Metal, Silicone"
-              />
-            </div>
-          </FormSection>
+          {isEdit && productId ? (
+            <FormSection title="Materiais" icon={Layers} defaultOpen={false}>
+              <ProductMaterialsSection productId={productId} />
+            </FormSection>
+          ) : (
+            <FormSection title="Materiais" icon={Layers} defaultOpen={false}>
+              <div className="space-y-1.5">
+                <Label htmlFor="materials">Materiais (separados por vírgula)</Label>
+                <Input
+                  id="materials"
+                  {...register('materials')}
+                  placeholder="Ex: Plástico, Metal, Silicone"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Salve o produto para selecionar materiais do catálogo.
+                </p>
+              </div>
+            </FormSection>
+          )}
 
           <Separator />
 
