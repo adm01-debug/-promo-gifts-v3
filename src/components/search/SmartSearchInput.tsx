@@ -197,7 +197,11 @@ export function SmartSearchInput({
           onClick={() => {
             if (query.trim()) {
               addToHistory(query);
-              navigate(`/?search=${encodeURIComponent(query)}`);
+              if (onSearch) {
+                onSearch(query);
+              } else {
+                navigate(`/?search=${encodeURIComponent(query)}`);
+              }
               setIsFocused(false);
             }
           }}
