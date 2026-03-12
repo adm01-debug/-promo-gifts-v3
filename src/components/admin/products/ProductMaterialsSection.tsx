@@ -1,17 +1,18 @@
 /**
  * ProductMaterialsSection — Seletor hierárquico de materiais do produto
  * Busca grupos e tipos do BD externo e permite vincular/desvincular materiais
+ * Com busca interna e multi-seleção por checkboxes
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { materialService, type MaterialGroup, type MaterialType } from '@/services/materialService';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { materialService, type MaterialType } from '@/services/materialService';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Plus, X, ChevronRight, Layers } from 'lucide-react';
+import { Loader2, X, ChevronRight, Layers, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
@@ -24,32 +25,23 @@ interface ProductMaterialsSectionProps {
   productId: string;
 }
 
-interface ProductMaterial {
-  id: string;
-  product_id: string;
-  material_id: string;
-  part?: string | null;
-}
-
 export function ProductMaterialsSection({ productId }: ProductMaterialsSectionProps) {
   const queryClient = useQueryClient();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState('');
 
-  // Buscar grupos de materiais
   const { data: groupsData, isLoading: loadingGroups } = useQuery({
     queryKey: ['material-groups-admin'],
     queryFn: () => materialService.getGroups(),
     staleTime: 5 * 60 * 1000,
   });
 
-  // Buscar todos os tipos
   const { data: typesData, isLoading: loadingTypes } = useQuery({
     queryKey: ['material-types-admin'],
     queryFn: () => materialService.getTypes(),
     staleTime: 5 * 60 * 1000,
   });
 
-  // Buscar materiais vinculados ao produto
   const { data: productMaterialsData, isLoading: loadingProductMaterials } = useQuery({
     queryKey: ['product-materials', productId],
     queryFn: () => materialService.getProductMaterials(productId),
@@ -60,19 +52,18 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     (productMaterialsData?.materials || []).map((m: any) => m.material_id || m.id)
   );
 
-  // Agrupar tipos por grupo
-  const typesByGroup = (typesData?.types || []).reduce<Record<string, MaterialType[]>>((acc, t) => {
+  const allTypes = typesData?.types || [];
+
+  const typesByGroup = allTypes.reduce<Record<string, MaterialType[]>>((acc, t) => {
     const gid = t.group_id;
     if (!acc[gid]) acc[gid] = [];
     acc[gid].push(t);
     return acc;
   }, {});
 
-  // Toggle material
   const toggleMaterial = useCallback(async (materialId: string, isLinked: boolean) => {
     try {
       if (isLinked) {
-        // Buscar o registro para obter o ID
         const { data: findData, error: findError } = await supabase.functions.invoke('external-db-bridge', {
           body: {
             table: 'product_materials',
@@ -87,13 +78,8 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
           toast.error('Registro não encontrado');
           return;
         }
-        // Deletar pelo ID
         const { error: delError } = await supabase.functions.invoke('external-db-bridge', {
-          body: {
-            table: 'product_materials',
-            operation: 'delete',
-            id: record.id,
-          },
+          body: { table: 'product_materials', operation: 'delete', id: record.id },
         });
         if (delError) throw new Error(delError.message);
         toast.success('Material removido');
@@ -144,20 +130,35 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
   }
 
   const linkedCount = linkedMaterialIds.size;
+  const searchLower = search.toLowerCase();
+
+  // Filtrar tipos pela busca
+  const filteredTypesByGroup = search
+    ? Object.fromEntries(
+        Object.entries(typesByGroup).map(([gid, types]) => [
+          gid,
+          types.filter(t => t.name.toLowerCase().includes(searchLower)),
+        ])
+      )
+    : typesByGroup;
+
+  // Filtrar grupos que têm tipos visíveis (ou sem busca)
+  const visibleGroups = search
+    ? groups.filter(g => (filteredTypesByGroup[g.group_id]?.length || 0) > 0 || g.group_name.toLowerCase().includes(searchLower))
+    : groups;
 
   return (
     <div className="space-y-3">
-      {/* Resumo */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Layers className="h-4 w-4" />
         <span>{linkedCount} {linkedCount === 1 ? 'material vinculado' : 'materiais vinculados'}</span>
       </div>
 
-      {/* Badges dos materiais vinculados */}
       {linkedCount > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {(typesData?.types || [])
+          {allTypes
             .filter(t => linkedMaterialIds.has(t.id))
+            .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
             .map(t => (
               <Badge
                 key={t.id}
@@ -172,70 +173,82 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
         </div>
       )}
 
-      {/* Árvore de grupos → tipos */}
+      {/* Busca */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+        <Input
+          placeholder="Buscar materiais..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="pl-8 h-8 text-sm"
+        />
+      </div>
+
       <ScrollArea className="max-h-[280px] border rounded-md p-2">
         <div className="space-y-1">
-          {groups.map(group => {
-            const types = typesByGroup[group.group_id] || [];
-            const linkedInGroup = types.filter(t => linkedMaterialIds.has(t.id)).length;
-            const isExpanded = expandedGroups.has(group.group_id);
+          {visibleGroups.length === 0 ? (
+            <p className="text-xs text-muted-foreground p-2">Nenhum material encontrado</p>
+          ) : (
+            visibleGroups.map(group => {
+              const types = (filteredTypesByGroup[group.group_id] || typesByGroup[group.group_id] || [])
+                .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+              const linkedInGroup = types.filter(t => linkedMaterialIds.has(t.id)).length;
+              const isExpanded = expandedGroups.has(group.group_id) || !!search;
 
-            return (
-              <Collapsible
-                key={group.group_id}
-                open={isExpanded}
-                onOpenChange={() => toggleGroup(group.group_id)}
-              >
-                <CollapsibleTrigger className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm hover:bg-accent/50 transition-colors">
-                  <ChevronRight className={cn('h-3.5 w-3.5 transition-transform', isExpanded && 'rotate-90')} />
-                  {group.group_hex_code && (
-                    <div
-                      className="h-3 w-3 rounded-full border"
-                      style={{ backgroundColor: group.group_hex_code }}
-                    />
-                  )}
-                  <span className="font-medium">{group.group_name}</span>
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {linkedInGroup > 0 && (
-                      <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4 mr-1">
-                        {linkedInGroup}
-                      </Badge>
+              return (
+                <Collapsible
+                  key={group.group_id}
+                  open={isExpanded}
+                  onOpenChange={() => toggleGroup(group.group_id)}
+                >
+                  <CollapsibleTrigger className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-sm hover:bg-accent/50 transition-colors">
+                    <ChevronRight className={cn('h-3.5 w-3.5 transition-transform', isExpanded && 'rotate-90')} />
+                    {group.group_hex_code && (
+                      <div
+                        className="h-3 w-3 rounded-full border"
+                        style={{ backgroundColor: group.group_hex_code }}
+                      />
                     )}
-                    {types.length} tipos
-                  </span>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="ml-6 space-y-0.5 py-1">
-                    {types.length === 0 ? (
-                      <p className="text-xs text-muted-foreground pl-2">Nenhum tipo neste grupo</p>
-                    ) : (
-                      types.map(type => {
-                        const isLinked = linkedMaterialIds.has(type.id);
-                        return (
-                          <label
-                            key={type.id}
-                            className={cn(
-                              'flex items-center gap-2 px-2 py-1 rounded text-sm cursor-pointer hover:bg-accent/30 transition-colors',
-                              isLinked && 'bg-primary/5'
-                            )}
-                          >
-                            <Checkbox
-                              checked={isLinked}
-                              onCheckedChange={() => toggleMaterial(type.id, isLinked)}
-                            />
-                            <span>{type.name}</span>
-                            {type.group_name && type.group_name !== group.group_name && (
-                              <span className="text-xs text-muted-foreground">({type.group_name})</span>
-                            )}
-                          </label>
-                        );
-                      })
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            );
-          })}
+                    <span className="font-medium">{group.group_name}</span>
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {linkedInGroup > 0 && (
+                        <Badge variant="default" className="text-[10px] px-1.5 py-0 h-4 mr-1">
+                          {linkedInGroup}
+                        </Badge>
+                      )}
+                      {types.length} tipos
+                    </span>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <div className="ml-6 space-y-0.5 py-1">
+                      {types.length === 0 ? (
+                        <p className="text-xs text-muted-foreground pl-2">Nenhum tipo neste grupo</p>
+                      ) : (
+                        types.map(type => {
+                          const isLinked = linkedMaterialIds.has(type.id);
+                          return (
+                            <label
+                              key={type.id}
+                              className={cn(
+                                'flex items-center gap-2 px-2 py-1 rounded text-sm cursor-pointer hover:bg-accent/30 transition-colors',
+                                isLinked && 'bg-primary/5'
+                              )}
+                            >
+                              <Checkbox
+                                checked={isLinked}
+                                onCheckedChange={() => toggleMaterial(type.id, isLinked)}
+                              />
+                              <span>{type.name}</span>
+                            </label>
+                          );
+                        })
+                      )}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              );
+            })
+          )}
         </div>
       </ScrollArea>
     </div>
