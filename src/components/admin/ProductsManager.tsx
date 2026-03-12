@@ -275,6 +275,25 @@ export function ProductsManager() {
 
     setIsSaving(true);
     try {
+      // Validar SKU duplicado (apenas ao criar ou ao alterar o SKU)
+      const isNewProduct = !selectedProduct;
+      const skuChanged = selectedProduct && formData.sku !== selectedProduct.sku;
+      
+      if (isNewProduct || skuChanged) {
+        const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        const existing = await fetchPromobrindProducts({
+          search: formData.sku,
+          limit: 5,
+        });
+        const duplicate = (existing as any[]).find(
+          (p: any) => p.sku?.toLowerCase() === formData.sku.toLowerCase()
+        );
+        if (duplicate) {
+          toast.error(`SKU "${formData.sku}" já está cadastrado no produto "${duplicate.name}"`);
+          setIsSaving(false);
+          return;
+        }
+      }
       // Mapear para campos reais do schema externo (products table)
       const productData: Record<string, any> = {
         sku: formData.sku,
