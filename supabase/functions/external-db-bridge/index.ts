@@ -974,16 +974,25 @@ serve(async (req) => {
           );
         }
 
-        const { error: deleteError } = await externalSupabase
+        const { data: deleteResult, error: deleteError } = await externalSupabase
           .from(table)
           .delete()
-          .eq('id', id);
+          .eq('id', id)
+          .select('id')
+          .maybeSingle();
 
         if (deleteError) {
           console.error('Delete error:', deleteError.message, deleteError.details, deleteError.hint);
           return new Response(
             JSON.stringify({ error: deleteError.message, details: deleteError.details, hint: deleteError.hint }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!deleteResult) {
+          return new Response(
+            JSON.stringify({ error: `Registro não encontrado para exclusão em '${table}' com id='${id}'` }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
