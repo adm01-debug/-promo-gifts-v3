@@ -122,6 +122,19 @@ interface ExternalDatabaseState<T> {
   error: string | null;
 }
 
+const MAX_RETRIES = 3;
+const INITIAL_BACKOFF_MS = 800;
+const RETRYABLE_PATTERNS = [
+  'statement timeout', '57014', '503', 'FunctionsHttpError',
+  'network', 'fetch', 'ECONNRESET', 'socket hang up',
+  'AbortError', 'Failed to fetch',
+];
+
+function isRetryableError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return RETRYABLE_PATTERNS.some(p => lower.includes(p.toLowerCase()));
+}
+
 async function extractFunctionErrorMessage(error: unknown): Promise<string> {
   if (error instanceof Error) {
     const maybeContext = error as Error & { context?: Response };
@@ -145,6 +158,28 @@ async function extractFunctionErrorMessage(error: unknown): Promise<string> {
   }
 
   return 'Erro ao acessar banco externo';
+}
+
+async function invokeWithRetry(
+  body: Record<string, unknown>,
+  retries = MAX_RETRIES
+): Promise<{ data: any; error: any }> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
+
+    if (!error) return { data, error: null };
+
+    const msg = await extractFunctionErrorMessage(error);
+    if (attempt < retries && isRetryableError(msg)) {
+      const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+      console.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
+
+    return { data, error };
+  }
+  return { data: null, error: new Error('Max retries exceeded') };
 }
 
 export function useExternalDatabase<T = Record<string, unknown>>(tableName: ExternalTable) {
