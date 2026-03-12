@@ -45,7 +45,6 @@ serve(async (req) => {
       console.log(`Materials API request from user: ${claimsData.claims.sub}`);
     }
 
-    console.log(`Materials API request from user: ${user.id}`);
 
     // Parse body
     const body = await req.json();
