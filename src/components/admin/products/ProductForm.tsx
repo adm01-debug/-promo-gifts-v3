@@ -21,11 +21,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Loader2, ChevronDown, Info, Ruler, Package, Tag, ImageIcon, Palette, Layers } from 'lucide-react';
+import { Loader2, ChevronDown, Info, Ruler, Package, Tag, ImageIcon, Palette, Layers, Building2, Paintbrush, Megaphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ProductVariantsSection } from './ProductVariantsSection';
 import { ProductMaterialsSection } from './ProductMaterialsSection';
+import { ProductTagsSection } from './ProductTagsSection';
+import { ProductRamosSection } from './ProductRamosSection';
+import { ProductMarketingSection } from './ProductMarketingSection';
+import { ProductTechniquesSection } from './ProductTechniquesSection';
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
@@ -315,7 +319,47 @@ export function ProductForm({
             </>
           )}
 
-          {/* ====== FLAGS ====== */}
+          {/* ====== TAGS ====== */}
+          {isEdit && productId && (
+            <>
+              <FormSection title="Tags" icon={Tag} defaultOpen={false}>
+                <ProductTagsSection productId={productId} />
+              </FormSection>
+              <Separator />
+            </>
+          )}
+
+          {/* ====== RAMOS DE ATIVIDADE ====== */}
+          {isEdit && productId && (
+            <>
+              <FormSection title="Ramos de Atividade" icon={Building2} defaultOpen={false}>
+                <ProductRamosSection productId={productId} />
+              </FormSection>
+              <Separator />
+            </>
+          )}
+
+          {/* ====== MARKETING (Público-Alvo, Datas, Endomarketing) ====== */}
+          {isEdit && productId && (
+            <>
+              <FormSection title="Marketing" icon={Megaphone} defaultOpen={false}>
+                <ProductMarketingSection productId={productId} />
+              </FormSection>
+              <Separator />
+            </>
+          )}
+
+          {/* ====== TÉCNICAS DE PERSONALIZAÇÃO ====== */}
+          {isEdit && productId && (
+            <>
+              <FormSection title="Técnicas de Personalização" icon={Paintbrush} defaultOpen={false}>
+                <ProductTechniquesSection productId={productId} />
+              </FormSection>
+              <Separator />
+            </>
+          )}
+
+
           <FormSection title="Status e Destaques" icon={Tag} defaultOpen>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center justify-between rounded-lg border p-3">
