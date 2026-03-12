@@ -1,13 +1,13 @@
 /**
  * ProductVariantsSection — CRUD de variações de cor de um produto
- * Busca, cria, edita e exclui variantes via external-db-bridge
+ * Visual de swatches circulares com checkmarks (padrão Super Filtro)
  */
 
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Palette, Package, AlertCircle, Plus, Pencil, Trash2, Save, X, Loader2,
+  Palette, Package, AlertCircle, Plus, Pencil, Trash2, Save, X, Loader2, Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +16,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
