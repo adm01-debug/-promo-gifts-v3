@@ -1,13 +1,13 @@
 /**
  * ProductVariantsSection — CRUD de variações de cor de um produto
- * Busca, cria, edita e exclui variantes via external-db-bridge
+ * Visual de swatches circulares com checkmarks (padrão Super Filtro)
  */
 
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Palette, Package, AlertCircle, Plus, Pencil, Trash2, Save, X, Loader2,
+  Palette, Package, AlertCircle, Plus, Pencil, Trash2, Save, X, Loader2, Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +16,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -332,6 +348,14 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
 
   const totalStock = variants.reduce((sum, v) => sum + (v.stock_quantity ?? 0), 0);
 
+  const isLightColor = (hex: string | null) => {
+    if (!hex) return true;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 186;
+  };
+
   return (
     <div className="space-y-3">
       {/* Header with summary + add button */}
@@ -344,7 +368,7 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
               <span>
                 Estoque total:{' '}
                 <span className="font-medium text-foreground">
-                  {totalStock.toLocaleString('pt-BR')} un
+                  {totalStock >= 1000 ? `${(totalStock / 1000).toFixed(1)}k` : totalStock.toLocaleString('pt-BR')} un
                 </span>
               </span>
             </>
@@ -369,6 +393,59 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
           </Button>
         )}
       </div>
+
+      {/* Swatches circulares — padrão Super Filtro */}
+      {variants.length > 0 && (
+        <TooltipProvider delayDuration={200}>
+          <div className="flex flex-wrap gap-2.5">
+            {variants.map(v => {
+              const hex = v.color_hex;
+              const isTransparent = !hex || hex.toLowerCase() === '#ffffff';
+              const light = isLightColor(hex);
+              const stock = v.stock_quantity ?? 0;
+              const stockLabel = stock >= 1000 ? `${(stock / 1000).toFixed(1)}k` : stock.toString();
+
+              return (
+                <Tooltip key={v.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => { setEditingId(v.id); setIsCreating(false); }}
+                      className={cn(
+                        'w-9 h-9 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
+                        'hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2',
+                        editingId === v.id
+                          ? 'ring-2 ring-offset-1'
+                          : 'border-border hover:border-muted-foreground/50',
+                        isTransparent && 'bg-gradient-to-br from-gray-100 to-gray-200',
+                        !stock && 'opacity-40'
+                      )}
+                      style={{
+                        backgroundColor: isTransparent ? undefined : (hex || '#ccc'),
+                        ...(editingId === v.id ? {
+                          borderColor: hex || '#ccc',
+                          ['--tw-ring-color' as string]: hex || '#ccc',
+                        } : {}),
+                      }}
+                    >
+                      {editingId === v.id && (
+                        <Check className={cn('w-4 h-4', light ? 'text-gray-800' : 'text-white')} />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">{v.color_name || v.name}</span>
+                      <span className="text-muted-foreground font-mono">{v.sku}</span>
+                      <span>{stockLabel} un</span>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
+      )}
 
       {/* Create form */}
       {isCreating && (
