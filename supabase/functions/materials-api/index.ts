@@ -29,12 +29,20 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: userError } = await localSupabase.auth.getUser();
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Token inválido' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      // Fallback to getUser if getClaims not available
+      const { data: { user }, error: userError } = await localSupabase.auth.getUser();
+      if (userError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Token inválido' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log(`Materials API request from user: ${user.id}`);
+    } else {
+      console.log(`Materials API request from user: ${claimsData.claims.sub}`);
     }
 
     console.log(`Materials API request from user: ${user.id}`);
