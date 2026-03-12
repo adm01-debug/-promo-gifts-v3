@@ -275,12 +275,9 @@ export function ProductsManager() {
             sku: selectedProduct.sku,
             name: selectedProduct.name,
             description: selectedProduct.description,
-            price: selectedProduct.price,
-            stock: selectedProduct.stock,
-            category_name: selectedProduct.category_name,
+            sale_price: selectedProduct.price,
+            stock_quantity: selectedProduct.stock,
             is_active: selectedProduct.is_active,
-            featured: selectedProduct.featured,
-            images: selectedProduct.images,
           },
           productData
         );
@@ -314,8 +311,7 @@ export function ProductsManager() {
             newValues: {
               sku: productData.sku,
               name: productData.name,
-              price: productData.price,
-              category_name: productData.category_name,
+              sale_price: productData.sale_price,
               is_active: productData.is_active,
             },
           });
