@@ -735,6 +735,9 @@ export default function FiltersPage() {
                       handleFilterChange({ ...filters, search: result.label });
                     }
                   }}
+                  onSearch={(q) => {
+                    handleFilterChange({ ...filters, search: q });
+                  }}
                   className="flex-1"
                 />
 

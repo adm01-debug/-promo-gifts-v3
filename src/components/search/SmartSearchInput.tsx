@@ -26,6 +26,8 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 interface SmartSearchInputProps {
   placeholder?: string;
   onSelect?: (result: SearchResult) => void;
+  /** Called when the user submits a plain text search (Enter key). If provided, prevents default navigation. */
+  onSearch?: (query: string) => void;
   className?: string;
   autoFocus?: boolean;
 }
@@ -40,6 +42,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 export function SmartSearchInput({
   placeholder = "Buscar produtos, categorias, fornecedores...",
   onSelect,
+  onSearch,
   className,
   autoFocus = false,
 }: SmartSearchInputProps) {
@@ -120,7 +123,11 @@ export function SmartSearchInput({
           handleSelectResult(suggestions[selectedIndex]);
         } else if (query.trim()) {
           addToHistory(query);
-          navigate(`/?search=${encodeURIComponent(query)}`);
+          if (onSearch) {
+            onSearch(query);
+          } else {
+            navigate(`/?search=${encodeURIComponent(query)}`);
+          }
           setIsFocused(false);
         }
         break;
@@ -163,7 +170,11 @@ export function SmartSearchInput({
   const handleQuickSuggestionClick = (label: string) => {
     setQuery(label);
     addToHistory(label);
-    navigate(`/?search=${encodeURIComponent(label)}`);
+    if (onSearch) {
+      onSearch(label);
+    } else {
+      navigate(`/?search=${encodeURIComponent(label)}`);
+    }
     setIsFocused(false);
   };
 
@@ -186,7 +197,11 @@ export function SmartSearchInput({
           onClick={() => {
             if (query.trim()) {
               addToHistory(query);
-              navigate(`/?search=${encodeURIComponent(query)}`);
+              if (onSearch) {
+                onSearch(query);
+              } else {
+                navigate(`/?search=${encodeURIComponent(query)}`);
+              }
               setIsFocused(false);
             }
           }}
@@ -223,7 +238,7 @@ export function SmartSearchInput({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
-              onClick={() => setQuery("")}
+              onClick={() => { setQuery(""); onSearch?.(""); }}
             >
               <X className="h-4 w-4" />
             </Button>
