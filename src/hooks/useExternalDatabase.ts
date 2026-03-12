@@ -122,6 +122,31 @@ interface ExternalDatabaseState<T> {
   error: string | null;
 }
 
+async function extractFunctionErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof Error) {
+    const maybeContext = error as Error & { context?: Response };
+    if (maybeContext.context instanceof Response) {
+      try {
+        const raw = await maybeContext.context.clone().text();
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as { error?: string; details?: string; hint?: string };
+            const detailed = [parsed.error, parsed.details, parsed.hint].filter(Boolean).join(' | ');
+            if (detailed) return detailed;
+          } catch {
+            return `${error.message} | ${raw}`;
+          }
+        }
+      } catch {
+        // ignore parse failure
+      }
+    }
+    return error.message;
+  }
+
+  return 'Erro ao acessar banco externo';
+}
+
 export function useExternalDatabase<T = Record<string, unknown>>(tableName: ExternalTable) {
   const [state, setState] = useState<ExternalDatabaseState<T>>({
     data: [],
