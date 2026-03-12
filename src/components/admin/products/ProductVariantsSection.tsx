@@ -107,6 +107,7 @@ async function deleteVariant(id: string): Promise<void> {
 
 function StockBadge({ stock }: { stock: number | null }) {
   const qty = stock ?? 0;
+
   if (qty === 0) {
     return (
       <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
@@ -114,15 +115,17 @@ function StockBadge({ stock }: { stock: number | null }) {
       </Badge>
     );
   }
+
   if (qty < 100) {
     return (
-      <Badge className="bg-amber-500/15 text-amber-700 border-amber-200 text-[10px] px-1.5 py-0">
+      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
         {qty} un
       </Badge>
     );
   }
+
   return (
-    <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200 text-[10px] px-1.5 py-0">
+    <Badge className="bg-primary/15 text-primary border-primary/30 text-[10px] px-1.5 py-0">
       {qty >= 1000 ? `${(qty / 1000).toFixed(1)}k` : qty} un
     </Badge>
   );
