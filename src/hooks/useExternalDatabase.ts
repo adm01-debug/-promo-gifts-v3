@@ -177,11 +177,12 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
       });
 
       if (error) {
-        throw new Error(error.message);
+        const message = await extractFunctionErrorMessage(error);
+        throw new Error(message);
       }
 
-      if (!data.success) {
-        throw new Error(data.error || 'Erro desconhecido');
+      if (!data?.success) {
+        throw new Error(data?.error || 'Erro desconhecido');
       }
 
       if (operation === 'select') {
