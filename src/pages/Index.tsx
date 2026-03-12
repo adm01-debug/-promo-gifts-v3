@@ -63,8 +63,13 @@ export default function Index() {
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   const { getProductById } = useProductsContext();
 
-  // Buscar produtos reais do banco de dados
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
+  // Debounce da busca para server-side search
+  const debouncedServerSearch = useDebounce(searchQuery, 400);
+
+  // Buscar produtos reais do banco de dados com busca server-side
+  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
+    debouncedServerSearch ? { search: debouncedServerSearch } : undefined
+  );
 
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
   

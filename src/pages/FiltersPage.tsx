@@ -9,6 +9,7 @@ import { ColumnSelector, getDefaultColumns, type ColumnCount } from "@/component
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 import { useProducts } from "@/hooks/useProducts";
 import { resolveColorImage, type ActiveColorFilter } from "@/utils/color-image-resolver";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
