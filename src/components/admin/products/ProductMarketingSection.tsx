@@ -85,7 +85,7 @@ const CATEGORIES: {
 ];
 
 export function ProductMarketingSection({ productId }: ProductMarketingSectionProps) {
-  const [tags, setTags] = useState<ProductTags>({});
+  const [tags, setTags] = useState<ProductTags>({ publicoAlvo: [], datasComemorativas: [], endomarketing: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
