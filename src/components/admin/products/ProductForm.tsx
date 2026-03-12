@@ -25,6 +25,7 @@ import { Loader2, ChevronDown, Info, Ruler, Package, Tag, ImageIcon, Palette, La
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ProductVariantsSection } from './ProductVariantsSection';
+import { ProductMaterialsSection } from './ProductMaterialsSection';
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
