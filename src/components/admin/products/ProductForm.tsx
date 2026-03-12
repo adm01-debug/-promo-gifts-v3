@@ -322,44 +322,44 @@ export function ProductForm({
           )}
 
           {/* ====== TAGS ====== */}
-          {isEdit && productId && (
-            <>
-              <FormSection title="Tags" icon={Tag} defaultOpen={false}>
-                <ProductTagsSection productId={productId} />
-              </FormSection>
-              <Separator />
-            </>
-          )}
+          <FormSection title="Tags" icon={Tag} defaultOpen={false}>
+            {isEdit && productId ? (
+              <ProductTagsSection productId={productId} />
+            ) : (
+              <p className="text-xs text-muted-foreground">Salve o produto para vincular tags do catálogo.</p>
+            )}
+          </FormSection>
+          <Separator />
 
           {/* ====== RAMOS DE ATIVIDADE ====== */}
-          {isEdit && productId && (
-            <>
-              <FormSection title="Ramos de Atividade" icon={Building2} defaultOpen={false}>
-                <ProductRamosSection productId={productId} />
-              </FormSection>
-              <Separator />
-            </>
-          )}
+          <FormSection title="Ramos de Atividade" icon={Building2} defaultOpen={false}>
+            {isEdit && productId ? (
+              <ProductRamosSection productId={productId} />
+            ) : (
+              <p className="text-xs text-muted-foreground">Salve o produto para vincular ramos e segmentos.</p>
+            )}
+          </FormSection>
+          <Separator />
 
           {/* ====== MARKETING (Público-Alvo, Datas, Endomarketing) ====== */}
-          {isEdit && productId && (
-            <>
-              <FormSection title="Marketing" icon={Megaphone} defaultOpen={false}>
-                <ProductMarketingSection productId={productId} />
-              </FormSection>
-              <Separator />
-            </>
-          )}
+          <FormSection title="Marketing" icon={Megaphone} defaultOpen={false}>
+            {isEdit && productId ? (
+              <ProductMarketingSection productId={productId} />
+            ) : (
+              <p className="text-xs text-muted-foreground">Salve o produto para classificar Público-Alvo, Datas e Endomarketing.</p>
+            )}
+          </FormSection>
+          <Separator />
 
           {/* ====== TÉCNICAS DE PERSONALIZAÇÃO ====== */}
-          {isEdit && productId && (
-            <>
-              <FormSection title="Técnicas de Personalização" icon={Paintbrush} defaultOpen={false}>
-                <ProductTechniquesSection productId={productId} />
-              </FormSection>
-              <Separator />
-            </>
-          )}
+          <FormSection title="Técnicas de Personalização" icon={Paintbrush} defaultOpen={false}>
+            {isEdit && productId ? (
+              <ProductTechniquesSection productId={productId} />
+            ) : (
+              <p className="text-xs text-muted-foreground">Salve o produto para vincular técnicas de gravação.</p>
+            )}
+          </FormSection>
+          <Separator />
 
 
           <FormSection title="Status e Destaques" icon={Tag} defaultOpen>
