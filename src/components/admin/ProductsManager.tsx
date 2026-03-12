@@ -599,6 +599,7 @@ export function ProductsManager() {
                 <ProductForm
                   initialData={productToFormData(selectedProduct)}
                   productImages={selectedProduct.images || []}
+                  productId={selectedProduct.id}
                   onSubmit={handleFormSubmit}
                   onCancel={() => setIsFormOpen(false)}
                   isSaving={isSaving}
