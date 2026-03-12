@@ -757,6 +757,12 @@ export default function FiltersPage() {
                   className="flex-1"
                 />
 
+                {(filters.search || searchQuery) && (
+                  <Badge variant="secondary" className="shrink-0 whitespace-nowrap">
+                    {filteredProducts.length.toLocaleString("pt-BR")} encontrado{filteredProducts.length !== 1 ? "s" : ""}
+                  </Badge>
+                )}
+
                 {/* Mobile filter trigger */}
                 <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
                   <SheetTrigger asChild>
