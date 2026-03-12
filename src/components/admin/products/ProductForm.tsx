@@ -295,6 +295,16 @@ export function ProductForm({
 
           <Separator />
 
+          {/* ====== VARIAÇÕES DE COR ====== */}
+          {isEdit && productId && (
+            <>
+              <FormSection title="Variações de Cor" icon={Palette} defaultOpen>
+                <ProductVariantsSection productId={productId} />
+              </FormSection>
+              <Separator />
+            </>
+          )}
+
           {/* ====== FLAGS ====== */}
           <FormSection title="Status e Destaques" icon={Tag} defaultOpen>
             <div className="grid grid-cols-2 gap-3">
