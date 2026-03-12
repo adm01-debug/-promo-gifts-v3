@@ -103,6 +103,75 @@ export type Database = {
           },
         ]
       }
+      generated_mockups: {
+        Row: {
+          annotations: Json | null
+          client_id: string | null
+          client_name: string | null
+          colors_count: number | null
+          created_at: string
+          id: string
+          layout_url: string | null
+          location_name: string | null
+          logo_height_cm: number | null
+          logo_url: string | null
+          logo_width_cm: number | null
+          mockup_url: string | null
+          position_x: number | null
+          position_y: number | null
+          product_id: string | null
+          product_name: string | null
+          product_sku: string | null
+          seller_id: string
+          technique_id: string | null
+          technique_name: string | null
+        }
+        Insert: {
+          annotations?: Json | null
+          client_id?: string | null
+          client_name?: string | null
+          colors_count?: number | null
+          created_at?: string
+          id?: string
+          layout_url?: string | null
+          location_name?: string | null
+          logo_height_cm?: number | null
+          logo_url?: string | null
+          logo_width_cm?: number | null
+          mockup_url?: string | null
+          position_x?: number | null
+          position_y?: number | null
+          product_id?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          seller_id: string
+          technique_id?: string | null
+          technique_name?: string | null
+        }
+        Update: {
+          annotations?: Json | null
+          client_id?: string | null
+          client_name?: string | null
+          colors_count?: number | null
+          created_at?: string
+          id?: string
+          layout_url?: string | null
+          location_name?: string | null
+          logo_height_cm?: number | null
+          logo_url?: string | null
+          logo_width_cm?: number | null
+          mockup_url?: string | null
+          position_x?: number | null
+          position_y?: number | null
+          product_id?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          seller_id?: string
+          technique_id?: string | null
+          technique_name?: string | null
+        }
+        Relationships: []
+      }
       magic_up_generations: {
         Row: {
           client_name: string | null
