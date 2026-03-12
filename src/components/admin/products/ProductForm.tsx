@@ -97,6 +97,8 @@ export function ProductForm({
   const isFeatured = watch('is_featured');
   const isNew = watch('is_new');
   const isOnSale = watch('is_on_sale');
+  const isKit = watch('is_kit');
+  const hasCommercialPackaging = watch('has_commercial_packaging');
 
   const onFormSubmit = handleSubmit(async (data) => {
     await onSubmit(data, images);
