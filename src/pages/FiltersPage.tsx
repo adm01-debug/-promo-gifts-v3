@@ -9,6 +9,7 @@ import { ColumnSelector, getDefaultColumns, type ColumnCount } from "@/component
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 import { useProducts } from "@/hooks/useProducts";
 import { resolveColorImage, type ActiveColorFilter } from "@/utils/color-image-resolver";
+import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -48,8 +49,18 @@ export default function FiltersPage() {
   const { isFavorite, toggleFavorite } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   
-  // Buscar produtos reais do banco de dados
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts();
+  // Debounce da busca do FilterPanel para server-side search
+  const debouncedServerSearch = useDebounce(filters.search || '', 400);
+  // Debounce da busca da URL
+  const urlSearch = searchParams.get('search') || '';
+  const debouncedUrlSearch = useDebounce(urlSearch, 400);
+  // Combinar: prioridade para busca do FilterPanel, senão URL
+  const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
+
+  // Buscar produtos reais do banco de dados com busca server-side
+  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
+    serverSearchTerm ? { search: serverSearchTerm } : undefined
+  );
   const isInitialMount = useRef(true);
 
   // #22 Deep linking: deserialize filters from URL on mount
