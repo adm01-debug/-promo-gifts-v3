@@ -1,5 +1,5 @@
-import { useMemo, useState, useEffect } from 'react';
-import { useSuppliers, type SupplierOption } from '@/hooks/useSuppliers';
+import { useMemo, useState } from 'react';
+import { useSuppliers } from '@/hooks/useSuppliers';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,13 +14,9 @@ interface SupplierSelectProps {
 }
 
 export function SupplierSelect({ value, onChange, error }: SupplierSelectProps) {
-  const { suppliers, isLoading, loadSuppliers } = useSuppliers();
+  const { suppliers, isLoading } = useSuppliers();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    loadSuppliers();
-  }, []);
 
   const filtered = useMemo(() => {
     if (!search) return suppliers;
