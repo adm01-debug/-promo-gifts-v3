@@ -1,8 +1,8 @@
 /**
- * Gerenciador de Produtos - CRUD completo com Auditoria
+ * Gerenciador de Produtos - CRUD completo com Auditoria e Paginação
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { invokeExternalDbSingle, invokeExternalDbDelete } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -50,10 +57,14 @@ import {
   ImageIcon,
   RefreshCw,
   History,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { ImageUploadButton } from "./ImageUploadButton";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
+
+const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 
 interface Product {
   id: string;
