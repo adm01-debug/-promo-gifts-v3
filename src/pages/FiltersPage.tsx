@@ -593,6 +593,22 @@ export default function FiltersPage() {
     return result;
   }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
 
+  // Toast indicando quantos produtos foram encontrados após busca
+  const prevSearchRef = useRef<string>('');
+  useEffect(() => {
+    const currentSearch = filters.search || '';
+    if (currentSearch && currentSearch !== prevSearchRef.current) {
+      toast.info(
+        `${filteredProducts.length.toLocaleString('pt-BR')} produto${filteredProducts.length !== 1 ? 's' : ''} encontrado${filteredProducts.length !== 1 ? 's' : ''}`,
+        {
+          description: `Busca: "${currentSearch}"`,
+          duration: 3000,
+        }
+      );
+    }
+    prevSearchRef.current = currentSearch;
+  }, [filters.search, filteredProducts.length]);
+
   // Resumo dos filtros ativos para exibição
   const activeFiltersSummary = useMemo(() => {
     const summary: { label: string; value: string; key: keyof FilterState }[] = [];
