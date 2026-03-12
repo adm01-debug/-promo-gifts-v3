@@ -111,7 +111,7 @@ export function ProductForm({
 
   return (
     <form onSubmit={onFormSubmit}>
-      <ScrollArea className="max-h-[60vh] pr-4">
+      <div className="max-h-[60vh] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
         <div className="space-y-1">
           {/* ====== INFO BÁSICA ====== */}
           <FormSection title="Informações Básicas" icon={Info} defaultOpen>
