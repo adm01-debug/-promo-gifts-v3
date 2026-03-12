@@ -152,13 +152,14 @@ export function ProductsManager() {
 
   const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : 1;
 
-  const fetchProducts = useCallback(async (page = currentPage, size = pageSize) => {
+  const fetchProducts = useCallback(async (page = currentPage, size = pageSize, search?: string) => {
     setIsLoading(true);
     try {
       const { fetchPromobrindProducts, getProductImageUrl, getProductPrice, getProductStock } = await import('@/lib/external-db');
       
       const offset = (page - 1) * size;
       const result = await fetchPromobrindProducts({
+        search: search || undefined,
         limit: size,
         offset,
         orderBy: { column: 'created_at', ascending: false },
@@ -205,29 +206,30 @@ export function ProductsManager() {
   }, [currentPage, pageSize]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    fetchProducts(1, pageSize, searchTerm);
+  }, []);
 
-  // Client-side filtering on current page data
-  const filteredProducts = searchTerm
-    ? products.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          p.category_name?.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : products;
+  // Debounced server-side search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      fetchProducts(1, pageSize, searchTerm);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const filteredProducts = products;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchProducts(page, pageSize);
+    fetchProducts(page, pageSize, searchTerm);
   };
 
   const handlePageSizeChange = (newSize: string) => {
     const size = parseInt(newSize, 10);
     setPageSize(size);
     setCurrentPage(1);
-    fetchProducts(1, size);
+    fetchProducts(1, size, searchTerm);
   };
 
   const openCreateForm = () => {
@@ -375,7 +377,7 @@ export function ProductsManager() {
 
       setIsFormOpen(false);
       setCurrentPage(1);
-      fetchProducts(1, pageSize);
+      fetchProducts(1, pageSize, searchTerm);
     } catch (error: any) {
       console.error("Error saving product:", error);
       toast.error(error.message || "Erro ao salvar produto");
@@ -407,7 +409,7 @@ export function ProductsManager() {
 
       toast.success("Produto excluído com sucesso");
       setIsDeleteOpen(false);
-      fetchProducts(currentPage, pageSize);
+      fetchProducts(currentPage, pageSize, searchTerm);
     } catch (error: any) {
       console.error("Error deleting product:", error);
       toast.error(error.message || "Erro ao excluir produto");
@@ -436,7 +438,7 @@ export function ProductsManager() {
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => fetchProducts(currentPage, pageSize)}>
+            <Button variant="outline" size="sm" onClick={() => fetchProducts(currentPage, pageSize, searchTerm)}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar
             </Button>
