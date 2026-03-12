@@ -78,10 +78,24 @@ export function useExternalVariantStock(productId: string | undefined) {
         }
       }
 
+      // Detectar imagem principal do produto para evitar usá-la como fallback de variante
+      const primaryImages = new Set<string>();
+      for (const img of imagesResult.records) {
+        if ((img.is_primary || img.is_og_image) && img.url_cdn) {
+          primaryImages.add(img.url_cdn);
+        }
+      }
+
       return variantsResult.records.map(v => {
-        // Imagem da variante: selected_thumbnail > imagem por color_code > selected_images > images
+        // Imagem por color_code tem PRIORIDADE (vínculo explícito supplier_code = color_code)
         const colorImage = v.color_code ? imagesByCode.get(v.color_code.toUpperCase()) : null;
-        const thumbnail = v.selected_thumbnail || colorImage || null;
+        
+        // selected_thumbnail só é válido se NÃO for a imagem principal do produto
+        const isMainImage = v.selected_thumbnail ? primaryImages.has(v.selected_thumbnail) : false;
+        const validSelectedThumb = v.selected_thumbnail && !isMainImage ? v.selected_thumbnail : null;
+        
+        // Prioridade: colorImage (vínculo explícito) > selected_thumbnail válido > null
+        const thumbnail = colorImage || validSelectedThumb || null;
         const imgs = v.selected_images?.length ? v.selected_images : v.images;
 
         return {
