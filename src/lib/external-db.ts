@@ -247,8 +247,26 @@ function shouldFallbackSelect(err: unknown) {
 export async function fetchPromobrindProducts(options?: {
   search?: string;
   limit?: number;
+  offset?: number;
+  orderBy?: { column: string; ascending?: boolean };
   filters?: Record<string, unknown>;
-}): Promise<PromobrindProduct[]> {
+}): Promise<PromobrindProduct[]>;
+export async function fetchPromobrindProducts(options?: {
+  search?: string;
+  limit?: number;
+  offset?: number;
+  orderBy?: { column: string; ascending?: boolean };
+  filters?: Record<string, unknown>;
+  returnCount?: true;
+}): Promise<{ products: PromobrindProduct[]; count: number | null }>;
+export async function fetchPromobrindProducts(options?: {
+  search?: string;
+  limit?: number;
+  offset?: number;
+  orderBy?: { column: string; ascending?: boolean };
+  filters?: Record<string, unknown>;
+  returnCount?: boolean;
+}): Promise<PromobrindProduct[] | { products: PromobrindProduct[]; count: number | null }> {
   const filters: Record<string, unknown> = {
     active: true,  // Campo correto no schema externo
     ...options?.filters,
