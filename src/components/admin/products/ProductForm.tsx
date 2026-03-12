@@ -97,6 +97,8 @@ export function ProductForm({
   const isFeatured = watch('is_featured');
   const isNew = watch('is_new');
   const isOnSale = watch('is_on_sale');
+  const isKit = watch('is_kit');
+  const hasCommercialPackaging = watch('has_commercial_packaging');
 
   const onFormSubmit = handleSubmit(async (data) => {
     await onSubmit(data, images);
@@ -388,6 +390,20 @@ export function ProductForm({
                 <Switch
                   checked={isOnSale}
                   onCheckedChange={(v) => setValue('is_on_sale', v)}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label className="cursor-pointer">É Kit</Label>
+                <Switch
+                  checked={isKit}
+                  onCheckedChange={(v) => setValue('is_kit', v)}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label className="cursor-pointer">Embalagem Nativa</Label>
+                <Switch
+                  checked={hasCommercialPackaging}
+                  onCheckedChange={(v) => setValue('has_commercial_packaging', v)}
                 />
               </div>
             </div>
