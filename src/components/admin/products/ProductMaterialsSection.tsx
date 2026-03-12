@@ -147,11 +147,17 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     ? groups.filter(g => (filteredTypesByGroup[g.group_id]?.length || 0) > 0 || g.group_name.toLowerCase().includes(searchLower))
     : groups;
 
+  const totalTypes = allTypes.length;
+
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Layers className="h-4 w-4" />
-        <span>{linkedCount} {linkedCount === 1 ? 'material vinculado' : 'materiais vinculados'}</span>
+        <span>{groups.length} grupos</span>
+        <span className="text-muted-foreground/50">•</span>
+        <span>{totalTypes} materiais</span>
+        <span className="text-muted-foreground/50">•</span>
+        <span className={linkedCount > 0 ? 'text-primary font-medium' : ''}>{linkedCount} selecionados</span>
       </div>
 
       {linkedCount > 0 && (
