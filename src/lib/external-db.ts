@@ -355,7 +355,7 @@ export async function fetchPromobrindProducts(options?: {
 
       // Paradas
       if (page.records.length < pageSize) break;
-      if (totalCount !== null && products.length >= totalCount) break;
+      if (loopCount !== null && products.length >= loopCount) break;
     }
   }
 
