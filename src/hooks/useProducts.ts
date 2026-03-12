@@ -389,10 +389,10 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
     // Compat
     minQuantity: p.min_quantity || 1,
     stockStatus: getStockStatus(stock),
-    featured: false,
-    newArrival: false,
-    onSale: false,
-    isKit: false,
+    featured: Boolean(p.is_featured || p.is_bestseller),
+    newArrival: Boolean(p.is_new),
+    onSale: Boolean(p.is_on_sale),
+    isKit: Boolean(p.is_kit),
     category: {
       id: parseInt(p.category_id || p.main_category_id || "0") || 0,
       name: p.category_name || "Sem categoria",
@@ -401,13 +401,7 @@ function mapPromobrindToProduct(p: PromobrindProduct): Product {
       id: p.supplier_id || p.supplier_reference || p.brand || "unknown",
       name: p.supplier_name || p.brand || "Fornecedor",
     },
-    tags: {
-      publicoAlvo: [],
-      datasComemorativas: [],
-      endomarketing: [],
-      ramo: [],
-      nicho: [],
-    },
+    tags: normalizeMarketingTags(p.tags),
     
     // Dimensões físicas
     dimensions: {
