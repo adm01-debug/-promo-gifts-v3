@@ -21,7 +21,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Loader2, ChevronDown, Info, Ruler, Package, Tag, ImageIcon, Palette } from 'lucide-react';
+import { Loader2, ChevronDown, Info, Ruler, Package, Tag, ImageIcon, Palette, Layers } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { ProductVariantsSection } from './ProductVariantsSection';
