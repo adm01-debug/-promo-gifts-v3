@@ -63,16 +63,6 @@ export default function Index() {
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
   const { getProductById } = useProductsContext();
 
-  // Debounce da busca para server-side search
-  const debouncedServerSearch = useDebounce(searchQuery, 400);
-
-  // Buscar produtos reais do banco de dados com busca server-side
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
-    debouncedServerSearch ? { search: debouncedServerSearch } : undefined
-  );
-
-  const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
-  
   // Ler query de busca da URL
   const searchQueryFromUrl = searchParams.get("search") || "";
 
@@ -82,6 +72,16 @@ export default function Index() {
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
+
+  // Debounce da busca para server-side search
+  const debouncedServerSearch = useDebounce(searchQuery, 400);
+
+  // Buscar produtos reais do banco de dados com busca server-side
+  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
+    debouncedServerSearch ? { search: debouncedServerSearch } : undefined
+  );
+
+  const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
   
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(12);
