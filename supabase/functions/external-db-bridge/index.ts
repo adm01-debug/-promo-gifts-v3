@@ -931,12 +931,13 @@ serve(async (req) => {
           );
         }
 
-        // Adicionar metadados de atualização
+        // Adicionar metadados de atualização (sem updated_by — nem todas as tabelas têm essa coluna)
         const updateData = {
           ...data,
-          updated_by: userId,
           updated_at: new Date().toISOString(),
         };
+
+        console.log(`Updating ${table} id=${id}:`, JSON.stringify(updateData).substring(0, 500));
 
         const { data: updateResult, error: updateError } = await externalSupabase
           .from(table)
@@ -946,9 +947,9 @@ serve(async (req) => {
           .single();
 
         if (updateError) {
-          console.error('Update error:', updateError);
+          console.error('Update error:', updateError.message, updateError.details, updateError.hint);
           return new Response(
-            JSON.stringify({ error: updateError.message }),
+            JSON.stringify({ error: updateError.message, details: updateError.details, hint: updateError.hint }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
