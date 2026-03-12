@@ -392,6 +392,20 @@ export function ProductForm({
                   onCheckedChange={(v) => setValue('is_on_sale', v)}
                 />
               </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label className="cursor-pointer">É Kit</Label>
+                <Switch
+                  checked={isKit}
+                  onCheckedChange={(v) => setValue('is_kit', v)}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label className="cursor-pointer">Embalagem Nativa</Label>
+                <Switch
+                  checked={hasCommercialPackaging}
+                  onCheckedChange={(v) => setValue('has_commercial_packaging', v)}
+                />
+              </div>
             </div>
           </FormSection>
 
