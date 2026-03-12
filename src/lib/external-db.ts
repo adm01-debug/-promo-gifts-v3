@@ -357,6 +357,7 @@ export async function fetchPromobrindProducts(options?: {
       if (page.records.length < pageSize) break;
       if (loopCount !== null && products.length >= loopCount) break;
     }
+    totalCount = loopCount;
   }
 
   // Enriquecer produtos em paralelo: cores + nomes de fornecedores + imagens da nova tabela
