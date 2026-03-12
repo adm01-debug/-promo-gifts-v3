@@ -241,26 +241,24 @@ export function ProductsManager() {
 
     setIsSaving(true);
     try {
-      const productData = {
+      // Mapear para campos reais do schema externo (products table)
+      const productData: Record<string, any> = {
         sku: formData.sku,
         name: formData.name,
         description: formData.description || null,
-        price: formData.price,
-        stock: formData.stock,
-        stock_status: formData.stock_status,
-        category_name: formData.category_name || null,
-        subcategory: formData.subcategory || null,
-        supplier_name: formData.supplier_name || null,
+        short_description: formData.description ? formData.description.substring(0, 200) : null,
+        sale_price: formData.price,
+        stock_quantity: formData.stock,
         min_quantity: formData.min_quantity,
         is_active: formData.is_active,
-        featured: formData.featured,
-        new_arrival: formData.new_arrival,
-        on_sale: formData.on_sale,
-        video_url: formData.video_url || null,
-        materials: formData.materials ? formData.materials.split(",").map((m) => m.trim()) : [],
-        images: productImages,
+        active: formData.is_active,
         updated_at: new Date().toISOString(),
       };
+
+      // Campos opcionais - só enviar se preenchidos
+      if (formData.materials) {
+        productData.materials = formData.materials.split(",").map((m) => m.trim());
+      }
 
       if (selectedProduct) {
         // Update via external-db-bridge
@@ -277,12 +275,9 @@ export function ProductsManager() {
             sku: selectedProduct.sku,
             name: selectedProduct.name,
             description: selectedProduct.description,
-            price: selectedProduct.price,
-            stock: selectedProduct.stock,
-            category_name: selectedProduct.category_name,
+            sale_price: selectedProduct.price,
+            stock_quantity: selectedProduct.stock,
             is_active: selectedProduct.is_active,
-            featured: selectedProduct.featured,
-            images: selectedProduct.images,
           },
           productData
         );
@@ -316,8 +311,7 @@ export function ProductsManager() {
             newValues: {
               sku: productData.sku,
               name: productData.name,
-              price: productData.price,
-              category_name: productData.category_name,
+              sale_price: productData.sale_price,
               is_active: productData.is_active,
             },
           });
