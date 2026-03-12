@@ -1,14 +1,31 @@
 /**
- * ProductVariantsSection — Exibe variações de cor de um produto
- * Busca variantes do banco externo via external-db-bridge
+ * ProductVariantsSection — CRUD de variações de cor de um produto
+ * Busca, cria, edita e exclui variantes via external-db-bridge
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Palette, Package, AlertCircle } from 'lucide-react';
+import {
+  Palette, Package, AlertCircle, Plus, Pencil, Trash2, Save, X, Loader2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ProductVariant {
   id: string;
@@ -20,11 +37,32 @@ interface ProductVariant {
   stock_quantity: number | null;
   selected_thumbnail: string | null;
   is_active: boolean;
+  product_id: string;
+}
+
+interface VariantFormData {
+  name: string;
+  sku: string;
+  color_name: string;
+  color_hex: string;
+  stock_quantity: number;
 }
 
 interface ProductVariantsSectionProps {
   productId: string;
+  productName?: string;
+  productSku?: string;
 }
+
+const EMPTY_FORM: VariantFormData = {
+  name: '',
+  sku: '',
+  color_name: '',
+  color_hex: '#000000',
+  stock_quantity: 0,
+};
+
+// ── API helpers ──
 
 async function fetchProductVariants(productId: string): Promise<ProductVariant[]> {
   const { data, error } = await supabase.functions.invoke('external-db-bridge', {
@@ -36,12 +74,36 @@ async function fetchProductVariants(productId: string): Promise<ProductVariant[]
       orderBy: { column: 'name', ascending: true },
     },
   });
-
   if (error) throw new Error(error.message);
   if (!data?.success) throw new Error(data?.error || 'Erro ao buscar variações');
-
   return data.data?.records || [];
 }
+
+async function createVariant(payload: Record<string, unknown>): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: { table: 'product_variants', operation: 'insert', data: payload },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro ao criar variação');
+}
+
+async function updateVariant(id: string, payload: Record<string, unknown>): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: { table: 'product_variants', operation: 'update', id, data: payload },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro ao atualizar variação');
+}
+
+async function deleteVariant(id: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: { table: 'product_variants', operation: 'update', id, data: { is_active: false } },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro ao excluir variação');
+}
+
+// ── Sub-components ──
 
 function StockBadge({ stock }: { stock: number | null }) {
   const qty = stock ?? 0;
@@ -66,13 +128,185 @@ function StockBadge({ stock }: { stock: number | null }) {
   );
 }
 
-export function ProductVariantsSection({ productId }: ProductVariantsSectionProps) {
+function VariantForm({
+  initial,
+  onSave,
+  onCancel,
+  isSaving,
+}: {
+  initial: VariantFormData;
+  onSave: (data: VariantFormData) => void;
+  onCancel: () => void;
+  isSaving: boolean;
+}) {
+  const [form, setForm] = useState<VariantFormData>(initial);
+
+  const set = (field: keyof VariantFormData, value: string | number) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!form.name.trim() || !form.sku.trim()) {
+      toast.error('Nome e SKU são obrigatórios');
+      return;
+    }
+    onSave(form);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="rounded-lg border border-primary/30 bg-accent/30 p-3 space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Nome *</Label>
+          <Input
+            value={form.name}
+            onChange={(e) => set('name', e.target.value)}
+            placeholder="Ex: Squeeze Azul"
+            className="h-8 text-sm"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">SKU *</Label>
+          <Input
+            value={form.sku}
+            onChange={(e) => set('sku', e.target.value)}
+            placeholder="Ex: SQ-001-AZ"
+            className="h-8 text-sm font-mono"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="space-y-1">
+          <Label className="text-xs">Cor</Label>
+          <Input
+            value={form.color_name}
+            onChange={(e) => set('color_name', e.target.value)}
+            placeholder="Ex: Azul Royal"
+            className="h-8 text-sm"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Cor (hex)</Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={form.color_hex || '#000000'}
+              onChange={(e) => set('color_hex', e.target.value)}
+              className="w-8 h-8 rounded border cursor-pointer"
+            />
+            <Input
+              value={form.color_hex}
+              onChange={(e) => set('color_hex', e.target.value)}
+              placeholder="#0000FF"
+              className="h-8 text-sm font-mono flex-1"
+            />
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Estoque</Label>
+          <Input
+            type="number"
+            value={form.stock_quantity}
+            onChange={(e) => set('stock_quantity', parseInt(e.target.value) || 0)}
+            min="0"
+            className="h-8 text-sm"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-1">
+        <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isSaving}>
+          <X className="h-3.5 w-3.5 mr-1" /> Cancelar
+        </Button>
+        <Button type="submit" size="sm" disabled={isSaving}>
+          {isSaving ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1" />}
+          Salvar
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// ── Main component ──
+
+export function ProductVariantsSection({ productId, productName, productSku }: ProductVariantsSectionProps) {
+  const queryClient = useQueryClient();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ProductVariant | null>(null);
+
   const { data: variants = [], isLoading, error } = useQuery({
     queryKey: ['product-variants', productId],
     queryFn: () => fetchProductVariants(productId),
     enabled: !!productId,
     staleTime: 2 * 60 * 1000,
   });
+
+  const invalidate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['product-variants', productId] });
+  }, [queryClient, productId]);
+
+  const handleCreate = async (formData: VariantFormData) => {
+    setIsSaving(true);
+    try {
+      await createVariant({
+        product_id: productId,
+        name: formData.name.trim(),
+        sku: formData.sku.trim(),
+        color_name: formData.color_name.trim() || null,
+        color_hex: formData.color_hex || null,
+        stock_quantity: formData.stock_quantity,
+        is_active: true,
+      });
+      toast.success('Variação criada com sucesso');
+      setIsCreating(false);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao criar variação');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdate = async (variantId: string, formData: VariantFormData) => {
+    setIsSaving(true);
+    try {
+      await updateVariant(variantId, {
+        name: formData.name.trim(),
+        sku: formData.sku.trim(),
+        color_name: formData.color_name.trim() || null,
+        color_hex: formData.color_hex || null,
+        stock_quantity: formData.stock_quantity,
+      });
+      toast.success('Variação atualizada');
+      setEditingId(null);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsSaving(true);
+    try {
+      await deleteVariant(deleteTarget.id);
+      toast.success('Variação removida');
+      setDeleteTarget(null);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao remover');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ── Loading / Error / Empty states ──
 
   if (isLoading) {
     return (
@@ -93,67 +327,174 @@ export function ProductVariantsSection({ productId }: ProductVariantsSectionProp
     );
   }
 
-  if (variants.length === 0) {
-    return (
-      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-        <Package className="h-4 w-4" />
-        Nenhuma variação cadastrada para este produto
-      </div>
-    );
-  }
-
   const totalStock = variants.reduce((sum, v) => sum + (v.stock_quantity ?? 0), 0);
 
   return (
     <div className="space-y-3">
-      {/* Summary */}
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <span className="font-medium text-foreground">{variants.length} variações</span>
-        <span>•</span>
-        <span>Estoque total: <span className="font-medium text-foreground">{totalStock.toLocaleString('pt-BR')} un</span></span>
-      </div>
-
-      {/* Variants grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {variants.map((variant) => (
-          <div
-            key={variant.id}
-            className={cn(
-              'flex items-center gap-2.5 rounded-lg border p-2 transition-colors',
-              'hover:bg-accent/50',
-              !variant.stock_quantity && 'opacity-60'
-            )}
+      {/* Header with summary + add button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          {variants.length > 0 ? (
+            <>
+              <span className="font-medium text-foreground">{variants.length} variações</span>
+              <span>•</span>
+              <span>
+                Estoque total:{' '}
+                <span className="font-medium text-foreground">
+                  {totalStock.toLocaleString('pt-BR')} un
+                </span>
+              </span>
+            </>
+          ) : (
+            <span className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Nenhuma variação cadastrada
+            </span>
+          )}
+        </div>
+        {!isCreating && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setIsCreating(true);
+              setEditingId(null);
+            }}
           >
-            {/* Color swatch or thumbnail */}
-            {variant.selected_thumbnail ? (
-              <img
-                src={variant.selected_thumbnail}
-                alt={variant.color_name || variant.name}
-                className="w-10 h-10 rounded-md object-cover border shrink-0"
-              />
-            ) : variant.color_hex ? (
-              <div
-                className="w-10 h-10 rounded-md border shrink-0"
-                style={{ backgroundColor: variant.color_hex }}
-                title={variant.color_name || ''}
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-md border shrink-0 bg-muted flex items-center justify-center">
-                <Palette className="h-4 w-4 text-muted-foreground" />
-              </div>
-            )}
-
-            {/* Info */}
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium truncate" title={variant.color_name || variant.name}>
-                {variant.color_name || variant.name}
-              </p>
-              <p className="text-[10px] text-muted-foreground font-mono">{variant.sku}</p>
-              <StockBadge stock={variant.stock_quantity} />
-            </div>
-          </div>
-        ))}
+            <Plus className="h-3.5 w-3.5 mr-1" /> Nova Variação
+          </Button>
+        )}
       </div>
+
+      {/* Create form */}
+      {isCreating && (
+        <VariantForm
+          initial={{
+            ...EMPTY_FORM,
+            name: productName ? `${productName} - ` : '',
+            sku: productSku ? `${productSku}-` : '',
+          }}
+          onSave={handleCreate}
+          onCancel={() => setIsCreating(false)}
+          isSaving={isSaving}
+        />
+      )}
+
+      {/* Variants list */}
+      <div className="space-y-2">
+        {variants.map((variant) => {
+          const isEditing = editingId === variant.id;
+
+          if (isEditing) {
+            return (
+              <VariantForm
+                key={variant.id}
+                initial={{
+                  name: variant.name || '',
+                  sku: variant.sku || '',
+                  color_name: variant.color_name || '',
+                  color_hex: variant.color_hex || '#000000',
+                  stock_quantity: variant.stock_quantity ?? 0,
+                }}
+                onSave={(data) => handleUpdate(variant.id, data)}
+                onCancel={() => setEditingId(null)}
+                isSaving={isSaving}
+              />
+            );
+          }
+
+          return (
+            <div
+              key={variant.id}
+              className={cn(
+                'flex items-center gap-2.5 rounded-lg border p-2 transition-colors group',
+                'hover:bg-accent/50',
+                !variant.stock_quantity && 'opacity-60'
+              )}
+            >
+              {/* Color swatch or thumbnail */}
+              {variant.selected_thumbnail ? (
+                <img
+                  src={variant.selected_thumbnail}
+                  alt={variant.color_name || variant.name}
+                  className="w-10 h-10 rounded-md object-cover border shrink-0"
+                />
+              ) : variant.color_hex ? (
+                <div
+                  className="w-10 h-10 rounded-md border shrink-0"
+                  style={{ backgroundColor: variant.color_hex }}
+                  title={variant.color_name || ''}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-md border shrink-0 bg-muted flex items-center justify-center">
+                  <Palette className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
+
+              {/* Info */}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium truncate" title={variant.color_name || variant.name}>
+                  {variant.color_name || variant.name}
+                </p>
+                <p className="text-[10px] text-muted-foreground font-mono">{variant.sku}</p>
+                <StockBadge stock={variant.stock_quantity} />
+              </div>
+
+              {/* Action buttons (visible on hover) */}
+              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  title="Editar variação"
+                  onClick={() => {
+                    setEditingId(variant.id);
+                    setIsCreating(false);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-destructive hover:text-destructive"
+                  title="Excluir variação"
+                  onClick={() => setDeleteTarget(variant)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir variação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A variação <strong>{deleteTarget?.color_name || deleteTarget?.name}</strong>{' '}
+              (SKU: {deleteTarget?.sku}) será desativada. Esta ação pode ser revertida no banco de dados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isSaving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
