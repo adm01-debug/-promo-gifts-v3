@@ -304,6 +304,27 @@ function parseMaterials(materials: any): string[] {
   return [];
 }
 
+function parseTagList(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && !!v.trim());
+  if (typeof value === 'string') {
+    return value.split(/[,;|]/).map(v => v.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeMarketingTags(rawTags: unknown): Product['tags'] {
+  const tags = (rawTags && typeof rawTags === 'object') ? rawTags as Record<string, unknown> : {};
+
+  return {
+    publicoAlvo: parseTagList(tags.publicoAlvo ?? tags.publico_alvo),
+    datasComemorativas: parseTagList(tags.datasComemorativas ?? tags.datas_comemorativas),
+    endomarketing: parseTagList(tags.endomarketing),
+    ramo: parseTagList(tags.ramo ?? tags.ramosAtividade ?? tags.ramos_atividade),
+    nicho: parseTagList(tags.nicho ?? tags.segmentosAtividade ?? tags.segmentos_atividade),
+  };
+}
+
 // Converte produto Promobrind para formato interno
 function mapPromobrindToProduct(p: PromobrindProduct): Product {
   const imageUrl = getProductImageUrl(p);
