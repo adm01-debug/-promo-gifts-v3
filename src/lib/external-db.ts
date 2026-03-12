@@ -247,8 +247,26 @@ function shouldFallbackSelect(err: unknown) {
 export async function fetchPromobrindProducts(options?: {
   search?: string;
   limit?: number;
+  offset?: number;
+  orderBy?: { column: string; ascending?: boolean };
   filters?: Record<string, unknown>;
-}): Promise<PromobrindProduct[]> {
+}): Promise<PromobrindProduct[]>;
+export async function fetchPromobrindProducts(options?: {
+  search?: string;
+  limit?: number;
+  offset?: number;
+  orderBy?: { column: string; ascending?: boolean };
+  filters?: Record<string, unknown>;
+  returnCount?: true;
+}): Promise<{ products: PromobrindProduct[]; count: number | null }>;
+export async function fetchPromobrindProducts(options?: {
+  search?: string;
+  limit?: number;
+  offset?: number;
+  orderBy?: { column: string; ascending?: boolean };
+  filters?: Record<string, unknown>;
+  returnCount?: boolean;
+}): Promise<PromobrindProduct[] | { products: PromobrindProduct[]; count: number | null }> {
   const filters: Record<string, unknown> = {
     active: true,  // Campo correto no schema externo
     ...options?.filters,
@@ -260,11 +278,14 @@ export async function fetchPromobrindProducts(options?: {
 
   // Se limit foi informado, faz uma única chamada.
   // Caso contrário, pagina automaticamente para buscar tudo.
-  const orderBy = { column: 'name', ascending: true } as const;
+  const orderBy = options?.orderBy ?? { column: 'name', ascending: true };
 
   let products: PromobrindProduct[] = [];
 
+  let totalCount: number | null = null;
+
   if (typeof options?.limit === 'number' && options.limit > 0) {
+    const fetchOffset = options?.offset ?? 0;
     let result: InvokeResult<PromobrindProduct>;
     try {
       result = await invokeExternalDb<PromobrindProduct>({
@@ -274,7 +295,7 @@ export async function fetchPromobrindProducts(options?: {
         select: PRODUCT_SELECT_FIELDS_WITH_SALE,
         orderBy,
         limit: options.limit,
-        offset: 0,
+        offset: fetchOffset,
       });
     } catch (err) {
       if (!shouldFallbackSelect(err)) throw err;
@@ -285,16 +306,17 @@ export async function fetchPromobrindProducts(options?: {
         select: PRODUCT_SELECT_FIELDS_LEGACY,
         orderBy,
         limit: options.limit,
-        offset: 0,
+        offset: fetchOffset,
       });
     }
     products = result.records;
+    totalCount = result.count;
   } else {
     // Paginação: o backend aplica default 500; aqui buscamos em páginas maiores
     // para suportar catálogos grandes (10k+). Mantemos pageSize = 1000 para evitar timeouts.
     const pageSize = 1000;
     let offset = 0;
-    let totalCount: number | null = null;
+    let loopCount: number | null = null;
 
     // Segurança: evita loops infinitos caso o count venha nulo/errado.
     const HARD_MAX = 200000;
@@ -325,7 +347,7 @@ export async function fetchPromobrindProducts(options?: {
       }
 
       if (typeof page.count === 'number') {
-        totalCount = page.count;
+        loopCount = page.count;
       }
 
       products.push(...page.records);
@@ -333,8 +355,9 @@ export async function fetchPromobrindProducts(options?: {
 
       // Paradas
       if (page.records.length < pageSize) break;
-      if (totalCount !== null && products.length >= totalCount) break;
+      if (loopCount !== null && products.length >= loopCount) break;
     }
+    totalCount = loopCount;
   }
 
   // Enriquecer produtos em paralelo: cores + nomes de fornecedores + imagens da nova tabela
@@ -650,6 +673,9 @@ export async function fetchPromobrindProducts(options?: {
     });
   }
 
+  if (options?.returnCount) {
+    return { products, count: totalCount };
+  }
   return products;
 }
 

@@ -1,8 +1,8 @@
 /**
- * Gerenciador de Produtos - CRUD completo com Auditoria
+ * Gerenciador de Produtos - CRUD completo com Auditoria e Paginação
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { invokeExternalDbSingle, invokeExternalDbDelete } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -50,10 +57,14 @@ import {
   ImageIcon,
   RefreshCw,
   History,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { ImageUploadButton } from "./ImageUploadButton";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
+
+const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 
 interface Product {
   id: string;
@@ -119,9 +130,13 @@ const initialFormData: ProductFormData = {
 
 export function ProductsManager() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(50);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -135,11 +150,23 @@ export function ProductsManager() {
   // Audit hook
   const { logAction, getChangedFields } = useAuditLog();
 
-  const fetchProducts = async () => {
+  const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : 1;
+
+  const fetchProducts = useCallback(async (page = currentPage, size = pageSize) => {
     setIsLoading(true);
     try {
       const { fetchPromobrindProducts, getProductImageUrl, getProductPrice, getProductStock } = await import('@/lib/external-db');
-      const productsData = await fetchPromobrindProducts({ limit: 100 });
+      
+      const offset = (page - 1) * size;
+      const result = await fetchPromobrindProducts({
+        limit: size,
+        offset,
+        orderBy: { column: 'created_at', ascending: false },
+        returnCount: true,
+      });
+
+      const { products: productsData, count } = result as { products: any[]; count: number | null };
+      setTotalCount(count);
 
       const formattedProducts: Product[] = productsData.map((p) => {
         const imageUrl = getProductImageUrl(p);
@@ -151,7 +178,7 @@ export function ProductsManager() {
           price: getProductPrice(p),
           stock: getProductStock(p),
           stock_status: getProductStock(p) > 0 ? 'in_stock' : 'out_of_stock',
-          category_name: null, // Schema Promobrind não tem category_name
+          category_name: null,
           subcategory: null,
           supplier_name: null,
           is_active: p.is_active || p.active,
@@ -163,38 +190,45 @@ export function ProductsManager() {
           new_arrival: false,
           on_sale: false,
           video_url: null,
-          created_at: '',
-          updated_at: '',
+          created_at: p.created_at || '',
+          updated_at: p.updated_at || '',
         };
       });
 
       setProducts(formattedProducts);
-      setFilteredProducts(formattedProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Erro ao carregar produtos");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
-  useEffect(() => {
-    if (searchTerm) {
-      const filtered = products.filter(
+  // Client-side filtering on current page data
+  const filteredProducts = searchTerm
+    ? products.filter(
         (p) =>
           p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
           p.category_name?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredProducts(filtered);
-    } else {
-      setFilteredProducts(products);
-    }
-  }, [searchTerm, products]);
+      )
+    : products;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchProducts(page, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: string) => {
+    const size = parseInt(newSize, 10);
+    setPageSize(size);
+    setCurrentPage(1);
+    fetchProducts(1, size);
+  };
 
   const openCreateForm = () => {
     setSelectedProduct(null);
@@ -321,7 +355,8 @@ export function ProductsManager() {
       }
 
       setIsFormOpen(false);
-      fetchProducts();
+      setCurrentPage(1);
+      fetchProducts(1, pageSize);
     } catch (error: any) {
       console.error("Error saving product:", error);
       toast.error(error.message || "Erro ao salvar produto");
@@ -353,7 +388,7 @@ export function ProductsManager() {
 
       toast.success("Produto excluído com sucesso");
       setIsDeleteOpen(false);
-      fetchProducts();
+      fetchProducts(currentPage, pageSize);
     } catch (error: any) {
       console.error("Error deleting product:", error);
       toast.error(error.message || "Erro ao excluir produto");
@@ -382,7 +417,7 @@ export function ProductsManager() {
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={fetchProducts}>
+            <Button variant="outline" size="sm" onClick={() => fetchProducts(currentPage, pageSize)}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar
             </Button>
@@ -502,9 +537,71 @@ export function ProductsManager() {
           </div>
         )}
 
-        <p className="text-sm text-muted-foreground">
-          Exibindo {filteredProducts.length} de {products.length} produtos
-        </p>
+        {/* Pagination */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>
+              Página {currentPage} de {totalPages}
+              {totalCount !== null && ` · ${totalCount.toLocaleString()} produtos`}
+            </span>
+            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+              <SelectTrigger className="w-[100px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size} / pág
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Anterior
+            </Button>
+            {/* Page number buttons */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let page: number;
+              if (totalPages <= 5) {
+                page = i + 1;
+              } else if (currentPage <= 3) {
+                page = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                page = totalPages - 4 + i;
+              } else {
+                page = currentPage - 2 + i;
+              }
+              return (
+                <Button
+                  key={page}
+                  variant={page === currentPage ? "default" : "outline"}
+                  size="sm"
+                  className="w-8 h-8 p-0"
+                  onClick={() => handlePageChange(page)}
+                >
+                  {page}
+                </Button>
+              );
+            })}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+            >
+              Próximo
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
       </CardContent>
 
       {/* Create/Edit Dialog */}
