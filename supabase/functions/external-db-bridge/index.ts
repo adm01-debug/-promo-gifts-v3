@@ -944,13 +944,20 @@ serve(async (req) => {
           .update(updateData)
           .eq('id', id)
           .select()
-          .single();
+          .maybeSingle();
 
         if (updateError) {
           console.error('Update error:', updateError.message, updateError.details, updateError.hint);
           return new Response(
             JSON.stringify({ error: updateError.message, details: updateError.details, hint: updateError.hint }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!updateResult) {
+          return new Response(
+            JSON.stringify({ error: `Registro não encontrado para atualização em '${table}' com id='${id}'` }),
+            { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
