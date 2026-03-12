@@ -355,7 +355,8 @@ export function ProductsManager() {
       }
 
       setIsFormOpen(false);
-      fetchProducts();
+      setCurrentPage(1);
+      fetchProducts(1, pageSize);
     } catch (error: any) {
       console.error("Error saving product:", error);
       toast.error(error.message || "Erro ao salvar produto");
