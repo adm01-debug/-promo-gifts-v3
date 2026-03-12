@@ -41,6 +41,8 @@ export const productFormSchema = z.object({
   is_featured: z.boolean().default(false),
   is_new: z.boolean().default(false),
   is_on_sale: z.boolean().default(false),
+  is_kit: z.boolean().default(false),
+  has_commercial_packaging: z.boolean().default(false),
 });
 
 export type ProductFormData = z.infer<typeof productFormSchema>;
