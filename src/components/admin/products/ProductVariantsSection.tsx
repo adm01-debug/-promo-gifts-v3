@@ -147,9 +147,7 @@ function VariantForm({
   const set = (field: keyof VariantFormData, value: string | number) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSave = () => {
     if (!form.name.trim() || !form.sku.trim()) {
       toast.error('Nome e SKU são obrigatórios');
       return;
@@ -158,7 +156,7 @@ function VariantForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-primary/30 bg-accent/30 p-3 space-y-3">
+    <div className="rounded-lg border border-primary/30 bg-accent/30 p-3 space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Nome *</Label>
@@ -167,6 +165,7 @@ function VariantForm({
             onChange={(e) => set('name', e.target.value)}
             placeholder="Ex: Squeeze Azul"
             className="h-8 text-sm"
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSave())}
           />
         </div>
         <div className="space-y-1">
@@ -176,6 +175,7 @@ function VariantForm({
             onChange={(e) => set('sku', e.target.value)}
             placeholder="Ex: SQ-001-AZ"
             className="h-8 text-sm font-mono"
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSave())}
           />
         </div>
       </div>
@@ -197,7 +197,7 @@ function VariantForm({
               type="color"
               value={form.color_hex || '#000000'}
               onChange={(e) => set('color_hex', e.target.value)}
-              className="w-8 h-8 rounded border cursor-pointer"
+              className="w-8 h-8 rounded border border-input bg-background cursor-pointer"
             />
             <Input
               value={form.color_hex}
@@ -212,7 +212,7 @@ function VariantForm({
           <Input
             type="number"
             value={form.stock_quantity}
-            onChange={(e) => set('stock_quantity', parseInt(e.target.value) || 0)}
+            onChange={(e) => set('stock_quantity', parseInt(e.target.value, 10) || 0)}
             min="0"
             className="h-8 text-sm"
           />
@@ -223,12 +223,12 @@ function VariantForm({
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isSaving}>
           <X className="h-3.5 w-3.5 mr-1" /> Cancelar
         </Button>
-        <Button type="submit" size="sm" disabled={isSaving}>
+        <Button type="button" size="sm" disabled={isSaving} onClick={handleSave}>
           {isSaving ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Save className="h-3.5 w-3.5 mr-1" />}
           Salvar
         </Button>
       </div>
-    </form>
+    </div>
   );
 }
 
