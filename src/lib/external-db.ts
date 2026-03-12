@@ -672,6 +672,9 @@ export async function fetchPromobrindProducts(options?: {
     });
   }
 
+  if (options?.returnCount) {
+    return { products, count: totalCount };
+  }
   return products;
 }
 
