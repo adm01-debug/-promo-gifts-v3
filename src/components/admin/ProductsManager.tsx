@@ -371,6 +371,55 @@ export function ProductsManager() {
               is_active: productData.is_active,
             },
           });
+
+          // Auto-abrir em modo edição para permitir multi-seleção imediata
+          toast.success("Produto criado! Agora vincule Tags, Ramos, Marketing e Técnicas.");
+          setIsSaving(false);
+          fetchProducts(1, pageSize, searchTerm);
+
+          // Montar objeto Product para reabrir em modo edição
+          const createdProduct: Product = {
+            id: newProduct.id,
+            sku: data.sku,
+            name: data.name,
+            description: data.description || null,
+            short_description: data.short_description || null,
+            brand: data.brand || null,
+            price: data.sale_price,
+            cost_price: data.cost_price || null,
+            stock: data.stock_quantity,
+            category_id: data.category_id || null,
+            category_name: null,
+            supplier_id: data.supplier_id || null,
+            supplier_name: null,
+            images: images.length > 0 ? images : null,
+            colors: [],
+            materials: data.materials ? data.materials.split(",").map(m => m.trim()).filter(Boolean) : [],
+            min_quantity: data.min_quantity,
+            is_active: data.is_active,
+            is_featured: data.is_featured,
+            is_new: data.is_new,
+            is_on_sale: data.is_on_sale,
+            is_kit: data.is_kit,
+            has_commercial_packaging: data.has_commercial_packaging,
+            height_cm: data.height_cm || null,
+            width_cm: data.width_cm || null,
+            length_cm: data.length_cm || null,
+            diameter_cm: data.diameter_cm || null,
+            weight_g: data.weight_g || null,
+            capacity_ml: data.capacity_ml || null,
+            box_width_mm: data.box_width_mm || null,
+            box_height_mm: data.box_height_mm || null,
+            box_length_mm: data.box_length_mm || null,
+            box_weight_kg: data.box_weight_kg || null,
+            box_quantity: data.box_quantity || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          setSelectedProduct(createdProduct);
+          // Manter formulário aberto em modo edição
+          return;
         }
         
         toast.success("Produto criado com sucesso");
