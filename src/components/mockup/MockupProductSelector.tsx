@@ -111,9 +111,14 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   };
 
   const handleColorSelect = (variant: ExternalVariantStock | null, product: Product) => {
-    const imageUrl = variant?.selected_thumbnail
+    // Prioridade: thumbnail da cor > primeira imagem da variante > imagem do produto
+    const variantThumb = variant?.selected_thumbnail
       ? `${variant.selected_thumbnail}/thumbnail`
-      : product.images?.[0] || '/placeholder.svg';
+      : null;
+    const variantFirstImg = variant?.images?.[0]
+      ? `${variant.images[0]}/thumbnail`
+      : null;
+    const imageUrl = variantThumb || variantFirstImg || product.images?.[0] || '/placeholder.svg';
     
     onSelect({
       product,
