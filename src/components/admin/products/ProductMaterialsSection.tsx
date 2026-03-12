@@ -72,19 +72,33 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
   const toggleMaterial = useCallback(async (materialId: string, isLinked: boolean) => {
     try {
       if (isLinked) {
-        // Remover vínculo via external-db-bridge
-        const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+        // Buscar o registro para obter o ID
+        const { data: findData, error: findError } = await supabase.functions.invoke('external-db-bridge', {
+          body: {
+            table: 'product_materials',
+            operation: 'select',
+            filters: { product_id: productId, material_id: materialId },
+            limit: 1,
+          },
+        });
+        if (findError) throw new Error(findError.message);
+        const record = findData?.data?.records?.[0];
+        if (!record?.id) {
+          toast.error('Registro não encontrado');
+          return;
+        }
+        // Deletar pelo ID
+        const { error: delError } = await supabase.functions.invoke('external-db-bridge', {
           body: {
             table: 'product_materials',
             operation: 'delete',
-            filters: { product_id: productId, material_id: materialId },
+            id: record.id,
           },
         });
-        if (error) throw new Error(error.message);
+        if (delError) throw new Error(delError.message);
         toast.success('Material removido');
       } else {
-        // Adicionar vínculo
-        const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+        const { error } = await supabase.functions.invoke('external-db-bridge', {
           body: {
             table: 'product_materials',
             operation: 'insert',
