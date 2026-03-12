@@ -299,7 +299,7 @@ export function ProductForm({
           {isEdit && productId && (
             <>
               <FormSection title="Variações de Cor" icon={Palette} defaultOpen>
-                <ProductVariantsSection productId={productId} />
+                <ProductVariantsSection productId={productId} productName={watch('name')} productSku={watch('sku')} />
               </FormSection>
               <Separator />
             </>
