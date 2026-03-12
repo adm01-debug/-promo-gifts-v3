@@ -24,10 +24,16 @@ interface ProductMarketingSectionProps {
 }
 
 interface ProductTags {
-  publico_alvo?: string[];
-  datas_comemorativas?: string[];
-  endomarketing?: string[];
-  [key: string]: unknown;
+  publicoAlvo: string[];
+  datasComemorativas: string[];
+  endomarketing: string[];
+}
+
+function toArray(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && !!v.trim());
+  if (typeof value === 'string') return value.split(/[,;|]/).map(v => v.trim()).filter(Boolean);
+  return [];
 }
 
 async function fetchProductTags(productId: string): Promise<ProductTags> {
@@ -35,22 +41,37 @@ async function fetchProductTags(productId: string): Promise<ProductTags> {
     body: { table: 'products', operation: 'select', id: productId },
   });
   if (error) throw new Error(error.message);
+
   const product = data?.data?.records?.[0] || data?.data;
-  const tags = product?.tags;
-  if (typeof tags === 'string') {
-    try { return JSON.parse(tags); } catch { return {}; }
-  }
-  return tags || {};
+  const raw = product?.tags;
+  const tags = typeof raw === 'string'
+    ? (() => { try { return JSON.parse(raw); } catch { return {}; } })()
+    : (raw || {});
+
+  return {
+    publicoAlvo: toArray(tags.publicoAlvo ?? tags.publico_alvo),
+    datasComemorativas: toArray(tags.datasComemorativas ?? tags.datas_comemorativas),
+    endomarketing: toArray(tags.endomarketing),
+  };
 }
 
 async function saveProductTags(productId: string, tags: ProductTags): Promise<void> {
+  const payload = {
+    publicoAlvo: tags.publicoAlvo,
+    datasComemorativas: tags.datasComemorativas,
+    endomarketing: tags.endomarketing,
+    // Compatibilidade com leituras legadas
+    publico_alvo: tags.publicoAlvo,
+    datas_comemorativas: tags.datasComemorativas,
+  };
+
   const { error } = await supabase.functions.invoke('external-db-bridge', {
-    body: { table: 'products', operation: 'update', id: productId, data: { tags } },
+    body: { table: 'products', operation: 'update', id: productId, data: { tags: payload } },
   });
   if (error) throw new Error(error.message);
 }
 
-type CategoryKey = 'publico_alvo' | 'datas_comemorativas' | 'endomarketing';
+type CategoryKey = keyof ProductTags;
 
 const CATEGORIES: {
   key: CategoryKey;
@@ -58,13 +79,13 @@ const CATEGORIES: {
   icon: React.ElementType;
   options: string[];
 }[] = [
-  { key: 'publico_alvo', label: 'Público-Alvo', icon: Users, options: [...PUBLICO_ALVO].sort((a, b) => a.localeCompare(b, 'pt-BR')) },
-  { key: 'datas_comemorativas', label: 'Datas Comemorativas', icon: Calendar, options: [...DATAS_COMEMORATIVAS].sort((a, b) => a.localeCompare(b, 'pt-BR')) },
+  { key: 'publicoAlvo', label: 'Público-Alvo', icon: Users, options: [...PUBLICO_ALVO].sort((a, b) => a.localeCompare(b, 'pt-BR')) },
+  { key: 'datasComemorativas', label: 'Datas Comemorativas', icon: Calendar, options: [...DATAS_COMEMORATIVAS].sort((a, b) => a.localeCompare(b, 'pt-BR')) },
   { key: 'endomarketing', label: 'Endomarketing', icon: Megaphone, options: [...ENDOMARKETING].sort((a, b) => a.localeCompare(b, 'pt-BR')) },
 ];
 
 export function ProductMarketingSection({ productId }: ProductMarketingSectionProps) {
-  const [tags, setTags] = useState<ProductTags>({});
+  const [tags, setTags] = useState<ProductTags>({ publicoAlvo: [], datasComemorativas: [], endomarketing: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());

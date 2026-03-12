@@ -83,6 +83,8 @@ interface Product {
   is_featured: boolean | null;
   is_new: boolean | null;
   is_on_sale: boolean | null;
+  is_kit: boolean | null;
+  has_commercial_packaging: boolean | null;
   height_cm: number | null;
   width_cm: number | null;
   length_cm: number | null;
@@ -127,6 +129,8 @@ function productToFormData(p: Product): Partial<ProductFormData> {
     is_featured: p.is_featured ?? false,
     is_new: p.is_new ?? false,
     is_on_sale: p.is_on_sale ?? false,
+    is_kit: p.is_kit ?? false,
+    has_commercial_packaging: p.has_commercial_packaging ?? false,
   };
 }
 
@@ -189,6 +193,8 @@ export function ProductsManager() {
           is_featured: p.is_featured || p.is_bestseller || false,
           is_new: p.is_new || false,
           is_on_sale: p.is_on_sale || false,
+          is_kit: p.is_kit || false,
+          has_commercial_packaging: p.has_commercial_packaging || false,
           height_cm: p.height_cm || null,
           width_cm: p.width_cm || null,
           length_cm: p.length_cm || null,
@@ -294,6 +300,8 @@ export function ProductsManager() {
         is_featured: data.is_featured,
         is_new: data.is_new,
         is_on_sale: data.is_on_sale,
+        is_kit: data.is_kit,
+        has_commercial_packaging: data.has_commercial_packaging,
         height_cm: data.height_cm || null,
         width_cm: data.width_cm || null,
         length_cm: data.length_cm || null,
