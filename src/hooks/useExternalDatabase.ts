@@ -197,18 +197,16 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-        body: {
-          table: tableName,
-          operation,
-          data: options?.data,
-          filters: options?.filters,
-          id: options?.id,
-          select: options?.select,
-          orderBy: options?.orderBy,
-          limit: options?.limit,
-          offset: options?.offset,
-        },
+      const { data, error } = await invokeWithRetry({
+        table: tableName,
+        operation,
+        data: options?.data,
+        filters: options?.filters,
+        id: options?.id,
+        select: options?.select,
+        orderBy: options?.orderBy,
+        limit: options?.limit,
+        offset: options?.offset,
       });
 
       if (error) {
