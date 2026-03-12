@@ -83,6 +83,8 @@ interface Product {
   is_featured: boolean | null;
   is_new: boolean | null;
   is_on_sale: boolean | null;
+  is_kit: boolean | null;
+  has_commercial_packaging: boolean | null;
   height_cm: number | null;
   width_cm: number | null;
   length_cm: number | null;
@@ -127,6 +129,8 @@ function productToFormData(p: Product): Partial<ProductFormData> {
     is_featured: p.is_featured ?? false,
     is_new: p.is_new ?? false,
     is_on_sale: p.is_on_sale ?? false,
+    is_kit: p.is_kit ?? false,
+    has_commercial_packaging: p.has_commercial_packaging ?? false,
   };
 }
 
