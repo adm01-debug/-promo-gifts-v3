@@ -278,7 +278,7 @@ export async function fetchPromobrindProducts(options?: {
 
   // Se limit foi informado, faz uma única chamada.
   // Caso contrário, pagina automaticamente para buscar tudo.
-  const orderBy = { column: 'name', ascending: true } as const;
+  const orderBy = options?.orderBy ?? { column: 'name', ascending: true };
 
   let products: PromobrindProduct[] = [];
 
