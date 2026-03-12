@@ -221,20 +221,36 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
 
   const create = useCallback(async (data: Partial<T>) => {
     const result = await invoke('insert', { data });
-    if (result && !('records' in result)) {
-      toast.success('Registro criado com sucesso!');
-      return result as T;
+    if (!result) return null;
+
+    if ('records' in result) {
+      const created = result.records[0] || null;
+      if (created) {
+        toast.success('Registro criado com sucesso!');
+        return created as T;
+      }
+      return null;
     }
-    return null;
+
+    toast.success('Registro criado com sucesso!');
+    return result as T;
   }, [invoke]);
 
   const update = useCallback(async (id: string, data: Partial<T>) => {
     const result = await invoke('update', { id, data });
-    if (result && !('records' in result)) {
-      toast.success('Registro atualizado com sucesso!');
-      return result as T;
+    if (!result) return null;
+
+    if ('records' in result) {
+      const updated = result.records[0] || null;
+      if (updated) {
+        toast.success('Registro atualizado com sucesso!');
+        return updated as T;
+      }
+      return null;
     }
-    return null;
+
+    toast.success('Registro atualizado com sucesso!');
+    return result as T;
   }, [invoke]);
 
   const remove = useCallback(async (id: string) => {
