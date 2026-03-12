@@ -885,13 +885,17 @@ serve(async (req) => {
           );
         }
 
-        // Adicionar metadados
+        // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
         const insertData = {
           ...data,
-          created_by: userId,
-          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
+        // Só adicionar created_at se não veio no payload
+        if (!insertData.created_at) {
+          insertData.created_at = new Date().toISOString();
+        }
+
+        console.log(`Inserting into ${table}:`, JSON.stringify(insertData).substring(0, 500));
 
         const { data: insertResult, error: insertError } = await externalSupabase
           .from(table)
@@ -900,9 +904,9 @@ serve(async (req) => {
           .single();
 
         if (insertError) {
-          console.error('Insert error:', insertError);
+          console.error('Insert error:', insertError.message, insertError.details, insertError.hint);
           return new Response(
-            JSON.stringify({ error: insertError.message }),
+            JSON.stringify({ error: insertError.message, details: insertError.details, hint: insertError.hint }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -927,12 +931,13 @@ serve(async (req) => {
           );
         }
 
-        // Adicionar metadados de atualização
+        // Adicionar metadados de atualização (sem updated_by — nem todas as tabelas têm essa coluna)
         const updateData = {
           ...data,
-          updated_by: userId,
           updated_at: new Date().toISOString(),
         };
+
+        console.log(`Updating ${table} id=${id}:`, JSON.stringify(updateData).substring(0, 500));
 
         const { data: updateResult, error: updateError } = await externalSupabase
           .from(table)
@@ -942,9 +947,9 @@ serve(async (req) => {
           .single();
 
         if (updateError) {
-          console.error('Update error:', updateError);
+          console.error('Update error:', updateError.message, updateError.details, updateError.hint);
           return new Response(
-            JSON.stringify({ error: updateError.message }),
+            JSON.stringify({ error: updateError.message, details: updateError.details, hint: updateError.hint }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -968,9 +973,9 @@ serve(async (req) => {
           .eq('id', id);
 
         if (deleteError) {
-          console.error('Delete error:', deleteError);
+          console.error('Delete error:', deleteError.message, deleteError.details, deleteError.hint);
           return new Response(
-            JSON.stringify({ error: deleteError.message }),
+            JSON.stringify({ error: deleteError.message, details: deleteError.details, hint: deleteError.hint }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
