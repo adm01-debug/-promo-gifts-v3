@@ -199,7 +199,7 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
         return data.data as T;
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao acessar banco externo';
+      const errorMessage = await extractFunctionErrorMessage(err);
       setState(prev => ({ ...prev, error: errorMessage, isLoading: false }));
       toast.error(errorMessage);
       return null;
