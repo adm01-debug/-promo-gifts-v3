@@ -388,7 +388,7 @@ export function ProductsManager() {
 
       toast.success("Produto excluído com sucesso");
       setIsDeleteOpen(false);
-      fetchProducts();
+      fetchProducts(currentPage, pageSize);
     } catch (error: any) {
       console.error("Error deleting product:", error);
       toast.error(error.message || "Erro ao excluir produto");
