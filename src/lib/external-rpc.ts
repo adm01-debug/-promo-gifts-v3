@@ -5,40 +5,54 @@
  * Todos os hooks e utils devem importar daqui.
  * 
  * Usa a edge function 'external-db-bridge' como proxy autenticado.
+ * Inclui retry automático com backoff exponencial para erros transientes.
  */
 import { supabase } from '@/integrations/supabase/client';
 
+const MAX_RETRIES = 3;
+const INITIAL_BACKOFF_MS = 800;
+const RETRYABLE_PATTERNS = [
+  'statement timeout', '57014', '503', 'FunctionsHttpError',
+  'network', 'fetch', 'ECONNRESET', 'socket hang up',
+  'AbortError', 'Failed to fetch',
+];
+
+function isRetryableError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return RETRYABLE_PATTERNS.some(p => lower.includes(p.toLowerCase()));
+}
+
 /**
  * Invoca uma RPC no banco externo via edge function.
- * 
- * @param rpcName Nome da função RPC (deve estar na whitelist da edge function)
- * @param params Parâmetros da RPC
- * @returns Dados retornados pela RPC
- * @throws Error se a RPC falhar ou não estiver na whitelist
- * 
- * RPCs permitidas:
- * - fn_get_product_print_areas
- * - fn_get_product_print_areas_v2
- * - fn_get_customization_price (v5.9 — usa p_area_id, retorna JSON nested)
- * - fn_link_product_print_areas
- * - fn_backfill_product_print_areas
- * - fn_find_fornecedor_price_table
- * - get_category_descendants
+ * Retry automático (3x, backoff exponencial) para erros de timeout/rede.
  */
 export async function invokeExternalRpc<T>(
   rpcName: string,
   params: Record<string, unknown>
 ): Promise<T> {
-  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: {
-      operation: 'rpc',
-      rpcName,
-      rpcParams: params,
-    },
-  });
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+      body: {
+        operation: 'rpc',
+        rpcName,
+        rpcParams: params,
+      },
+    });
 
-  if (error) throw new Error(error.message);
-  if (!data?.success) throw new Error(data?.error || 'Erro na RPC');
-  
-  return data.data as T;
+    if (!error && data?.success) {
+      return data.data as T;
+    }
+
+    const msg = error?.message || data?.error || 'Erro na RPC';
+    if (attempt < MAX_RETRIES && isRetryableError(msg)) {
+      const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+      console.warn(`[external-rpc] Retry ${attempt + 1}/${MAX_RETRIES} for ${rpcName} after ${delay}ms: ${msg}`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
+
+    throw new Error(msg);
+  }
+
+  throw new Error('Max retries exceeded');
 }
