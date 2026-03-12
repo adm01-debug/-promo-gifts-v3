@@ -347,7 +347,7 @@ export async function fetchPromobrindProducts(options?: {
       }
 
       if (typeof page.count === 'number') {
-        totalCount = page.count;
+        loopCount = page.count;
       }
 
       products.push(...page.records);
