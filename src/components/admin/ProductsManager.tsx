@@ -222,14 +222,14 @@ export function ProductsManager() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchProducts(page, pageSize);
+    fetchProducts(page, pageSize, searchTerm);
   };
 
   const handlePageSizeChange = (newSize: string) => {
     const size = parseInt(newSize, 10);
     setPageSize(size);
     setCurrentPage(1);
-    fetchProducts(1, size);
+    fetchProducts(1, size, searchTerm);
   };
 
   const openCreateForm = () => {
