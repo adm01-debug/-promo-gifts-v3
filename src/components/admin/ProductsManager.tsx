@@ -300,6 +300,8 @@ export function ProductsManager() {
         is_featured: data.is_featured,
         is_new: data.is_new,
         is_on_sale: data.is_on_sale,
+        is_kit: data.is_kit,
+        has_commercial_packaging: data.has_commercial_packaging,
         height_cm: data.height_cm || null,
         width_cm: data.width_cm || null,
         length_cm: data.length_cm || null,
