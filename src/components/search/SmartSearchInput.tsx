@@ -238,7 +238,7 @@ export function SmartSearchInput({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
-              onClick={() => setQuery("")}
+              onClick={() => { setQuery(""); onSearch?.(""); }}
             >
               <X className="h-4 w-4" />
             </Button>
