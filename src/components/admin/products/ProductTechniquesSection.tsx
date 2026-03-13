@@ -75,6 +75,8 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
   const linkedTechIds = new Set(linkedTechs.map(lt => lt.technique_id));
 
   const toggleTechnique = useCallback(async (techId: string, isLinked: boolean) => {
+    if (togglingIds.has(techId)) return;
+    setTogglingIds(prev => new Set(prev).add(techId));
     try {
       if (isLinked) {
         const { data: findData } = await supabase.functions.invoke('external-db-bridge', {
