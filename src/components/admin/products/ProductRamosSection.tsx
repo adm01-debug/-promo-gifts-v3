@@ -22,6 +22,7 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
   const queryClient = useQueryClient();
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const { data: ramosData, isLoading: loadingRamos } = useQuery({
     queryKey: ['ramos-atividade-admin'],
