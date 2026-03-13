@@ -101,6 +101,10 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
   }, [productId]);
 
   const toggleItem = useCallback(async (category: CategoryKey, item: string) => {
+    const toggleKey = `${category}::${item}`;
+    if (togglingKeys.has(toggleKey)) return;
+    setTogglingKeys(prev => new Set(prev).add(toggleKey));
+
     const current = tags[category] || [];
     const isSelected = current.includes(item);
     const updated = isSelected ? current.filter(i => i !== item) : [...current, item];
@@ -117,8 +121,9 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
       toast.error(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally {
       setSaving(false);
+      setTogglingKeys(prev => { const next = new Set(prev); next.delete(toggleKey); return next; });
     }
-  }, [productId, tags]);
+  }, [productId, tags, togglingKeys]);
 
   const toggleGroup = (key: string) => {
     setOpenGroups(prev => {
