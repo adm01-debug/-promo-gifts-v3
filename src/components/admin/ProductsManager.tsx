@@ -69,22 +69,26 @@ interface Product {
   name: string;
   description: string | null;
   short_description: string | null;
+  meta_description: string | null;
   brand: string | null;
   price: number;
   cost_price: number | null;
   stock: number | null;
   category_id: string | null;
   supplier_id: string | null;
+  supplier_reference: string | null;
   images: any;
   colors: any;
   materials: any;
   min_quantity: number | null;
   is_active: boolean | null;
   is_featured: boolean | null;
+  is_bestseller: boolean | null;
   is_new: boolean | null;
   is_on_sale: boolean | null;
   is_kit: boolean | null;
   has_commercial_packaging: boolean | null;
+  packing_type: string | null;
   height_cm: number | null;
   width_cm: number | null;
   length_cm: number | null;
@@ -104,29 +108,32 @@ function productToFormData(p: Product): Partial<ProductFormData> {
   return {
     sku: p.sku,
     name: p.name,
-    description: p.description || '',
-    short_description: p.short_description || '',
-    brand: p.brand || '',
-    category_id: p.category_id || '',
-    supplier_id: p.supplier_id || '',
-    sale_price: p.price || 0,
-    cost_price: p.cost_price || 0,
-    stock_quantity: p.stock || 0,
-    min_quantity: p.min_quantity || 1,
+    description: p.description ?? '',
+    short_description: p.short_description ?? '',
+    meta_description: p.meta_description ?? '',
+    brand: p.brand ?? '',
+    category_id: p.category_id ?? '',
+    supplier_id: p.supplier_id ?? '',
+    supplier_reference: p.supplier_reference ?? '',
+    sale_price: p.price ?? 0,
+    cost_price: p.cost_price ?? 0,
+    stock_quantity: p.stock ?? 0,
+    min_quantity: p.min_quantity ?? 1,
     height_cm: p.height_cm,
     width_cm: p.width_cm,
     length_cm: p.length_cm,
     diameter_cm: p.diameter_cm,
     weight_g: p.weight_g,
     capacity_ml: p.capacity_ml,
+    packing_type: p.packing_type ?? '',
     box_width_mm: p.box_width_mm,
     box_height_mm: p.box_height_mm,
     box_length_mm: p.box_length_mm,
     box_weight_kg: p.box_weight_kg,
     box_quantity: p.box_quantity,
-    materials: p.materials?.join?.(', ') || '',
     is_active: p.is_active ?? true,
     is_featured: p.is_featured ?? false,
+    is_bestseller: p.is_bestseller ?? false,
     is_new: p.is_new ?? false,
     is_on_sale: p.is_on_sale ?? false,
     is_kit: p.is_kit ?? false,
