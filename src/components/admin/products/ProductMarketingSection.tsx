@@ -89,6 +89,7 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
   const [tags, setTags] = useState<ProductTags>({ publicoAlvo: [], datasComemorativas: [], endomarketing: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [togglingKeys, setTogglingKeys] = useState<Set<string>>(new Set());
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
 
