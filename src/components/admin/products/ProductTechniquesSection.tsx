@@ -107,8 +107,10 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
       queryClient.invalidateQueries({ queryKey: ['product-techniques', productId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao alterar técnica');
+    } finally {
+      setTogglingIds(prev => { const next = new Set(prev); next.delete(techId); return next; });
     }
-  }, [productId, queryClient]);
+  }, [productId, queryClient, togglingIds]);
 
   const clearAll = useCallback(async () => {
     const linked = techniques.filter(t => linkedTechIds.has(t.id));
