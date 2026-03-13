@@ -96,8 +96,10 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
       queryClient.invalidateQueries({ queryKey: ['product-tags', productId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao alterar tag');
+    } finally {
+      setTogglingIds(prev => { const next = new Set(prev); next.delete(tagId); return next; });
     }
-  }, [productId, productTags, queryClient]);
+  }, [productId, productTags, queryClient, togglingIds]);
 
   const clearAll = useCallback(async () => {
     const linked = tags.filter(t => linkedTagIds.has(t.id));
