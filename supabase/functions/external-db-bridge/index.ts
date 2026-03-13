@@ -630,25 +630,27 @@ serve(async (req) => {
     let userRole = 'public';
 
     if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '');
+
       // Criar cliente local com SERVICE_ROLE para evitar recursão de RLS
       const localServiceSupabase = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
 
-      // Criar cliente com token do usuário para validação
+      // Criar cliente com token do usuário para validação via getClaims
       const localSupabase = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_ANON_KEY')!,
         { global: { headers: { Authorization: authHeader } } }
       );
 
-      // Validar token e obter usuário
-      const { data: { user }, error: userError } = await localSupabase.auth.getUser();
+      // Validar token via getClaims (mais confiável que getUser)
+      const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
       
-      if (user && !userError) {
-        userId = user.id;
-        console.log(`Request from user: ${userId}`);
+      if (claimsData?.claims && !claimsError) {
+        userId = claimsData.claims.sub as string;
+        console.log(`Request from user (claims): ${userId}`);
 
         // Buscar role do usuário usando SERVICE_ROLE (bypassa RLS)
         const { data: userRoles, error: roleError } = await localServiceSupabase
@@ -662,6 +664,28 @@ serve(async (req) => {
 
         userRole = userRoles?.[0]?.role || 'vendedor';
         console.log(`User role: ${userRole}`);
+      } else {
+        console.error('getClaims failed:', claimsError?.message || 'No claims returned');
+        // Fallback: tentar getUser para compatibilidade
+        const { data: { user }, error: userError } = await localSupabase.auth.getUser();
+        if (user && !userError) {
+          userId = user.id;
+          console.log(`Request from user (fallback getUser): ${userId}`);
+
+          const { data: userRoles, error: roleError } = await localServiceSupabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId);
+
+          if (roleError) {
+            console.error('Error fetching user roles:', roleError);
+          }
+
+          userRole = userRoles?.[0]?.role || 'vendedor';
+          console.log(`User role: ${userRole}`);
+        } else {
+          console.error('Fallback getUser also failed:', userError?.message);
+        }
       }
     }
 
