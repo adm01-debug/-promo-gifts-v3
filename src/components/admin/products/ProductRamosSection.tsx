@@ -69,8 +69,10 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
       queryClient.invalidateQueries({ queryKey: ['produto-ramos', productId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao alterar segmento');
+    } finally {
+      setTogglingIds(prev => { const next = new Set(prev); next.delete(segmentoId); return next; });
     }
-  }, [productId, queryClient]);
+  }, [productId, queryClient, togglingIds]);
 
   const toggleGroup = (ramoId: string) => {
     setOpenGroups(prev => {
