@@ -58,6 +58,7 @@ async function fetchProductTechniques(productId: string): Promise<ProductTechniq
 export function ProductTechniquesSection({ productId }: ProductTechniquesSectionProps) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const { data: techniques = [], isLoading: loadingTechs } = useQuery({
     queryKey: ['external-techniques-admin'],
