@@ -337,8 +337,6 @@ export function ProductsManager() {
         productData.image_url = images[0];
         productData.primary_image_url = images[0];
       }
-        productData.materials = data.materials.split(",").map(m => m.trim()).filter(Boolean);
-      }
 
       if (selectedProduct) {
         await invokeExternalDbSingle<any>({
