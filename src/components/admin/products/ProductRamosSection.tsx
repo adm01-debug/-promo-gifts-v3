@@ -56,6 +56,8 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
   }, {});
 
   const toggleSegmento = useCallback(async (segmentoId: string, isLinked: boolean) => {
+    if (togglingIds.has(segmentoId)) return;
+    setTogglingIds(prev => new Set(prev).add(segmentoId));
     try {
       if (isLinked) {
         await ramoAtividadeService.removeRamoDoProduto(productId, segmentoId);
