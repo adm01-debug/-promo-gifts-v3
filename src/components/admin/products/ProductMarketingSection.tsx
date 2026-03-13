@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { X, Users, Calendar, Megaphone, ChevronDown, Search } from 'lucide-react';
+import { X, Users, Calendar, Megaphone, ChevronDown, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { PUBLICO_ALVO, DATAS_COMEMORATIVAS, ENDOMARKETING } from '@/data/mockData';
@@ -89,6 +89,7 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
   const [tags, setTags] = useState<ProductTags>({ publicoAlvo: [], datasComemorativas: [], endomarketing: [] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [togglingKeys, setTogglingKeys] = useState<Set<string>>(new Set());
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
 
@@ -100,6 +101,10 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
   }, [productId]);
 
   const toggleItem = useCallback(async (category: CategoryKey, item: string) => {
+    const toggleKey = `${category}::${item}`;
+    if (togglingKeys.has(toggleKey)) return;
+    setTogglingKeys(prev => new Set(prev).add(toggleKey));
+
     const current = tags[category] || [];
     const isSelected = current.includes(item);
     const updated = isSelected ? current.filter(i => i !== item) : [...current, item];
@@ -116,8 +121,9 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
       toast.error(err instanceof Error ? err.message : 'Erro ao salvar');
     } finally {
       setSaving(false);
+      setTogglingKeys(prev => { const next = new Set(prev); next.delete(toggleKey); return next; });
     }
-  }, [productId, tags]);
+  }, [productId, tags, togglingKeys]);
 
   const toggleGroup = (key: string) => {
     setOpenGroups(prev => {
@@ -331,11 +337,15 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
                                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                             )}
                           >
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => toggleItem(key, opt)}
-                              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
+                            {togglingKeys.has(`${key}::${opt}`) ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                            ) : (
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleItem(key, opt)}
+                                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              />
+                            )}
                             <span
                               className="w-2 h-2 rounded-full flex-shrink-0"
                               style={{ backgroundColor: color }}

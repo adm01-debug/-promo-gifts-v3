@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { X, Search, Tag } from 'lucide-react';
+import { X, Search, Tag, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +50,7 @@ async function fetchProductTags(productId: string): Promise<ProductTag[]> {
 export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const { data: tags = [], isLoading: loadingTags } = useQuery({
     queryKey: ['external-tags-admin'],
@@ -66,6 +67,8 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
   const linkedTagIds = new Set(productTags.map(pt => pt.tag_id));
 
   const toggleTag = useCallback(async (tagId: string, isLinked: boolean) => {
+    if (togglingIds.has(tagId)) return;
+    setTogglingIds(prev => new Set(prev).add(tagId));
     try {
       if (isLinked) {
         const record = productTags.find(pt => pt.tag_id === tagId);
@@ -93,8 +96,10 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
       queryClient.invalidateQueries({ queryKey: ['product-tags', productId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao alterar tag');
+    } finally {
+      setTogglingIds(prev => { const next = new Set(prev); next.delete(tagId); return next; });
     }
-  }, [productId, productTags, queryClient]);
+  }, [productId, productTags, queryClient, togglingIds]);
 
   const clearAll = useCallback(async () => {
     const linked = tags.filter(t => linkedTagIds.has(t.id));
@@ -230,11 +235,15 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                   )}
                 >
-                  <Checkbox
-                    checked={isLinked}
-                    onCheckedChange={() => toggleTag(tag.id, isLinked)}
-                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
+                  {togglingIds.has(tag.id) ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                  ) : (
+                    <Checkbox
+                      checked={isLinked}
+                      onCheckedChange={() => toggleTag(tag.id, isLinked)}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                  )}
                   {tag.color && (
                     <span
                       className="w-2 h-2 rounded-full flex-shrink-0"

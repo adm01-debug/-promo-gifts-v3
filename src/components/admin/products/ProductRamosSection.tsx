@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { X, ChevronDown, Building2, Search } from 'lucide-react';
+import { X, ChevronDown, Building2, Search, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -22,6 +22,7 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
   const queryClient = useQueryClient();
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const { data: ramosData, isLoading: loadingRamos } = useQuery({
     queryKey: ['ramos-atividade-admin'],
@@ -55,6 +56,8 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
   }, {});
 
   const toggleSegmento = useCallback(async (segmentoId: string, isLinked: boolean) => {
+    if (togglingIds.has(segmentoId)) return;
+    setTogglingIds(prev => new Set(prev).add(segmentoId));
     try {
       if (isLinked) {
         await ramoAtividadeService.removeRamoDoProduto(productId, segmentoId);
@@ -66,8 +69,10 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
       queryClient.invalidateQueries({ queryKey: ['produto-ramos', productId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao alterar segmento');
+    } finally {
+      setTogglingIds(prev => { const next = new Set(prev); next.delete(segmentoId); return next; });
     }
-  }, [productId, queryClient]);
+  }, [productId, queryClient, togglingIds]);
 
   const toggleGroup = (ramoId: string) => {
     setOpenGroups(prev => {
@@ -299,11 +304,15 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
                                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                             )}
                           >
-                            <Checkbox
-                              checked={isLinked}
-                              onCheckedChange={() => toggleSegmento(seg.id, isLinked)}
-                              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
+                            {togglingIds.has(seg.id) ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                            ) : (
+                              <Checkbox
+                                checked={isLinked}
+                                onCheckedChange={() => toggleSegmento(seg.id, isLinked)}
+                                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              />
+                            )}
                             {ramo.cor && (
                               <span
                                 className="w-2 h-2 rounded-full flex-shrink-0"

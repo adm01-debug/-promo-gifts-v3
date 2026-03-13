@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { X, Search, Paintbrush } from 'lucide-react';
+import { X, Search, Paintbrush, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -58,6 +58,7 @@ async function fetchProductTechniques(productId: string): Promise<ProductTechniq
 export function ProductTechniquesSection({ productId }: ProductTechniquesSectionProps) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const { data: techniques = [], isLoading: loadingTechs } = useQuery({
     queryKey: ['external-techniques-admin'],
@@ -74,6 +75,8 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
   const linkedTechIds = new Set(linkedTechs.map(lt => lt.technique_id));
 
   const toggleTechnique = useCallback(async (techId: string, isLinked: boolean) => {
+    if (togglingIds.has(techId)) return;
+    setTogglingIds(prev => new Set(prev).add(techId));
     try {
       if (isLinked) {
         const { data: findData } = await supabase.functions.invoke('external-db-bridge', {
@@ -104,8 +107,10 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
       queryClient.invalidateQueries({ queryKey: ['product-techniques', productId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao alterar técnica');
+    } finally {
+      setTogglingIds(prev => { const next = new Set(prev); next.delete(techId); return next; });
     }
-  }, [productId, queryClient]);
+  }, [productId, queryClient, togglingIds]);
 
   const clearAll = useCallback(async () => {
     const linked = techniques.filter(t => linkedTechIds.has(t.id));
@@ -237,11 +242,15 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                   )}
                 >
-                  <Checkbox
-                    checked={isLinked}
-                    onCheckedChange={() => toggleTechnique(tech.id, isLinked)}
-                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
+                  {togglingIds.has(tech.id) ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                  ) : (
+                    <Checkbox
+                      checked={isLinked}
+                      onCheckedChange={() => toggleTechnique(tech.id, isLinked)}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                  )}
                   <span className="truncate flex-1">{tech.name}</span>
                   {tech.code && (
                     <span className={cn(
