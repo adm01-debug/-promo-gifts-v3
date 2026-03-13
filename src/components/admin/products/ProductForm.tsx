@@ -1,6 +1,7 @@
 /**
  * ProductForm — Formulário unificado para criar/editar produtos
  * Organizado em seções com validação zod e seletores reais
+ * Sincronizado 100% com o schema do BD externo Promobrind
  */
 
 import { useForm } from 'react-hook-form';
@@ -22,7 +23,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Loader2, ChevronDown, Info, Ruler, Package, Tag, ImageIcon, Palette, Layers, Building2, Paintbrush, Megaphone } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ProductVariantsSection } from './ProductVariantsSection';
 import { ProductMaterialsSection } from './ProductMaterialsSection';
@@ -95,6 +96,7 @@ export function ProductForm({
   const supplierId = watch('supplier_id');
   const isActive = watch('is_active');
   const isFeatured = watch('is_featured');
+  const isBestseller = watch('is_bestseller');
   const isNew = watch('is_new');
   const isOnSale = watch('is_on_sale');
   const isKit = watch('is_kit');
@@ -168,11 +170,31 @@ export function ProductForm({
                 />
               </div>
               <div className="space-y-1.5">
+                <Label htmlFor="meta_description">Meta Descrição (SEO)</Label>
+                <Input
+                  id="meta_description"
+                  {...register('meta_description')}
+                  placeholder="Descrição para buscadores"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
                 <Label htmlFor="brand">Marca</Label>
                 <Input
                   id="brand"
                   {...register('brand')}
                   placeholder="Ex: Tramontina"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="supplier_reference">Ref. Fornecedor</Label>
+                <Input
+                  id="supplier_reference"
+                  {...register('supplier_reference')}
+                  placeholder="Código do fornecedor"
+                  className="font-mono"
                 />
               </div>
             </div>
@@ -260,6 +282,14 @@ export function ProductForm({
 
           {/* ====== EMBALAGEM ====== */}
           <FormSection title="Embalagem (Caixa)" icon={Package} defaultOpen={false}>
+            <div className="space-y-1.5">
+              <Label htmlFor="packing_type">Tipo de Embalagem</Label>
+              <Input
+                id="packing_type"
+                {...register('packing_type')}
+                placeholder="Ex: Caixa de Presente, Bolsa, Estojo"
+              />
+            </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="box_width_mm">Largura (mm)</Label>
@@ -367,6 +397,13 @@ export function ProductForm({
                 />
               </div>
               <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label className="cursor-pointer">Mais Vendido</Label>
+                <Switch
+                  checked={isBestseller}
+                  onCheckedChange={(v) => setValue('is_bestseller', v)}
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
                 <Label className="cursor-pointer">Lançamento</Label>
                 <Switch
                   checked={isNew}
@@ -387,8 +424,8 @@ export function ProductForm({
                   onCheckedChange={(v) => setValue('is_kit', v)}
                 />
               </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <Label className="cursor-pointer">Embalagem Nativa</Label>
+              <div className="flex items-center justify-between rounded-lg border p-3 col-span-2">
+                <Label className="cursor-pointer">Embalagem Nativa (comercial)</Label>
                 <Switch
                   checked={hasCommercialPackaging}
                   onCheckedChange={(v) => setValue('has_commercial_packaging', v)}
