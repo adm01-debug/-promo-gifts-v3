@@ -235,11 +235,15 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                   )}
                 >
-                  <Checkbox
-                    checked={isLinked}
-                    onCheckedChange={() => toggleTag(tag.id, isLinked)}
-                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
+                  {togglingIds.has(tag.id) ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                  ) : (
+                    <Checkbox
+                      checked={isLinked}
+                      onCheckedChange={() => toggleTag(tag.id, isLinked)}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                  )}
                   {tag.color && (
                     <span
                       className="w-2 h-2 rounded-full flex-shrink-0"

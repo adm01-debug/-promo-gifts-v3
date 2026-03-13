@@ -337,11 +337,15 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
                                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                             )}
                           >
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => toggleItem(key, opt)}
-                              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
+                            {togglingKeys.has(`${key}::${opt}`) ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                            ) : (
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleItem(key, opt)}
+                                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              />
+                            )}
                             <span
                               className="w-2 h-2 rounded-full flex-shrink-0"
                               style={{ backgroundColor: color }}

@@ -242,11 +242,15 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                   )}
                 >
-                  <Checkbox
-                    checked={isLinked}
-                    onCheckedChange={() => toggleTechnique(tech.id, isLinked)}
-                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
+                  {togglingIds.has(tech.id) ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                  ) : (
+                    <Checkbox
+                      checked={isLinked}
+                      onCheckedChange={() => toggleTechnique(tech.id, isLinked)}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                  )}
                   <span className="truncate flex-1">{tech.name}</span>
                   {tech.code && (
                     <span className={cn(
