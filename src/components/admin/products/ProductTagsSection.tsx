@@ -1,16 +1,16 @@
 /**
- * ProductTagsSection — Seletor de tags do produto via tabela product_tags
- * Busca tags do BD externo e permite vincular/desvincular
+ * ProductTagsSection — Seletor de tags do produto (padrão Super Filtro)
+ * Gradientes, badges removíveis, color dots, contadores
  */
 
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, X, Search, Tag } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { X, Search, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -70,7 +70,6 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
       if (isLinked) {
         const record = productTags.find(pt => pt.tag_id === tagId);
         if (!record?.id) {
-          // Fallback: buscar
           const { data: findData } = await supabase.functions.invoke('external-db-bridge', {
             body: { table: 'product_tags', operation: 'select', filters: { product_id: productId, tag_id: tagId }, limit: 1 },
           });
@@ -97,60 +96,127 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
     }
   }, [productId, productTags, queryClient]);
 
-  const isLoading = loadingTags || loadingLinks;
+  const clearAll = useCallback(async () => {
+    const linked = tags.filter(t => linkedTagIds.has(t.id));
+    for (const t of linked) {
+      await toggleTag(t.id, true);
+    }
+  }, [tags, linkedTagIds, toggleTag]);
 
-  const filtered = tags
-    .filter(t => !search || t.name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  const isLoading = loadingTags || loadingLinks;
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8 text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-        Carregando tags...
+      <div className="space-y-2">
+        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-12 w-full rounded-lg" />
+      </div>
+    );
+  }
+
+  if (tags.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Tag className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">Nenhuma tag disponível</p>
       </div>
     );
   }
 
   const linkedCount = linkedTagIds.size;
+  const searchLower = search.toLowerCase();
+
+  const filtered = tags
+    .filter(t => !search || t.name.toLowerCase().includes(searchLower))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Tag className="h-4 w-4" />
-        <span>{linkedCount} {linkedCount === 1 ? 'tag vinculada' : 'tags vinculadas'}</span>
-      </div>
-
+      {/* Badges dos selecionados */}
       {linkedCount > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {tags.filter(t => linkedTagIds.has(t.id)).map(t => (
-            <Badge
-              key={t.id}
-              variant="secondary"
-              className="gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-              onClick={() => toggleTag(t.id, true)}
+        <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+              <Tag className="h-3 w-3" />
+              Selecionadas
+            </span>
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
             >
-              {t.name}
-              <X className="h-3 w-3" />
-            </Badge>
-          ))}
+              Limpar todas
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {tags
+              .filter(t => linkedTagIds.has(t.id))
+              .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+              .map(t => (
+                <span
+                  key={t.id}
+                  className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-medium border border-border bg-background text-foreground hover:bg-muted/50 cursor-pointer transition-all duration-200"
+                  onClick={() => toggleTag(t.id, true)}
+                >
+                  {t.color && (
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: t.color }}
+                    />
+                  )}
+                  <span className="truncate max-w-[100px]">{t.name}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); toggleTag(t.id, true); }}
+                    className="rounded-full p-0.5 ml-0.5 hover:bg-destructive/20 hover:text-destructive transition-all duration-150"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </span>
+              ))}
+          </div>
         </div>
       )}
 
+      {/* Busca */}
       <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input
           placeholder="Buscar tags..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="pl-8 h-8 text-sm"
+          className="h-8 text-sm pl-8 pr-8"
         />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
-      <ScrollArea className="max-h-[200px] border rounded-md p-2">
-        <div className="space-y-0.5">
-          {filtered.length === 0 ? (
-            <p className="text-xs text-muted-foreground p-2">Nenhuma tag encontrada</p>
+      {/* Estatísticas */}
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+        <span>{tags.length} tags</span>
+        <span>•</span>
+        <span className={cn("font-medium", linkedCount > 0 && "text-primary")}>
+          {linkedCount} selecionadas
+        </span>
+      </div>
+
+      {/* Lista */}
+      <ScrollArea className="h-56">
+        <div className="space-y-0.5 pr-3">
+          {filtered.length === 0 && search ? (
+            <div className="text-center py-6">
+              <Search className="h-6 w-6 text-muted-foreground/50 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
+                Nenhuma tag encontrada para "<span className="font-medium">{search}</span>"
+              </p>
+            </div>
           ) : (
             filtered.map(tag => {
               const isLinked = linkedTagIds.has(tag.id);
@@ -158,14 +224,26 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
                 <label
                   key={tag.id}
                   className={cn(
-                    'flex items-center gap-2 px-2 py-1 rounded text-sm cursor-pointer hover:bg-accent/30 transition-colors',
-                    isLinked && 'bg-primary/5'
+                    "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md cursor-pointer text-sm transition-all duration-150",
+                    isLinked
+                      ? "bg-primary/15 text-foreground font-medium shadow-sm"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                   )}
                 >
-                  <Checkbox checked={isLinked} onCheckedChange={() => toggleTag(tag.id, isLinked)} />
-                  <span>{tag.name}</span>
+                  <Checkbox
+                    checked={isLinked}
+                    onCheckedChange={() => toggleTag(tag.id, isLinked)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
                   {tag.color && (
-                    <div className="h-2.5 w-2.5 rounded-full border" style={{ backgroundColor: tag.color }} />
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: tag.color }}
+                    />
+                  )}
+                  <span className="truncate flex-1">{tag.name}</span>
+                  {isLinked && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                   )}
                 </label>
               );
