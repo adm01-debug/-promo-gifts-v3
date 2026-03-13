@@ -67,6 +67,8 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
   const linkedTagIds = new Set(productTags.map(pt => pt.tag_id));
 
   const toggleTag = useCallback(async (tagId: string, isLinked: boolean) => {
+    if (togglingIds.has(tagId)) return;
+    setTogglingIds(prev => new Set(prev).add(tagId));
     try {
       if (isLinked) {
         const record = productTags.find(pt => pt.tag_id === tagId);
