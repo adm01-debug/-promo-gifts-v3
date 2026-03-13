@@ -50,6 +50,7 @@ async function fetchProductTags(productId: string): Promise<ProductTag[]> {
 export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [togglingIds, setTogglingIds] = useState<Set<string>>(new Set());
 
   const { data: tags = [], isLoading: loadingTags } = useQuery({
     queryKey: ['external-tags-admin'],
