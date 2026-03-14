@@ -1275,25 +1275,30 @@ export function ProductImageGallery({
             </>
           )}
 
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Filter className="h-3 w-3" />
-            <span className="font-medium">Tipo:</span>
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-background/80 border border-primary/30 shadow-sm">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+              {(() => {
+                const activeType = IMAGE_TYPES.find(t => t.value === uploadImageType);
+                return activeType ? <activeType.icon className={cn("h-4 w-4", activeType.color)} /> : <Filter className="h-4 w-4" />;
+              })()}
+              <span>Tipo:</span>
+            </div>
+            <Select value={uploadImageType} onValueChange={setUploadImageType}>
+              <SelectTrigger className="h-8 w-[160px] text-xs font-medium bg-primary/5 border-primary/20 text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IMAGE_TYPES.filter(t => t.value !== 'video').map(t => (
+                  <SelectItem key={t.value} value={t.value} className="text-xs">
+                    <span className="flex items-center gap-1.5">
+                      <t.icon className={cn("h-3.5 w-3.5", t.color)} />
+                      {t.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={uploadImageType} onValueChange={setUploadImageType}>
-            <SelectTrigger className="h-7 w-[140px] text-[11px] bg-background/80">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {IMAGE_TYPES.filter(t => t.value !== 'video').map(t => (
-                <SelectItem key={t.value} value={t.value} className="text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <t.icon className={cn("h-3 w-3", t.color)} />
-                    {t.label}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
 
           {/* Active context indicator */}
           {(uploadVariant !== 'none' || uploadImageType !== 'gallery') && (
