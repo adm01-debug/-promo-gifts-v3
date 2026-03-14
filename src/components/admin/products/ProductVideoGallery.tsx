@@ -1,9 +1,9 @@
 /**
  * ProductVideoGallery — Galeria de vídeos do produto via tabela product_videos (Cloudflare Stream + YouTube)
- * Busca vídeos do BD externo, exibe thumbnails, permite preview inline e adicionar novos vídeos por URL.
+ * Com filtro por variação de cor (via tabela local video_variant_links) e por tipo de vídeo.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,10 @@ import {
   Youtube,
   Video,
   Star,
-  X,
+  Filter,
+  Palette,
+  Link2,
+  Unlink,
 } from 'lucide-react';
 import {
   Dialog,
@@ -62,6 +65,24 @@ interface ExternalVideo {
   file_size_bytes: number | null;
 }
 
+interface VariantLink {
+  id: string;
+  video_id: string;
+  variant_id: string;
+  variant_name: string | null;
+  variant_color_hex: string | null;
+  supplier_code: string | null;
+  product_id: string;
+}
+
+interface Variant {
+  id: string;
+  name: string;
+  color_name: string | null;
+  color_hex: string | null;
+  supplier_code?: string;
+}
+
 const VIDEO_TYPES = [
   { value: 'product_video', label: 'Produto', icon: Video },
   { value: 'tutorial', label: 'Tutorial', icon: Play },
@@ -93,7 +114,11 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
   const [previewVideo, setPreviewVideo] = useState<ExternalVideo | null>(null);
   const [newVideoUrl, setNewVideoUrl] = useState('');
   const [newVideoType, setNewVideoType] = useState('product_video');
+  const [newVideoVariant, setNewVideoVariant] = useState('none');
   const [isAdding, setIsAdding] = useState(false);
+  const [filterVariant, setFilterVariant] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [linkingVideoId, setLinkingVideoId] = useState<string | null>(null);
 
   // Fetch videos from external DB
   const { data: videos = [], isLoading } = useQuery<ExternalVideo[]>({
@@ -114,6 +139,130 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Fetch variants from external DB
+  const { data: variants = [] } = useQuery<Variant[]>({
+    queryKey: ['product-variants-for-videos', productId],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'product_variants',
+          operation: 'select',
+          select: 'id, name, color_name, color_hex, color_code',
+          filters: { product_id: productId, is_active: true },
+          limit: 200,
+          orderBy: { column: 'name', ascending: true },
+        },
+      });
+      if (error) return [];
+      const records = data?.data?.records || [];
+      return records.map((r: any) => ({
+        id: String(r.id),
+        name: String(r.name ?? r.color_name ?? 'Variação'),
+        color_name: r.color_name ?? null,
+        color_hex: r.color_hex ?? null,
+        supplier_code: r.color_code != null ? String(r.color_code) : undefined,
+      }));
+    },
+    enabled: !!productId,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Fetch variant links from local DB
+  const { data: variantLinks = [] } = useQuery<VariantLink[]>({
+    queryKey: ['video-variant-links', productId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('video_variant_links')
+        .select('*')
+        .eq('product_id', productId);
+      if (error) return [];
+      return data || [];
+    },
+    enabled: !!productId,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Build lookup maps
+  const videoLinksMap = useMemo(() => {
+    const map = new Map<string, VariantLink[]>();
+    variantLinks.forEach(link => {
+      const existing = map.get(link.video_id) || [];
+      existing.push(link);
+      map.set(link.video_id, existing);
+    });
+    return map;
+  }, [variantLinks]);
+
+  const variantMap = useMemo(() => {
+    const map = new Map<string, Variant>();
+    variants.forEach(v => {
+      map.set(v.id, v);
+      if (v.supplier_code) map.set(v.supplier_code, v);
+    });
+    return map;
+  }, [variants]);
+
+  // Filtered videos
+  const filteredVideos = useMemo(() => {
+    return videos.filter(video => {
+      // Type filter
+      if (filterType !== 'all' && (video.video_type || 'product_video') !== filterType) {
+        return false;
+      }
+
+      // Variant filter
+      if (filterVariant === 'all') return true;
+      if (filterVariant === 'general') {
+        // Videos without any variant link
+        return !videoLinksMap.has(video.id) || videoLinksMap.get(video.id)!.length === 0;
+      }
+      // Specific variant
+      const links = videoLinksMap.get(video.id) || [];
+      return links.some(l => l.variant_id === filterVariant || l.supplier_code === filterVariant);
+    });
+  }, [videos, filterType, filterVariant, videoLinksMap]);
+
+  // Stats
+  const stats = useMemo(() => {
+    const linkedCount = videos.filter(v => videoLinksMap.has(v.id) && videoLinksMap.get(v.id)!.length > 0).length;
+    return { total: videos.length, linked: linkedCount, unlinked: videos.length - linkedCount };
+  }, [videos, videoLinksMap]);
+
+  // Link video to variant
+  const linkVideoToVariant = useCallback(async (videoId: string, variantId: string) => {
+    const variant = variantMap.get(variantId);
+    if (!variant) return;
+
+    try {
+      const { error } = await supabase.from('video_variant_links').insert({
+        video_id: videoId,
+        variant_id: variant.id,
+        variant_name: variant.color_name || variant.name,
+        variant_color_hex: variant.color_hex,
+        supplier_code: variant.supplier_code || null,
+        product_id: productId,
+      });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['video-variant-links', productId] });
+      toast.success(`Vídeo vinculado a ${variant.color_name || variant.name}`);
+    } catch (err) {
+      toast.error('Erro ao vincular vídeo');
+    }
+    setLinkingVideoId(null);
+  }, [productId, variantMap, queryClient]);
+
+  // Unlink video from variant
+  const unlinkVideoFromVariant = useCallback(async (linkId: string) => {
+    try {
+      const { error } = await supabase.from('video_variant_links').delete().eq('id', linkId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['video-variant-links', productId] });
+      toast.success('Vínculo removido');
+    } catch {
+      toast.error('Erro ao desvincular');
+    }
+  }, [productId, queryClient]);
 
   const handleAddVideo = useCallback(async () => {
     if (!newVideoUrl.trim()) return;
@@ -150,18 +299,39 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       if (error) throw new Error(error.message);
       if (!data?.success) throw new Error(data?.error || 'Erro ao adicionar vídeo');
 
+      // If variant selected, link it after video creation
+      const newVideoId = data?.data?.id;
+      if (newVideoVariant !== 'none' && newVideoId) {
+        const variant = variantMap.get(newVideoVariant);
+        if (variant) {
+          await supabase.from('video_variant_links').insert({
+            video_id: newVideoId,
+            variant_id: variant.id,
+            variant_name: variant.color_name || variant.name,
+            variant_color_hex: variant.color_hex,
+            supplier_code: variant.supplier_code || null,
+            product_id: productId,
+          });
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['product-videos-ext', productId] });
+      queryClient.invalidateQueries({ queryKey: ['video-variant-links', productId] });
       setNewVideoUrl('');
+      setNewVideoVariant('none');
       toast.success('Vídeo adicionado!');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao adicionar vídeo');
     } finally {
       setIsAdding(false);
     }
-  }, [newVideoUrl, newVideoType, productId, videos, queryClient]);
+  }, [newVideoUrl, newVideoType, newVideoVariant, productId, videos, variantMap, queryClient]);
 
   const handleRemove = useCallback(async (videoId: string) => {
     try {
+      // Remove variant links first
+      await supabase.from('video_variant_links').delete().eq('video_id', videoId);
+      // Soft-delete video
       await supabase.functions.invoke('external-db-bridge', {
         body: {
           table: 'product_videos',
@@ -171,6 +341,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         },
       });
       queryClient.invalidateQueries({ queryKey: ['product-videos-ext', productId] });
+      queryClient.invalidateQueries({ queryKey: ['video-variant-links', productId] });
       toast.success('Vídeo removido');
     } catch {
       toast.error('Erro ao remover vídeo');
@@ -193,6 +364,8 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     return null;
   };
 
+  const hasFilters = filterVariant !== 'all' || filterType !== 'all';
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8 text-muted-foreground">
@@ -204,12 +377,88 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Video grid */}
+      {/* Filter bar */}
       {videos.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-lg bg-muted/20 border border-border/30">
+          <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+
+          {/* Type filter */}
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="h-7 w-[120px] text-[11px]">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">Todos os tipos</SelectItem>
+              {VIDEO_TYPES.map(t => (
+                <SelectItem key={t.value} value={t.value} className="text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <t.icon className="h-3 w-3 text-muted-foreground" />
+                    {t.label}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Variant filter */}
+          {variants.length > 0 && (
+            <Select value={filterVariant} onValueChange={setFilterVariant}>
+              <SelectTrigger className="h-7 w-[160px] text-[11px]">
+                <SelectValue placeholder="Variação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Palette className="h-3 w-3 text-muted-foreground" />
+                    Todas as variações
+                  </span>
+                </SelectItem>
+                <SelectItem value="general" className="text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <Video className="h-3 w-3 text-muted-foreground" />
+                    Sem variação (geral)
+                  </span>
+                </SelectItem>
+                {variants.map(v => (
+                  <SelectItem key={v.id} value={v.id} className="text-xs">
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className="w-3 h-3 rounded-full border border-border/60 shrink-0"
+                        style={{ backgroundColor: v.color_hex || '#999' }}
+                      />
+                      {v.color_name || v.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {hasFilters && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-[10px] text-muted-foreground"
+              onClick={() => { setFilterVariant('all'); setFilterType('all'); }}
+            >
+              Limpar filtros
+            </Button>
+          )}
+
+          <span className="ml-auto text-[10px] text-muted-foreground">
+            {filteredVideos.length}/{videos.length}
+          </span>
+        </div>
+      )}
+
+      {/* Video grid */}
+      {filteredVideos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {videos.map((video) => {
+          {filteredVideos.map((video) => {
             const thumbnail = getThumbnail(video);
             const typeInfo = VIDEO_TYPES.find(t => t.value === video.video_type);
+            const links = videoLinksMap.get(video.id) || [];
 
             return (
               <div
@@ -240,7 +489,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                   </div>
                 </div>
 
-                {/* Badges */}
+                {/* Top-left badges */}
                 <div className="absolute top-1.5 left-1.5 flex flex-col gap-0.5">
                   {video.is_primary && (
                     <Badge className="text-[9px] px-1 py-0 bg-primary text-primary-foreground">
@@ -265,7 +514,26 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                   )}
                 </div>
 
-                {/* Bottom info */}
+                {/* Variant color dots (bottom-left) */}
+                {links.length > 0 && (
+                  <div className="absolute bottom-7 left-1.5 flex gap-0.5">
+                    {links.map(link => (
+                      <Tooltip key={link.id}>
+                        <TooltipTrigger asChild>
+                          <span
+                            className="w-3.5 h-3.5 rounded-full border border-white/60 shadow-sm"
+                            style={{ backgroundColor: link.variant_color_hex || '#999' }}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent className="text-[10px]">
+                          {link.variant_name || 'Variação'}
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
+                )}
+
+                {/* Bottom info bar */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-white/80 truncate max-w-[70%]">
@@ -279,8 +547,29 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                   </div>
                 </div>
 
-                {/* Remove button */}
-                <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Action buttons (top-right) */}
+                <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Link to variant button */}
+                  {variants.length > 0 && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 bg-black/50 hover:bg-primary text-white"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLinkingVideoId(linkingVideoId === video.id ? null : video.id);
+                          }}
+                        >
+                          <Link2 className="h-3 w-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-xs">Vincular a variação</TooltipContent>
+                    </Tooltip>
+                  )}
+                  {/* Remove button */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -299,6 +588,57 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                     <TooltipContent className="text-xs">Remover vídeo</TooltipContent>
                   </Tooltip>
                 </div>
+
+                {/* Linking panel (inline) */}
+                {linkingVideoId === video.id && (
+                  <div
+                    className="absolute inset-0 bg-black/85 backdrop-blur-sm p-2 flex flex-col gap-1 z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-[10px] text-white/80 font-medium">Vincular a variação:</span>
+                    <div className="flex-1 overflow-y-auto space-y-0.5">
+                      {variants.map(v => {
+                        const isLinked = links.some(l => l.variant_id === v.id);
+                        const existingLink = links.find(l => l.variant_id === v.id);
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            className={cn(
+                              "w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-[10px] transition-colors",
+                              isLinked
+                                ? "bg-primary/30 text-white"
+                                : "hover:bg-white/10 text-white/70"
+                            )}
+                            onClick={() => {
+                              if (isLinked && existingLink) {
+                                unlinkVideoFromVariant(existingLink.id);
+                              } else {
+                                linkVideoToVariant(video.id, v.id);
+                              }
+                            }}
+                          >
+                            <span
+                              className="w-3 h-3 rounded-full border border-white/40 shrink-0"
+                              style={{ backgroundColor: v.color_hex || '#999' }}
+                            />
+                            <span className="truncate">{v.color_name || v.name}</span>
+                            {isLinked && <Unlink className="h-2.5 w-2.5 ml-auto shrink-0 text-white/60" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-5 text-[9px] text-white/60 hover:text-white"
+                      onClick={() => setLinkingVideoId(null)}
+                    >
+                      Fechar
+                    </Button>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -308,7 +648,11 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       {/* Stats */}
       {videos.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground px-1 py-1.5 rounded-lg bg-muted/20 border border-border/30">
-          <span className="font-medium text-foreground/70">{videos.length} vídeo(s)</span>
+          <span className="font-medium text-foreground/70">{stats.total} vídeo(s)</span>
+          <span className="flex items-center gap-1">
+            <Link2 className="h-2.5 w-2.5" />
+            {stats.linked} vinculado(s)
+          </span>
           {videos.filter(v => v.source_youtube_id).length > 0 && (
             <span className="flex items-center gap-1">
               <Youtube className="h-2.5 w-2.5 text-red-500" />
@@ -337,7 +681,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
             className="h-8 text-xs flex-1 min-w-[200px]"
           />
           <Select value={newVideoType} onValueChange={setNewVideoType}>
-            <SelectTrigger className="h-8 w-[130px] text-[11px]">
+            <SelectTrigger className="h-8 w-[120px] text-[11px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -351,6 +695,27 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
               ))}
             </SelectContent>
           </Select>
+          {variants.length > 0 && (
+            <Select value={newVideoVariant} onValueChange={setNewVideoVariant}>
+              <SelectTrigger className="h-8 w-[140px] text-[11px]">
+                <SelectValue placeholder="Variação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none" className="text-xs">Sem variação</SelectItem>
+                {variants.map(v => (
+                  <SelectItem key={v.id} value={v.id} className="text-xs">
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className="w-3 h-3 rounded-full border border-border/60 shrink-0"
+                        style={{ backgroundColor: v.color_hex || '#999' }}
+                      />
+                      {v.color_name || v.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button
             type="button"
             size="sm"
@@ -378,10 +743,10 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       </div>
 
       {/* Empty state */}
-      {videos.length === 0 && !isLoading && (
+      {filteredVideos.length === 0 && !isLoading && (
         <div className="text-center py-4 text-sm text-muted-foreground">
           <Film className="h-5 w-5 mx-auto mb-2 opacity-40" />
-          Nenhum vídeo cadastrado
+          {hasFilters ? 'Nenhum vídeo encontrado com os filtros selecionados' : 'Nenhum vídeo cadastrado'}
         </div>
       )}
 
@@ -418,6 +783,16 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                     {VIDEO_TYPES.find(t => t.value === previewVideo.video_type)?.label || previewVideo.video_type}
                   </Badge>
                 )}
+                {/* Show variant links */}
+                {(videoLinksMap.get(previewVideo.id) || []).map(link => (
+                  <Badge key={link.id} variant="outline" className="text-[10px] flex items-center gap-1">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: link.variant_color_hex || '#999' }}
+                    />
+                    {link.variant_name}
+                  </Badge>
+                ))}
                 {previewVideo.cloudflare_status && (
                   <Badge variant="outline" className="text-[10px]">
                     {previewVideo.cloudflare_status}
