@@ -371,7 +371,7 @@ export function ProductImageGallery({
     }
   }, [extImageMap, productId, queryClient]);
 
-  const uploadFile = async (file: File): Promise<string | null> => {
+  const uploadFile = useCallback(async (file: File): Promise<string | null> => {
     if (!file.type.startsWith('image/')) {
       toast.error(`"${file.name}" não é uma imagem válida`);
       return null;
@@ -397,7 +397,7 @@ export function ProductImageGallery({
       .getPublicUrl(data.path);
 
     return urlData.publicUrl;
-  };
+  }, [folder]);
 
   const removeStorageFileByUrl = useCallback(async (url: string) => {
     const parts = url.split('/personalization-images/');
@@ -411,6 +411,7 @@ export function ProductImageGallery({
     url: string,
     variantCode: string,
     imageType: string,
+    shouldBePrimary: boolean,
   ): Promise<{ ok: true } | { ok: false; error: string }> => {
     if (!productId) return { ok: true };
 
