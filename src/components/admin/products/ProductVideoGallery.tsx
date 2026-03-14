@@ -668,78 +668,98 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       )}
 
       {/* Add video form */}
-      <div className="rounded-lg border border-dashed border-border/60 p-3 space-y-2">
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-medium">
-          <Plus className="h-3 w-3" />
-          Adicionar vídeo
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            value={newVideoUrl}
-            onChange={(e) => setNewVideoUrl(e.target.value)}
-            placeholder="https://youtube.com/watch?v=... ou URL do vídeo"
-            className="h-8 text-xs flex-1 min-w-[200px]"
-          />
-          <Select value={newVideoType} onValueChange={setNewVideoType}>
-            <SelectTrigger className="h-8 w-[120px] text-[11px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {VIDEO_TYPES.map(t => (
-                <SelectItem key={t.value} value={t.value} className="text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <t.icon className="h-3 w-3 text-muted-foreground" />
-                    {t.label}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {variants.length > 0 && (
-            <Select value={newVideoVariant} onValueChange={setNewVideoVariant}>
-              <SelectTrigger className="h-8 w-[140px] text-[11px]">
-                <SelectValue placeholder="Variação" />
+      <div className="rounded-lg border-2 border-dashed border-border overflow-hidden transition-colors hover:border-primary/40">
+        {/* Type & variant selector bar */}
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/10 via-muted/40 to-muted/30 border-b border-primary/20">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-background/80 border border-primary/30 shadow-sm">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+              {(() => {
+                const activeType = VIDEO_TYPES.find(t => t.value === newVideoType);
+                return activeType ? <activeType.icon className="h-4 w-4" /> : <Film className="h-4 w-4" />;
+              })()}
+              <span>Tipo:</span>
+            </div>
+            <Select value={newVideoType} onValueChange={setNewVideoType}>
+              <SelectTrigger className="h-8 w-[140px] text-xs font-medium bg-primary/5 border-primary/20 text-foreground">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none" className="text-xs">Sem variação</SelectItem>
-                {variants.map(v => (
-                  <SelectItem key={v.id} value={v.id} className="text-xs">
+                {VIDEO_TYPES.map(t => (
+                  <SelectItem key={t.value} value={t.value} className="text-xs">
                     <span className="flex items-center gap-1.5">
-                      <span
-                        className="w-3 h-3 rounded-full border border-border/60 shrink-0"
-                        style={{ backgroundColor: v.color_hex || '#999' }}
-                      />
-                      {v.color_name || v.name}
+                      <t.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                      {t.label}
                     </span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          )}
-          <Button
-            type="button"
-            size="sm"
-            className="h-8 text-xs"
-            onClick={handleAddVideo}
-            disabled={isAdding || !newVideoUrl.trim()}
-          >
-            {isAdding ? (
-              <Loader2 className="h-3 w-3 animate-spin mr-1" />
-            ) : (
-              <Plus className="h-3 w-3 mr-1" />
-            )}
-            Adicionar
-          </Button>
-        </div>
-        {newVideoUrl && extractYoutubeId(newVideoUrl) && (
-          <div className="rounded-md border border-border/40 overflow-hidden aspect-video max-w-xs">
-            <img
-              src={`https://img.youtube.com/vi/${extractYoutubeId(newVideoUrl)}/mqdefault.jpg`}
-              alt="Preview"
-              className="w-full h-full object-cover"
-            />
           </div>
-        )}
+
+          {variants.length > 0 && (
+            <>
+              <div className="h-4 w-px bg-border/50" />
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Palette className="h-3 w-3" />
+                <span className="font-medium">Vincular a:</span>
+              </div>
+              <Select value={newVideoVariant} onValueChange={setNewVideoVariant}>
+                <SelectTrigger className="h-8 w-[160px] text-[11px] bg-background/80">
+                  <SelectValue placeholder="Sem variação" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none" className="text-xs">Sem variação</SelectItem>
+                  {variants.map(v => (
+                    <SelectItem key={v.id} value={v.id} className="text-xs">
+                      <span className="flex items-center gap-1.5">
+                        <span
+                          className="w-3 h-3 rounded-full border border-border/60 shrink-0"
+                          style={{ backgroundColor: v.color_hex || '#999' }}
+                        />
+                        {v.color_name || v.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+        </div>
+
+        {/* URL input + add button */}
+        <div className="p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <Input
+              value={newVideoUrl}
+              onChange={(e) => setNewVideoUrl(e.target.value)}
+              placeholder="https://youtube.com/watch?v=... ou URL do vídeo"
+              className="h-8 text-xs flex-1 min-w-[200px]"
+            />
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={handleAddVideo}
+              disabled={isAdding || !newVideoUrl.trim()}
+            >
+              {isAdding ? (
+                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              ) : (
+                <Plus className="h-3 w-3 mr-1" />
+              )}
+              Adicionar
+            </Button>
+          </div>
+          {newVideoUrl && extractYoutubeId(newVideoUrl) && (
+            <div className="rounded-md border border-border/40 overflow-hidden aspect-video max-w-xs">
+              <img
+                src={`https://img.youtube.com/vi/${extractYoutubeId(newVideoUrl)}/mqdefault.jpg`}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Empty state */}
