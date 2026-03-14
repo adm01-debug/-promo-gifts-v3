@@ -681,7 +681,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB FISCAL ====== */}
-          <TabsContent value="fiscal" className="space-y-1 mt-0">
+          <TabsContent value="fiscal" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="Dados Fiscais" icon={FileText} defaultOpen>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
