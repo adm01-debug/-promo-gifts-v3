@@ -100,6 +100,54 @@ const VIDEO_TYPES = [
 const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/mpeg', 'video/ogg'];
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
+/**
+ * Extrai o primeiro frame de um arquivo de vídeo como Blob JPEG usando canvas.
+ * Retorna null se falhar (codec não suportado, etc).
+ */
+function extractThumbnailFromVideo(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      video.remove();
+    };
+
+    video.addEventListener('loadeddata', () => {
+      // Seek to 1 second or 0 if shorter
+      video.currentTime = Math.min(1, video.duration || 0);
+    });
+
+    video.addEventListener('seeked', () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.min(video.videoWidth, 640);
+        canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { cleanup(); resolve(null); return; }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          cleanup();
+          resolve(blob);
+        }, 'image/jpeg', 0.8);
+      } catch {
+        cleanup();
+        resolve(null);
+      }
+    });
+
+    video.addEventListener('error', () => { cleanup(); resolve(null); });
+
+    // Timeout safety - 10s max
+    setTimeout(() => { cleanup(); resolve(null); }, 10000);
+  });
+}
+
 function formatBytes(bytes: number | null): string {
   if (!bytes || bytes <= 0) return '';
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
