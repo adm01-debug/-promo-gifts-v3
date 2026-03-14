@@ -326,13 +326,13 @@ export function ProductForm({
                       className={cn(
                         'font-mono pr-8',
                         errors.sku && 'border-destructive',
-                        skuStatus === 'valid' && 'border-green-500/50',
+                        skuStatus === 'valid' && 'border-success/50',
                         skuStatus === 'duplicate' && 'border-destructive',
                       )}
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                       {skuStatus === 'checking' && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
-                      {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
+                      {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
                       {skuStatus === 'duplicate' && (
                         <Tooltip>
                           <TooltipTrigger asChild>
