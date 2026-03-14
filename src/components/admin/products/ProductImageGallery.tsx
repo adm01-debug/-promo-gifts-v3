@@ -560,6 +560,42 @@ export function ProductImageGallery({
     toast.success('Imagem principal definida');
   };
 
+  // Persist display_order to external DB (fire-and-forget with toast feedback)
+  const persistDisplayOrder = useCallback(async (reorderedUrls: string[]) => {
+    if (!productId) return;
+
+    // Build update batch: map each URL to its external image id + new order
+    const updates: Array<{ id: string; display_order: number }> = [];
+    reorderedUrls.forEach((url, index) => {
+      const ext = extImageMap.get(url);
+      if (ext?.id) {
+        updates.push({ id: ext.id, display_order: index });
+      }
+    });
+
+    if (updates.length === 0) return;
+
+    try {
+      await Promise.all(
+        updates.map(({ id, display_order }) =>
+          supabase.functions.invoke('external-db-bridge', {
+            body: {
+              table: 'product_images',
+              operation: 'update',
+              id,
+              data: { display_order },
+            },
+          }),
+        ),
+      );
+      queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      toast.success('Ordem salva automaticamente');
+    } catch (err) {
+      console.warn('Erro ao persistir ordem:', err);
+      toast.error('Erro ao salvar nova ordem');
+    }
+  }, [productId, extImageMap, queryClient]);
+
   // Drag & drop
   const handleDragStart = (index: number) => setDragIndex(index);
   const handleDragOver = (e: React.DragEvent, index: number) => { e.preventDefault(); setDragOverIndex(index); };
@@ -572,6 +608,8 @@ export function ProductImageGallery({
     onChange(newImages);
     setDragIndex(null);
     setDragOverIndex(null);
+    // Persist new order to external DB
+    persistDisplayOrder(newImages);
   };
   const handleDragEnd = () => { setDragIndex(null); setDragOverIndex(null); };
 
