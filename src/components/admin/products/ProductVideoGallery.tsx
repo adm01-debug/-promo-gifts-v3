@@ -311,8 +311,8 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
   }, [productId, queryClient]);
 
-  // Upload a single video file to Supabase Storage
-  const uploadFile = useCallback(async (file: File): Promise<{ url: string; size: number } | null> => {
+  // Upload a single video file + auto-generate thumbnail
+  const uploadFile = useCallback(async (file: File): Promise<{ url: string; size: number; thumbnailUrl: string | null } | null> => {
     if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
       toast.error(`"${file.name}" não é um formato de vídeo suportado`);
       return null;
@@ -323,11 +323,12 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
 
     const fileExt = file.name.split('.').pop() || 'mp4';
-    const fileName = `videos/${productId || 'new'}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const baseName = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const videoPath = `videos/${productId || 'new'}/${baseName}.${fileExt}`;
 
     const { data, error } = await supabase.storage
       .from('product-videos')
-      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+      .upload(videoPath, file, { cacheControl: '3600', upsert: false });
 
     if (error) {
       toast.error(`Erro no upload de "${file.name}"`);
@@ -338,7 +339,25 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       .from('product-videos')
       .getPublicUrl(data.path);
 
-    return { url: urlData.publicUrl, size: file.size };
+    // Auto-generate thumbnail from first frame
+    let thumbnailUrl: string | null = null;
+    try {
+      const thumbBlob = await extractThumbnailFromVideo(file);
+      if (thumbBlob) {
+        const thumbPath = `thumbnails/${productId || 'new'}/${baseName}.jpg`;
+        const { data: td, error: te } = await supabase.storage
+          .from('product-videos')
+          .upload(thumbPath, thumbBlob, { contentType: 'image/jpeg', cacheControl: '86400', upsert: false });
+        if (!te && td) {
+          const { data: tu } = supabase.storage.from('product-videos').getPublicUrl(td.path);
+          thumbnailUrl = tu.publicUrl;
+        }
+      }
+    } catch (e) {
+      console.warn('Thumbnail generation failed:', e);
+    }
+
+    return { url: urlData.publicUrl, size: file.size, thumbnailUrl };
   }, [productId]);
 
   // Create external DB record for uploaded video
@@ -346,6 +365,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     url: string,
     fileSize: number,
     fileName: string,
+    thumbnailUrl: string | null,
   ): Promise<string | null> => {
     if (!productId) return null;
     const nextOrder = videos.length > 0
@@ -360,6 +380,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
           product_id: productId,
           url_original: url,
           url_stream: url,
+          url_thumbnail: thumbnailUrl,
           video_type: uploadVideoType,
           display_order: nextOrder,
           is_primary: videos.length === 0,
