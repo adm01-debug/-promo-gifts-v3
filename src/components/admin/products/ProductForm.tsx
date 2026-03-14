@@ -830,6 +830,7 @@ export function ProductForm({
                 images={images}
                 onChange={setImages}
                 folder="products"
+                productId={productId}
               />
             </FormSection>
 
