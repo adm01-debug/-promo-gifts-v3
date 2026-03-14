@@ -642,13 +642,56 @@ export function ProductImageGallery({
     setBulkMode(false);
   }, []);
 
+  const createMissingExternalRecords = useCallback(async (
+    urls: string[],
+    resolveData: (url: string) => { image_type: string; supplier_code: string | null; variant_id: string | null }
+  ): Promise<number> => {
+    if (!productId || urls.length === 0) return 0;
+
+    const results = await Promise.all(
+      urls.map((url) => {
+        const data = resolveData(url);
+        const displayOrder = Math.max(images.indexOf(url), 0);
+
+        return supabase.functions.invoke('external-db-bridge', {
+          body: {
+            table: 'product_images',
+            operation: 'insert',
+            data: {
+              product_id: productId,
+              url_cdn: url,
+              url_original: url,
+              image_type: data.image_type,
+              is_primary: displayOrder === 0,
+              is_og_image: false,
+              display_order: displayOrder,
+              is_active: true,
+              supplier_code: data.supplier_code,
+              variant_id: data.variant_id,
+              alt_text: null,
+            },
+          },
+        });
+      })
+    );
+
+    return results.filter(({ data, error }) => !error && data?.success).length;
+  }, [images, productId]);
+
   const bulkUpdateType = useCallback(async (newType: string) => {
     if (selectedUrls.size === 0) return;
+    if (!productId) {
+      toast.error('Salve o produto antes de classificar imagens em lote');
+      return;
+    }
+
     setIsBulkUpdating(true);
     try {
-      const updates = Array.from(selectedUrls)
+      const selectedList = Array.from(selectedUrls);
+      const updates = selectedList
         .map(url => extImageMap.get(url))
         .filter((ext): ext is ExternalImage => !!ext?.id);
+      const missingUrls = selectedList.filter(url => !extImageMap.get(url)?.id);
 
       await Promise.all(
         updates.map(ext =>
@@ -663,27 +706,45 @@ export function ProductImageGallery({
         )
       );
 
-      if (productId) {
-        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
-      }
+      const insertedCount = await createMissingExternalRecords(missingUrls, () => ({
+        image_type: newType,
+        supplier_code: null,
+        variant_id: null,
+      }));
+
+      queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+
+      const affectedCount = updates.length + insertedCount;
       const label = IMAGE_TYPES.find(t => t.value === newType)?.label || newType;
-      toast.success(`${updates.length} imagem(ns) classificada(s) como "${label}"`);
+      if (affectedCount === 0) {
+        toast.warning('Nenhuma imagem elegível para classificação em lote');
+      } else {
+        toast.success(`${affectedCount} imagem(ns) classificada(s) como "${label}"`);
+      }
       clearSelection();
-    } catch {
+    } catch (err) {
+      console.error('[bulkUpdateType] erro ao classificar imagens em lote:', err);
       toast.error('Erro ao atualizar tipo em lote');
     } finally {
       setIsBulkUpdating(false);
     }
-  }, [selectedUrls, extImageMap, productId, queryClient, clearSelection]);
+  }, [selectedUrls, productId, extImageMap, createMissingExternalRecords, queryClient, clearSelection]);
 
   const bulkUpdateVariant = useCallback(async (variantCode: string) => {
     if (selectedUrls.size === 0) return;
+    if (!productId) {
+      toast.error('Salve o produto antes de vincular variações em lote');
+      return;
+    }
+
     setIsBulkUpdating(true);
     try {
       const variant = variantCode !== 'none' ? variantMap.get(variantCode) : null;
-      const updates = Array.from(selectedUrls)
+      const selectedList = Array.from(selectedUrls);
+      const updates = selectedList
         .map(url => extImageMap.get(url))
         .filter((ext): ext is ExternalImage => !!ext?.id);
+      const missingUrls = selectedList.filter(url => !extImageMap.get(url)?.id);
 
       await Promise.all(
         updates.map(ext =>
@@ -701,18 +762,29 @@ export function ProductImageGallery({
         )
       );
 
-      if (productId) {
-        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
-      }
+      const insertedCount = await createMissingExternalRecords(missingUrls, (url) => ({
+        image_type: images.indexOf(url) === 0 ? 'main' : 'gallery',
+        supplier_code: variant?.supplier_code || null,
+        variant_id: variant?.id || null,
+      }));
+
+      queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+
+      const affectedCount = updates.length + insertedCount;
       const label = variant ? (variant.color_name || variant.name) : 'Geral (sem cor)';
-      toast.success(`${updates.length} imagem(ns) vinculada(s) a "${label}"`);
+      if (affectedCount === 0) {
+        toast.warning('Nenhuma imagem elegível para vínculo em lote');
+      } else {
+        toast.success(`${affectedCount} imagem(ns) vinculada(s) a "${label}"`);
+      }
       clearSelection();
-    } catch {
+    } catch (err) {
+      console.error('[bulkUpdateVariant] erro ao atualizar variação em lote:', err);
       toast.error('Erro ao atualizar variação em lote');
     } finally {
       setIsBulkUpdating(false);
     }
-  }, [selectedUrls, extImageMap, variantMap, productId, queryClient, clearSelection]);
+  }, [selectedUrls, productId, extImageMap, variantMap, images, createMissingExternalRecords, queryClient, clearSelection]);
 
   const bulkDelete = useCallback(async () => {
     if (selectedUrls.size === 0) return;
