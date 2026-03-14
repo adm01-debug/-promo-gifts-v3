@@ -1238,7 +1238,7 @@ export function ProductImageGallery({
       {/* ── Upload area with variant/type selectors ── */}
       <div className="rounded-lg border-2 border-dashed border-border overflow-hidden transition-colors hover:border-primary/40">
       {/* Upload context selectors — always show type selector */}
-        <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-muted/30 border-b border-border/40">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/10 via-muted/40 to-muted/30 border-b border-primary/20">
           {/* Variant selector (only when variants exist) */}
           {productId && variants.length > 0 && (
             <>
