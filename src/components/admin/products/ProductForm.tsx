@@ -887,24 +887,29 @@ export function ProductForm({
               />
             </div>
 
-            {/* Vídeos do produto (da tabela product_videos) */}
-            {isEdit && productId && (
-              <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
-                <FormSection title="Vídeos" icon={Video} defaultOpen={true}>
-                  <ProductVideoGallery productId={productId} />
-                </FormSection>
+            {/* Galeria de Vídeos */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                    <Video className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground">Galeria de Vídeos</h4>
+                    <p className="text-[11px] text-muted-foreground">Vídeos do produto • Classificados por tipo (produto, tutorial, unboxing, review, lifestyle)</p>
+                  </div>
+                </div>
               </div>
-            )}
 
-            {/* Nota para produto novo sem ID */}
-            {!isEdit && (
-              <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+              {isEdit && productId ? (
+                <ProductVideoGallery productId={productId} />
+              ) : (
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-accent/30 text-xs text-muted-foreground">
                   <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
                   <span>Salve o produto primeiro para gerenciar vídeos e vincular imagens a variações de cor.</span>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
