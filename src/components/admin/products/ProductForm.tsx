@@ -213,6 +213,7 @@ export function ProductForm({
   const descValue = watch('description') || '';
   const shortDescValue = watch('short_description') || '';
   const metaDescValue = watch('meta_description') || '';
+  const supplierRefValue = watch('supplier_reference') || '';
 
   // SKU validation
   const { status: skuStatus, duplicateName } = useSkuValidation(
@@ -275,16 +276,17 @@ export function ProductForm({
           {/* ====== TAB BÁSICO ====== */}
           <TabsContent value="basic" className="space-y-1 mt-0">
             <FormSection title="Informações Básicas" icon={Info} defaultOpen>
+              {/* SKU Interno + SKU Fornecedor */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>
-                    SKU
+                    SKU Interno (Nosso)
                   </FieldLabel>
                   <div className="relative">
                     <Input
                       id="sku"
                       {...register('sku')}
-                      placeholder="Ex: PROD-001"
+                      placeholder="Ex: GS-001"
                       className={cn(
                         'font-mono pr-8',
                         errors.sku && 'border-destructive',
@@ -313,17 +315,30 @@ export function ProductForm({
                   )}
                 </div>
                 <div className="space-y-1">
-                  <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
-                    Nome
+                  <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>
+                    SKU do Fornecedor
                   </FieldLabel>
                   <Input
-                    id="name"
-                    {...register('name')}
-                    placeholder="Nome do produto"
-                    className={cn(errors.name && 'border-destructive')}
+                    id="supplier_reference"
+                    {...register('supplier_reference')}
+                    placeholder="Ex: FORN-12345"
+                    className="font-mono"
                   />
-                  {errors.name && <p className="text-[10px] text-destructive">{errors.name.message}</p>}
                 </div>
+              </div>
+
+              {/* Nome */}
+              <div className="space-y-1">
+                <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
+                  Nome do Produto
+                </FieldLabel>
+                <Input
+                  id="name"
+                  {...register('name')}
+                  placeholder="Nome do produto"
+                  className={cn(errors.name && 'border-destructive')}
+                />
+                {errors.name && <p className="text-[10px] text-destructive">{errors.name.message}</p>}
               </div>
 
               <div className="space-y-1">
@@ -369,15 +384,6 @@ export function ProductForm({
                     id="brand"
                     {...register('brand')}
                     placeholder="Ex: Tramontina"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="supplier_reference">Ref. Fornecedor</FieldLabel>
-                  <Input
-                    id="supplier_reference"
-                    {...register('supplier_reference')}
-                    placeholder="Código do fornecedor"
-                    className="font-mono"
                   />
                 </div>
               </div>
