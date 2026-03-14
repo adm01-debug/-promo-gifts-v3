@@ -563,7 +563,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB DETALHES ====== */}
-          <TabsContent value="details" className="space-y-1 mt-0">
+          <TabsContent value="details" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="Dimensões Externas" icon={Ruler} defaultOpen>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
