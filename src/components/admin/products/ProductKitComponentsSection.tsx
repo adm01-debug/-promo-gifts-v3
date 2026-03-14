@@ -121,8 +121,15 @@ interface PrintAreaFormData {
   notes: string;
 }
 
+interface BoxInternalDimensions {
+  height_cm: number | null;
+  width_cm: number | null;
+  length_cm: number | null;
+}
+
 interface ProductKitComponentsSectionProps {
   productId: string;
+  boxInternalDimensions?: BoxInternalDimensions;
 }
 
 const EMPTY_FORM: ComponentFormData = {
