@@ -82,7 +82,9 @@ interface Product {
   brand: string | null;
   price: number;
   cost_price: number | null;
+  suggested_price: number | null;
   stock: number | null;
+  stock_unit: string | null;
   category_id: string | null;
   supplier_id: string | null;
   supplier_reference: string | null;
@@ -90,6 +92,7 @@ interface Product {
   colors: any;
   materials: any;
   min_quantity: number | null;
+  min_order_quantity: number | null;
   is_active: boolean | null;
   is_featured: boolean | null;
   is_bestseller: boolean | null;
@@ -97,6 +100,12 @@ interface Product {
   is_on_sale: boolean | null;
   is_kit: boolean | null;
   has_commercial_packaging: boolean | null;
+  is_imported: boolean | null;
+  is_textil: boolean | null;
+  is_thermal: boolean | null;
+  allows_personalization: boolean | null;
+  has_gift_box: boolean | null;
+  has_optional_packaging: boolean | null;
   packing_type: string | null;
   height_cm: number | null;
   width_cm: number | null;
@@ -104,11 +113,38 @@ interface Product {
   diameter_cm: number | null;
   weight_g: number | null;
   capacity_ml: number | null;
+  circumference_cm: number | null;
+  internal_height_cm: number | null;
+  internal_width_cm: number | null;
+  internal_length_cm: number | null;
+  internal_diameter_cm: number | null;
   box_width_mm: number | null;
   box_height_mm: number | null;
   box_length_mm: number | null;
   box_weight_kg: number | null;
   box_quantity: number | null;
+  box_inner_quantity: number | null;
+  box_volume_cm3: number | null;
+  packaging_material: string | null;
+  packaging_color: string | null;
+  packaging_finish: string | null;
+  ncm_code: string | null;
+  ean: string | null;
+  gtin: string | null;
+  ipi_rate: number | null;
+  country_of_origin: string | null;
+  lead_time_days: number | null;
+  product_type: string | null;
+  supply_mode: string | null;
+  warranty_months: number | null;
+  gender: string | null;
+  meta_title: string | null;
+  meta_keywords: string[] | null;
+  slug: string | null;
+  canonical_url: string | null;
+  video_url: string | null;
+  key_benefits: string | null;
+  use_cases: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -126,20 +162,33 @@ function productToFormData(p: Product): Partial<ProductFormData> {
     supplier_reference: p.supplier_reference ?? '',
     sale_price: p.price ?? 0,
     cost_price: p.cost_price ?? 0,
+    suggested_price: p.suggested_price,
     stock_quantity: p.stock ?? 0,
+    stock_unit: p.stock_unit ?? 'un',
     min_quantity: p.min_quantity ?? 1,
+    min_order_quantity: p.min_order_quantity,
     height_cm: p.height_cm,
     width_cm: p.width_cm,
     length_cm: p.length_cm,
     diameter_cm: p.diameter_cm,
     weight_g: p.weight_g,
     capacity_ml: p.capacity_ml,
+    circumference_cm: p.circumference_cm,
+    internal_height_cm: p.internal_height_cm,
+    internal_width_cm: p.internal_width_cm,
+    internal_length_cm: p.internal_length_cm,
+    internal_diameter_cm: p.internal_diameter_cm,
     packing_type: p.packing_type ?? '',
     box_width_mm: p.box_width_mm,
     box_height_mm: p.box_height_mm,
     box_length_mm: p.box_length_mm,
     box_weight_kg: p.box_weight_kg,
     box_quantity: p.box_quantity,
+    box_inner_quantity: p.box_inner_quantity,
+    box_volume_cm3: p.box_volume_cm3,
+    packaging_material: p.packaging_material ?? '',
+    packaging_color: p.packaging_color ?? '',
+    packaging_finish: p.packaging_finish ?? '',
     is_active: p.is_active ?? true,
     is_featured: p.is_featured ?? false,
     is_bestseller: p.is_bestseller ?? false,
@@ -147,6 +196,29 @@ function productToFormData(p: Product): Partial<ProductFormData> {
     is_on_sale: p.is_on_sale ?? false,
     is_kit: p.is_kit ?? false,
     has_commercial_packaging: p.has_commercial_packaging ?? false,
+    is_imported: p.is_imported ?? false,
+    is_textil: p.is_textil ?? false,
+    is_thermal: p.is_thermal ?? false,
+    allows_personalization: p.allows_personalization ?? true,
+    has_gift_box: p.has_gift_box ?? false,
+    has_optional_packaging: p.has_optional_packaging ?? false,
+    ncm_code: p.ncm_code ?? '',
+    ean: p.ean ?? '',
+    gtin: p.gtin ?? '',
+    ipi_rate: p.ipi_rate,
+    country_of_origin: p.country_of_origin ?? '',
+    lead_time_days: p.lead_time_days,
+    product_type: p.product_type ?? 'product',
+    supply_mode: p.supply_mode ?? '',
+    warranty_months: p.warranty_months,
+    gender: p.gender ?? '',
+    meta_title: p.meta_title ?? '',
+    meta_keywords: Array.isArray(p.meta_keywords) ? p.meta_keywords.join(', ') : '',
+    slug: p.slug ?? '',
+    canonical_url: p.canonical_url ?? '',
+    video_url: p.video_url ?? '',
+    key_benefits: p.key_benefits ?? '',
+    use_cases: p.use_cases ?? '',
   };
 }
 
@@ -229,6 +301,12 @@ export function ProductsManager() {
           is_on_sale: p.is_on_sale ?? false,
           is_kit: (p as any).is_kit ?? false,
           has_commercial_packaging: p.has_commercial_packaging ?? false,
+          is_imported: p.is_imported ?? false,
+          is_textil: p.is_textil ?? false,
+          is_thermal: p.is_thermal ?? false,
+          allows_personalization: p.allows_personalization ?? true,
+          has_gift_box: p.has_gift_box ?? false,
+          has_optional_packaging: p.has_optional_packaging ?? false,
           packing_type: p.packing_type ?? null,
           height_cm: p.height_cm ?? null,
           width_cm: p.width_cm ?? null,
@@ -236,11 +314,41 @@ export function ProductsManager() {
           diameter_cm: p.diameter_cm ?? null,
           weight_g: p.weight_g ?? null,
           capacity_ml: p.capacity_ml ?? null,
+          circumference_cm: p.circumference_cm ?? null,
+          internal_height_cm: p.internal_height_cm ?? null,
+          internal_width_cm: p.internal_width_cm ?? null,
+          internal_length_cm: p.internal_length_cm ?? null,
+          internal_diameter_cm: p.internal_diameter_cm ?? null,
           box_width_mm: p.box_width_mm ?? null,
           box_height_mm: p.box_height_mm ?? null,
           box_length_mm: p.box_length_mm ?? null,
           box_weight_kg: p.box_weight_kg ?? null,
           box_quantity: p.box_quantity ?? null,
+          box_inner_quantity: p.box_inner_quantity ?? null,
+          box_volume_cm3: p.box_volume_cm3 ?? null,
+          packaging_material: p.packaging_material ?? null,
+          packaging_color: p.packaging_color ?? null,
+          packaging_finish: p.packaging_finish ?? null,
+          suggested_price: p.suggested_price ?? null,
+          stock_unit: p.stock_unit ?? null,
+          min_order_quantity: p.min_order_quantity ?? null,
+          ncm_code: p.ncm_code ?? null,
+          ean: p.ean ?? null,
+          gtin: p.gtin ?? null,
+          ipi_rate: p.ipi_rate ?? null,
+          country_of_origin: p.country_of_origin ?? null,
+          lead_time_days: p.lead_time_days ?? null,
+          product_type: p.product_type ?? null,
+          supply_mode: p.supply_mode ?? null,
+          warranty_months: p.warranty_months ?? null,
+          gender: p.gender ?? null,
+          meta_title: p.meta_title ?? null,
+          meta_keywords: Array.isArray(p.meta_keywords) ? p.meta_keywords : null,
+          slug: p.slug ?? null,
+          canonical_url: p.canonical_url ?? null,
+          video_url: (p as any).videos?.[0] ?? null,
+          key_benefits: p.key_benefits ?? null,
+          use_cases: p.use_cases ?? null,
           created_at: p.created_at ?? '',
           updated_at: p.updated_at ?? '',
         };
@@ -351,8 +459,11 @@ export function ProductsManager() {
         supplier_reference: data.supplier_reference || null,
         sale_price: data.sale_price ?? 0,
         cost_price: data.cost_price ?? null,
+        suggested_price: data.suggested_price ?? null,
         stock_quantity: data.stock_quantity ?? 0,
+        stock_unit: data.stock_unit || 'un',
         min_quantity: data.min_quantity ?? 1,
+        min_order_quantity: data.min_order_quantity ?? null,
         is_active: data.is_active,
         active: data.is_active,
         is_featured: data.is_featured,
@@ -361,6 +472,12 @@ export function ProductsManager() {
         is_on_sale: data.is_on_sale,
         is_kit: data.is_kit,
         has_commercial_packaging: data.has_commercial_packaging,
+        is_imported: data.is_imported,
+        is_textil: data.is_textil,
+        is_thermal: data.is_thermal,
+        allows_personalization: data.allows_personalization,
+        has_gift_box: data.has_gift_box,
+        has_optional_packaging: data.has_optional_packaging,
         packing_type: data.packing_type || null,
         height_cm: data.height_cm ?? null,
         width_cm: data.width_cm ?? null,
@@ -368,11 +485,38 @@ export function ProductsManager() {
         diameter_cm: data.diameter_cm ?? null,
         weight_g: data.weight_g ?? null,
         capacity_ml: data.capacity_ml ?? null,
+        circumference_cm: data.circumference_cm ?? null,
+        internal_height_cm: data.internal_height_cm ?? null,
+        internal_width_cm: data.internal_width_cm ?? null,
+        internal_length_cm: data.internal_length_cm ?? null,
+        internal_diameter_cm: data.internal_diameter_cm ?? null,
         box_width_mm: data.box_width_mm ?? null,
         box_height_mm: data.box_height_mm ?? null,
         box_length_mm: data.box_length_mm ?? null,
         box_weight_kg: data.box_weight_kg ?? null,
         box_quantity: data.box_quantity ?? null,
+        box_inner_quantity: data.box_inner_quantity ?? null,
+        box_volume_cm3: data.box_volume_cm3 ?? null,
+        packaging_material: data.packaging_material || null,
+        packaging_color: data.packaging_color || null,
+        packaging_finish: data.packaging_finish || null,
+        ncm_code: data.ncm_code || null,
+        ean: data.ean || null,
+        gtin: data.gtin || null,
+        ipi_rate: data.ipi_rate ?? null,
+        country_of_origin: data.country_of_origin || null,
+        lead_time_days: data.lead_time_days ?? null,
+        product_type: data.product_type || 'product',
+        supply_mode: data.supply_mode || null,
+        warranty_months: data.warranty_months ?? null,
+        gender: data.gender || null,
+        meta_title: data.meta_title || null,
+        meta_keywords: data.meta_keywords ? data.meta_keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : null,
+        slug: data.slug || null,
+        canonical_url: data.canonical_url || null,
+        videos: data.video_url ? [data.video_url] : [],
+        key_benefits: data.key_benefits || null,
+        use_cases: data.use_cases || null,
         updated_at: new Date().toISOString(),
       };
 
@@ -451,7 +595,9 @@ export function ProductsManager() {
             brand: data.brand || null,
             price: data.sale_price,
             cost_price: data.cost_price ?? null,
+            suggested_price: data.suggested_price ?? null,
             stock: data.stock_quantity,
+            stock_unit: data.stock_unit || 'un',
             category_id: data.category_id || null,
             supplier_id: data.supplier_id || null,
             supplier_reference: data.supplier_reference || null,
@@ -459,6 +605,7 @@ export function ProductsManager() {
             colors: [],
             materials: [],
             min_quantity: data.min_quantity,
+            min_order_quantity: data.min_order_quantity ?? null,
             is_active: data.is_active,
             is_featured: data.is_featured,
             is_bestseller: data.is_bestseller,
@@ -466,6 +613,12 @@ export function ProductsManager() {
             is_on_sale: data.is_on_sale,
             is_kit: data.is_kit,
             has_commercial_packaging: data.has_commercial_packaging,
+            is_imported: data.is_imported,
+            is_textil: data.is_textil,
+            is_thermal: data.is_thermal,
+            allows_personalization: data.allows_personalization,
+            has_gift_box: data.has_gift_box,
+            has_optional_packaging: data.has_optional_packaging,
             packing_type: data.packing_type || null,
             height_cm: data.height_cm ?? null,
             width_cm: data.width_cm ?? null,
@@ -473,11 +626,38 @@ export function ProductsManager() {
             diameter_cm: data.diameter_cm ?? null,
             weight_g: data.weight_g ?? null,
             capacity_ml: data.capacity_ml ?? null,
+            circumference_cm: data.circumference_cm ?? null,
+            internal_height_cm: data.internal_height_cm ?? null,
+            internal_width_cm: data.internal_width_cm ?? null,
+            internal_length_cm: data.internal_length_cm ?? null,
+            internal_diameter_cm: data.internal_diameter_cm ?? null,
             box_width_mm: data.box_width_mm ?? null,
             box_height_mm: data.box_height_mm ?? null,
             box_length_mm: data.box_length_mm ?? null,
             box_weight_kg: data.box_weight_kg ?? null,
             box_quantity: data.box_quantity ?? null,
+            box_inner_quantity: data.box_inner_quantity ?? null,
+            box_volume_cm3: data.box_volume_cm3 ?? null,
+            packaging_material: data.packaging_material || null,
+            packaging_color: data.packaging_color || null,
+            packaging_finish: data.packaging_finish || null,
+            ncm_code: data.ncm_code || null,
+            ean: data.ean || null,
+            gtin: data.gtin || null,
+            ipi_rate: data.ipi_rate ?? null,
+            country_of_origin: data.country_of_origin || null,
+            lead_time_days: data.lead_time_days ?? null,
+            product_type: data.product_type || 'product',
+            supply_mode: data.supply_mode || null,
+            warranty_months: data.warranty_months ?? null,
+            gender: data.gender || null,
+            meta_title: data.meta_title || null,
+            meta_keywords: data.meta_keywords ? data.meta_keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : null,
+            slug: data.slug || null,
+            canonical_url: data.canonical_url || null,
+            video_url: data.video_url || null,
+            key_benefits: data.key_benefits || null,
+            use_cases: data.use_cases || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
