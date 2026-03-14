@@ -660,6 +660,31 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
               Limpar filtros
             </Button>
           )}
+          {/* Bulk regenerate thumbnails */}
+          {videos.some(v => !v.url_thumbnail && !v.source_youtube_id) && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[10px] text-muted-foreground hover:text-primary"
+                  onClick={bulkRegenerateThumbnails}
+                  disabled={isBulkRegenerating}
+                >
+                  {isBulkRegenerating ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                  )}
+                  Gerar thumbnails
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">
+                Gerar thumbnails para {videos.filter(v => !v.url_thumbnail && !v.source_youtube_id).length} vídeo(s) sem miniatura
+              </TooltipContent>
+            </Tooltip>
+          )}
           <span className="ml-auto text-[10px] text-muted-foreground">
             {filteredVideos.length}/{videos.length}
           </span>
