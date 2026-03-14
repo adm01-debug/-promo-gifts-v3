@@ -513,183 +513,317 @@ export function ProductsManager() {
     }
   };
 
+  // Stats computed from current page data
+  const stats = useMemo(() => {
+    const active = products.filter(p => p.is_active).length;
+    const inactive = products.filter(p => !p.is_active).length;
+    const noStock = products.filter(p => (p.stock ?? 0) <= 0).length;
+    const avgPrice = products.length ? products.reduce((sum, p) => sum + p.price, 0) / products.length : 0;
+    return { active, inactive, noStock, avgPrice };
+  }, [products]);
+
   return (
-    <Card className="border-border/50">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Gerenciador de Produtos
-            </CardTitle>
-            <CardDescription asChild>
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2.5">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+            Gerenciador de Produtos
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Cadastre, edite e gerencie os produtos do catálogo
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => fetchProducts(currentPage, pageSize, searchTerm)} className="gap-2">
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Atualizar</span>
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)} className="gap-2">
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Importar</span>
+          </Button>
+          <Button size="sm" onClick={openCreateForm} className="gap-2 bg-primary hover:bg-primary/90 shadow-sm">
+            <Plus className="h-4 w-4" />
+            Novo Produto
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                Cadastre, edite e gerencie os produtos do catálogo
-                {totalCount !== null && (
-                  <Badge variant="secondary" className="ml-2">{totalCount.toLocaleString()} produtos</Badge>
-                )}
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
+                <p className="text-2xl font-bold tabular-nums mt-1">{totalCount?.toLocaleString() ?? '—'}</p>
               </div>
-            </CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => fetchProducts(currentPage, pageSize, searchTerm)}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Atualizar
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Importar
-            </Button>
-            <Button size="sm" onClick={openCreateForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Produto
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, SKU ou categoria..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ativos</p>
+                <p className="text-2xl font-bold tabular-nums mt-1 text-emerald-600 dark:text-emerald-400">{stats.active}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <div className="h-3 w-3 rounded-full bg-emerald-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sem Estoque</p>
+                <p className="text-2xl font-bold tabular-nums mt-1 text-amber-600 dark:text-amber-400">{stats.noStock}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <div className="h-3 w-3 rounded-full bg-amber-500" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Preço Médio</p>
+                <p className="text-2xl font-bold tabular-nums mt-1">R$ {stats.avgPrice.toFixed(0)}</p>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                <span className="text-sm font-bold text-blue-500">$</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Advanced Filters */}
-        <ProductFiltersBar filters={advancedFilters} onChange={handleFiltersChange} />
-
-        {/* Products Table */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : displayedProducts.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum produto encontrado</p>
-          </div>
-        ) : (
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-14">Img</TableHead>
-                  <TableHead className="w-28">SKU</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead className="w-24">Preço</TableHead>
-                  <TableHead className="w-20">Estoque</TableHead>
-                  <TableHead className="w-24">Status</TableHead>
-                  <TableHead className="w-20 text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {displayedProducts.map((product) => (
-                  <TableRow key={product.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEditForm(product)}>
-                    <TableCell>
-                      {product.images && product.images.length > 0 ? (
-                        <img
-                          src={product.images[0]}
-                          alt={product.name}
-                          className="w-10 h-10 object-cover rounded-md"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
-                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {product.sku}
-                    </TableCell>
-                    <TableCell className="font-medium max-w-[250px] truncate">
-                      {product.name}
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      R$ {product.price.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {product.stock ?? 0}
-                    </TableCell>
-                    <TableCell>
-                      {product.is_active ? (
-                        <Badge variant="default" className="text-xs">Ativo</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">Inativo</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditForm(product)}>
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => openDeleteDialog(product)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
-        {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Página {currentPage} de {totalPages}</span>
-            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-              <SelectTrigger className="w-[100px] h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size} / pág
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => handlePageChange(currentPage - 1)}>
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Anterior
-            </Button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let page: number;
-              if (totalPages <= 5) page = i + 1;
-              else if (currentPage <= 3) page = i + 1;
-              else if (currentPage >= totalPages - 2) page = totalPages - 4 + i;
-              else page = currentPage - 2 + i;
-              return (
-                <Button
-                  key={page}
-                  variant={page === currentPage ? "default" : "outline"}
-                  size="sm"
-                  className="w-8 h-8 p-0"
-                  onClick={() => handlePageChange(page)}
+      {/* Search & Filters */}
+      <Card className="border-border/40">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, SKU ou categoria..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-10 bg-background"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {page}
-                </Button>
-              );
-            })}
-            <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => handlePageChange(currentPage + 1)}>
-              Próximo
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </CardContent>
+          <ProductFiltersBar filters={advancedFilters} onChange={handleFiltersChange} />
+        </CardContent>
+      </Card>
+
+      {/* Products Table */}
+      <Card className="border-border/40">
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Carregando produtos...</p>
+              </div>
+            </div>
+          ) : displayedProducts.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <Package className="h-14 w-14 mx-auto mb-4 opacity-30" />
+              <p className="font-medium">Nenhum produto encontrado</p>
+              <p className="text-sm mt-1">Tente ajustar os filtros ou o termo de busca</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent border-border/50">
+                    <TableHead className="w-16 pl-4">Foto</TableHead>
+                    <TableHead className="w-28">SKU</TableHead>
+                    <TableHead>Produto</TableHead>
+                    <TableHead className="w-28 text-right">Preço</TableHead>
+                    <TableHead className="w-24 text-center">Estoque</TableHead>
+                    <TableHead className="w-24 text-center">Status</TableHead>
+                    <TableHead className="w-20 text-right pr-4">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayedProducts.map((product) => {
+                    const stockLevel = product.stock ?? 0;
+                    const stockColor = stockLevel <= 0
+                      ? 'text-destructive'
+                      : stockLevel < 10
+                        ? 'text-amber-600 dark:text-amber-400'
+                        : 'text-emerald-600 dark:text-emerald-400';
+
+                    return (
+                      <TableRow
+                        key={product.id}
+                        className="cursor-pointer group hover:bg-muted/40 transition-colors border-border/30"
+                        onClick={() => openEditForm(product)}
+                      >
+                        <TableCell className="pl-4">
+                          {product.images && product.images.length > 0 ? (
+                            <div className="relative">
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="w-12 h-12 object-cover rounded-lg border border-border/50 group-hover:border-primary/30 transition-colors"
+                              />
+                              {product.images.length > 1 && (
+                                <span className="absolute -bottom-1 -right-1 text-[9px] bg-muted border border-border rounded-full h-4 w-4 flex items-center justify-center font-medium">
+                                  +{product.images.length - 1}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 bg-muted/50 rounded-lg border border-dashed border-border/60 flex items-center justify-center">
+                              <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-mono text-xs text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                            {product.sku}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-[280px]">
+                            <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
+                              {product.name}
+                            </p>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              {product.is_featured && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-amber-500/30 text-amber-600 dark:text-amber-400">
+                                  ⭐ Destaque
+                                </Badge>
+                              )}
+                              {product.is_new && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-blue-500/30 text-blue-600 dark:text-blue-400">
+                                  Novo
+                                </Badge>
+                              )}
+                              {product.is_kit && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-purple-500/30 text-purple-600 dark:text-purple-400">
+                                  Kit
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className="font-semibold tabular-nums text-sm">
+                            R$ {product.price.toFixed(2)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className={`font-semibold tabular-nums text-sm ${stockColor}`}>
+                            {stockLevel}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {product.is_active ? (
+                            <Badge className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/15">
+                              Ativo
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-[10px] opacity-60">
+                              Inativo
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right pr-4">
+                          <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openEditForm(product)}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                              onClick={() => openDeleteDialog(product)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && displayedProducts.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t border-border/40">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span>
+                  Mostrando <strong className="text-foreground">{displayedProducts.length}</strong> de{' '}
+                  <strong className="text-foreground">{totalCount?.toLocaleString()}</strong> produtos
+                </span>
+                <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                  <SelectTrigger className="w-[90px] h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size} / pág
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => handlePageChange(currentPage - 1)} className="h-8">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let page: number;
+                  if (totalPages <= 5) page = i + 1;
+                  else if (currentPage <= 3) page = i + 1;
+                  else if (currentPage >= totalPages - 2) page = totalPages - 4 + i;
+                  else page = currentPage - 2 + i;
+                  return (
+                    <Button
+                      key={page}
+                      variant={page === currentPage ? "default" : "outline"}
+                      size="sm"
+                      className="w-8 h-8 p-0 text-xs"
+                      onClick={() => handlePageChange(page)}
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
+                <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => handlePageChange(currentPage + 1)} className="h-8">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Create/Edit Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
