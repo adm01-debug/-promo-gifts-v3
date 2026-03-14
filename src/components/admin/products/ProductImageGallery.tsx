@@ -1,14 +1,19 @@
 /**
- * ProductImageGallery — Galeria avançada com drag & drop, imagem principal, multi-upload e previews
- * Sincroniza com BD externo (product_images) + campos: image_type, alt_text, vinculação a cor/variante
+ * ProductImageGallery — Galeria avançada com:
+ * - Agrupamento por variação de cor (supplier_code/variant_id)
+ * - Filtros por tipo de imagem (main, gallery, detail, box, component, mockup, video)
+ * - Drag & drop para reordenar
+ * - Edição inline de metadados (alt_text, image_type, caption)
+ * - Multi-upload com drop zone
+ * - Preview fullscreen
+ * - Estatísticas por tipo e variação
  */
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -27,14 +32,28 @@ import {
   Loader2,
   ImageIcon,
   ZoomIn,
-  Pencil,
   Save,
   Type,
+  Film,
+  Package,
+  Eye,
+  Layers,
+  Filter,
+  Palette,
+  AlertCircle,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+// ── Types ──
 
 interface ExternalImage {
   id: string;
@@ -55,17 +74,24 @@ interface ExternalImage {
   file_size_bytes?: number;
   color_id?: string;
   variant_id?: string;
+  supplier_code?: string;
+  is_active?: boolean;
   applies_to_color?: boolean;
 }
 
 const IMAGE_TYPES = [
-  { value: 'main', label: 'Principal' },
-  { value: 'gallery', label: 'Galeria' },
-  { value: 'detail', label: 'Detalhe' },
-  { value: 'component', label: 'Componente' },
-  { value: 'box', label: 'Embalagem' },
-  { value: 'mockup', label: 'Mockup' },
+  { value: 'main', label: 'Principal', icon: Star, color: 'text-amber-500' },
+  { value: 'gallery', label: 'Galeria', icon: ImageIcon, color: 'text-blue-500' },
+  { value: 'detail', label: 'Detalhe', icon: ZoomIn, color: 'text-emerald-500' },
+  { value: 'component', label: 'Componente', icon: Layers, color: 'text-violet-500' },
+  { value: 'box', label: 'Embalagem', icon: Package, color: 'text-orange-500' },
+  { value: 'mockup', label: 'Mockup', icon: Eye, color: 'text-pink-500' },
+  { value: 'video', label: 'Vídeo', icon: Film, color: 'text-red-500' },
+  { value: 'set', label: 'Conjunto', icon: Layers, color: 'text-teal-500' },
+  { value: 'logo', label: 'Logo', icon: Type, color: 'text-indigo-500' },
 ];
+
+type FilterMode = 'all' | 'general' | 'by-variant' | string; // string = specific image_type
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -74,7 +100,8 @@ interface ProductImageGalleryProps {
   productId?: string;
 }
 
-// Inline editor for image metadata
+// ── ImageMetaEditor ──
+
 function ImageMetaEditor({
   image,
   onSave,
@@ -89,7 +116,7 @@ function ImageMetaEditor({
   const [caption, setCaption] = useState(image.caption || '');
 
   return (
-    <div className="absolute inset-0 bg-black/80 p-2 flex flex-col gap-1.5 z-10 rounded-lg">
+    <div className="absolute inset-0 bg-black/85 backdrop-blur-sm p-2 flex flex-col gap-1.5 z-10 rounded-lg">
       <Input
         value={altText}
         onChange={(e) => setAltText(e.target.value)}
@@ -102,7 +129,12 @@ function ImageMetaEditor({
         </SelectTrigger>
         <SelectContent>
           {IMAGE_TYPES.map(t => (
-            <SelectItem key={t.value} value={t.value} className="text-xs">{t.label}</SelectItem>
+            <SelectItem key={t.value} value={t.value} className="text-xs">
+              <span className="flex items-center gap-1.5">
+                <t.icon className={cn("h-3 w-3", t.color)} />
+                {t.label}
+              </span>
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
@@ -136,6 +168,29 @@ function ImageMetaEditor({
   );
 }
 
+// ── VariantColorDot ──
+
+function VariantColorDot({ code, name }: { code: string; name?: string }) {
+  // Simple hash to generate a color from the code
+  const hash = code.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const hue = hash % 360;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          className="w-4 h-4 rounded-full border border-border/60 shrink-0"
+          style={{ backgroundColor: `hsl(${hue}, 60%, 55%)` }}
+        />
+      </TooltipTrigger>
+      <TooltipContent className="text-xs">
+        {name || `Variação ${code}`}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// ── Main component ──
+
 export function ProductImageGallery({
   images,
   onChange,
@@ -149,10 +204,12 @@ export function ProductImageGallery({
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch external images if productId is provided
-  const { data: externalImages = [] } = useQuery<ExternalImage[]>({
+  // Fetch external images
+  const { data: externalImages = [], isLoading: isLoadingExt } = useQuery<ExternalImage[]>({
     queryKey: ['product-images-ext', productId],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('external-db-bridge', {
@@ -160,7 +217,7 @@ export function ProductImageGallery({
           table: 'product_images',
           operation: 'select',
           filters: { product_id: productId },
-          limit: 100,
+          limit: 200,
           orderBy: { column: 'display_order', ascending: true },
         },
       });
@@ -171,12 +228,105 @@ export function ProductImageGallery({
     staleTime: 2 * 60 * 1000,
   });
 
-  // Build a map from URL to external image record for metadata access
-  const extImageMap = new Map<string, ExternalImage>();
-  externalImages.forEach(img => {
-    const url = img.url_cdn || img.url_original || img.url || '';
-    if (url) extImageMap.set(url, img);
+  // Fetch variants for color names
+  const { data: variants = [] } = useQuery<{ id: string; color_name: string | null; color_hex: string | null; supplier_code?: string; name: string }[]>({
+    queryKey: ['product-variants-for-gallery', productId],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'product_variants',
+          operation: 'select',
+          select: 'id, name, color_name, color_hex, color_code',
+          filters: { product_id: productId, is_active: true },
+          limit: 200,
+          orderBy: { column: 'name', ascending: true },
+        },
+      });
+      if (error) return [];
+      const records = data?.data?.records || [];
+      return records.map((r: any) => ({ ...r, supplier_code: r.color_code }));
+    },
+    enabled: !!productId,
+    staleTime: 5 * 60 * 1000,
   });
+
+  // URL → ExternalImage map
+  const extImageMap = useMemo(() => {
+    const map = new Map<string, ExternalImage>();
+    externalImages.forEach(img => {
+      const url = img.url_cdn || img.url_original || img.url || '';
+      if (url) map.set(url, img);
+    });
+    return map;
+  }, [externalImages]);
+
+  // Statistics
+  const stats = useMemo(() => {
+    const byType = new Map<string, number>();
+    const byVariant = new Map<string, number>();
+    let withAlt = 0;
+    let withoutVariant = 0;
+
+    externalImages.forEach(img => {
+      const type = img.image_type || 'untyped';
+      byType.set(type, (byType.get(type) || 0) + 1);
+
+      const varKey = img.supplier_code || img.variant_id;
+      if (varKey) {
+        byVariant.set(varKey, (byVariant.get(varKey) || 0) + 1);
+      } else {
+        withoutVariant++;
+      }
+
+      if (img.alt_text) withAlt++;
+    });
+
+    return { byType, byVariant, withAlt, withoutVariant, total: externalImages.length };
+  }, [externalImages]);
+
+  // Variant lookup map
+  const variantMap = useMemo(() => {
+    const map = new Map<string, typeof variants[0]>();
+    variants.forEach(v => {
+      if (v.id) map.set(v.id, v);
+      if (v.supplier_code) map.set(v.supplier_code, v);
+    });
+    return map;
+  }, [variants]);
+
+  // Filtered images
+  const filteredImages = useMemo(() => {
+    let filtered = [...images];
+
+    // Build ext lookup for filtering
+    if (typeFilter !== 'all' || filterMode !== 'all') {
+      filtered = filtered.filter(url => {
+        const ext = extImageMap.get(url);
+        if (!ext) return filterMode === 'all' && typeFilter === 'all';
+
+        // Type filter
+        if (typeFilter !== 'all') {
+          if ((ext.image_type || 'untyped') !== typeFilter) return false;
+        }
+
+        // Mode filter
+        if (filterMode === 'general') {
+          return !ext.supplier_code && !ext.variant_id;
+        } else if (filterMode === 'by-variant') {
+          return !!(ext.supplier_code || ext.variant_id);
+        } else if (filterMode !== 'all') {
+          // Specific variant code
+          return ext.supplier_code === filterMode || ext.variant_id === filterMode;
+        }
+
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [images, filterMode, typeFilter, extImageMap]);
+
+  // ── Handlers ──
 
   const updateExternalImageMeta = useCallback(async (
     imgUrl: string,
@@ -201,13 +351,13 @@ export function ProductImageGallery({
         },
       });
       if (error) throw new Error(error.message);
-      toast.success('Metadados da imagem atualizados');
+      toast.success('Metadados atualizados');
       setEditingIndex(null);
       if (productId) {
         queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar imagem');
+      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar');
     }
   }, [extImageMap, productId, queryClient]);
 
@@ -220,77 +370,57 @@ export function ProductImageGallery({
       toast.error(`"${file.name}" excede 5MB`);
       return null;
     }
-
     const fileExt = file.name.split('.').pop();
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-
     const { data, error } = await supabase.storage
       .from('personalization-images')
       .upload(fileName, file, { cacheControl: '3600', upsert: false });
-
     if (error) {
       toast.error(`Erro ao enviar "${file.name}"`);
       return null;
     }
-
     const { data: urlData } = supabase.storage
       .from('personalization-images')
       .getPublicUrl(data.path);
-
     return urlData.publicUrl;
   };
 
   const handleFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-
     setIsUploading(true);
     setUploadCount(files.length);
-
     const results = await Promise.all(files.map(uploadFile));
     const validUrls = results.filter(Boolean) as string[];
-
     if (validUrls.length > 0) {
       onChange([...images, ...validUrls]);
       toast.success(`${validUrls.length} imagem(ns) enviada(s)!`);
     }
-
     setIsUploading(false);
     setUploadCount(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleRemove = (index: number) => {
-    onChange(images.filter((_, i) => i !== index));
+  const handleRemove = (url: string) => {
+    onChange(images.filter(i => i !== url));
   };
 
-  const handleSetPrimary = (index: number) => {
-    if (index === 0) return;
+  const handleSetPrimary = (url: string) => {
+    const idx = images.indexOf(url);
+    if (idx <= 0) return;
     const newImages = [...images];
-    const [moved] = newImages.splice(index, 1);
+    const [moved] = newImages.splice(idx, 1);
     newImages.unshift(moved);
     onChange(newImages);
     toast.success('Imagem principal definida');
   };
 
-  // Drag & drop reorder
-  const handleDragStart = (index: number) => {
-    setDragIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    setDragOverIndex(index);
-  };
-
+  // Drag & drop
+  const handleDragStart = (index: number) => setDragIndex(index);
+  const handleDragOver = (e: React.DragEvent, index: number) => { e.preventDefault(); setDragOverIndex(index); };
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
-    if (dragIndex === null || dragIndex === dropIndex) {
-      setDragIndex(null);
-      setDragOverIndex(null);
-      return;
-    }
-
+    if (dragIndex === null || dragIndex === dropIndex) { setDragIndex(null); setDragOverIndex(null); return; }
     const newImages = [...images];
     const [moved] = newImages.splice(dragIndex, 1);
     newImages.splice(dropIndex, 0, moved);
@@ -298,88 +428,250 @@ export function ProductImageGallery({
     setDragIndex(null);
     setDragOverIndex(null);
   };
+  const handleDragEnd = () => { setDragIndex(null); setDragOverIndex(null); };
 
-  const handleDragEnd = () => {
-    setDragIndex(null);
-    setDragOverIndex(null);
-  };
-
-  // Drop zone for new images
   const handleDropZone = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
     if (files.length === 0) return;
-
     setIsUploading(true);
     setUploadCount(files.length);
-
     const results = await Promise.all(files.map(uploadFile));
     const validUrls = results.filter(Boolean) as string[];
-
     if (validUrls.length > 0) {
       onChange([...images, ...validUrls]);
       toast.success(`${validUrls.length} imagem(ns) enviada(s)!`);
     }
-
     setIsUploading(false);
     setUploadCount(0);
   }, [images, onChange]);
 
+  // ── Active type filters ──
+  const activeTypes = useMemo(() => {
+    const types = new Set<string>();
+    externalImages.forEach(img => types.add(img.image_type || 'untyped'));
+    return types;
+  }, [externalImages]);
+
+  const hasVariants = stats.byVariant.size > 0;
+
   return (
     <div className="space-y-3">
-      {/* Image grid */}
-      {images.length > 0 && (
+      {/* ── Filter bar ── */}
+      {externalImages.length > 0 && (
+        <div className="space-y-2">
+          {/* View mode + type filter row */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* View mode pills */}
+            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-muted/50 border border-border/40">
+              <button
+                type="button"
+                onClick={() => setFilterMode('all')}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
+                  filterMode === 'all'
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Todas
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode('general')}
+                className={cn(
+                  "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all",
+                  filterMode === 'general'
+                    ? "bg-background shadow-sm text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Gerais ({stats.withoutVariant})
+              </button>
+              {hasVariants && (
+                <button
+                  type="button"
+                  onClick={() => setFilterMode('by-variant')}
+                  className={cn(
+                    "px-2.5 py-1 rounded-md text-[11px] font-medium transition-all flex items-center gap-1",
+                    filterMode === 'by-variant'
+                      ? "bg-background shadow-sm text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Palette className="h-3 w-3" />
+                  Por Cor ({stats.byVariant.size})
+                </button>
+              )}
+            </div>
+
+            {/* Separator */}
+            <div className="h-5 w-px bg-border/50" />
+
+            {/* Type filter chips */}
+            <div className="flex items-center gap-1 flex-wrap">
+              <Filter className="h-3 w-3 text-muted-foreground/60 mr-0.5" />
+              <button
+                type="button"
+                onClick={() => setTypeFilter('all')}
+                className={cn(
+                  "px-2 py-0.5 rounded-full text-[10px] font-medium transition-all border",
+                  typeFilter === 'all'
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                Todos tipos
+              </button>
+              {IMAGE_TYPES.filter(t => activeTypes.has(t.value)).map(t => {
+                const count = stats.byType.get(t.value) || 0;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setTypeFilter(typeFilter === t.value ? 'all' : t.value)}
+                    className={cn(
+                      "px-2 py-0.5 rounded-full text-[10px] font-medium transition-all border flex items-center gap-1",
+                      typeFilter === t.value
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <t.icon className={cn("h-2.5 w-2.5", t.color)} />
+                    {t.label} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Variant filter row (when "Por Cor" is active) */}
+          {filterMode === 'by-variant' && hasVariants && (
+            <div className="flex flex-wrap gap-1.5 pl-1">
+              {Array.from(stats.byVariant.entries()).map(([code, count]) => {
+                const variant = variantMap.get(code);
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setFilterMode(filterMode === code ? 'by-variant' : code)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-medium border transition-all",
+                      filterMode === code
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                    )}
+                  >
+                    {variant?.color_hex ? (
+                      <div
+                        className="w-3 h-3 rounded-full border border-border/60"
+                        style={{ backgroundColor: variant.color_hex }}
+                      />
+                    ) : (
+                      <Palette className="h-3 w-3" />
+                    )}
+                    <span>{variant?.color_name || variant?.name || code}</span>
+                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5">
+                      {count}
+                    </Badge>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Image grid ── */}
+      {filteredImages.length > 0 && (
         <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
-          {images.map((img, index) => {
+          {filteredImages.map((img, index) => {
             const ext = extImageMap.get(img);
-            const typeLabel = ext?.image_type ? IMAGE_TYPES.find(t => t.value === ext.image_type)?.label : null;
+            const typeInfo = ext?.image_type ? IMAGE_TYPES.find(t => t.value === ext.image_type) : null;
+            const isFirst = images.indexOf(img) === 0;
+            const variantCode = ext?.supplier_code || ext?.variant_id;
+            const variant = variantCode ? variantMap.get(variantCode) : null;
+            const isVideo = ext?.image_type === 'video';
+            const globalIndex = images.indexOf(img);
 
             return (
               <div
                 key={`${img}-${index}`}
                 draggable
-                onDragStart={() => handleDragStart(index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDrop={(e) => handleDrop(e, index)}
+                onDragStart={() => handleDragStart(globalIndex)}
+                onDragOver={(e) => handleDragOver(e, globalIndex)}
+                onDrop={(e) => handleDrop(e, globalIndex)}
                 onDragEnd={handleDragEnd}
                 className={cn(
                   'relative group rounded-lg border-2 overflow-hidden aspect-square transition-all',
-                  index === 0 ? 'border-primary ring-1 ring-primary/30' : 'border-border',
-                  dragIndex === index && 'opacity-50 scale-95',
-                  dragOverIndex === index && dragIndex !== index && 'border-primary border-dashed',
+                  isFirst ? 'border-primary ring-1 ring-primary/30' : 'border-border/60',
+                  dragIndex === globalIndex && 'opacity-50 scale-95',
+                  dragOverIndex === globalIndex && dragIndex !== globalIndex && 'border-primary border-dashed',
                 )}
               >
-                <img
-                  src={img}
-                  alt={ext?.alt_text || `Imagem ${index + 1}`}
-                  className="w-full h-full object-contain bg-muted/30"
-                />
-
-                {/* Primary badge */}
-                {index === 0 && (
-                  <Badge className="absolute top-1 left-1 text-[10px] px-1 py-0 bg-primary text-primary-foreground">
-                    Principal
-                  </Badge>
+                {isVideo ? (
+                  <div className="w-full h-full bg-muted/30 flex items-center justify-center">
+                    <Film className="h-8 w-8 text-muted-foreground/40" />
+                  </div>
+                ) : (
+                  <img
+                    src={img}
+                    alt={ext?.alt_text || `Imagem ${index + 1}`}
+                    className="w-full h-full object-contain bg-muted/30"
+                    loading="lazy"
+                  />
                 )}
 
-                {/* Type badge */}
-                {typeLabel && index !== 0 && (
-                  <Badge variant="secondary" className="absolute top-1 left-1 text-[9px] px-1 py-0">
-                    {typeLabel}
-                  </Badge>
-                )}
+                {/* Badges top-left stack */}
+                <div className="absolute top-1 left-1 flex flex-col gap-0.5">
+                  {isFirst && (
+                    <Badge className="text-[9px] px-1 py-0 bg-primary text-primary-foreground leading-tight">
+                      Principal
+                    </Badge>
+                  )}
+                  {typeInfo && !isFirst && (
+                    <Badge variant="secondary" className="text-[8px] px-1 py-0 leading-tight flex items-center gap-0.5">
+                      <typeInfo.icon className={cn("h-2 w-2", typeInfo.color)} />
+                      {typeInfo.label}
+                    </Badge>
+                  )}
+                  {variant && (
+                    <Badge variant="outline" className="text-[8px] px-1 py-0 leading-tight bg-background/80 backdrop-blur-sm flex items-center gap-0.5">
+                      {variant.color_hex && (
+                        <div
+                          className="w-2 h-2 rounded-full border border-border/40"
+                          style={{ backgroundColor: variant.color_hex }}
+                        />
+                      )}
+                      {variant.color_name || variant.name}
+                    </Badge>
+                  )}
+                </div>
 
-                {/* OG badge */}
-                {ext?.is_og_image && (
-                  <Badge variant="secondary" className="absolute top-1 right-1 text-[9px] px-1 py-0">
-                    OG
-                  </Badge>
-                )}
+                {/* Top-right badges */}
+                <div className="absolute top-1 right-1 flex flex-col gap-0.5">
+                  {ext?.is_og_image && (
+                    <Badge variant="secondary" className="text-[8px] px-1 py-0 leading-tight">
+                      OG
+                    </Badge>
+                  )}
+                  {ext?.alt_text && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/80 flex items-center justify-center">
+                          <CheckCircle2 className="h-2 w-2 text-white" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-[10px] max-w-[180px]">
+                        Alt: {ext.alt_text}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
 
                 {/* Inline metadata editor */}
-                {editingIndex === index && ext && (
+                {editingIndex === globalIndex && ext && (
                   <ImageMetaEditor
                     image={ext}
                     onSave={(data) => updateExternalImageMeta(img, data)}
@@ -388,54 +680,27 @@ export function ProductImageGallery({
                 )}
 
                 {/* Hover overlay */}
-                {editingIndex !== index && (
+                {editingIndex !== globalIndex && (
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                     <GripVertical className="absolute top-1 left-1 h-4 w-4 text-white/70 cursor-grab" />
-                    
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-white hover:bg-white/20"
-                      onClick={() => setPreviewUrl(img)}
-                    >
+
+                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setPreviewUrl(img)}>
                       <ZoomIn className="h-3.5 w-3.5" />
                     </Button>
 
-                    {/* Edit metadata button (only if external image exists) */}
                     {ext && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-white hover:bg-white/20"
-                        onClick={() => setEditingIndex(index)}
-                        title="Editar metadados"
-                      >
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setEditingIndex(globalIndex)} title="Editar metadados">
                         <Type className="h-3.5 w-3.5" />
                       </Button>
                     )}
 
-                    {index !== 0 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-yellow-400 hover:bg-white/20"
-                        onClick={() => handleSetPrimary(index)}
-                        title="Definir como principal"
-                      >
+                    {!isFirst && (
+                      <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-amber-400 hover:bg-white/20" onClick={() => handleSetPrimary(img)} title="Definir como principal">
                         <Star className="h-3.5 w-3.5" />
                       </Button>
                     )}
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-red-400 hover:bg-white/20"
-                      onClick={() => handleRemove(index)}
-                    >
+                    <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-white/20" onClick={() => handleRemove(img)}>
                       <X className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -446,20 +711,42 @@ export function ProductImageGallery({
         </div>
       )}
 
-      {/* External image stats */}
-      {externalImages.length > 0 && (
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground px-1">
-          <span>{externalImages.length} no BD externo</span>
-          {externalImages.filter(i => i.alt_text).length > 0 && (
-            <span>• {externalImages.filter(i => i.alt_text).length} com alt text</span>
-          )}
-          {externalImages.filter(i => i.image_type && i.image_type !== 'main').length > 0 && (
-            <span>• {externalImages.filter(i => i.image_type && i.image_type !== 'main').length} tipados</span>
-          )}
+      {/* Empty filtered state */}
+      {filteredImages.length === 0 && images.length > 0 && (
+        <div className="text-center py-6 text-sm text-muted-foreground">
+          <Filter className="h-5 w-5 mx-auto mb-2 opacity-40" />
+          Nenhuma imagem corresponde ao filtro selecionado
         </div>
       )}
 
-      {/* Upload area */}
+      {/* ── Stats bar ── */}
+      {externalImages.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground px-1 py-1.5 rounded-lg bg-muted/20 border border-border/30">
+          <span className="font-medium text-foreground/70">
+            {stats.total} no BD externo
+          </span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+            {stats.withAlt} com alt text
+          </span>
+          {stats.withoutVariant > 0 && (
+            <span>{stats.withoutVariant} gerais (sem cor)</span>
+          )}
+          {Array.from(stats.byType.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([type, count]) => {
+              const info = IMAGE_TYPES.find(t => t.value === type);
+              return (
+                <span key={type} className="flex items-center gap-1">
+                  {info && <info.icon className={cn("h-2.5 w-2.5", info.color)} />}
+                  {info?.label || type}: {count}
+                </span>
+              );
+            })}
+        </div>
+      )}
+
+      {/* ── Upload area ── */}
       <div
         onDragOver={(e) => { e.preventDefault(); }}
         onDrop={handleDropZone}
@@ -477,7 +764,6 @@ export function ProductImageGallery({
           onChange={handleFilesChange}
           className="hidden"
         />
-
         {isUploading ? (
           <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
@@ -496,15 +782,48 @@ export function ProductImageGallery({
         )}
       </div>
 
-      {/* Fullscreen preview */}
+      {/* ── Fullscreen preview ── */}
       <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
-        <DialogContent className="max-w-2xl p-2">
+        <DialogContent className="max-w-3xl p-2">
           {previewUrl && (
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full h-auto max-h-[80vh] object-contain rounded"
-            />
+            <div className="space-y-2">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full h-auto max-h-[80vh] object-contain rounded"
+              />
+              {extImageMap.get(previewUrl) && (
+                <div className="flex flex-wrap gap-2 px-2 pb-1 text-[11px] text-muted-foreground">
+                  {(() => {
+                    const ext = extImageMap.get(previewUrl)!;
+                    const typeInfo = ext.image_type ? IMAGE_TYPES.find(t => t.value === ext.image_type) : null;
+                    const variant = (ext.supplier_code || ext.variant_id) ? variantMap.get(ext.supplier_code || ext.variant_id || '') : null;
+                    return (
+                      <>
+                        {typeInfo && (
+                          <Badge variant="secondary" className="text-[10px] flex items-center gap-1">
+                            <typeInfo.icon className={cn("h-3 w-3", typeInfo.color)} />
+                            {typeInfo.label}
+                          </Badge>
+                        )}
+                        {variant && (
+                          <Badge variant="outline" className="text-[10px] flex items-center gap-1">
+                            {variant.color_hex && (
+                              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: variant.color_hex }} />
+                            )}
+                            {variant.color_name || variant.name}
+                          </Badge>
+                        )}
+                        {ext.alt_text && <span>Alt: {ext.alt_text}</span>}
+                        {ext.caption && <span>• {ext.caption}</span>}
+                        {ext.width_px && ext.height_px && <span>• {ext.width_px}×{ext.height_px}px</span>}
+                        {ext.file_size_bytes && <span>• {(ext.file_size_bytes / 1024).toFixed(0)}KB</span>}
+                      </>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>
