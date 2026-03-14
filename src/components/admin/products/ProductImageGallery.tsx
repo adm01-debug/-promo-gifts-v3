@@ -535,8 +535,10 @@ export function ProductImageGallery({
     uploadImageType,
     variantMap,
     createExternalImageRecord,
+    externalImages,
     queryClient,
     removeStorageFileByUrl,
+    uploadFile,
   ]);
 
   const handleFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
