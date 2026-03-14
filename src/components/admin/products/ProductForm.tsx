@@ -752,7 +752,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB CLASSIFICAÇÃO ====== */}
-          <TabsContent value="classification" className="space-y-1 mt-0">
+          <TabsContent value="classification" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             {/* Variações de Cor */}
             {isEdit && productId && (
               <>
