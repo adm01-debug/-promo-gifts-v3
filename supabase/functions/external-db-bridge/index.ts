@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -630,27 +630,24 @@ serve(async (req) => {
     let userRole = 'public';
 
     if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '');
-
       // Criar cliente local com SERVICE_ROLE para evitar recursão de RLS
       const localServiceSupabase = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
       );
 
-      // Criar cliente com token do usuário para validação via getClaims
+      // Validar token via getUser (método universal)
       const localSupabase = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_ANON_KEY')!,
         { global: { headers: { Authorization: authHeader } } }
       );
 
-      // Validar token via getClaims (mais confiável que getUser)
-      const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
+      const { data: { user }, error: userError } = await localSupabase.auth.getUser();
       
-      if (claimsData?.claims && !claimsError) {
-        userId = claimsData.claims.sub as string;
-        console.log(`Request from user (claims): ${userId}`);
+      if (user && !userError) {
+        userId = user.id;
+        console.log(`Request from user: ${userId}`);
 
         // Buscar role do usuário usando SERVICE_ROLE (bypassa RLS)
         const { data: userRoles, error: roleError } = await localServiceSupabase
@@ -665,27 +662,7 @@ serve(async (req) => {
         userRole = userRoles?.[0]?.role || 'vendedor';
         console.log(`User role: ${userRole}`);
       } else {
-        console.error('getClaims failed:', claimsError?.message || 'No claims returned');
-        // Fallback: tentar getUser para compatibilidade
-        const { data: { user }, error: userError } = await localSupabase.auth.getUser();
-        if (user && !userError) {
-          userId = user.id;
-          console.log(`Request from user (fallback getUser): ${userId}`);
-
-          const { data: userRoles, error: roleError } = await localServiceSupabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', userId);
-
-          if (roleError) {
-            console.error('Error fetching user roles:', roleError);
-          }
-
-          userRole = userRoles?.[0]?.role || 'vendedor';
-          console.log(`User role: ${userRole}`);
-        } else {
-          console.error('Fallback getUser also failed:', userError?.message);
-        }
+        console.error('Auth failed:', userError?.message);
       }
     }
 
