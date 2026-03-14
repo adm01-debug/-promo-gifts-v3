@@ -887,58 +887,24 @@ export function ProductForm({
               />
             </div>
 
-            {/* Nota sobre imagens por variação */}
+            {/* Vídeos do produto (da tabela product_videos) */}
             {isEdit && productId && (
               <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
-                <FormSection title="Imagens por Variação de Cor" icon={Palette} defaultOpen={false}>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2 p-3 rounded-lg bg-accent/30 text-xs text-muted-foreground">
-                      <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
-                      <div className="space-y-1">
-                        <p className="font-medium text-foreground/80">Cada variação possui suas próprias imagens</p>
-                        <p>As imagens são vinculadas automaticamente via <code className="text-[10px] bg-muted px-1 rounded">supplier_code</code> no banco externo (product_images). O tipo de imagem (main, gallery, detail, box, component) é classificado individualmente por registro.</p>
-                        <p>Para gerenciar imagens de uma variação específica, utilize a seção <strong>Variações de Cor</strong> na aba <strong>Classificação</strong>.</p>
-                      </div>
-                    </div>
-                  </div>
+                <FormSection title="Vídeos" icon={Video} defaultOpen={true}>
+                  <ProductVideoGallery productId={productId} />
                 </FormSection>
               </div>
             )}
 
-            {/* Vídeo */}
-            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
-              <FormSection title="Vídeos" icon={Video} defaultOpen={!!watch('video_url')}>
-                <div className="space-y-3">
-                  <div>
-                    <FieldLabel htmlFor="video_url" hint="URL do YouTube, Vimeo ou vídeo direto. Vídeos por variação são vinculados via product_images com tipo 'video'.">
-                      URL do Vídeo Principal
-                    </FieldLabel>
-                    <Input id="video_url" {...register('video_url')} placeholder="https://youtube.com/watch?v=..." className="h-9" />
-                  </div>
-                  {watch('video_url') && (
-                    <div className="rounded-lg border border-border/40 bg-muted/20 p-3">
-                      <p className="text-[11px] text-muted-foreground mb-2">Preview:</p>
-                      <div className="aspect-video rounded-md overflow-hidden bg-black/5">
-                        {watch('video_url')?.includes('youtube') || watch('video_url')?.includes('youtu.be') ? (
-                          <iframe
-                            src={`https://www.youtube.com/embed/${extractYoutubeId(watch('video_url') || '')}`}
-                            className="w-full h-full"
-                            allowFullScreen
-                            title="Video preview"
-                          />
-                        ) : (
-                          <video src={watch('video_url') || ''} controls className="w-full h-full object-contain" />
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex items-start gap-2 p-2.5 rounded-lg bg-accent/20 text-[11px] text-muted-foreground">
-                    <Info className="h-3 w-3 shrink-0 mt-0.5" />
-                    <span>Vídeos adicionais por variação são armazenados na tabela product_images com classificação de tipo específica.</span>
-                  </div>
+            {/* Nota para produto novo sem ID */}
+            {!isEdit && (
+              <div className="rounded-xl border border-border/60 bg-card/50 p-4">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-accent/30 text-xs text-muted-foreground">
+                  <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
+                  <span>Salve o produto primeiro para gerenciar vídeos e vincular imagens a variações de cor.</span>
                 </div>
-              </FormSection>
-            </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
