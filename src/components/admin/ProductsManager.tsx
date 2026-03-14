@@ -63,6 +63,7 @@ import {
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
