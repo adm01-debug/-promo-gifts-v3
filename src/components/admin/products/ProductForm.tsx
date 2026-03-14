@@ -42,6 +42,11 @@ import {
   Megaphone,
   AlertCircle,
   CheckCircle2,
+  Globe,
+  Truck,
+  FileText,
+  Video,
+  ShieldCheck,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
