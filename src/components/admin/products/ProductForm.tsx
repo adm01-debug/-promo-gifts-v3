@@ -269,47 +269,48 @@ export function ProductForm({
   const priceErrors = ['sale_price', 'cost_price', 'stock_quantity', 'min_quantity'].filter(k => (errors as any)[k]).length;
 
   return (
-    <form onSubmit={onFormSubmit}>
-      <div className="max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-        {/* Tab navigation for main sections */}
+    <form onSubmit={onFormSubmit} className="flex flex-col">
+      <div className="max-h-[65vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
         <Tabs value={formTab} onValueChange={setFormTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-4 h-9">
-            <TabsTrigger value="basic" className="text-xs gap-1 relative">
-              <Info className="h-3 w-3" />
-              Básico
-              {basicErrors > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
-                  {basicErrors}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="details" className="text-xs gap-1">
-              <Ruler className="h-3 w-3" />
-              Detalhes
-            </TabsTrigger>
-            <TabsTrigger value="fiscal" className="text-xs gap-1">
-              <FileText className="h-3 w-3" />
-              Fiscal
-            </TabsTrigger>
-            <TabsTrigger value="seo" className="text-xs gap-1">
-              <Globe className="h-3 w-3" />
-              SEO
-            </TabsTrigger>
-            <TabsTrigger value="classification" className="text-xs gap-1">
-              <Layers className="h-3 w-3" />
-              Classificação
-            </TabsTrigger>
-            <TabsTrigger value="media" className="text-xs gap-1">
-              <ImageIcon className="h-3 w-3" />
-              Mídia
-              {images.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-1">{images.length}</Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-3 -mx-1 px-1">
+            <TabsList className="w-full h-10 p-1 bg-muted/50 rounded-xl gap-0.5">
+              <TabsTrigger value="basic" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm relative flex-1">
+                <Info className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Básico</span>
+                {basicErrors > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-bold shadow-sm">
+                    {basicErrors}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="details" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <Ruler className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Detalhes</span>
+              </TabsTrigger>
+              <TabsTrigger value="fiscal" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <FileText className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Fiscal</span>
+              </TabsTrigger>
+              <TabsTrigger value="seo" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <Globe className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">SEO</span>
+              </TabsTrigger>
+              <TabsTrigger value="classification" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <Layers className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Classificação</span>
+              </TabsTrigger>
+              <TabsTrigger value="media" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm relative flex-1">
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Mídia</span>
+                {images.length > 0 && (
+                  <Badge variant="secondary" className="text-[9px] px-1 py-0 ml-0.5 bg-primary/10 text-primary border-0">{images.length}</Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ====== TAB BÁSICO ====== */}
-          <TabsContent value="basic" className="space-y-1 mt-0">
+          <TabsContent value="basic" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="Informações Básicas" icon={Info} defaultOpen>
               {/* SKU Interno + SKU Fornecedor */}
               <div className="grid grid-cols-2 gap-3">
