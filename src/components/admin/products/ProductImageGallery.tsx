@@ -750,6 +750,8 @@ export function ProductImageGallery({
       setIsBulkUpdating(false);
     }
   }, [selectedUrls, extImageMap, images, onChange, productId, queryClient, removeStorageFileByUrl, clearSelection]);
+
+  const handleDropZone = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
