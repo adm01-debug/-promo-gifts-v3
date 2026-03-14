@@ -832,6 +832,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                       </TooltipTrigger>
                       <TooltipContent className="text-xs">Gerar thumbnail</TooltipContent>
                     </Tooltip>
+                  )}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
