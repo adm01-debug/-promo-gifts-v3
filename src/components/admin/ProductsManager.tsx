@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { invokeExternalDbSingle, invokeExternalDbDelete } from "@/lib/external-db";
+import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -415,10 +415,61 @@ export function ProductsManager() {
     setIsFormOpen(true);
   };
 
-  const openEditForm = (product: Product) => {
-    setSelectedProduct(product);
+  const openEditForm = async (product: Product) => {
     setActiveTab("form");
     setIsFormOpen(true);
+    // Carregar dados completos (select: '*') para incluir campos fiscais, SEO, etc.
+    try {
+      const fullProduct = await fetchPromobrindProductById(product.id);
+      if (fullProduct) {
+        const imageUrl = getProductImageUrl(fullProduct);
+        const enrichedProduct: Product = {
+          ...product,
+          // Sobrescrever com dados completos do detalhe
+          ncm_code: (fullProduct as any).ncm_code ?? null,
+          ean: (fullProduct as any).ean ?? null,
+          gtin: (fullProduct as any).gtin ?? null,
+          ipi_rate: (fullProduct as any).ipi_rate ?? null,
+          country_of_origin: (fullProduct as any).country_of_origin ?? null,
+          suggested_price: (fullProduct as any).suggested_price ?? null,
+          stock_unit: (fullProduct as any).stock_unit ?? null,
+          min_order_quantity: (fullProduct as any).min_order_quantity ?? null,
+          lead_time_days: (fullProduct as any).lead_time_days ?? null,
+          product_type: (fullProduct as any).product_type ?? null,
+          supply_mode: (fullProduct as any).supply_mode ?? null,
+          warranty_months: (fullProduct as any).warranty_months ?? null,
+          gender: (fullProduct as any).gender ?? null,
+          meta_title: (fullProduct as any).meta_title ?? null,
+          meta_keywords: Array.isArray((fullProduct as any).meta_keywords) ? (fullProduct as any).meta_keywords : null,
+          slug: (fullProduct as any).slug ?? null,
+          canonical_url: (fullProduct as any).canonical_url ?? null,
+          key_benefits: (fullProduct as any).key_benefits ?? null,
+          use_cases: (fullProduct as any).use_cases ?? null,
+          circumference_cm: (fullProduct as any).circumference_cm ?? null,
+          internal_height_cm: (fullProduct as any).internal_height_cm ?? null,
+          internal_width_cm: (fullProduct as any).internal_width_cm ?? null,
+          internal_length_cm: (fullProduct as any).internal_length_cm ?? null,
+          internal_diameter_cm: (fullProduct as any).internal_diameter_cm ?? null,
+          box_inner_quantity: (fullProduct as any).box_inner_quantity ?? null,
+          packaging_material: (fullProduct as any).packaging_material ?? null,
+          packaging_color: (fullProduct as any).packaging_color ?? null,
+          packaging_finish: (fullProduct as any).packaging_finish ?? null,
+          is_imported: (fullProduct as any).is_imported ?? false,
+          is_textil: (fullProduct as any).is_textil ?? false,
+          is_thermal: (fullProduct as any).is_thermal ?? false,
+          allows_personalization: (fullProduct as any).allows_personalization ?? true,
+          has_gift_box: (fullProduct as any).has_gift_box ?? false,
+          has_optional_packaging: (fullProduct as any).has_optional_packaging ?? false,
+          video_url: (fullProduct as any).videos?.[0] ?? (fullProduct as any).video_url ?? null,
+        };
+        setSelectedProduct(enrichedProduct);
+        return;
+      }
+    } catch (err) {
+      console.warn('[ProductsManager] Failed to fetch full product detail, using list data:', err);
+    }
+    // Fallback: usar dados da lista
+    setSelectedProduct(product);
   };
 
   const openDeleteDialog = (product: Product) => {
