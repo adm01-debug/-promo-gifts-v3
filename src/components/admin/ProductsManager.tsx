@@ -58,6 +58,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
+import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
 import { ProductForm } from "./products/ProductForm";
