@@ -41,6 +41,7 @@ async function fetchExternalCategories(): Promise<ExternalCategory[]> {
       filters: { is_active: true },
       limit: 1000,
       orderBy: { column: 'name', ascending: true },
+      countMode: 'none',
     },
   });
 
