@@ -310,11 +310,19 @@ export function ProductForm({
           </div>
 
           {/* ====== TAB BÁSICO ====== */}
-          <TabsContent value="basic" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="Informações Básicas" icon={Info} defaultOpen>
-              {/* SKU Interno + SKU Fornecedor */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+          <TabsContent value="basic" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            {/* Card: Informações Básicas */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Info className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Informações Básicas</h4>
+              </div>
+
+              {/* SKU row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>
                     SKU Interno (Nosso)
                   </FieldLabel>
@@ -324,13 +332,13 @@ export function ProductForm({
                       {...register('sku')}
                       placeholder="Ex: GS-001"
                       className={cn(
-                        'font-mono pr-8',
+                        'font-mono pr-8 h-9',
                         errors.sku && 'border-destructive',
                         skuStatus === 'valid' && 'border-success/50',
                         skuStatus === 'duplicate' && 'border-destructive',
                       )}
                     />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
                       {skuStatus === 'checking' && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                       {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
                       {skuStatus === 'duplicate' && (
@@ -345,12 +353,12 @@ export function ProductForm({
                       )}
                     </div>
                   </div>
-                  {errors.sku && <p className="text-[10px] text-destructive">{errors.sku.message}</p>}
+                  {errors.sku && <p className="text-[10px] text-destructive mt-1">{errors.sku.message}</p>}
                   {skuStatus === 'duplicate' && (
-                    <p className="text-[10px] text-destructive">SKU duplicado: "{duplicateName}"</p>
+                    <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>
                   )}
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>
                     SKU do Fornecedor
                   </FieldLabel>
@@ -358,13 +366,13 @@ export function ProductForm({
                     id="supplier_reference"
                     {...register('supplier_reference')}
                     placeholder="Ex: FORN-12345"
-                    className="font-mono"
+                    className="font-mono h-9"
                   />
                 </div>
               </div>
 
               {/* Nome */}
-              <div className="space-y-1">
+              <div>
                 <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
                   Nome do Produto
                 </FieldLabel>
@@ -372,12 +380,13 @@ export function ProductForm({
                   id="name"
                   {...register('name')}
                   placeholder="Nome do produto"
-                  className={cn(errors.name && 'border-destructive')}
+                  className={cn('h-9', errors.name && 'border-destructive')}
                 />
-                {errors.name && <p className="text-[10px] text-destructive">{errors.name.message}</p>}
+                {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
               </div>
 
-              <div className="space-y-1">
+              {/* Descrição */}
+              <div>
                 <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000}>
                   Descrição
                 </FieldLabel>
@@ -386,12 +395,13 @@ export function ProductForm({
                   {...register('description')}
                   placeholder="Descrição detalhada do produto"
                   rows={3}
-                  className="text-sm"
+                  className="text-sm resize-y min-h-[72px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              {/* Descrição Curta + Meta Descrição */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="short_description" charCount={shortDescValue.length} charMax={500}>
                     Descrição Curta
                   </FieldLabel>
@@ -399,9 +409,10 @@ export function ProductForm({
                     id="short_description"
                     {...register('short_description')}
                     placeholder="Resumo em uma linha"
+                    className="h-9"
                   />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>
                     Meta Descrição (SEO)
                   </FieldLabel>
@@ -409,23 +420,23 @@ export function ProductForm({
                     id="meta_description"
                     {...register('meta_description')}
                     placeholder="Descrição para buscadores"
+                    className="h-9"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              {/* Marca + Categoria + Fornecedor */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="brand">Marca</FieldLabel>
                   <Input
                     id="brand"
                     {...register('brand')}
                     placeholder="Ex: Tramontina"
+                    className="h-9"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+                <div>
                   <FieldLabel>Categoria</FieldLabel>
                   <CategorySelect
                     value={categoryId || ''}
@@ -433,7 +444,7 @@ export function ProductForm({
                     error={errors.category_id?.message}
                   />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel>Fornecedor</FieldLabel>
                   <SupplierSelect
                     value={supplierId || ''}
@@ -442,84 +453,102 @@ export function ProductForm({
                   />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
+            {/* Card: Preço e Estoque */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                    <Tag className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Preço e Estoque</h4>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-mono tabular-nums">
+                  R$ {watch('sale_price')?.toFixed(2) || '0.00'}
+                </Badge>
+              </div>
 
-            {/* Preço e Estoque */}
-            <FormSection title="Preço e Estoque" icon={Tag} defaultOpen badge={`R$ ${watch('sale_price')?.toFixed(2) || '0.00'}`}>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="sale_price" required>Preço Venda (R$)</FieldLabel>
-                  <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn(errors.sale_price && 'border-destructive')} />
-                  {errors.sale_price && <p className="text-[10px] text-destructive">{errors.sale_price.message}</p>}
+                  <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} />
+                  {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="cost_price">Preço Custo (R$)</FieldLabel>
-                  <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" />
+                  <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="suggested_price">Preço Sugerido (R$)</FieldLabel>
-                  <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" />
+                  <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-4 gap-4">
+                <div>
                   <FieldLabel htmlFor="stock_quantity">Estoque</FieldLabel>
-                  <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" />
+                  <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="stock_unit">Unidade</FieldLabel>
-                  <Input id="stock_unit" {...register('stock_unit')} placeholder="un" />
+                  <Input id="stock_unit" {...register('stock_unit')} placeholder="un" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="min_quantity">Qtd. Mínima</FieldLabel>
-                  <Input id="min_quantity" {...numericProps('min_quantity')} min="1" />
+                  <Input id="min_quantity" {...numericProps('min_quantity')} min="1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="min_order_quantity">Qtd. Mín. Pedido</FieldLabel>
-                  <Input id="min_order_quantity" {...numericProps('min_order_quantity')} min="0" />
+                  <Input id="min_order_quantity" {...numericProps('min_order_quantity')} min="0" className="h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
+            {/* Card: Comercial (collapsible) */}
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Comercial" icon={Truck} defaultOpen={false}>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
+                    <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="warranty_months">Garantia (meses)</FieldLabel>
+                    <Input id="warranty_months" {...numericProps('warranty_months')} min="0" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>
+                    <Input id="product_type" {...register('product_type')} placeholder="product" className="h-9" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
+                    <Input id="supply_mode" {...register('supply_mode')} placeholder="Ex: pronta_entrega_liso" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="gender">Gênero</FieldLabel>
+                    <Input id="gender" {...register('gender')} placeholder="Ex: unissex, masculino, feminino" className="h-9" />
+                  </div>
+                </div>
+              </FormSection>
+            </div>
 
-            {/* Comercial */}
-            <FormSection title="Comercial" icon={Truck} defaultOpen={false}>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
-                  <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" />
+            {/* Card: Status e Destaques */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-3">
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Status e Destaques</h4>
                 </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="warranty_months">Garantia (meses)</FieldLabel>
-                  <Input id="warranty_months" {...numericProps('warranty_months')} min="0" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>
-                  <Input id="product_type" {...register('product_type')} placeholder="product" />
-                </div>
+                <Badge variant="outline" className="text-[10px]">{flagCount} ativos</Badge>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
-                  <Input id="supply_mode" {...register('supply_mode')} placeholder="Ex: pronta_entrega_liso" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="gender">Gênero</FieldLabel>
-                  <Input id="gender" {...register('gender')} placeholder="Ex: unissex, masculino, feminino" />
-                </div>
-              </div>
-            </FormSection>
 
-            <Separator />
-
-            {/* Status / Flags */}
-            <FormSection title="Status e Destaques" icon={ShieldCheck} defaultOpen badge={`${flagCount} ativos`}>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { key: 'is_active' as const, label: 'Produto Ativo', value: isActive, color: 'bg-green-500/10 border-green-500/30' },
+                  { key: 'is_active' as const, label: 'Produto Ativo', value: isActive, activeClass: 'bg-success/8 border-success/30' },
                   { key: 'is_featured' as const, label: 'Destaque', value: isFeatured },
                   { key: 'is_bestseller' as const, label: 'Mais Vendido', value: isBestseller },
                   { key: 'is_new' as const, label: 'Lançamento', value: isNew },
@@ -531,15 +560,16 @@ export function ProductForm({
                   { key: 'allows_personalization' as const, label: 'Permite Personalização', value: allowsPersonalization },
                   { key: 'has_gift_box' as const, label: 'Caixa Presente', value: hasGiftBox },
                   { key: 'has_optional_packaging' as const, label: 'Embalagem Opcional', value: hasOptionalPackaging },
-                ].map(({ key, label, value, color }) => (
+                ].map(({ key, label, value, activeClass }) => (
                   <div
                     key={key}
                     className={cn(
-                      'flex items-center justify-between rounded-lg border p-2.5 transition-colors',
-                      value && (color || 'bg-primary/5 border-primary/20'),
+                      'flex items-center justify-between rounded-lg border p-2.5 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                      value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
                     )}
+                    onClick={() => setValue(key, !value)}
                   >
-                    <Label className="cursor-pointer text-xs">{label}</Label>
+                    <Label className="cursor-pointer text-xs font-medium">{label}</Label>
                     <Switch
                       checked={value}
                       onCheckedChange={(v) => setValue(key, v)}
@@ -548,224 +578,247 @@ export function ProductForm({
                 ))}
                 <div
                   className={cn(
-                    'flex items-center justify-between rounded-lg border p-2.5 col-span-2 transition-colors',
-                    hasCommercialPackaging && 'bg-primary/5 border-primary/20',
+                    'flex items-center justify-between rounded-lg border p-2.5 col-span-2 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                    hasCommercialPackaging ? 'bg-primary/5 border-primary/20' : 'border-border/50',
                   )}
+                  onClick={() => setValue('has_commercial_packaging', !hasCommercialPackaging)}
                 >
-                  <Label className="cursor-pointer text-xs">Embalagem Nativa (comercial)</Label>
+                  <Label className="cursor-pointer text-xs font-medium">Embalagem Nativa (comercial)</Label>
                   <Switch
                     checked={hasCommercialPackaging}
                     onCheckedChange={(v) => setValue('has_commercial_packaging', v)}
                   />
                 </div>
               </div>
-            </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB DETALHES ====== */}
-          <TabsContent value="details" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="Dimensões Externas" icon={Ruler} defaultOpen>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
+          <TabsContent value="details" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            {/* Card: Dimensões Externas */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Ruler className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Dimensões Externas</h4>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="height_cm">Altura (cm)</FieldLabel>
-                  <Input id="height_cm" {...numericProps('height_cm')} min="0" step="0.1" />
+                  <Input id="height_cm" {...numericProps('height_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="width_cm">Largura (cm)</FieldLabel>
-                  <Input id="width_cm" {...numericProps('width_cm')} min="0" step="0.1" />
+                  <Input id="width_cm" {...numericProps('width_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="length_cm">Comprimento (cm)</FieldLabel>
-                  <Input id="length_cm" {...numericProps('length_cm')} min="0" step="0.1" />
+                  <Input id="length_cm" {...numericProps('length_cm')} min="0" step="0.1" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-4 gap-4">
+                <div>
                   <FieldLabel htmlFor="diameter_cm">Diâmetro (cm)</FieldLabel>
-                  <Input id="diameter_cm" {...numericProps('diameter_cm')} min="0" step="0.1" />
+                  <Input id="diameter_cm" {...numericProps('diameter_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="circumference_cm">Circunferência (cm)</FieldLabel>
-                  <Input id="circumference_cm" {...numericProps('circumference_cm')} min="0" step="0.1" />
+                  <Input id="circumference_cm" {...numericProps('circumference_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="weight_g">Peso (g)</FieldLabel>
-                  <Input id="weight_g" {...numericProps('weight_g')} min="0" />
+                  <Input id="weight_g" {...numericProps('weight_g')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="capacity_ml">Capacidade (ml)</FieldLabel>
-                  <Input id="capacity_ml" {...numericProps('capacity_ml')} min="0" />
+                  <Input id="capacity_ml" {...numericProps('capacity_ml')} min="0" className="h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
+            {/* Card: Dimensões Internas */}
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Dimensões Internas" icon={Ruler} defaultOpen={false}>
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <FieldLabel htmlFor="internal_height_cm">Altura Int. (cm)</FieldLabel>
+                    <Input id="internal_height_cm" {...numericProps('internal_height_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="internal_width_cm">Largura Int. (cm)</FieldLabel>
+                    <Input id="internal_width_cm" {...numericProps('internal_width_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="internal_length_cm">Comprim. Int. (cm)</FieldLabel>
+                    <Input id="internal_length_cm" {...numericProps('internal_length_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="internal_diameter_cm">Diâmetro Int. (cm)</FieldLabel>
+                    <Input id="internal_diameter_cm" {...numericProps('internal_diameter_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                </div>
+              </FormSection>
+            </div>
 
-            <FormSection title="Dimensões Internas" icon={Ruler} defaultOpen={false}>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_height_cm">Altura Int. (cm)</FieldLabel>
-                  <Input id="internal_height_cm" {...numericProps('internal_height_cm')} min="0" step="0.1" />
+            {/* Card: Embalagem */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Package className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_width_cm">Largura Int. (cm)</FieldLabel>
-                  <Input id="internal_width_cm" {...numericProps('internal_width_cm')} min="0" step="0.1" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_length_cm">Comprim. Int. (cm)</FieldLabel>
-                  <Input id="internal_length_cm" {...numericProps('internal_length_cm')} min="0" step="0.1" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_diameter_cm">Diâmetro Int. (cm)</FieldLabel>
-                  <Input id="internal_diameter_cm" {...numericProps('internal_diameter_cm')} min="0" step="0.1" />
-                </div>
+                <h4 className="text-sm font-semibold text-foreground">Embalagem (Caixa)</h4>
               </div>
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Embalagem (Caixa)" icon={Package} defaultOpen>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="packing_type">Tipo de Embalagem</FieldLabel>
-                  <Input id="packing_type" {...register('packing_type')} placeholder="Ex: Caixa, Bolsa, Estojo" />
+                  <Input id="packing_type" {...register('packing_type')} placeholder="Ex: Caixa, Bolsa, Estojo" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="packaging_material">Material Embalagem</FieldLabel>
-                  <Input id="packaging_material" {...register('packaging_material')} placeholder="Ex: Papelão, Plástico" />
+                  <Input id="packaging_material" {...register('packaging_material')} placeholder="Ex: Papelão, Plástico" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="box_width_mm">Largura (mm)</FieldLabel>
-                  <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" />
+                  <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_height_mm">Altura (mm)</FieldLabel>
-                  <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" />
+                  <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_length_mm">Profundidade (mm)</FieldLabel>
-                  <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" />
+                  <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-4 gap-4">
+                <div>
                   <FieldLabel htmlFor="box_weight_kg">Peso (kg)</FieldLabel>
-                  <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" />
+                  <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_quantity">Qtd por caixa</FieldLabel>
-                  <Input id="box_quantity" {...numericProps('box_quantity')} min="0" />
+                  <Input id="box_quantity" {...numericProps('box_quantity')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_inner_quantity">Qtd Interna</FieldLabel>
-                  <Input id="box_inner_quantity" {...numericProps('box_inner_quantity')} min="0" />
+                  <Input id="box_inner_quantity" {...numericProps('box_inner_quantity')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_volume_cm3">Volume (cm³)</FieldLabel>
-                  <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" />
+                  <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="packaging_color">Cor Embalagem</FieldLabel>
-                  <Input id="packaging_color" {...register('packaging_color')} placeholder="Ex: Kraft, Branco" />
+                  <Input id="packaging_color" {...register('packaging_color')} placeholder="Ex: Kraft, Branco" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="packaging_finish">Acabamento Embalagem</FieldLabel>
-                  <Input id="packaging_finish" {...register('packaging_finish')} placeholder="Ex: Fosco, Brilhante" />
+                  <Input id="packaging_finish" {...register('packaging_finish')} placeholder="Ex: Fosco, Brilhante" className="h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB FISCAL ====== */}
-          <TabsContent value="fiscal" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="Dados Fiscais" icon={FileText} defaultOpen>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+          <TabsContent value="fiscal" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Dados Fiscais</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="ncm_code">Código NCM</FieldLabel>
-                  <Input id="ncm_code" {...register('ncm_code')} placeholder="Ex: 96081000" className="font-mono" />
+                  <Input id="ncm_code" {...register('ncm_code')} placeholder="Ex: 96081000" className="font-mono h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="ipi_rate">Alíquota IPI (%)</FieldLabel>
-                  <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" />
+                  <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="ean">Código EAN</FieldLabel>
-                  <Input id="ean" {...register('ean')} placeholder="Código de barras EAN" className="font-mono" />
+                  <Input id="ean" {...register('ean')} placeholder="Código de barras EAN" className="font-mono h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="gtin">GTIN</FieldLabel>
-                  <Input id="gtin" {...register('gtin')} placeholder="Global Trade Item Number" className="font-mono" />
+                  <Input id="gtin" {...register('gtin')} placeholder="Global Trade Item Number" className="font-mono h-9" />
                 </div>
               </div>
-              <div className="space-y-1">
+              <div>
                 <FieldLabel htmlFor="country_of_origin">País de Origem</FieldLabel>
-                <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" />
+                <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
               </div>
-            </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB SEO ====== */}
-          <TabsContent value="seo" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="SEO e Metadados" icon={Globe} defaultOpen>
-              <div className="space-y-1">
+          <TabsContent value="seo" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Globe className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">SEO e Metadados</h4>
+              </div>
+              <div>
                 <FieldLabel htmlFor="meta_title" charCount={metaTitleValue.length} charMax={200}>
                   Meta Título
                 </FieldLabel>
-                <Input id="meta_title" {...register('meta_title')} placeholder="Título para buscadores (Google)" />
+                <Input id="meta_title" {...register('meta_title')} placeholder="Título para buscadores (Google)" className="h-9" />
               </div>
-              <div className="space-y-1">
+              <div>
                 <FieldLabel htmlFor="meta_keywords" charCount={metaKeywordsValue.length} charMax={500}>
                   Palavras-chave (separadas por vírgula)
                 </FieldLabel>
-                <Input id="meta_keywords" {...register('meta_keywords')} placeholder="caneta, brinde, personalizado" />
+                <Input id="meta_keywords" {...register('meta_keywords')} placeholder="caneta, brinde, personalizado" className="h-9" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="slug">Slug (URL)</FieldLabel>
-                  <Input id="slug" {...register('slug')} placeholder="caneta-plastica-001" className="font-mono" />
+                  <Input id="slug" {...register('slug')} placeholder="caneta-plastica-001" className="font-mono h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="canonical_url">URL Canônica</FieldLabel>
-                  <Input id="canonical_url" {...register('canonical_url')} placeholder="/produto/caneta-001" className="font-mono" />
+                  <Input id="canonical_url" {...register('canonical_url')} placeholder="/produto/caneta-001" className="font-mono h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
-
-            <FormSection title="Textos de Marketing" icon={Megaphone} defaultOpen={false}>
-              <div className="space-y-1">
-                <FieldLabel htmlFor="key_benefits">Benefícios Principais</FieldLabel>
-                <Textarea id="key_benefits" {...register('key_benefits')} placeholder="Liste os benefícios do produto" rows={3} className="text-sm" />
-              </div>
-              <div className="space-y-1">
-                <FieldLabel htmlFor="use_cases">Casos de Uso</FieldLabel>
-                <Textarea id="use_cases" {...register('use_cases')} placeholder="Cenários e ocasiões de uso" rows={3} className="text-sm" />
-              </div>
-            </FormSection>
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Textos de Marketing" icon={Megaphone} defaultOpen={false}>
+                <div>
+                  <FieldLabel htmlFor="key_benefits">Benefícios Principais</FieldLabel>
+                  <Textarea id="key_benefits" {...register('key_benefits')} placeholder="Liste os benefícios do produto" rows={3} className="text-sm resize-y" />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="use_cases">Casos de Uso</FieldLabel>
+                  <Textarea id="use_cases" {...register('use_cases')} placeholder="Cenários e ocasiões de uso" rows={3} className="text-sm resize-y" />
+                </div>
+              </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB CLASSIFICAÇÃO ====== */}
-          <TabsContent value="classification" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            {/* Variações de Cor */}
+          <TabsContent value="classification" className="space-y-3 mt-0 animate-in fade-in-50 duration-200">
             {isEdit && productId && (
-              <>
+              <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
                 <FormSection title="Variações de Cor" icon={Palette} defaultOpen>
                   <ProductVariantsSection productId={productId} productName={watch('name')} productSku={watch('sku')} />
                 </FormSection>
-                <Separator />
-              </>
+              </div>
             )}
 
-            {/* Componentes de Kit */}
             {isEdit && productId && isKit && (
-              <>
+              <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
                 <FormSection title="Componentes do Kit" icon={Layers} defaultOpen>
                   <ProductKitComponentsSection
                     productId={productId}
@@ -776,92 +829,54 @@ export function ProductForm({
                     }}
                   />
                 </FormSection>
-                <Separator />
-              </>
+              </div>
             )}
 
-            <FormSection title="Materiais" icon={Layers} defaultOpen={isEdit}>
-              {isEdit && productId ? (
-                <ProductMaterialsSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para selecionar materiais.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Tags" icon={Tag} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductTagsSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para vincular tags.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Ramos de Atividade" icon={Building2} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductRamosSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para vincular ramos.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Marketing" icon={Megaphone} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductMarketingSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para classificar marketing.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Técnicas de Personalização" icon={Paintbrush} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductTechniquesSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para vincular técnicas.
-                </div>
-              )}
-            </FormSection>
+            {[
+              { title: 'Materiais', icon: Layers, defaultOpen: isEdit, content: isEdit && productId ? <ProductMaterialsSection productId={productId} /> : null },
+              { title: 'Tags', icon: Tag, defaultOpen: false, content: isEdit && productId ? <ProductTagsSection productId={productId} /> : null },
+              { title: 'Ramos de Atividade', icon: Building2, defaultOpen: false, content: isEdit && productId ? <ProductRamosSection productId={productId} /> : null },
+              { title: 'Marketing', icon: Megaphone, defaultOpen: false, content: isEdit && productId ? <ProductMarketingSection productId={productId} /> : null },
+              { title: 'Técnicas de Personalização', icon: Paintbrush, defaultOpen: false, content: isEdit && productId ? <ProductTechniquesSection productId={productId} /> : null },
+            ].map(({ title, icon, defaultOpen: defOpen, content }) => (
+              <div key={title} className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+                <FormSection title={title} icon={icon} defaultOpen={defOpen}>
+                  {content || (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 text-xs text-muted-foreground">
+                      <Info className="h-3.5 w-3.5 shrink-0" />
+                      Salve o produto primeiro para gerenciar {title.toLowerCase()}.
+                    </div>
+                  )}
+                </FormSection>
+              </div>
+            ))}
           </TabsContent>
 
           {/* ====== TAB MÍDIA ====== */}
-          <TabsContent value="media" className="mt-0 space-y-2 animate-in fade-in-50 duration-200">
-            <FormSection title="Galeria de Imagens" icon={ImageIcon} defaultOpen>
+          <TabsContent value="media" className="mt-0 space-y-4 animate-in fade-in-50 duration-200">
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Galeria de Imagens</h4>
+              </div>
               <ProductImageGallery
                 images={images}
                 onChange={setImages}
                 folder="products"
                 productId={productId}
               />
-            </FormSection>
+            </div>
 
-            <Separator />
-
-            <FormSection title="Vídeo" icon={Video} defaultOpen={false}>
-              <div className="space-y-1">
-                <FieldLabel htmlFor="video_url">URL do Vídeo</FieldLabel>
-                <Input id="video_url" {...register('video_url')} placeholder="https://youtube.com/watch?v=..." />
-              </div>
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Vídeo" icon={Video} defaultOpen={false}>
+                <div>
+                  <FieldLabel htmlFor="video_url">URL do Vídeo</FieldLabel>
+                  <Input id="video_url" {...register('video_url')} placeholder="https://youtube.com/watch?v=..." className="h-9" />
+                </div>
+              </FormSection>
+            </div>
             </FormSection>
           </TabsContent>
         </Tabs>
