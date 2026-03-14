@@ -711,7 +711,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB SEO ====== */}
-          <TabsContent value="seo" className="space-y-1 mt-0">
+          <TabsContent value="seo" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="SEO e Metadados" icon={Globe} defaultOpen>
               <div className="space-y-1">
                 <FieldLabel htmlFor="meta_title" charCount={metaTitleValue.length} charMax={200}>
