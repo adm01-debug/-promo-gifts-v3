@@ -187,6 +187,13 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
                 <X className="h-3 w-3 cursor-pointer" onClick={() => update({ is_active: 'all' })} />
               </Badge>
             )}
+            {filters.is_kit && (
+              <Badge variant="secondary" className="text-xs gap-1">
+                <Boxes className="h-3 w-3" />
+                Apenas Kits
+                <X className="h-3 w-3 cursor-pointer" onClick={() => update({ is_kit: undefined })} />
+              </Badge>
+            )}
             {((filters.price_min ?? 0) > 0 || (filters.price_max ?? 0) > 0) && (
               <Badge variant="secondary" className="text-xs gap-1">
                 R$ {filters.price_min || 0} – {filters.price_max || '∞'}
