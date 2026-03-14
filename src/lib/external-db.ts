@@ -13,6 +13,7 @@ interface InvokeOptions<T = Record<string, unknown>> {
   orderBy?: { column: string; ascending?: boolean };
   limit?: number;
   offset?: number;
+  countMode?: 'exact' | 'planned' | 'estimated' | 'none';
 }
 
 interface InvokeResult<T> {
