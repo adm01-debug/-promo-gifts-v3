@@ -342,7 +342,7 @@ export async function fetchPromobrindProducts(options?: {
     const HARD_MAX = 200000;
 
     while (offset < HARD_MAX) {
-      const countMode: 'planned' | 'none' = shouldRequestCount && offset === 0 ? 'planned' : 'none';
+      const countMode: 'exact' | 'none' = shouldRequestCount && offset === 0 ? 'exact' : 'none';
       let page: InvokeResult<PromobrindProduct>;
       try {
         page = await invokeExternalDb<PromobrindProduct>({
