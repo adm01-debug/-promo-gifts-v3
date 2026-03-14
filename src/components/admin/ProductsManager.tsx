@@ -485,11 +485,13 @@ export function ProductsManager() {
               <Package className="h-5 w-5" />
               Gerenciador de Produtos
             </CardTitle>
-            <CardDescription>
-              Cadastre, edite e gerencie os produtos do catálogo
-              {totalCount !== null && (
-                <Badge variant="secondary" className="ml-2">{totalCount.toLocaleString()} produtos</Badge>
-              )}
+            <CardDescription asChild>
+              <div>
+                Cadastre, edite e gerencie os produtos do catálogo
+                {totalCount !== null && (
+                  <Badge variant="secondary" className="ml-2">{totalCount.toLocaleString()} produtos</Badge>
+                )}
+              </div>
             </CardDescription>
           </div>
           <div className="flex gap-2">
