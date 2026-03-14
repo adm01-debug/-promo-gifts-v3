@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { invokeExternalDbSingle, invokeExternalDbDelete } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -57,8 +58,11 @@ import {
   ChevronRight,
   FileSpreadsheet,
   X,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
+import { cn } from "@/lib/utils";
 import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
@@ -150,7 +154,8 @@ export function ProductsManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [advancedFilters, setAdvancedFilters] = useState<ProductFilters>({});
-  
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(50);
@@ -284,6 +289,7 @@ export function ProductsManager() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    setSelectedIds(new Set());
     fetchProducts(page, pageSize, searchTerm);
   };
 
@@ -514,7 +520,43 @@ export function ProductsManager() {
     }
   };
 
-  // Stats computed from current page data
+  // Bulk selection helpers
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(prev =>
+      prev.size === displayedProducts.length
+        ? new Set()
+        : new Set(displayedProducts.map(p => p.id))
+    );
+  }, [displayedProducts]);
+
+  const handleBulkToggleActive = useCallback(async (activate: boolean) => {
+    if (selectedIds.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const promises = Array.from(selectedIds).map(id =>
+        invokeExternalDbSingle({ table: 'products', operation: 'update', id, data: { is_active: activate, active: activate, updated_at: new Date().toISOString() } })
+      );
+      await Promise.all(promises);
+      toast.success(`${selectedIds.size} produto(s) ${activate ? 'ativado(s)' : 'desativado(s)'}`);
+      setSelectedIds(new Set());
+      fetchProducts(currentPage, pageSize, searchTerm);
+    } catch (error: any) {
+      console.error('Bulk update error:', error);
+      toast.error(error.message || 'Erro ao atualizar produtos em lote');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }, [selectedIds, currentPage, pageSize, searchTerm]);
+
+
   const stats = useMemo(() => {
     const active = products.filter(p => p.is_active).length;
     const inactive = products.filter(p => !p.is_active).length;
@@ -636,6 +678,48 @@ export function ProductsManager() {
         </CardContent>
       </Card>
 
+      {/* Bulk Action Bar */}
+      {selectedIds.size > 0 && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="p-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                checked={selectedIds.size === displayedProducts.length}
+                onCheckedChange={toggleSelectAll}
+              />
+              <span className="text-sm font-medium">
+                {selectedIds.size} produto(s) selecionado(s)
+              </span>
+              <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setSelectedIds(new Set())}>
+                Limpar seleção
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 dark:text-emerald-400"
+                disabled={isBulkUpdating}
+                onClick={() => handleBulkToggleActive(true)}
+              >
+                {isBulkUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Power className="h-3.5 w-3.5" />}
+                Ativar
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-destructive border-destructive/30 hover:bg-destructive/10"
+                disabled={isBulkUpdating}
+                onClick={() => handleBulkToggleActive(false)}
+              >
+                {isBulkUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PowerOff className="h-3.5 w-3.5" />}
+                Desativar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Products Table */}
       <Card className="border-border/40">
         <CardContent className="p-0">
@@ -657,7 +741,13 @@ export function ProductsManager() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent border-border/50">
-                    <TableHead className="w-16 pl-4">Foto</TableHead>
+                    <TableHead className="w-10 pl-4">
+                      <Checkbox
+                        checked={selectedIds.size > 0 && selectedIds.size === displayedProducts.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead className="w-14">Foto</TableHead>
                     <TableHead className="w-28">SKU</TableHead>
                     <TableHead>Produto</TableHead>
                     <TableHead className="w-28 text-right">Preço</TableHead>
@@ -678,10 +768,19 @@ export function ProductsManager() {
                     return (
                       <TableRow
                         key={product.id}
-                        className="cursor-pointer group hover:bg-muted/40 transition-colors border-border/30"
+                        className={cn(
+                          "cursor-pointer group hover:bg-muted/40 transition-colors border-border/30",
+                          selectedIds.has(product.id) && "bg-primary/5"
+                        )}
                         onClick={() => openEditForm(product)}
                       >
-                        <TableCell className="pl-4">
+                        <TableCell className="pl-4" onClick={e => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(product.id)}
+                            onCheckedChange={() => toggleSelect(product.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
                           {product.images && product.images.length > 0 ? (
                             <div className="relative">
                               <img
