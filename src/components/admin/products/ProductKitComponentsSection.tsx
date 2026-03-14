@@ -10,7 +10,9 @@ import { supabase } from '@/integrations/supabase/client';
 import {
   Package, Plus, Pencil, Trash2, Save, X, Loader2, GripVertical,
   AlertCircle, Boxes, Settings2, Paintbrush, Target, ChevronDown, ChevronRight,
+  CheckCircle2, XCircle, Box,
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
