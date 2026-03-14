@@ -630,8 +630,6 @@ serve(async (req) => {
     let userRole = 'public';
 
     if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '');
-
       // Criar cliente local com SERVICE_ROLE para evitar recursão de RLS
       const localServiceSupabase = createClient(
         Deno.env.get('SUPABASE_URL')!,
