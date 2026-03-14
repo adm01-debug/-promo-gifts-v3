@@ -29,6 +29,8 @@ import {
   Sparkles,
   Upload,
   FileVideo,
+  ImagePlus,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Dialog,
