@@ -913,6 +913,6 @@ export function ProductsManager() {
         onOpenChange={setIsImportOpen}
         onComplete={() => fetchProducts(1, pageSize, searchTerm)}
       />
-    </Card>
+    </div>
   );
 }
