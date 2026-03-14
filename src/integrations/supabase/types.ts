@@ -707,6 +707,39 @@ export type Database = {
         }
         Relationships: []
       }
+      video_variant_links: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          supplier_code: string | null
+          variant_color_hex: string | null
+          variant_id: string
+          variant_name: string | null
+          video_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          supplier_code?: string | null
+          variant_color_hex?: string | null
+          variant_id: string
+          variant_name?: string | null
+          video_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          supplier_code?: string | null
+          variant_color_hex?: string | null
+          variant_id?: string
+          variant_name?: string | null
+          video_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
