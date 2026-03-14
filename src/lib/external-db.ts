@@ -18,7 +18,7 @@ interface InvokeOptions<T = Record<string, unknown>> {
 
 interface InvokeResult<T> {
   records: T[];
-  count: number;
+  count: number | null;
 }
 
 interface BridgeResponse<T> {
@@ -56,8 +56,12 @@ async function buildBridgeError(error: unknown): Promise<{ message: string; retr
   const diagnostic = `${baseMessage} ${responseBody}`.toLowerCase();
   const retryable =
     status === 503 ||
+    status === 504 ||
     diagnostic.includes('boot_error') ||
-    diagnostic.includes('function failed to start');
+    diagnostic.includes('function failed to start') ||
+    diagnostic.includes('statement timeout') ||
+    diagnostic.includes('canceling statement due to statement timeout') ||
+    diagnostic.includes('57014');
 
   const details = responseBody ? `${baseMessage} | ${responseBody}` : baseMessage;
   return { message: `Erro na bridge: ${details}`, retryable };
@@ -401,6 +405,7 @@ export async function fetchPromobrindProducts(options?: {
             ...baseOptions,
             filters,
             offset: 0,
+            countMode: 'none',
           });
           return result.records;
         })
@@ -409,37 +414,58 @@ export async function fetchPromobrindProducts(options?: {
       return results.flat();
     }
 
+    const shouldRunHeavyEnrichment = products.length <= 1200 || typeof options?.limit === 'number';
+
+    if (!shouldRunHeavyEnrichment) {
+      console.info(`[external-db] Skipping heavy enrichment for ${products.length} products to prevent timeouts`);
+    }
+
     const [variantsRecords, suppliersResult, imagesRecords, colorVariationsRecords, colorGroupsRecords] = await Promise.all([
       // Buscar cores das variantes FILTRADAS pelos product_ids da página
-      fetchByProductIds<{
-        product_id: string;
-        color_name: string | null;
-        color_hex: string | null;
-        color_code: string | null;
-        color_id: string | null;
-        sku: string | null;
-        stock_quantity: number | null;
-        images: string[] | null;
-        selected_images: string[] | null;
-        selected_thumbnail: string | null;
-      }>({
-        table: 'product_variants',
-        operation: 'select',
-        select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_images, selected_thumbnail',
-        filters: { is_active: true },
-        limit: 1000,
-      }, productIds).catch(err => {
-        console.warn('Não foi possível buscar cores das variantes:', err);
-        return [] as any[];
-      }),
+      shouldRunHeavyEnrichment
+        ? fetchByProductIds<{
+            product_id: string;
+            color_name: string | null;
+            color_hex: string | null;
+            color_code: string | null;
+            color_id: string | null;
+            sku: string | null;
+            stock_quantity: number | null;
+            images: string[] | null;
+            selected_images: string[] | null;
+            selected_thumbnail: string | null;
+          }>({
+            table: 'product_variants',
+            operation: 'select',
+            select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_images, selected_thumbnail',
+            filters: { is_active: true },
+            limit: 1000,
+          }, productIds).catch(err => {
+            console.warn('Não foi possível buscar cores das variantes:', err);
+            return [] as any[];
+          })
+        : Promise.resolve([] as Array<{
+            product_id: string;
+            color_name: string | null;
+            color_hex: string | null;
+            color_code: string | null;
+            color_id: string | null;
+            sku: string | null;
+            stock_quantity: number | null;
+            images: string[] | null;
+            selected_images: string[] | null;
+            selected_thumbnail: string | null;
+          }>),
       
-      // Buscar nomes dos fornecedores
+      // Buscar nomes dos fornecedores (sempre, custo baixo)
       uniqueSupplierIds.length > 0
         ? invokeExternalDb<{ id: string; name: string; code: string }>({
             table: 'suppliers',
             operation: 'select',
             select: 'id, name, code',
-            limit: 500,
+            filters: { id: uniqueSupplierIds },
+            limit: Math.max(uniqueSupplierIds.length, 1),
+            countMode: 'none',
           }).catch(err => {
             console.warn('Não foi possível buscar fornecedores:', err);
             return { records: [] } as { records: { id: string; name: string; code: string }[] };
@@ -447,62 +473,83 @@ export async function fetchPromobrindProducts(options?: {
         : Promise.resolve({ records: [] } as { records: { id: string; name: string; code: string }[] }),
       
       // Buscar imagens FILTRADAS pelos product_ids da página
-      fetchByProductIds<{
-        product_id: string;
-        url_cdn: string;
-        url_original: string | null;
-        filename: string | null;
-        image_type: string;
-        is_primary: boolean;
-        is_og_image: boolean;
-        applies_to_color: boolean | null;
-        display_order: number;
-        alt_text: string | null;
-        title_text: string | null;
-        supplier_code: string | null;
-      }>({
-        table: 'product_images',
-        operation: 'select',
-        select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
-        filters: { is_active: true },
-        limit: 1000,
-      }, productIds).catch(err => {
-        console.warn('Não foi possível buscar imagens da tabela product_images:', err);
-        return [] as any[];
-      }),
+      shouldRunHeavyEnrichment
+        ? fetchByProductIds<{
+            product_id: string;
+            url_cdn: string;
+            url_original: string | null;
+            filename: string | null;
+            image_type: string;
+            is_primary: boolean;
+            is_og_image: boolean;
+            applies_to_color: boolean | null;
+            display_order: number;
+            alt_text: string | null;
+            title_text: string | null;
+            supplier_code: string | null;
+          }>({
+            table: 'product_images',
+            operation: 'select',
+            select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
+            filters: { is_active: true },
+            limit: 1000,
+          }, productIds).catch(err => {
+            console.warn('Não foi possível buscar imagens da tabela product_images:', err);
+            return [] as any[];
+          })
+        : Promise.resolve([] as Array<{
+            product_id: string;
+            url_cdn: string;
+            url_original: string | null;
+            filename: string | null;
+            image_type: string;
+            is_primary: boolean;
+            is_og_image: boolean;
+            applies_to_color: boolean | null;
+            display_order: number;
+            alt_text: string | null;
+            title_text: string | null;
+            supplier_code: string | null;
+          }>),
 
       // Buscar color_variations (para mapear color_id → group_id)
-      invokeExternalDb<{
-        id: string;
-        name: string;
-        slug: string;
-        group_id: string;
-      }>({
-        table: 'color_variations',
-        operation: 'select',
-        select: 'id, name, slug, group_id',
-        filters: { is_active: true },
-        limit: 500,
-      }).catch(err => {
-        console.warn('Não foi possível buscar color_variations:', err);
-        return { records: [] } as { records: { id: string; name: string; slug: string; group_id: string }[] };
-      }),
+      shouldRunHeavyEnrichment
+        ? invokeExternalDb<{
+            id: string;
+            name: string;
+            slug: string;
+            group_id: string;
+          }>({
+            table: 'color_variations',
+            operation: 'select',
+            select: 'id, name, slug, group_id',
+            filters: { is_active: true },
+            limit: 500,
+            countMode: 'none',
+          }).catch(err => {
+            console.warn('Não foi possível buscar color_variations:', err);
+            return { records: [] } as { records: { id: string; name: string; slug: string; group_id: string }[] };
+          })
+        : Promise.resolve({ records: [] } as { records: { id: string; name: string; slug: string; group_id: string }[] }),
 
       // Buscar color_groups (para mapear group_id → slug/name)
-      invokeExternalDb<{
-        id: string;
-        name: string;
-        slug: string;
-      }>({
-        table: 'color_groups',
-        operation: 'select',
-        select: 'id, name, slug',
-        filters: { is_active: true },
-        limit: 100,
-      }).catch(err => {
-        console.warn('Não foi possível buscar color_groups:', err);
-        return { records: [] } as { records: { id: string; name: string; slug: string }[] };
-      }),
+      shouldRunHeavyEnrichment
+        ? invokeExternalDb<{
+            id: string;
+            name: string;
+            slug: string;
+          }>({
+            table: 'color_groups',
+            operation: 'select',
+            select: 'id, name, slug',
+            filters: { is_active: true },
+            limit: 100,
+            countMode: 'none',
+          }).catch(err => {
+            console.warn('Não foi possível buscar color_groups:', err);
+            return { records: [] } as { records: { id: string; name: string; slug: string }[] };
+          })
+        : Promise.resolve({ records: [] } as { records: { id: string; name: string; slug: string }[] }),
     ]);
     
     // Mapear fornecedores por ID
