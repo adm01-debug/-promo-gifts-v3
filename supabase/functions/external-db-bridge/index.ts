@@ -886,7 +886,7 @@ serve(async (req) => {
         } else {
           result = { records: selectData, count };
         }
-        console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table} (offset=${safeOffset}, limit=${safeLimit})${categoryDescendants ? ` [category with ${categoryDescendants.length} descendants]` : ''}`);
+        console.log(`Selected ${selectData?.length || 0} of ${typeof count === 'number' ? count : 'n/a'} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, countMode=${countMode})${categoryDescendants ? ` [category with ${categoryDescendants.length} descendants]` : ''}`);
         break;
       }
 
