@@ -256,10 +256,30 @@ export function ProductsManager() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
-      fetchProducts(1, pageSize, searchTerm);
+      fetchProducts(1, pageSize, searchTerm, advancedFilters);
     }, 400);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Re-fetch when advanced filters change (server-side: category, supplier, status)
+  const handleFiltersChange = useCallback((newFilters: ProductFilters) => {
+    setAdvancedFilters(newFilters);
+    setCurrentPage(1);
+    fetchProducts(1, pageSize, searchTerm, newFilters);
+  }, [pageSize, searchTerm]);
+
+  // Client-side price filtering on current page
+  const displayedProducts = useMemo(() => {
+    let filtered = products;
+    const { price_min, price_max } = advancedFilters;
+    if (price_min !== undefined && price_min > 0) {
+      filtered = filtered.filter(p => p.price >= price_min);
+    }
+    if (price_max !== undefined && price_max > 0) {
+      filtered = filtered.filter(p => p.price <= price_max);
+    }
+    return filtered;
+  }, [products, advancedFilters.price_min, advancedFilters.price_max]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
