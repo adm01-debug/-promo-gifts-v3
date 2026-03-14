@@ -967,7 +967,7 @@ export function ProductImageGallery({
       )}
 
       {/* ── Bulk action toolbar ── */}
-      {externalImages.length > 0 && (
+      {images.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
