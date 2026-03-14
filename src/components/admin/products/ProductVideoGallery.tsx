@@ -112,7 +112,7 @@ function formatBytes(bytes: number | null): string {
 // ── Props ──
 
 interface ProductVideoGalleryProps {
-  productId: string;
+  productId?: string;
 }
 
 export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
