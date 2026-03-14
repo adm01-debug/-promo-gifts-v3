@@ -761,44 +761,50 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB SEO ====== */}
-          <TabsContent value="seo" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="SEO e Metadados" icon={Globe} defaultOpen>
-              <div className="space-y-1">
+          <TabsContent value="seo" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Globe className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">SEO e Metadados</h4>
+              </div>
+              <div>
                 <FieldLabel htmlFor="meta_title" charCount={metaTitleValue.length} charMax={200}>
                   Meta Título
                 </FieldLabel>
-                <Input id="meta_title" {...register('meta_title')} placeholder="Título para buscadores (Google)" />
+                <Input id="meta_title" {...register('meta_title')} placeholder="Título para buscadores (Google)" className="h-9" />
               </div>
-              <div className="space-y-1">
+              <div>
                 <FieldLabel htmlFor="meta_keywords" charCount={metaKeywordsValue.length} charMax={500}>
                   Palavras-chave (separadas por vírgula)
                 </FieldLabel>
-                <Input id="meta_keywords" {...register('meta_keywords')} placeholder="caneta, brinde, personalizado" />
+                <Input id="meta_keywords" {...register('meta_keywords')} placeholder="caneta, brinde, personalizado" className="h-9" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="slug">Slug (URL)</FieldLabel>
-                  <Input id="slug" {...register('slug')} placeholder="caneta-plastica-001" className="font-mono" />
+                  <Input id="slug" {...register('slug')} placeholder="caneta-plastica-001" className="font-mono h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="canonical_url">URL Canônica</FieldLabel>
-                  <Input id="canonical_url" {...register('canonical_url')} placeholder="/produto/caneta-001" className="font-mono" />
+                  <Input id="canonical_url" {...register('canonical_url')} placeholder="/produto/caneta-001" className="font-mono h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
-
-            <FormSection title="Textos de Marketing" icon={Megaphone} defaultOpen={false}>
-              <div className="space-y-1">
-                <FieldLabel htmlFor="key_benefits">Benefícios Principais</FieldLabel>
-                <Textarea id="key_benefits" {...register('key_benefits')} placeholder="Liste os benefícios do produto" rows={3} className="text-sm" />
-              </div>
-              <div className="space-y-1">
-                <FieldLabel htmlFor="use_cases">Casos de Uso</FieldLabel>
-                <Textarea id="use_cases" {...register('use_cases')} placeholder="Cenários e ocasiões de uso" rows={3} className="text-sm" />
-              </div>
-            </FormSection>
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Textos de Marketing" icon={Megaphone} defaultOpen={false}>
+                <div>
+                  <FieldLabel htmlFor="key_benefits">Benefícios Principais</FieldLabel>
+                  <Textarea id="key_benefits" {...register('key_benefits')} placeholder="Liste os benefícios do produto" rows={3} className="text-sm resize-y" />
+                </div>
+                <div>
+                  <FieldLabel htmlFor="use_cases">Casos de Uso</FieldLabel>
+                  <Textarea id="use_cases" {...register('use_cases')} placeholder="Cenários e ocasiões de uso" rows={3} className="text-sm resize-y" />
+                </div>
+              </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB CLASSIFICAÇÃO ====== */}
