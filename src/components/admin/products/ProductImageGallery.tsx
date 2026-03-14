@@ -246,8 +246,15 @@ export function ProductImageGallery({
         },
       });
       if (error) return [];
+
       const records = data?.data?.records || [];
-      return records.map((r: any) => ({ ...r, supplier_code: r.color_code }));
+      return records.map((r: any) => ({
+        id: String(r.id),
+        name: String(r.name ?? r.color_name ?? 'Variação'),
+        color_name: r.color_name ?? null,
+        color_hex: r.color_hex ?? null,
+        supplier_code: r.color_code != null ? String(r.color_code) : undefined,
+      }));
     },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
