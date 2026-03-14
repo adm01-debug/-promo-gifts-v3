@@ -125,7 +125,8 @@ interface ExternalDatabaseState<T> {
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
 const RETRYABLE_PATTERNS = [
-  'statement timeout', '57014', '503', 'FunctionsHttpError',
+  'statement timeout', '57014', '502', '503', '504',
+  'bad gateway', 'FunctionsHttpError',
   'network', 'fetch', 'ECONNRESET', 'socket hang up',
   'AbortError', 'Failed to fetch',
 ];
