@@ -110,6 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setTimeout(() => {
             fetchUserData(session.user.id);
+            // Pre-warm external DB to avoid cold starts
+            import('@/lib/external-db-prewarm').then(m => m.prewarmExternalDb());
           }, 0);
         } else {
           setProfile(null);
