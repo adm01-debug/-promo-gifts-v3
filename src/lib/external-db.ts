@@ -1176,6 +1176,7 @@ export async function fetchPromobrindCategories(): Promise<{ id: string; name: s
       select: 'id, name',
       limit: 500,
       orderBy: { column: 'name', ascending: true },
+      countMode: 'none',
     });
     return result.records;
   } catch {

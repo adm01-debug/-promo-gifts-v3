@@ -64,10 +64,10 @@ export function useExternalCategoriesQuery() {
   return useQuery({
     queryKey: EXTERNAL_CATEGORIES_QUERY_KEY,
     queryFn: fetchExternalCategories,
-    staleTime: CACHE_TIMES.DYNAMIC, // 2 minutos - categorias podem ser atualizadas
+    staleTime: CACHE_TIMES.STABLE, // 10 minutos - categorias raramente mudam
     gcTime: GC_TIMES.TECNICAS, // 30 minutos no garbage collector
-    refetchOnWindowFocus: true, // Refetch ao voltar para a janela
-    refetchOnMount: true, // Sempre verifica se há dados mais recentes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }
 
