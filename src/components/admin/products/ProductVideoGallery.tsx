@@ -25,6 +25,9 @@ import {
   Palette,
   Link2,
   Unlink,
+  Clapperboard,
+  Mic,
+  Sparkles,
 } from 'lucide-react';
 import {
   Dialog,
