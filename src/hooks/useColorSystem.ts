@@ -45,7 +45,8 @@ async function fetchExternalColors() {
       table: 'color_groups',
       operation: 'select',
       filters: { is_active: true },
-      orderBy: { column: 'sort_order', ascending: true }
+      orderBy: { column: 'sort_order', ascending: true },
+      countMode: 'none',
     }
   });
 
