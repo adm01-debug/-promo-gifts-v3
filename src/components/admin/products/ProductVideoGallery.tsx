@@ -796,6 +796,30 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                       <TooltipContent className="text-xs">Vincular a variação</TooltipContent>
                     </Tooltip>
                   )}
+                  {/* Regenerate thumbnail */}
+                  {!video.url_thumbnail && !video.source_youtube_id && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 bg-black/50 hover:bg-amber-600 text-white"
+                          disabled={regeneratingId === video.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            regenerateThumbnail(video);
+                          }}
+                        >
+                          {regeneratingId === video.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <ImagePlus className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-xs">Gerar thumbnail</TooltipContent>
+                    </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
