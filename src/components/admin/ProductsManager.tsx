@@ -60,6 +60,7 @@ import {
   X,
   Power,
   PowerOff,
+  Boxes,
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
 import { cn } from "@/lib/utils";
@@ -1054,7 +1055,8 @@ export function ProductsManager() {
                                 </Badge>
                               )}
                               {product.is_kit && (
-                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-purple-500/30 text-purple-600 dark:text-purple-400">
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 gap-0.5 border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                                  <Boxes className="h-2.5 w-2.5" />
                                   Kit
                                 </Badge>
                               )}
