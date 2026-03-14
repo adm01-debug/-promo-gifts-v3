@@ -225,14 +225,34 @@ export interface PromobrindProduct {
 // ============================================
 
 // Select fields que existem no schema Promobrind
-// Select all columns — o banco externo pode ter colunas variáveis entre versões.
-// Usar '*' é mais resiliente e evita erros de "column does not exist".
-const PRODUCT_SELECT_FIELDS_WITH_SALE = '*';
-const PRODUCT_SELECT_FIELDS_LEGACY = '*';
+// Campos para LISTAGEM (leves, sem JSONB pesado) — usado em buscas paginadas
+const PRODUCT_SELECT_FIELDS_WITH_SALE =
+  'id, name, sku, sale_price, cost_price, image_url, images, primary_image_url, ' +
+  'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
+  'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
+  'materials, dimensions, min_quantity, created_at, updated_at, ' +
+  'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
+  'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
+  'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
+
+const PRODUCT_SELECT_FIELDS_LEGACY =
+  'id, name, sku, cost_price, image_url, images, primary_image_url, ' +
+  'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
+  'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
+  'materials, dimensions, min_quantity, created_at, updated_at, ' +
+  'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
+  'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
+  'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
+
+// Campos COMPLETOS para edição de produto individual (select: '*')
+// Usado apenas ao carregar 1 registro para o formulário de edição
+const PRODUCT_SELECT_FIELDS_DETAIL = '*';
 
 function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
-  return /(does not exist|não existe|undefined column|unknown column)/i.test(msg);
+  return /(sale_price|base_price|does not exist|não existe|undefined column)/i.test(msg);
 }
 
 /**
