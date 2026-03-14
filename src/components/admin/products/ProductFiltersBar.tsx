@@ -117,6 +117,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
     if (filters.category_id) count++;
     if (filters.supplier_id) count++;
     if (filters.is_active !== undefined && filters.is_active !== 'all') count++;
+    if (filters.is_kit) count++;
     if (filters.price_min !== undefined && filters.price_min > 0) count++;
     if (filters.price_max !== undefined && filters.price_max > 0) count++;
     return count;
