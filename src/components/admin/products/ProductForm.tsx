@@ -386,15 +386,6 @@ export function ProductForm({
                     placeholder="Ex: Tramontina"
                   />
                 </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="supplier_reference">Ref. Fornecedor</FieldLabel>
-                  <Input
-                    id="supplier_reference"
-                    {...register('supplier_reference')}
-                    placeholder="Código do fornecedor"
-                    className="font-mono"
-                  />
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
