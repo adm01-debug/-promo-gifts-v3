@@ -435,11 +435,46 @@ function mapTechniqueRowToLegacyShape(row: Record<string, unknown>) {
   };
 }
 
+// ============================================
+// TELEMETRY CONFIG
+// ============================================
+const SLOW_QUERY_THRESHOLD_MS = 3000; // Alert if query takes > 3s
+const VERY_SLOW_QUERY_THRESHOLD_MS = 8000; // Warn critically if > 8s
+
+function emitTelemetry(meta: {
+  operation: string;
+  table?: string;
+  rpcName?: string;
+  limit?: number;
+  offset?: number;
+  countMode?: string;
+  durationMs: number;
+  recordCount?: number;
+  status: 'ok' | 'error' | 'slow' | 'very_slow';
+  error?: string;
+}) {
+  const icon = meta.status === 'very_slow' ? '🔴' : meta.status === 'slow' ? '🟡' : meta.status === 'error' ? '❌' : '✅';
+  const target = meta.rpcName || meta.table || 'unknown';
+  const line = `${icon} [telemetry] ${meta.operation}:${target} ${meta.durationMs}ms | records=${meta.recordCount ?? '-'} limit=${meta.limit ?? '-'} offset=${meta.offset ?? '-'} count=${meta.countMode ?? '-'}`;
+  
+  if (meta.status === 'very_slow') {
+    console.warn(`⚠️ VERY SLOW QUERY: ${line}`);
+  } else if (meta.status === 'slow') {
+    console.warn(`⚠️ SLOW QUERY: ${line}`);
+  } else if (meta.status === 'error') {
+    console.error(line + ` error=${meta.error}`);
+  } else {
+    console.info(line);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const requestStartTime = performance.now();
 
   try {
     // Parse body primeiro para verificar operação
