@@ -62,6 +62,7 @@ import {
   PowerOff,
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
+import { cn } from "@/lib/utils";
 import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
