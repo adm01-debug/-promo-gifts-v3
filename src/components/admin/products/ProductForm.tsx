@@ -749,6 +749,16 @@ export function ProductForm({
               </>
             )}
 
+            {/* Componentes de Kit */}
+            {isEdit && productId && isKit && (
+              <>
+                <FormSection title="Componentes do Kit" icon={Layers} defaultOpen>
+                  <ProductKitComponentsSection productId={productId} />
+                </FormSection>
+                <Separator />
+              </>
+            )}
+
             <FormSection title="Materiais" icon={Layers} defaultOpen={isEdit}>
               {isEdit && productId ? (
                 <ProductMaterialsSection productId={productId} />
