@@ -229,6 +229,9 @@ export default function AdminTelemetriaPage() {
           </Card>
         )}
 
+        {/* Charts */}
+        <TelemetryCharts rows={rows} timeFilter={timeFilter} />
+
         {/* Filters */}
         <div className="flex items-center gap-3">
           <Select value={severityFilter} onValueChange={(v) => setSeverityFilter(v as SeverityFilter)}>
