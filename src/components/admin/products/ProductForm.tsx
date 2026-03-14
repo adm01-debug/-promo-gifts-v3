@@ -213,6 +213,7 @@ export function ProductForm({
   const descValue = watch('description') || '';
   const shortDescValue = watch('short_description') || '';
   const metaDescValue = watch('meta_description') || '';
+  const supplierRefValue = watch('supplier_reference') || '';
 
   // SKU validation
   const { status: skuStatus, duplicateName } = useSkuValidation(
