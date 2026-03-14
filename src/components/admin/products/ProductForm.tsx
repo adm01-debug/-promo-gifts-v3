@@ -753,7 +753,14 @@ export function ProductForm({
             {isEdit && productId && isKit && (
               <>
                 <FormSection title="Componentes do Kit" icon={Layers} defaultOpen>
-                  <ProductKitComponentsSection productId={productId} />
+                  <ProductKitComponentsSection
+                    productId={productId}
+                    boxInternalDimensions={{
+                      height_cm: watch('internal_height_cm') ?? null,
+                      width_cm: watch('internal_width_cm') ?? null,
+                      length_cm: watch('internal_length_cm') ?? null,
+                    }}
+                  />
                 </FormSection>
                 <Separator />
               </>
