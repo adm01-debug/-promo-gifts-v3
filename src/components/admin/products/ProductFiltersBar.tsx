@@ -21,13 +21,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Filter, X, ChevronDown, RotateCcw } from 'lucide-react';
+import { Filter, X, ChevronDown, RotateCcw, Boxes } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 export interface ProductFilters {
   category_id?: string;
   supplier_id?: string;
   is_active?: boolean | 'all';
+  is_kit?: boolean;
   price_min?: number;
   price_max?: number;
 }
