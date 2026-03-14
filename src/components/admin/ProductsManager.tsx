@@ -502,6 +502,10 @@ export function ProductsManager() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Importar
+            </Button>
             <Button size="sm" onClick={openCreateForm}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Produto
