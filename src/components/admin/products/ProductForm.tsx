@@ -9,6 +9,7 @@ import { productFormSchema, type ProductFormData, defaultFormValues } from './Pr
 import { CategorySelect } from './CategorySelect';
 import { SupplierSelect } from './SupplierSelect';
 import { ProductImageGallery } from './ProductImageGallery';
+import { ProductVideoGallery } from './ProductVideoGallery';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
