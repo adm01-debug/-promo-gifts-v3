@@ -868,20 +868,24 @@ export function ProductForm({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-4 border-t mt-4">
+      <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-4">
         <div className="text-xs text-muted-foreground">
           {Object.keys(errors).length > 0 && (
-            <span className="flex items-center gap-1 text-destructive">
-              <AlertCircle className="h-3 w-3" />
+            <span className="flex items-center gap-1.5 text-destructive font-medium">
+              <AlertCircle className="h-3.5 w-3.5" />
               {Object.keys(errors).length} campo(s) com erro
             </span>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+        <div className="flex gap-2.5">
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={isSaving} className="px-5">
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSaving || skuStatus === 'duplicate'}>
+          <Button
+            type="submit"
+            disabled={isSaving || skuStatus === 'duplicate'}
+            className="px-6 font-semibold shadow-sm"
+          >
             {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {isEdit ? 'Salvar Alterações' : 'Criar Produto'}
           </Button>
