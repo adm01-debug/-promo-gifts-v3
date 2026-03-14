@@ -480,10 +480,16 @@ export function ProductImageGallery({
         return;
       }
 
+      const hasPrimaryAlready = externalImages.some(img => img.is_primary);
       const persistResults = await Promise.all(
-        uploadedUrls.map(async (url) => ({
+        uploadedUrls.map(async (url, index) => ({
           url,
-          result: await createExternalImageRecord(url, uploadVariant, uploadImageType),
+          result: await createExternalImageRecord(
+            url,
+            uploadVariant,
+            uploadImageType,
+            uploadImageType === 'main' && !hasPrimaryAlready && index === 0,
+          ),
         })),
       );
 
