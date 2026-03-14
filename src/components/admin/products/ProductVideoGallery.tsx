@@ -1,13 +1,14 @@
 /**
- * ProductVideoGallery — Galeria de vídeos do produto via tabela product_videos (Cloudflare Stream + YouTube)
- * Com filtro por variação de cor (via tabela local video_variant_links) e por tipo de vídeo.
+ * ProductVideoGallery — Galeria de vídeos do produto
+ * Upload de arquivos de vídeo para Supabase Storage (bucket product-videos)
+ * + registro no banco externo via external-db-bridge
+ * Com filtro por variação de cor e tipo de vídeo.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -15,10 +16,8 @@ import {
   Film,
   Plus,
   Trash2,
-  ExternalLink,
   Play,
   Loader2,
-  Youtube,
   Video,
   Star,
   Filter,
@@ -28,6 +27,8 @@ import {
   Clapperboard,
   Mic,
   Sparkles,
+  Upload,
+  FileVideo,
 } from 'lucide-react';
 import {
   Dialog,
@@ -96,12 +97,8 @@ const VIDEO_TYPES = [
   { value: 'lifestyle', label: 'Lifestyle', icon: Sparkles },
 ];
 
-function extractYoutubeId(url: string): string | null {
-  const match = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
-  );
-  return match?.[1] ?? null;
-}
+const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/mpeg', 'video/ogg'];
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
 function formatBytes(bytes: number | null): string {
   if (!bytes || bytes <= 0) return '';
@@ -118,13 +115,15 @@ interface ProductVideoGalleryProps {
 export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
   const queryClient = useQueryClient();
   const [previewVideo, setPreviewVideo] = useState<ExternalVideo | null>(null);
-  const [newVideoUrl, setNewVideoUrl] = useState('');
-  const [newVideoType, setNewVideoType] = useState('product_video');
-  const [newVideoVariant, setNewVideoVariant] = useState('none');
-  const [isAdding, setIsAdding] = useState(false);
+  const [uploadVideoType, setUploadVideoType] = useState('product_video');
+  const [uploadVariant, setUploadVariant] = useState('none');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadCount, setUploadCount] = useState(0);
   const [filterVariant, setFilterVariant] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [linkingVideoId, setLinkingVideoId] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch videos from external DB
   const { data: videos = [], isLoading } = useQuery<ExternalVideo[]>({
@@ -181,7 +180,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       const { data, error } = await supabase
         .from('video_variant_links')
         .select('*')
-        .eq('product_id', productId);
+        .eq('product_id', productId!);
       if (error) return [];
       return data || [];
     },
@@ -212,18 +211,13 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
   // Filtered videos
   const filteredVideos = useMemo(() => {
     return videos.filter(video => {
-      // Type filter
       if (filterType !== 'all' && (video.video_type || 'product_video') !== filterType) {
         return false;
       }
-
-      // Variant filter
       if (filterVariant === 'all') return true;
       if (filterVariant === 'general') {
-        // Videos without any variant link
         return !videoLinksMap.has(video.id) || videoLinksMap.get(video.id)!.length === 0;
       }
-      // Specific variant
       const links = videoLinksMap.get(video.id) || [];
       return links.some(l => l.variant_id === filterVariant || l.supplier_code === filterVariant);
     });
@@ -239,7 +233,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
   const linkVideoToVariant = useCallback(async (videoId: string, variantId: string) => {
     const variant = variantMap.get(variantId);
     if (!variant) return;
-
     try {
       const { error } = await supabase.from('video_variant_links').insert({
         video_id: videoId,
@@ -247,12 +240,12 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         variant_name: variant.color_name || variant.name,
         variant_color_hex: variant.color_hex,
         supplier_code: variant.supplier_code || null,
-        product_id: productId,
+        product_id: productId!,
       });
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['video-variant-links', productId] });
       toast.success(`Vídeo vinculado a ${variant.color_name || variant.name}`);
-    } catch (err) {
+    } catch {
       toast.error('Erro ao vincular vídeo');
     }
     setLinkingVideoId(null);
@@ -270,74 +263,121 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
   }, [productId, queryClient]);
 
-  const handleAddVideo = useCallback(async () => {
-    if (!newVideoUrl.trim()) return;
+  // Upload a single video file to Supabase Storage
+  const uploadFile = useCallback(async (file: File): Promise<{ url: string; size: number } | null> => {
+    if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+      toast.error(`"${file.name}" não é um formato de vídeo suportado`);
+      return null;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`"${file.name}" excede o limite de 100MB`);
+      return null;
+    }
 
-    setIsAdding(true);
-    try {
-      const youtubeId = extractYoutubeId(newVideoUrl);
-      const nextOrder = videos.length > 0
-        ? Math.max(...videos.map(v => v.display_order || 0)) + 1
-        : 0;
+    const fileExt = file.name.split('.').pop() || 'mp4';
+    const fileName = `videos/${productId || 'new'}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-        body: {
-          table: 'product_videos',
-          operation: 'insert',
-          data: {
-            product_id: productId,
-            url_original: newVideoUrl.trim(),
-            source_youtube_id: youtubeId,
-            url_stream: youtubeId
-              ? `https://www.youtube.com/embed/${youtubeId}`
-              : null,
-            url_thumbnail: youtubeId
-              ? `https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg`
-              : null,
-            video_type: newVideoType,
-            display_order: nextOrder,
-            is_primary: videos.length === 0,
-            is_active: true,
-          },
+    const { data, error } = await supabase.storage
+      .from('product-videos')
+      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+    if (error) {
+      toast.error(`Erro no upload de "${file.name}"`);
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('product-videos')
+      .getPublicUrl(data.path);
+
+    return { url: urlData.publicUrl, size: file.size };
+  }, [productId]);
+
+  // Create external DB record for uploaded video
+  const createExternalVideoRecord = useCallback(async (
+    url: string,
+    fileSize: number,
+    fileName: string,
+  ): Promise<string | null> => {
+    if (!productId) return null;
+    const nextOrder = videos.length > 0
+      ? Math.max(...videos.map(v => v.display_order || 0)) + 1
+      : 0;
+
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+      body: {
+        table: 'product_videos',
+        operation: 'insert',
+        data: {
+          product_id: productId,
+          url_original: url,
+          url_stream: url,
+          video_type: uploadVideoType,
+          display_order: nextOrder,
+          is_primary: videos.length === 0,
+          is_active: true,
+          title: fileName,
+          file_size_bytes: fileSize,
         },
-      });
+      },
+    });
 
-      if (error) throw new Error(error.message);
-      if (!data?.success) throw new Error(data?.error || 'Erro ao adicionar vídeo');
+    if (error || !data?.success) return null;
+    return data?.data?.id || null;
+  }, [productId, uploadVideoType, videos]);
 
-      // If variant selected, link it after video creation
-      const newVideoId = data?.data?.id;
-      if (newVideoVariant !== 'none' && newVideoId) {
-        const variant = variantMap.get(newVideoVariant);
-        if (variant) {
-          await supabase.from('video_variant_links').insert({
-            video_id: newVideoId,
-            variant_id: variant.id,
-            variant_name: variant.color_name || variant.name,
-            variant_color_hex: variant.color_hex,
-            supplier_code: variant.supplier_code || null,
-            product_id: productId,
-          });
+  // Process upload batch
+  const processUploadBatch = useCallback(async (files: File[]) => {
+    if (files.length === 0) return;
+    if (!productId) {
+      toast.error('Salve o produto antes de enviar vídeos');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadCount(files.length);
+
+    try {
+      let successCount = 0;
+
+      for (const file of files) {
+        const result = await uploadFile(file);
+        if (!result) continue;
+
+        const videoId = await createExternalVideoRecord(result.url, result.size, file.name);
+
+        if (videoId && uploadVariant !== 'none') {
+          const variant = variantMap.get(uploadVariant);
+          if (variant) {
+            await supabase.from('video_variant_links').insert({
+              video_id: videoId,
+              variant_id: variant.id,
+              variant_name: variant.color_name || variant.name,
+              variant_color_hex: variant.color_hex,
+              supplier_code: variant.supplier_code || null,
+              product_id: productId,
+            });
+          }
         }
+        successCount++;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['product-videos-ext', productId] });
-      queryClient.invalidateQueries({ queryKey: ['video-variant-links', productId] });
-      setNewVideoUrl('');
-      setNewVideoVariant('none');
-      toast.success('Vídeo adicionado!');
+      if (successCount > 0) {
+        queryClient.invalidateQueries({ queryKey: ['product-videos-ext', productId] });
+        queryClient.invalidateQueries({ queryKey: ['video-variant-links', productId] });
+        toast.success(`${successCount} vídeo(s) enviado(s)!`);
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao adicionar vídeo');
+      toast.error('Erro ao enviar vídeos');
     } finally {
-      setIsAdding(false);
+      setIsUploading(false);
+      setUploadCount(0);
     }
-  }, [newVideoUrl, newVideoType, newVideoVariant, productId, videos, variantMap, queryClient]);
+  }, [productId, uploadFile, createExternalVideoRecord, uploadVariant, variantMap, queryClient]);
 
   const handleRemove = useCallback(async (videoId: string) => {
     try {
-      // Remove variant links first
       await supabase.from('video_variant_links').delete().eq('video_id', videoId);
-      // Soft-delete video
       await supabase.functions.invoke('external-db-bridge', {
         body: {
           table: 'product_videos',
@@ -354,14 +394,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
   }, [productId, queryClient]);
 
-  const getVideoEmbedUrl = (video: ExternalVideo): string | null => {
-    if (video.source_youtube_id) {
-      return `https://www.youtube.com/embed/${video.source_youtube_id}`;
-    }
-    if (video.url_stream) return video.url_stream;
-    return null;
-  };
-
   const getThumbnail = (video: ExternalVideo): string | null => {
     if (video.url_thumbnail) return video.url_thumbnail;
     if (video.source_youtube_id) {
@@ -369,6 +401,39 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
     return null;
   };
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    const files = Array.from(e.dataTransfer.files).filter(f => ACCEPTED_VIDEO_TYPES.includes(f.type));
+    if (files.length > 0) {
+      processUploadBatch(files);
+    } else {
+      toast.error('Nenhum arquivo de vídeo válido encontrado');
+    }
+  }, [processUploadBatch]);
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      processUploadBatch(files);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [processUploadBatch]);
 
   const hasFilters = filterVariant !== 'all' || filterType !== 'all';
 
@@ -387,8 +452,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       {videos.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-lg bg-muted/20 border border-border/30">
           <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-
-          {/* Type filter */}
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="h-7 w-[120px] text-[11px]">
               <SelectValue placeholder="Tipo" />
@@ -405,8 +468,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
               ))}
             </SelectContent>
           </Select>
-
-          {/* Variant filter */}
           {variants.length > 0 && (
             <Select value={filterVariant} onValueChange={setFilterVariant}>
               <SelectTrigger className="h-7 w-[160px] text-[11px]">
@@ -439,7 +500,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
               </SelectContent>
             </Select>
           )}
-
           {hasFilters && (
             <Button
               type="button"
@@ -451,7 +511,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
               Limpar filtros
             </Button>
           )}
-
           <span className="ml-auto text-[10px] text-muted-foreground">
             {filteredVideos.length}/{videos.length}
           </span>
@@ -502,17 +561,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                       Principal
                     </Badge>
                   )}
-                  {video.source_youtube_id && (
-                    <Badge variant="secondary" className="text-[8px] px-1 py-0 flex items-center gap-0.5">
-                      <Youtube className="h-2.5 w-2.5 text-red-500" />
-                      YouTube
-                    </Badge>
-                  )}
-                  {!video.source_youtube_id && video.cloudflare_video_id && (
-                    <Badge variant="secondary" className="text-[8px] px-1 py-0">
-                      Cloudflare
-                    </Badge>
-                  )}
                   {typeInfo && (
                     <Badge variant="outline" className="text-[8px] px-1 py-0 bg-background/80 backdrop-blur-sm">
                       {typeInfo.label}
@@ -543,7 +591,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-white/80 truncate max-w-[70%]">
-                      {video.title || (video.source_youtube_id ? `YT: ${video.source_youtube_id}` : 'Vídeo')}
+                      {video.title || 'Vídeo'}
                     </span>
                     {video.file_size_bytes && video.file_size_bytes > 0 && (
                       <span className="text-[9px] text-white/60">
@@ -555,7 +603,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
 
                 {/* Action buttons (top-right) */}
                 <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  {/* Link to variant button */}
                   {variants.length > 0 && (
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -575,7 +622,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                       <TooltipContent className="text-xs">Vincular a variação</TooltipContent>
                     </Tooltip>
                   )}
-                  {/* Remove button */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -659,33 +705,22 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
             <Link2 className="h-2.5 w-2.5" />
             {stats.linked} vinculado(s)
           </span>
-          {videos.filter(v => v.source_youtube_id).length > 0 && (
-            <span className="flex items-center gap-1">
-              <Youtube className="h-2.5 w-2.5 text-red-500" />
-              {videos.filter(v => v.source_youtube_id).length} YouTube
-            </span>
-          )}
-          {videos.filter(v => v.cloudflare_video_id && !v.source_youtube_id).length > 0 && (
-            <span>
-              {videos.filter(v => v.cloudflare_video_id && !v.source_youtube_id).length} Cloudflare Stream
-            </span>
-          )}
         </div>
       )}
 
-      {/* Add video form */}
+      {/* Upload dropzone — same visual pattern as image gallery */}
       <div className="rounded-lg border-2 border-dashed border-border overflow-hidden transition-colors hover:border-primary/40">
         {/* Type & variant selector bar */}
         <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/10 via-muted/40 to-muted/30 border-b border-primary/20">
           <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-background/80 border border-primary/30 shadow-sm">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
               {(() => {
-                const activeType = VIDEO_TYPES.find(t => t.value === newVideoType);
+                const activeType = VIDEO_TYPES.find(t => t.value === uploadVideoType);
                 return activeType ? <activeType.icon className="h-4 w-4" /> : <Film className="h-4 w-4" />;
               })()}
               <span>Tipo:</span>
             </div>
-            <Select value={newVideoType} onValueChange={setNewVideoType}>
+            <Select value={uploadVideoType} onValueChange={setUploadVideoType}>
               <SelectTrigger className="h-8 w-[140px] text-xs font-medium bg-primary/5 border-primary/20 text-foreground">
                 <SelectValue />
               </SelectTrigger>
@@ -709,7 +744,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                 <Palette className="h-3 w-3" />
                 <span className="font-medium">Vincular a:</span>
               </div>
-              <Select value={newVideoVariant} onValueChange={setNewVideoVariant}>
+              <Select value={uploadVariant} onValueChange={setUploadVariant}>
                 <SelectTrigger className="h-8 w-[160px] text-[11px] bg-background/80">
                   <SelectValue placeholder="Sem variação" />
                 </SelectTrigger>
@@ -732,38 +767,59 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
           )}
         </div>
 
-        {/* URL input + add button */}
-        <div className="p-3 space-y-2">
-          <div className="flex items-center gap-2">
-            <Input
-              value={newVideoUrl}
-              onChange={(e) => setNewVideoUrl(e.target.value)}
-              placeholder="https://youtube.com/watch?v=... ou URL do vídeo"
-              className="h-8 text-xs flex-1 min-w-[200px]"
-            />
-            <Button
-              type="button"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={handleAddVideo}
-              disabled={isAdding || !newVideoUrl.trim()}
-            >
-              {isAdding ? (
-                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-              ) : (
-                <Plus className="h-3 w-3 mr-1" />
-              )}
-              Adicionar
-            </Button>
-          </div>
-          {newVideoUrl && extractYoutubeId(newVideoUrl) && (
-            <div className="rounded-md border border-border/40 overflow-hidden aspect-video max-w-xs">
-              <img
-                src={`https://img.youtube.com/vi/${extractYoutubeId(newVideoUrl)}/mqdefault.jpg`}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-            </div>
+        {/* Drop zone */}
+        <div
+          className={cn(
+            'p-6 flex flex-col items-center justify-center gap-3 transition-colors cursor-pointer',
+            isDragOver ? 'bg-primary/10' : 'bg-background/50',
+            isUploading && 'opacity-60 pointer-events-none'
+          )}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime,video/mpeg,video/ogg"
+            multiple
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+
+          {isUploading ? (
+            <>
+              <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              <span className="text-sm text-muted-foreground">
+                Enviando {uploadCount} vídeo(s)...
+              </span>
+            </>
+          ) : (
+            <>
+              <div className={cn(
+                "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                isDragOver ? "bg-primary/20" : "bg-muted/40"
+              )}>
+                {isDragOver ? (
+                  <FileVideo className="h-6 w-6 text-primary" />
+                ) : (
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-foreground">
+                  {isDragOver ? 'Solte os vídeos aqui' : 'Arraste vídeos ou clique para selecionar'}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  MP4, WebM, MOV • Máx. 100MB por arquivo
+                </p>
+              </div>
+              <Button type="button" variant="outline" size="sm" className="h-8 text-xs gap-1.5">
+                <Plus className="h-3.5 w-3.5" />
+                Selecionar vídeos
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -782,17 +838,9 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
           {previewVideo && (
             <div className="space-y-2">
               <div className="aspect-video rounded-md overflow-hidden bg-black">
-                {getVideoEmbedUrl(previewVideo) ? (
-                  <iframe
-                    src={getVideoEmbedUrl(previewVideo)!}
-                    className="w-full h-full"
-                    allowFullScreen
-                    allow="autoplay; encrypted-media"
-                    title={previewVideo.title || 'Vídeo'}
-                  />
-                ) : previewVideo.url_hls ? (
+                {previewVideo.url_stream || previewVideo.url_original ? (
                   <video
-                    src={previewVideo.url_hls}
+                    src={previewVideo.url_stream || previewVideo.url_original || ''}
                     controls
                     className="w-full h-full object-contain"
                   />
@@ -809,7 +857,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                     {VIDEO_TYPES.find(t => t.value === previewVideo.video_type)?.label || previewVideo.video_type}
                   </Badge>
                 )}
-                {/* Show variant links */}
                 {(videoLinksMap.get(previewVideo.id) || []).map(link => (
                   <Badge key={link.id} variant="outline" className="text-[10px] flex items-center gap-1">
                     <span
@@ -819,24 +866,8 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                     {link.variant_name}
                   </Badge>
                 ))}
-                {previewVideo.cloudflare_status && (
-                  <Badge variant="outline" className="text-[10px]">
-                    {previewVideo.cloudflare_status}
-                  </Badge>
-                )}
                 {previewVideo.file_size_bytes && previewVideo.file_size_bytes > 0 && (
                   <span>{formatBytes(previewVideo.file_size_bytes)}</span>
-                )}
-                {previewVideo.url_original && (
-                  <a
-                    href={previewVideo.url_original}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-0.5 text-primary hover:underline"
-                  >
-                    <ExternalLink className="h-2.5 w-2.5" />
-                    Original
-                  </a>
                 )}
               </div>
             </div>
