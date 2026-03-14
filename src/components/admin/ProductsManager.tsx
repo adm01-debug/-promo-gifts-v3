@@ -559,6 +559,9 @@ export function ProductsManager() {
           />
         </div>
 
+        {/* Advanced Filters */}
+        <ProductFiltersBar filters={advancedFilters} onChange={handleFiltersChange} />
+
         {/* Products Table */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
