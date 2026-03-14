@@ -949,6 +949,7 @@ export async function fetchPromobrindProductById(
           select: 'id, name, code',
           filters: { id: product.supplier_id },
           limit: 1,
+          countMode: 'none',
         });
         if (supplierResult.records[0]) {
           product.supplier_name = supplierResult.records[0].name;
