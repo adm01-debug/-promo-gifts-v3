@@ -587,7 +587,7 @@ export function ProductsManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
+                {displayedProducts.map((product) => (
                   <TableRow key={product.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEditForm(product)}>
                     <TableCell>
                       {product.images && product.images.length > 0 ? (
