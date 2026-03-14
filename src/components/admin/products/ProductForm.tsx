@@ -310,11 +310,19 @@ export function ProductForm({
           </div>
 
           {/* ====== TAB BÁSICO ====== */}
-          <TabsContent value="basic" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="Informações Básicas" icon={Info} defaultOpen>
-              {/* SKU Interno + SKU Fornecedor */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+          <TabsContent value="basic" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            {/* Card: Informações Básicas */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Info className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Informações Básicas</h4>
+              </div>
+
+              {/* SKU row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>
                     SKU Interno (Nosso)
                   </FieldLabel>
@@ -324,13 +332,13 @@ export function ProductForm({
                       {...register('sku')}
                       placeholder="Ex: GS-001"
                       className={cn(
-                        'font-mono pr-8',
+                        'font-mono pr-8 h-9',
                         errors.sku && 'border-destructive',
                         skuStatus === 'valid' && 'border-success/50',
                         skuStatus === 'duplicate' && 'border-destructive',
                       )}
                     />
-                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
                       {skuStatus === 'checking' && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                       {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
                       {skuStatus === 'duplicate' && (
@@ -345,12 +353,12 @@ export function ProductForm({
                       )}
                     </div>
                   </div>
-                  {errors.sku && <p className="text-[10px] text-destructive">{errors.sku.message}</p>}
+                  {errors.sku && <p className="text-[10px] text-destructive mt-1">{errors.sku.message}</p>}
                   {skuStatus === 'duplicate' && (
-                    <p className="text-[10px] text-destructive">SKU duplicado: "{duplicateName}"</p>
+                    <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>
                   )}
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>
                     SKU do Fornecedor
                   </FieldLabel>
@@ -358,13 +366,13 @@ export function ProductForm({
                     id="supplier_reference"
                     {...register('supplier_reference')}
                     placeholder="Ex: FORN-12345"
-                    className="font-mono"
+                    className="font-mono h-9"
                   />
                 </div>
               </div>
 
               {/* Nome */}
-              <div className="space-y-1">
+              <div>
                 <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
                   Nome do Produto
                 </FieldLabel>
@@ -372,12 +380,13 @@ export function ProductForm({
                   id="name"
                   {...register('name')}
                   placeholder="Nome do produto"
-                  className={cn(errors.name && 'border-destructive')}
+                  className={cn('h-9', errors.name && 'border-destructive')}
                 />
-                {errors.name && <p className="text-[10px] text-destructive">{errors.name.message}</p>}
+                {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
               </div>
 
-              <div className="space-y-1">
+              {/* Descrição */}
+              <div>
                 <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000}>
                   Descrição
                 </FieldLabel>
@@ -386,12 +395,13 @@ export function ProductForm({
                   {...register('description')}
                   placeholder="Descrição detalhada do produto"
                   rows={3}
-                  className="text-sm"
+                  className="text-sm resize-y min-h-[72px]"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              {/* Descrição Curta + Meta Descrição */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="short_description" charCount={shortDescValue.length} charMax={500}>
                     Descrição Curta
                   </FieldLabel>
@@ -399,9 +409,10 @@ export function ProductForm({
                     id="short_description"
                     {...register('short_description')}
                     placeholder="Resumo em uma linha"
+                    className="h-9"
                   />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>
                     Meta Descrição (SEO)
                   </FieldLabel>
@@ -409,23 +420,23 @@ export function ProductForm({
                     id="meta_description"
                     {...register('meta_description')}
                     placeholder="Descrição para buscadores"
+                    className="h-9"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              {/* Marca + Categoria + Fornecedor */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="brand">Marca</FieldLabel>
                   <Input
                     id="brand"
                     {...register('brand')}
                     placeholder="Ex: Tramontina"
+                    className="h-9"
                   />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+                <div>
                   <FieldLabel>Categoria</FieldLabel>
                   <CategorySelect
                     value={categoryId || ''}
@@ -433,7 +444,7 @@ export function ProductForm({
                     error={errors.category_id?.message}
                   />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel>Fornecedor</FieldLabel>
                   <SupplierSelect
                     value={supplierId || ''}
@@ -442,84 +453,102 @@ export function ProductForm({
                   />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
+            {/* Card: Preço e Estoque */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                    <Tag className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Preço e Estoque</h4>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-mono tabular-nums">
+                  R$ {watch('sale_price')?.toFixed(2) || '0.00'}
+                </Badge>
+              </div>
 
-            {/* Preço e Estoque */}
-            <FormSection title="Preço e Estoque" icon={Tag} defaultOpen badge={`R$ ${watch('sale_price')?.toFixed(2) || '0.00'}`}>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="sale_price" required>Preço Venda (R$)</FieldLabel>
-                  <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn(errors.sale_price && 'border-destructive')} />
-                  {errors.sale_price && <p className="text-[10px] text-destructive">{errors.sale_price.message}</p>}
+                  <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} />
+                  {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="cost_price">Preço Custo (R$)</FieldLabel>
-                  <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" />
+                  <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="suggested_price">Preço Sugerido (R$)</FieldLabel>
-                  <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" />
+                  <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-4 gap-4">
+                <div>
                   <FieldLabel htmlFor="stock_quantity">Estoque</FieldLabel>
-                  <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" />
+                  <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="stock_unit">Unidade</FieldLabel>
-                  <Input id="stock_unit" {...register('stock_unit')} placeholder="un" />
+                  <Input id="stock_unit" {...register('stock_unit')} placeholder="un" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="min_quantity">Qtd. Mínima</FieldLabel>
-                  <Input id="min_quantity" {...numericProps('min_quantity')} min="1" />
+                  <Input id="min_quantity" {...numericProps('min_quantity')} min="1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="min_order_quantity">Qtd. Mín. Pedido</FieldLabel>
-                  <Input id="min_order_quantity" {...numericProps('min_order_quantity')} min="0" />
+                  <Input id="min_order_quantity" {...numericProps('min_order_quantity')} min="0" className="h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
+            {/* Card: Comercial (collapsible) */}
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Comercial" icon={Truck} defaultOpen={false}>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
+                    <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="warranty_months">Garantia (meses)</FieldLabel>
+                    <Input id="warranty_months" {...numericProps('warranty_months')} min="0" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>
+                    <Input id="product_type" {...register('product_type')} placeholder="product" className="h-9" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
+                    <Input id="supply_mode" {...register('supply_mode')} placeholder="Ex: pronta_entrega_liso" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="gender">Gênero</FieldLabel>
+                    <Input id="gender" {...register('gender')} placeholder="Ex: unissex, masculino, feminino" className="h-9" />
+                  </div>
+                </div>
+              </FormSection>
+            </div>
 
-            {/* Comercial */}
-            <FormSection title="Comercial" icon={Truck} defaultOpen={false}>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
-                  <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" />
+            {/* Card: Status e Destaques */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-3">
+              <div className="flex items-center justify-between pb-1">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">Status e Destaques</h4>
                 </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="warranty_months">Garantia (meses)</FieldLabel>
-                  <Input id="warranty_months" {...numericProps('warranty_months')} min="0" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>
-                  <Input id="product_type" {...register('product_type')} placeholder="product" />
-                </div>
+                <Badge variant="outline" className="text-[10px]">{flagCount} ativos</Badge>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
-                  <Input id="supply_mode" {...register('supply_mode')} placeholder="Ex: pronta_entrega_liso" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="gender">Gênero</FieldLabel>
-                  <Input id="gender" {...register('gender')} placeholder="Ex: unissex, masculino, feminino" />
-                </div>
-              </div>
-            </FormSection>
 
-            <Separator />
-
-            {/* Status / Flags */}
-            <FormSection title="Status e Destaques" icon={ShieldCheck} defaultOpen badge={`${flagCount} ativos`}>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { key: 'is_active' as const, label: 'Produto Ativo', value: isActive, color: 'bg-green-500/10 border-green-500/30' },
+                  { key: 'is_active' as const, label: 'Produto Ativo', value: isActive, activeClass: 'bg-success/8 border-success/30' },
                   { key: 'is_featured' as const, label: 'Destaque', value: isFeatured },
                   { key: 'is_bestseller' as const, label: 'Mais Vendido', value: isBestseller },
                   { key: 'is_new' as const, label: 'Lançamento', value: isNew },
@@ -531,15 +560,16 @@ export function ProductForm({
                   { key: 'allows_personalization' as const, label: 'Permite Personalização', value: allowsPersonalization },
                   { key: 'has_gift_box' as const, label: 'Caixa Presente', value: hasGiftBox },
                   { key: 'has_optional_packaging' as const, label: 'Embalagem Opcional', value: hasOptionalPackaging },
-                ].map(({ key, label, value, color }) => (
+                ].map(({ key, label, value, activeClass }) => (
                   <div
                     key={key}
                     className={cn(
-                      'flex items-center justify-between rounded-lg border p-2.5 transition-colors',
-                      value && (color || 'bg-primary/5 border-primary/20'),
+                      'flex items-center justify-between rounded-lg border p-2.5 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                      value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
                     )}
+                    onClick={() => setValue(key, !value)}
                   >
-                    <Label className="cursor-pointer text-xs">{label}</Label>
+                    <Label className="cursor-pointer text-xs font-medium">{label}</Label>
                     <Switch
                       checked={value}
                       onCheckedChange={(v) => setValue(key, v)}
@@ -548,18 +578,19 @@ export function ProductForm({
                 ))}
                 <div
                   className={cn(
-                    'flex items-center justify-between rounded-lg border p-2.5 col-span-2 transition-colors',
-                    hasCommercialPackaging && 'bg-primary/5 border-primary/20',
+                    'flex items-center justify-between rounded-lg border p-2.5 col-span-2 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                    hasCommercialPackaging ? 'bg-primary/5 border-primary/20' : 'border-border/50',
                   )}
+                  onClick={() => setValue('has_commercial_packaging', !hasCommercialPackaging)}
                 >
-                  <Label className="cursor-pointer text-xs">Embalagem Nativa (comercial)</Label>
+                  <Label className="cursor-pointer text-xs font-medium">Embalagem Nativa (comercial)</Label>
                   <Switch
                     checked={hasCommercialPackaging}
                     onCheckedChange={(v) => setValue('has_commercial_packaging', v)}
                   />
                 </div>
               </div>
-            </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB DETALHES ====== */}
