@@ -206,6 +206,9 @@ export function ProductImageGallery({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  // Upload context state
+  const [uploadVariant, setUploadVariant] = useState<string>('none');
+  const [uploadImageType, setUploadImageType] = useState<string>('gallery');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch external images
@@ -385,6 +388,39 @@ export function ProductImageGallery({
     return urlData.publicUrl;
   };
 
+  // Create external DB record for uploaded image
+  const createExternalImageRecord = useCallback(async (url: string, variantCode: string, imageType: string) => {
+    if (!productId) return;
+    try {
+      const variant = variantCode !== 'none' ? variantMap.get(variantCode) : null;
+      const nextOrder = externalImages.length > 0
+        ? Math.max(...externalImages.map(i => i.display_order || 0)) + 1
+        : 0;
+
+      await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'product_images',
+          operation: 'insert',
+          data: {
+            product_id: productId,
+            url_cdn: url,
+            url_original: url,
+            image_type: imageType,
+            is_primary: imageType === 'main' && externalImages.filter(i => i.is_primary).length === 0,
+            is_og_image: false,
+            display_order: nextOrder,
+            is_active: true,
+            supplier_code: variant?.supplier_code || null,
+            variant_id: variant?.id || null,
+            alt_text: null,
+          },
+        },
+      });
+    } catch (err) {
+      console.warn('Erro ao criar registro no BD externo:', err);
+    }
+  }, [productId, variantMap, externalImages]);
+
   const handleFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -394,7 +430,20 @@ export function ProductImageGallery({
     const validUrls = results.filter(Boolean) as string[];
     if (validUrls.length > 0) {
       onChange([...images, ...validUrls]);
-      toast.success(`${validUrls.length} imagem(ns) enviada(s)!`);
+      // Create records in external DB with variant/type context
+      if (productId) {
+        await Promise.all(validUrls.map(url =>
+          createExternalImageRecord(url, uploadVariant, uploadImageType)
+        ));
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      }
+      const variantLabel = uploadVariant !== 'none'
+        ? variantMap.get(uploadVariant)?.color_name || variantMap.get(uploadVariant)?.name || uploadVariant
+        : null;
+      const typeLabel = IMAGE_TYPES.find(t => t.value === uploadImageType)?.label || uploadImageType;
+      toast.success(
+        `${validUrls.length} imagem(ns) enviada(s)${variantLabel ? ` → ${variantLabel}` : ''} (${typeLabel})`
+      );
     }
     setIsUploading(false);
     setUploadCount(0);
@@ -441,11 +490,17 @@ export function ProductImageGallery({
     const validUrls = results.filter(Boolean) as string[];
     if (validUrls.length > 0) {
       onChange([...images, ...validUrls]);
+      if (productId) {
+        await Promise.all(validUrls.map(url =>
+          createExternalImageRecord(url, uploadVariant, uploadImageType)
+        ));
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      }
       toast.success(`${validUrls.length} imagem(ns) enviada(s)!`);
     }
     setIsUploading(false);
     setUploadCount(0);
-  }, [images, onChange]);
+  }, [images, onChange, productId, uploadVariant, uploadImageType, createExternalImageRecord, queryClient]);
 
   // ── Active type filters ──
   const activeTypes = useMemo(() => {
@@ -746,40 +801,122 @@ export function ProductImageGallery({
         </div>
       )}
 
-      {/* ── Upload area ── */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); }}
-        onDrop={handleDropZone}
-        className={cn(
-          'border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer hover:border-primary/50 hover:bg-primary/5',
-          isUploading ? 'border-primary bg-primary/5' : 'border-border',
-        )}
-        onClick={() => !isUploading && fileInputRef.current?.click()}
-      >
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFilesChange}
-          className="hidden"
-        />
-        {isUploading ? (
-          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            Enviando {uploadCount} imagem(ns)...
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Upload className="h-4 w-4" />
-              <span>Arraste imagens aqui ou clique para enviar</span>
+      {/* ── Upload area with variant/type selectors ── */}
+      <div className="rounded-lg border-2 border-dashed border-border overflow-hidden transition-colors hover:border-primary/40">
+        {/* Upload context selectors */}
+        {productId && variants.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-muted/30 border-b border-border/40">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Palette className="h-3 w-3" />
+              <span className="font-medium">Vincular a:</span>
             </div>
-            <p className="text-xs text-muted-foreground/70">
-              PNG, JPG até 5MB • Múltiplas imagens permitidas
-            </p>
+            <Select value={uploadVariant} onValueChange={setUploadVariant}>
+              <SelectTrigger className="h-7 w-[180px] text-[11px] bg-background/80">
+                <SelectValue placeholder="Sem variação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none" className="text-xs">
+                  <span className="flex items-center gap-1.5">
+                    <ImageIcon className="h-3 w-3 text-muted-foreground" />
+                    Imagem geral (sem cor)
+                  </span>
+                </SelectItem>
+                {variants.map(v => (
+                  <SelectItem key={v.id} value={v.supplier_code || v.id} className="text-xs">
+                    <span className="flex items-center gap-1.5">
+                      {v.color_hex ? (
+                        <div className="w-3 h-3 rounded-full border border-border/60" style={{ backgroundColor: v.color_hex }} />
+                      ) : (
+                        <Palette className="h-3 w-3 text-muted-foreground" />
+                      )}
+                      {v.color_name || v.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="h-4 w-px bg-border/50" />
+
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Filter className="h-3 w-3" />
+              <span className="font-medium">Tipo:</span>
+            </div>
+            <Select value={uploadImageType} onValueChange={setUploadImageType}>
+              <SelectTrigger className="h-7 w-[140px] text-[11px] bg-background/80">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IMAGE_TYPES.filter(t => t.value !== 'video').map(t => (
+                  <SelectItem key={t.value} value={t.value} className="text-xs">
+                    <span className="flex items-center gap-1.5">
+                      <t.icon className={cn("h-3 w-3", t.color)} />
+                      {t.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Active context indicator */}
+            {(uploadVariant !== 'none' || uploadImageType !== 'gallery') && (
+              <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-primary/5 border-primary/20 text-primary">
+                {uploadVariant !== 'none' && (
+                  <span className="flex items-center gap-1">
+                    {(() => {
+                      const v = variantMap.get(uploadVariant);
+                      return v?.color_hex ? (
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: v.color_hex }} />
+                      ) : null;
+                    })()}
+                    {variantMap.get(uploadVariant)?.color_name || variantMap.get(uploadVariant)?.name}
+                  </span>
+                )}
+                {uploadVariant !== 'none' && uploadImageType !== 'gallery' && ' • '}
+                {uploadImageType !== 'gallery' && IMAGE_TYPES.find(t => t.value === uploadImageType)?.label}
+              </Badge>
+            )}
           </div>
         )}
+
+        {/* Drop zone */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); }}
+          onDrop={handleDropZone}
+          className={cn(
+            'p-4 text-center transition-colors cursor-pointer hover:bg-primary/5',
+            isUploading && 'bg-primary/5',
+          )}
+          onClick={() => !isUploading && fileInputRef.current?.click()}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFilesChange}
+            className="hidden"
+          />
+          {isUploading ? (
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              Enviando {uploadCount} imagem(ns)...
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Upload className="h-4 w-4" />
+                <span>Arraste imagens aqui ou clique para enviar</span>
+              </div>
+              <p className="text-xs text-muted-foreground/70">
+                PNG, JPG até 5MB • Múltiplas imagens permitidas
+                {uploadVariant !== 'none' && (
+                  <span className="text-primary/70"> • Vinculado à variação selecionada</span>
+                )}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── Fullscreen preview ── */}
