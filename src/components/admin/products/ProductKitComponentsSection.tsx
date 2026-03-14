@@ -1,5 +1,6 @@
 /**
  * ProductKitComponentsSection — CRUD completo para componentes de kit
+ * + Áreas de gravação por componente (kit_component_print_areas)
  * Visual consistente com padrão Super Filtro do admin
  */
 
@@ -8,7 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Package, Plus, Pencil, Trash2, Save, X, Loader2, GripVertical,
-  AlertCircle, Boxes, Settings2, Paintbrush,
+  AlertCircle, Boxes, Settings2, Paintbrush, Target, ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +32,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+
+// ── Types ──
 
 interface KitComponent {
   id: string;
@@ -84,6 +92,35 @@ interface ComponentFormData {
   notes: string;
 }
 
+interface PrintArea {
+  id: string;
+  kit_component_id: string;
+  location_code: string | null;
+  location_name: string | null;
+  area_name: string | null;
+  max_width_mm: number | null;
+  max_height_mm: number | null;
+  technique_name: string | null;
+  technique_id: string | null;
+  tabela_preco_id: string | null;
+  display_order: number | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface PrintAreaFormData {
+  location_code: string;
+  location_name: string;
+  technique_name: string;
+  technique_id: string;
+  max_width_mm: number | null;
+  max_height_mm: number | null;
+  tabela_preco_id: string;
+  display_order: number;
+  notes: string;
+}
+
 interface ProductKitComponentsSectionProps {
   productId: string;
 }
@@ -109,6 +146,18 @@ const EMPTY_FORM: ComponentFormData = {
   allows_personalization: true,
   personalization_notes: '',
   primary_image_url: '',
+  notes: '',
+};
+
+const EMPTY_PRINT_AREA: PrintAreaFormData = {
+  location_code: '',
+  location_name: '',
+  technique_name: '',
+  technique_id: '',
+  max_width_mm: null,
+  max_height_mm: null,
+  tabela_preco_id: '',
+  display_order: 0,
   notes: '',
 };
 
@@ -153,7 +202,458 @@ async function deleteComponent(id: string): Promise<void> {
   if (!data?.success) throw new Error(data?.error || 'Erro ao excluir componente');
 }
 
-// ── Form sub-component ──
+// Print Areas API helpers
+async function fetchPrintAreas(componentId: string): Promise<PrintArea[]> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: {
+      table: 'kit_component_print_areas',
+      operation: 'select',
+      filters: { kit_component_id: componentId },
+      limit: 50,
+      orderBy: { column: 'display_order', ascending: true },
+    },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro ao buscar áreas');
+  return data.data?.records || [];
+}
+
+async function createPrintArea(payload: Record<string, unknown>): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: { table: 'kit_component_print_areas', operation: 'insert', data: payload },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro ao criar área');
+}
+
+async function updatePrintArea(id: string, payload: Record<string, unknown>): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: { table: 'kit_component_print_areas', operation: 'update', id, data: payload },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro ao atualizar área');
+}
+
+async function deletePrintArea(id: string): Promise<void> {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+    body: { table: 'kit_component_print_areas', operation: 'delete', id },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro ao excluir área');
+}
+
+// ── Print Area Form ──
+
+function PrintAreaForm({
+  initial,
+  onSave,
+  onCancel,
+  isSaving,
+}: {
+  initial: PrintAreaFormData;
+  onSave: (data: PrintAreaFormData) => void;
+  onCancel: () => void;
+  isSaving: boolean;
+}) {
+  const [form, setForm] = useState<PrintAreaFormData>(initial);
+
+  const set = <K extends keyof PrintAreaFormData>(field: K, value: PrintAreaFormData[K]) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+  const handleSave = () => {
+    if (!form.location_name.trim()) {
+      toast.error('Nome do local é obrigatório');
+      return;
+    }
+    onSave(form);
+  };
+
+  // Build area_name preview: "{Location} — {Technique}"
+  const areaNamePreview = [form.location_name, form.technique_name].filter(Boolean).join(' — ');
+
+  return (
+    <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 space-y-2.5 ml-6">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
+        <Target className="h-3 w-3" />
+        Área de Gravação
+      </div>
+
+      {/* Row 1: Local Code + Local Name + Technique */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="space-y-1">
+          <Label className="text-[10px]">Código Local</Label>
+          <Input
+            value={form.location_code}
+            onChange={(e) => set('location_code', e.target.value)}
+            placeholder="Ex: CABO"
+            className="h-7 text-xs font-mono uppercase"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[10px]">Nome Local *</Label>
+          <Input
+            value={form.location_name}
+            onChange={(e) => set('location_name', e.target.value)}
+            placeholder="Ex: Cabo, Frente, 360°"
+            className="h-7 text-xs"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[10px]">Técnica</Label>
+          <Input
+            value={form.technique_name}
+            onChange={(e) => set('technique_name', e.target.value)}
+            placeholder="Ex: Laser, Serigrafia"
+            className="h-7 text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Area Name Preview */}
+      {areaNamePreview && (
+        <div className="text-[10px] text-muted-foreground">
+          area_name: <span className="font-mono text-foreground">{areaNamePreview}</span>
+        </div>
+      )}
+
+      {/* Row 2: Max Width + Max Height + Technique ID + Tabela Preço ID + Ordem */}
+      <div className="grid grid-cols-5 gap-2">
+        <div className="space-y-1">
+          <Label className="text-[10px]">Larg. Máx (mm)</Label>
+          <Input
+            type="number"
+            value={form.max_width_mm ?? ''}
+            onChange={(e) => set('max_width_mm', e.target.value ? parseFloat(e.target.value) : null)}
+            className="h-7 text-xs"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[10px]">Alt. Máx (mm)</Label>
+          <Input
+            type="number"
+            value={form.max_height_mm ?? ''}
+            onChange={(e) => set('max_height_mm', e.target.value ? parseFloat(e.target.value) : null)}
+            className="h-7 text-xs"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[10px]">ID Técnica</Label>
+          <Input
+            value={form.technique_id}
+            onChange={(e) => set('technique_id', e.target.value)}
+            placeholder="UUID"
+            className="h-7 text-xs font-mono"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[10px]">ID Tabela Preço</Label>
+          <Input
+            value={form.tabela_preco_id}
+            onChange={(e) => set('tabela_preco_id', e.target.value)}
+            placeholder="UUID"
+            className="h-7 text-xs font-mono"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-[10px]">Ordem</Label>
+          <Input
+            type="number"
+            value={form.display_order}
+            onChange={(e) => set('display_order', parseInt(e.target.value, 10) || 0)}
+            min="0"
+            className="h-7 text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Row 3: Notes */}
+      <div className="space-y-1">
+        <Label className="text-[10px]">Observações</Label>
+        <Input
+          value={form.notes}
+          onChange={(e) => set('notes', e.target.value)}
+          placeholder="Observações sobre a área de gravação"
+          className="h-7 text-xs"
+        />
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-1.5">
+        <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] px-2" onClick={onCancel} disabled={isSaving}>
+          <X className="h-3 w-3 mr-0.5" /> Cancelar
+        </Button>
+        <Button type="button" size="sm" className="h-6 text-[10px] px-2" disabled={isSaving} onClick={handleSave}>
+          {isSaving ? <Loader2 className="h-3 w-3 mr-0.5 animate-spin" /> : <Save className="h-3 w-3 mr-0.5" />}
+          Salvar
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Print Areas Manager per Component ──
+
+function PrintAreasManager({ componentId, componentName }: { componentId: string; componentName: string }) {
+  const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<PrintArea | null>(null);
+
+  const { data: areas = [], isLoading, error } = useQuery({
+    queryKey: ['kit-print-areas', componentId],
+    queryFn: () => fetchPrintAreas(componentId),
+    enabled: !!componentId && isOpen,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const invalidate = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['kit-print-areas', componentId] });
+  }, [queryClient, componentId]);
+
+  const handleCreate = async (formData: PrintAreaFormData) => {
+    setIsSaving(true);
+    try {
+      const areaName = [formData.location_name, formData.technique_name].filter(Boolean).join(' — ');
+      await createPrintArea({
+        kit_component_id: componentId,
+        location_code: formData.location_code.trim() || null,
+        location_name: formData.location_name.trim() || null,
+        area_name: areaName || null,
+        technique_name: formData.technique_name.trim() || null,
+        technique_id: formData.technique_id.trim() || null,
+        max_width_mm: formData.max_width_mm,
+        max_height_mm: formData.max_height_mm,
+        tabela_preco_id: formData.tabela_preco_id.trim() || null,
+        display_order: formData.display_order,
+        notes: formData.notes.trim() || null,
+        is_active: true,
+      });
+      toast.success('Área de gravação criada');
+      setIsCreating(false);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao criar área');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleUpdate = async (areaId: string, formData: PrintAreaFormData) => {
+    setIsSaving(true);
+    try {
+      const areaName = [formData.location_name, formData.technique_name].filter(Boolean).join(' — ');
+      await updatePrintArea(areaId, {
+        location_code: formData.location_code.trim() || null,
+        location_name: formData.location_name.trim() || null,
+        area_name: areaName || null,
+        technique_name: formData.technique_name.trim() || null,
+        technique_id: formData.technique_id.trim() || null,
+        max_width_mm: formData.max_width_mm,
+        max_height_mm: formData.max_height_mm,
+        tabela_preco_id: formData.tabela_preco_id.trim() || null,
+        display_order: formData.display_order,
+        notes: formData.notes.trim() || null,
+      });
+      toast.success('Área atualizada');
+      setEditingId(null);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsSaving(true);
+    try {
+      await deletePrintArea(deleteTarget.id);
+      toast.success('Área removida');
+      setDeleteTarget(null);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao remover');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              'flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-md transition-colors',
+              'text-muted-foreground hover:text-foreground hover:bg-accent/50',
+              isOpen && 'text-primary bg-primary/10',
+              areas.length > 0 && !isOpen && 'text-primary'
+            )}
+          >
+            <Target className="h-3 w-3" />
+            Áreas de Gravação
+            {areas.length > 0 && (
+              <Badge variant="secondary" className="h-3.5 min-w-[14px] px-1 text-[8px]">
+                {areas.length}
+              </Badge>
+            )}
+            {isOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="ml-6 mt-1.5 space-y-1.5">
+            {isLoading && (
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground py-1">
+                <Loader2 className="h-3 w-3 animate-spin" /> Carregando áreas...
+              </div>
+            )}
+
+            {error && (
+              <div className="flex items-center gap-1.5 text-[10px] text-destructive py-1">
+                <AlertCircle className="h-3 w-3" />
+                {error instanceof Error && error.message.includes('kit_component_print_areas')
+                  ? 'Tabela kit_component_print_areas não existe no banco externo. Crie-a primeiro.'
+                  : 'Erro ao carregar áreas'}
+              </div>
+            )}
+
+            {!isLoading && !error && areas.length === 0 && !isCreating && (
+              <p className="text-[10px] text-muted-foreground py-1">Nenhuma área cadastrada</p>
+            )}
+
+            {/* Existing areas */}
+            {areas.map((area) => {
+              if (editingId === area.id) {
+                return (
+                  <PrintAreaForm
+                    key={area.id}
+                    initial={{
+                      location_code: area.location_code || '',
+                      location_name: area.location_name || '',
+                      technique_name: area.technique_name || '',
+                      technique_id: area.technique_id || '',
+                      max_width_mm: area.max_width_mm,
+                      max_height_mm: area.max_height_mm,
+                      tabela_preco_id: area.tabela_preco_id || '',
+                      display_order: area.display_order ?? 0,
+                      notes: area.notes || '',
+                    }}
+                    onSave={(data) => handleUpdate(area.id, data)}
+                    onCancel={() => setEditingId(null)}
+                    isSaving={isSaving}
+                  />
+                );
+              }
+
+              // Extract technique from area_name pattern "{Location} — {Technique}"
+              const techniqueBadge = area.area_name?.includes(' — ')
+                ? area.area_name.split(' — ')[1]
+                : area.technique_name;
+
+              return (
+                <div
+                  key={area.id}
+                  className="flex items-center gap-2 rounded-md border border-border/50 p-1.5 text-[10px] group hover:bg-accent/30 transition-colors"
+                >
+                  <Target className="h-3 w-3 text-primary/60 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium truncate">{area.location_name || area.location_code || 'Sem local'}</span>
+                      {techniqueBadge && (
+                        <Badge variant="outline" className="text-[8px] px-1 py-0 shrink-0">
+                          {techniqueBadge}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      {(area.max_width_mm || area.max_height_mm) && (
+                        <span>{area.max_width_mm ?? '?'}×{area.max_height_mm ?? '?'} mm</span>
+                      )}
+                      {area.location_code && <span className="font-mono">{area.location_code}</span>}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5"
+                      onClick={() => { setEditingId(area.id); setIsCreating(false); }}
+                    >
+                      <Pencil className="h-2.5 w-2.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 text-destructive hover:text-destructive"
+                      onClick={() => setDeleteTarget(area)}
+                    >
+                      <Trash2 className="h-2.5 w-2.5" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Create form */}
+            {isCreating && (
+              <PrintAreaForm
+                initial={{ ...EMPTY_PRINT_AREA, display_order: areas.length }}
+                onSave={handleCreate}
+                onCancel={() => setIsCreating(false)}
+                isSaving={isSaving}
+              />
+            )}
+
+            {/* Add button */}
+            {!isCreating && !error && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-5 text-[10px] px-1.5 gap-0.5"
+                onClick={() => { setIsCreating(true); setEditingId(null); }}
+              >
+                <Plus className="h-2.5 w-2.5" /> Área
+              </Button>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Delete confirmation for print area */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir área de gravação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A área <strong>{deleteTarget?.area_name || deleteTarget?.location_name}</strong> será removida permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isSaving}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
+// ── Component Form ──
 
 function ComponentForm({
   initial,
@@ -569,7 +1069,7 @@ export function ProductKitComponentsSection({ productId }: ProductKitComponentsS
       )}
 
       {/* Components list */}
-      <ScrollArea className={components.length > 5 ? 'h-80' : ''}>
+      <ScrollArea className={components.length > 5 ? 'h-[500px]' : ''}>
         <div className="space-y-2">
           {components.map((comp) => {
             if (editingId === comp.id) {
@@ -607,70 +1107,79 @@ export function ProductKitComponentsSection({ productId }: ProductKitComponentsS
             }
 
             return (
-              <div
-                key={comp.id}
-                className={cn(
-                  'flex items-center gap-2.5 rounded-lg border p-2.5 transition-colors group',
-                  'hover:bg-accent/50',
-                )}
-              >
-                {/* Image or icon */}
-                {comp.primary_image_url ? (
-                  <img
-                    src={comp.primary_image_url}
-                    alt={comp.component_name || ''}
-                    className="w-10 h-10 rounded-md object-contain border shrink-0 bg-muted/30"
+              <div key={comp.id} className="space-y-0.5">
+                <div
+                  className={cn(
+                    'flex items-center gap-2.5 rounded-lg border p-2.5 transition-colors group',
+                    'hover:bg-accent/50',
+                  )}
+                >
+                  {/* Image or icon */}
+                  {comp.primary_image_url ? (
+                    <img
+                      src={comp.primary_image_url}
+                      alt={comp.component_name || ''}
+                      className="w-10 h-10 rounded-md object-contain border shrink-0 bg-muted/30"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-md border shrink-0 bg-muted flex items-center justify-center">
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-medium truncate">{comp.component_name || 'Sem nome'}</p>
+                      {comp.component_type_code && (
+                        <Badge variant="secondary" className="text-[9px] px-1 py-0 uppercase">
+                          {comp.component_type_code}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      {comp.component_sku && <span className="font-mono">{comp.component_sku}</span>}
+                      <span>Qtd: {comp.quantity ?? 1}</span>
+                      {comp.material && <span>• {comp.material}</span>}
+                      {comp.color && <span>• {comp.color}</span>}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-0.5">
+                      {comp.is_optional && <Badge variant="outline" className="text-[9px] px-1 py-0">Opcional</Badge>}
+                      {comp.is_packaging && <Badge variant="outline" className="text-[9px] px-1 py-0">Embalagem</Badge>}
+                      {comp.allows_personalization && <Badge className="bg-primary/15 text-primary border-primary/30 text-[9px] px-1 py-0">Personalizável</Badge>}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => { setEditingId(comp.id); setIsCreating(false); }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      onClick={() => setDeleteTarget(comp)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Print Areas for this component (only if personalizable) */}
+                {comp.allows_personalization && (
+                  <PrintAreasManager
+                    componentId={comp.id}
+                    componentName={comp.component_name || 'Componente'}
                   />
-                ) : (
-                  <div className="w-10 h-10 rounded-md border shrink-0 bg-muted flex items-center justify-center">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                  </div>
                 )}
-
-                {/* Info */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-xs font-medium truncate">{comp.component_name || 'Sem nome'}</p>
-                    {comp.component_type_code && (
-                      <Badge variant="secondary" className="text-[9px] px-1 py-0 uppercase">
-                        {comp.component_type_code}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    {comp.component_sku && <span className="font-mono">{comp.component_sku}</span>}
-                    <span>Qtd: {comp.quantity ?? 1}</span>
-                    {comp.material && <span>• {comp.material}</span>}
-                    {comp.color && <span>• {comp.color}</span>}
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-0.5">
-                    {comp.is_optional && <Badge variant="outline" className="text-[9px] px-1 py-0">Opcional</Badge>}
-                    {comp.is_packaging && <Badge variant="outline" className="text-[9px] px-1 py-0">Embalagem</Badge>}
-                    {comp.allows_personalization && <Badge className="bg-primary/15 text-primary border-primary/30 text-[9px] px-1 py-0">Personalizável</Badge>}
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => { setEditingId(comp.id); setIsCreating(false); }}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive hover:text-destructive"
-                    onClick={() => setDeleteTarget(comp)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
               </div>
             );
           })}
@@ -684,6 +1193,9 @@ export function ProductKitComponentsSection({ productId }: ProductKitComponentsS
             <AlertDialogTitle>Excluir componente?</AlertDialogTitle>
             <AlertDialogDescription>
               O componente <strong>{deleteTarget?.component_name}</strong> será removido permanentemente do kit.
+              {deleteTarget?.allows_personalization && (
+                <> Todas as áreas de gravação associadas também serão perdidas.</>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
