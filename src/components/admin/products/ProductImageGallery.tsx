@@ -1238,7 +1238,7 @@ export function ProductImageGallery({
       {/* ── Upload area with variant/type selectors ── */}
       <div className="rounded-lg border-2 border-dashed border-border overflow-hidden transition-colors hover:border-primary/40">
       {/* Upload context selectors — always show type selector */}
-        <div className="flex flex-wrap items-center gap-3 px-3 py-2 bg-muted/30 border-b border-border/40">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/10 via-muted/40 to-muted/30 border-b border-primary/20">
           {/* Variant selector (only when variants exist) */}
           {productId && variants.length > 0 && (
             <>
@@ -1275,25 +1275,30 @@ export function ProductImageGallery({
             </>
           )}
 
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Filter className="h-3 w-3" />
-            <span className="font-medium">Tipo:</span>
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-background/80 border border-primary/30 shadow-sm">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+              {(() => {
+                const activeType = IMAGE_TYPES.find(t => t.value === uploadImageType);
+                return activeType ? <activeType.icon className={cn("h-4 w-4", activeType.color)} /> : <Filter className="h-4 w-4" />;
+              })()}
+              <span>Tipo:</span>
+            </div>
+            <Select value={uploadImageType} onValueChange={setUploadImageType}>
+              <SelectTrigger className="h-8 w-[160px] text-xs font-medium bg-primary/5 border-primary/20 text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {IMAGE_TYPES.filter(t => t.value !== 'video').map(t => (
+                  <SelectItem key={t.value} value={t.value} className="text-xs">
+                    <span className="flex items-center gap-1.5">
+                      <t.icon className={cn("h-3.5 w-3.5", t.color)} />
+                      {t.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={uploadImageType} onValueChange={setUploadImageType}>
-            <SelectTrigger className="h-7 w-[140px] text-[11px] bg-background/80">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {IMAGE_TYPES.filter(t => t.value !== 'video').map(t => (
-                <SelectItem key={t.value} value={t.value} className="text-xs">
-                  <span className="flex items-center gap-1.5">
-                    <t.icon className={cn("h-3 w-3", t.color)} />
-                    {t.label}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
 
           {/* Active context indicator */}
           {(uploadVariant !== 'none' || uploadImageType !== 'gallery') && (
