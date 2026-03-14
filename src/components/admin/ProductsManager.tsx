@@ -166,18 +166,30 @@ export function ProductsManager() {
   const { logAction, getChangedFields } = useAuditLog();
   const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : 1;
 
-  const fetchProducts = useCallback(async (page = currentPage, size = pageSize, search?: string) => {
+  const fetchProducts = useCallback(async (page = currentPage, size = pageSize, search?: string, filtersOverride?: ProductFilters) => {
     setIsLoading(true);
     try {
       const { fetchPromobrindProducts, getProductImageUrl, getProductPrice, getProductStock } = await import('@/lib/external-db');
       
       const offset = (page - 1) * size;
+      const activeFilters = filtersOverride ?? advancedFilters;
+
+      // Build server-side filters
+      const serverFilters: Record<string, unknown> = {};
+      if (activeFilters.category_id) serverFilters.category_id = activeFilters.category_id;
+      if (activeFilters.supplier_id) serverFilters.supplier_id = activeFilters.supplier_id;
+      if (activeFilters.is_active !== undefined && activeFilters.is_active !== 'all') {
+        serverFilters.is_active = activeFilters.is_active;
+        serverFilters.active = activeFilters.is_active;
+      }
+
       const result = await fetchPromobrindProducts({
         search: search || undefined,
         limit: size,
         offset,
         orderBy: { column: 'created_at', ascending: false },
         returnCount: true,
+        filters: serverFilters,
       });
 
       const { products: productsData, count } = result as { products: any[]; count: number | null };
@@ -234,7 +246,7 @@ export function ProductsManager() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, advancedFilters]);
 
   useEffect(() => {
     fetchProducts(1, pageSize, searchTerm);
