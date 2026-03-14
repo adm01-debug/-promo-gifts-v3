@@ -279,7 +279,9 @@ export async function fetchPromobrindProducts(options?: {
   returnCount?: boolean;
 }): Promise<PromobrindProduct[] | { products: PromobrindProduct[]; count: number | null }> {
   const filters: Record<string, unknown> = {
-    active: true,  // Campo correto no schema externo
+    ...(options?.filters?.active === undefined && options?.filters?.is_active === undefined
+      ? { active: true }
+      : {}),
     ...options?.filters,
   };
 

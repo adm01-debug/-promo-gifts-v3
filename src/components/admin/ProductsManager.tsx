@@ -3,7 +3,7 @@
  * Refatorado: usa ProductForm unificado com validação zod e seletores reais
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { invokeExternalDbSingle, invokeExternalDbDelete } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
+import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
 import { ProductForm } from "./products/ProductForm";
@@ -147,6 +148,7 @@ export function ProductsManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [advancedFilters, setAdvancedFilters] = useState<ProductFilters>({});
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -164,18 +166,30 @@ export function ProductsManager() {
   const { logAction, getChangedFields } = useAuditLog();
   const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : 1;
 
-  const fetchProducts = useCallback(async (page = currentPage, size = pageSize, search?: string) => {
+  const fetchProducts = useCallback(async (page = currentPage, size = pageSize, search?: string, filtersOverride?: ProductFilters) => {
     setIsLoading(true);
     try {
       const { fetchPromobrindProducts, getProductImageUrl, getProductPrice, getProductStock } = await import('@/lib/external-db');
       
       const offset = (page - 1) * size;
+      const activeFilters = filtersOverride ?? advancedFilters;
+
+      // Build server-side filters
+      const serverFilters: Record<string, unknown> = {};
+      if (activeFilters.category_id) serverFilters.category_id = activeFilters.category_id;
+      if (activeFilters.supplier_id) serverFilters.supplier_id = activeFilters.supplier_id;
+      if (activeFilters.is_active !== undefined && activeFilters.is_active !== 'all') {
+        serverFilters.is_active = activeFilters.is_active;
+        serverFilters.active = activeFilters.is_active;
+      }
+
       const result = await fetchPromobrindProducts({
         search: search || undefined,
         limit: size,
         offset,
         orderBy: { column: 'created_at', ascending: false },
         returnCount: true,
+        filters: serverFilters,
       });
 
       const { products: productsData, count } = result as { products: any[]; count: number | null };
@@ -232,7 +246,7 @@ export function ProductsManager() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, advancedFilters]);
 
   useEffect(() => {
     fetchProducts(1, pageSize, searchTerm);
@@ -242,10 +256,30 @@ export function ProductsManager() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
-      fetchProducts(1, pageSize, searchTerm);
+      fetchProducts(1, pageSize, searchTerm, advancedFilters);
     }, 400);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  // Re-fetch when advanced filters change (server-side: category, supplier, status)
+  const handleFiltersChange = useCallback((newFilters: ProductFilters) => {
+    setAdvancedFilters(newFilters);
+    setCurrentPage(1);
+    fetchProducts(1, pageSize, searchTerm, newFilters);
+  }, [pageSize, searchTerm]);
+
+  // Client-side price filtering on current page
+  const displayedProducts = useMemo(() => {
+    let filtered = products;
+    const { price_min, price_max } = advancedFilters;
+    if (price_min !== undefined && price_min > 0) {
+      filtered = filtered.filter(p => p.price >= price_min);
+    }
+    if (price_max !== undefined && price_max > 0) {
+      filtered = filtered.filter(p => p.price <= price_max);
+    }
+    return filtered;
+  }, [products, advancedFilters.price_min, advancedFilters.price_max]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -525,12 +559,15 @@ export function ProductsManager() {
           />
         </div>
 
+        {/* Advanced Filters */}
+        <ProductFiltersBar filters={advancedFilters} onChange={handleFiltersChange} />
+
         {/* Products Table */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : products.length === 0 ? (
+        ) : displayedProducts.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>Nenhum produto encontrado</p>
@@ -550,7 +587,7 @@ export function ProductsManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
+                {displayedProducts.map((product) => (
                   <TableRow key={product.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openEditForm(product)}>
                     <TableCell>
                       {product.images && product.images.length > 0 ? (
