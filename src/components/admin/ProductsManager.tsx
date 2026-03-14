@@ -518,7 +518,43 @@ export function ProductsManager() {
     }
   };
 
-  // Stats computed from current page data
+  // Bulk selection helpers
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(prev =>
+      prev.size === displayedProducts.length
+        ? new Set()
+        : new Set(displayedProducts.map(p => p.id))
+    );
+  }, [displayedProducts]);
+
+  const handleBulkToggleActive = useCallback(async (activate: boolean) => {
+    if (selectedIds.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const promises = Array.from(selectedIds).map(id =>
+        invokeExternalDbSingle({ table: 'products', operation: 'update', id, data: { is_active: activate, active: activate, updated_at: new Date().toISOString() } })
+      );
+      await Promise.all(promises);
+      toast.success(`${selectedIds.size} produto(s) ${activate ? 'ativado(s)' : 'desativado(s)'}`);
+      setSelectedIds(new Set());
+      fetchProducts(currentPage, pageSize, searchTerm);
+    } catch (error: any) {
+      console.error('Bulk update error:', error);
+      toast.error(error.message || 'Erro ao atualizar produtos em lote');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }, [selectedIds, currentPage, pageSize, searchTerm]);
+
+
   const stats = useMemo(() => {
     const active = products.filter(p => p.is_active).length;
     const inactive = products.filter(p => !p.is_active).length;
