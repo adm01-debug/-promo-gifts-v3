@@ -883,15 +883,20 @@ serve(async (req) => {
         const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
         query = query.range(safeOffset, safeOffset + safeLimit - 1);
         
+        const selectStart = performance.now();
         const { data: selectData, error: selectError, count } = await query;
+        const selectDuration = Math.round(performance.now() - selectStart);
         
         if (selectError) {
-          console.error('Select error:', selectError);
+          emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode: countMode, durationMs: selectDuration, status: 'error', error: selectError.message });
           return new Response(
             JSON.stringify({ error: selectError.message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+        
+        const selectStatus = selectDuration >= VERY_SLOW_QUERY_THRESHOLD_MS ? 'very_slow' : selectDuration >= SLOW_QUERY_THRESHOLD_MS ? 'slow' : 'ok';
+        emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode: countMode, durationMs: selectDuration, status: selectStatus, recordCount: selectData?.length ?? 0 });
         
         // Compat: mapear resposta para shape antigo
         if ((usingTechniqueAlias || usingVarianteAlias) && Array.isArray(selectData)) {
