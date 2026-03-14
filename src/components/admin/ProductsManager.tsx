@@ -739,7 +739,13 @@ export function ProductsManager() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent border-border/50">
-                    <TableHead className="w-16 pl-4">Foto</TableHead>
+                    <TableHead className="w-10 pl-4">
+                      <Checkbox
+                        checked={selectedIds.size > 0 && selectedIds.size === displayedProducts.length}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead className="w-14">Foto</TableHead>
                     <TableHead className="w-28">SKU</TableHead>
                     <TableHead>Produto</TableHead>
                     <TableHead className="w-28 text-right">Preço</TableHead>
