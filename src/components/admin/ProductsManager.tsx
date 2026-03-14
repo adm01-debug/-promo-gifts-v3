@@ -734,6 +734,13 @@ export function ProductsManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Import */}
+      <BulkImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onComplete={() => fetchProducts(1, pageSize, searchTerm)}
+      />
     </Card>
   );
 }
