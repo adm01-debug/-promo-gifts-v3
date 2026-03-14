@@ -289,6 +289,20 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
             </Select>
           </div>
 
+          {/* Kit */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+            <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background">
+              <Boxes className="h-3.5 w-3.5 text-purple-500" />
+              <span className="text-sm flex-1">Apenas Kits</span>
+              <Switch
+                checked={!!filters.is_kit}
+                onCheckedChange={(checked) => update({ is_kit: checked || undefined })}
+                className="scale-90"
+              />
+            </div>
+          </div>
+
           {/* Faixa de Preço */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Faixa de Preço (R$)</label>
