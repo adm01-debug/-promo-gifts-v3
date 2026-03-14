@@ -306,7 +306,7 @@ export async function fetchPromobrindProducts(options?: {
         orderBy,
         limit: options.limit,
         offset: fetchOffset,
-        countMode: shouldRequestCount ? 'exact' : 'none',
+        countMode: shouldRequestCount ? 'planned' : 'none',
       });
     }
     products = result.records;
