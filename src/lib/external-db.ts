@@ -314,7 +314,7 @@ export async function fetchPromobrindProducts(options?: {
         orderBy,
         limit: options.limit,
         offset: fetchOffset,
-        countMode: shouldRequestCount ? 'planned' : 'none',
+        countMode: shouldRequestCount ? 'exact' : 'none',
       });
     } catch (err) {
       if (!shouldFallbackSelect(err)) throw err;
