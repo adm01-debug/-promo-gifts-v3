@@ -1066,14 +1066,22 @@ serve(async (req) => {
         );
     }
 
+    const totalDuration = Math.round(performance.now() - requestStartTime);
+    if (totalDuration >= VERY_SLOW_QUERY_THRESHOLD_MS) {
+      console.warn(`🔴 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (VERY SLOW)`);
+    } else if (totalDuration >= SLOW_QUERY_THRESHOLD_MS) {
+      console.warn(`🟡 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (SLOW)`);
+    }
+
     return new Response(
       JSON.stringify({ data: result, success: true }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
+    const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('Unexpected error:', errorMessage);
+    console.error(`❌ [telemetry] Request failed after ${totalDuration}ms: ${errorMessage}`);
     
     return new Response(
       JSON.stringify({ error: errorMessage }),
