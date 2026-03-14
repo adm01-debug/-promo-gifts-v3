@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TelemetryCharts } from "@/components/admin/telemetry/TelemetryCharts";
 import { toast } from "sonner";
 
 interface TelemetryRow {
