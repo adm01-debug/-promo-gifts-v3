@@ -740,6 +740,92 @@ export async function fetchPromobrindProducts(options?: {
   return products;
 }
 
+// ============================================
+// LIGHTWEIGHT PRODUCT FETCH (sem enriquecimento)
+// Para seletores de produto que não precisam de cores/imagens/variantes completas
+// ============================================
+
+const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity';
+
+export interface LightweightProduct {
+  id: string;
+  name: string;
+  sku: string;
+  sale_price?: number | null;
+  cost_price?: number | null;
+  image_url: string | null;
+  primary_image_url: string | null;
+  supplier_id: string | null;
+  category_id: string | null;
+  main_category_id: string | null;
+  brand: string | null;
+  is_active: boolean;
+  active: boolean;
+  stock_quantity?: number | null;
+  min_quantity?: number | null;
+}
+
+/**
+ * Busca produtos com campos mínimos (sem enriquecimento de cores/imagens/variantes).
+ * ~10x mais rápido que fetchPromobrindProducts para catálogos grandes.
+ */
+export async function fetchPromobrindProductsLightweight(options?: {
+  search?: string;
+  limit?: number;
+  offset?: number;
+  orderBy?: { column: string; ascending?: boolean };
+  filters?: Record<string, unknown>;
+}): Promise<LightweightProduct[]> {
+  const filters: Record<string, unknown> = {
+    active: true,
+    ...options?.filters,
+  };
+
+  if (options?.search) {
+    filters.name = options.search;
+  }
+
+  const orderBy = options?.orderBy ?? { column: 'name', ascending: true };
+  let products: LightweightProduct[] = [];
+
+  if (typeof options?.limit === 'number' && options.limit > 0) {
+    const result = await invokeExternalDb<LightweightProduct>({
+      table: 'products',
+      operation: 'select',
+      filters,
+      select: PRODUCT_SELECT_LIGHTWEIGHT,
+      orderBy,
+      limit: options.limit,
+      offset: options?.offset ?? 0,
+      countMode: 'none',
+    });
+    products = result.records;
+  } else {
+    const pageSize = 1000;
+    let offset = 0;
+    const HARD_MAX = 200000;
+
+    while (offset < HARD_MAX) {
+      const page = await invokeExternalDb<LightweightProduct>({
+        table: 'products',
+        operation: 'select',
+        filters,
+        select: PRODUCT_SELECT_LIGHTWEIGHT,
+        orderBy,
+        limit: pageSize,
+        offset,
+        countMode: 'none',
+      });
+
+      products.push(...page.records);
+      offset += page.records.length;
+      if (page.records.length < pageSize) break;
+    }
+  }
+
+  return products;
+}
+
 /**
  * Busca um produto específico pelo ID (com enriquecimento de cores das variantes)
  */
