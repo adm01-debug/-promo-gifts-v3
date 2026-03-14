@@ -33,7 +33,7 @@ interface ProductTag {
 
 async function fetchTags(): Promise<ExternalTag[]> {
   const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-    body: { table: 'tags', operation: 'select', limit: 500, orderBy: { column: 'name', ascending: true } },
+    body: { table: 'tags', operation: 'select', limit: 500, orderBy: { column: 'name', ascending: true }, countMode: 'none' },
   });
   if (error) throw new Error(error.message);
   return data?.data?.records || [];

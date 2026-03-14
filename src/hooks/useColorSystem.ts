@@ -45,7 +45,8 @@ async function fetchExternalColors() {
       table: 'color_groups',
       operation: 'select',
       filters: { is_active: true },
-      orderBy: { column: 'sort_order', ascending: true }
+      orderBy: { column: 'sort_order', ascending: true },
+      countMode: 'none',
     }
   });
 
@@ -62,7 +63,8 @@ async function fetchExternalColors() {
       table: 'color_variations',
       operation: 'select',
       filters: { is_active: true },
-      orderBy: { column: 'sort_order', ascending: true }
+      orderBy: { column: 'sort_order', ascending: true },
+      countMode: 'none',
     }
   });
 
@@ -138,8 +140,10 @@ export function useColorGroups() {
     queryFn: async () => {
       return await fetchExternalColors();
     },
-    staleTime: 60 * 60 * 1000,
-  });
+    staleTime: 60 * 60 * 1000, // 1 hora
+    gcTime: 24 * 60 * 60 * 1000, // 24 horas
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
 }
 
 /**

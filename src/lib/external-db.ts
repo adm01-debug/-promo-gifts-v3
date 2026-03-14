@@ -949,6 +949,7 @@ export async function fetchPromobrindProductById(
           select: 'id, name, code',
           filters: { id: product.supplier_id },
           limit: 1,
+          countMode: 'none',
         });
         if (supplierResult.records[0]) {
           product.supplier_name = supplierResult.records[0].name;
@@ -1175,6 +1176,7 @@ export async function fetchPromobrindCategories(): Promise<{ id: string; name: s
       select: 'id, name',
       limit: 500,
       orderBy: { column: 'name', ascending: true },
+      countMode: 'none',
     });
     return result.records;
   } catch {
