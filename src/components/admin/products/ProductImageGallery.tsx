@@ -388,6 +388,39 @@ export function ProductImageGallery({
     return urlData.publicUrl;
   };
 
+  // Create external DB record for uploaded image
+  const createExternalImageRecord = useCallback(async (url: string, variantCode: string, imageType: string) => {
+    if (!productId) return;
+    try {
+      const variant = variantCode !== 'none' ? variantMap.get(variantCode) : null;
+      const nextOrder = externalImages.length > 0
+        ? Math.max(...externalImages.map(i => i.display_order || 0)) + 1
+        : 0;
+
+      await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'product_images',
+          operation: 'insert',
+          data: {
+            product_id: productId,
+            url_cdn: url,
+            url_original: url,
+            image_type: imageType,
+            is_primary: imageType === 'main' && externalImages.filter(i => i.is_primary).length === 0,
+            is_og_image: false,
+            display_order: nextOrder,
+            is_active: true,
+            supplier_code: variant?.supplier_code || null,
+            variant_id: variant?.id || null,
+            alt_text: null,
+          },
+        },
+      });
+    } catch (err) {
+      console.warn('Erro ao criar registro no BD externo:', err);
+    }
+  }, [productId, variantMap, externalImages]);
+
   const handleFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -397,7 +430,20 @@ export function ProductImageGallery({
     const validUrls = results.filter(Boolean) as string[];
     if (validUrls.length > 0) {
       onChange([...images, ...validUrls]);
-      toast.success(`${validUrls.length} imagem(ns) enviada(s)!`);
+      // Create records in external DB with variant/type context
+      if (productId) {
+        await Promise.all(validUrls.map(url =>
+          createExternalImageRecord(url, uploadVariant, uploadImageType)
+        ));
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      }
+      const variantLabel = uploadVariant !== 'none'
+        ? variantMap.get(uploadVariant)?.color_name || variantMap.get(uploadVariant)?.name || uploadVariant
+        : null;
+      const typeLabel = IMAGE_TYPES.find(t => t.value === uploadImageType)?.label || uploadImageType;
+      toast.success(
+        `${validUrls.length} imagem(ns) enviada(s)${variantLabel ? ` → ${variantLabel}` : ''} (${typeLabel})`
+      );
     }
     setIsUploading(false);
     setUploadCount(0);
@@ -444,11 +490,17 @@ export function ProductImageGallery({
     const validUrls = results.filter(Boolean) as string[];
     if (validUrls.length > 0) {
       onChange([...images, ...validUrls]);
+      if (productId) {
+        await Promise.all(validUrls.map(url =>
+          createExternalImageRecord(url, uploadVariant, uploadImageType)
+        ));
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      }
       toast.success(`${validUrls.length} imagem(ns) enviada(s)!`);
     }
     setIsUploading(false);
     setUploadCount(0);
-  }, [images, onChange]);
+  }, [images, onChange, productId, uploadVariant, uploadImageType, createExternalImageRecord, queryClient]);
 
   // ── Active type filters ──
   const activeTypes = useMemo(() => {
