@@ -100,6 +100,54 @@ const VIDEO_TYPES = [
 const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/mpeg', 'video/ogg'];
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 
+/**
+ * Extrai o primeiro frame de um arquivo de vídeo como Blob JPEG usando canvas.
+ * Retorna null se falhar (codec não suportado, etc).
+ */
+function extractThumbnailFromVideo(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+    video.src = url;
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      video.remove();
+    };
+
+    video.addEventListener('loadeddata', () => {
+      // Seek to 1 second or 0 if shorter
+      video.currentTime = Math.min(1, video.duration || 0);
+    });
+
+    video.addEventListener('seeked', () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.min(video.videoWidth, 640);
+        canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { cleanup(); resolve(null); return; }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          cleanup();
+          resolve(blob);
+        }, 'image/jpeg', 0.8);
+      } catch {
+        cleanup();
+        resolve(null);
+      }
+    });
+
+    video.addEventListener('error', () => { cleanup(); resolve(null); });
+
+    // Timeout safety - 10s max
+    setTimeout(() => { cleanup(); resolve(null); }, 10000);
+  });
+}
+
 function formatBytes(bytes: number | null): string {
   if (!bytes || bytes <= 0) return '';
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -263,8 +311,8 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
   }, [productId, queryClient]);
 
-  // Upload a single video file to Supabase Storage
-  const uploadFile = useCallback(async (file: File): Promise<{ url: string; size: number } | null> => {
+  // Upload a single video file + auto-generate thumbnail
+  const uploadFile = useCallback(async (file: File): Promise<{ url: string; size: number; thumbnailUrl: string | null } | null> => {
     if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
       toast.error(`"${file.name}" não é um formato de vídeo suportado`);
       return null;
@@ -275,11 +323,12 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
 
     const fileExt = file.name.split('.').pop() || 'mp4';
-    const fileName = `videos/${productId || 'new'}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const baseName = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const videoPath = `videos/${productId || 'new'}/${baseName}.${fileExt}`;
 
     const { data, error } = await supabase.storage
       .from('product-videos')
-      .upload(fileName, file, { cacheControl: '3600', upsert: false });
+      .upload(videoPath, file, { cacheControl: '3600', upsert: false });
 
     if (error) {
       toast.error(`Erro no upload de "${file.name}"`);
@@ -290,7 +339,25 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
       .from('product-videos')
       .getPublicUrl(data.path);
 
-    return { url: urlData.publicUrl, size: file.size };
+    // Auto-generate thumbnail from first frame
+    let thumbnailUrl: string | null = null;
+    try {
+      const thumbBlob = await extractThumbnailFromVideo(file);
+      if (thumbBlob) {
+        const thumbPath = `thumbnails/${productId || 'new'}/${baseName}.jpg`;
+        const { data: td, error: te } = await supabase.storage
+          .from('product-videos')
+          .upload(thumbPath, thumbBlob, { contentType: 'image/jpeg', cacheControl: '86400', upsert: false });
+        if (!te && td) {
+          const { data: tu } = supabase.storage.from('product-videos').getPublicUrl(td.path);
+          thumbnailUrl = tu.publicUrl;
+        }
+      }
+    } catch (e) {
+      console.warn('Thumbnail generation failed:', e);
+    }
+
+    return { url: urlData.publicUrl, size: file.size, thumbnailUrl };
   }, [productId]);
 
   // Create external DB record for uploaded video
@@ -298,6 +365,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     url: string,
     fileSize: number,
     fileName: string,
+    thumbnailUrl: string | null,
   ): Promise<string | null> => {
     if (!productId) return null;
     const nextOrder = videos.length > 0
@@ -312,6 +380,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
           product_id: productId,
           url_original: url,
           url_stream: url,
+          url_thumbnail: thumbnailUrl,
           video_type: uploadVideoType,
           display_order: nextOrder,
           is_primary: videos.length === 0,
@@ -344,7 +413,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         const result = await uploadFile(file);
         if (!result) continue;
 
-        const videoId = await createExternalVideoRecord(result.url, result.size, file.name);
+        const videoId = await createExternalVideoRecord(result.url, result.size, file.name, result.thumbnailUrl);
 
         if (videoId && uploadVariant !== 'none') {
           const variant = variantMap.get(uploadVariant);
