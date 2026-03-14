@@ -56,8 +56,12 @@ async function buildBridgeError(error: unknown): Promise<{ message: string; retr
   const diagnostic = `${baseMessage} ${responseBody}`.toLowerCase();
   const retryable =
     status === 503 ||
+    status === 504 ||
     diagnostic.includes('boot_error') ||
-    diagnostic.includes('function failed to start');
+    diagnostic.includes('function failed to start') ||
+    diagnostic.includes('statement timeout') ||
+    diagnostic.includes('canceling statement due to statement timeout') ||
+    diagnostic.includes('57014');
 
   const details = responseBody ? `${baseMessage} | ${responseBody}` : baseMessage;
   return { message: `Erro na bridge: ${details}`, retryable };
