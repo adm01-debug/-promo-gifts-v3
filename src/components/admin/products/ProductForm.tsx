@@ -259,7 +259,7 @@ export function ProductForm({
       <div className="max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
         {/* Tab navigation for main sections */}
         <Tabs value={formTab} onValueChange={setFormTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4 h-9">
+          <TabsList className="grid w-full grid-cols-6 mb-4 h-9">
             <TabsTrigger value="basic" className="text-xs gap-1 relative">
               <Info className="h-3 w-3" />
               Básico
@@ -272,6 +272,14 @@ export function ProductForm({
             <TabsTrigger value="details" className="text-xs gap-1">
               <Ruler className="h-3 w-3" />
               Detalhes
+            </TabsTrigger>
+            <TabsTrigger value="fiscal" className="text-xs gap-1">
+              <FileText className="h-3 w-3" />
+              Fiscal
+            </TabsTrigger>
+            <TabsTrigger value="seo" className="text-xs gap-1">
+              <Globe className="h-3 w-3" />
+              SEO
             </TabsTrigger>
             <TabsTrigger value="classification" className="text-xs gap-1">
               <Layers className="h-3 w-3" />
