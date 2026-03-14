@@ -813,13 +813,22 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB MÍDIA ====== */}
-          <TabsContent value="media" className="mt-0">
+          <TabsContent value="media" className="mt-0 space-y-1">
             <FormSection title="Galeria de Imagens" icon={ImageIcon} defaultOpen>
               <ProductImageGallery
                 images={images}
                 onChange={setImages}
                 folder="products"
               />
+            </FormSection>
+
+            <Separator />
+
+            <FormSection title="Vídeo" icon={Video} defaultOpen={false}>
+              <div className="space-y-1">
+                <FieldLabel htmlFor="video_url">URL do Vídeo</FieldLabel>
+                <Input id="video_url" {...register('video_url')} placeholder="https://youtube.com/watch?v=..." />
+              </div>
             </FormSection>
           </TabsContent>
         </Tabs>
