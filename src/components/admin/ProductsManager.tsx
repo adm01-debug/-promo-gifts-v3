@@ -766,10 +766,19 @@ export function ProductsManager() {
                     return (
                       <TableRow
                         key={product.id}
-                        className="cursor-pointer group hover:bg-muted/40 transition-colors border-border/30"
+                        className={cn(
+                          "cursor-pointer group hover:bg-muted/40 transition-colors border-border/30",
+                          selectedIds.has(product.id) && "bg-primary/5"
+                        )}
                         onClick={() => openEditForm(product)}
                       >
-                        <TableCell className="pl-4">
+                        <TableCell className="pl-4" onClick={e => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(product.id)}
+                            onCheckedChange={() => toggleSelect(product.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
                           {product.images && product.images.length > 0 ? (
                             <div className="relative">
                               <img
