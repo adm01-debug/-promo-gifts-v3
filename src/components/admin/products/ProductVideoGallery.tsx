@@ -555,7 +555,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
   }, [videos, regenerateThumbnail]);
 
-
+  const getThumbnail = (video: ExternalVideo): string | null => {
     if (video.url_thumbnail) return video.url_thumbnail;
     if (video.source_youtube_id) {
       return `https://img.youtube.com/vi/${video.source_youtube_id}/mqdefault.jpg`;
