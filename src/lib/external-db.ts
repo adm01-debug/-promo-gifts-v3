@@ -18,7 +18,7 @@ interface InvokeOptions<T = Record<string, unknown>> {
 
 interface InvokeResult<T> {
   records: T[];
-  count: number;
+  count: number | null;
 }
 
 interface BridgeResponse<T> {
