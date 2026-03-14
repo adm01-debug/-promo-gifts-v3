@@ -227,25 +227,39 @@ export interface PromobrindProduct {
 // Select fields que existem no schema Promobrind
 // Observação: alguns schemas/views legados podem não ter `sale_price`.
 // Para evitar tela branca, fazemos fallback automático para o select antigo.
-const PRODUCT_SELECT_FIELDS_WITH_SALE =
-  'id, name, sku, sale_price, cost_price, image_url, images, primary_image_url, ' +
-  'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
-  'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, created_at, updated_at, ' +
-  'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
-  'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
-  'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
-
-const PRODUCT_SELECT_FIELDS_LEGACY =
+// Campos base compartilhados entre os dois selects
+const PRODUCT_SELECT_BASE =
   'id, name, sku, cost_price, image_url, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity, created_at, updated_at, ' +
-  'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
-  'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
-  'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
+  // Flags originais
+  'is_featured, is_bestseller, is_new, is_on_sale, is_kit, has_commercial_packaging, ' +
+  // Flags novas
+  'is_imported, is_textil, is_thermal, allows_personalization, has_gift_box, has_optional_packaging, ' +
+  // Dimensões externas
+  'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, circumference_cm, ' +
+  // Dimensões internas
+  'internal_height_cm, internal_width_cm, internal_length_cm, internal_diameter_cm, ' +
+  // Embalagem
+  'packing_type, packing_classification, repacking_type, packaging_context, ' +
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_inner_quantity, box_volume_cm3, ' +
+  'packaging_material, packaging_color, packaging_finish, ' +
+  // Fiscal
+  'ncm_code, ean, gtin, ipi_rate, country_of_origin, ' +
+  // Comercial
+  'suggested_price, stock_unit, min_order_quantity, lead_time_days, product_type, supply_mode, warranty_months, gender, ' +
+  // SEO
+  'meta_title, meta_keywords, slug, canonical_url, ' +
+  // Mídia
+  'videos, video_url, ' +
+  // Marketing
+  'key_benefits, use_cases';
+
+const PRODUCT_SELECT_FIELDS_WITH_SALE =
+  'sale_price, ' + PRODUCT_SELECT_BASE;
+
+const PRODUCT_SELECT_FIELDS_LEGACY = PRODUCT_SELECT_BASE;
 
 function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
