@@ -140,8 +140,10 @@ export function useColorGroups() {
     queryFn: async () => {
       return await fetchExternalColors();
     },
-    staleTime: 60 * 60 * 1000,
-  });
+    staleTime: 60 * 60 * 1000, // 1 hora
+    gcTime: 24 * 60 * 60 * 1000, // 24 horas
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
 }
 
 /**
