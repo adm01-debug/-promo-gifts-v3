@@ -901,14 +901,7 @@ export function ProductForm({
                 </div>
               </div>
 
-              {isEdit && productId ? (
-                <ProductVideoGallery productId={productId} />
-              ) : (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-accent/30 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary" />
-                  <span>Salve o produto primeiro para gerenciar vídeos e vincular imagens a variações de cor.</span>
-                </div>
-              )}
+              <ProductVideoGallery productId={productId} />
             </div>
           </TabsContent>
         </Tabs>
