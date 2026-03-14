@@ -21,13 +21,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Filter, X, ChevronDown, RotateCcw } from 'lucide-react';
+import { Filter, X, ChevronDown, RotateCcw, Boxes } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 export interface ProductFilters {
   category_id?: string;
   supplier_id?: string;
   is_active?: boolean | 'all';
+  is_kit?: boolean;
   price_min?: number;
   price_max?: number;
 }
@@ -115,6 +117,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
     if (filters.category_id) count++;
     if (filters.supplier_id) count++;
     if (filters.is_active !== undefined && filters.is_active !== 'all') count++;
+    if (filters.is_kit) count++;
     if (filters.price_min !== undefined && filters.price_min > 0) count++;
     if (filters.price_max !== undefined && filters.price_max > 0) count++;
     return count;
@@ -182,6 +185,13 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
               <Badge variant="secondary" className="text-xs gap-1">
                 {filters.is_active ? 'Ativos' : 'Inativos'}
                 <X className="h-3 w-3 cursor-pointer" onClick={() => update({ is_active: 'all' })} />
+              </Badge>
+            )}
+            {filters.is_kit && (
+              <Badge variant="secondary" className="text-xs gap-1">
+                <Boxes className="h-3 w-3" />
+                Apenas Kits
+                <X className="h-3 w-3 cursor-pointer" onClick={() => update({ is_kit: undefined })} />
               </Badge>
             )}
             {((filters.price_min ?? 0) > 0 || (filters.price_max ?? 0) > 0) && (
@@ -277,6 +287,20 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
                 <SelectItem value="inactive">Inativos</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Kit */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Tipo</label>
+            <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background">
+              <Boxes className="h-3.5 w-3.5 text-purple-500" />
+              <span className="text-sm flex-1">Apenas Kits</span>
+              <Switch
+                checked={!!filters.is_kit}
+                onCheckedChange={(checked) => update({ is_kit: checked || undefined })}
+                className="scale-90"
+              />
+            </div>
           </div>
 
           {/* Faixa de Preço */}

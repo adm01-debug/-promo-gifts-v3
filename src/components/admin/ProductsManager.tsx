@@ -387,15 +387,18 @@ export function ProductsManager() {
   // Client-side price filtering on current page
   const displayedProducts = useMemo(() => {
     let filtered = products;
-    const { price_min, price_max } = advancedFilters;
+    const { price_min, price_max, is_kit } = advancedFilters;
     if (price_min !== undefined && price_min > 0) {
       filtered = filtered.filter(p => p.price >= price_min);
     }
     if (price_max !== undefined && price_max > 0) {
       filtered = filtered.filter(p => p.price <= price_max);
     }
+    if (is_kit) {
+      filtered = filtered.filter(p => p.is_kit);
+    }
     return filtered;
-  }, [products, advancedFilters.price_min, advancedFilters.price_max]);
+  }, [products, advancedFilters.price_min, advancedFilters.price_max, advancedFilters.is_kit]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
