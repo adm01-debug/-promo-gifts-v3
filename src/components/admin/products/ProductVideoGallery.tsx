@@ -413,7 +413,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         const result = await uploadFile(file);
         if (!result) continue;
 
-        const videoId = await createExternalVideoRecord(result.url, result.size, file.name);
+        const videoId = await createExternalVideoRecord(result.url, result.size, file.name, result.thumbnailUrl);
 
         if (videoId && uploadVariant !== 'none') {
           const variant = variantMap.get(uploadVariant);
