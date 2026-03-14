@@ -73,8 +73,8 @@ function CharCounter({ current, max, className }: { current: number; max: number
   const pct = current / max;
   return (
     <span className={cn(
-      'text-[10px] tabular-nums',
-      pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-yellow-500' : 'text-muted-foreground/60',
+      'text-[10px] tabular-nums font-medium',
+      pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-warning' : 'text-muted-foreground/50',
       className,
     )}>
       {current}/{max}
@@ -83,19 +83,30 @@ function CharCounter({ current, max, className }: { current: number; max: number
 }
 
 // Required field label
-function FieldLabel({ htmlFor, children, required, charCount, charMax }: {
+function FieldLabel({ htmlFor, children, required, charCount, charMax, hint }: {
   htmlFor?: string;
   children: React.ReactNode;
   required?: boolean;
   charCount?: number;
   charMax?: number;
+  hint?: string;
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <Label htmlFor={htmlFor} className="text-xs font-medium">
-        {children}
-        {required && <span className="text-destructive ml-0.5">*</span>}
-      </Label>
+    <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor={htmlFor} className="text-xs font-semibold text-foreground/80">
+          {children}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </Label>
+        {hint && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="text-xs max-w-[200px]">{hint}</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
       {charCount !== undefined && charMax !== undefined && (
         <CharCounter current={charCount} max={charMax} />
       )}
@@ -120,18 +131,20 @@ function FormSection({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center gap-2 w-full py-2.5 text-sm font-semibold text-foreground hover:text-primary transition-colors group">
-        <Icon className="h-4 w-4 text-primary" />
-        {title}
+      <CollapsibleTrigger className="flex items-center gap-2.5 w-full py-3 px-3 text-sm font-semibold text-foreground hover:bg-accent/50 rounded-lg transition-colors group -mx-1">
+        <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <span className="flex-1 text-left">{title}</span>
         {badge && (
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal bg-muted">
             {badge}
           </Badge>
         )}
-        <ChevronDown className={cn('h-4 w-4 ml-auto transition-transform text-muted-foreground group-hover:text-primary', open && 'rotate-180')} />
+        <ChevronDown className={cn('h-4 w-4 transition-transform duration-200 text-muted-foreground/50', open && 'rotate-180')} />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="grid gap-3 pb-4 pt-1">{children}</div>
+        <div className="grid gap-3.5 pb-5 pt-2 pl-1">{children}</div>
       </CollapsibleContent>
     </Collapsible>
   );
