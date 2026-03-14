@@ -435,11 +435,46 @@ function mapTechniqueRowToLegacyShape(row: Record<string, unknown>) {
   };
 }
 
+// ============================================
+// TELEMETRY CONFIG
+// ============================================
+const SLOW_QUERY_THRESHOLD_MS = 3000; // Alert if query takes > 3s
+const VERY_SLOW_QUERY_THRESHOLD_MS = 8000; // Warn critically if > 8s
+
+function emitTelemetry(meta: {
+  operation: string;
+  table?: string;
+  rpcName?: string;
+  limit?: number;
+  offset?: number;
+  countMode?: string;
+  durationMs: number;
+  recordCount?: number;
+  status: 'ok' | 'error' | 'slow' | 'very_slow';
+  error?: string;
+}) {
+  const icon = meta.status === 'very_slow' ? '🔴' : meta.status === 'slow' ? '🟡' : meta.status === 'error' ? '❌' : '✅';
+  const target = meta.rpcName || meta.table || 'unknown';
+  const line = `${icon} [telemetry] ${meta.operation}:${target} ${meta.durationMs}ms | records=${meta.recordCount ?? '-'} limit=${meta.limit ?? '-'} offset=${meta.offset ?? '-'} count=${meta.countMode ?? '-'}`;
+  
+  if (meta.status === 'very_slow') {
+    console.warn(`⚠️ VERY SLOW QUERY: ${line}`);
+  } else if (meta.status === 'slow') {
+    console.warn(`⚠️ SLOW QUERY: ${line}`);
+  } else if (meta.status === 'error') {
+    console.error(line + ` error=${meta.error}`);
+  } else {
+    console.info(line);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const requestStartTime = performance.now();
 
   try {
     // Parse body primeiro para verificar operação
@@ -480,15 +515,20 @@ serve(async (req) => {
       
       console.log(`RPC: ${rpcName}`, rpcParams);
       
+      const rpcStart = performance.now();
       const { data: rpcData, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
+      const rpcDuration = Math.round(performance.now() - rpcStart);
 
       if (rpcError) {
-        console.error('RPC error:', rpcError);
+        emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: 'error', error: rpcError.message });
         return new Response(
           JSON.stringify({ error: rpcError.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      
+      const rpcStatus = rpcDuration >= VERY_SLOW_QUERY_THRESHOLD_MS ? 'very_slow' : rpcDuration >= SLOW_QUERY_THRESHOLD_MS ? 'slow' : 'ok';
+      emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: rpcStatus, recordCount: Array.isArray(rpcData) ? rpcData.length : 1 });
 
       // ============================================
       // ENRIQUECIMENTO: fn_get_customization_price (legacy flat response only)
@@ -843,15 +883,20 @@ serve(async (req) => {
         const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
         query = query.range(safeOffset, safeOffset + safeLimit - 1);
         
+        const selectStart = performance.now();
         const { data: selectData, error: selectError, count } = await query;
+        const selectDuration = Math.round(performance.now() - selectStart);
         
         if (selectError) {
-          console.error('Select error:', selectError);
+          emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode: countMode, durationMs: selectDuration, status: 'error', error: selectError.message });
           return new Response(
             JSON.stringify({ error: selectError.message }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
+        
+        const selectStatus = selectDuration >= VERY_SLOW_QUERY_THRESHOLD_MS ? 'very_slow' : selectDuration >= SLOW_QUERY_THRESHOLD_MS ? 'slow' : 'ok';
+        emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode: countMode, durationMs: selectDuration, status: selectStatus, recordCount: selectData?.length ?? 0 });
         
         // Compat: mapear resposta para shape antigo
         if ((usingTechniqueAlias || usingVarianteAlias) && Array.isArray(selectData)) {
@@ -1021,14 +1066,22 @@ serve(async (req) => {
         );
     }
 
+    const totalDuration = Math.round(performance.now() - requestStartTime);
+    if (totalDuration >= VERY_SLOW_QUERY_THRESHOLD_MS) {
+      console.warn(`🔴 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (VERY SLOW)`);
+    } else if (totalDuration >= SLOW_QUERY_THRESHOLD_MS) {
+      console.warn(`🟡 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (SLOW)`);
+    }
+
     return new Response(
       JSON.stringify({ data: result, success: true }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
+    const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error('Unexpected error:', errorMessage);
+    console.error(`❌ [telemetry] Request failed after ${totalDuration}ms: ${errorMessage}`);
     
     return new Response(
       JSON.stringify({ error: errorMessage }),
