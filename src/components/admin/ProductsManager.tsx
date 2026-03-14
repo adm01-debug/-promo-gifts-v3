@@ -289,6 +289,7 @@ export function ProductsManager() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+    setSelectedIds(new Set());
     fetchProducts(page, pageSize, searchTerm);
   };
 
