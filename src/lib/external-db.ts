@@ -55,9 +55,11 @@ async function buildBridgeError(error: unknown): Promise<{ message: string; retr
 
   const diagnostic = `${baseMessage} ${responseBody}`.toLowerCase();
   const retryable =
+    status === 502 ||
     status === 503 ||
     status === 504 ||
     diagnostic.includes('boot_error') ||
+    diagnostic.includes('bad gateway') ||
     diagnostic.includes('function failed to start') ||
     diagnostic.includes('statement timeout') ||
     diagnostic.includes('canceling statement due to statement timeout') ||
