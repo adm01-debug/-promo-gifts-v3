@@ -173,6 +173,8 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
   const [filterType, setFilterType] = useState<string>('all');
   const [linkingVideoId, setLinkingVideoId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [isBulkRegenerating, setIsBulkRegenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch videos from external DB
