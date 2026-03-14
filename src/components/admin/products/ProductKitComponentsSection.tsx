@@ -1051,8 +1051,25 @@ export function ProductKitComponentsSection({ productId, boxInternalDimensions }
     queryKey: ['kit-components', productId],
     queryFn: () => fetchKitComponents(productId),
     enabled: !!productId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    placeholderData: (prev) => prev,
   });
+
+  // Prefetch print areas for personalizable components
+  const prefetchedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    components
+      .filter(c => c.allows_personalization && !prefetchedRef.current.has(c.id))
+      .forEach(c => {
+        prefetchedRef.current.add(c.id);
+        queryClient.prefetchQuery({
+          queryKey: ['kit-print-areas', c.id],
+          queryFn: () => fetchPrintAreas(c.id),
+          staleTime: 5 * 60 * 1000,
+        });
+      });
+  }, [components, queryClient]);
 
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['kit-components', productId] });
