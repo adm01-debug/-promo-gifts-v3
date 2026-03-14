@@ -91,6 +91,9 @@ const VIDEO_TYPES = [
   { value: 'tutorial', label: 'Tutorial', icon: Play },
   { value: 'unboxing', label: 'Unboxing', icon: Film },
   { value: 'review', label: 'Review', icon: Star },
+  { value: 'demo', label: 'Demonstração', icon: Clapperboard },
+  { value: 'recording', label: 'Gravação', icon: Mic },
+  { value: 'lifestyle', label: 'Lifestyle', icon: Sparkles },
 ];
 
 function extractYoutubeId(url: string): string | null {
