@@ -430,7 +430,7 @@ export function ProductImageGallery({
             url_cdn: url,
             url_original: url,
             image_type: imageType,
-            is_primary: imageType === 'main' && externalImages.filter(i => i.is_primary).length === 0,
+            is_primary: shouldBePrimary,
             is_og_image: false,
             display_order: nextOrder,
             is_active: true,
