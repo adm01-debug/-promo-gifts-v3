@@ -148,6 +148,7 @@ export function ProductsManager() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [advancedFilters, setAdvancedFilters] = useState<ProductFilters>({});
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
