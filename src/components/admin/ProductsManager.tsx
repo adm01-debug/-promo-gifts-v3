@@ -55,7 +55,9 @@ import {
   History,
   ChevronLeft,
   ChevronRight,
+  FileSpreadsheet,
 } from "lucide-react";
+import { BulkImportDialog } from "./products/BulkImportDialog";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
 import { ProductForm } from "./products/ProductForm";
@@ -154,6 +156,7 @@ export function ProductsManager() {
   // Dialog states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"form" | "history">("form");
@@ -499,6 +502,10 @@ export function ProductsManager() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Atualizar
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Importar
+            </Button>
             <Button size="sm" onClick={openCreateForm}>
               <Plus className="h-4 w-4 mr-2" />
               Novo Produto
@@ -727,6 +734,13 @@ export function ProductsManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Bulk Import */}
+      <BulkImportDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onComplete={() => fetchProducts(1, pageSize, searchTerm)}
+      />
     </Card>
   );
 }
