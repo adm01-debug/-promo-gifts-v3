@@ -1067,6 +1067,9 @@ export function ProductKitComponentsSection({ productId, boxInternalDimensions }
         )}
       </div>
 
+      {/* Volume Validation */}
+      {components.length > 0 && <VolumeValidation components={components} boxDimensions={boxInternalDimensions} />}
+
       {/* Create form */}
       {isCreating && (
         <ComponentForm
