@@ -515,15 +515,20 @@ serve(async (req) => {
       
       console.log(`RPC: ${rpcName}`, rpcParams);
       
+      const rpcStart = performance.now();
       const { data: rpcData, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
+      const rpcDuration = Math.round(performance.now() - rpcStart);
 
       if (rpcError) {
-        console.error('RPC error:', rpcError);
+        emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: 'error', error: rpcError.message });
         return new Response(
           JSON.stringify({ error: rpcError.message }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      
+      const rpcStatus = rpcDuration >= VERY_SLOW_QUERY_THRESHOLD_MS ? 'very_slow' : rpcDuration >= SLOW_QUERY_THRESHOLD_MS ? 'slow' : 'ok';
+      emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: rpcStatus, recordCount: Array.isArray(rpcData) ? rpcData.length : 1 });
 
       // ============================================
       // ENRIQUECIMENTO: fn_get_customization_price (legacy flat response only)
