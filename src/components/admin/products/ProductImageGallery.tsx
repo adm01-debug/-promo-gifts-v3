@@ -1084,8 +1084,20 @@ export function ProductImageGallery({
                   />
                 )}
 
-                {/* Hover overlay */}
-                {editingIndex !== globalIndex && (
+                {/* Bulk selection checkbox */}
+                {bulkMode && (
+                  <div className="absolute top-1 right-1 z-10">
+                    <div className={cn(
+                      "w-5 h-5 rounded flex items-center justify-center transition-colors",
+                      isSelected ? "bg-primary text-primary-foreground" : "bg-black/50 text-white/70"
+                    )}>
+                      {isSelected ? <CheckSquare className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
+                    </div>
+                  </div>
+                )}
+
+                {/* Hover overlay (hidden in bulk mode) */}
+                {editingIndex !== globalIndex && !bulkMode && (
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                     <GripVertical className="absolute top-1 left-1 h-4 w-4 text-white/70 cursor-grab" />
 
