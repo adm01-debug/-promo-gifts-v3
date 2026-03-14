@@ -405,6 +405,7 @@ export async function fetchPromobrindProducts(options?: {
             ...baseOptions,
             filters,
             offset: 0,
+            countMode: 'none',
           });
           return result.records;
         })
