@@ -594,151 +594,170 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB DETALHES ====== */}
-          <TabsContent value="details" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="Dimensões Externas" icon={Ruler} defaultOpen>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
+          <TabsContent value="details" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            {/* Card: Dimensões Externas */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Ruler className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Dimensões Externas</h4>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="height_cm">Altura (cm)</FieldLabel>
-                  <Input id="height_cm" {...numericProps('height_cm')} min="0" step="0.1" />
+                  <Input id="height_cm" {...numericProps('height_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="width_cm">Largura (cm)</FieldLabel>
-                  <Input id="width_cm" {...numericProps('width_cm')} min="0" step="0.1" />
+                  <Input id="width_cm" {...numericProps('width_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="length_cm">Comprimento (cm)</FieldLabel>
-                  <Input id="length_cm" {...numericProps('length_cm')} min="0" step="0.1" />
+                  <Input id="length_cm" {...numericProps('length_cm')} min="0" step="0.1" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-4 gap-4">
+                <div>
                   <FieldLabel htmlFor="diameter_cm">Diâmetro (cm)</FieldLabel>
-                  <Input id="diameter_cm" {...numericProps('diameter_cm')} min="0" step="0.1" />
+                  <Input id="diameter_cm" {...numericProps('diameter_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="circumference_cm">Circunferência (cm)</FieldLabel>
-                  <Input id="circumference_cm" {...numericProps('circumference_cm')} min="0" step="0.1" />
+                  <Input id="circumference_cm" {...numericProps('circumference_cm')} min="0" step="0.1" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="weight_g">Peso (g)</FieldLabel>
-                  <Input id="weight_g" {...numericProps('weight_g')} min="0" />
+                  <Input id="weight_g" {...numericProps('weight_g')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="capacity_ml">Capacidade (ml)</FieldLabel>
-                  <Input id="capacity_ml" {...numericProps('capacity_ml')} min="0" />
+                  <Input id="capacity_ml" {...numericProps('capacity_ml')} min="0" className="h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
 
-            <Separator />
+            {/* Card: Dimensões Internas */}
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Dimensões Internas" icon={Ruler} defaultOpen={false}>
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <FieldLabel htmlFor="internal_height_cm">Altura Int. (cm)</FieldLabel>
+                    <Input id="internal_height_cm" {...numericProps('internal_height_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="internal_width_cm">Largura Int. (cm)</FieldLabel>
+                    <Input id="internal_width_cm" {...numericProps('internal_width_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="internal_length_cm">Comprim. Int. (cm)</FieldLabel>
+                    <Input id="internal_length_cm" {...numericProps('internal_length_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                  <div>
+                    <FieldLabel htmlFor="internal_diameter_cm">Diâmetro Int. (cm)</FieldLabel>
+                    <Input id="internal_diameter_cm" {...numericProps('internal_diameter_cm')} min="0" step="0.1" className="h-9" />
+                  </div>
+                </div>
+              </FormSection>
+            </div>
 
-            <FormSection title="Dimensões Internas" icon={Ruler} defaultOpen={false}>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_height_cm">Altura Int. (cm)</FieldLabel>
-                  <Input id="internal_height_cm" {...numericProps('internal_height_cm')} min="0" step="0.1" />
+            {/* Card: Embalagem */}
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Package className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_width_cm">Largura Int. (cm)</FieldLabel>
-                  <Input id="internal_width_cm" {...numericProps('internal_width_cm')} min="0" step="0.1" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_length_cm">Comprim. Int. (cm)</FieldLabel>
-                  <Input id="internal_length_cm" {...numericProps('internal_length_cm')} min="0" step="0.1" />
-                </div>
-                <div className="space-y-1">
-                  <FieldLabel htmlFor="internal_diameter_cm">Diâmetro Int. (cm)</FieldLabel>
-                  <Input id="internal_diameter_cm" {...numericProps('internal_diameter_cm')} min="0" step="0.1" />
-                </div>
+                <h4 className="text-sm font-semibold text-foreground">Embalagem (Caixa)</h4>
               </div>
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Embalagem (Caixa)" icon={Package} defaultOpen>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="packing_type">Tipo de Embalagem</FieldLabel>
-                  <Input id="packing_type" {...register('packing_type')} placeholder="Ex: Caixa, Bolsa, Estojo" />
+                  <Input id="packing_type" {...register('packing_type')} placeholder="Ex: Caixa, Bolsa, Estojo" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="packaging_material">Material Embalagem</FieldLabel>
-                  <Input id="packaging_material" {...register('packaging_material')} placeholder="Ex: Papelão, Plástico" />
+                  <Input id="packaging_material" {...register('packaging_material')} placeholder="Ex: Papelão, Plástico" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
                   <FieldLabel htmlFor="box_width_mm">Largura (mm)</FieldLabel>
-                  <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" />
+                  <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_height_mm">Altura (mm)</FieldLabel>
-                  <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" />
+                  <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_length_mm">Profundidade (mm)</FieldLabel>
-                  <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" />
+                  <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-4 gap-4">
+                <div>
                   <FieldLabel htmlFor="box_weight_kg">Peso (kg)</FieldLabel>
-                  <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" />
+                  <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_quantity">Qtd por caixa</FieldLabel>
-                  <Input id="box_quantity" {...numericProps('box_quantity')} min="0" />
+                  <Input id="box_quantity" {...numericProps('box_quantity')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_inner_quantity">Qtd Interna</FieldLabel>
-                  <Input id="box_inner_quantity" {...numericProps('box_inner_quantity')} min="0" />
+                  <Input id="box_inner_quantity" {...numericProps('box_inner_quantity')} min="0" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="box_volume_cm3">Volume (cm³)</FieldLabel>
-                  <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" />
+                  <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="packaging_color">Cor Embalagem</FieldLabel>
-                  <Input id="packaging_color" {...register('packaging_color')} placeholder="Ex: Kraft, Branco" />
+                  <Input id="packaging_color" {...register('packaging_color')} placeholder="Ex: Kraft, Branco" className="h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="packaging_finish">Acabamento Embalagem</FieldLabel>
-                  <Input id="packaging_finish" {...register('packaging_finish')} placeholder="Ex: Fosco, Brilhante" />
+                  <Input id="packaging_finish" {...register('packaging_finish')} placeholder="Ex: Fosco, Brilhante" className="h-9" />
                 </div>
               </div>
-            </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB FISCAL ====== */}
-          <TabsContent value="fiscal" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            <FormSection title="Dados Fiscais" icon={FileText} defaultOpen>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+          <TabsContent value="fiscal" className="space-y-4 mt-0 animate-in fade-in-50 duration-200">
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Dados Fiscais</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="ncm_code">Código NCM</FieldLabel>
-                  <Input id="ncm_code" {...register('ncm_code')} placeholder="Ex: 96081000" className="font-mono" />
+                  <Input id="ncm_code" {...register('ncm_code')} placeholder="Ex: 96081000" className="font-mono h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="ipi_rate">Alíquota IPI (%)</FieldLabel>
-                  <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" />
+                  <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" className="h-9" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
                   <FieldLabel htmlFor="ean">Código EAN</FieldLabel>
-                  <Input id="ean" {...register('ean')} placeholder="Código de barras EAN" className="font-mono" />
+                  <Input id="ean" {...register('ean')} placeholder="Código de barras EAN" className="font-mono h-9" />
                 </div>
-                <div className="space-y-1">
+                <div>
                   <FieldLabel htmlFor="gtin">GTIN</FieldLabel>
-                  <Input id="gtin" {...register('gtin')} placeholder="Global Trade Item Number" className="font-mono" />
+                  <Input id="gtin" {...register('gtin')} placeholder="Global Trade Item Number" className="font-mono h-9" />
                 </div>
               </div>
-              <div className="space-y-1">
+              <div>
                 <FieldLabel htmlFor="country_of_origin">País de Origem</FieldLabel>
-                <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" />
+                <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
               </div>
-            </FormSection>
+            </div>
           </TabsContent>
 
           {/* ====== TAB SEO ====== */}
