@@ -1,6 +1,6 @@
 /**
  * ProductMaterialsSection — Seletor hierárquico de materiais (padrão Super Filtro)
- * Mesmo visual do AdvancedFilterPanel: gradientes, MaterialBadge, color dots, contadores
+ * Enriquecido com: part (parte do produto), percentage (composição %), notes
  */
 
 import { useState, useCallback } from 'react';
@@ -10,9 +10,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { MaterialBadge } from '@/components/materials/MaterialBadge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, X, ChevronDown, Layers, Search, Gem } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, X, ChevronDown, Search, Gem, Save, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -20,10 +22,72 @@ interface ProductMaterialsSectionProps {
   productId: string;
 }
 
+interface LinkedMaterial {
+  id: string;
+  material_id: string;
+  part?: string | null;
+  percentage?: number | null;
+  notes?: string | null;
+}
+
+// Inline edit form for material detail fields
+function MaterialDetailEditor({
+  linked,
+  onSave,
+  onCancel,
+}: {
+  linked: LinkedMaterial;
+  onSave: (data: { part: string; percentage: number | null; notes: string }) => void;
+  onCancel: () => void;
+}) {
+  const [part, setPart] = useState(linked.part || '');
+  const [percentage, setPercentage] = useState<string>(linked.percentage != null ? String(linked.percentage) : '');
+  const [notes, setNotes] = useState(linked.notes || '');
+
+  return (
+    <div className="flex items-center gap-2 mt-1 ml-7">
+      <Input
+        value={part}
+        onChange={(e) => setPart(e.target.value)}
+        placeholder="Parte (ex: corpo)"
+        className="h-6 text-[11px] w-24 px-1.5"
+      />
+      <Input
+        type="number"
+        value={percentage}
+        onChange={(e) => setPercentage(e.target.value)}
+        placeholder="%"
+        min="0"
+        max="100"
+        className="h-6 text-[11px] w-16 px-1.5"
+      />
+      <Input
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="Obs..."
+        className="h-6 text-[11px] flex-1 px-1.5"
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        onClick={() => onSave({ part, percentage: percentage ? parseFloat(percentage) : null, notes })}
+      >
+        <Save className="h-3 w-3 text-primary" />
+      </Button>
+      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={onCancel}>
+        <X className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
 export function ProductMaterialsSection({ productId }: ProductMaterialsSectionProps) {
   const queryClient = useQueryClient();
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
+  const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
 
   const { data: groupsData, isLoading: loadingGroups } = useQuery({
     queryKey: ['material-groups-admin'],
@@ -37,15 +101,28 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: productMaterialsData, isLoading: loadingProductMaterials } = useQuery({
-    queryKey: ['product-materials', productId],
-    queryFn: () => materialService.getProductMaterials(productId),
+  // Fetch full linked records (with part, percentage, notes)
+  const { data: linkedRecords = [], isLoading: loadingProductMaterials } = useQuery<LinkedMaterial[]>({
+    queryKey: ['product-materials-full', productId],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'product_materials',
+          operation: 'select',
+          filters: { product_id: productId },
+          limit: 200,
+        },
+      });
+      if (error) throw new Error(error.message);
+      return data?.data?.records || [];
+    },
     enabled: !!productId,
   });
 
-  const linkedMaterialIds = new Set<string>(
-    (productMaterialsData?.materials || []).map((m: any) => m.material_id || m.id)
+  const linkedMap = new Map<string, LinkedMaterial>(
+    linkedRecords.map((r) => [r.material_id, r])
   );
+  const linkedMaterialIds = new Set<string>(linkedMap.keys());
 
   const allTypes = typesData?.types || [];
   const groups = groupsData?.groups || [];
@@ -60,19 +137,10 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
   const toggleMaterial = useCallback(async (materialId: string, isLinked: boolean) => {
     try {
       if (isLinked) {
-        const { data: findData, error: findError } = await supabase.functions.invoke('external-db-bridge', {
-          body: {
-            table: 'product_materials',
-            operation: 'select',
-            filters: { product_id: productId, material_id: materialId },
-            limit: 1,
-          },
-        });
-        if (findError) throw new Error(findError.message);
-        const record = findData?.data?.records?.[0];
-        if (!record?.id) { toast.error('Registro não encontrado'); return; }
+        const linked = linkedMap.get(materialId);
+        if (!linked?.id) { toast.error('Registro não encontrado'); return; }
         const { error: delError } = await supabase.functions.invoke('external-db-bridge', {
-          body: { table: 'product_materials', operation: 'delete', id: record.id },
+          body: { table: 'product_materials', operation: 'delete', id: linked.id },
         });
         if (delError) throw new Error(delError.message);
         toast.success('Material removido');
@@ -87,11 +155,40 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
         if (error) throw new Error(error.message);
         toast.success('Material adicionado');
       }
-      queryClient.invalidateQueries({ queryKey: ['product-materials', productId] });
+      queryClient.invalidateQueries({ queryKey: ['product-materials-full', productId] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erro ao alterar material');
     }
-  }, [productId, queryClient]);
+  }, [productId, queryClient, linkedMap]);
+
+  const updateMaterialDetail = useCallback(async (
+    materialId: string,
+    data: { part: string; percentage: number | null; notes: string }
+  ) => {
+    const linked = linkedMap.get(materialId);
+    if (!linked?.id) return;
+
+    try {
+      const { error } = await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'product_materials',
+          operation: 'update',
+          id: linked.id,
+          data: {
+            part: data.part.trim() || null,
+            percentage: data.percentage,
+            notes: data.notes.trim() || null,
+          },
+        },
+      });
+      if (error) throw new Error(error.message);
+      toast.success('Detalhes atualizados');
+      setEditingMaterialId(null);
+      queryClient.invalidateQueries({ queryKey: ['product-materials-full', productId] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar');
+    }
+  }, [productId, queryClient, linkedMap]);
 
   const toggleGroup = (groupId: string) => {
     setOpenGroups(prev => {
@@ -174,18 +271,37 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
               .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
               .map(t => {
                 const group = groups.find(g => g.group_id === t.group_id);
+                const linked = linkedMap.get(t.id);
+                const hasDetail = linked?.part || linked?.percentage != null;
                 return (
-                  <MaterialBadge
-                    key={t.id}
-                    name={t.name}
-                    hexCode={group?.group_hex_code}
-                    size="sm"
-                    variant="outline"
-                    onRemove={() => toggleMaterial(t.id, true)}
-                  />
+                  <div key={t.id} className="flex items-center gap-0.5">
+                    <MaterialBadge
+                      name={`${t.name}${hasDetail ? ` (${linked?.part || ''}${linked?.percentage != null ? ` ${linked.percentage}%` : ''})` : ''}`}
+                      hexCode={group?.group_hex_code}
+                      size="sm"
+                      variant="outline"
+                      onRemove={() => toggleMaterial(t.id, true)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setEditingMaterialId(editingMaterialId === t.id ? null : t.id)}
+                      className="text-muted-foreground hover:text-primary p-0.5"
+                      title="Editar detalhes (parte, %, obs)"
+                    >
+                      <Pencil className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
                 );
               })}
           </div>
+          {/* Inline editor for selected material */}
+          {editingMaterialId && linkedMap.has(editingMaterialId) && (
+            <MaterialDetailEditor
+              linked={linkedMap.get(editingMaterialId)!}
+              onSave={(data) => updateMaterialDetail(editingMaterialId, data)}
+              onCancel={() => setEditingMaterialId(null)}
+            />
+          )}
         </div>
       )}
 
@@ -300,30 +416,57 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
                     <div className="border-t border-border/30 pt-2 ml-8">
                       {types.map(type => {
                         const isLinked = linkedMaterialIds.has(type.id);
+                        const linked = linkedMap.get(type.id);
+                        const detailText = linked?.part || (linked?.percentage != null ? `${linked.percentage}%` : '');
                         return (
-                          <label
-                            key={type.id}
-                            className={cn(
-                              "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md cursor-pointer text-sm transition-all duration-150",
-                              isLinked
-                                ? "bg-primary/15 text-foreground font-medium shadow-sm"
-                                : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                          <div key={type.id}>
+                            <label
+                              className={cn(
+                                "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md cursor-pointer text-sm transition-all duration-150",
+                                isLinked
+                                  ? "bg-primary/15 text-foreground font-medium shadow-sm"
+                                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                              )}
+                            >
+                              <Checkbox
+                                checked={isLinked}
+                                onCheckedChange={() => toggleMaterial(type.id, isLinked)}
+                                className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              />
+                              <span
+                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: group.group_hex_code || 'hsl(var(--muted))' }}
+                              />
+                              <span className="truncate flex-1">{type.name}</span>
+                              {detailText && (
+                                <span className="text-[10px] text-muted-foreground italic">{detailText}</span>
+                              )}
+                              {isLinked && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setEditingMaterialId(editingMaterialId === type.id ? null : type.id);
+                                  }}
+                                  className="text-muted-foreground hover:text-primary p-0.5"
+                                  title="Editar parte/% / obs"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </button>
+                              )}
+                              {isLinked && !editingMaterialId && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                              )}
+                            </label>
+                            {editingMaterialId === type.id && isLinked && linked && (
+                              <MaterialDetailEditor
+                                linked={linked}
+                                onSave={(data) => updateMaterialDetail(type.id, data)}
+                                onCancel={() => setEditingMaterialId(null)}
+                              />
                             )}
-                          >
-                            <Checkbox
-                              checked={isLinked}
-                              onCheckedChange={() => toggleMaterial(type.id, isLinked)}
-                              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
-                            <span
-                              className="w-2 h-2 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: group.group_hex_code || 'hsl(var(--muted))' }}
-                            />
-                            <span className="truncate flex-1">{type.name}</span>
-                            {isLinked && (
-                              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                            )}
-                          </label>
+                          </div>
                         );
                       })}
                     </div>

@@ -1,6 +1,7 @@
 /**
  * ProductVariantsSection — CRUD de variações de cor de um produto
  * Visual de swatches circulares com checkmarks (padrão Super Filtro)
+ * Enriquecido com: supplier_sku, ean, size_code, capacity_ml, dimensões, peso
  */
 
 import { useState, useCallback } from 'react';
@@ -23,6 +24,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -44,6 +50,15 @@ interface ProductVariant {
   selected_thumbnail: string | null;
   is_active: boolean;
   product_id: string;
+  // Campos enriquecidos
+  supplier_sku: string | null;
+  ean: string | null;
+  size_code: string | null;
+  capacity_ml: number | null;
+  height_mm: number | null;
+  width_mm: number | null;
+  length_mm: number | null;
+  weight_g: number | null;
 }
 
 interface VariantFormData {
@@ -52,6 +67,15 @@ interface VariantFormData {
   color_name: string;
   color_hex: string;
   stock_quantity: number;
+  // Novos campos
+  supplier_sku: string;
+  ean: string;
+  size_code: string;
+  capacity_ml: number | null;
+  height_mm: number | null;
+  width_mm: number | null;
+  length_mm: number | null;
+  weight_g: number | null;
 }
 
 interface ProductVariantsSectionProps {
@@ -66,6 +90,14 @@ const EMPTY_FORM: VariantFormData = {
   color_name: '',
   color_hex: '#000000',
   stock_quantity: 0,
+  supplier_sku: '',
+  ean: '',
+  size_code: '',
+  capacity_ml: null,
+  height_mm: null,
+  width_mm: null,
+  length_mm: null,
+  weight_g: null,
 };
 
 // ── API helpers ──
@@ -149,8 +181,9 @@ function VariantForm({
   isSaving: boolean;
 }) {
   const [form, setForm] = useState<VariantFormData>(initial);
+  const [showExtra, setShowExtra] = useState(false);
 
-  const set = (field: keyof VariantFormData, value: string | number) =>
+  const set = <K extends keyof VariantFormData>(field: K, value: VariantFormData[K]) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleSave = () => {
@@ -161,8 +194,12 @@ function VariantForm({
     onSave(form);
   };
 
+  // Check if any extra field has data
+  const hasExtraData = !!(form.supplier_sku || form.ean || form.size_code || form.capacity_ml || form.height_mm || form.width_mm || form.length_mm || form.weight_g);
+
   return (
     <div className="rounded-lg border border-primary/30 bg-accent/30 p-3 space-y-3">
+      {/* Row 1: Core fields */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Nome *</Label>
@@ -186,6 +223,7 @@ function VariantForm({
         </div>
       </div>
 
+      {/* Row 2: Color + Stock */}
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Cor</Label>
@@ -224,6 +262,94 @@ function VariantForm({
           />
         </div>
       </div>
+
+      {/* Collapsible extra fields */}
+      <Collapsible open={showExtra || hasExtraData} onOpenChange={setShowExtra}>
+        <CollapsibleTrigger className="text-xs text-primary hover:underline flex items-center gap-1">
+          {showExtra || hasExtraData ? '▾ Ocultar detalhes' : '▸ Mais detalhes (SKU fornecedor, EAN, dimensões...)'}
+        </CollapsibleTrigger>
+        <CollapsibleContent className="space-y-3 pt-2">
+          {/* SKUs extras + EAN */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">SKU Fornecedor</Label>
+              <Input
+                value={form.supplier_sku}
+                onChange={(e) => set('supplier_sku', e.target.value)}
+                placeholder="SKU do fornecedor"
+                className="h-8 text-sm font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">EAN</Label>
+              <Input
+                value={form.ean}
+                onChange={(e) => set('ean', e.target.value)}
+                placeholder="Código de barras"
+                className="h-8 text-sm font-mono"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Tamanho</Label>
+              <Input
+                value={form.size_code}
+                onChange={(e) => set('size_code', e.target.value)}
+                placeholder="Ex: P, M, G, GG"
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Capacity + Dimensions */}
+          <div className="grid grid-cols-5 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Capacidade (ml)</Label>
+              <Input
+                type="number"
+                value={form.capacity_ml ?? ''}
+                onChange={(e) => set('capacity_ml', e.target.value ? parseFloat(e.target.value) : null)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Altura (mm)</Label>
+              <Input
+                type="number"
+                value={form.height_mm ?? ''}
+                onChange={(e) => set('height_mm', e.target.value ? parseFloat(e.target.value) : null)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Largura (mm)</Label>
+              <Input
+                type="number"
+                value={form.width_mm ?? ''}
+                onChange={(e) => set('width_mm', e.target.value ? parseFloat(e.target.value) : null)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Comp. (mm)</Label>
+              <Input
+                type="number"
+                value={form.length_mm ?? ''}
+                onChange={(e) => set('length_mm', e.target.value ? parseFloat(e.target.value) : null)}
+                className="h-8 text-sm"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Peso (g)</Label>
+              <Input
+                type="number"
+                value={form.weight_g ?? ''}
+                onChange={(e) => set('weight_g', e.target.value ? parseFloat(e.target.value) : null)}
+                className="h-8 text-sm"
+              />
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="flex justify-end gap-2 pt-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isSaving}>
@@ -268,6 +394,14 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
         color_name: formData.color_name.trim() || null,
         color_hex: formData.color_hex || null,
         stock_quantity: formData.stock_quantity,
+        supplier_sku: formData.supplier_sku.trim() || null,
+        ean: formData.ean.trim() || null,
+        size_code: formData.size_code.trim() || null,
+        capacity_ml: formData.capacity_ml,
+        height_mm: formData.height_mm,
+        width_mm: formData.width_mm,
+        length_mm: formData.length_mm,
+        weight_g: formData.weight_g,
         is_active: true,
       });
       toast.success('Variação criada com sucesso');
@@ -289,6 +423,14 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
         color_name: formData.color_name.trim() || null,
         color_hex: formData.color_hex || null,
         stock_quantity: formData.stock_quantity,
+        supplier_sku: formData.supplier_sku.trim() || null,
+        ean: formData.ean.trim() || null,
+        size_code: formData.size_code.trim() || null,
+        capacity_ml: formData.capacity_ml,
+        height_mm: formData.height_mm,
+        width_mm: formData.width_mm,
+        length_mm: formData.length_mm,
+        weight_g: formData.weight_g,
       });
       toast.success('Variação atualizada');
       setEditingId(null);
@@ -427,6 +569,8 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium">{v.color_name || v.name}</span>
                       <span className="text-muted-foreground font-mono">{v.sku}</span>
+                      {v.supplier_sku && <span className="text-muted-foreground font-mono text-[10px]">Forn: {v.supplier_sku}</span>}
+                      {v.ean && <span className="text-muted-foreground font-mono text-[10px]">EAN: {v.ean}</span>}
                       <span>{stockLabel} un</span>
                     </div>
                   </TooltipContent>
@@ -466,6 +610,14 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
                   color_name: variant.color_name || '',
                   color_hex: variant.color_hex || '#000000',
                   stock_quantity: variant.stock_quantity ?? 0,
+                  supplier_sku: variant.supplier_sku || '',
+                  ean: variant.ean || '',
+                  size_code: variant.size_code || '',
+                  capacity_ml: variant.capacity_ml,
+                  height_mm: variant.height_mm,
+                  width_mm: variant.width_mm,
+                  length_mm: variant.length_mm,
+                  weight_g: variant.weight_g,
                 }}
                 onSave={(data) => handleUpdate(variant.id, data)}
                 onCancel={() => setEditingId(null)}
@@ -507,7 +659,13 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
                 <p className="text-xs font-medium truncate" title={variant.color_name || variant.name}>
                   {variant.color_name || variant.name}
                 </p>
-                <p className="text-[10px] text-muted-foreground font-mono">{variant.sku}</p>
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                  <span className="font-mono">{variant.sku}</span>
+                  {variant.supplier_sku && <span className="font-mono">• {variant.supplier_sku}</span>}
+                  {variant.ean && <span className="font-mono">• EAN:{variant.ean}</span>}
+                  {variant.size_code && <span>• {variant.size_code}</span>}
+                  {variant.capacity_ml && <span>• {variant.capacity_ml}ml</span>}
+                </div>
                 <StockBadge stock={variant.stock_quantity} />
               </div>
 

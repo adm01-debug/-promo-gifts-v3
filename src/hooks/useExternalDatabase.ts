@@ -454,25 +454,121 @@ export interface ExternalProduct {
 export interface ExternalProductImage {
   id: string;
   product_id: string;
-  url: string;
-  alt_text?: string;
-  position?: number;
-  is_primary?: boolean;
+  variant_id?: string;
+  color_id?: string;
+  url?: string;
+  url_cdn?: string;
+  url_original?: string;
+  filename?: string;
+  cloudflare_image_id?: string;
   image_type?: string;
+  image_type_id?: string;
+  is_primary?: boolean;
+  is_og_image?: boolean;
+  applies_to_color?: boolean;
+  display_order?: number;
+  alt_text?: string;
+  title_text?: string;
+  source_supplier?: string;
+  supplier_code?: string;
+  width_px?: number;
+  height_px?: number;
+  file_size_bytes?: number;
+  format?: string;
+  caption?: string;
+  position?: number;
+  is_active?: boolean;
+  organization_id?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface ExternalProductVariant {
   id: string;
   product_id: string;
   sku?: string;
+  supplier_sku?: string;
+  sku_promo?: string;
+  web_sku?: string;
+  CodigoXbz?: string;
   name?: string;
+  color_name?: string;
+  color_hex?: string;
   color_id?: string;
-  size?: string;
-  price?: number;
-  stock?: number;
+  color_code?: string;
+  size_code?: string;
+  size_id?: string;
+  stock_quantity?: number;
+  ean?: string;
+  attributes?: Record<string, unknown>;
+  capacity?: string;
+  capacity_ml?: number;
+  capacity_display?: string;
+  height_mm?: number;
+  width_mm?: number;
+  length_mm?: number;
+  width_cm?: number;
+  length_cm?: number;
+  weight_g?: number;
+  images?: unknown[];
+  selected_images?: unknown[];
+  selected_thumbnail?: string;
+  selected_videos?: unknown[];
+  bitrix_product_id?: number;
+  last_sync_at?: string;
   is_active?: boolean;
+  organization_id?: string;
   created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalProductKitComponent {
+  id: string;
+  kit_product_id: string;
+  component_name?: string;
+  component_description?: string;
+  component_type_code?: string;
+  component_code?: string;
+  component_product_id?: string;
+  component_sku?: string;
+  quantity?: number;
+  display_order?: number;
+  is_optional?: boolean;
+  is_packaging?: boolean;
+  is_replaceable?: boolean;
+  allows_personalization?: boolean;
+  personalization_notes?: string;
+  material?: string;
+  material_type_id?: string;
+  secondary_material_type_id?: string;
+  color?: string;
+  primary_image_url?: string;
+  images?: unknown[];
+  allowed_variant_ids?: string[];
+  supplier_component_code?: string;
+  height_mm?: number;
+  width_mm?: number;
+  length_mm?: number;
+  weight_g?: number;
+  notes?: string;
+  is_active?: boolean;
+  organization_id?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ExternalProductMaterial {
+  id: string;
+  product_id: string;
+  material_id: string;
+  part?: string;
+  percentage?: number;
+  sort_order?: number;
+  notes?: string;
+  is_active?: boolean;
+  organization_id?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ExternalCategory {
