@@ -150,6 +150,12 @@ function FormSection({
   );
 }
 
+// Helper to extract YouTube video ID
+function extractYoutubeId(url: string): string {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return match?.[1] || '';
+}
+
 // SKU validation hook
 function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: string) {
   const [status, setStatus] = useState<'idle' | 'checking' | 'valid' | 'duplicate'>('idle');
