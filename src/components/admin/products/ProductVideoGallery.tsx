@@ -29,6 +29,8 @@ import {
   Sparkles,
   Upload,
   FileVideo,
+  ImagePlus,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Dialog,
@@ -171,6 +173,8 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
   const [filterType, setFilterType] = useState<string>('all');
   const [linkingVideoId, setLinkingVideoId] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [isBulkRegenerating, setIsBulkRegenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch videos from external DB
@@ -463,7 +467,83 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     }
   }, [productId, queryClient]);
 
-  const getThumbnail = (video: ExternalVideo): string | null => {
+  // Regenerate thumbnail from video URL
+  const regenerateThumbnail = useCallback(async (video: ExternalVideo) => {
+    const videoUrl = video.url_original || video.url_stream;
+    if (!videoUrl || !productId) {
+      toast.error('URL do vídeo não disponível');
+      return;
+    }
+
+    setRegeneratingId(video.id);
+    try {
+      // Fetch video as blob and extract thumbnail
+      const response = await fetch(videoUrl);
+      if (!response.ok) throw new Error('Falha ao baixar vídeo');
+      const blob = await response.blob();
+      const file = new File([blob], 'video.mp4', { type: blob.type || 'video/mp4' });
+
+      const thumbBlob = await extractThumbnailFromVideo(file);
+      if (!thumbBlob) {
+        toast.error('Não foi possível extrair frame do vídeo');
+        return;
+      }
+
+      const baseName = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      const thumbPath = `thumbnails/${productId}/${baseName}.jpg`;
+      const { data: td, error: te } = await supabase.storage
+        .from('product-videos')
+        .upload(thumbPath, thumbBlob, { contentType: 'image/jpeg', cacheControl: '86400', upsert: false });
+
+      if (te || !td) {
+        toast.error('Erro ao salvar thumbnail');
+        return;
+      }
+
+      const { data: tu } = supabase.storage.from('product-videos').getPublicUrl(td.path);
+
+      // Update external record
+      await supabase.functions.invoke('external-db-bridge', {
+        body: {
+          table: 'product_videos',
+          operation: 'update',
+          id: video.id,
+          data: { url_thumbnail: tu.publicUrl },
+        },
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['product-videos-ext', productId] });
+      toast.success('Thumbnail regenerada!');
+    } catch (err: any) {
+      toast.error('Erro ao regenerar thumbnail: ' + (err.message || 'desconhecido'));
+    } finally {
+      setRegeneratingId(null);
+    }
+  }, [productId, queryClient]);
+
+  // Bulk regenerate thumbnails for videos without one
+  const bulkRegenerateThumbnails = useCallback(async () => {
+    const withoutThumb = videos.filter(v => !v.url_thumbnail && !v.source_youtube_id && (v.url_original || v.url_stream));
+    if (withoutThumb.length === 0) {
+      toast.info('Todos os vídeos já possuem thumbnail');
+      return;
+    }
+
+    setIsBulkRegenerating(true);
+    let successCount = 0;
+    for (const video of withoutThumb) {
+      try {
+        await regenerateThumbnail(video);
+        successCount++;
+      } catch { /* individual errors handled inside */ }
+    }
+    setIsBulkRegenerating(false);
+    if (successCount > 0) {
+      toast.success(`${successCount} thumbnail(s) regenerada(s)`);
+    }
+  }, [videos, regenerateThumbnail]);
+
+
     if (video.url_thumbnail) return video.url_thumbnail;
     if (video.source_youtube_id) {
       return `https://img.youtube.com/vi/${video.source_youtube_id}/mqdefault.jpg`;
@@ -580,6 +660,31 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
               Limpar filtros
             </Button>
           )}
+          {/* Bulk regenerate thumbnails */}
+          {videos.some(v => !v.url_thumbnail && !v.source_youtube_id) && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[10px] text-muted-foreground hover:text-primary"
+                  onClick={bulkRegenerateThumbnails}
+                  disabled={isBulkRegenerating}
+                >
+                  {isBulkRegenerating ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  ) : (
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                  )}
+                  Gerar thumbnails
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">
+                Gerar thumbnails para {videos.filter(v => !v.url_thumbnail && !v.source_youtube_id).length} vídeo(s) sem miniatura
+              </TooltipContent>
+            </Tooltip>
+          )}
           <span className="ml-auto text-[10px] text-muted-foreground">
             {filteredVideos.length}/{videos.length}
           </span>
@@ -691,6 +796,30 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
                       <TooltipContent className="text-xs">Vincular a variação</TooltipContent>
                     </Tooltip>
                   )}
+                  {/* Regenerate thumbnail */}
+                  {!video.url_thumbnail && !video.source_youtube_id && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 bg-black/50 hover:bg-amber-600 text-white"
+                          disabled={regeneratingId === video.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            regenerateThumbnail(video);
+                          }}
+                        >
+                          {regeneratingId === video.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <ImagePlus className="h-3 w-3" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-xs">Gerar thumbnail</TooltipContent>
+                    </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
