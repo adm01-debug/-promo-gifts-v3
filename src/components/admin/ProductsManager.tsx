@@ -56,6 +56,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
+  X,
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
 import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
