@@ -21,6 +21,7 @@ import {
   Zap,
   DollarSign,
   Plus,
+  Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -104,6 +105,7 @@ const navGroups: NavGroup[] = [
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", adminOnly: true },
       { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true },
       { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
+      { icon: Activity, label: "Telemetria", href: "/admin/telemetria", adminOnly: true },
     ],
   },
 ];

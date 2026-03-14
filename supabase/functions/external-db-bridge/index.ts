@@ -452,6 +452,7 @@ function emitTelemetry(meta: {
   recordCount?: number;
   status: 'ok' | 'error' | 'slow' | 'very_slow';
   error?: string;
+  userId?: string | null;
 }) {
   const icon = meta.status === 'very_slow' ? '🔴' : meta.status === 'slow' ? '🟡' : meta.status === 'error' ? '❌' : '✅';
   const target = meta.rpcName || meta.table || 'unknown';
@@ -465,6 +466,34 @@ function emitTelemetry(meta: {
     console.error(line + ` error=${meta.error}`);
   } else {
     console.info(line);
+  }
+
+  // Persist slow/very_slow/error queries to the telemetry table (fire-and-forget)
+  if (meta.status !== 'ok') {
+    try {
+      const localUrl = Deno.env.get('SUPABASE_URL');
+      const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (localUrl && serviceKey) {
+        const localClient = createClient(localUrl, serviceKey);
+        localClient.from('query_telemetry').insert({
+          operation: meta.operation,
+          table_name: meta.table || null,
+          rpc_name: meta.rpcName || null,
+          duration_ms: meta.durationMs,
+          record_count: meta.recordCount ?? null,
+          query_limit: meta.limit ?? null,
+          query_offset: meta.offset ?? null,
+          count_mode: meta.countMode || null,
+          severity: meta.status,
+          error_message: meta.error || null,
+          user_id: meta.userId || null,
+        }).then(({ error: insertErr }) => {
+          if (insertErr) console.warn('[telemetry-persist] Insert failed:', insertErr.message);
+        });
+      }
+    } catch (e) {
+      // Fire-and-forget: don't block the response
+    }
   }
 }
 
