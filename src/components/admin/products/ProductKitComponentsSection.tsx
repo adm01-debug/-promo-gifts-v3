@@ -903,7 +903,7 @@ function ComponentForm({
 
 // ── Main component ──
 
-export function ProductKitComponentsSection({ productId }: ProductKitComponentsSectionProps) {
+export function ProductKitComponentsSection({ productId, boxInternalDimensions }: ProductKitComponentsSectionProps) {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
