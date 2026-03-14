@@ -599,58 +599,58 @@ export function ProductsManager() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total</p>
-                <p className="text-2xl font-bold tabular-nums mt-1">{totalCount?.toLocaleString() ?? '—'}</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Package className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Ativos</p>
-                <p className="text-2xl font-bold tabular-nums mt-1 text-emerald-600 dark:text-emerald-400">{stats.active}</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <div className="h-3 w-3 rounded-full bg-emerald-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sem Estoque</p>
-                <p className="text-2xl font-bold tabular-nums mt-1 text-amber-600 dark:text-amber-400">{stats.noStock}</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <div className="h-3 w-3 rounded-full bg-amber-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-border/40 bg-card/80 backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Preço Médio</p>
-                <p className="text-2xl font-bold tabular-nums mt-1">R$ {stats.avgPrice.toFixed(0)}</p>
-              </div>
-              <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <span className="text-sm font-bold text-blue-500">$</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          {
+            label: 'Total',
+            value: totalCount?.toLocaleString() ?? '—',
+            valueClass: '',
+            icon: <Package className="h-5 w-5 text-primary" />,
+            iconBg: 'bg-primary/10',
+          },
+          {
+            label: 'Ativos',
+            value: stats.active,
+            valueClass: 'text-emerald-600 dark:text-emerald-400',
+            icon: <div className="h-3 w-3 rounded-full bg-emerald-500" />,
+            iconBg: 'bg-emerald-500/10',
+          },
+          {
+            label: 'Sem Estoque',
+            value: stats.noStock,
+            valueClass: 'text-amber-600 dark:text-amber-400',
+            icon: <div className="h-3 w-3 rounded-full bg-amber-500" />,
+            iconBg: 'bg-amber-500/10',
+          },
+          {
+            label: 'Preço Médio',
+            value: `R$ ${stats.avgPrice.toFixed(0)}`,
+            valueClass: '',
+            icon: <span className="text-sm font-bold text-blue-500">$</span>,
+            iconBg: 'bg-blue-500/10',
+          },
+        ].map((stat, i) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: i * 0.08, ease: 'easeOut' }}
+            whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          >
+            <Card className="border-border/40 bg-card/80 backdrop-blur-sm hover:border-border/70 hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</p>
+                    <p className={cn("text-2xl font-bold tabular-nums mt-1", stat.valueClass)}>{stat.value}</p>
+                  </div>
+                  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center", stat.iconBg)}>
+                    {stat.icon}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
       {/* Search & Filters */}
