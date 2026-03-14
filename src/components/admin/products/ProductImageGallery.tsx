@@ -42,6 +42,9 @@ import {
   Palette,
   AlertCircle,
   CheckCircle2,
+  CheckSquare,
+  Square,
+  Trash2,
 } from 'lucide-react';
 import {
   Dialog,
