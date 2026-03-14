@@ -83,6 +83,7 @@ const IMAGE_TYPES = [
   { value: 'main', label: 'Principal', icon: Star, color: 'text-amber-500' },
   { value: 'gallery', label: 'Galeria', icon: ImageIcon, color: 'text-blue-500' },
   { value: 'detail', label: 'Detalhe', icon: ZoomIn, color: 'text-emerald-500' },
+  { value: 'ambient', label: 'Ambientada', icon: Eye, color: 'text-sky-500' },
   { value: 'component', label: 'Componente', icon: Layers, color: 'text-violet-500' },
   { value: 'box', label: 'Embalagem', icon: Package, color: 'text-orange-500' },
   { value: 'mockup', label: 'Mockup', icon: Eye, color: 'text-pink-500' },
