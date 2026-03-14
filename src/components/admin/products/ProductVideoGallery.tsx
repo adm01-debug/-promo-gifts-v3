@@ -345,6 +345,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
 
     // Auto-generate thumbnail from first frame
     let thumbnailUrl: string | null = null;
+    let thumbFailed = false;
     try {
       const thumbBlob = await extractThumbnailFromVideo(file);
       if (thumbBlob) {
@@ -355,10 +356,21 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         if (!te && td) {
           const { data: tu } = supabase.storage.from('product-videos').getPublicUrl(td.path);
           thumbnailUrl = tu.publicUrl;
+        } else {
+          thumbFailed = true;
         }
+      } else {
+        thumbFailed = true;
       }
     } catch (e) {
       console.warn('Thumbnail generation failed:', e);
+      thumbFailed = true;
+    }
+
+    if (thumbFailed) {
+      toast.warning(`Thumbnail não gerada para "${file.name}" — você pode regenerá-la depois`, {
+        duration: 5000,
+      });
     }
 
     return { url: urlData.publicUrl, size: file.size, thumbnailUrl };
