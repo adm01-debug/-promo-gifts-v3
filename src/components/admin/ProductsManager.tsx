@@ -55,7 +55,9 @@ import {
   History,
   ChevronLeft,
   ChevronRight,
+  FileSpreadsheet,
 } from "lucide-react";
+import { BulkImportDialog } from "./products/BulkImportDialog";
 import { useAuditLog } from "@/hooks/useAuditLog";
 import { AuditHistory } from "@/components/audit/AuditHistory";
 import { ProductForm } from "./products/ProductForm";
