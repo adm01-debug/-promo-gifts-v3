@@ -211,6 +211,12 @@ export function ProductForm({
   const isOnSale = watch('is_on_sale');
   const isKit = watch('is_kit');
   const hasCommercialPackaging = watch('has_commercial_packaging');
+  const isImported = watch('is_imported');
+  const isTextil = watch('is_textil');
+  const isThermal = watch('is_thermal');
+  const allowsPersonalization = watch('allows_personalization');
+  const hasGiftBox = watch('has_gift_box');
+  const hasOptionalPackaging = watch('has_optional_packaging');
   
   // Watch for char counters
   const skuValue = watch('sku') || '';
@@ -219,6 +225,8 @@ export function ProductForm({
   const shortDescValue = watch('short_description') || '';
   const metaDescValue = watch('meta_description') || '';
   const supplierRefValue = watch('supplier_reference') || '';
+  const metaTitleValue = watch('meta_title') || '';
+  const metaKeywordsValue = watch('meta_keywords') || '';
 
   // SKU validation
   const { status: skuStatus, duplicateName } = useSkuValidation(
@@ -240,7 +248,7 @@ export function ProductForm({
   });
 
   // Count active flags
-  const flagCount = [isActive, isFeatured, isBestseller, isNew, isOnSale, isKit, hasCommercialPackaging].filter(Boolean).length;
+  const flagCount = [isActive, isFeatured, isBestseller, isNew, isOnSale, isKit, hasCommercialPackaging, isImported, isTextil, isThermal, allowsPersonalization, hasGiftBox, hasOptionalPackaging].filter(Boolean).length;
 
   // Error count per tab for visual feedback
   const basicErrors = ['sku', 'name', 'description', 'short_description', 'meta_description', 'brand', 'category_id', 'supplier_id', 'supplier_reference'].filter(k => (errors as any)[k]).length;
