@@ -60,6 +60,7 @@ import {
   X,
   Power,
   PowerOff,
+  Boxes,
 } from "lucide-react";
 import { BulkImportDialog } from "./products/BulkImportDialog";
 import { cn } from "@/lib/utils";
