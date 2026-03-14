@@ -808,20 +808,17 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB CLASSIFICAÇÃO ====== */}
-          <TabsContent value="classification" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
-            {/* Variações de Cor */}
+          <TabsContent value="classification" className="space-y-3 mt-0 animate-in fade-in-50 duration-200">
             {isEdit && productId && (
-              <>
+              <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
                 <FormSection title="Variações de Cor" icon={Palette} defaultOpen>
                   <ProductVariantsSection productId={productId} productName={watch('name')} productSku={watch('sku')} />
                 </FormSection>
-                <Separator />
-              </>
+              </div>
             )}
 
-            {/* Componentes de Kit */}
             {isEdit && productId && isKit && (
-              <>
+              <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
                 <FormSection title="Componentes do Kit" icon={Layers} defaultOpen>
                   <ProductKitComponentsSection
                     productId={productId}
@@ -832,92 +829,54 @@ export function ProductForm({
                     }}
                   />
                 </FormSection>
-                <Separator />
-              </>
+              </div>
             )}
 
-            <FormSection title="Materiais" icon={Layers} defaultOpen={isEdit}>
-              {isEdit && productId ? (
-                <ProductMaterialsSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para selecionar materiais.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Tags" icon={Tag} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductTagsSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para vincular tags.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Ramos de Atividade" icon={Building2} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductRamosSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para vincular ramos.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Marketing" icon={Megaphone} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductMarketingSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para classificar marketing.
-                </div>
-              )}
-            </FormSection>
-
-            <Separator />
-
-            <FormSection title="Técnicas de Personalização" icon={Paintbrush} defaultOpen={false}>
-              {isEdit && productId ? (
-                <ProductTechniquesSection productId={productId} />
-              ) : (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-                  <Info className="h-3.5 w-3.5 shrink-0" />
-                  Salve o produto para vincular técnicas.
-                </div>
-              )}
-            </FormSection>
+            {[
+              { title: 'Materiais', icon: Layers, defaultOpen: isEdit, content: isEdit && productId ? <ProductMaterialsSection productId={productId} /> : null },
+              { title: 'Tags', icon: Tag, defaultOpen: false, content: isEdit && productId ? <ProductTagsSection productId={productId} /> : null },
+              { title: 'Ramos de Atividade', icon: Building2, defaultOpen: false, content: isEdit && productId ? <ProductRamosSection productId={productId} /> : null },
+              { title: 'Marketing', icon: Megaphone, defaultOpen: false, content: isEdit && productId ? <ProductMarketingSection productId={productId} /> : null },
+              { title: 'Técnicas de Personalização', icon: Paintbrush, defaultOpen: false, content: isEdit && productId ? <ProductTechniquesSection productId={productId} /> : null },
+            ].map(({ title, icon, defaultOpen: defOpen, content }) => (
+              <div key={title} className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+                <FormSection title={title} icon={icon} defaultOpen={defOpen}>
+                  {content || (
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 text-xs text-muted-foreground">
+                      <Info className="h-3.5 w-3.5 shrink-0" />
+                      Salve o produto primeiro para gerenciar {title.toLowerCase()}.
+                    </div>
+                  )}
+                </FormSection>
+              </div>
+            ))}
           </TabsContent>
 
           {/* ====== TAB MÍDIA ====== */}
-          <TabsContent value="media" className="mt-0 space-y-2 animate-in fade-in-50 duration-200">
-            <FormSection title="Galeria de Imagens" icon={ImageIcon} defaultOpen>
+          <TabsContent value="media" className="mt-0 space-y-4 animate-in fade-in-50 duration-200">
+            <div className="rounded-xl border border-border/60 bg-card/50 p-4 space-y-4">
+              <div className="flex items-center gap-2.5 pb-1">
+                <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center">
+                  <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <h4 className="text-sm font-semibold text-foreground">Galeria de Imagens</h4>
+              </div>
               <ProductImageGallery
                 images={images}
                 onChange={setImages}
                 folder="products"
                 productId={productId}
               />
-            </FormSection>
+            </div>
 
-            <Separator />
-
-            <FormSection title="Vídeo" icon={Video} defaultOpen={false}>
-              <div className="space-y-1">
-                <FieldLabel htmlFor="video_url">URL do Vídeo</FieldLabel>
-                <Input id="video_url" {...register('video_url')} placeholder="https://youtube.com/watch?v=..." />
-              </div>
+            <div className="rounded-xl border border-border/60 bg-card/50 overflow-hidden">
+              <FormSection title="Vídeo" icon={Video} defaultOpen={false}>
+                <div>
+                  <FieldLabel htmlFor="video_url">URL do Vídeo</FieldLabel>
+                  <Input id="video_url" {...register('video_url')} placeholder="https://youtube.com/watch?v=..." className="h-9" />
+                </div>
+              </FormSection>
+            </div>
             </FormSection>
           </TabsContent>
         </Tabs>
