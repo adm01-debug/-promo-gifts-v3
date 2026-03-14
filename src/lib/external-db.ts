@@ -837,22 +837,25 @@ export async function fetchPromobrindProductsLightweight(options?: {
 export async function fetchPromobrindProductById(
   productId: string
 ): Promise<PromobrindProduct | null> {
+  // Usar select: '*' para detalhe individual — 1 registro é rápido e garante
+  // que todos os campos novos (fiscal, SEO, comercial, flags) estejam disponíveis.
   let result: InvokeResult<PromobrindProduct>;
   try {
     result = await invokeExternalDb<PromobrindProduct>({
       table: 'products',
       operation: 'select',
       filters: { id: productId },
-      select: PRODUCT_SELECT_FIELDS_WITH_SALE,
+      select: PRODUCT_SELECT_FIELDS_DETAIL,
       limit: 1,
     });
   } catch (err) {
+    // Fallback para campos explícitos se '*' falhar
     if (!shouldFallbackSelect(err)) throw err;
     result = await invokeExternalDb<PromobrindProduct>({
       table: 'products',
       operation: 'select',
       filters: { id: productId },
-      select: PRODUCT_SELECT_FIELDS_LEGACY,
+      select: PRODUCT_SELECT_FIELDS_WITH_SALE,
       limit: 1,
     });
   }
