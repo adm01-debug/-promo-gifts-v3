@@ -845,7 +845,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB MÍDIA ====== */}
-          <TabsContent value="media" className="mt-0 space-y-1">
+          <TabsContent value="media" className="mt-0 space-y-2 animate-in fade-in-50 duration-200">
             <FormSection title="Galeria de Imagens" icon={ImageIcon} defaultOpen>
               <ProductImageGallery
                 images={images}
