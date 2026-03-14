@@ -73,8 +73,8 @@ function CharCounter({ current, max, className }: { current: number; max: number
   const pct = current / max;
   return (
     <span className={cn(
-      'text-[10px] tabular-nums',
-      pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-yellow-500' : 'text-muted-foreground/60',
+      'text-[10px] tabular-nums font-medium',
+      pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-warning' : 'text-muted-foreground/50',
       className,
     )}>
       {current}/{max}
@@ -83,19 +83,30 @@ function CharCounter({ current, max, className }: { current: number; max: number
 }
 
 // Required field label
-function FieldLabel({ htmlFor, children, required, charCount, charMax }: {
+function FieldLabel({ htmlFor, children, required, charCount, charMax, hint }: {
   htmlFor?: string;
   children: React.ReactNode;
   required?: boolean;
   charCount?: number;
   charMax?: number;
+  hint?: string;
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <Label htmlFor={htmlFor} className="text-xs font-medium">
-        {children}
-        {required && <span className="text-destructive ml-0.5">*</span>}
-      </Label>
+    <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor={htmlFor} className="text-xs font-semibold text-foreground/80">
+          {children}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </Label>
+        {hint && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="text-xs max-w-[200px]">{hint}</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
       {charCount !== undefined && charMax !== undefined && (
         <CharCounter current={charCount} max={charMax} />
       )}
@@ -120,18 +131,20 @@ function FormSection({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger className="flex items-center gap-2 w-full py-2.5 text-sm font-semibold text-foreground hover:text-primary transition-colors group">
-        <Icon className="h-4 w-4 text-primary" />
-        {title}
+      <CollapsibleTrigger className="flex items-center gap-2.5 w-full py-3 px-3 text-sm font-semibold text-foreground hover:bg-accent/50 rounded-lg transition-colors group -mx-1">
+        <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+        </div>
+        <span className="flex-1 text-left">{title}</span>
         {badge && (
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-normal bg-muted">
             {badge}
           </Badge>
         )}
-        <ChevronDown className={cn('h-4 w-4 ml-auto transition-transform text-muted-foreground group-hover:text-primary', open && 'rotate-180')} />
+        <ChevronDown className={cn('h-4 w-4 transition-transform duration-200 text-muted-foreground/50', open && 'rotate-180')} />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="grid gap-3 pb-4 pt-1">{children}</div>
+        <div className="grid gap-3.5 pb-5 pt-2 pl-1">{children}</div>
       </CollapsibleContent>
     </Collapsible>
   );
@@ -256,47 +269,48 @@ export function ProductForm({
   const priceErrors = ['sale_price', 'cost_price', 'stock_quantity', 'min_quantity'].filter(k => (errors as any)[k]).length;
 
   return (
-    <form onSubmit={onFormSubmit}>
-      <div className="max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-        {/* Tab navigation for main sections */}
+    <form onSubmit={onFormSubmit} className="flex flex-col">
+      <div className="max-h-[65vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
         <Tabs value={formTab} onValueChange={setFormTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-4 h-9">
-            <TabsTrigger value="basic" className="text-xs gap-1 relative">
-              <Info className="h-3 w-3" />
-              Básico
-              {basicErrors > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
-                  {basicErrors}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="details" className="text-xs gap-1">
-              <Ruler className="h-3 w-3" />
-              Detalhes
-            </TabsTrigger>
-            <TabsTrigger value="fiscal" className="text-xs gap-1">
-              <FileText className="h-3 w-3" />
-              Fiscal
-            </TabsTrigger>
-            <TabsTrigger value="seo" className="text-xs gap-1">
-              <Globe className="h-3 w-3" />
-              SEO
-            </TabsTrigger>
-            <TabsTrigger value="classification" className="text-xs gap-1">
-              <Layers className="h-3 w-3" />
-              Classificação
-            </TabsTrigger>
-            <TabsTrigger value="media" className="text-xs gap-1">
-              <ImageIcon className="h-3 w-3" />
-              Mídia
-              {images.length > 0 && (
-                <Badge variant="secondary" className="text-[10px] px-1 py-0 ml-1">{images.length}</Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-3 -mx-1 px-1">
+            <TabsList className="w-full h-10 p-1 bg-muted/50 rounded-xl gap-0.5">
+              <TabsTrigger value="basic" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm relative flex-1">
+                <Info className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Básico</span>
+                {basicErrors > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-bold shadow-sm">
+                    {basicErrors}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="details" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <Ruler className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Detalhes</span>
+              </TabsTrigger>
+              <TabsTrigger value="fiscal" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <FileText className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Fiscal</span>
+              </TabsTrigger>
+              <TabsTrigger value="seo" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <Globe className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">SEO</span>
+              </TabsTrigger>
+              <TabsTrigger value="classification" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1">
+                <Layers className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Classificação</span>
+              </TabsTrigger>
+              <TabsTrigger value="media" className="text-xs gap-1.5 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm relative flex-1">
+                <ImageIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Mídia</span>
+                {images.length > 0 && (
+                  <Badge variant="secondary" className="text-[9px] px-1 py-0 ml-0.5 bg-primary/10 text-primary border-0">{images.length}</Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ====== TAB BÁSICO ====== */}
-          <TabsContent value="basic" className="space-y-1 mt-0">
+          <TabsContent value="basic" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="Informações Básicas" icon={Info} defaultOpen>
               {/* SKU Interno + SKU Fornecedor */}
               <div className="grid grid-cols-2 gap-3">
@@ -312,13 +326,13 @@ export function ProductForm({
                       className={cn(
                         'font-mono pr-8',
                         errors.sku && 'border-destructive',
-                        skuStatus === 'valid' && 'border-green-500/50',
+                        skuStatus === 'valid' && 'border-success/50',
                         skuStatus === 'duplicate' && 'border-destructive',
                       )}
                     />
                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
                       {skuStatus === 'checking' && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
-                      {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
+                      {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
                       {skuStatus === 'duplicate' && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -549,7 +563,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB DETALHES ====== */}
-          <TabsContent value="details" className="space-y-1 mt-0">
+          <TabsContent value="details" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="Dimensões Externas" icon={Ruler} defaultOpen>
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
@@ -667,7 +681,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB FISCAL ====== */}
-          <TabsContent value="fiscal" className="space-y-1 mt-0">
+          <TabsContent value="fiscal" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="Dados Fiscais" icon={FileText} defaultOpen>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -697,7 +711,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB SEO ====== */}
-          <TabsContent value="seo" className="space-y-1 mt-0">
+          <TabsContent value="seo" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             <FormSection title="SEO e Metadados" icon={Globe} defaultOpen>
               <div className="space-y-1">
                 <FieldLabel htmlFor="meta_title" charCount={metaTitleValue.length} charMax={200}>
@@ -738,7 +752,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB CLASSIFICAÇÃO ====== */}
-          <TabsContent value="classification" className="space-y-1 mt-0">
+          <TabsContent value="classification" className="space-y-2 mt-0 animate-in fade-in-50 duration-200">
             {/* Variações de Cor */}
             {isEdit && productId && (
               <>
@@ -831,7 +845,7 @@ export function ProductForm({
           </TabsContent>
 
           {/* ====== TAB MÍDIA ====== */}
-          <TabsContent value="media" className="mt-0 space-y-1">
+          <TabsContent value="media" className="mt-0 space-y-2 animate-in fade-in-50 duration-200">
             <FormSection title="Galeria de Imagens" icon={ImageIcon} defaultOpen>
               <ProductImageGallery
                 images={images}
@@ -854,20 +868,24 @@ export function ProductForm({
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-4 border-t mt-4">
+      <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-4">
         <div className="text-xs text-muted-foreground">
           {Object.keys(errors).length > 0 && (
-            <span className="flex items-center gap-1 text-destructive">
-              <AlertCircle className="h-3 w-3" />
+            <span className="flex items-center gap-1.5 text-destructive font-medium">
+              <AlertCircle className="h-3.5 w-3.5" />
               {Object.keys(errors).length} campo(s) com erro
             </span>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>
+        <div className="flex gap-2.5">
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={isSaving} className="px-5">
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSaving || skuStatus === 'duplicate'}>
+          <Button
+            type="submit"
+            disabled={isSaving || skuStatus === 'duplicate'}
+            className="px-6 font-semibold shadow-sm"
+          >
             {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {isEdit ? 'Salvar Alterações' : 'Criar Produto'}
           </Button>
