@@ -64,8 +64,6 @@ export function useProductVariantsWithStock(productId: string | undefined) {
         next_entry_date: null,
         next_entry_quantity: null,
       }));
-
-      return result.records;
     },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
