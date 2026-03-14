@@ -215,6 +215,11 @@ export function ProductImageGallery({
   const [uploadImageType, setUploadImageType] = useState<string>('gallery');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Bulk selection state
+  const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
+  const [bulkMode, setBulkMode] = useState(false);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
   // Fetch external images
   const { data: externalImages = [], isLoading: isLoadingExt } = useQuery<ExternalImage[]>({
     queryKey: ['product-images-ext', productId],
