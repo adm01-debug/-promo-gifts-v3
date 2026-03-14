@@ -144,6 +144,7 @@ export function useColorGroups() {
     gcTime: 24 * 60 * 60 * 1000, // 24 horas
     refetchOnWindowFocus: false,
     refetchOnMount: false,
+  });
 }
 
 /**
