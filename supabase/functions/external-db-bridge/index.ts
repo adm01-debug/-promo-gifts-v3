@@ -678,7 +678,7 @@ serve(async (req) => {
     console.log(`Operation: ${operation} on table: ${table} (public: ${allowPublicAccess})`);
 
     // Extrair dados adicionais do body já parseado
-    const { data, filters, id, select, orderBy, limit: queryLimit, offset: queryOffset } = body as {
+    const { data, filters, id, select, orderBy, limit: queryLimit, offset: queryOffset, countMode: requestCountMode } = body as {
       table: string;
       operation: Operation;
       data?: Record<string, unknown>;
@@ -688,6 +688,7 @@ serve(async (req) => {
       orderBy?: { column: string; ascending?: boolean };
       limit?: number;
       offset?: number;
+      countMode?: 'exact' | 'planned' | 'estimated' | 'none';
     };
 
     // Identificar grupo do recurso
@@ -786,8 +787,19 @@ serve(async (req) => {
             console.warn('Error calling get_category_descendants:', err);
           }
         }
-        
-        let query = externalSupabase.from(table).select(select || '*', { count: 'exact' });
+
+        const safeLimitForCount = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
+        const safeOffsetForCount = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
+        const isHeavyTable = ['products', 'product_images', 'product_variants'].includes(table);
+
+        const countMode = requestCountMode
+          ?? ((isHeavyTable && (safeOffsetForCount > 0 || safeLimitForCount >= 1000)) ? 'planned' : 'exact');
+
+        const queryCountMode = countMode === 'none' ? undefined : countMode;
+
+        let query = queryCountMode
+          ? externalSupabase.from(table).select(select || '*', { count: queryCountMode })
+          : externalSupabase.from(table).select(select || '*');
         
         // Aplicar filtros
         if (filters) {
@@ -874,7 +886,7 @@ serve(async (req) => {
         } else {
           result = { records: selectData, count };
         }
-        console.log(`Selected ${selectData?.length || 0} of ${count} records from ${table} (offset=${safeOffset}, limit=${safeLimit})${categoryDescendants ? ` [category with ${categoryDescendants.length} descendants]` : ''}`);
+        console.log(`Selected ${selectData?.length || 0} of ${typeof count === 'number' ? count : 'n/a'} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, countMode=${countMode})${categoryDescendants ? ` [category with ${categoryDescendants.length} descendants]` : ''}`);
         break;
       }
 

@@ -13,6 +13,7 @@ interface InvokeOptions<T = Record<string, unknown>> {
   orderBy?: { column: string; ascending?: boolean };
   limit?: number;
   offset?: number;
+  countMode?: 'exact' | 'planned' | 'estimated' | 'none';
 }
 
 interface InvokeResult<T> {
@@ -288,6 +289,8 @@ export async function fetchPromobrindProducts(options?: {
 
   let totalCount: number | null = null;
 
+  const shouldRequestCount = options?.returnCount === true;
+
   if (typeof options?.limit === 'number' && options.limit > 0) {
     const fetchOffset = options?.offset ?? 0;
     let result: InvokeResult<PromobrindProduct>;
@@ -300,6 +303,7 @@ export async function fetchPromobrindProducts(options?: {
         orderBy,
         limit: options.limit,
         offset: fetchOffset,
+        countMode: shouldRequestCount ? 'exact' : 'none',
       });
     } catch (err) {
       if (!shouldFallbackSelect(err)) throw err;
@@ -311,6 +315,7 @@ export async function fetchPromobrindProducts(options?: {
         orderBy,
         limit: options.limit,
         offset: fetchOffset,
+        countMode: shouldRequestCount ? 'exact' : 'none',
       });
     }
     products = result.records;
@@ -326,6 +331,7 @@ export async function fetchPromobrindProducts(options?: {
     const HARD_MAX = 200000;
 
     while (offset < HARD_MAX) {
+      const countMode: 'exact' | 'none' = shouldRequestCount && offset === 0 ? 'exact' : 'none';
       let page: InvokeResult<PromobrindProduct>;
       try {
         page = await invokeExternalDb<PromobrindProduct>({
@@ -336,6 +342,7 @@ export async function fetchPromobrindProducts(options?: {
           orderBy,
           limit: pageSize,
           offset,
+          countMode,
         });
       } catch (err) {
         if (!shouldFallbackSelect(err)) throw err;
@@ -347,6 +354,7 @@ export async function fetchPromobrindProducts(options?: {
           orderBy,
           limit: pageSize,
           offset,
+          countMode,
         });
       }
 
