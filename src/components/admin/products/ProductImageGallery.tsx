@@ -206,6 +206,9 @@ export function ProductImageGallery({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  // Upload context state
+  const [uploadVariant, setUploadVariant] = useState<string>('none');
+  const [uploadImageType, setUploadImageType] = useState<string>('gallery');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch external images
