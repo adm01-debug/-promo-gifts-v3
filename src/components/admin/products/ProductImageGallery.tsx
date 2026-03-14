@@ -622,7 +622,134 @@ export function ProductImageGallery({
   };
   const handleDragEnd = () => { setDragIndex(null); setDragOverIndex(null); };
 
-  const handleDropZone = useCallback(async (e: React.DragEvent) => {
+  // ── Bulk actions ──
+
+  const toggleSelect = useCallback((url: string) => {
+    setSelectedUrls(prev => {
+      const next = new Set(prev);
+      if (next.has(url)) next.delete(url);
+      else next.add(url);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedUrls(new Set(filteredImages));
+  }, [filteredImages]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedUrls(new Set());
+    setBulkMode(false);
+  }, []);
+
+  const bulkUpdateType = useCallback(async (newType: string) => {
+    if (selectedUrls.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const updates = Array.from(selectedUrls)
+        .map(url => extImageMap.get(url))
+        .filter((ext): ext is ExternalImage => !!ext?.id);
+
+      await Promise.all(
+        updates.map(ext =>
+          supabase.functions.invoke('external-db-bridge', {
+            body: {
+              table: 'product_images',
+              operation: 'update',
+              id: ext.id,
+              data: { image_type: newType },
+            },
+          })
+        )
+      );
+
+      if (productId) {
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      }
+      const label = IMAGE_TYPES.find(t => t.value === newType)?.label || newType;
+      toast.success(`${updates.length} imagem(ns) classificada(s) como "${label}"`);
+      clearSelection();
+    } catch {
+      toast.error('Erro ao atualizar tipo em lote');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }, [selectedUrls, extImageMap, productId, queryClient, clearSelection]);
+
+  const bulkUpdateVariant = useCallback(async (variantCode: string) => {
+    if (selectedUrls.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const variant = variantCode !== 'none' ? variantMap.get(variantCode) : null;
+      const updates = Array.from(selectedUrls)
+        .map(url => extImageMap.get(url))
+        .filter((ext): ext is ExternalImage => !!ext?.id);
+
+      await Promise.all(
+        updates.map(ext =>
+          supabase.functions.invoke('external-db-bridge', {
+            body: {
+              table: 'product_images',
+              operation: 'update',
+              id: ext.id,
+              data: {
+                supplier_code: variant?.supplier_code || null,
+                variant_id: variant?.id || null,
+              },
+            },
+          })
+        )
+      );
+
+      if (productId) {
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      }
+      const label = variant ? (variant.color_name || variant.name) : 'Geral (sem cor)';
+      toast.success(`${updates.length} imagem(ns) vinculada(s) a "${label}"`);
+      clearSelection();
+    } catch {
+      toast.error('Erro ao atualizar variação em lote');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }, [selectedUrls, extImageMap, variantMap, productId, queryClient, clearSelection]);
+
+  const bulkDelete = useCallback(async () => {
+    if (selectedUrls.size === 0) return;
+    setIsBulkUpdating(true);
+    try {
+      const toRemove = Array.from(selectedUrls);
+      // Remove from storage
+      await Promise.all(toRemove.map(url => removeStorageFileByUrl(url)));
+      // Soft-delete in external DB
+      const extUpdates = toRemove
+        .map(url => extImageMap.get(url))
+        .filter((ext): ext is ExternalImage => !!ext?.id);
+      await Promise.all(
+        extUpdates.map(ext =>
+          supabase.functions.invoke('external-db-bridge', {
+            body: {
+              table: 'product_images',
+              operation: 'update',
+              id: ext.id,
+              data: { is_active: false },
+            },
+          })
+        )
+      );
+      // Remove from local state
+      onChange(images.filter(url => !selectedUrls.has(url)));
+      if (productId) {
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      }
+      toast.success(`${toRemove.length} imagem(ns) removida(s)`);
+      clearSelection();
+    } catch {
+      toast.error('Erro ao remover imagens em lote');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  }, [selectedUrls, extImageMap, images, onChange, productId, queryClient, removeStorageFileByUrl, clearSelection]);
     e.preventDefault();
     e.stopPropagation();
     const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
