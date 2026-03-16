@@ -92,8 +92,39 @@ async function invokeBridge<T>(body: Record<string, unknown>): Promise<BridgeRes
   throw new Error('Erro na bridge: tentativas esgotadas');
 }
 
+// ============================================
+// BATCH BRIDGE — multiple queries in one HTTP call
+// Reduces 5+ edge function invocations to 1
+// ============================================
+interface BatchQuery {
+  table: string;
+  operation?: 'select';
+  select?: string;
+  filters?: Record<string, unknown>;
+  orderBy?: { column: string; ascending?: boolean };
+  limit?: number;
+  offset?: number;
+  cacheKey?: string;
+}
+
+interface BatchResult {
+  success: boolean;
+  data?: { records: unknown[]; count: number | null };
+  error?: string;
+  fromCache?: boolean;
+}
+
 /**
- * Invoca o external-db-bridge para operações CRUD no banco Promobrind.
+ * Executa múltiplas queries SELECT em uma única invocação da edge function.
+ * Elimina overhead de auth/conexão duplicada e aproveita cache server-side.
+ */
+export async function invokeBatchBridge(queries: BatchQuery[]): Promise<BatchResult[]> {
+  const response = await invokeBridge<{ results: BatchResult[] }>({
+    operation: 'batch',
+    queries,
+  });
+  return response.data.results;
+}
  * Esse é o método seguro e padronizado de acessar o banco externo,
  * passando pelo edge function que valida autenticação e permissões.
  */
