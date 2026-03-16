@@ -255,7 +255,7 @@ export function CompanyContactSelector({
       
       // Fetch contacts
       const contactsData = await selectCrm<CrmContact>("contacts", {
-        select: "id, first_name, last_name, full_name, cargo, _deprecated_email, _deprecated_phone",
+        select: "id, first_name, last_name, full_name, cargo",
         filters: { company_id: companyId, deleted_at: null },
         orderBy: { column: "first_name", ascending: true },
         limit: 50,
@@ -264,24 +264,22 @@ export function CompanyContactSelector({
       // For each contact, try to get primary email/phone
       const enriched = await Promise.all(
         contactsData.map(async (ct) => {
-          let email = ct._deprecated_email;
-          let phone = ct._deprecated_phone;
+          let email: string | null = null;
+          let phone: string | null = null;
 
           try {
-            if (!email) {
-              const emails = await selectCrm<CrmContactEmail>("contact_emails", {
+            const [emails, phones] = await Promise.all([
+              selectCrm<CrmContactEmail>("contact_emails", {
                 filters: { contact_id: ct.id },
                 limit: 1,
-              });
-              if (emails.length > 0) email = emails[0].email;
-            }
-            if (!phone) {
-              const phones = await selectCrm<CrmContactPhone>("contact_phones", {
+              }),
+              selectCrm<CrmContactPhone>("contact_phones", {
                 filters: { contact_id: ct.id },
                 limit: 1,
-              });
-              if (phones.length > 0) phone = phones[0].numero;
-            }
+              }),
+            ]);
+            if (emails.length > 0) email = emails[0].email;
+            if (phones.length > 0) phone = phones[0].numero;
           } catch {
             // silently fail enrichment
           }
