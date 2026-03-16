@@ -268,20 +268,18 @@ export function CompanyContactSelector({
           let phone: string | null = null;
 
           try {
-            if (!email) {
-              const emails = await selectCrm<CrmContactEmail>("contact_emails", {
+            const [emails, phones] = await Promise.all([
+              selectCrm<CrmContactEmail>("contact_emails", {
                 filters: { contact_id: ct.id },
                 limit: 1,
-              });
-              if (emails.length > 0) email = emails[0].email;
-            }
-            if (!phone) {
-              const phones = await selectCrm<CrmContactPhone>("contact_phones", {
+              }),
+              selectCrm<CrmContactPhone>("contact_phones", {
                 filters: { contact_id: ct.id },
                 limit: 1,
-              });
-              if (phones.length > 0) phone = phones[0].numero;
-            }
+              }),
+            ]);
+            if (emails.length > 0) email = emails[0].email;
+            if (phones.length > 0) phone = phones[0].numero;
           } catch {
             // silently fail enrichment
           }
