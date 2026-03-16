@@ -289,7 +289,7 @@ export async function fetchPromobrindProducts(options?: {
   };
 
   if (options?.search) {
-    filters.name = options.search;
+    filters._search = options.search;
   }
 
   // Se limit foi informado, faz uma única chamada.

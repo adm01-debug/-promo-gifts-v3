@@ -874,6 +874,13 @@ serve(async (req) => {
         if (filters) {
           Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
+              // Busca multi-campo: _search faz OR entre name e sku
+              if (key === '_search' && typeof value === 'string') {
+                const escaped = value.replace(/%/g, '\\%').replace(/_/g, '\\_');
+                query = query.or(`name.ilike.%${escaped}%,sku.ilike.%${escaped}%`);
+                return;
+              }
+
               // Se é filtro de categoria e temos descendentes, usar IN ao invés de EQ
               if (categoryDescendants && (key === 'category_id' || key === 'main_category_id')) {
                 query = query.in(key, categoryDescendants);
