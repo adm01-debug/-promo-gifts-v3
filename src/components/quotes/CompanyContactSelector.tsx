@@ -255,7 +255,7 @@ export function CompanyContactSelector({
       
       // Fetch contacts
       const contactsData = await selectCrm<CrmContact>("contacts", {
-        select: "id, first_name, last_name, full_name, cargo, _deprecated_email, _deprecated_phone",
+        select: "id, first_name, last_name, full_name, cargo",
         filters: { company_id: companyId, deleted_at: null },
         orderBy: { column: "first_name", ascending: true },
         limit: 50,
@@ -264,8 +264,8 @@ export function CompanyContactSelector({
       // For each contact, try to get primary email/phone
       const enriched = await Promise.all(
         contactsData.map(async (ct) => {
-          let email = ct._deprecated_email;
-          let phone = ct._deprecated_phone;
+          let email: string | null = null;
+          let phone: string | null = null;
 
           try {
             if (!email) {
