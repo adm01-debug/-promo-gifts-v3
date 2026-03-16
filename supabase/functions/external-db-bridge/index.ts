@@ -602,7 +602,7 @@ serve(async (req) => {
                 if (value !== undefined && value !== null && value !== '') {
                   if (key === '_search' && typeof value === 'string') {
                     const escaped = value.replace(/%/g, '\\%').replace(/_/g, '\\_');
-                    query = query.or(`name.ilike.%${escaped}%,sku.ilike.%${escaped}%,supplier_reference.ilike.%${escaped}%,brand.ilike.%${escaped}%,description.ilike.%${escaped}%,category_name.ilike.%${escaped}%`);
+                    query = query.or(`name.ilike.%${escaped}%,sku.ilike.%${escaped}%,supplier_reference.ilike.%${escaped}%,brand.ilike.%${escaped}%,description.ilike.%${escaped}%`);
                     return;
                   }
                   if (typeof value === 'string') {
