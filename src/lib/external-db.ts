@@ -125,6 +125,9 @@ export async function invokeBatchBridge(queries: BatchQuery[]): Promise<BatchRes
   });
   return response.data.results;
 }
+
+/**
+ * Invoca o external-db-bridge para operações CRUD no banco Promobrind.
  * Esse é o método seguro e padronizado de acessar o banco externo,
  * passando pelo edge function que valida autenticação e permissões.
  */
