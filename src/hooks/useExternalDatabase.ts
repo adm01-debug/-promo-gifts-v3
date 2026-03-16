@@ -184,6 +184,11 @@ async function invokeWithRetry(
 }
 
 export function useExternalDatabase<T = Record<string, unknown>>(tableName: ExternalTable) {
+  // Guard against undefined/invalid table names
+  if (!tableName || typeof tableName !== 'string') {
+    console.error(`[useExternalDatabase] Invalid tableName: ${JSON.stringify(tableName)}`);
+  }
+
   const [state, setState] = useState<ExternalDatabaseState<T>>({
     data: [],
     count: null,

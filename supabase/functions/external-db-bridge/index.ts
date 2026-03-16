@@ -664,6 +664,17 @@ serve(async (req) => {
     let table = (body as any).table as string;
     const operation = (body as any).operation as Operation;
 
+    // Guard: table must be a non-empty string
+    if (!table || typeof table !== 'string' || table === 'undefined') {
+      console.error(`[external-db-bridge] Missing or invalid table: ${JSON.stringify(table)}, operation: ${operation}`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Parâmetro 'table' é obrigatório e deve ser uma string válida (recebido: ${JSON.stringify(table)})`,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // ============================================
     // OPERAÇÃO RPC (Remote Procedure Call)
     // ============================================
