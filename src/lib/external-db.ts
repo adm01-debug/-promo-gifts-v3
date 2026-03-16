@@ -70,6 +70,14 @@ async function buildBridgeError(error: unknown): Promise<{ message: string; retr
 }
 
 async function invokeBridge<T>(body: Record<string, unknown>): Promise<BridgeResponse<T>> {
+  // Guard: non-batch operations MUST have a valid table name
+  const op = body.operation as string | undefined;
+  if (op !== 'batch' && (!body.table || typeof body.table !== 'string')) {
+    const caller = new Error().stack?.split('\n')[2]?.trim() || 'unknown';
+    console.error(`[external-db] invokeBridge called without table! operation=${op}, caller=${caller}`, body);
+    throw new Error(`invokeBridge: tabela não informada (operation=${op})`);
+  }
+
   for (let attempt = 1; attempt <= BOOT_RETRY_ATTEMPTS; attempt++) {
     const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
 
