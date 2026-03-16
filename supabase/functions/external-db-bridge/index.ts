@@ -783,7 +783,7 @@ serve(async (req) => {
       );
     }
 
-    const table = (body as any).table as string;
+    let table = (body as any).table as string;
 
     // Guard: table must be a non-empty string for non-RPC operations
     if (!table || typeof table !== 'string' || table === 'undefined') {
