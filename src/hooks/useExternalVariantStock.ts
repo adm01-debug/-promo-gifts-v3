@@ -69,12 +69,25 @@ export function useExternalVariantStock(productId: string | undefined) {
       // Indexar imagens por supplier_code para lookup rápido
       // Priorizar is_og_image (MAIN), excluir tipo 'box'
       const imagesByCode = new Map<string, string>();
+      // Indexar imagens por variant_id para lookup direto (XBZ e outros sem color_code)
+      const imagesByVariantId = new Map<string, string>();
       for (const img of imagesResult.records) {
-        if (!img.supplier_code || !img.url_cdn) continue;
+        if (!img.url_cdn) continue;
         if (img.image_type === 'box') continue;
-        const code = img.supplier_code.toUpperCase();
-        if (!imagesByCode.has(code) || img.is_og_image) {
-          imagesByCode.set(code, img.url_cdn);
+
+        // Indexar por variant_id (vínculo direto mais confiável)
+        if (img.variant_id) {
+          if (!imagesByVariantId.has(img.variant_id) || img.is_og_image) {
+            imagesByVariantId.set(img.variant_id, img.url_cdn);
+          }
+        }
+
+        // Indexar por supplier_code (vínculo via color_code)
+        if (img.supplier_code) {
+          const code = img.supplier_code.toUpperCase();
+          if (!imagesByCode.has(code) || img.is_og_image) {
+            imagesByCode.set(code, img.url_cdn);
+          }
         }
       }
 
@@ -87,15 +100,17 @@ export function useExternalVariantStock(productId: string | undefined) {
       }
 
       return variantsResult.records.map(v => {
-        // Imagem por color_code tem PRIORIDADE (vínculo explícito supplier_code = color_code)
+        // 1) Vínculo direto por variant_id (mais confiável — XBZ e outros)
+        const variantImage = imagesByVariantId.get(v.id) || null;
+        // 2) Vínculo por color_code → supplier_code (Stricker, Asia, etc.)
         const colorImage = v.color_code ? imagesByCode.get(v.color_code.toUpperCase()) : null;
         
         // selected_thumbnail só é válido se NÃO for a imagem principal do produto
         const isMainImage = v.selected_thumbnail ? primaryImages.has(v.selected_thumbnail) : false;
         const validSelectedThumb = v.selected_thumbnail && !isMainImage ? v.selected_thumbnail : null;
         
-        // Prioridade: colorImage (vínculo explícito) > selected_thumbnail válido > null
-        const thumbnail = colorImage || validSelectedThumb || null;
+        // Prioridade: variantImage > colorImage > selected_thumbnail válido > null
+        const thumbnail = variantImage || colorImage || validSelectedThumb || null;
         const imgs = v.selected_images?.length ? v.selected_images : v.images;
 
         return {
