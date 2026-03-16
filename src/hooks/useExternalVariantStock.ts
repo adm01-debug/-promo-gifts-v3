@@ -52,6 +52,7 @@ export function useExternalVariantStock(productId: string | undefined) {
         }),
         invokeExternalDb<{
           id: string;
+          variant_id: string | null;
           supplier_code: string | null;
           url_cdn: string | null;
           is_og_image: boolean | null;
@@ -60,7 +61,7 @@ export function useExternalVariantStock(productId: string | undefined) {
         }>({
           table: 'product_images',
           operation: 'select',
-          select: 'id, supplier_code, url_cdn, is_og_image, is_primary, image_type',
+          select: 'id, variant_id, supplier_code, url_cdn, is_og_image, is_primary, image_type',
           filters: { product_id: productId },
           limit: 200,
         }),
