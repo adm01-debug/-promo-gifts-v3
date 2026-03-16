@@ -27,6 +27,50 @@ export interface CrmResponse<T> {
   count?: number;
 }
 
+// ============================================
+// BATCH SUPPORT — multiple SELECT queries in one call
+// ============================================
+
+export interface CrmBatchQuery {
+  table: string;
+  select?: string;
+  filters?: Record<string, unknown>;
+  orderBy?: string | { column: string; ascending?: boolean };
+  limit?: number;
+  offset?: number;
+  search?: { column: string; term: string };
+}
+
+interface CrmBatchResult {
+  success: boolean;
+  data?: { records: unknown[]; count: number };
+  error?: string;
+}
+
+/**
+ * Executa múltiplas queries SELECT no CRM em uma única invocação.
+ */
+export async function invokeCrmBatch(queries: CrmBatchQuery[]): Promise<CrmBatchResult[]> {
+  const { data, error } = await supabase.functions.invoke("crm-db-bridge", {
+    body: { operation: "batch", queries },
+  });
+
+  if (error) {
+    console.error("[CRM-DB] Batch error:", error);
+    throw new Error(`CRM batch error: ${error.message}`);
+  }
+
+  if (!data?.success) {
+    throw new Error(data?.error || "CRM batch unknown error");
+  }
+
+  return data.results as CrmBatchResult[];
+}
+
+// ============================================
+// SINGLE OPERATIONS
+// ============================================
+
 /**
  * Invoca o crm-db-bridge para acessar dados do CRM externo
  */

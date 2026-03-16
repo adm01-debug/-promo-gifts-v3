@@ -59,8 +59,112 @@ Deno.serve(async (req) => {
     }
 
     const crm = createClient(CRM_URL, CRM_KEY);
-    const body: CrmQuery = await req.json();
-    const { table, operation, id, filters, select, orderBy, limit, offset, search, relations, data, returning } = body;
+    const body = await req.json();
+
+    // ===== BATCH OPERATION =====
+    if (body.operation === "batch") {
+      const queries = body.queries as Array<{
+        table: string;
+        select?: string;
+        filters?: Record<string, unknown>;
+        orderBy?: string | { column: string; ascending?: boolean };
+        limit?: number;
+        offset?: number;
+        search?: { column: string; term: string };
+      }>;
+
+      if (!Array.isArray(queries) || queries.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Batch requires a non-empty "queries" array' }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (queries.length > 10) {
+        return new Response(
+          JSON.stringify({ error: "Batch limited to 10 queries max" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const batchStart = performance.now();
+      const results = await Promise.all(
+        queries.map(async (q, idx) => {
+          const qTable = q.table;
+          if (!qTable || !ALLOWED_TABLES.includes(qTable)) {
+            return { success: false, error: `Table '${qTable}' not allowed` };
+          }
+          try {
+            const queryStart = performance.now();
+            const selectFields = q.select || "*";
+            let query = crm.from(qTable).select(selectFields);
+
+            // Apply filters
+            if (q.filters) {
+              for (const [key, value] of Object.entries(q.filters)) {
+                if (value === null) {
+                  query = query.is(key, null);
+                } else if (typeof value === "object" && value !== null) {
+                  const filterObj = value as Record<string, unknown>;
+                  if ("in" in filterObj) query = query.in(key, filterObj.in as unknown[]);
+                  if ("ilike" in filterObj) query = query.ilike(key, filterObj.ilike as string);
+                  if ("eq" in filterObj) query = query.eq(key, filterObj.eq);
+                  if ("neq" in filterObj) query = query.neq(key, filterObj.neq as string);
+                  if ("gt" in filterObj) query = query.gt(key, filterObj.gt as string);
+                  if ("gte" in filterObj) query = query.gte(key, filterObj.gte as string);
+                  if ("lt" in filterObj) query = query.lt(key, filterObj.lt as string);
+                  if ("lte" in filterObj) query = query.lte(key, filterObj.lte as string);
+                  if ("not_null" in filterObj) query = query.not(key, "is", null);
+                } else {
+                  query = query.eq(key, value);
+                }
+              }
+            }
+
+            // Apply search
+            if (q.search?.column && q.search?.term) {
+              query = query.ilike(q.search.column, `%${q.search.term}%`);
+            }
+
+            // Apply ordering
+            if (q.orderBy) {
+              if (typeof q.orderBy === "string") {
+                query = query.order(q.orderBy);
+              } else {
+                query = query.order(q.orderBy.column, { ascending: q.orderBy.ascending ?? true });
+              }
+            }
+
+            if (q.limit) query = query.limit(q.limit);
+            if (q.offset) query = query.range(q.offset, q.offset + (q.limit || 50) - 1);
+
+            const { data, error } = await query;
+            const duration = Math.round(performance.now() - queryStart);
+
+            if (error) {
+              console.error(`[batch] Query ${idx} (${qTable}) error: ${error.message}`);
+              return { success: false, error: error.message };
+            }
+
+            console.log(`[batch] Query ${idx} (${qTable}) ${duration}ms, ${(data || []).length} records`);
+            return { success: true, data: { records: data || [], count: (data || []).length } };
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : "Unknown error";
+            return { success: false, error: msg };
+          }
+        })
+      );
+
+      const totalDuration = Math.round(performance.now() - batchStart);
+      console.log(`[batch] Total: ${totalDuration}ms for ${queries.length} queries`);
+
+      return new Response(
+        JSON.stringify({ success: true, results }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Non-batch: destructure as CrmQuery
+    const { table, operation, id, filters, select, orderBy, limit, offset, search, relations, data, returning } = body as CrmQuery;
 
     // Validar tabela
     if (!ALLOWED_TABLES.includes(table)) {
