@@ -1129,7 +1129,7 @@ serve(async (req) => {
         }
 
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
-        const insertData = {
+        const insertData: Record<string, unknown> = {
           ...data,
           updated_at: new Date().toISOString(),
         };
