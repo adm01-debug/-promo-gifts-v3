@@ -374,11 +374,13 @@ export async function fetchPromobrindProducts(options?: {
     products = result.records;
     totalCount = result.count;
   } else {
-    // Paginação: o backend aplica default 500; aqui buscamos em páginas maiores
-    // para suportar catálogos grandes (10k+). Mantemos pageSize = 1000 para evitar timeouts.
-    const pageSize = 1000;
+    // Paginação: buscamos em páginas de 500 para evitar statement timeouts
+    // no banco externo (limite ~8s). Páginas menores = queries mais rápidas.
+    const pageSize = 500;
     let offset = 0;
     let loopCount: number | null = null;
+    let consecutiveErrors = 0;
+    const MAX_CONSECUTIVE_ERRORS = 3;
 
     // Segurança: evita loops infinitos caso o count venha nulo/errado.
     const HARD_MAX = 200000;
@@ -397,29 +399,57 @@ export async function fetchPromobrindProducts(options?: {
           offset,
           countMode,
         });
-      } catch (err) {
+        consecutiveErrors = 0; // Reset on success
+      } catch (err: any) {
+        const msg = err?.message || '';
+        // Statement timeout: retry with same offset
+        if (msg.includes('statement timeout') || msg.includes('57014') || msg.includes('canceling statement')) {
+          consecutiveErrors++;
+          if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+            console.warn(`[external-db] Stopping pagination at offset=${offset} after ${MAX_CONSECUTIVE_ERRORS} consecutive timeouts. Got ${products.length} products so far.`);
+            break;
+          }
+          console.warn(`[external-db] Timeout at offset=${offset}, retrying (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})...`);
+          await new Promise(r => setTimeout(r, 1000 * consecutiveErrors));
+          continue;
+        }
         if (!shouldFallbackSelect(err)) throw err;
-        page = await invokeExternalDb<PromobrindProduct>({
-          table: 'products',
-          operation: 'select',
-          filters,
-          select: PRODUCT_SELECT_FIELDS_LEGACY,
-          orderBy,
-          limit: pageSize,
-          offset,
-          countMode,
-        });
+        try {
+          page = await invokeExternalDb<PromobrindProduct>({
+            table: 'products',
+            operation: 'select',
+            filters,
+            select: PRODUCT_SELECT_FIELDS_LEGACY,
+            orderBy,
+            limit: pageSize,
+            offset,
+            countMode,
+          });
+          consecutiveErrors = 0;
+        } catch (fallbackErr: any) {
+          const fbMsg = fallbackErr?.message || '';
+          if (fbMsg.includes('statement timeout') || fbMsg.includes('canceling statement')) {
+            consecutiveErrors++;
+            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+              console.warn(`[external-db] Stopping pagination at offset=${offset} after ${MAX_CONSECUTIVE_ERRORS} consecutive timeouts (fallback). Got ${products.length} products so far.`);
+              break;
+            }
+            await new Promise(r => setTimeout(r, 1000 * consecutiveErrors));
+            continue;
+          }
+          throw fallbackErr;
+        }
       }
 
-      if (typeof page.count === 'number') {
-        loopCount = page.count;
+      if (typeof page!.count === 'number') {
+        loopCount = page!.count;
       }
 
-      products.push(...page.records);
-      offset += page.records.length;
+      products.push(...page!.records);
+      offset += page!.records.length;
 
       // Paradas
-      if (page.records.length < pageSize) break;
+      if (page!.records.length < pageSize) break;
       if (loopCount !== null && products.length >= loopCount) break;
     }
     totalCount = loopCount;
