@@ -874,10 +874,10 @@ serve(async (req) => {
         if (filters) {
           Object.entries(filters).forEach(([key, value]) => {
             if (value !== undefined && value !== null && value !== '') {
-              // Busca multi-campo: _search faz OR entre name e sku
+              // Busca multi-campo: _search faz OR entre name, sku, supplier_reference e brand
               if (key === '_search' && typeof value === 'string') {
                 const escaped = value.replace(/%/g, '\\%').replace(/_/g, '\\_');
-                query = query.or(`name.ilike.%${escaped}%,sku.ilike.%${escaped}%`);
+                query = query.or(`name.ilike.%${escaped}%,sku.ilike.%${escaped}%,supplier_reference.ilike.%${escaped}%,brand.ilike.%${escaped}%`);
                 return;
               }
 
