@@ -661,19 +661,7 @@ serve(async (req) => {
       );
     }
 
-    let table = (body as any).table as string;
     const operation = (body as any).operation as Operation;
-
-    // Guard: table must be a non-empty string
-    if (!table || typeof table !== 'string' || table === 'undefined') {
-      console.error(`[external-db-bridge] Missing or invalid table: ${JSON.stringify(table)}, operation: ${operation}`);
-      return new Response(
-        JSON.stringify({ 
-          error: `Parâmetro 'table' é obrigatório e deve ser uma string válida (recebido: ${JSON.stringify(table)})`,
-        }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     // ============================================
     // OPERAÇÃO RPC (Remote Procedure Call)
@@ -760,54 +748,51 @@ serve(async (req) => {
             let maxAltura: number | null = null;
 
             if (faixaRows?.length) {
-              const larguras: number[] = [];
-              const alturas: number[] = [];
-              let larguraHasSentinel = false;
-              let alturaHasSentinel = false;
-              for (const f of faixaRows) {
-                if (f.largura_max != null) {
-                  if (f.largura_max >= 90) larguraHasSentinel = true;
-                  else larguras.push(f.largura_max);
-                }
-                if (f.altura_max != null) {
-                  if (f.altura_max >= 90) alturaHasSentinel = true;
-                  else alturas.push(f.altura_max);
-                }
-              }
-              console.log(`Faixas: ${faixaRows.length} rows, larguras: ${[...new Set(larguras)].sort((a,b)=>a-b)} (sentinel=${larguraHasSentinel}), alturas: ${[...new Set(alturas)].sort((a,b)=>a-b)} (sentinel=${alturaHasSentinel})`);
-              if (larguras.length > 0) maxLargura = Math.max(...larguras);
-              if (alturas.length > 0) maxAltura = Math.max(...alturas);
-              if (larguraHasSentinel) maxLargura = null;
-              if (alturaHasSentinel) maxAltura = null;
-            } else {
-              console.log(`No faixas found for tabelaId=${tabelaId}`);
-            }
+              const larguras = faixaRows
+                .map((f: any) => typeof f.largura_max === 'number' ? f.largura_max : null)
+                .filter((v: number | null): v is number => v !== null && v < 90);
+              const alturas = faixaRows
+                .map((f: any) => typeof f.altura_max === 'number' ? f.altura_max : null)
+                .filter((v: number | null): v is number => v !== null && v < 90);
 
-            // Fallback: parsear area_maxima_texto (formato "WxHcm") se faixas não tinham dimensões válidas
-            if ((maxLargura == null || maxAltura == null) && areaMaxTexto) {
-              const match = areaMaxTexto.match(/(\d+(?:[.,]\d+)?)\s*[x×]\s*(\d+(?:[.,]\d+)?)/i);
-              if (match) {
-                if (maxLargura == null) maxLargura = parseFloat(match[1].replace(',', '.'));
-                if (maxAltura == null) maxAltura = parseFloat(match[2].replace(',', '.'));
-              }
+              maxLargura = larguras.length ? Math.max(...larguras) : null;
+              maxAltura = alturas.length ? Math.max(...alturas) : null;
             }
 
             enrichedData = {
               ...rpcData,
-              largura_max_tecnica: maxLargura,
-              altura_max_tecnica: maxAltura,
-              max_cores: maxCoresFromTable ?? (cobraPorCor ? 4 : 1),
+              tabela: {
+                ...(rpcData.tabela || {}),
+                id: tabelaId,
+                area_maxima_texto: areaMaxTexto ?? null,
+                largura_max_cm: maxLargura,
+                altura_max_cm: maxAltura,
+                max_cores: maxCoresFromTable ?? rpcData.max_cores ?? null,
+                cobra_por_cor: cobraPorCor ?? false,
+              },
             };
-            console.log(`Enriched price ${rpcName}: ${rpcData.tabela_codigo} → ${maxLargura}×${maxAltura}cm, max_cores=${enrichedData.max_cores}`);
           }
-        } catch (enrichErr) {
-          console.warn('Failed to enrich price with dimensions:', enrichErr);
+        } catch (enrichError) {
+          console.warn('[external-db-bridge] RPC enrichment failed:', enrichError);
         }
       }
 
       return new Response(
-        JSON.stringify({ data: enrichedData, success: true }),
+        JSON.stringify({ success: true, data: enrichedData }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    let table = (body as any).table as string;
+
+    // Guard: table must be a non-empty string for non-RPC operations
+    if (!table || typeof table !== 'string' || table === 'undefined') {
+      console.error(`[external-db-bridge] Missing or invalid table: ${JSON.stringify(table)}, operation: ${operation}`);
+      return new Response(
+        JSON.stringify({ 
+          error: `Parâmetro 'table' é obrigatório e deve ser uma string válida (recebido: ${JSON.stringify(table)})`,
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -1144,7 +1129,7 @@ serve(async (req) => {
         }
 
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
-        const insertData = {
+        const insertData: Record<string, unknown> = {
           ...data,
           updated_at: new Date().toISOString(),
         };
