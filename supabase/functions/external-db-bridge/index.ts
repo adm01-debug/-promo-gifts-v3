@@ -497,6 +497,32 @@ function emitTelemetry(meta: {
   }
 }
 
+// ============================================
+// IN-MEMORY CACHE for reference tables
+// Survives across requests within the same isolate (~5-15 min)
+// ============================================
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const REFERENCE_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const referenceCache = new Map<string, CacheEntry<unknown>>();
+
+function getCached<T>(key: string): T | null {
+  const entry = referenceCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > REFERENCE_CACHE_TTL_MS) {
+    referenceCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCache<T>(key: string, data: T): void {
+  referenceCache.set(key, { data, timestamp: Date.now() });
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -508,6 +534,133 @@ serve(async (req) => {
   try {
     // Parse body primeiro para verificar operação
     const body = await req.json();
+
+    // ============================================
+    // BATCH OPERATION — multiple queries in one call
+    // ============================================
+    if ((body as any).operation === 'batch') {
+      const queries = (body as any).queries as Array<Record<string, unknown>>;
+      if (!Array.isArray(queries) || queries.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Batch requires a non-empty "queries" array' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (queries.length > 10) {
+        return new Response(
+          JSON.stringify({ error: 'Batch limited to 10 queries max' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Single auth check for all queries
+      const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
+      const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
+      if (!externalUrl || !externalKey) {
+        return new Response(
+          JSON.stringify({ error: 'Banco externo não configurado' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Single DB client for all queries
+      const externalSupabase = createClient(externalUrl, externalKey);
+
+      // Execute all queries in parallel
+      const results = await Promise.all(
+        queries.map(async (q, idx) => {
+          const qTable = q.table as string;
+          const qSelect = (q.select as string) || '*';
+          const qFilters = q.filters as Record<string, unknown> | undefined;
+          const qOrderBy = q.orderBy as { column: string; ascending?: boolean } | undefined;
+          const qLimit = (q.limit as number) || 500;
+          const qOffset = (q.offset as number) || 0;
+          const qCacheKey = q.cacheKey as string | undefined;
+
+          // Check in-memory cache first
+          if (qCacheKey) {
+            const cached = getCached<{ records: unknown[]; count: number | null }>(qCacheKey);
+            if (cached) {
+              console.log(`[batch] Query ${idx} (${qTable}) served from cache (${(cached.records as unknown[]).length} records)`);
+              return { success: true, data: cached, fromCache: true };
+            }
+          }
+
+          // Validate table
+          const resourceGroup = getResourceGroup(qTable);
+          if (!resourceGroup) {
+            return { success: false, error: `Tabela '${qTable}' não mapeada` };
+          }
+
+          try {
+            const queryStart = performance.now();
+            let query = externalSupabase.from(qTable).select(qSelect);
+
+            // Apply filters
+            if (qFilters) {
+              Object.entries(qFilters).forEach(([key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                  if (key === '_search' && typeof value === 'string') {
+                    const escaped = value.replace(/%/g, '\\%').replace(/_/g, '\\_');
+                    query = query.or(`name.ilike.%${escaped}%,sku.ilike.%${escaped}%,supplier_reference.ilike.%${escaped}%,brand.ilike.%${escaped}%,description.ilike.%${escaped}%,category_name.ilike.%${escaped}%`);
+                    return;
+                  }
+                  if (typeof value === 'string') {
+                    if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
+                      query = query.ilike(key, `%${value}%`);
+                    } else {
+                      query = query.eq(key, value);
+                    }
+                  } else if (Array.isArray(value)) {
+                    query = query.in(key, value);
+                  } else {
+                    query = query.eq(key, value);
+                  }
+                }
+              });
+            }
+
+            if (qOrderBy) {
+              query = query.order(qOrderBy.column, { ascending: qOrderBy.ascending ?? false });
+            }
+
+            query = query.range(qOffset, qOffset + qLimit - 1);
+
+            const { data: selectData, error: selectError, count } = await query;
+            const duration = Math.round(performance.now() - queryStart);
+
+            if (selectError) {
+              console.warn(`[batch] Query ${idx} (${qTable}) failed in ${duration}ms: ${selectError.message}`);
+              return { success: false, error: selectError.message };
+            }
+
+            const result = { records: selectData || [], count };
+
+            // Store in cache if cacheKey was provided
+            if (qCacheKey) {
+              setCache(qCacheKey, result);
+            }
+
+            const status = duration >= VERY_SLOW_QUERY_THRESHOLD_MS ? '🔴' : duration >= SLOW_QUERY_THRESHOLD_MS ? '🟡' : '✅';
+            console.log(`[batch] ${status} Query ${idx} (${qTable}) ${duration}ms, ${selectData?.length ?? 0} records`);
+
+            return { success: true, data: result };
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            return { success: false, error: msg };
+          }
+        })
+      );
+
+      const totalDuration = Math.round(performance.now() - requestStartTime);
+      console.log(`[batch] Total: ${totalDuration}ms for ${queries.length} queries`);
+
+      return new Response(
+        JSON.stringify({ success: true, results }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     let table = (body as any).table as string;
     const operation = (body as any).operation as Operation;
 

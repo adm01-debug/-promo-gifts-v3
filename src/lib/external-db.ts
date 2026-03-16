@@ -92,6 +92,40 @@ async function invokeBridge<T>(body: Record<string, unknown>): Promise<BridgeRes
   throw new Error('Erro na bridge: tentativas esgotadas');
 }
 
+// ============================================
+// BATCH BRIDGE — multiple queries in one HTTP call
+// Reduces 5+ edge function invocations to 1
+// ============================================
+interface BatchQuery {
+  table: string;
+  operation?: 'select';
+  select?: string;
+  filters?: Record<string, unknown>;
+  orderBy?: { column: string; ascending?: boolean };
+  limit?: number;
+  offset?: number;
+  cacheKey?: string;
+}
+
+interface BatchResult {
+  success: boolean;
+  data?: { records: unknown[]; count: number | null };
+  error?: string;
+  fromCache?: boolean;
+}
+
+/**
+ * Executa múltiplas queries SELECT em uma única invocação da edge function.
+ * Elimina overhead de auth/conexão duplicada e aproveita cache server-side.
+ */
+export async function invokeBatchBridge(queries: BatchQuery[]): Promise<BatchResult[]> {
+  const response = await invokeBridge<{ results: BatchResult[] }>({
+    operation: 'batch',
+    queries,
+  });
+  return response.data.results;
+}
+
 /**
  * Invoca o external-db-bridge para operações CRUD no banco Promobrind.
  * Esse é o método seguro e padronizado de acessar o banco externo,
@@ -383,43 +417,10 @@ export async function fetchPromobrindProducts(options?: {
     totalCount = loopCount;
   }
 
-  // Enriquecer produtos em paralelo: cores + nomes de fornecedores + imagens da nova tabela
+  // Enriquecer produtos: usar BATCH para reduzir 5+ HTTP calls → 1-2
   if (products.length > 0) {
     const productIds = products.map(p => p.id);
-    
-    // Coletar supplier_ids únicos para buscar nomes
     const uniqueSupplierIds = [...new Set(products.map(p => p.supplier_id).filter(Boolean))] as string[];
-    
-    // Executar buscas em paralelo (incluindo imagens da nova tabela product_images)
-    // OTIMIZAÇÃO: filtrar por product_id para evitar baixar o catálogo inteiro (~25k imagens, ~8k variantes)
-    // A bridge suporta arrays como filtro IN automaticamente.
-    
-    // Helper para buscar dados filtrados por product_id em chunks (evita URLs muito longas)
-    async function fetchByProductIds<T>(
-      baseOptions: Omit<InvokeOptions, 'offset' | 'filters'> & { limit: number; filters?: Record<string, unknown> },
-      ids: string[],
-    ): Promise<T[]> {
-      const CHUNK_SIZE = 200; // IDs por request — equilibra tamanho de payload vs número de requests
-      const chunks: string[][] = [];
-      for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
-        chunks.push(ids.slice(i, i + CHUNK_SIZE));
-      }
-      
-      const results = await Promise.all(
-        chunks.map(async (chunk) => {
-          const filters = { ...baseOptions.filters, product_id: chunk };
-          const result = await invokeExternalDb<T>({
-            ...baseOptions,
-            filters,
-            offset: 0,
-            countMode: 'none',
-          });
-          return result.records;
-        })
-      );
-      
-      return results.flat();
-    }
 
     const shouldRunHeavyEnrichment = products.length <= 1200 || typeof options?.limit === 'number';
 
@@ -427,137 +428,115 @@ export async function fetchPromobrindProducts(options?: {
       console.info(`[external-db] Skipping heavy enrichment for ${products.length} products to prevent timeouts`);
     }
 
-    const [variantsRecords, suppliersResult, imagesRecords, colorVariationsRecords, colorGroupsRecords] = await Promise.all([
-      // Buscar cores das variantes FILTRADAS pelos product_ids da página
-      shouldRunHeavyEnrichment
-        ? fetchByProductIds<{
-            product_id: string;
-            color_name: string | null;
-            color_hex: string | null;
-            color_code: string | null;
-            color_id: string | null;
-            sku: string | null;
-            stock_quantity: number | null;
-            images: string[] | null;
-            selected_images: string[] | null;
-            selected_thumbnail: string | null;
-          }>({
-            table: 'product_variants',
-            operation: 'select',
-            select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_images, selected_thumbnail',
-            filters: { is_active: true },
-            limit: 1000,
-          }, productIds).catch(err => {
-            console.warn('Não foi possível buscar cores das variantes:', err);
-            return [] as any[];
-          })
-        : Promise.resolve([] as Array<{
-            product_id: string;
-            color_name: string | null;
-            color_hex: string | null;
-            color_code: string | null;
-            color_id: string | null;
-            sku: string | null;
-            stock_quantity: number | null;
-            images: string[] | null;
-            selected_images: string[] | null;
-            selected_thumbnail: string | null;
-          }>),
-      
-      // Buscar nomes dos fornecedores (sempre, custo baixo)
-      uniqueSupplierIds.length > 0
-        ? invokeExternalDb<{ id: string; name: string; code: string }>({
-            table: 'suppliers',
-            operation: 'select',
-            select: 'id, name, code',
-            filters: { id: uniqueSupplierIds },
-            limit: Math.max(uniqueSupplierIds.length, 1),
-            countMode: 'none',
-          }).catch(err => {
-            console.warn('Não foi possível buscar fornecedores:', err);
-            return { records: [] } as { records: { id: string; name: string; code: string }[] };
-          })
-        : Promise.resolve({ records: [] } as { records: { id: string; name: string; code: string }[] }),
-      
-      // Buscar imagens FILTRADAS pelos product_ids da página
-      shouldRunHeavyEnrichment
-        ? fetchByProductIds<{
-            product_id: string;
-            url_cdn: string;
-            url_original: string | null;
-            filename: string | null;
-            image_type: string;
-            is_primary: boolean;
-            is_og_image: boolean;
-            applies_to_color: boolean | null;
-            display_order: number;
-            alt_text: string | null;
-            title_text: string | null;
-            supplier_code: string | null;
-          }>({
-            table: 'product_images',
-            operation: 'select',
-            select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
-            filters: { is_active: true },
-            limit: 1000,
-          }, productIds).catch(err => {
-            console.warn('Não foi possível buscar imagens da tabela product_images:', err);
-            return [] as any[];
-          })
-        : Promise.resolve([] as Array<{
-            product_id: string;
-            url_cdn: string;
-            url_original: string | null;
-            filename: string | null;
-            image_type: string;
-            is_primary: boolean;
-            is_og_image: boolean;
-            applies_to_color: boolean | null;
-            display_order: number;
-            alt_text: string | null;
-            title_text: string | null;
-            supplier_code: string | null;
-          }>),
+    // CHUNK product IDs for variant/image queries (max 200 per query)
+    const CHUNK_SIZE = 200;
+    const idChunks: string[][] = [];
+    for (let i = 0; i < productIds.length; i += CHUNK_SIZE) {
+      idChunks.push(productIds.slice(i, i + CHUNK_SIZE));
+    }
 
-      // Buscar color_variations (para mapear color_id → group_id)
-      shouldRunHeavyEnrichment
-        ? invokeExternalDb<{
-            id: string;
-            name: string;
-            slug: string;
-            group_id: string;
-          }>({
-            table: 'color_variations',
-            operation: 'select',
-            select: 'id, name, slug, group_id',
-            filters: { is_active: true },
-            limit: 500,
-            countMode: 'none',
-          }).catch(err => {
-            console.warn('Não foi possível buscar color_variations:', err);
-            return { records: [] } as { records: { id: string; name: string; slug: string; group_id: string }[] };
-          })
-        : Promise.resolve({ records: [] } as { records: { id: string; name: string; slug: string; group_id: string }[] }),
+    // Build batch queries array
+    const batchQueries: BatchQuery[] = [];
+    const queryMap: Record<string, number[]> = { variants: [], images: [], suppliers: [], colorVariations: [], colorGroups: [] };
 
-      // Buscar color_groups (para mapear group_id → slug/name)
-      shouldRunHeavyEnrichment
-        ? invokeExternalDb<{
-            id: string;
-            name: string;
-            slug: string;
-          }>({
-            table: 'color_groups',
-            operation: 'select',
-            select: 'id, name, slug',
-            filters: { is_active: true },
-            limit: 100,
-            countMode: 'none',
-          }).catch(err => {
-            console.warn('Não foi possível buscar color_groups:', err);
-            return { records: [] } as { records: { id: string; name: string; slug: string }[] };
-          })
-        : Promise.resolve({ records: [] } as { records: { id: string; name: string; slug: string }[] }),
-    ]);
+    if (shouldRunHeavyEnrichment) {
+      // Variants — one query per chunk
+      for (const chunk of idChunks) {
+        queryMap.variants.push(batchQueries.length);
+        batchQueries.push({
+          table: 'product_variants',
+          select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_images, selected_thumbnail',
+          filters: { is_active: true, product_id: chunk },
+          limit: 1000,
+          offset: 0,
+        });
+      }
+
+      // Images — one query per chunk
+      for (const chunk of idChunks) {
+        queryMap.images.push(batchQueries.length);
+        batchQueries.push({
+          table: 'product_images',
+          select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
+          filters: { is_active: true, product_id: chunk },
+          limit: 1000,
+          offset: 0,
+        });
+      }
+
+      // Color variations — cached server-side (small table, ~80 records)
+      queryMap.colorVariations.push(batchQueries.length);
+      batchQueries.push({
+        table: 'color_variations',
+        select: 'id, name, slug, group_id',
+        filters: { is_active: true },
+        limit: 500,
+        offset: 0,
+        cacheKey: 'ref:color_variations',
+      });
+
+      // Color groups — cached server-side (very small, ~15 records)
+      queryMap.colorGroups.push(batchQueries.length);
+      batchQueries.push({
+        table: 'color_groups',
+        select: 'id, name, slug',
+        filters: { is_active: true },
+        limit: 100,
+        offset: 0,
+        cacheKey: 'ref:color_groups',
+      });
+    }
+
+    // Suppliers
+    if (uniqueSupplierIds.length > 0) {
+      queryMap.suppliers.push(batchQueries.length);
+      batchQueries.push({
+        table: 'suppliers',
+        select: 'id, name, code',
+        filters: { id: uniqueSupplierIds },
+        limit: Math.max(uniqueSupplierIds.length, 1),
+        offset: 0,
+      });
+    }
+
+    // Execute all queries in ONE HTTP call
+    let batchResults: BatchResult[] = [];
+    try {
+      batchResults = await invokeBatchBridge(batchQueries);
+    } catch (err) {
+      console.warn('[external-db] Batch enrichment failed, products will have basic data:', err);
+    }
+
+    // Extract results
+    const variantsRecords: any[] = [];
+    for (const idx of queryMap.variants) {
+      const r = batchResults[idx];
+      if (r?.success && r.data?.records) variantsRecords.push(...r.data.records);
+    }
+
+    const imagesRecords: any[] = [];
+    for (const idx of queryMap.images) {
+      const r = batchResults[idx];
+      if (r?.success && r.data?.records) imagesRecords.push(...r.data.records);
+    }
+
+    const suppliersResult = { records: [] as { id: string; name: string; code: string }[] };
+    for (const idx of queryMap.suppliers) {
+      const r = batchResults[idx];
+      if (r?.success && r.data?.records) suppliersResult.records.push(...(r.data.records as any[]));
+    }
+
+    const colorVariationsRecords = { records: [] as { id: string; name: string; slug: string; group_id: string }[] };
+    for (const idx of queryMap.colorVariations) {
+      const r = batchResults[idx];
+      if (r?.success && r.data?.records) colorVariationsRecords.records = r.data.records as any[];
+    }
+
+    const colorGroupsRecords = { records: [] as { id: string; name: string; slug: string }[] };
+    for (const idx of queryMap.colorGroups) {
+      const r = batchResults[idx];
+      if (r?.success && r.data?.records) colorGroupsRecords.records = r.data.records as any[];
+    }
     
     // Mapear fornecedores por ID
     const suppliersMap = new Map<string, string>();
