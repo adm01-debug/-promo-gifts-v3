@@ -787,7 +787,7 @@ export async function fetchPromobrindProductsLightweight(options?: {
   };
 
   if (options?.search) {
-    filters.name = options.search;
+    filters._search = options.search;
   }
 
   const orderBy = options?.orderBy ?? { column: 'name', ascending: true };
