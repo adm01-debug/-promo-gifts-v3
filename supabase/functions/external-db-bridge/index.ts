@@ -661,10 +661,131 @@ serve(async (req) => {
       );
     }
 
-    let table = (body as any).table as string;
     const operation = (body as any).operation as Operation;
 
-    // Guard: table must be a non-empty string
+    // ============================================
+    // OPERAÇÃO RPC (Remote Procedure Call)
+    // ============================================
+    if (operation === 'rpc') {
+      const rpcName = (body as any).rpcName as string;
+      const rpcParams = (body as any).rpcParams as Record<string, unknown>;
+
+      // Validar RPC na whitelist
+      if (!ALLOWED_RPCS.includes(rpcName as any)) {
+        return new Response(
+          JSON.stringify({ 
+            error: `RPC '${rpcName}' não permitida`,
+            allowedRpcs: ALLOWED_RPCS,
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Criar cliente para banco externo
+      const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
+      const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
+
+      if (!externalUrl || !externalKey) {
+        return new Response(
+          JSON.stringify({ error: 'Banco externo não configurado' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const externalSupabase = createClient(externalUrl, externalKey);
+      
+      console.log(`RPC: ${rpcName}`, rpcParams);
+      
+      const rpcStart = performance.now();
+      const { data: rpcData, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
+      const rpcDuration = Math.round(performance.now() - rpcStart);
+
+      if (rpcError) {
+        emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: 'error', error: rpcError.message });
+        return new Response(
+          JSON.stringify({ error: rpcError.message }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const rpcStatus = rpcDuration >= VERY_SLOW_QUERY_THRESHOLD_MS ? 'very_slow' : rpcDuration >= SLOW_QUERY_THRESHOLD_MS ? 'slow' : 'ok';
+      emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: rpcStatus, recordCount: Array.isArray(rpcData) ? rpcData.length : 1 });
+
+      // ============================================
+      // ENRIQUECIMENTO: fn_get_customization_price (legacy flat response only)
+      // A v5.9 retorna resposta nested completa — não precisa de enriquecimento
+      // ============================================
+      let enrichedData = rpcData;
+      const isLegacyFlatResponse = rpcData?.success && rpcData?.tabela_codigo && !rpcData?.tabela;
+      const shouldEnrich = (
+        (rpcName === 'fn_get_customization_price') 
+        && isLegacyFlatResponse
+      );
+      if (shouldEnrich) {
+        try {
+          // 1. Buscar tabela oficial pelo código (inclui area_maxima_texto, max_cores, cobra_por_cor)
+          const { data: tabelaRows } = await externalSupabase
+            .from('tabela_preco_gravacao_oficial')
+            .select('id,area_maxima_texto,max_cores,cobra_por_cor')
+            .eq('codigo', rpcData.tabela_codigo)
+            .eq('ativo', true)
+            .limit(1);
+
+          if (tabelaRows?.length) {
+            const tabelaId = tabelaRows[0].id;
+            const areaMaxTexto = tabelaRows[0].area_maxima_texto;
+            const maxCoresFromTable = tabelaRows[0].max_cores;
+            const cobraPorCor = tabelaRows[0].cobra_por_cor;
+
+            // 2. Buscar dimensões das faixas dessa tabela
+            // Estratégia: pegar MAX real (excluindo sentinelas >=90 que significam "sem limite")
+            const { data: faixaRows } = await externalSupabase
+              .from('tabela_preco_gravacao_oficial_faixa')
+              .select('largura_max,altura_max')
+              .eq('tabela_preco_gravacao_id', tabelaId);
+
+            let maxLargura: number | null = null;
+            let maxAltura: number | null = null;
+
+            if (faixaRows?.length) {
+              const larguras = faixaRows
+                .map((f: any) => typeof f.largura_max === 'number' ? f.largura_max : null)
+                .filter((v: number | null): v is number => v !== null && v < 90);
+              const alturas = faixaRows
+                .map((f: any) => typeof f.altura_max === 'number' ? f.altura_max : null)
+                .filter((v: number | null): v is number => v !== null && v < 90);
+
+              maxLargura = larguras.length ? Math.max(...larguras) : null;
+              maxAltura = alturas.length ? Math.max(...alturas) : null;
+            }
+
+            enrichedData = {
+              ...rpcData,
+              tabela: {
+                ...(rpcData.tabela || {}),
+                id: tabelaId,
+                area_maxima_texto: areaMaxTexto ?? null,
+                largura_max_cm: maxLargura,
+                altura_max_cm: maxAltura,
+                max_cores: maxCoresFromTable ?? rpcData.max_cores ?? null,
+                cobra_por_cor: cobraPorCor ?? false,
+              },
+            };
+          }
+        } catch (enrichError) {
+          console.warn('[external-db-bridge] RPC enrichment failed:', enrichError);
+        }
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, data: enrichedData }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const table = (body as any).table as string;
+
+    // Guard: table must be a non-empty string for non-RPC operations
     if (!table || typeof table !== 'string' || table === 'undefined') {
       console.error(`[external-db-bridge] Missing or invalid table: ${JSON.stringify(table)}, operation: ${operation}`);
       return new Response(
