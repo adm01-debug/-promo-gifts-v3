@@ -626,7 +626,7 @@ export const GlobalCommandBar = forwardRef<HTMLDivElement, GlobalCommandBarProps
       </CommandDialog>
     </>
   );
-}
+});
 
 // Hook to use the command bar programmatically
 export function useCommandBar() {
