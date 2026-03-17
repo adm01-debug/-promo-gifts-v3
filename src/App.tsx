@@ -21,6 +21,7 @@ import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import LoadingScreen from "@/components/LoadingScreen";
+import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
 import "./App.css";
 
 // Auth Pages - Using lazyWithRetry for chunk loading resilience
@@ -97,6 +98,7 @@ const queryClient = createQueryClient();
 
 const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useGlobalErrorCatcher();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
