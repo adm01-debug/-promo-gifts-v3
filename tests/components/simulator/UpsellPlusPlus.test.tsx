@@ -16,7 +16,7 @@ describe("UpsellPlusPlus", () => {
   });
 
   it("renders without crashing with minimal props", async () => {
-    const { default: UpsellPlusPlus } = await import("@/components/simulator/UpsellPlusPlus");
+    const { UpsellPlusPlus } = await import("@/components/simulator/UpsellPlusPlus");
     renderWithProviders(
       <UpsellPlusPlus
         currentQuantity={100}
@@ -33,7 +33,7 @@ describe("UpsellPlusPlus", () => {
   });
 
   it("renders with active promotions visible", async () => {
-    const { default: UpsellPlusPlus } = await import("@/components/simulator/UpsellPlusPlus");
+    const { UpsellPlusPlus } = await import("@/components/simulator/UpsellPlusPlus");
     renderWithProviders(
       <UpsellPlusPlus
         currentQuantity={50}
