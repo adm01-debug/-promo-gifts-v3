@@ -556,6 +556,7 @@ export function useQuotes() {
         notes: item.notes,
         personalizations: item.personalizations?.map((p) => ({
           technique_id: p.technique_id,
+          technique_name: p.technique_name,
           colors_count: p.colors_count,
           positions_count: p.positions_count,
           area_cm2: p.area_cm2,
