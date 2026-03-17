@@ -53,7 +53,7 @@ export interface ExcelColumn {
  * });
  * ```
  */
-export function exportToExcel(config: ExcelExportConfig): void {
+export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
   const {
     filename,
     sheetName = 'Dados',
@@ -63,6 +63,7 @@ export function exportToExcel(config: ExcelExportConfig): void {
   } = config;
 
   try {
+    const XLSX = await getXLSX();
     // 1. Preparar dados formatados
     const formattedData = data.map((row) => {
       const formattedRow: any = {};
