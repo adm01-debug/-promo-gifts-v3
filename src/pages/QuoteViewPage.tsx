@@ -524,6 +524,13 @@ export default function QuoteViewPage() {
                   <Edit2 className="h-4 w-4 mr-2" />
                   Editar
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  const newQuote = await duplicateQuote(id!);
+                  if (newQuote?.id) navigate(`/orcamentos/${newQuote.id}`);
+                }}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Duplicar
+                </DropdownMenuItem>
                 <Sheet>
                   <SheetTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
