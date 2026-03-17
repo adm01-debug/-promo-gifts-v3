@@ -501,7 +501,7 @@ export function ProductFormFullscreen({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <FieldLabel htmlFor="brand">Marca</FieldLabel>
                 <Input id="brand" {...register('brand')} placeholder="Ex: Tramontina" className="h-9" />
@@ -509,10 +509,6 @@ export function ProductFormFullscreen({
               <div>
                 <FieldLabel>Categoria</FieldLabel>
                 <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
-              </div>
-              <div>
-                <FieldLabel>Fornecedor</FieldLabel>
-                <SupplierSelect value={supplierId || ''} onChange={(id) => setValue('supplier_id', id)} error={errors.supplier_id?.message} />
               </div>
             </div>
           </SectionCard>
