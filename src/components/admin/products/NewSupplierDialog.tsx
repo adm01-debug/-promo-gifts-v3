@@ -209,9 +209,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Label className="text-xs font-semibold">CNPJ</Label>
                 <Input
                   value={cnpj}
-                  onChange={(e) => setCnpj(e.target.value)}
+                  onChange={(e) => setCnpj(maskCnpj(e.target.value))}
                   placeholder="00.000.000/0000-00"
                   className={`${fieldClass} font-mono`}
+                  maxLength={18}
                 />
               </div>
             </div>
