@@ -873,6 +873,9 @@ export default function QuoteViewPage() {
           </CardContent>
         </Card>
 
+        {/* Comments Section */}
+        {id && <QuoteCommentsSection quoteId={id} />}
+
 
         {/* Print-only: render the same template used for PDF */}
         {proposalData && (
