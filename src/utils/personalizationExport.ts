@@ -37,7 +37,8 @@ interface ExportData {
 }
 
 // Excel export
-export function exportToExcel(data: ExportData) {
+export async function exportToExcel(data: ExportData) {
+  const XLSX = await getXLSX();
   const rows: any[] = [];
 
   data.components.forEach((component) => {

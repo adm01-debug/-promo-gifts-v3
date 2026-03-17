@@ -143,6 +143,7 @@ export async function exportMultipleSheets(
 ): Promise<void> {
   try {
     const XLSX = await getXLSX();
+    const workbook = XLSX.utils.book_new();
 
     sheets.forEach(({ sheetName, columns, data }) => {
       // Formatar dados
