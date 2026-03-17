@@ -139,16 +139,14 @@ export function MainLayout({ children }: MainLayoutProps) {
   );
 
   return (
-    <Suspense fallback={layoutContent}>
-      <OnboardingProvider>
-        <SellerCartProvider>
-          <Suspense fallback={layoutContent}>
-            <GlobalCommandBar>
-              {layoutContent}
-            </GlobalCommandBar>
-          </Suspense>
-        </SellerCartProvider>
-      </OnboardingProvider>
-    </Suspense>
+    <OnboardingProvider>
+      <SellerCartProvider>
+        <Suspense fallback={layoutContent}>
+          <GlobalCommandBar>
+            {layoutContent}
+          </GlobalCommandBar>
+        </Suspense>
+      </SellerCartProvider>
+    </OnboardingProvider>
   );
 }
