@@ -78,10 +78,6 @@ export function MainLayout({ children }: MainLayoutProps) {
                 onSearchChange={setSearchQuery}
               />
             </Suspense>
-              onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
           </div>
           
           <main 
