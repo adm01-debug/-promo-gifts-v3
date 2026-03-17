@@ -44,9 +44,13 @@ import {
   Target,
   Hourglass,
   Building2,
+  Eye,
+  Link2,
+  Send,
 } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
 import { supabase } from "@/integrations/supabase/client";
+import { selectCrm } from "@/lib/crm-db";
 import { format, differenceInDays, differenceInHours, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
