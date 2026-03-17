@@ -474,6 +474,15 @@ export default function QuotesDashboardPage() {
             >
               Ano
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToPdf}
+              className="gap-1.5"
+            >
+              <Download className="h-4 w-4" />
+              PDF
+            </Button>
           </div>
         </div>
 
