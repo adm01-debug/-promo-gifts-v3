@@ -23,9 +23,25 @@ export default function AdminProductFormPage() {
   const isEdit = !!id && id !== 'novo';
 
   const [product, setProduct] = useState<any>(null);
+  const [duplicateProduct, setDuplicateProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(isEdit);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'form' | 'history'>('form');
+
+  // Load duplicate data from sessionStorage for new products
+  useEffect(() => {
+    if (!isEdit) {
+      const stored = sessionStorage.getItem('duplicate_product');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setDuplicateProduct(parsed);
+          toast.info(`Duplicando produto: ${parsed.name}. Altere o SKU antes de salvar.`);
+        } catch { /* ignore */ }
+        sessionStorage.removeItem('duplicate_product');
+      }
+    }
+  }, [isEdit]);
 
   const { logAction, getChangedFields } = useAuditLog();
 
