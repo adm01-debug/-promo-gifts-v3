@@ -2,3 +2,6 @@ project_id = "nmojwpihnslkssljowjh"
 
 [functions.crm-db-bridge]
 verify_jwt = false
+
+[functions.quote-public-view]
+verify_jwt = false
