@@ -319,49 +319,54 @@ export function QuotesConfigurableList({
   return (
     <div className="space-y-2">
       {/* Bulk action bar */}
-      {effectiveSelectedCount > 0 && (
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/30 rounded-lg">
-            <span className="text-sm font-medium text-foreground">
-              {allPagesSelected
-                ? `Todos os ${effectiveSelectedCount} orçamentos selecionados`
-                : `${effectiveSelectedCount} selecionado(s) nesta página`}
-            </span>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="text-xs gap-1.5"
-              onClick={() => {
-                onBulkDelete([...effectiveSelectedIds]);
-                handleClearSelection();
-              }}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-              Excluir selecionados
-            </Button>
-            <Button variant="ghost" size="sm" className="text-xs" onClick={handleClearSelection}>
-              Limpar seleção
-            </Button>
-          </div>
-
-          {/* "Select ALL across all pages" banner */}
-          {showSelectAllBanner && (
-            <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-muted/50 border border-border rounded-lg text-sm text-muted-foreground">
-              <span>
-                Todos os <strong className="text-foreground">{paginatedQuotes.length}</strong> orçamentos desta página estão selecionados.
-              </span>
-              <Button
-                variant="link"
-                size="sm"
-                className="text-xs text-primary p-0 h-auto"
-                onClick={handleSelectAllPages}
-              >
-                Selecionar todos os {quotes.length} orçamentos
-              </Button>
-            </div>
-          )}
-        </div>
-      )}
+      <BulkActionsBar
+        selectedCount={effectiveSelectedCount}
+        selectedIds={effectiveSelectedIds}
+        entityLabel="orçamento"
+        onClear={handleClearSelection}
+        showSelectAllBanner={showSelectAllBanner}
+        totalCount={quotes.length}
+        onSelectAll={handleSelectAllPages}
+        actions={[
+          ...(onBulkStatusChange
+            ? [
+                {
+                  id: "mark-pending",
+                  label: "Marcar Pendente",
+                  icon: <RefreshCw className="h-3.5 w-3.5" />,
+                  variant: "outline" as const,
+                  onClick: (ids: string[]) => {
+                    onBulkStatusChange(ids, "pending");
+                    handleClearSelection();
+                  },
+                },
+              ]
+            : []),
+          ...(onBulkExport
+            ? [
+                {
+                  id: "export",
+                  label: "Exportar",
+                  icon: <Download className="h-3.5 w-3.5" />,
+                  variant: "outline" as const,
+                  onClick: (ids: string[]) => {
+                    onBulkExport(ids);
+                  },
+                },
+              ]
+            : []),
+          {
+            id: "delete",
+            label: "Excluir",
+            icon: <Trash2 className="h-3.5 w-3.5" />,
+            variant: "destructive" as const,
+            onClick: (ids: string[]) => {
+              onBulkDelete([...ids]);
+              handleClearSelection();
+            },
+          },
+        ]}
+      />
 
       {/* Column settings button */}
       <div className="flex justify-end">
