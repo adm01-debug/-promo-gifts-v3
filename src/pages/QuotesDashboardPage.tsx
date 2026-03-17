@@ -453,6 +453,48 @@ export default function QuotesDashboardPage() {
           </Card>
         </div>
 
+        {/* Approval Link Metrics */}
+        {tokenStats.total > 0 && (
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Link2 className="h-5 w-5 text-primary" />
+                Links de Aprovação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <Send className="h-4 w-4 text-info" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{tokenStats.total}</p>
+                  <p className="text-xs text-muted-foreground">Enviados</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <Eye className="h-4 w-4 text-warning" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{tokenStats.viewed}</p>
+                  <p className="text-xs text-muted-foreground">Visualizados</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    ({tokenStats.total > 0 ? ((tokenStats.viewed / tokenStats.total) * 100).toFixed(0) : 0}%)
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <CheckCircle className="h-4 w-4 text-success" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{tokenStats.responded}</p>
+                  <p className="text-xs text-muted-foreground">Respondidos</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    ({tokenStats.viewed > 0 ? ((tokenStats.responded / tokenStats.viewed) * 100).toFixed(0) : 0}%)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Status Distribution Pie Chart */}
