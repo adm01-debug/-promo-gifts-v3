@@ -327,6 +327,24 @@ export default function AdminProductFormPage() {
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            {isEdit && product && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  // Store product data for duplication in sessionStorage
+                  const dupeData = { ...product, sku: `${product.sku}-COPIA` };
+                  sessionStorage.setItem('duplicate_product', JSON.stringify(dupeData));
+                  navigate('/admin/cadastros/produto/novo');
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" />
+                Duplicar
+              </Button>
+            )}
+
           {isEdit && (
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'history')}>
               <TabsList className="h-9">
