@@ -495,7 +495,7 @@ export async function fetchPromobrindProducts(options?: {
         queryMap.images.push(batchQueries.length);
         batchQueries.push({
           table: 'product_images',
-          select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
+          select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code, variant_id',
           filters: { is_active: true, product_id: chunk },
           limit: 1000,
           offset: 0,
@@ -607,6 +607,7 @@ export async function fetchPromobrindProducts(options?: {
       supplierCode: string | null;
       altText: string | null;
       titleText: string | null;
+      variantId: string | null;
     }>>();
     const productIdSet = new Set(productIds);
     
@@ -628,6 +629,7 @@ export async function fetchPromobrindProducts(options?: {
         supplierCode: img.supplier_code || null,
         altText: img.alt_text || null,
         titleText: img.title_text || null,
+        variantId: img.variant_id || null,
       });
     });
     
@@ -656,25 +658,44 @@ export async function fetchPromobrindProducts(options?: {
       const colors = colorsByProduct.get(variant.product_id)!;
       // Evitar duplicatas por nome de cor
       if (!colors.some(c => c.name === variant.color_name)) {
-        // PRIORIDADE 1: Imagens via supplier_code = color_code
         const productImgs = imagesByProduct.get(variant.product_id) || [];
+        
+        // PRIORIDADE 1: Imagens via variant_id (mais confiável — XBZ e outros sem color_code)
+        const variantImagesByVariantId = productImgs
+          .filter(img => img.variantId === variant.id && !img.isPrimary && !img.isOgImage)
+          .sort((a, b) => a.order - b.order)
+          .map(img => img.url);
+        
+        // PRIORIDADE 2: Imagens via supplier_code = color_code
         const variantImagesByCode = variant.color_code
           ? productImgs
-              .filter(img => img.supplierCode === variant.color_code)
+              .filter(img => img.supplierCode === variant.color_code && !img.isPrimary && !img.isOgImage)
               .sort((a, b) => a.order - b.order)
               .map(img => img.url)
           : [];
         
-        // PRIORIDADE 2: Campos legados da tabela product_variants (fallback)
+        // PRIORIDADE 3: variant_id match incluindo primárias (se não houver nenhuma outra)
+        const variantImagesAllById = variantImagesByVariantId.length === 0
+          ? productImgs
+              .filter(img => img.variantId === variant.id)
+              .sort((a, b) => a.order - b.order)
+              .map(img => img.url)
+          : [];
+        
+        // PRIORIDADE 4: Campos legados da tabela product_variants (fallback)
         const legacyImages = variant.selected_images?.length 
           ? variant.selected_images 
           : variant.images?.length 
             ? variant.images 
             : [];
         
-        const finalImages = variantImagesByCode.length > 0 
-          ? variantImagesByCode 
-          : legacyImages;
+        const finalImages = variantImagesByVariantId.length > 0 
+          ? variantImagesByVariantId 
+          : variantImagesByCode.length > 0
+            ? variantImagesByCode
+            : variantImagesAllById.length > 0
+              ? variantImagesAllById
+              : legacyImages;
         
         // SEM fallback para imagem primária do produto — color.image deve ser APENAS da cor específica
         const thumbnailImage = finalImages[0] || variant.selected_thumbnail || null;
