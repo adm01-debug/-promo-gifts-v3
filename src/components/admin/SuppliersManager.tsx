@@ -47,6 +47,7 @@ interface Supplier {
   notes: string | null;
   is_product_supplier: boolean;
   is_engraving_supplier: boolean;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
