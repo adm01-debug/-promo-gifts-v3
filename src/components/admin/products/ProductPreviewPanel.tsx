@@ -208,4 +208,4 @@ export const ProductPreviewPanel = memo(function ProductPreviewPanel({
       </div>
     </div>
   );
-}
+});
