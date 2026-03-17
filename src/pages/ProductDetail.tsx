@@ -507,7 +507,7 @@ export default function ProductDetail() {
         <div className="space-y-12 pt-8 border-t border-border">
           <RelatedProducts 
             currentProduct={product} 
-            allProducts={allProducts} 
+            allProducts={categoryProducts} 
             maxItems={4} 
           />
           
