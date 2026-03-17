@@ -181,9 +181,16 @@ export function SuppliersManager() {
         updated_at: now,
       };
 
-      // Só incluir logo_url se tiver valor (coluna pode não existir ainda no banco externo)
+      // logo_url: incluir condicionalmente (coluna pode não existir ainda no banco externo)
+      // Se tem valor, envia. Se tinha valor e foi removido (null explícito em edição), também envia.
       if (editingSupplier.logo_url) {
         payload.logo_url = editingSupplier.logo_url;
+      } else if (!isNew && editingSupplier.logo_url === null) {
+        // Em edição, se o usuário removeu a logo, tentar enviar null
+        // (só funciona se a coluna existir no banco externo)
+        try {
+          payload.logo_url = null;
+        } catch { /* ignore if column doesn't exist */ }
       }
 
       if (isNew) {
@@ -356,7 +363,7 @@ export function SuppliersManager() {
                   <TableRow key={supplier.id} className="group cursor-pointer hover:bg-accent/50" onClick={() => handleEdit(supplier)}>
                     <TableCell>
                       {supplier.active ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                       ) : (
                         <XCircle className="h-4 w-4 text-muted-foreground" />
                       )}
