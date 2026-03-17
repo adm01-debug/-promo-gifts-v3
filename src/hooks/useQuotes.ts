@@ -554,6 +554,7 @@ export function useQuotes() {
         color_name: item.color_name,
         color_hex: item.color_hex,
         notes: item.notes,
+        bitrix_product_id: item.bitrix_product_id,
         personalizations: item.personalizations?.map((p) => ({
           technique_id: p.technique_id,
           technique_name: p.technique_name,
