@@ -177,10 +177,12 @@ export default function MockupGenerator() {
   return (
     <MainLayout>
       {/* Offscreen layout capture - auto-captures approval document after mockup generation */}
-      <OffscreenLayoutCapture
-        request={layoutCaptureRequest}
-        onCaptured={handleLayoutCaptured}
-      />
+      <Suspense fallback={null}>
+        <OffscreenLayoutCapture
+          request={layoutCaptureRequest}
+          onCaptured={handleLayoutCaptured}
+        />
+      </Suspense>
 
       <GeneratingOverlay
         isVisible={mg.isLoading}
