@@ -356,6 +356,31 @@ export default function QuotesListPage() {
                 quotes={filteredQuotes}
                 onDelete={(id) => setDeleteConfirmId(id)}
                 onBulkDelete={(ids) => setBulkDeleteIds(ids)}
+                onBulkStatusChange={async (ids, status) => {
+                  let successCount = 0;
+                  for (const id of ids) {
+                    const ok = await updateQuoteStatus(id, status as any);
+                    if (ok) successCount++;
+                  }
+                  toast.success(`${successCount} orçamento(s) atualizado(s)`);
+                }}
+                onBulkExport={(ids) => {
+                  const selected = filteredQuotes.filter((q) => ids.includes(q.id!));
+                  import("@/utils/excelExport").then(({ exportToExcel }) => {
+                    exportToExcel(
+                      selected.map((q) => ({
+                        Número: q.quote_number,
+                        Empresa: q.client_company || "",
+                        Contato: q.client_name || "",
+                        Status: q.status,
+                        Valor: q.total || 0,
+                        Data: q.created_at ? format(new Date(q.created_at), "dd/MM/yyyy") : "",
+                      })),
+                      "orcamentos_selecionados"
+                    );
+                    toast.success(`${ids.length} orçamento(s) exportado(s)`);
+                  });
+                }}
                 onDuplicate={(id) => duplicateQuote(id)}
               />
             )}
