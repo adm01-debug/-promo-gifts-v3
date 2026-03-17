@@ -503,13 +503,13 @@ export default function ProductDetail() {
         <div className="space-y-12 pt-8 border-t border-border">
           <RelatedProducts 
             currentProduct={product} 
-            allProducts={categoryProducts} 
+            allProducts={relatedProductsList} 
             maxItems={4} 
           />
           
           <RecommendedProducts 
             currentProduct={product} 
-            allProducts={categoryProducts} 
+            allProducts={relatedProductsList} 
             maxItems={4} 
           />
         </div>
