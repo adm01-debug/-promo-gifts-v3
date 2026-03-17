@@ -1,14 +1,16 @@
 import { useState, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
-import { Header } from "./Header";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
-import { SidebarReorganized } from "./SidebarReorganized";
-import { PageTransition } from "@/components/effects";
 import { SkipToContent } from "@/components/common/SkipToContent";
 import { BackButton } from "@/components/common/BackButton";
 import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
-import { SellerCartProvider } from "@/contexts/SellerCartContext";
-import { OnboardingProvider } from "@/contexts/OnboardingContext";
+
+// Lazy load heavy layout components to reduce MainLayout chunk
+const Header = lazy(() => import("./Header").then(m => ({ default: m.Header })));
+const SidebarReorganized = lazy(() => import("./SidebarReorganized").then(m => ({ default: m.SidebarReorganized })));
+const PageTransition = lazy(() => import("@/components/effects/PageTransition").then(m => ({ default: m.PageTransition })));
+const SellerCartProvider = lazy(() => import("@/contexts/SellerCartContext").then(m => ({ default: m.SellerCartProvider })));
+const OnboardingProvider = lazy(() => import("@/contexts/OnboardingContext").then(m => ({ default: m.OnboardingProvider })));
 
 // Lazy-loaded non-critical UI components
 const OnboardingTour = lazy(() => import("@/components/onboarding/OnboardingTour").then(m => ({ default: m.OnboardingTour })));
@@ -59,19 +61,23 @@ export function MainLayout({ children }: MainLayoutProps) {
       
       <div className="flex">
         <div className="print:hidden">
-          <SidebarReorganized 
-            isOpen={sidebarOpen} 
-            onToggle={() => setSidebarOpen(!sidebarOpen)} 
-          />
+          <Suspense fallback={<div className="w-64" />}>
+            <SidebarReorganized 
+              isOpen={sidebarOpen} 
+              onToggle={() => setSidebarOpen(!sidebarOpen)} 
+            />
+          </Suspense>
         </div>
         
         <div className="flex-1 flex flex-col min-h-screen print:min-h-0">
           <div className="print:hidden">
-            <Header 
-              onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
+            <Suspense fallback={<div className="h-16" />}>
+              <Header 
+                onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+            </Suspense>
           </div>
           
           <main 
@@ -87,9 +93,11 @@ export function MainLayout({ children }: MainLayoutProps) {
               <PersistentBreadcrumbs className="mb-4" />
             </div>
             
-            <PageTransition variant="fade-slide" duration={0.25}>
-              {children}
-            </PageTransition>
+            <Suspense fallback={<div>{children}</div>}>
+              <PageTransition variant="fade-slide" duration={0.25}>
+                {children}
+              </PageTransition>
+            </Suspense>
           </main>
           
           {!isMockupGenerator && (
@@ -129,14 +137,16 @@ export function MainLayout({ children }: MainLayoutProps) {
   );
 
   return (
-    <OnboardingProvider>
-      <SellerCartProvider>
-        <Suspense fallback={layoutContent}>
-          <GlobalCommandBar>
-            {layoutContent}
-          </GlobalCommandBar>
-        </Suspense>
-      </SellerCartProvider>
-    </OnboardingProvider>
+    <Suspense fallback={layoutContent}>
+      <OnboardingProvider>
+        <SellerCartProvider>
+          <Suspense fallback={layoutContent}>
+            <GlobalCommandBar>
+              {layoutContent}
+            </GlobalCommandBar>
+          </Suspense>
+        </SellerCartProvider>
+      </OnboardingProvider>
+    </Suspense>
   );
 }
