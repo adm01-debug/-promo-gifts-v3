@@ -47,6 +47,7 @@ import {
   Eye,
   Link2,
   Send,
+  Download,
 } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
 import { supabase } from "@/integrations/supabase/client";
