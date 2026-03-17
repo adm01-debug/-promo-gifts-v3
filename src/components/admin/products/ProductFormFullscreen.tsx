@@ -1,0 +1,825 @@
+/**
+ * ProductFormFullscreen — Formulário full-screen com sidebar de navegação vertical
+ * Layout de 2 colunas: sidebar de seções à esquerda + conteúdo à direita
+ */
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
+import { CategorySelect } from './CategorySelect';
+import { SupplierSelect } from './SupplierSelect';
+import { ProductImageGallery } from './ProductImageGallery';
+import { ProductVideoGallery } from './ProductVideoGallery';
+import { ProductVariantsSection } from './ProductVariantsSection';
+import { ProductMaterialsSection } from './ProductMaterialsSection';
+import { ProductTagsSection } from './ProductTagsSection';
+import { ProductRamosSection } from './ProductRamosSection';
+import { ProductMarketingSection } from './ProductMarketingSection';
+import { ProductTechniquesSection } from './ProductTechniquesSection';
+import { ProductKitComponentsSection } from './ProductKitComponentsSection';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Loader2,
+  Info,
+  Ruler,
+  Package,
+  Tag,
+  ImageIcon,
+  Palette,
+  Layers,
+  Building2,
+  Paintbrush,
+  Megaphone,
+  AlertCircle,
+  CheckCircle2,
+  Globe,
+  Truck,
+  FileText,
+  Video,
+  ShieldCheck,
+  Save,
+  X,
+} from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
+
+// ============================================
+// TYPES & HELPERS
+// ============================================
+
+interface ProductFormFullscreenProps {
+  initialData?: Partial<ProductFormData>;
+  productImages?: string[];
+  productId?: string;
+  onSubmit: (data: ProductFormData, images: string[]) => Promise<void>;
+  onCancel: () => void;
+  isSaving: boolean;
+  isEdit: boolean;
+}
+
+type SectionId = 'info' | 'price' | 'commercial' | 'flags' | 'dimensions' | 'packaging' | 'fiscal' | 'seo' | 'marketing' | 'classification' | 'media';
+
+interface SectionDef {
+  id: SectionId;
+  label: string;
+  icon: React.ElementType;
+  group: string;
+}
+
+const SECTIONS: SectionDef[] = [
+  { id: 'info', label: 'Informações', icon: Info, group: 'Básico' },
+  { id: 'price', label: 'Preço e Estoque', icon: Tag, group: 'Básico' },
+  { id: 'commercial', label: 'Comercial', icon: Truck, group: 'Básico' },
+  { id: 'flags', label: 'Status', icon: ShieldCheck, group: 'Básico' },
+  { id: 'dimensions', label: 'Dimensões', icon: Ruler, group: 'Detalhes' },
+  { id: 'packaging', label: 'Embalagem', icon: Package, group: 'Detalhes' },
+  { id: 'fiscal', label: 'Fiscal', icon: FileText, group: 'Detalhes' },
+  { id: 'seo', label: 'SEO', icon: Globe, group: 'Marketing' },
+  { id: 'marketing', label: 'Textos', icon: Megaphone, group: 'Marketing' },
+  { id: 'classification', label: 'Classificação', icon: Layers, group: 'Vínculos' },
+  { id: 'media', label: 'Mídia', icon: ImageIcon, group: 'Vínculos' },
+];
+
+// Character counter
+function CharCounter({ current, max }: { current: number; max: number }) {
+  const pct = current / max;
+  return (
+    <span className={cn(
+      'text-[10px] tabular-nums font-medium',
+      pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-warning' : 'text-muted-foreground/50',
+    )}>
+      {current}/{max}
+    </span>
+  );
+}
+
+// Field label
+function FieldLabel({ htmlFor, children, required, charCount, charMax, hint }: {
+  htmlFor?: string;
+  children: React.ReactNode;
+  required?: boolean;
+  charCount?: number;
+  charMax?: number;
+  hint?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-1.5">
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor={htmlFor} className="text-xs font-semibold text-foreground/80">
+          {children}
+          {required && <span className="text-destructive ml-0.5">*</span>}
+        </Label>
+        {hint && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent className="text-xs max-w-[200px]">{hint}</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
+      {charCount !== undefined && charMax !== undefined && (
+        <CharCounter current={charCount} max={charMax} />
+      )}
+    </div>
+  );
+}
+
+// Section card wrapper
+function SectionCard({ id, title, icon: Icon, children, subtitle }: {
+  id: string;
+  title: string;
+  icon: React.ElementType;
+  children: React.ReactNode;
+  subtitle?: string;
+}) {
+  return (
+    <Card id={`section-${id}`} className="border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden scroll-mt-4">
+      <div className="p-5 pb-4 border-b border-border/30">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <Icon className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+            {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
+          </div>
+        </div>
+      </div>
+      <div className="p-5 space-y-4">{children}</div>
+    </Card>
+  );
+}
+
+// SKU validation hook
+function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: string) {
+  const [status, setStatus] = useState<'idle' | 'checking' | 'valid' | 'duplicate'>('idle');
+  const [duplicateName, setDuplicateName] = useState('');
+
+  useEffect(() => {
+    if (!currentSku || currentSku.length < 2) { setStatus('idle'); return; }
+    if (isEdit && currentSku === originalSku) { setStatus('valid'); return; }
+
+    setStatus('checking');
+    const timer = setTimeout(async () => {
+      try {
+        const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        const existing = await fetchPromobrindProducts({ search: currentSku, limit: 5 });
+        const products = Array.isArray(existing) ? existing : (existing as any).products || [];
+        const dup = products.find((p: any) => p.sku?.toLowerCase() === currentSku.toLowerCase());
+        if (dup) { setStatus('duplicate'); setDuplicateName(dup.name || ''); }
+        else { setStatus('valid'); setDuplicateName(''); }
+      } catch { setStatus('idle'); }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [currentSku, isEdit, originalSku]);
+
+  return { status, duplicateName };
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
+
+export function ProductFormFullscreen({
+  initialData,
+  productImages: initialImages = [],
+  productId,
+  onSubmit,
+  onCancel,
+  isSaving,
+  isEdit,
+}: ProductFormFullscreenProps) {
+  const [images, setImages] = useState<string[]>(initialImages);
+  const [activeSection, setActiveSection] = useState<SectionId>('info');
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<ProductFormData>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: { ...defaultFormValues, ...initialData },
+  });
+
+  // Watch values
+  const categoryId = watch('category_id');
+  const supplierId = watch('supplier_id');
+  const isActive = watch('is_active');
+  const isFeatured = watch('is_featured');
+  const isBestseller = watch('is_bestseller');
+  const isNew = watch('is_new');
+  const isOnSale = watch('is_on_sale');
+  const isKit = watch('is_kit');
+  const hasCommercialPackaging = watch('has_commercial_packaging');
+  const isImported = watch('is_imported');
+  const isTextil = watch('is_textil');
+  const isThermal = watch('is_thermal');
+  const allowsPersonalization = watch('allows_personalization');
+  const hasGiftBox = watch('has_gift_box');
+  const hasOptionalPackaging = watch('has_optional_packaging');
+
+  const skuValue = watch('sku') || '';
+  const nameValue = watch('name') || '';
+  const descValue = watch('description') || '';
+  const shortDescValue = watch('short_description') || '';
+  const metaDescValue = watch('meta_description') || '';
+  const supplierRefValue = watch('supplier_reference') || '';
+  const metaTitleValue = watch('meta_title') || '';
+  const metaKeywordsValue = watch('meta_keywords') || '';
+
+  const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
+
+  const onFormSubmit = handleSubmit(async (data) => {
+    if (skuStatus === 'duplicate') return;
+    await onSubmit(data, images);
+  });
+
+  const numericProps = (name: keyof ProductFormData) => ({
+    ...register(name, { valueAsNumber: true }),
+    type: 'number' as const,
+    step: name.includes('price') ? '0.01' : '1',
+  });
+
+  const flagCount = [isActive, isFeatured, isBestseller, isNew, isOnSale, isKit, hasCommercialPackaging, isImported, isTextil, isThermal, allowsPersonalization, hasGiftBox, hasOptionalPackaging].filter(Boolean).length;
+
+  // Scroll to section
+  const scrollToSection = (sectionId: SectionId) => {
+    setActiveSection(sectionId);
+    const el = document.getElementById(`section-${sectionId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Track active section on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollContainer = document.getElementById('product-form-content');
+      if (!scrollContainer) return;
+      
+      for (const section of SECTIONS) {
+        const el = document.getElementById(`section-${section.id}`);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 200 && rect.bottom > 200) {
+            setActiveSection(section.id);
+            break;
+          }
+        }
+      }
+    };
+
+    const container = document.getElementById('product-form-content');
+    if (container) {
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
+
+  // Error count
+  const errorCount = Object.keys(errors).length;
+
+  // Group sections
+  const groups = SECTIONS.reduce<Record<string, SectionDef[]>>((acc, s) => {
+    if (!acc[s.group]) acc[s.group] = [];
+    acc[s.group].push(s);
+    return acc;
+  }, {});
+
+  return (
+    <form onSubmit={onFormSubmit} className="flex flex-col">
+      <div className="flex gap-6">
+        {/* ====== SIDEBAR NAVIGATION ====== */}
+        <div className="hidden lg:block w-56 shrink-0">
+          <div className="sticky top-24 space-y-4">
+            {Object.entries(groups).map(([groupName, sections]) => (
+              <div key={groupName}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1.5 px-2">
+                  {groupName}
+                </p>
+                <nav className="space-y-0.5">
+                  {sections.map((section) => {
+                    const Icon = section.icon;
+                    const isActive2 = activeSection === section.id;
+                    return (
+                      <button
+                        key={section.id}
+                        type="button"
+                        onClick={() => scrollToSection(section.id)}
+                        className={cn(
+                          'flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
+                          isActive2
+                            ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent',
+                        )}
+                      >
+                        <Icon className={cn('h-3.5 w-3.5 shrink-0', isActive2 ? 'text-primary' : 'text-muted-foreground/60')} />
+                        <span className="truncate">{section.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+            ))}
+
+            {/* Save button in sidebar */}
+            <div className="pt-3 border-t border-border/30 space-y-2">
+              {errorCount > 0 && (
+                <div className="flex items-center gap-1.5 text-destructive text-[11px] font-medium px-2">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  {errorCount} erro(s)
+                </div>
+              )}
+              <Button
+                type="submit"
+                disabled={isSaving || skuStatus === 'duplicate'}
+                className="w-full gap-2 font-semibold shadow-sm"
+                size="sm"
+              >
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                {isEdit ? 'Salvar' : 'Criar Produto'}
+              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="w-full text-xs">
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* ====== MAIN CONTENT ====== */}
+        <div id="product-form-content" className="flex-1 min-w-0 space-y-5 pb-24">
+
+          {/* === INFORMAÇÕES BÁSICAS === */}
+          <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>
+                  SKU Interno
+                </FieldLabel>
+                <div className="relative">
+                  <Input
+                    id="sku"
+                    {...register('sku')}
+                    placeholder="Ex: GS-001"
+                    className={cn(
+                      'font-mono pr-8 h-9',
+                      errors.sku && 'border-destructive',
+                      skuStatus === 'valid' && 'border-success/50',
+                      skuStatus === 'duplicate' && 'border-destructive',
+                    )}
+                  />
+                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                    {skuStatus === 'checking' && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                    {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
+                    {skuStatus === 'duplicate' && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertCircle className="h-3.5 w-3.5 text-destructive" />
+                        </TooltipTrigger>
+                        <TooltipContent className="text-xs">SKU já usado em "{duplicateName}"</TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </div>
+                {errors.sku && <p className="text-[10px] text-destructive mt-1">{errors.sku.message}</p>}
+                {skuStatus === 'duplicate' && <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>}
+              </div>
+              <div>
+                <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>
+                  SKU do Fornecedor
+                </FieldLabel>
+                <Input id="supplier_reference" {...register('supplier_reference')} placeholder="Ex: FORN-12345" className="font-mono h-9" />
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
+                Nome do Produto
+              </FieldLabel>
+              <Input
+                id="name"
+                {...register('name')}
+                placeholder="Nome do produto"
+                className={cn('h-9', errors.name && 'border-destructive')}
+              />
+              {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
+            </div>
+
+            <div>
+              <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000}>
+                Descrição Completa
+              </FieldLabel>
+              <Textarea
+                id="description"
+                {...register('description')}
+                placeholder="Descrição detalhada do produto"
+                rows={4}
+                className="text-sm resize-y min-h-[80px]"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="short_description" charCount={shortDescValue.length} charMax={500}>
+                  Descrição Curta
+                </FieldLabel>
+                <Input id="short_description" {...register('short_description')} placeholder="Resumo em uma linha" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>
+                  Meta Descrição (SEO)
+                </FieldLabel>
+                <Input id="meta_description" {...register('meta_description')} placeholder="Descrição para buscadores" className="h-9" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <FieldLabel htmlFor="brand">Marca</FieldLabel>
+                <Input id="brand" {...register('brand')} placeholder="Ex: Tramontina" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel>Categoria</FieldLabel>
+                <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
+              </div>
+              <div>
+                <FieldLabel>Fornecedor</FieldLabel>
+                <SupplierSelect value={supplierId || ''} onChange={(id) => setValue('supplier_id', id)} error={errors.supplier_id?.message} />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* === PREÇO E ESTOQUE === */}
+          <SectionCard id="price" title="Preço e Estoque" icon={Tag} subtitle={`Preço atual: R$ ${(watch('sale_price') ?? 0).toFixed(2)}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <FieldLabel htmlFor="sale_price" required>Preço Venda (R$)</FieldLabel>
+                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} />
+                {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
+              </div>
+              <div>
+                <FieldLabel htmlFor="cost_price">Preço Custo (R$)</FieldLabel>
+                <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="suggested_price">Preço Sugerido (R$)</FieldLabel>
+                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <FieldLabel htmlFor="stock_quantity">Estoque</FieldLabel>
+                <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="stock_unit">Unidade</FieldLabel>
+                <Input id="stock_unit" {...register('stock_unit')} placeholder="un" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="min_quantity">Qtd. Mínima</FieldLabel>
+                <Input id="min_quantity" {...numericProps('min_quantity')} min="1" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="min_order_quantity">Qtd. Mín. Pedido</FieldLabel>
+                <Input id="min_order_quantity" {...numericProps('min_order_quantity')} min="0" className="h-9" />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* === COMERCIAL === */}
+          <SectionCard id="commercial" title="Comercial" icon={Truck} subtitle="Prazo de entrega, garantia, tipo de produto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
+                <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="warranty_months">Garantia (meses)</FieldLabel>
+                <Input id="warranty_months" {...numericProps('warranty_months')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>
+                <Input id="product_type" {...register('product_type')} placeholder="product" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
+                <Input id="supply_mode" {...register('supply_mode')} placeholder="Ex: pronta_entrega_liso" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="gender">Gênero</FieldLabel>
+                <Input id="gender" {...register('gender')} placeholder="Ex: unissex" className="h-9" />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* === STATUS E DESTAQUES === */}
+          <SectionCard id="flags" title="Status e Destaques" icon={ShieldCheck} subtitle={`${flagCount} ativos`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              {[
+                { key: 'is_active' as const, label: 'Produto Ativo', value: isActive, activeClass: 'bg-success/8 border-success/30' },
+                { key: 'is_featured' as const, label: 'Destaque', value: isFeatured },
+                { key: 'is_bestseller' as const, label: 'Mais Vendido', value: isBestseller },
+                { key: 'is_new' as const, label: 'Lançamento', value: isNew },
+                { key: 'is_on_sale' as const, label: 'Em Promoção', value: isOnSale },
+                { key: 'is_kit' as const, label: 'É Kit', value: isKit },
+                { key: 'is_imported' as const, label: 'Importado', value: isImported },
+                { key: 'is_textil' as const, label: 'Têxtil', value: isTextil },
+                { key: 'is_thermal' as const, label: 'Térmico', value: isThermal },
+                { key: 'allows_personalization' as const, label: 'Permite Personalização', value: allowsPersonalization },
+                { key: 'has_gift_box' as const, label: 'Caixa Presente', value: hasGiftBox },
+                { key: 'has_optional_packaging' as const, label: 'Embalagem Opcional', value: hasOptionalPackaging },
+                { key: 'has_commercial_packaging' as const, label: 'Embalagem Nativa', value: hasCommercialPackaging },
+              ].map(({ key, label, value, activeClass }) => (
+                <div
+                  key={key}
+                  className={cn(
+                    'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                    value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
+                  )}
+                  onClick={() => setValue(key, !value)}
+                >
+                  <Label className="cursor-pointer text-xs font-medium">{label}</Label>
+                  <Switch checked={value} onCheckedChange={(v) => setValue(key, v)} />
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+
+          {/* === DIMENSÕES === */}
+          <SectionCard id="dimensions" title="Dimensões" icon={Ruler} subtitle="Dimensões externas e internas do produto">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Externas</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[
+                { id: 'height_cm', label: 'Altura (cm)' },
+                { id: 'width_cm', label: 'Largura (cm)' },
+                { id: 'length_cm', label: 'Comprimento (cm)' },
+                { id: 'diameter_cm', label: 'Diâmetro (cm)' },
+                { id: 'circumference_cm', label: 'Circunferência (cm)' },
+                { id: 'weight_g', label: 'Peso (g)' },
+                { id: 'capacity_ml', label: 'Capacidade (ml)' },
+              ].map(({ id: fId, label }) => (
+                <div key={fId}>
+                  <FieldLabel htmlFor={fId}>{label}</FieldLabel>
+                  <Input id={fId} {...numericProps(fId as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-border/30 pt-4 mt-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">Internas</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { id: 'internal_height_cm', label: 'Altura Int. (cm)' },
+                  { id: 'internal_width_cm', label: 'Largura Int. (cm)' },
+                  { id: 'internal_length_cm', label: 'Comprim. Int. (cm)' },
+                  { id: 'internal_diameter_cm', label: 'Diâmetro Int. (cm)' },
+                ].map(({ id: fId, label }) => (
+                  <div key={fId}>
+                    <FieldLabel htmlFor={fId}>{label}</FieldLabel>
+                    <Input id={fId} {...numericProps(fId as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* === EMBALAGEM === */}
+          <SectionCard id="packaging" title="Embalagem (Caixa)" icon={Package} subtitle="Dimensões e especificações da embalagem">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="packing_type">Tipo de Embalagem</FieldLabel>
+                <Input id="packing_type" {...register('packing_type')} placeholder="Ex: Caixa, Bolsa, Estojo" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="packaging_material">Material Embalagem</FieldLabel>
+                <Input id="packaging_material" {...register('packaging_material')} placeholder="Ex: Papelão, Plástico" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div>
+                <FieldLabel htmlFor="box_width_mm">Largura (mm)</FieldLabel>
+                <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="box_height_mm">Altura (mm)</FieldLabel>
+                <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="box_length_mm">Profundidade (mm)</FieldLabel>
+                <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <FieldLabel htmlFor="box_weight_kg">Peso (kg)</FieldLabel>
+                <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="box_quantity">Qtd por caixa</FieldLabel>
+                <Input id="box_quantity" {...numericProps('box_quantity')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="box_inner_quantity">Qtd Interna</FieldLabel>
+                <Input id="box_inner_quantity" {...numericProps('box_inner_quantity')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="box_volume_cm3">Volume (cm³)</FieldLabel>
+                <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="packaging_color">Cor Embalagem</FieldLabel>
+                <Input id="packaging_color" {...register('packaging_color')} placeholder="Ex: Kraft, Branco" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="packaging_finish">Acabamento Embalagem</FieldLabel>
+                <Input id="packaging_finish" {...register('packaging_finish')} placeholder="Ex: Fosco, Brilhante" className="h-9" />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* === FISCAL === */}
+          <SectionCard id="fiscal" title="Dados Fiscais" icon={FileText} subtitle="NCM, EAN, GTIN, IPI e origem">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="ncm_code">Código NCM</FieldLabel>
+                <Input id="ncm_code" {...register('ncm_code')} placeholder="Ex: 96081000" className="font-mono h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="ipi_rate">Alíquota IPI (%)</FieldLabel>
+                <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="ean">Código EAN</FieldLabel>
+                <Input id="ean" {...register('ean')} placeholder="Código de barras EAN" className="font-mono h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="gtin">GTIN</FieldLabel>
+                <Input id="gtin" {...register('gtin')} placeholder="Global Trade Item Number" className="font-mono h-9" />
+              </div>
+            </div>
+            <div>
+              <FieldLabel htmlFor="country_of_origin">País de Origem</FieldLabel>
+              <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
+            </div>
+          </SectionCard>
+
+          {/* === SEO === */}
+          <SectionCard id="seo" title="SEO e Metadados" icon={Globe} subtitle="Otimize o produto para buscadores">
+            <div>
+              <FieldLabel htmlFor="meta_title" charCount={metaTitleValue.length} charMax={200}>Meta Título</FieldLabel>
+              <Input id="meta_title" {...register('meta_title')} placeholder="Título para buscadores (Google)" className="h-9" />
+            </div>
+            <div>
+              <FieldLabel htmlFor="meta_keywords" charCount={metaKeywordsValue.length} charMax={500}>Palavras-chave (separadas por vírgula)</FieldLabel>
+              <Input id="meta_keywords" {...register('meta_keywords')} placeholder="caneta, brinde, personalizado" className="h-9" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="slug">Slug (URL)</FieldLabel>
+                <Input id="slug" {...register('slug')} placeholder="caneta-plastica-001" className="font-mono h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="canonical_url">URL Canônica</FieldLabel>
+                <Input id="canonical_url" {...register('canonical_url')} placeholder="/produto/caneta-001" className="font-mono h-9" />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* === MARKETING TEXTS === */}
+          <SectionCard id="marketing" title="Textos de Marketing" icon={Megaphone} subtitle="Benefícios e casos de uso">
+            <div>
+              <FieldLabel htmlFor="key_benefits">Benefícios Principais</FieldLabel>
+              <Textarea id="key_benefits" {...register('key_benefits')} placeholder="Liste os benefícios do produto" rows={3} className="text-sm resize-y" />
+            </div>
+            <div>
+              <FieldLabel htmlFor="use_cases">Casos de Uso</FieldLabel>
+              <Textarea id="use_cases" {...register('use_cases')} placeholder="Cenários e ocasiões de uso" rows={3} className="text-sm resize-y" />
+            </div>
+          </SectionCard>
+
+          {/* === CLASSIFICAÇÃO === */}
+          <SectionCard id="classification" title="Classificação e Vínculos" icon={Layers} subtitle="Cores, materiais, tags, ramos e técnicas">
+            {isEdit && productId && (
+              <>
+                <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Palette className="h-4 w-4 text-primary" />
+                    <h4 className="text-xs font-semibold">Variações de Cor</h4>
+                  </div>
+                  <ProductVariantsSection productId={productId} productName={watch('name')} productSku={watch('sku')} />
+                </div>
+
+                {isKit && (
+                  <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Layers className="h-4 w-4 text-primary" />
+                      <h4 className="text-xs font-semibold">Componentes do Kit</h4>
+                    </div>
+                    <ProductKitComponentsSection
+                      productId={productId}
+                      boxInternalDimensions={{
+                        height_cm: watch('internal_height_cm') ?? null,
+                        width_cm: watch('internal_width_cm') ?? null,
+                        length_cm: watch('internal_length_cm') ?? null,
+                      }}
+                    />
+                  </div>
+                )}
+
+                {[
+                  { title: 'Materiais', icon: Layers, content: <ProductMaterialsSection productId={productId} /> },
+                  { title: 'Tags', icon: Tag, content: <ProductTagsSection productId={productId} /> },
+                  { title: 'Ramos de Atividade', icon: Building2, content: <ProductRamosSection productId={productId} /> },
+                  { title: 'Marketing', icon: Megaphone, content: <ProductMarketingSection productId={productId} /> },
+                  { title: 'Técnicas de Personalização', icon: Paintbrush, content: <ProductTechniquesSection productId={productId} /> },
+                ].map(({ title, icon: SIcon, content }) => (
+                  <div key={title} className="rounded-lg border border-border/40 bg-muted/20 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <SIcon className="h-4 w-4 text-primary" />
+                      <h4 className="text-xs font-semibold">{title}</h4>
+                    </div>
+                    {content}
+                  </div>
+                ))}
+              </>
+            )}
+
+            {!isEdit && (
+              <div className="flex items-center gap-2 p-4 rounded-lg bg-muted/30 text-xs text-muted-foreground">
+                <Info className="h-3.5 w-3.5 shrink-0" />
+                Salve o produto primeiro para gerenciar classificações e vínculos.
+              </div>
+            )}
+          </SectionCard>
+
+          {/* === MÍDIA === */}
+          <SectionCard id="media" title="Mídia" icon={ImageIcon} subtitle="Galeria de imagens e vídeos do produto">
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-primary" />
+                    <h4 className="text-xs font-semibold">Galeria de Imagens</h4>
+                    <p className="text-[11px] text-muted-foreground">Classificadas por tipo</p>
+                  </div>
+                  {images.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px]">{images.length} imagem(ns)</Badge>
+                  )}
+                </div>
+                <ProductImageGallery images={images} onChange={setImages} folder="products" productId={productId} />
+              </div>
+
+              <div className="border-t border-border/30 pt-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <Video className="h-4 w-4 text-primary" />
+                  <h4 className="text-xs font-semibold">Galeria de Vídeos</h4>
+                  <p className="text-[11px] text-muted-foreground">Classificados por tipo</p>
+                </div>
+                <ProductVideoGallery productId={productId} />
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+      </div>
+
+      {/* ====== MOBILE BOTTOM BAR ====== */}
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-sm border-t border-border/50 p-3 z-40">
+        <div className="flex items-center justify-between gap-3 max-w-3xl mx-auto">
+          <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+            <X className="h-4 w-4 mr-1" />
+            Cancelar
+          </Button>
+          {errorCount > 0 && (
+            <span className="text-destructive text-xs font-medium flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              {errorCount} erro(s)
+            </span>
+          )}
+          <Button type="submit" size="sm" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2 font-semibold shadow-sm">
+            {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            {isEdit ? 'Salvar' : 'Criar'}
+          </Button>
+        </div>
+      </div>
+    </form>
+  );
+}
