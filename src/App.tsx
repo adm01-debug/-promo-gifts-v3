@@ -176,6 +176,7 @@ const App = () => {
                                         <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                                         <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
                                         <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
+                                        <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                                         <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
                                         <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
                                         <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
