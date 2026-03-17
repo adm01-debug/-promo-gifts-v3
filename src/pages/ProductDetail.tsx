@@ -303,11 +303,11 @@ export default function ProductDetail() {
                         <button
                           key={variation.id}
                           onClick={() => setSelectedVariation(variation)}
-                          title={`${variation.color.name}: ${variation.stock.toLocaleString("pt-BR")} un.`}
+                          title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
                           className={cn(
                             "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all",
                             !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
-                            variation.stock === 0 && "opacity-50"
+                            Math.max(0, variation.stock) === 0 && "opacity-50"
                           )}
                           style={isSelected ? {
                             backgroundColor: `${variation.color.hex}20`,
@@ -320,11 +320,11 @@ export default function ProductDetail() {
                             style={{ backgroundColor: variation.color.hex }}
                           />
                           <span className={cn(
-                            variation.stock === 0 ? "text-destructive" : variation.stock < 100 ? "text-warning" : "text-foreground"
+                            Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
                           )}>
-                            {variation.stock >= 1000 
-                              ? `${(variation.stock / 1000).toFixed(1)}k` 
-                              : variation.stock.toLocaleString("pt-BR")}
+                            {Math.max(0, variation.stock) >= 1000 
+                              ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
+                              : Math.max(0, variation.stock).toLocaleString("pt-BR")}
                           </span>
                         </button>
                       );
@@ -337,7 +337,7 @@ export default function ProductDetail() {
                       stockInfo.class
                     )}>
                       <Package className="h-4 w-4" />
-                      {product.stock.toLocaleString("pt-BR")} un.
+                      {Math.max(0, product.stock).toLocaleString("pt-BR")} un.
                     </span>
                   </div>
                 )}

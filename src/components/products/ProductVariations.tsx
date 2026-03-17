@@ -28,8 +28,9 @@ export function ProductVariations({
   };
 
   const getStockStatus = (stock: number) => {
-    if (stock === 0) return { label: "Sem estoque", color: "text-destructive" };
-    if (stock < 100) return { label: "Estoque baixo", color: "text-warning" };
+    const s = Math.max(0, stock);
+    if (s === 0) return { label: "Sem estoque", color: "text-destructive" };
+    if (s < 100) return { label: "Estoque baixo", color: "text-warning" };
     return { label: "Em estoque", color: "text-success" };
   };
 
@@ -140,7 +141,7 @@ export function ProductVariations({
               <div className="flex items-center gap-1">
                 <Package className="h-3 w-3 text-muted-foreground" />
                 <span className={cn("text-xs font-medium", stockStatus.color)}>
-                  {variation.stock.toLocaleString("pt-BR")} un.
+                  {Math.max(0, variation.stock).toLocaleString("pt-BR")} un.
                 </span>
               </div>
             </button>

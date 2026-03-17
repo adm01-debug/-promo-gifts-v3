@@ -367,10 +367,11 @@ export function ProductGallery({
               const originalIndex = colors.findIndex(c => c.name === color.name && c.sku === color.sku);
               const hasVideos = color.videos && color.videos.length > 0;
               const isSelected = selectedColorIndex === originalIndex;
-              const stockStatus = color.stock !== undefined 
-                ? color.stock === 0 
+              const displayStock = color.stock !== undefined ? Math.max(0, color.stock) : undefined;
+              const stockStatus = displayStock !== undefined 
+                ? displayStock === 0 
                   ? { color: "text-destructive", label: "Sem estoque" }
-                  : color.stock < 100 
+                  : displayStock < 100 
                     ? { color: "text-warning", label: "Estoque baixo" }
                     : { color: "text-success", label: "Em estoque" }
                 : null;
@@ -446,11 +447,11 @@ export function ProductGallery({
                     )}
                     
                     {/* Estoque */}
-                    {stockStatus && color.stock !== undefined && (
+                    {stockStatus && displayStock !== undefined && (
                       <div className="flex items-center gap-1">
                         <Package className="h-2.5 w-2.5 text-muted-foreground" />
                         <span className={cn("text-[10px] font-medium", stockStatus.color)}>
-                          {color.stock.toLocaleString("pt-BR")} un.
+                          {displayStock.toLocaleString("pt-BR")} un.
                         </span>
                       </div>
                     )}
