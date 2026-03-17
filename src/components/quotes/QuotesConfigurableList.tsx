@@ -139,6 +139,8 @@ interface QuotesConfigurableListProps {
   quotes: Quote[];
   onDelete: (id: string) => void;
   onBulkDelete: (ids: string[]) => void;
+  onBulkStatusChange?: (ids: string[], status: string) => void;
+  onBulkExport?: (ids: string[]) => void;
   onDuplicate: (id: string) => void;
 }
 
