@@ -30,9 +30,12 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Core React
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router')) {
+          // Core React (split router separately to reduce main vendor)
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
             return 'react-vendor';
+          }
+          if (id.includes('node_modules/react-router')) {
+            return 'router-vendor';
           }
           // UI primitives (Radix)
           if (id.includes('node_modules/@radix-ui/')) {
@@ -54,8 +57,22 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/date-fns/')) {
             return 'date-vendor';
           }
-          // Note: recharts is already code-split via lazy page imports
-          // Heavy libs stay isolated (xlsx, jspdf, html2canvas already chunked by lazy imports)
+          // Charts - isolate recharts into its own chunk
+          if (id.includes('node_modules/recharts/') || id.includes('node_modules/d3-')) {
+            return 'charts-vendor';
+          }
+          // Validation
+          if (id.includes('node_modules/zod/')) {
+            return 'zod-vendor';
+          }
+          // Form handling
+          if (id.includes('node_modules/react-hook-form/') || id.includes('node_modules/@hookform/')) {
+            return 'form-vendor';
+          }
+          // Sonner + toast
+          if (id.includes('node_modules/sonner/')) {
+            return 'toast-vendor';
+          }
         },
       },
     },

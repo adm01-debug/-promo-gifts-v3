@@ -1,14 +1,16 @@
 import { useState, lazy, Suspense } from "react";
 import { useLocation } from "react-router-dom";
-import { Header } from "./Header";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
-import { SidebarReorganized } from "./SidebarReorganized";
-import { PageTransition } from "@/components/effects";
 import { SkipToContent } from "@/components/common/SkipToContent";
 import { BackButton } from "@/components/common/BackButton";
 import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
-import { SellerCartProvider } from "@/contexts/SellerCartContext";
-import { OnboardingProvider } from "@/contexts/OnboardingContext";
+
+// Lazy load heavy layout components to reduce MainLayout chunk
+const Header = lazy(() => import("./Header").then(m => ({ default: m.Header })));
+const SidebarReorganized = lazy(() => import("./SidebarReorganized").then(m => ({ default: m.SidebarReorganized })));
+const PageTransition = lazy(() => import("@/components/effects/PageTransition").then(m => ({ default: m.PageTransition })));
+const SellerCartProvider = lazy(() => import("@/contexts/SellerCartContext").then(m => ({ default: m.SellerCartProvider })));
+const OnboardingProvider = lazy(() => import("@/contexts/OnboardingContext").then(m => ({ default: m.OnboardingProvider })));
 
 // Lazy-loaded non-critical UI components
 const OnboardingTour = lazy(() => import("@/components/onboarding/OnboardingTour").then(m => ({ default: m.OnboardingTour })));
