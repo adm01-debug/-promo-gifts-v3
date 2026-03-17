@@ -53,6 +53,7 @@ const AdminUsuariosPage = lazyWithRetry(() => import("./pages/admin/AdminUsuario
 const AdminSegurancaPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaPage"));
 const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadastrosPage"));
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
+const AdminProductFormPage = lazyWithRetry(() => import("./pages/admin/AdminProductFormPage"));
 const AdminTelemetriaPage = lazyWithRetry(() => import("./pages/admin/AdminTelemetriaPage"));
 
 // Tools Pages
