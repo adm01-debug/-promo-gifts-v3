@@ -337,7 +337,7 @@ export default function ProductDetail() {
                       stockInfo.class
                     )}>
                       <Package className="h-4 w-4" />
-                      {product.stock.toLocaleString("pt-BR")} un.
+                      {Math.max(0, product.stock).toLocaleString("pt-BR")} un.
                     </span>
                   </div>
                 )}
