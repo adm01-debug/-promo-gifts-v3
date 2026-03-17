@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { useIPValidation } from "@/hooks/useIPValidation";
 import { PasskeyLogin } from "@/components/auth/PasskeyLogin";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { supabase } from "@/integrations/supabase/client";
 
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from "@/lib/validations";
