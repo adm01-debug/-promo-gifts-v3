@@ -109,16 +109,30 @@ export function SuppliersManager() {
   useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
 
   const filtered = useMemo(() => {
-    if (!search) return suppliers;
-    const q = search.toLowerCase();
-    return suppliers.filter(s =>
-      s.name.toLowerCase().includes(q) ||
-      s.code.toLowerCase().includes(q) ||
-      (s.trading_name?.toLowerCase().includes(q)) ||
-      (s.cnpj?.includes(q)) ||
-      (s.email?.toLowerCase().includes(q))
-    );
-  }, [suppliers, search]);
+    let result = suppliers;
+
+    // Filter by type
+    if (filterType === 'product') result = result.filter(s => s.is_product_supplier);
+    else if (filterType === 'engraving') result = result.filter(s => s.is_engraving_supplier);
+
+    // Filter by status
+    if (filterStatus === 'active') result = result.filter(s => s.active);
+    else if (filterStatus === 'inactive') result = result.filter(s => !s.active);
+
+    // Filter by search
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.code.toLowerCase().includes(q) ||
+        (s.trading_name?.toLowerCase().includes(q)) ||
+        (s.cnpj?.includes(q)) ||
+        (s.email?.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [suppliers, search, filterType, filterStatus]);
 
   const handleNew = () => {
     setEditingSupplier({ ...EMPTY_SUPPLIER });
