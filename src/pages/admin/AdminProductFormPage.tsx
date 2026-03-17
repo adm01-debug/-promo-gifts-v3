@@ -381,8 +381,8 @@ export default function AdminProductFormPage() {
         {/* Content */}
         {activeTab === 'form' ? (
           <ProductFormFullscreen
-            initialData={isEdit && product ? productToFormData(product) : undefined}
-            productImages={isEdit && product ? getProductImages(product) : []}
+            initialData={isEdit && product ? productToFormData(product) : duplicateProduct ? productToFormData(duplicateProduct) : undefined}
+            productImages={isEdit && product ? getProductImages(product) : duplicateProduct ? getProductImages(duplicateProduct) : []}
             productId={isEdit ? id : undefined}
             onSubmit={handleFormSubmit}
             onCancel={() => navigate('/admin/cadastros')}
