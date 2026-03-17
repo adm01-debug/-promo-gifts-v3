@@ -206,7 +206,10 @@ export function ProductFormFullscreen({
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
-  const [showPreview, setShowPreview] = useState(true);
+  const [showPreview, setShowPreview] = useState(() => {
+    const stored = localStorage.getItem('product-form-show-preview');
+    return stored !== null ? stored === 'true' : true;
+  });
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const {
@@ -820,7 +823,11 @@ export function ProductFormFullscreen({
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 text-xs text-muted-foreground hover:text-foreground h-7 px-2"
-                onClick={() => setShowPreview(v => !v)}
+                onClick={() => setShowPreview(v => {
+                  const next = !v;
+                  localStorage.setItem('product-form-show-preview', String(next));
+                  return next;
+                })}
               >
                 {showPreview ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
                 {showPreview ? 'Ocultar' : 'Preview'}
