@@ -50,8 +50,8 @@ describe('useSellerCarts', () => {
     expect(typeof result.current.deleteCart).toBe('function');
   });
 
-  it('exposes addItemToCart method', () => {
+  it('exposes addItem method', () => {
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
-    expect(typeof result.current.addItemToCart).toBe('function');
+    expect(typeof result.current.addItem).toBe('function');
   });
 });
