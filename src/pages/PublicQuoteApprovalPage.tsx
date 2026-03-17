@@ -56,9 +56,14 @@ export default function PublicQuoteApprovalPage() {
           { body: { action: "get_quote", token } }
         );
 
-        if (fnError) throw new Error(fnError.message);
+        // supabase.functions.invoke returns the parsed body even on non-2xx
+        // but sets fnError for network failures
+        if (fnError && !result) {
+          throw new Error(fnError.message);
+        }
 
-        if (result.error) {
+        // Handle error responses from the edge function
+        if (result?.error) {
           if (result.expired) {
             setIsExpired(true);
           } else {
@@ -90,19 +95,19 @@ export default function PublicQuoteApprovalPage() {
 
     try {
       const { data: result, error: fnError } = await supabase.functions.invoke(
-        "quote-public-view",
-        {
-          body: {
-            action: "respond",
-            token,
-            response,
-            response_notes: responseNotes.trim() || null,
-          },
-        }
-      );
+          "quote-public-view",
+          {
+            body: {
+              action: "respond",
+              token,
+              response,
+              response_notes: responseNotes.trim() || null,
+            },
+          }
+        );
 
-      if (fnError) throw new Error(fnError.message);
-      if (result.error) throw new Error(result.error);
+        if (fnError && !result) throw new Error(fnError.message);
+        if (result?.error) throw new Error(result.error);
 
       setSubmitted(response);
     } catch (err) {
