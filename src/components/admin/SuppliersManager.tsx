@@ -189,11 +189,7 @@ export function SuppliersManager() {
     if (!confirm(`Deseja realmente excluir o fornecedor "${supplier.name}"?`)) return;
     setDeleting(supplier.id);
     try {
-      await invokeExternalDbSingle({
-        table: 'suppliers',
-        operation: 'delete',
-        id: supplier.id,
-      });
+      await invokeExternalDbDelete('suppliers', supplier.id);
       toast.success(`Fornecedor "${supplier.name}" excluído`);
       fetchSuppliers();
     } catch (err: any) {
