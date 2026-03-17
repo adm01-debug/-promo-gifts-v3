@@ -363,7 +363,7 @@ export function SuppliersManager() {
                   <TableRow key={supplier.id} className="group cursor-pointer hover:bg-accent/50" onClick={() => handleEdit(supplier)}>
                     <TableCell>
                       {supplier.active ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                       ) : (
                         <XCircle className="h-4 w-4 text-muted-foreground" />
                       )}

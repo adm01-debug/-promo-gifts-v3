@@ -124,7 +124,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   };
 
   const handleCreate = async () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast.error('Nome do fornecedor é obrigatório');
+      return;
+    }
     const cnpjDigits = cnpj.replace(/\D/g, '');
     if (cnpjDigits.length > 0 && !validateCnpj(cnpjDigits)) {
       setCnpjError('CNPJ inválido');
