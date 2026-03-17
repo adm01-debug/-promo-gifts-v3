@@ -161,10 +161,14 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         notes: notes.trim() || null,
         is_product_supplier: isProductSupplier,
         is_engraving_supplier: isEngravingSupplier,
-        logo_url: logoUrl || null,
         created_at: now,
         updated_at: now,
       };
+
+      // Só incluir logo_url se tiver valor (coluna pode não existir ainda no banco externo)
+      if (logoUrl) {
+        data.logo_url = logoUrl;
+      }
 
       const result = await invokeExternalDbSingle<{ id: string }>({
         table: 'suppliers',
