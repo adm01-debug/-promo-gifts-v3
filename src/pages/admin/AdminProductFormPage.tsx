@@ -12,7 +12,8 @@ import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductB
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
 import { type ProductFormData, defaultFormValues } from '@/components/admin/products/ProductFormSchema';
-import { Loader2, ArrowLeft, History, Pencil, Copy } from 'lucide-react';
+import { Loader2, ArrowLeft, History, Pencil, Copy, FileDown } from 'lucide-react';
+import { exportProductPdf } from '@/utils/productPdfExport';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
