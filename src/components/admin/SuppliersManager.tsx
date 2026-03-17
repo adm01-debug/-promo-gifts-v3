@@ -246,21 +246,33 @@ export function SuppliersManager() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-4">
-        <Badge variant="secondary" className="gap-1.5">
-          <Building2 className="h-3 w-3" />
-          {suppliers.length} fornecedores
-        </Badge>
-        <Badge variant="secondary" className="gap-1.5">
-          <CheckCircle2 className="h-3 w-3 text-green-500" />
-          {suppliers.filter(s => s.active).length} ativos
-        </Badge>
-        {search && (
-          <Badge variant="outline" className="gap-1.5">
-            {filtered.length} resultado(s)
+      {/* Filters & Stats */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5 rounded-lg border border-border p-1">
+          <Button variant={filterType === 'all' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('all')}>Todos</Button>
+          <Button variant={filterType === 'product' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('product')}>Produtos</Button>
+          <Button variant={filterType === 'engraving' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('engraving')}>Gravação</Button>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-lg border border-border p-1">
+          <Button variant={filterStatus === 'all' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterStatus('all')}>Todos</Button>
+          <Button variant={filterStatus === 'active' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs gap-1" onClick={() => setFilterStatus('active')}>
+            <CheckCircle2 className="h-3 w-3" />Ativos
+          </Button>
+          <Button variant={filterStatus === 'inactive' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs gap-1" onClick={() => setFilterStatus('inactive')}>
+            <XCircle className="h-3 w-3" />Inativos
+          </Button>
+        </div>
+        <div className="flex gap-2 ml-auto">
+          <Badge variant="secondary" className="gap-1.5">
+            <Building2 className="h-3 w-3" />
+            {suppliers.length} fornecedores
           </Badge>
-        )}
+          {(search || filterType !== 'all' || filterStatus !== 'all') && (
+            <Badge variant="outline" className="gap-1.5">
+              {filtered.length} resultado(s)
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Table */}
