@@ -28,7 +28,7 @@ import "./App.css";
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Index = lazyWithRetry(() => import("./pages/Index"));
-const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteApproval"));
+const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteApprovalPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Product Pages
