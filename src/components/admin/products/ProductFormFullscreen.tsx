@@ -558,7 +558,11 @@ export function ProductFormFullscreen({
                   onClick={() => setValue(key, !value)}
                 >
                   <Label className="cursor-pointer text-xs font-medium">{label}</Label>
-                  <Switch checked={value} onCheckedChange={(v) => setValue(key, v)} />
+                  <Switch
+                    checked={value}
+                    onCheckedChange={(v) => setValue(key, v)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
                 </div>
               ))}
             </div>
