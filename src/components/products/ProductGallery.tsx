@@ -447,11 +447,11 @@ export function ProductGallery({
                     )}
                     
                     {/* Estoque */}
-                    {stockStatus && color.stock !== undefined && (
+                    {stockStatus && displayStock !== undefined && (
                       <div className="flex items-center gap-1">
                         <Package className="h-2.5 w-2.5 text-muted-foreground" />
                         <span className={cn("text-[10px] font-medium", stockStatus.color)}>
-                          {color.stock.toLocaleString("pt-BR")} un.
+                          {displayStock.toLocaleString("pt-BR")} un.
                         </span>
                       </div>
                     )}
