@@ -19,6 +19,7 @@ import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { FavoritesProvider } from "@/contexts/FavoritesContext";
 import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { ProductsProvider } from "@/contexts/ProductsContext";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import LoadingScreen from "@/components/LoadingScreen";
 import "./App.css";
 
@@ -117,6 +118,7 @@ const App = () => {
           <AriaLiveProvider>
             <TooltipProvider>
               <AuthProvider>
+                <OrganizationProvider>
                 <ProductsProvider>
                   <CollectionsProvider>
                     <ComparisonProvider>
@@ -225,6 +227,7 @@ const App = () => {
                     </ComparisonProvider>
                   </CollectionsProvider>
                 </ProductsProvider>
+                </OrganizationProvider>
               </AuthProvider>
             </TooltipProvider>
           </AriaLiveProvider>
