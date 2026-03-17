@@ -520,7 +520,7 @@ export default function ProductDetail() {
 
         {/* Supplier Comparison Modal */}
         <SupplierComparisonModal
-          productId={id || ""}
+          product={product}
           open={supplierCompareOpen}
           onOpenChange={setSupplierCompareOpen}
         />

@@ -47,7 +47,7 @@ const fuseOptions: Fuse.IFuseOptions<Product> = {
 };
 
 export function QuoteProductSelector({ onProductAdd, existingProductIds }: QuoteProductSelectorProps) {
-  const { products } = useProductsContext();
+  const isMobile = useIsMobile();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const scrollParentRef = useRef<HTMLDivElement>(null);
