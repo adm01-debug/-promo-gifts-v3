@@ -501,22 +501,25 @@ export default function MockupGenerator() {
                 )}
               </div>
             </div>
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="history">
-            <MockupHistoryPanel
-              mockupHistory={mg.mockupHistory}
-              isLoading={mg.isLoadingHistory}
-              clients={mg.historyClients}
-              techniques={mg.techniques}
-              onLoadFromHistory={mg.loadFromHistory}
-              onDownload={mg.downloadMockup}
-              onDelete={(id) => {
-                mg.setMockupToDelete(id);
-                mg.setDeleteDialogOpen(true);
-              }}
-              onShare={mg.handleShareMockup}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+              <MockupHistoryPanel
+                mockupHistory={mg.mockupHistory}
+                isLoading={mg.isLoadingHistory}
+                clients={mg.historyClients}
+                techniques={mg.techniques}
+                onLoadFromHistory={mg.loadFromHistory}
+                onDownload={mg.downloadMockup}
+                onDelete={(id) => {
+                  mg.setMockupToDelete(id);
+                  mg.setDeleteDialogOpen(true);
+                }}
+                onShare={mg.handleShareMockup}
+              />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </div>
