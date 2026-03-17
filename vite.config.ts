@@ -29,10 +29,36 @@ export default defineConfig(({ mode }) => ({
     
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'query-vendor': ['@tanstack/react-query'],
+        manualChunks(id) {
+          // Core React
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router')) {
+            return 'react-vendor';
+          }
+          // UI primitives (Radix)
+          if (id.includes('node_modules/@radix-ui/')) {
+            return 'ui-vendor';
+          }
+          // Data fetching
+          if (id.includes('node_modules/@tanstack/')) {
+            return 'query-vendor';
+          }
+          // Supabase client
+          if (id.includes('node_modules/@supabase/')) {
+            return 'supabase-vendor';
+          }
+          // Animation library
+          if (id.includes('node_modules/framer-motion/')) {
+            return 'motion-vendor';
+          }
+          // Date utilities
+          if (id.includes('node_modules/date-fns/')) {
+            return 'date-vendor';
+          }
+          // Charts (recharts + d3)
+          if (id.includes('node_modules/recharts/') || id.includes('node_modules/d3-')) {
+            return 'charts-vendor';
+          }
+          // Heavy libs stay isolated (xlsx, jspdf, html2canvas already chunked by lazy imports)
         },
       },
     },
