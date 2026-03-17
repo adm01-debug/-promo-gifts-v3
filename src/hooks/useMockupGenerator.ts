@@ -286,7 +286,7 @@ export function useMockupGenerator() {
       }
     };
     restoreDraft();
-  }, [isLoadingData, products, techniques, loadDraft, hasDraftRestored]);
+  }, [isLoadingData, techniques, loadDraft, hasDraftRestored, getProductById]);
 
   // Auto-save
   useEffect(() => {
