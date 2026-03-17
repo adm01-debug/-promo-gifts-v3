@@ -15,8 +15,9 @@ import { processLogoTransparent } from "@/components/pdf/proposal/LogoWithTransp
 
 
 export async function generateProposalPDFv2(data: ProposalTemplateData, options?: { isDraft?: boolean }): Promise<Blob> {
+  const [jsPDF, html2canvas] = await Promise.all([getJsPDF(), getHtml2Canvas()]);
+
   // ① Pre-process logo BEFORE React renders — guarantees cache is warm
-  await processLogoTransparent("/images/promo-brindes-logo.png");
 
   const container = document.createElement("div");
   container.style.position = "fixed";
