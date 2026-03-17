@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.49.1";
+import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +26,9 @@ const ALLOWED_TABLES = [
   "quote_templates",
 ];
 
+// Operações que requerem role de admin ou manager
+const WRITE_OPERATIONS = ["insert", "update", "delete"];
+
 interface CrmQuery {
   table: string;
   operation: "select" | "search" | "insert" | "update" | "delete";
@@ -42,12 +45,76 @@ interface CrmQuery {
   returning?: string;
 }
 
+// ============================
+// AUTH HELPER
+// ============================
+async function authenticateRequest(req: Request): Promise<{
+  userId: string | null;
+  userRole: string;
+  error?: Response;
+}> {
+  const authHeader = req.headers.get("Authorization");
+
+  if (!authHeader?.startsWith("Bearer ")) {
+    return {
+      userId: null,
+      userRole: "public",
+      error: new Response(
+        JSON.stringify({ error: "Autenticação necessária" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      ),
+    };
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+  // Validate token via getUser
+  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const { data: { user }, error: userError } = await userClient.auth.getUser();
+
+  if (!user || userError) {
+    console.error("CRM auth failed:", userError?.message);
+    return {
+      userId: null,
+      userRole: "public",
+      error: new Response(
+        JSON.stringify({ error: "Token inválido ou expirado" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      ),
+    };
+  }
+
+  // Fetch role from user_roles (using service key to bypass RLS)
+  const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+  const { data: roleData } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .single();
+
+  const userRole = roleData?.role || "vendedor";
+  console.log(`Request from user: ${user.id}, role: ${userRole}`);
+
+  return { userId: user.id, userRole };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // ============================
+    // 1. AUTHENTICATE USER
+    // ============================
+    const auth = await authenticateRequest(req);
+    if (auth.error) return auth.error;
+
     const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
     const CRM_KEY = Deno.env.get("CRM_SUPABASE_ANON_KEY");
 
@@ -60,6 +127,22 @@ Deno.serve(async (req) => {
 
     const crm = createClient(CRM_URL, CRM_KEY);
     const body = await req.json();
+
+    // ============================
+    // 2. CHECK WRITE PERMISSIONS
+    // ============================
+    const operation = body.operation as string;
+    if (WRITE_OPERATIONS.includes(operation) && auth.userRole === "vendedor") {
+      // Vendedores podem criar/editar orçamentos próprios mas não podem alterar tabelas de empresas/contatos
+      const table = body.table as string;
+      const allowedWriteTables = ["quotes", "quote_items", "quote_item_personalizations", "quote_history", "quote_approval_tokens", "quote_templates"];
+      if (!allowedWriteTables.includes(table)) {
+        return new Response(
+          JSON.stringify({ error: "Permissão insuficiente para modificar esta tabela" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
     // ===== BATCH OPERATION =====
     if (body.operation === "batch") {
@@ -164,7 +247,7 @@ Deno.serve(async (req) => {
     }
 
     // Non-batch: destructure as CrmQuery
-    const { table, operation, id, filters, select, orderBy, limit, offset, search, relations, data, returning } = body as CrmQuery;
+    const { table, id, filters, select, orderBy, limit, offset, search, relations, data, returning } = body as CrmQuery;
 
     // Validar tabela
     if (!ALLOWED_TABLES.includes(table)) {
@@ -189,19 +272,16 @@ Deno.serve(async (req) => {
         const year = now.getFullYear();
         const yearShort = String(year).slice(-2);
 
-        // Get the last quote number for this year from CRM
-        // Order by length first (to avoid lexicographic ordering issues) then alphabetically
         const { data: lastQuotes } = await crm
           .from("quotes")
           .select("quote_number")
           .ilike("quote_number", `%/${yearShort}`)
           .order("quote_number", { ascending: false })
-          .limit(50); // get more to find the true max numerically
+          .limit(50);
 
         let nextNumber = 10001;
 
         if (lastQuotes && lastQuotes.length > 0) {
-          // Parse all numbers and find the true numeric maximum
           let maxNum = 10000;
           for (const row of lastQuotes) {
             const rawNum = (row.quote_number || "").replace(/\s+/g, "").split("/")[0];
@@ -213,12 +293,9 @@ Deno.serve(async (req) => {
           nextNumber = maxNum + 1;
         }
 
-        // Generate clean number with no spaces ever
         const generatedNumber = `${nextNumber}/${yearShort}`;
 
-        // Apply to single or batch insert
         if (Array.isArray(data)) {
-          // batch: only set on items missing quote_number
           (data as Record<string, unknown>[]).forEach((row) => {
             if (!row.quote_number || row.quote_number === "") {
               row.quote_number = generatedNumber;
@@ -236,8 +313,6 @@ Deno.serve(async (req) => {
 
       const { data: result, error } = await query;
 
-      // After insert, if this is quotes table and we generated a quote_number,
-      // force-update it because the external CRM trigger may overwrite with old format
       if (!error && result && result.length > 0 && table === "quotes") {
         const insertedRow = result[0] as Record<string, unknown>;
         const targetNumber = Array.isArray(data)
@@ -249,7 +324,6 @@ Deno.serve(async (req) => {
           targetNumber !== "" &&
           insertedRow.quote_number !== targetNumber
         ) {
-          // Force the correct number via update
           await crm
             .from("quotes")
             .update({ quote_number: targetNumber })
@@ -284,7 +358,6 @@ Deno.serve(async (req) => {
 
       let query = crm.from(table).update(data as any);
 
-      // Apply filters
       if (id) {
         query = query.eq("id", id);
       } else if (filters) {
@@ -322,7 +395,6 @@ Deno.serve(async (req) => {
     if (operation === "delete") {
       let query = crm.from(table).delete();
 
-      // Apply filters
       if (id) {
         query = query.eq("id", id);
       } else if (filters) {

@@ -55,16 +55,16 @@ const rolePermissions: Record<RoleName, Permission[]> = {
 };
 
 /**
- * Hook de RBAC simplificado que usa profile.role (TEXT direto)
- * Não precisa mais buscar de user_roles ou roles tables
+ * Hook de RBAC que usa role do AuthContext (fonte: tabela user_roles)
+ * SEGURO: não usa profile.role (coluna editável pelo usuário)
  */
 export function useRBAC() {
-  const { profile, isLoading: authLoading } = useAuth();
+  const { role: authRole, isLoading: authLoading, profile } = useAuth();
   
-  // Mapear role do profile para RoleName
+  // Mapear role do user_roles (via AuthContext) para RoleName
   const getRoleName = (): RoleName => {
-    const roleStr = profile?.role || 'seller';
-    // Suporte para "vendedor" (antigo) e "seller" (novo)
+    const roleStr = authRole || 'seller';
+    // Suporte para "vendedor" (valor do enum no banco) → "seller" (valor interno do RBAC)
     if (roleStr === 'vendedor') return 'seller';
     if (['admin', 'manager', 'seller', 'viewer'].includes(roleStr)) {
       return roleStr as RoleName;
