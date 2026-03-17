@@ -1,21 +1,14 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchPromobrindProductsLightweight, LightweightProduct, getProductPrice } from '@/lib/external-db';
-
 /**
- * Produto leve para uso em seletores — sem cores, imagens ou variantes enriquecidas.
- * Carrega ~10x mais rápido que useProducts (sem enriquecimento de imagens/variantes/cores).
+ * useProductsLightweight — Minimal product data for selectors
+ * 
+ * Loads ~10x faster than useProducts (no color/variant enrichment).
  */
-export interface ProductLightweight {
-  id: string;
-  name: string;
-  sku: string;
-  price: number;
-  image_url: string;
-  stock: number;
-  brand: string | null;
-  category_id: string | null;
-  is_active: boolean;
-}
+import { useQuery } from '@tanstack/react-query';
+import { fetchPromobrindProductsLightweight, LightweightProduct } from '@/lib/external-db';
+
+// Re-export type for consumers
+export type { ProductLightweight } from '@/types/product-catalog';
+import type { ProductLightweight } from '@/types/product-catalog';
 
 function mapLightweight(p: LightweightProduct): ProductLightweight {
   const price = (p.sale_price ?? p.cost_price ?? 0);
@@ -36,7 +29,6 @@ function mapLightweight(p: LightweightProduct): ProductLightweight {
 
 /**
  * Hook leve para buscar lista de produtos com campos mínimos.
- * Ideal para seletores e buscas rápidas onde cores/imagens não são necessárias no listing.
  */
 export function useProductsLightweight() {
   return useQuery<ProductLightweight[]>({
