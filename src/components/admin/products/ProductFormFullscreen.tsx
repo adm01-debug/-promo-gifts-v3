@@ -17,6 +17,7 @@ import { ProductRamosSection } from './ProductRamosSection';
 import { ProductMarketingSection } from './ProductMarketingSection';
 import { ProductTechniquesSection } from './ProductTechniquesSection';
 import { ProductKitComponentsSection } from './ProductKitComponentsSection';
+import { ProductPreviewPanel } from './ProductPreviewPanel';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
