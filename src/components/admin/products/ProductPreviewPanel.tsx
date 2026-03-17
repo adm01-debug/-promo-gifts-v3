@@ -40,7 +40,7 @@ const getStockStatus = (qty: number) => {
   return { label: 'Em estoque', color: 'text-success' };
 };
 
-export function ProductPreviewPanel({
+export const ProductPreviewPanel = memo(function ProductPreviewPanel({
   name,
   sku,
   salePrice,
