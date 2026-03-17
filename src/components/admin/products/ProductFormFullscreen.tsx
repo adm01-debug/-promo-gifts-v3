@@ -52,11 +52,20 @@ import {
   ShieldCheck,
   Save,
   X,
+  Plus,
   PanelRightClose,
   PanelRightOpen,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 // ============================================
 // TYPES & HELPERS
