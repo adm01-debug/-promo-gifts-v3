@@ -45,8 +45,10 @@ const OffscreenLayoutCapture = lazy(() => import("@/components/mockup/approval/O
 const TechniqueColorConfigDialog = lazy(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
 const AIMockupAssistant = lazy(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
 
-// Keep these as static imports since they're used in logic, not rendering
-import { techniqueNeedsColorConfig, classifyTechnique } from "@/components/mockup/TechniqueColorConfigDialog";
+// These small utility functions are extracted to avoid pulling the full TechniqueColorConfigDialog into this chunk
+// They're re-exported from the dialog module but are tiny — we import them statically since they're used in callbacks
+// The dialog component itself is lazy-loaded above
+import { techniqueNeedsColorConfig, classifyTechnique } from "@/components/mockup/techniqueColorUtils";
 import type { LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
 
 // ─── Component ───────────────────────────────────────────────────────
