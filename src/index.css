@@ -209,62 +209,62 @@ html[data-scroll-locked] body {
   }
 
   .dark {
-    /* ===== BASE ===== */
-    --background: 220 15% 6%;
-    --foreground: 210 40% 96%;
+    /* ===== BASE — Fusion-inspired deep blacks ===== */
+    --background: 225 20% 4%;
+    --foreground: 210 40% 98%;
     
-    /* ===== CARDS ===== */
-    --card: 220 15% 10%;
-    --card-foreground: 210 40% 96%;
-    --card-elevated: 220 15% 13%;
+    /* ===== CARDS — richer depth with warm undertone ===== */
+    --card: 225 18% 8%;
+    --card-foreground: 210 40% 98%;
+    --card-elevated: 225 16% 11%;
     
     /* ===== POPOVER/DIALOG ===== */
-    --popover: 220 15% 10%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 225 18% 8%;
+    --popover-foreground: 210 40% 98%;
     
-    /* ===== CORES PRIMÁRIAS (LARANJA) ===== */
-    --primary: 25 95% 53%;
-    --primary-hover: 25 95% 58%;
-    --primary-active: 25 95% 63%;
-    --primary-glow: 25 95% 50%;
+    /* ===== CORES PRIMÁRIAS (LARANJA — mais vibrante) ===== */
+    --primary: 24 100% 50%;
+    --primary-hover: 22 100% 55%;
+    --primary-active: 20 100% 60%;
+    --primary-glow: 25 100% 55%;
     --primary-foreground: 0 0% 100%;
     
     /* ===== CORES SECUNDÁRIAS ===== */
-    --secondary: 220 15% 15%;
-    --secondary-foreground: 210 40% 90%;
+    --secondary: 225 16% 13%;
+    --secondary-foreground: 210 40% 92%;
     
     /* ===== MUTED ===== */
-    --muted: 220 12% 18%;
+    --muted: 225 14% 16%;
     --muted-foreground: 215 20% 68%;
     
     /* ===== SEMANTIC COLORS ===== */
-    --surface: 220 15% 12%;
-    --surface-hover: 220 15% 14%;
+    --surface: 225 18% 9%;
+    --surface-hover: 225 16% 12%;
     --text-secondary: 215 20% 65%;
-    --interactive: 25 95% 58%;
-    --divider: 220 12% 22%;
+    --interactive: 24 100% 55%;
+    --divider: 225 14% 18%;
     
     /* ===== ACCENT ===== */
-    --accent: 220 15% 15%;
-    --accent-foreground: 210 40% 96%;
+    --accent: 225 16% 13%;
+    --accent-foreground: 210 40% 98%;
     
     /* ===== DESTRUCTIVE ===== */
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
     /* ===== ESTADOS ===== */
-    --success: 142 71% 45%;
+    --success: 142 76% 48%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 38 95% 52%;
     --warning-foreground: 0 0% 100%;
-    --info: 200 80% 55%;
+    --info: 200 85% 58%;
     --info-foreground: 0 0% 100%;
     
-    /* ===== LARANJA (COR DE DESTAQUE) ===== */
-    --orange: 25 95% 53%;
-    --orange-hover: 25 95% 58%;
-    --orange-active: 25 95% 63%;
-    --orange-glow: 25 95% 45%;
+    /* ===== LARANJA (COR DE DESTAQUE — Fusion glow) ===== */
+    --orange: 24 100% 50%;
+    --orange-hover: 22 100% 55%;
+    --orange-active: 20 100% 60%;
+    --orange-glow: 25 100% 48%;
     --orange-foreground: 0 0% 100%;
     
     /* ===== HIGHLIGHT COLORS ===== */
@@ -272,61 +272,63 @@ html[data-scroll-locked] body {
     --highlight-silver: 220 15% 75%;
     --highlight-bronze: 30 55% 55%;
     
-    /* ===== BORDAS E INPUTS ===== */
-    --border: 220 12% 18%;
-    --input: 220 15% 13%;
-    --ring: 25 95% 53%;
+    /* ===== BORDAS E INPUTS — subtle warm tint ===== */
+    --border: 225 12% 16%;
+    --input: 225 16% 11%;
+    --ring: 24 100% 50%;
     
     /* ===== ELEVAÇÃO ===== */
-    --elevated: 220 15% 13%;
-    --elevated-hover: 220 15% 16%;
+    --elevated: 225 16% 11%;
+    --elevated-hover: 225 14% 14%;
     
-    /* ===== GLASS MORPHISM ===== */
-    --glass-bg: 220 15% 10% / 0.9;
-    --glass-bg-strong: 220 15% 8% / 0.95;
-    --glass-bg-subtle: 220 15% 12% / 0.7;
-    --glass-border: 220 15% 25% / 0.3;
-    --glass-border-strong: 220 15% 30% / 0.5;
-    --glass-blur: 12px;
-    --glass-blur-strong: 20px;
-    --glass-shadow: 0 4px 30px hsl(220 20% 3% / 0.3);
+    /* ===== GLASS MORPHISM — enhanced depth ===== */
+    --glass-bg: 225 18% 8% / 0.85;
+    --glass-bg-strong: 225 20% 6% / 0.92;
+    --glass-bg-subtle: 225 16% 10% / 0.65;
+    --glass-border: 25 30% 30% / 0.15;
+    --glass-border-strong: 25 40% 35% / 0.25;
+    --glass-blur: 16px;
+    --glass-blur-strong: 24px;
+    --glass-shadow: 0 4px 30px hsl(225 20% 2% / 0.4), 0 0 40px hsl(25 100% 50% / 0.03);
     
     /* ===== SIDEBAR ===== */
-    --sidebar-background: 220 15% 8%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 25 95% 53%;
+    --sidebar-background: 225 20% 5%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 24 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 15%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 220 12% 15%;
-    --sidebar-ring: 25 95% 53%;
+    --sidebar-accent: 225 16% 12%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 225 14% 12%;
+    --sidebar-ring: 24 100% 50%;
     
-    /* ===== GRADIENTES ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(25 95% 45%));
-    --gradient-secondary: linear-gradient(135deg, hsl(220 15% 15%), hsl(220 15% 10%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-surface: linear-gradient(180deg, hsl(220 15% 10%), hsl(220 15% 6%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(220 12% 20% / 0.5), transparent);
-    --gradient-hero: linear-gradient(135deg, hsl(25 95% 53% / 0.15) 0%, hsl(25 95% 45% / 0.08) 100%);
+    /* ===== GRADIENTES — Fusion-inspired dramatic gradients ===== */
+    --gradient-primary: linear-gradient(135deg, hsl(24 100% 50%), hsl(20 100% 42%));
+    --gradient-secondary: linear-gradient(135deg, hsl(225 16% 13%), hsl(225 18% 8%));
+    --gradient-success: linear-gradient(135deg, hsl(142 76% 48%), hsl(152 80% 42%));
+    --gradient-surface: linear-gradient(180deg, hsl(225 18% 8%), hsl(225 20% 4%));
+    --gradient-divider: linear-gradient(90deg, transparent, hsl(25 50% 40% / 0.15), transparent);
+    --gradient-hero: linear-gradient(135deg, hsl(25 100% 50% / 0.12) 0%, hsl(220 60% 50% / 0.06) 50%, hsl(25 100% 45% / 0.08) 100%);
+    --gradient-ambient: radial-gradient(ellipse 80% 50% at 50% 0%, hsl(25 100% 50% / 0.08) 0%, transparent 60%);
+    --gradient-ambient-bottom: radial-gradient(ellipse 60% 40% at 80% 100%, hsl(220 80% 50% / 0.06) 0%, transparent 50%);
     
-    /* ===== SOMBRAS - Dark Mode ===== */
-    --shadow-xs: 0 1px 2px hsl(220 20% 3% / 0.5);
-    --shadow-sm: 0 1px 3px hsl(220 20% 3% / 0.6), 0 1px 2px hsl(220 20% 3% / 0.5);
-    --shadow-md: 0 4px 6px -1px hsl(220 20% 3% / 0.6), 0 2px 4px -2px hsl(220 20% 3% / 0.5);
-    --shadow-lg: 0 10px 15px -3px hsl(220 20% 3% / 0.6), 0 4px 6px -4px hsl(220 20% 3% / 0.5);
-    --shadow-xl: 0 20px 25px -5px hsl(220 20% 3% / 0.7), 0 8px 10px -6px hsl(220 20% 3% / 0.6);
-    --shadow-glow: 0 0 30px hsl(25 95% 53% / 0.35);
-    --shadow-glow-primary: 0 0 30px hsl(25 95% 53% / 0.35);
-    --shadow-glow-secondary: 0 0 25px hsl(220 15% 15% / 0.4);
-    --shadow-glow-success: 0 0 25px hsl(142 71% 45% / 0.3);
-    --shadow-glow-warning: 0 0 25px hsl(38 92% 50% / 0.35);
-    --shadow-header: 0 1px 3px hsl(220 20% 3% / 0.6), inset 0 1px 0 hsl(220 15% 20% / 0.2);
+    /* ===== SOMBRAS — enhanced glow system ===== */
+    --shadow-xs: 0 1px 2px hsl(225 20% 2% / 0.6);
+    --shadow-sm: 0 1px 3px hsl(225 20% 2% / 0.7), 0 1px 2px hsl(225 20% 2% / 0.6);
+    --shadow-md: 0 4px 6px -1px hsl(225 20% 2% / 0.7), 0 2px 4px -2px hsl(225 20% 2% / 0.6);
+    --shadow-lg: 0 10px 15px -3px hsl(225 20% 2% / 0.7), 0 4px 6px -4px hsl(225 20% 2% / 0.5), 0 0 20px hsl(25 100% 50% / 0.04);
+    --shadow-xl: 0 20px 25px -5px hsl(225 20% 2% / 0.8), 0 8px 10px -6px hsl(225 20% 2% / 0.6), 0 0 30px hsl(25 100% 50% / 0.06);
+    --shadow-glow: 0 0 30px hsl(25 100% 50% / 0.4), 0 0 60px hsl(25 100% 50% / 0.15);
+    --shadow-glow-primary: 0 0 30px hsl(25 100% 50% / 0.4), 0 0 60px hsl(25 100% 50% / 0.15);
+    --shadow-glow-secondary: 0 0 25px hsl(225 16% 13% / 0.5);
+    --shadow-glow-success: 0 0 25px hsl(142 76% 48% / 0.35);
+    --shadow-glow-warning: 0 0 25px hsl(38 95% 52% / 0.4);
+    --shadow-header: 0 1px 3px hsl(225 20% 2% / 0.7), 0 0 20px hsl(25 100% 50% / 0.03), inset 0 1px 0 hsl(225 15% 18% / 0.3);
     
     /* ===== CHART ===== */
-    --chart-1: 25 95% 53%;
-    --chart-2: 142 71% 50%;
+    --chart-1: 24 100% 50%;
+    --chart-2: 142 76% 50%;
     --chart-3: 45 93% 55%;
-    --chart-4: 200 80% 55%;
+    --chart-4: 200 85% 58%;
     --chart-5: 0 72% 55%;
   }
 }
