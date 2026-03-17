@@ -1117,6 +1117,10 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      submit_quote_response: {
+        Args: { _response: string; _response_notes?: string; _token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "vendedor"
