@@ -1,0 +1,358 @@
+/**
+ * AdminProductFormPage — Página full-screen para criar/editar produtos
+ * Substitui o Dialog modal por uma experiência imersiva com sidebar de navegação
+ */
+
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { ProductFormFullscreen } from '@/components/admin/products/ProductFormFullscreen';
+import { AuditHistory } from '@/components/audit/AuditHistory';
+import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from '@/lib/external-db';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { toast } from 'sonner';
+import { type ProductFormData, defaultFormValues } from '@/components/admin/products/ProductFormSchema';
+import { Loader2, ArrowLeft, History, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+export default function AdminProductFormPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const isEdit = !!id && id !== 'novo';
+
+  const [product, setProduct] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(isEdit);
+  const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'form' | 'history'>('form');
+
+  const { logAction, getChangedFields } = useAuditLog();
+
+  // Load product data for edit mode
+  useEffect(() => {
+    if (!isEdit) return;
+    
+    const loadProduct = async () => {
+      setIsLoading(true);
+      try {
+        const fullProduct = await fetchPromobrindProductById(id!);
+        if (fullProduct) {
+          setProduct(fullProduct);
+        } else {
+          toast.error('Produto não encontrado');
+          navigate('/admin/cadastros');
+        }
+      } catch (err) {
+        console.error('Error loading product:', err);
+        toast.error('Erro ao carregar produto');
+        navigate('/admin/cadastros');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [id, isEdit, navigate]);
+
+  const productToFormData = useCallback((p: any): Partial<ProductFormData> => {
+    return {
+      sku: p.sku || '',
+      name: p.name || '',
+      description: p.description ?? p.short_description ?? '',
+      short_description: p.short_description ?? '',
+      meta_description: p.meta_description ?? '',
+      brand: p.brand ?? '',
+      category_id: p.category_id ?? p.main_category_id ?? '',
+      supplier_id: p.supplier_id ?? '',
+      supplier_reference: p.supplier_reference ?? '',
+      sale_price: getProductPrice(p) ?? 0,
+      cost_price: p.cost_price ?? 0,
+      suggested_price: p.suggested_price ?? null,
+      stock_quantity: getProductStock(p) ?? 0,
+      stock_unit: p.stock_unit ?? 'un',
+      min_quantity: p.min_quantity ?? 1,
+      min_order_quantity: p.min_order_quantity ?? null,
+      height_cm: p.height_cm ?? null,
+      width_cm: p.width_cm ?? null,
+      length_cm: p.length_cm ?? null,
+      diameter_cm: p.diameter_cm ?? null,
+      weight_g: p.weight_g ?? null,
+      capacity_ml: p.capacity_ml ?? null,
+      circumference_cm: p.circumference_cm ?? null,
+      internal_height_cm: p.internal_height_cm ?? null,
+      internal_width_cm: p.internal_width_cm ?? null,
+      internal_length_cm: p.internal_length_cm ?? null,
+      internal_diameter_cm: p.internal_diameter_cm ?? null,
+      packing_type: p.packing_type ?? '',
+      box_width_mm: p.box_width_mm ?? null,
+      box_height_mm: p.box_height_mm ?? null,
+      box_length_mm: p.box_length_mm ?? null,
+      box_weight_kg: p.box_weight_kg ?? null,
+      box_quantity: p.box_quantity ?? null,
+      box_inner_quantity: p.box_inner_quantity ?? null,
+      box_volume_cm3: p.box_volume_cm3 ?? null,
+      packaging_material: p.packaging_material ?? '',
+      packaging_color: p.packaging_color ?? '',
+      packaging_finish: p.packaging_finish ?? '',
+      is_active: p.is_active ?? p.active ?? true,
+      is_featured: p.is_featured ?? false,
+      is_bestseller: p.is_bestseller ?? false,
+      is_new: p.is_new ?? false,
+      is_on_sale: p.is_on_sale ?? false,
+      is_kit: p.is_kit ?? false,
+      has_commercial_packaging: p.has_commercial_packaging ?? false,
+      is_imported: p.is_imported ?? false,
+      is_textil: p.is_textil ?? false,
+      is_thermal: p.is_thermal ?? false,
+      allows_personalization: p.allows_personalization ?? true,
+      has_gift_box: p.has_gift_box ?? false,
+      has_optional_packaging: p.has_optional_packaging ?? false,
+      ncm_code: p.ncm_code ?? '',
+      ean: p.ean ?? '',
+      gtin: p.gtin ?? '',
+      ipi_rate: p.ipi_rate ?? null,
+      country_of_origin: p.country_of_origin ?? '',
+      lead_time_days: p.lead_time_days ?? null,
+      product_type: p.product_type ?? 'product',
+      supply_mode: p.supply_mode ?? '',
+      warranty_months: p.warranty_months ?? null,
+      gender: p.gender ?? '',
+      meta_title: p.meta_title ?? '',
+      meta_keywords: Array.isArray(p.meta_keywords) ? p.meta_keywords.join(', ') : '',
+      slug: p.slug ?? '',
+      canonical_url: p.canonical_url ?? '',
+      video_url: p.videos?.[0] ?? p.video_url ?? '',
+      key_benefits: p.key_benefits ?? '',
+      use_cases: p.use_cases ?? '',
+    };
+  }, []);
+
+  const handleFormSubmit = async (data: ProductFormData, images: string[]) => {
+    setIsSaving(true);
+    try {
+      // Validate duplicate SKU
+      const skuChanged = isEdit && product && data.sku !== product.sku;
+      if (!isEdit || skuChanged) {
+        const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        const existing = await fetchPromobrindProducts({ search: data.sku, limit: 5 });
+        const products = Array.isArray(existing) ? existing : (existing as any).products || [];
+        const duplicate = products.find((p: any) => p.sku?.toLowerCase() === data.sku.toLowerCase());
+        if (duplicate) {
+          toast.error(`SKU "${data.sku}" já está cadastrado no produto "${duplicate.name}"`);
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      const productData: Record<string, any> = {
+        sku: data.sku,
+        name: data.name,
+        description: data.description || null,
+        short_description: data.short_description || null,
+        meta_description: data.meta_description || null,
+        brand: data.brand || null,
+        category_id: data.category_id || null,
+        supplier_id: data.supplier_id || null,
+        supplier_reference: data.supplier_reference || null,
+        sale_price: data.sale_price ?? 0,
+        cost_price: data.cost_price ?? null,
+        suggested_price: data.suggested_price ?? null,
+        stock_quantity: data.stock_quantity ?? 0,
+        stock_unit: data.stock_unit || 'un',
+        min_quantity: data.min_quantity ?? 1,
+        min_order_quantity: data.min_order_quantity ?? null,
+        is_active: data.is_active,
+        active: data.is_active,
+        is_featured: data.is_featured,
+        is_bestseller: data.is_bestseller,
+        is_new: data.is_new,
+        is_on_sale: data.is_on_sale,
+        is_kit: data.is_kit,
+        has_commercial_packaging: data.has_commercial_packaging,
+        is_imported: data.is_imported,
+        is_textil: data.is_textil,
+        is_thermal: data.is_thermal,
+        allows_personalization: data.allows_personalization,
+        has_gift_box: data.has_gift_box,
+        has_optional_packaging: data.has_optional_packaging,
+        packing_type: data.packing_type || null,
+        height_cm: data.height_cm ?? null,
+        width_cm: data.width_cm ?? null,
+        length_cm: data.length_cm ?? null,
+        diameter_cm: data.diameter_cm ?? null,
+        weight_g: data.weight_g ?? null,
+        capacity_ml: data.capacity_ml ?? null,
+        circumference_cm: data.circumference_cm ?? null,
+        internal_height_cm: data.internal_height_cm ?? null,
+        internal_width_cm: data.internal_width_cm ?? null,
+        internal_length_cm: data.internal_length_cm ?? null,
+        internal_diameter_cm: data.internal_diameter_cm ?? null,
+        box_width_mm: data.box_width_mm ?? null,
+        box_height_mm: data.box_height_mm ?? null,
+        box_length_mm: data.box_length_mm ?? null,
+        box_weight_kg: data.box_weight_kg ?? null,
+        box_quantity: data.box_quantity ?? null,
+        box_inner_quantity: data.box_inner_quantity ?? null,
+        box_volume_cm3: data.box_volume_cm3 ?? null,
+        packaging_material: data.packaging_material || null,
+        packaging_color: data.packaging_color || null,
+        packaging_finish: data.packaging_finish || null,
+        ncm_code: data.ncm_code || null,
+        ean: data.ean || null,
+        gtin: data.gtin || null,
+        ipi_rate: data.ipi_rate ?? null,
+        country_of_origin: data.country_of_origin || null,
+        lead_time_days: data.lead_time_days ?? null,
+        product_type: data.product_type || 'product',
+        supply_mode: data.supply_mode || null,
+        warranty_months: data.warranty_months ?? null,
+        gender: data.gender || null,
+        meta_title: data.meta_title || null,
+        meta_keywords: data.meta_keywords ? data.meta_keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : null,
+        slug: data.slug || null,
+        canonical_url: data.canonical_url || null,
+        videos: data.video_url ? [data.video_url] : [],
+        key_benefits: data.key_benefits || null,
+        use_cases: data.use_cases || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      if (images.length > 0) {
+        productData.images = images;
+        productData.image_url = images[0];
+        productData.primary_image_url = images[0];
+      }
+
+      if (isEdit && product) {
+        await invokeExternalDbSingle<any>({
+          table: 'products',
+          operation: 'update',
+          id: product.id,
+          data: productData,
+        });
+
+        const { oldFields, newFields } = getChangedFields(
+          { sku: product.sku, name: product.name, description: product.description, sale_price: getProductPrice(product), stock_quantity: getProductStock(product), is_active: product.is_active },
+          productData
+        );
+
+        if (Object.keys(newFields).length > 0) {
+          await logAction({ action: 'UPDATE', entityType: 'products', entityId: product.id, oldValues: oldFields, newValues: newFields });
+        }
+
+        toast.success('Produto atualizado com sucesso');
+        // Reload product data
+        const refreshed = await fetchPromobrindProductById(product.id);
+        if (refreshed) setProduct(refreshed);
+      } else {
+        const newProduct = await invokeExternalDbSingle<any>({
+          table: 'products',
+          operation: 'insert',
+          data: { ...productData, created_at: new Date().toISOString() },
+        });
+
+        if (newProduct) {
+          await logAction({ action: 'INSERT', entityType: 'products', entityId: newProduct.id, oldValues: null, newValues: { sku: productData.sku, name: productData.name, sale_price: productData.sale_price, is_active: productData.is_active } });
+          toast.success('Produto criado! Agora vincule Tags, Ramos, Marketing e Técnicas.');
+          // Navigate to edit mode for the newly created product
+          navigate(`/admin/cadastros/produto/${newProduct.id}`, { replace: true });
+          return;
+        }
+        toast.success('Produto criado com sucesso');
+        navigate('/admin/cadastros');
+      }
+    } catch (error: any) {
+      console.error('Error saving product:', error);
+      toast.error(error.message || 'Erro ao salvar produto');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const getProductImages = useCallback((p: any): string[] => {
+    if (!p) return [];
+    const imgUrl = getProductImageUrl(p);
+    if (imgUrl) return [imgUrl, ...(Array.isArray(p.images) ? p.images.filter((i: string) => i !== imgUrl) : [])];
+    return Array.isArray(p.images) ? p.images : [];
+  }, []);
+
+  if (isLoading) {
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Carregando produto...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  return (
+    <MainLayout>
+      <div className="container mx-auto py-6 space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/admin/cadastros')}
+              className="h-9 w-9 rounded-lg"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">
+                {isEdit ? 'Editar Produto' : 'Novo Produto'}
+              </h1>
+              {isEdit && product && (
+                <p className="text-sm text-muted-foreground">
+                  {product.sku} — {product.name}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {isEdit && (
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'history')}>
+              <TabsList className="h-9">
+                <TabsTrigger value="form" className="gap-1.5 text-xs">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Editar
+                </TabsTrigger>
+                <TabsTrigger value="history" className="gap-1.5 text-xs">
+                  <History className="h-3.5 w-3.5" />
+                  Histórico
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+        </div>
+
+        {/* Content */}
+        {activeTab === 'form' ? (
+          <ProductFormFullscreen
+            initialData={isEdit && product ? productToFormData(product) : undefined}
+            productImages={isEdit && product ? getProductImages(product) : []}
+            productId={isEdit ? id : undefined}
+            onSubmit={handleFormSubmit}
+            onCancel={() => navigate('/admin/cadastros')}
+            isSaving={isSaving}
+            isEdit={isEdit}
+          />
+        ) : (
+          isEdit && id && (
+            <AuditHistory
+              entityType="products"
+              entityId={id}
+              title="Histórico de Alterações"
+              maxHeight="70vh"
+            />
+          )
+        )}
+      </div>
+    </MainLayout>
+  );
+}

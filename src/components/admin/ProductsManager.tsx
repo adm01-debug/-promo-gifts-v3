@@ -1,10 +1,11 @@
 /**
  * Gerenciador de Produtos - CRUD completo com Auditoria e Paginação
- * Refatorado: usa ProductForm unificado com validação zod e seletores reais
+ * Refatorado: usa navegação para formulário full-screen
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from "@/lib/external-db";
+import { useNavigate } from "react-router-dom";
+import { invokeExternalDbSingle, invokeExternalDbDelete, getProductImageUrl, getProductPrice, getProductStock } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,13 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -41,9 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Pencil,
@@ -53,7 +46,6 @@ import {
   Package,
   ImageIcon,
   RefreshCw,
-  History,
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
@@ -67,9 +59,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
 import { useAuditLog } from "@/hooks/useAuditLog";
-import { AuditHistory } from "@/components/audit/AuditHistory";
-import { ProductForm } from "./products/ProductForm";
-import { type ProductFormData, defaultFormValues } from "./products/ProductFormSchema";
+
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 
@@ -150,80 +140,11 @@ interface Product {
   updated_at: string;
 }
 
-function productToFormData(p: Product): Partial<ProductFormData> {
-  return {
-    sku: p.sku,
-    name: p.name,
-    description: p.description ?? '',
-    short_description: p.short_description ?? '',
-    meta_description: p.meta_description ?? '',
-    brand: p.brand ?? '',
-    category_id: p.category_id ?? '',
-    supplier_id: p.supplier_id ?? '',
-    supplier_reference: p.supplier_reference ?? '',
-    sale_price: p.price ?? 0,
-    cost_price: p.cost_price ?? 0,
-    suggested_price: p.suggested_price,
-    stock_quantity: p.stock ?? 0,
-    stock_unit: p.stock_unit ?? 'un',
-    min_quantity: p.min_quantity ?? 1,
-    min_order_quantity: p.min_order_quantity,
-    height_cm: p.height_cm,
-    width_cm: p.width_cm,
-    length_cm: p.length_cm,
-    diameter_cm: p.diameter_cm,
-    weight_g: p.weight_g,
-    capacity_ml: p.capacity_ml,
-    circumference_cm: p.circumference_cm,
-    internal_height_cm: p.internal_height_cm,
-    internal_width_cm: p.internal_width_cm,
-    internal_length_cm: p.internal_length_cm,
-    internal_diameter_cm: p.internal_diameter_cm,
-    packing_type: p.packing_type ?? '',
-    box_width_mm: p.box_width_mm,
-    box_height_mm: p.box_height_mm,
-    box_length_mm: p.box_length_mm,
-    box_weight_kg: p.box_weight_kg,
-    box_quantity: p.box_quantity,
-    box_inner_quantity: p.box_inner_quantity,
-    box_volume_cm3: p.box_volume_cm3,
-    packaging_material: p.packaging_material ?? '',
-    packaging_color: p.packaging_color ?? '',
-    packaging_finish: p.packaging_finish ?? '',
-    is_active: p.is_active ?? true,
-    is_featured: p.is_featured ?? false,
-    is_bestseller: p.is_bestseller ?? false,
-    is_new: p.is_new ?? false,
-    is_on_sale: p.is_on_sale ?? false,
-    is_kit: p.is_kit ?? false,
-    has_commercial_packaging: p.has_commercial_packaging ?? false,
-    is_imported: p.is_imported ?? false,
-    is_textil: p.is_textil ?? false,
-    is_thermal: p.is_thermal ?? false,
-    allows_personalization: p.allows_personalization ?? true,
-    has_gift_box: p.has_gift_box ?? false,
-    has_optional_packaging: p.has_optional_packaging ?? false,
-    ncm_code: p.ncm_code ?? '',
-    ean: p.ean ?? '',
-    gtin: p.gtin ?? '',
-    ipi_rate: p.ipi_rate,
-    country_of_origin: p.country_of_origin ?? '',
-    lead_time_days: p.lead_time_days,
-    product_type: p.product_type ?? 'product',
-    supply_mode: p.supply_mode ?? '',
-    warranty_months: p.warranty_months,
-    gender: p.gender ?? '',
-    meta_title: p.meta_title ?? '',
-    meta_keywords: Array.isArray(p.meta_keywords) ? p.meta_keywords.join(', ') : '',
-    slug: p.slug ?? '',
-    canonical_url: p.canonical_url ?? '',
-    video_url: p.video_url ?? '',
-    key_benefits: p.key_benefits ?? '',
-    use_cases: p.use_cases ?? '',
-  };
-}
+
+
 
 export function ProductsManager() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -235,13 +156,10 @@ export function ProductsManager() {
   const [pageSize, setPageSize] = useState<number>(50);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   
-  // Dialog states
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  // Dialog states (only delete + import remain)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"form" | "history">("form");
   
   const { logAction, getChangedFields } = useAuditLog();
   const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : 1;
@@ -414,66 +332,11 @@ export function ProductsManager() {
   };
 
   const openCreateForm = () => {
-    setSelectedProduct(null);
-    setActiveTab("form");
-    setIsFormOpen(true);
+    navigate('/admin/cadastros/produto/novo');
   };
 
-  const openEditForm = async (product: Product) => {
-    setActiveTab("form");
-    setIsFormOpen(true);
-    // Carregar dados completos (select: '*') para incluir campos fiscais, SEO, etc.
-    try {
-      const fullProduct = await fetchPromobrindProductById(product.id);
-      if (fullProduct) {
-        const imageUrl = getProductImageUrl(fullProduct);
-        const enrichedProduct: Product = {
-          ...product,
-          // Sobrescrever com dados completos do detalhe
-          ncm_code: (fullProduct as any).ncm_code ?? null,
-          ean: (fullProduct as any).ean ?? null,
-          gtin: (fullProduct as any).gtin ?? null,
-          ipi_rate: (fullProduct as any).ipi_rate ?? null,
-          country_of_origin: (fullProduct as any).country_of_origin ?? null,
-          suggested_price: (fullProduct as any).suggested_price ?? null,
-          stock_unit: (fullProduct as any).stock_unit ?? null,
-          min_order_quantity: (fullProduct as any).min_order_quantity ?? null,
-          lead_time_days: (fullProduct as any).lead_time_days ?? null,
-          product_type: (fullProduct as any).product_type ?? null,
-          supply_mode: (fullProduct as any).supply_mode ?? null,
-          warranty_months: (fullProduct as any).warranty_months ?? null,
-          gender: (fullProduct as any).gender ?? null,
-          meta_title: (fullProduct as any).meta_title ?? null,
-          meta_keywords: Array.isArray((fullProduct as any).meta_keywords) ? (fullProduct as any).meta_keywords : null,
-          slug: (fullProduct as any).slug ?? null,
-          canonical_url: (fullProduct as any).canonical_url ?? null,
-          key_benefits: (fullProduct as any).key_benefits ?? null,
-          use_cases: (fullProduct as any).use_cases ?? null,
-          circumference_cm: (fullProduct as any).circumference_cm ?? null,
-          internal_height_cm: (fullProduct as any).internal_height_cm ?? null,
-          internal_width_cm: (fullProduct as any).internal_width_cm ?? null,
-          internal_length_cm: (fullProduct as any).internal_length_cm ?? null,
-          internal_diameter_cm: (fullProduct as any).internal_diameter_cm ?? null,
-          box_inner_quantity: (fullProduct as any).box_inner_quantity ?? null,
-          packaging_material: (fullProduct as any).packaging_material ?? null,
-          packaging_color: (fullProduct as any).packaging_color ?? null,
-          packaging_finish: (fullProduct as any).packaging_finish ?? null,
-          is_imported: (fullProduct as any).is_imported ?? false,
-          is_textil: (fullProduct as any).is_textil ?? false,
-          is_thermal: (fullProduct as any).is_thermal ?? false,
-          allows_personalization: (fullProduct as any).allows_personalization ?? true,
-          has_gift_box: (fullProduct as any).has_gift_box ?? false,
-          has_optional_packaging: (fullProduct as any).has_optional_packaging ?? false,
-          video_url: (fullProduct as any).videos?.[0] ?? (fullProduct as any).video_url ?? null,
-        };
-        setSelectedProduct(enrichedProduct);
-        return;
-      }
-    } catch (err) {
-      console.warn('[ProductsManager] Failed to fetch full product detail, using list data:', err);
-    }
-    // Fallback: usar dados da lista
-    setSelectedProduct(product);
+  const openEditForm = (product: Product) => {
+    navigate(`/admin/cadastros/produto/${product.id}`);
   };
 
   const openDeleteDialog = (product: Product) => {
@@ -481,258 +344,23 @@ export function ProductsManager() {
     setIsDeleteOpen(true);
   };
 
-  const handleFormSubmit = async (data: ProductFormData, images: string[]) => {
-    setIsSaving(true);
+  const handleDelete = async () => {
+    if (!selectedProduct) return;
     try {
-      // Validate duplicate SKU
-      const isNew = !selectedProduct;
-      const skuChanged = selectedProduct && data.sku !== selectedProduct.sku;
-      
-      if (isNew || skuChanged) {
-        const { fetchPromobrindProducts } = await import('@/lib/external-db');
-        const existing = await fetchPromobrindProducts({ search: data.sku, limit: 5 });
-        const duplicate = (existing as any[]).find(
-          (p: any) => p.sku?.toLowerCase() === data.sku.toLowerCase()
-        );
-        if (duplicate) {
-          toast.error(`SKU "${data.sku}" já está cadastrado no produto "${duplicate.name}"`);
-          setIsSaving(false);
-          return;
-        }
-      }
-
-      // Map to external DB schema — usar ?? para preservar zero
-      const productData: Record<string, any> = {
-        sku: data.sku,
-        name: data.name,
-        description: data.description || null,
-        short_description: data.short_description || null,
-        meta_description: data.meta_description || null,
-        brand: data.brand || null,
-        category_id: data.category_id || null,
-        supplier_id: data.supplier_id || null,
-        supplier_reference: data.supplier_reference || null,
-        sale_price: data.sale_price ?? 0,
-        cost_price: data.cost_price ?? null,
-        suggested_price: data.suggested_price ?? null,
-        stock_quantity: data.stock_quantity ?? 0,
-        stock_unit: data.stock_unit || 'un',
-        min_quantity: data.min_quantity ?? 1,
-        min_order_quantity: data.min_order_quantity ?? null,
-        is_active: data.is_active,
-        active: data.is_active,
-        is_featured: data.is_featured,
-        is_bestseller: data.is_bestseller,
-        is_new: data.is_new,
-        is_on_sale: data.is_on_sale,
-        is_kit: data.is_kit,
-        has_commercial_packaging: data.has_commercial_packaging,
-        is_imported: data.is_imported,
-        is_textil: data.is_textil,
-        is_thermal: data.is_thermal,
-        allows_personalization: data.allows_personalization,
-        has_gift_box: data.has_gift_box,
-        has_optional_packaging: data.has_optional_packaging,
-        packing_type: data.packing_type || null,
-        height_cm: data.height_cm ?? null,
-        width_cm: data.width_cm ?? null,
-        length_cm: data.length_cm ?? null,
-        diameter_cm: data.diameter_cm ?? null,
-        weight_g: data.weight_g ?? null,
-        capacity_ml: data.capacity_ml ?? null,
-        circumference_cm: data.circumference_cm ?? null,
-        internal_height_cm: data.internal_height_cm ?? null,
-        internal_width_cm: data.internal_width_cm ?? null,
-        internal_length_cm: data.internal_length_cm ?? null,
-        internal_diameter_cm: data.internal_diameter_cm ?? null,
-        box_width_mm: data.box_width_mm ?? null,
-        box_height_mm: data.box_height_mm ?? null,
-        box_length_mm: data.box_length_mm ?? null,
-        box_weight_kg: data.box_weight_kg ?? null,
-        box_quantity: data.box_quantity ?? null,
-        box_inner_quantity: data.box_inner_quantity ?? null,
-        box_volume_cm3: data.box_volume_cm3 ?? null,
-        packaging_material: data.packaging_material || null,
-        packaging_color: data.packaging_color || null,
-        packaging_finish: data.packaging_finish || null,
-        ncm_code: data.ncm_code || null,
-        ean: data.ean || null,
-        gtin: data.gtin || null,
-        ipi_rate: data.ipi_rate ?? null,
-        country_of_origin: data.country_of_origin || null,
-        lead_time_days: data.lead_time_days ?? null,
-        product_type: data.product_type || 'product',
-        supply_mode: data.supply_mode || null,
-        warranty_months: data.warranty_months ?? null,
-        gender: data.gender || null,
-        meta_title: data.meta_title || null,
-        meta_keywords: data.meta_keywords ? data.meta_keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : null,
-        slug: data.slug || null,
-        canonical_url: data.canonical_url || null,
-        videos: data.video_url ? [data.video_url] : [],
-        key_benefits: data.key_benefits || null,
-        use_cases: data.use_cases || null,
-        updated_at: new Date().toISOString(),
-      };
-
-      // Persistir imagens no BD externo
-      if (images.length > 0) {
-        productData.images = images;
-        productData.image_url = images[0];
-        productData.primary_image_url = images[0];
-      }
-
-      if (selectedProduct) {
-        await invokeExternalDbSingle<any>({
-          table: 'products',
-          operation: 'update',
-          id: selectedProduct.id,
-          data: productData,
-        });
-        
-        const { oldFields, newFields } = getChangedFields(
-          {
-            sku: selectedProduct.sku,
-            name: selectedProduct.name,
-            description: selectedProduct.description,
-            sale_price: selectedProduct.price,
-            stock_quantity: selectedProduct.stock,
-            is_active: selectedProduct.is_active,
-          },
-          productData
-        );
-        
-        if (Object.keys(newFields).length > 0) {
-          await logAction({
-            action: 'UPDATE',
-            entityType: 'products',
-            entityId: selectedProduct.id,
-            oldValues: oldFields,
-            newValues: newFields,
-          });
-        }
-        
-        toast.success("Produto atualizado com sucesso");
-      } else {
-        const newProduct = await invokeExternalDbSingle<any>({
-          table: 'products',
-          operation: 'insert',
-          data: productData,
-        });
-        
-        if (newProduct) {
-          await logAction({
-            action: 'INSERT',
-            entityType: 'products',
-            entityId: newProduct.id,
-            oldValues: null,
-            newValues: {
-              sku: productData.sku,
-              name: productData.name,
-              sale_price: productData.sale_price,
-              is_active: productData.is_active,
-            },
-          });
-
-          // Auto-abrir em modo edição para permitir multi-seleção imediata
-          toast.success("Produto criado! Agora vincule Tags, Ramos, Marketing e Técnicas.");
-          setIsSaving(false);
-          fetchProducts(1, pageSize, searchTerm);
-
-          // Montar objeto Product para reabrir em modo edição
-          const createdProduct: Product = {
-            id: newProduct.id,
-            sku: data.sku,
-            name: data.name,
-            description: data.description || null,
-            short_description: data.short_description || null,
-            meta_description: data.meta_description || null,
-            brand: data.brand || null,
-            price: data.sale_price,
-            cost_price: data.cost_price ?? null,
-            suggested_price: data.suggested_price ?? null,
-            stock: data.stock_quantity,
-            stock_unit: data.stock_unit || 'un',
-            category_id: data.category_id || null,
-            supplier_id: data.supplier_id || null,
-            supplier_reference: data.supplier_reference || null,
-            images: images.length > 0 ? images : [],
-            colors: [],
-            materials: [],
-            min_quantity: data.min_quantity,
-            min_order_quantity: data.min_order_quantity ?? null,
-            is_active: data.is_active,
-            is_featured: data.is_featured,
-            is_bestseller: data.is_bestseller,
-            is_new: data.is_new,
-            is_on_sale: data.is_on_sale,
-            is_kit: data.is_kit,
-            has_commercial_packaging: data.has_commercial_packaging,
-            is_imported: data.is_imported,
-            is_textil: data.is_textil,
-            is_thermal: data.is_thermal,
-            allows_personalization: data.allows_personalization,
-            has_gift_box: data.has_gift_box,
-            has_optional_packaging: data.has_optional_packaging,
-            packing_type: data.packing_type || null,
-            height_cm: data.height_cm ?? null,
-            width_cm: data.width_cm ?? null,
-            length_cm: data.length_cm ?? null,
-            diameter_cm: data.diameter_cm ?? null,
-            weight_g: data.weight_g ?? null,
-            capacity_ml: data.capacity_ml ?? null,
-            circumference_cm: data.circumference_cm ?? null,
-            internal_height_cm: data.internal_height_cm ?? null,
-            internal_width_cm: data.internal_width_cm ?? null,
-            internal_length_cm: data.internal_length_cm ?? null,
-            internal_diameter_cm: data.internal_diameter_cm ?? null,
-            box_width_mm: data.box_width_mm ?? null,
-            box_height_mm: data.box_height_mm ?? null,
-            box_length_mm: data.box_length_mm ?? null,
-            box_weight_kg: data.box_weight_kg ?? null,
-            box_quantity: data.box_quantity ?? null,
-            box_inner_quantity: data.box_inner_quantity ?? null,
-            box_volume_cm3: data.box_volume_cm3 ?? null,
-            packaging_material: data.packaging_material || null,
-            packaging_color: data.packaging_color || null,
-            packaging_finish: data.packaging_finish || null,
-            ncm_code: data.ncm_code || null,
-            ean: data.ean || null,
-            gtin: data.gtin || null,
-            ipi_rate: data.ipi_rate ?? null,
-            country_of_origin: data.country_of_origin || null,
-            lead_time_days: data.lead_time_days ?? null,
-            product_type: data.product_type || 'product',
-            supply_mode: data.supply_mode || null,
-            warranty_months: data.warranty_months ?? null,
-            gender: data.gender || null,
-            meta_title: data.meta_title || null,
-            meta_keywords: data.meta_keywords ? data.meta_keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : null,
-            slug: data.slug || null,
-            canonical_url: data.canonical_url || null,
-            video_url: data.video_url || null,
-            key_benefits: data.key_benefits || null,
-            use_cases: data.use_cases || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          setSelectedProduct(createdProduct);
-          // Manter formulário aberto em modo edição
-          return;
-        }
-        
-        toast.success("Produto criado com sucesso");
-      }
-
-      setIsFormOpen(false);
-      setCurrentPage(1);
-      fetchProducts(1, pageSize, searchTerm);
+      await invokeExternalDbDelete('products', selectedProduct.id);
+      await logAction({
+        action: 'DELETE',
+        entityType: 'products',
+        entityId: selectedProduct.id,
+        oldValues: { sku: selectedProduct.sku, name: selectedProduct.name, price: selectedProduct.price },
+        newValues: null,
+      });
+      toast.success("Produto excluído com sucesso");
+      setIsDeleteOpen(false);
+      fetchProducts(currentPage, pageSize, searchTerm);
     } catch (error: any) {
-      console.error("Error saving product:", error);
-      toast.error(error.message || "Erro ao salvar produto");
-    } finally {
-      setIsSaving(false);
+      console.error("Error deleting product:", error);
+      toast.error(error.message || "Erro ao excluir produto");
     }
   };
 
@@ -1161,65 +789,6 @@ export function ProductsManager() {
           )}
         </CardContent>
       </Card>
-
-      {/* Create/Edit Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedProduct ? "Editar Produto" : "Novo Produto"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedProduct
-                ? `Editando: ${selectedProduct.sku} — ${selectedProduct.name}`
-                : "Preencha os dados para cadastrar um novo produto"}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedProduct ? (
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "form" | "history")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="form" className="flex items-center gap-2">
-                  <Pencil className="h-4 w-4" />
-                  Editar
-                </TabsTrigger>
-                <TabsTrigger value="history" className="flex items-center gap-2">
-                  <History className="h-4 w-4" />
-                  Histórico
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="form" className="mt-4">
-                <ProductForm
-                  initialData={productToFormData(selectedProduct)}
-                  productImages={selectedProduct.images || []}
-                  productId={selectedProduct.id}
-                  onSubmit={handleFormSubmit}
-                  onCancel={() => setIsFormOpen(false)}
-                  isSaving={isSaving}
-                  isEdit
-                />
-              </TabsContent>
-
-              <TabsContent value="history" className="mt-4">
-                <AuditHistory
-                  entityType="products"
-                  entityId={selectedProduct.id}
-                  title="Histórico de Alterações"
-                  maxHeight="55vh"
-                />
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <ProductForm
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsFormOpen(false)}
-              isSaving={isSaving}
-              isEdit={false}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>

@@ -53,6 +53,7 @@ const AdminUsuariosPage = lazyWithRetry(() => import("./pages/admin/AdminUsuario
 const AdminSegurancaPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaPage"));
 const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadastrosPage"));
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
+const AdminProductFormPage = lazyWithRetry(() => import("./pages/admin/AdminProductFormPage"));
 const AdminTelemetriaPage = lazyWithRetry(() => import("./pages/admin/AdminTelemetriaPage"));
 
 // Tools Pages
@@ -175,6 +176,7 @@ const App = () => {
                                         <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                                         <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
                                         <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
+                                        <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                                         <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
                                         <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
                                         <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
