@@ -45,6 +45,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Globe,
+  Search,
   Truck,
   FileText,
   Video,
@@ -206,6 +207,7 @@ export function ProductFormFullscreen({
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
+  const [sidebarSearch, setSidebarSearch] = useState('');
   const [showPreview, setShowPreview] = useState(() => {
     const stored = localStorage.getItem('product-form-show-preview');
     return stored !== null ? stored === 'true' : true;
@@ -314,36 +316,54 @@ export function ProductFormFullscreen({
       <div className="flex gap-6">
         {/* ====== SIDEBAR NAVIGATION ====== */}
         <div className="hidden lg:block w-56 shrink-0">
-          <div className="sticky top-24 space-y-4">
-            {Object.entries(groups).map(([groupName, sections]) => (
-              <div key={groupName}>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1.5 px-2">
-                  {groupName}
-                </p>
-                <nav className="space-y-0.5">
-                  {sections.map((section) => {
-                    const Icon = section.icon;
-                    const isActive2 = activeSection === section.id;
-                    return (
-                      <button
-                        key={section.id}
-                        type="button"
-                        onClick={() => scrollToSection(section.id)}
-                        className={cn(
-                          'flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
-                          isActive2
-                            ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent',
-                        )}
-                      >
-                        <Icon className={cn('h-3.5 w-3.5 shrink-0', isActive2 ? 'text-primary' : 'text-muted-foreground/60')} />
-                        <span className="truncate">{section.label}</span>
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
-            ))}
+          <div className="sticky top-24 space-y-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
+              <Input
+                type="text"
+                placeholder="Buscar seção..."
+                value={sidebarSearch}
+                onChange={(e) => setSidebarSearch(e.target.value)}
+                className="h-8 pl-8 text-xs bg-accent/30 border-border/30 placeholder:text-muted-foreground/40"
+              />
+            </div>
+
+            {Object.entries(groups).map(([groupName, sections]) => {
+              const filtered = sidebarSearch
+                ? sections.filter((s) => s.label.toLowerCase().includes(sidebarSearch.toLowerCase()))
+                : sections;
+              if (filtered.length === 0) return null;
+              return (
+                <div key={groupName}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/50 mb-1.5 px-2">
+                    {groupName}
+                  </p>
+                  <nav className="space-y-0.5">
+                    {filtered.map((section) => {
+                      const Icon = section.icon;
+                      const isActive2 = activeSection === section.id;
+                      return (
+                        <button
+                          key={section.id}
+                          type="button"
+                          onClick={() => { scrollToSection(section.id); setSidebarSearch(''); }}
+                          className={cn(
+                            'flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200',
+                            isActive2
+                              ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-accent/50 border border-transparent',
+                          )}
+                        >
+                          <Icon className={cn('h-3.5 w-3.5 shrink-0', isActive2 ? 'text-primary' : 'text-muted-foreground/60')} />
+                          <span className="truncate">{section.label}</span>
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </div>
+              );
+            })}
 
             {/* Save button in sidebar */}
             <div className="pt-3 border-t border-border/30 space-y-2">
