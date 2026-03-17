@@ -48,6 +48,7 @@ import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
 import { useProductsContext } from "@/contexts/ProductsContext";
+import { useProducts } from "@/hooks/useProducts";
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -62,10 +63,22 @@ export default function ProductDetail() {
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedContext();
-  const { products: allProducts } = useProductsContext();
+  const { registerProducts } = useProductsContext();
 
   // Buscar produto no banco (mesma fonte da vitrine)
   const { data: product, isLoading } = useProduct(id || "");
+  
+  // Fetch products in same category for Related/Recommended sections (lazy, not all 6000+)
+  const categoryName = product?.category?.name;
+  const { data: categoryProducts = [] } = useProducts(
+    categoryName ? { category: categoryName } : undefined,
+    { enabled: !!categoryName, staleTime: 10 * 60 * 1000 }
+  );
+
+  // Register category products into lazy cache
+  useEffect(() => {
+    if (categoryProducts.length > 0) registerProducts(categoryProducts);
+  }, [categoryProducts, registerProducts]);
 
   // Track product view and add to recently viewed
   useEffect(() => {
@@ -494,20 +507,20 @@ export default function ProductDetail() {
         <div className="space-y-12 pt-8 border-t border-border">
           <RelatedProducts 
             currentProduct={product} 
-            allProducts={allProducts} 
+            allProducts={categoryProducts} 
             maxItems={4} 
           />
           
           <RecommendedProducts 
             currentProduct={product} 
-            allProducts={allProducts} 
+            allProducts={categoryProducts} 
             maxItems={4} 
           />
         </div>
 
         {/* Supplier Comparison Modal */}
         <SupplierComparisonModal
-          productId={id || ""}
+          product={product}
           open={supplierCompareOpen}
           onOpenChange={setSupplierCompareOpen}
         />

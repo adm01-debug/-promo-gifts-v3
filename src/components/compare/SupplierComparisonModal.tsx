@@ -28,20 +28,23 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSupplierComparison } from "@/hooks/useSupplierComparison";
+import type { Product } from "@/hooks/useProducts";
 
 interface SupplierComparisonModalProps {
-  productId: string;
+  product?: Product | null;
+  productId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function SupplierComparisonModal({
+  product,
   productId,
   open,
   onOpenChange,
 }: SupplierComparisonModalProps) {
   const navigate = useNavigate();
-  const comparison = useSupplierComparison(productId);
+  const comparison = useSupplierComparison(product ?? null);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {

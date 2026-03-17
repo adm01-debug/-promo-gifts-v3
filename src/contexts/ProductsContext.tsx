@@ -1,39 +1,143 @@
-import React, { createContext, useContext, ReactNode, useMemo, useCallback } from "react";
-import { useProducts, Product } from "@/hooks/useProducts";
+import React, { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect, useRef } from "react";
+import { Product } from "@/hooks/useProducts";
+import { fetchPromobrindProducts } from "@/lib/external-db";
+
+// Re-use the same mapping logic from useProducts
+import { mapPromobrindToProduct } from "@/hooks/useProducts";
 
 interface ProductsContextType {
+  /** Cached products (only those that have been requested) */
   products: Product[];
   isLoading: boolean;
   getProductById: (id: string) => Product | undefined;
   getProductsByIds: (ids: string[]) => Product[];
+  /** Manually register products into the cache (e.g. from page-level queries) */
+  registerProducts: (products: Product[]) => void;
 }
 
 export const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
+/**
+ * Lazy-loading ProductsProvider.
+ * Does NOT fetch all 6000+ products on startup.
+ * Instead, it fetches products on-demand when requested via getProductById/getProductsByIds.
+ * Products from page-level queries can be registered via registerProducts.
+ */
 export function ProductsProvider({ children }: { children: ReactNode }) {
-  const { data: products = [], isLoading } = useProducts(undefined, {
-    staleTime: 10 * 60 * 1000, // 10 min cache
-  });
+  const [cache, setCache] = useState<Map<string, Product>>(new Map());
+  const [isLoading, setIsLoading] = useState(false);
 
-  const productMap = useMemo(() => {
-    const map = new Map<string, Product>();
-    products.forEach((p) => map.set(p.id, p));
-    return map;
-  }, [products]);
+  // Refs for stable callbacks
+  const cacheRef = useRef<Map<string, Product>>(cache);
+  const fetchingRef = useRef<Set<string>>(new Set());
+  const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const batchIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    cacheRef.current = cache;
+  }, [cache]);
+
+  // Batched fetch: collects IDs over a microtask and fetches them together
+  const scheduleBatchFetch = useCallback(() => {
+    if (batchTimerRef.current) return; // already scheduled
+
+    batchTimerRef.current = setTimeout(async () => {
+      const idsToFetch = [...batchIdsRef.current];
+      batchIdsRef.current.clear();
+      batchTimerRef.current = null;
+
+      if (idsToFetch.length === 0) return;
+
+      idsToFetch.forEach(id => fetchingRef.current.add(id));
+      setIsLoading(true);
+
+      try {
+        const raw = await fetchPromobrindProducts({
+          filters: { id: idsToFetch },
+          limit: idsToFetch.length,
+        });
+        const mapped = raw.map(mapPromobrindToProduct);
+
+        setCache(prev => {
+          const next = new Map(prev);
+          mapped.forEach(p => next.set(p.id, p));
+          return next;
+        });
+      } catch (err) {
+        console.warn('[ProductsContext] Failed to fetch products by IDs:', err);
+      } finally {
+        idsToFetch.forEach(id => fetchingRef.current.delete(id));
+        setIsLoading(false);
+      }
+    }, 50); // 50ms batching window
+  }, []);
+
+  // Queue IDs for lazy fetching
+  const queueFetch = useCallback((ids: string[]) => {
+    const missing = ids.filter(
+      id => !cacheRef.current.has(id) && !fetchingRef.current.has(id) && !batchIdsRef.current.has(id)
+    );
+    if (missing.length === 0) return;
+
+    missing.forEach(id => batchIdsRef.current.add(id));
+    scheduleBatchFetch();
+  }, [scheduleBatchFetch]);
 
   const getProductById = useCallback(
-    (id: string): Product | undefined => productMap.get(id),
-    [productMap]
+    (id: string): Product | undefined => {
+      const cached = cacheRef.current.get(id);
+      if (!cached) {
+        queueFetch([id]);
+      }
+      return cached;
+    },
+    [queueFetch]
   );
 
   const getProductsByIds = useCallback(
-    (ids: string[]): Product[] =>
-      ids.map((id) => productMap.get(id)).filter((p): p is Product => p !== undefined),
-    [productMap]
+    (ids: string[]): Product[] => {
+      const found: Product[] = [];
+      const missing: string[] = [];
+
+      for (const id of ids) {
+        const cached = cacheRef.current.get(id);
+        if (cached) {
+          found.push(cached);
+        } else {
+          missing.push(id);
+        }
+      }
+
+      if (missing.length > 0) {
+        queueFetch(missing);
+      }
+
+      return found;
+    },
+    [queueFetch]
   );
 
+  // Register products from external sources (e.g. page-level useProducts queries)
+  const registerProducts = useCallback((products: Product[]) => {
+    if (products.length === 0) return;
+    setCache(prev => {
+      const next = new Map(prev);
+      let changed = false;
+      for (const p of products) {
+        if (!next.has(p.id)) {
+          next.set(p.id, p);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, []);
+
+  // Memoize the products array from cache
+  const products = useMemo(() => [...cache.values()], [cache]);
+
   return (
-    <ProductsContext.Provider value={{ products, isLoading, getProductById, getProductsByIds }}>
+    <ProductsContext.Provider value={{ products, isLoading, getProductById, getProductsByIds, registerProducts }}>
       {children}
     </ProductsContext.Provider>
   );

@@ -20,8 +20,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { useProductsContext } from "@/contexts/ProductsContext";
-import { Product, ProductColor } from "@/hooks/useProducts";
+import { useProducts, Product, ProductColor } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -48,7 +47,6 @@ const fuseOptions: Fuse.IFuseOptions<Product> = {
 };
 
 export function QuoteProductSelector({ onProductAdd, existingProductIds }: QuoteProductSelectorProps) {
-  const { products } = useProductsContext();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const scrollParentRef = useRef<HTMLDivElement>(null);
@@ -72,6 +70,12 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const debouncedQuery = useDebounce(searchQuery, 300);
   const isFilterPending = searchQuery.length >= 2 && searchQuery !== debouncedQuery;
 
+  // Server-side search: only fetch when dialog is open and there's a search query
+  const { data: products = [], isLoading: isLoadingProducts } = useProducts(
+    debouncedQuery && debouncedQuery.length >= 2 ? { search: debouncedQuery } : undefined,
+    { enabled: open, staleTime: 5 * 60 * 1000 }
+  );
+
   const allAddedIds = useMemo(
     () => [...existingProductIds, ...sessionAddedIds],
     [existingProductIds, sessionAddedIds]
@@ -82,15 +86,8 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     [products, allAddedIds]
   );
 
-  const fuse = useMemo(
-    () => new Fuse(availableProducts, fuseOptions),
-    [availableProducts]
-  );
-
-  const filteredProducts = useMemo(() => {
-    if (!debouncedQuery || debouncedQuery.length < 2) return availableProducts;
-    return fuse.search(debouncedQuery).map(r => r.item);
-  }, [fuse, debouncedQuery, availableProducts]);
+  // With server-side search, Fuse.js is only used for local re-sorting
+  const filteredProducts = availableProducts;
 
   // Sorted results
   const sortedProducts = useMemo(() => {

@@ -1,6 +1,5 @@
 import { useMemo } from "react";
-import { Product } from "@/hooks/useProducts";
-import { useProductsContext } from "@/contexts/ProductsContext";
+import { Product, useProducts } from "@/hooks/useProducts";
 
 interface SupplierProduct {
   product: Product;
@@ -19,18 +18,26 @@ interface SupplierComparisonResult {
   priceRange: { min: number; max: number };
 }
 
-export function useSupplierComparison(productId: string | undefined) {
-  const { products } = useProductsContext();
+/**
+ * Compares a product with alternatives from other suppliers.
+ * Uses server-side category search instead of loading all 6000+ products.
+ */
+export function useSupplierComparison(product: Product | null | undefined) {
+  // Fetch products in the same category (server-side, lazy)
+  const categoryName = product?.category?.name;
+  const { data: categoryProducts = [] } = useProducts(
+    categoryName ? { category: categoryName } : undefined,
+    { enabled: !!product && !!categoryName, staleTime: 10 * 60 * 1000 }
+  );
 
   const result = useMemo((): SupplierComparisonResult | null => {
-    if (!productId || products.length === 0) return null;
+    if (!product || categoryProducts.length === 0) return null;
 
-    const baseProduct = products.find((p) => p.id === productId);
-    if (!baseProduct) return null;
+    const baseProduct = product;
 
     // Find similar products from different suppliers
-    const similarProducts = products.filter((p) => {
-      if (p.id === productId) return false;
+    const similarProducts = categoryProducts.filter((p) => {
+      if (p.id === baseProduct.id) return false;
       if (p.supplier.id === baseProduct.supplier.id) return false;
 
       const nameSimilarity = calculateNameSimilarity(baseProduct.name, p.name);
@@ -72,7 +79,7 @@ export function useSupplierComparison(productId: string | undefined) {
       highestStock,
       priceRange,
     };
-  }, [productId, products]);
+  }, [product, categoryProducts]);
 
   return result;
 }

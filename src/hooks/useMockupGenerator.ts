@@ -90,7 +90,7 @@ const createDefaultArea = (): PersonalizationArea => ({
 export function useMockupGenerator() {
   const { user } = useAuth();
   const { saveDraft, loadDraft, clearDraft, isSaving: isDraftSaving, lastSaved, error: draftError } = useMockupDraft();
-  const { products } = useProductsContext();
+  const { getProductById } = useProductsContext();
 
   // Data state
   const [techniques, setTechniques] = useState<Technique[]>([]);
@@ -257,7 +257,7 @@ export function useMockupGenerator() {
         const draft = await loadDraft();
         if (draft && (draft.productId || draft.techniqueId || draft.personalizationAreas.some(a => a.logoPreview))) {
           if (draft.productId) {
-            const product = products.find(p => p.id === draft.productId);
+            const product = getProductById(draft.productId);
             if (product) setProductSelection({
               product,
               variant: null,
@@ -690,7 +690,7 @@ export function useMockupGenerator() {
   };
 
   const loadFromHistory = (mockup: GeneratedMockup) => {
-    const product = mockup.product_id ? products.find(p => p.id === mockup.product_id) : null;
+    const product = mockup.product_id ? getProductById(mockup.product_id) : null;
     const technique = mockup.technique_id ? techniques.find(t => t.id === mockup.technique_id) : null;
 
     if (product) {

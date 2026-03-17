@@ -61,7 +61,7 @@ export default function Index() {
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
-  const { getProductById } = useProductsContext();
+  const { registerProducts } = useProductsContext();
 
   // Ler query de busca da URL
   const searchQueryFromUrl = searchParams.get("search") || "";
@@ -80,6 +80,11 @@ export default function Index() {
   const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
     debouncedServerSearch ? { search: debouncedServerSearch } : undefined
   );
+
+  // Register fetched products into the lazy cache for other contexts (favorites, etc.)
+  useEffect(() => {
+    if (realProducts.length > 0) registerProducts(realProducts);
+  }, [realProducts, registerProducts]);
 
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
   
