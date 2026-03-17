@@ -43,7 +43,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProductRegistration, PRODUCT_FIELDS, BulkImportRow, ColumnMapping } from '@/hooks/useProductRegistration';
 import { cn } from '@/lib/utils';
-import * as XLSX from 'xlsx';
+const getXLSX = () => import('xlsx');
 import Papa from 'papaparse';
 
 type ImportMode = 'template' | 'custom';
@@ -112,6 +112,7 @@ export function BulkImportPanel() {
           },
         });
       } else if (extension === 'xlsx' || extension === 'xls') {
+        const XLSX = await getXLSX();
         const buffer = await file.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];

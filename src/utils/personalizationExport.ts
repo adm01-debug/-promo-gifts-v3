@@ -1,6 +1,6 @@
-import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+const getXLSX = () => import("xlsx");
+const getJsPDF = () => import("jspdf").then(m => m.jsPDF);
+const getAutoTable = () => import("jspdf-autotable").then(m => m.default);
 
 interface TechniqueInfo {
   id: string;
@@ -37,7 +37,8 @@ interface ExportData {
 }
 
 // Excel export
-export function exportToExcel(data: ExportData) {
+export async function exportToExcel(data: ExportData) {
+  const XLSX = await getXLSX();
   const rows: any[] = [];
 
   data.components.forEach((component) => {
@@ -121,7 +122,8 @@ export function exportToExcel(data: ExportData) {
 }
 
 // PDF export
-export function exportToPDF(data: ExportData) {
+export async function exportToPDF(data: ExportData) {
+  const [jsPDF, autoTable] = await Promise.all([getJsPDF(), getAutoTable()]);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 

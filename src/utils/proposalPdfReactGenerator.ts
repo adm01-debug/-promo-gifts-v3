@@ -5,8 +5,8 @@
  * captures each page with html2canvas, and outputs as PDF.
  */
 
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+const getJsPDF = () => import("jspdf").then(m => m.jsPDF);
+const getHtml2Canvas = () => import("html2canvas").then(m => m.default);
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
@@ -15,8 +15,9 @@ import { processLogoTransparent } from "@/components/pdf/proposal/LogoWithTransp
 
 
 export async function generateProposalPDFv2(data: ProposalTemplateData, options?: { isDraft?: boolean }): Promise<Blob> {
+  const [jsPDF, html2canvas] = await Promise.all([getJsPDF(), getHtml2Canvas()]);
+
   // ① Pre-process logo BEFORE React renders — guarantees cache is warm
-  await processLogoTransparent("/images/promo-brindes-logo.png");
 
   const container = document.createElement("div");
   container.style.position = "fixed";

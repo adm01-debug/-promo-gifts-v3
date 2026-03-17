@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Share2, Download, Link2, Mail, MessageCircle, FileText } from "lucide-react";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
+const getJsPDF = () => import("jspdf").then(m => m.default);
 
 interface ShareMenuProps {
   mockupUrl: string;
@@ -69,6 +69,7 @@ export function ShareMenu({
         img.onerror = reject;
       });
 
+      const jsPDF = await getJsPDF();
       const pdf = new jsPDF({
         orientation: img.width > img.height ? "landscape" : "portrait",
         unit: "px",

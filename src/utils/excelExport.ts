@@ -1,7 +1,8 @@
 // src/utils/excelExport.ts
 
-import * as XLSX from 'xlsx';
 import { formatDate, formatDateTime } from '@/lib/date-utils';
+
+const getXLSX = () => import('xlsx');
 
 /**
  * Configuração de exportação Excel
@@ -52,7 +53,7 @@ export interface ExcelColumn {
  * });
  * ```
  */
-export function exportToExcel(config: ExcelExportConfig): void {
+export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
   const {
     filename,
     sheetName = 'Dados',
@@ -62,6 +63,7 @@ export function exportToExcel(config: ExcelExportConfig): void {
   } = config;
 
   try {
+    const XLSX = await getXLSX();
     // 1. Preparar dados formatados
     const formattedData = data.map((row) => {
       const formattedRow: any = {};
@@ -130,7 +132,7 @@ export function exportToExcel(config: ExcelExportConfig): void {
 /**
  * Exporta múltiplas planilhas em um único arquivo
  */
-export function exportMultipleSheets(
+export async function exportMultipleSheets(
   filename: string,
   sheets: Array<{
     sheetName: string;
@@ -138,8 +140,9 @@ export function exportMultipleSheets(
     data: any[];
   }>,
   includeTimestamp = true
-): void {
+): Promise<void> {
   try {
+    const XLSX = await getXLSX();
     const workbook = XLSX.utils.book_new();
 
     sheets.forEach(({ sheetName, columns, data }) => {
