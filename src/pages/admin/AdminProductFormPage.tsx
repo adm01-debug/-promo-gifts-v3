@@ -3,20 +3,20 @@
  * Substitui o Dialog modal por uma experiência imersiva com sidebar de navegação
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { ProductFormFullscreen } from '@/components/admin/products/ProductFormFullscreen';
-import { AuditHistory } from '@/components/audit/AuditHistory';
 import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from '@/lib/external-db';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
 import { type ProductFormData, defaultFormValues } from '@/components/admin/products/ProductFormSchema';
 import { Loader2, ArrowLeft, History, Pencil, Copy, FileDown } from 'lucide-react';
-import { exportProductPdf } from '@/utils/productPdfExport';
-
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Lazy load heavy sub-components
+const ProductFormFullscreen = lazy(() => import('@/components/admin/products/ProductFormFullscreen').then(m => ({ default: m.ProductFormFullscreen })));
+const AuditHistory = lazy(() => import('@/components/audit/AuditHistory').then(m => ({ default: m.AuditHistory })));
 
 export default function AdminProductFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -342,7 +342,8 @@ export default function AdminProductFormPage() {
                   variant="outline"
                   size="sm"
                   className="gap-1.5"
-                  onClick={() => {
+                  onClick={async () => {
+                    const { exportProductPdf } = await import('@/utils/productPdfExport');
                     const formData = productToFormData(product) as ProductFormData;
                     exportProductPdf({
                       formData,
@@ -390,26 +391,28 @@ export default function AdminProductFormPage() {
         </div>
 
         {/* Content */}
-        {activeTab === 'form' ? (
-          <ProductFormFullscreen
-            initialData={isEdit && product ? productToFormData(product) : duplicateProduct ? productToFormData(duplicateProduct) : undefined}
-            productImages={isEdit && product ? getProductImages(product) : duplicateProduct ? getProductImages(duplicateProduct) : []}
-            productId={isEdit ? id : undefined}
-            onSubmit={handleFormSubmit}
-            onCancel={() => navigate('/admin/cadastros')}
-            isSaving={isSaving}
-            isEdit={isEdit}
-          />
-        ) : (
-          isEdit && id && (
-            <AuditHistory
-              entityType="products"
-              entityId={id}
-              title="Histórico de Alterações"
-              maxHeight="70vh"
+        <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+          {activeTab === 'form' ? (
+            <ProductFormFullscreen
+              initialData={isEdit && product ? productToFormData(product) : duplicateProduct ? productToFormData(duplicateProduct) : undefined}
+              productImages={isEdit && product ? getProductImages(product) : duplicateProduct ? getProductImages(duplicateProduct) : []}
+              productId={isEdit ? id : undefined}
+              onSubmit={handleFormSubmit}
+              onCancel={() => navigate('/admin/cadastros')}
+              isSaving={isSaving}
+              isEdit={isEdit}
             />
-          )
-        )}
+          ) : (
+            isEdit && id && (
+              <AuditHistory
+                entityType="products"
+                entityId={id}
+                title="Histórico de Alterações"
+                maxHeight="70vh"
+              />
+            )
+          )}
+        </Suspense>
       </div>
     </MainLayout>
   );

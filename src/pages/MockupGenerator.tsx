@@ -3,9 +3,10 @@
  * 
  * Business logic extracted to useMockupGenerator hook.
  * This page component is now purely presentational.
+ * Heavy sub-components are lazy-loaded for optimal bundle splitting.
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, lazy, Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,6 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
-import { AIMockupAssistant } from "@/components/ai";
-import { TechniqueColorConfigDialog, techniqueNeedsColorConfig, classifyTechnique } from "@/components/mockup/TechniqueColorConfigDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,18 +28,28 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MockupWizard } from "@/components/mockup/MockupWizard";
-import { MockupResultCard } from "@/components/mockup/MockupResultCard";
-import { MockupConfigPanel } from "@/components/mockup/MockupConfigPanel";
-import { MockupHistoryPanel } from "@/components/mockup/MockupHistoryPanel";
 import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
-
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
-import { MockupLayoutButtons } from "@/components/mockup/approval/MockupLayoutButtons";
-import { OffscreenLayoutCapture, type LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
 import { useAuth } from "@/contexts/AuthContext";
 import type { MockupApprovalData } from "@/types/mockup-approval";
+
+// Lazy load heavy sub-components
+const LogoPositionEditor = lazy(() => import("@/components/mockup/LogoPositionEditor").then(m => ({ default: m.LogoPositionEditor })));
+const MockupWizard = lazy(() => import("@/components/mockup/MockupWizard").then(m => ({ default: m.MockupWizard })));
+const MockupResultCard = lazy(() => import("@/components/mockup/MockupResultCard").then(m => ({ default: m.MockupResultCard })));
+const MockupConfigPanel = lazy(() => import("@/components/mockup/MockupConfigPanel").then(m => ({ default: m.MockupConfigPanel })));
+const MockupHistoryPanel = lazy(() => import("@/components/mockup/MockupHistoryPanel").then(m => ({ default: m.MockupHistoryPanel })));
+const MockupLayoutButtons = lazy(() => import("@/components/mockup/approval/MockupLayoutButtons").then(m => ({ default: m.MockupLayoutButtons })));
+const OffscreenLayoutCapture = lazy(() => import("@/components/mockup/approval/OffscreenLayoutCapture").then(m => ({ default: m.OffscreenLayoutCapture })));
+const TechniqueColorConfigDialog = lazy(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
+const AIMockupAssistant = lazy(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
+
+// These small utility functions are extracted to avoid pulling the full TechniqueColorConfigDialog into this chunk
+// They're re-exported from the dialog module but are tiny — we import them statically since they're used in callbacks
+// The dialog component itself is lazy-loaded above
+import { techniqueNeedsColorConfig, classifyTechnique } from "@/components/mockup/techniqueColorUtils";
+import type { LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
 
 // ─── Component ───────────────────────────────────────────────────────
 
@@ -171,10 +179,12 @@ export default function MockupGenerator() {
   return (
     <MainLayout>
       {/* Offscreen layout capture - auto-captures approval document after mockup generation */}
-      <OffscreenLayoutCapture
-        request={layoutCaptureRequest}
-        onCaptured={handleLayoutCaptured}
-      />
+      <Suspense fallback={null}>
+        <OffscreenLayoutCapture
+          request={layoutCaptureRequest}
+          onCaptured={handleLayoutCaptured}
+        />
+      </Suspense>
 
       <GeneratingOverlay
         isVisible={mg.isLoading}
@@ -185,28 +195,30 @@ export default function MockupGenerator() {
       <div className="space-y-6">
         {/* Wizard Progress — hidden on history tab */}
         {mg.activeTab !== "history" && (
-          <MockupWizard
-            currentStep={mg.wizardStep}
-            hasClient={!!mg.selectedClient}
-            hasProduct={!!mg.selectedProduct}
-            hasTechnique={!!mg.selectedTechnique}
-            hasLogo={mg.hasLogo}
-            hasPositioned={mg.hasUserInteractedPosition}
-            hasGenerated={!!mg.generatedMockup}
-            onStepClick={(step) => {
-              mg.setActiveTab("generator");
-              const sectionMap: Record<number, string> = {
-                1: "Empresa",
-                2: "Produto",
-                3: "Técnica",
-                4: "Logo",
-                5: "Posição",
-                6: "Gerar",
-              };
-              const label = sectionMap[step];
-              if (label) toast.info(`📍 ${label}`, { duration: 1500 });
-            }}
-          />
+          <Suspense fallback={null}>
+            <MockupWizard
+              currentStep={mg.wizardStep}
+              hasClient={!!mg.selectedClient}
+              hasProduct={!!mg.selectedProduct}
+              hasTechnique={!!mg.selectedTechnique}
+              hasLogo={mg.hasLogo}
+              hasPositioned={mg.hasUserInteractedPosition}
+              hasGenerated={!!mg.generatedMockup}
+              onStepClick={(step) => {
+                mg.setActiveTab("generator");
+                const sectionMap: Record<number, string> = {
+                  1: "Empresa",
+                  2: "Produto",
+                  3: "Técnica",
+                  4: "Logo",
+                  5: "Posição",
+                  6: "Gerar",
+                };
+                const label = sectionMap[step];
+                if (label) toast.info(`📍 ${label}`, { duration: 1500 });
+              }}
+            />
+          </Suspense>
         )}
 
         {/* Notices */}
@@ -323,6 +335,7 @@ export default function MockupGenerator() {
           </div>
 
           <TabsContent value="generator">
+            <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Config Panel */}
               <MockupConfigPanel
@@ -492,22 +505,25 @@ export default function MockupGenerator() {
                 )}
               </div>
             </div>
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="history">
-            <MockupHistoryPanel
-              mockupHistory={mg.mockupHistory}
-              isLoading={mg.isLoadingHistory}
-              clients={mg.historyClients}
-              techniques={mg.techniques}
-              onLoadFromHistory={mg.loadFromHistory}
-              onDownload={mg.downloadMockup}
-              onDelete={(id) => {
-                mg.setMockupToDelete(id);
-                mg.setDeleteDialogOpen(true);
-              }}
-              onShare={mg.handleShareMockup}
-            />
+            <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+              <MockupHistoryPanel
+                mockupHistory={mg.mockupHistory}
+                isLoading={mg.isLoadingHistory}
+                clients={mg.historyClients}
+                techniques={mg.techniques}
+                onLoadFromHistory={mg.loadFromHistory}
+                onDownload={mg.downloadMockup}
+                onDelete={(id) => {
+                  mg.setMockupToDelete(id);
+                  mg.setDeleteDialogOpen(true);
+                }}
+                onShare={mg.handleShareMockup}
+              />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </div>
@@ -559,31 +575,35 @@ export default function MockupGenerator() {
       {/* Mobile FAB removed - only AI Assistant remains */}
 
       {/* Technique Color Configuration Dialog */}
-      <TechniqueColorConfigDialog
-        open={colorConfigDialogOpen}
-        onOpenChange={setColorConfigDialogOpen}
-        techniqueName={mg.selectedTechnique?.name || ""}
-        techniqueCode={mg.selectedTechnique?.code}
-        detectedColors={mg.logoColorAnalysis.colors}
-        currentConfig={mg.techniqueColorConfig}
-        onConfirm={(config) => {
-          mg.setTechniqueColorConfig(config);
-          toast.success(
-            config.category === "laser"
-              ? `Tom ${config.laserTone === "claro" ? "claro" : "escuro"} selecionado`
-              : config.category === "serigrafia"
-                ? `${config.colorCount} cor${(config.colorCount || 1) > 1 ? "es" : ""} configurada${(config.colorCount || 1) > 1 ? "s" : ""}`
-                : "Policromia (Full Color)",
-            { duration: 2000 }
-          );
-        }}
-      />
+      <Suspense fallback={null}>
+        <TechniqueColorConfigDialog
+          open={colorConfigDialogOpen}
+          onOpenChange={setColorConfigDialogOpen}
+          techniqueName={mg.selectedTechnique?.name || ""}
+          techniqueCode={mg.selectedTechnique?.code}
+          detectedColors={mg.logoColorAnalysis.colors}
+          currentConfig={mg.techniqueColorConfig}
+          onConfirm={(config) => {
+            mg.setTechniqueColorConfig(config);
+            toast.success(
+              config.category === "laser"
+                ? `Tom ${config.laserTone === "claro" ? "claro" : "escuro"} selecionado`
+                : config.category === "serigrafia"
+                  ? `${config.colorCount} cor${(config.colorCount || 1) > 1 ? "es" : ""} configurada${(config.colorCount || 1) > 1 ? "s" : ""}`
+                  : "Policromia (Full Color)",
+              { duration: 2000 }
+            );
+          }}
+        />
+      </Suspense>
 
       {/* AI Assistant */}
-      <AIMockupAssistant
-        productName={mg.selectedProduct?.name}
-        techniqueName={mg.selectedTechnique?.name}
-      />
+      <Suspense fallback={null}>
+        <AIMockupAssistant
+          productName={mg.selectedProduct?.name}
+          techniqueName={mg.selectedTechnique?.name}
+        />
+      </Suspense>
     </MainLayout>
   );
 }

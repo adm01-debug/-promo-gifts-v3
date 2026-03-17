@@ -25,25 +25,12 @@ import { cn } from "@/lib/utils";
 import { Paintbrush, Palette, Zap, Check, Info } from "lucide-react";
 import type { DetectedColor } from "@/hooks/useLogoColorAnalysis";
 
-// ─── Types ───────────────────────────────────────────────────────────
+// Re-export types and utils from shared module
+export type { TechniqueCategory, LaserTone, TechniqueColorConfig } from "./techniqueColorUtils";
+export { classifyTechnique, techniqueNeedsColorConfig } from "./techniqueColorUtils";
 
-export type TechniqueCategory = "laser" | "serigrafia" | "digital" | "other";
-
-export type LaserTone = "claro" | "escuro";
-
-export interface TechniqueColorConfig {
-  category: TechniqueCategory;
-  /** Laser: selected tone */
-  laserTone?: LaserTone;
-  /** Serigrafia: number of colors (1-3) */
-  colorCount?: number;
-  /** Serigrafia: selected Pantone indices from detected colors */
-  selectedPantoneIndices?: number[];
-  /** Serigrafia: resolved hex + pantone code for each selected color (for canvas processing) */
-  selectedColors?: { hex: string; pantoneCode: string }[];
-  /** Whether this is full color (policromia) */
-  isFullColor?: boolean;
-}
+import type { LaserTone } from "./techniqueColorUtils";
+import { classifyTechnique } from "./techniqueColorUtils";
 
 // ─── Helpers ─────────────────────────────────────────────────────────
 
@@ -59,59 +46,6 @@ const LASER_TONES: Record<LaserTone, { label: string; hex: string; description: 
     description: "Tom chumbo/escuro — ideal para superfícies claras",
   },
 };
-
-/**
- * Determine which category a technique belongs to based on its name/code.
- */
-export function classifyTechnique(techniqueName?: string, techniqueCode?: string | null): TechniqueCategory {
-  if (!techniqueName && !techniqueCode) return "other";
-  
-  const combined = [techniqueCode, techniqueName].filter(Boolean).join(" ").toLowerCase();
-  
-  // Laser detection — must come before UV check since "Laser UV" exists
-  if (
-    combined.includes("laser") ||
-    combined.includes("fibra") ||
-    combined.includes("co2")
-  ) {
-    // Laser UV is actually a UV technique (full color capable)
-    if (combined.includes("laser uv") || combined.includes("uv laser")) {
-      return "digital";
-    }
-    return "laser";
-  }
-  
-  // Serigrafia detection
-  if (
-    combined.includes("serigrafia") ||
-    combined.includes("silk") ||
-    combined.includes("tampografia")
-  ) {
-    return "serigrafia";
-  }
-  
-  // Digital / Full color techniques
-  if (
-    combined.includes("digital") ||
-    combined.includes("uv") ||
-    combined.includes("sublima") ||
-    combined.includes("dtf") ||
-    combined.includes("transfer")
-  ) {
-    return "digital";
-  }
-  
-  return "other";
-}
-
-/**
- * Check if a technique requires color configuration dialog
- */
-export function techniqueNeedsColorConfig(techniqueName?: string, techniqueCode?: string | null): boolean {
-  const cat = classifyTechnique(techniqueName, techniqueCode);
-  return cat === "laser" || cat === "serigrafia";
-}
-
 // ─── Component ───────────────────────────────────────────────────────
 
 interface TechniqueColorConfigDialogProps {
