@@ -853,6 +853,10 @@ export type Database = {
     }
     Functions: {
       cleanup_old_notifications: { Args: never; Returns: undefined }
+      create_organization_with_owner: {
+        Args: { _name: string; _slug: string }
+        Returns: string
+      }
       get_unread_count: { Args: never; Returns: number }
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
       has_org_role: {

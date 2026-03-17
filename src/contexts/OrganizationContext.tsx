@@ -131,36 +131,24 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
     async (name: string, slug: string): Promise<Organization | null> => {
       if (!user) return null;
 
-      const { data: org, error: orgError } = await supabase
-        .from("organizations")
-        .insert({ name, slug })
-        .select()
-        .single();
+      // Use atomic RPC to create org + add owner in a single transaction
+      const { data: orgId, error } = await supabase.rpc(
+        "create_organization_with_owner" as any,
+        { _name: name, _slug: slug }
+      );
 
-      if (orgError) {
-        console.error("Failed to create organization:", orgError);
-        return null;
-      }
-
-      // Add creator as owner
-      const { error: memberError } = await supabase
-        .from("organization_members")
-        .insert({
-          organization_id: org.id,
-          user_id: user.id,
-          role: "owner",
-        });
-
-      if (memberError) {
-        console.error("Failed to add owner:", memberError);
+      if (error) {
+        console.error("Failed to create organization:", error);
         return null;
       }
 
       await fetchOrganizations();
-      switchOrganization(org.id);
-      return org as Organization;
+      switchOrganization(orgId);
+
+      // Return the org from the freshly fetched list
+      return organizations.find((o) => o.id === orgId) || ({ id: orgId, name, slug } as Organization);
     },
-    [user, fetchOrganizations, switchOrganization]
+    [user, fetchOrganizations, switchOrganization, organizations]
   );
 
   return (
