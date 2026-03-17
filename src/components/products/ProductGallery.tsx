@@ -367,10 +367,11 @@ export function ProductGallery({
               const originalIndex = colors.findIndex(c => c.name === color.name && c.sku === color.sku);
               const hasVideos = color.videos && color.videos.length > 0;
               const isSelected = selectedColorIndex === originalIndex;
-              const stockStatus = color.stock !== undefined 
-                ? color.stock === 0 
+              const displayStock = color.stock !== undefined ? Math.max(0, color.stock) : undefined;
+              const stockStatus = displayStock !== undefined 
+                ? displayStock === 0 
                   ? { color: "text-destructive", label: "Sem estoque" }
-                  : color.stock < 100 
+                  : displayStock < 100 
                     ? { color: "text-warning", label: "Estoque baixo" }
                     : { color: "text-success", label: "Em estoque" }
                 : null;
