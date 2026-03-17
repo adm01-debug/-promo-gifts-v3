@@ -300,7 +300,7 @@ export function ZoomableGallery({
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
             {images.map((image, index) => (
               <button
-                key={index}
+                key={image || index}
                 onClick={() => setCurrentIndex(index)}
                 className={cn(
                   "shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all",
