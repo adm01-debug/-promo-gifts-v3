@@ -32,6 +32,7 @@ import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
 import { QuoteItemDetailSheet } from "@/components/quotes/QuoteItemDetailSheet";
 import { QuoteCommentsSection } from "@/components/quotes/QuoteCommentsSection";
+import { QuoteApprovalLinkCard } from "@/components/quotes/QuoteApprovalLinkCard";
 
 function formatCNPJ(cnpj: string): string {
   const digits = cnpj.replace(/\D/g, "");
@@ -872,6 +873,15 @@ export default function QuoteViewPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Approval Link */}
+        {id && quote && (
+          <QuoteApprovalLinkCard
+            quoteId={id}
+            clientName={quote.client_name}
+            clientEmail={quote.client_email}
+          />
+        )}
 
         {/* Comments Section */}
         {id && <QuoteCommentsSection quoteId={id} />}

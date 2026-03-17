@@ -133,6 +133,39 @@ export type Database = {
           },
         ]
       }
+      follow_up_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          is_sent: boolean
+          quote_id: string
+          reminder_type: string
+          scheduled_for: string
+          seller_id: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_sent?: boolean
+          quote_id: string
+          reminder_type?: string
+          scheduled_for: string
+          seller_id: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_sent?: boolean
+          quote_id?: string
+          reminder_type?: string
+          scheduled_for?: string
+          seller_id?: string
+          sent_at?: string | null
+        }
+        Relationships: []
+      }
       generated_mockups: {
         Row: {
           annotations: Json | null
@@ -662,6 +695,57 @@ export type Database = {
           severity?: string
           table_name?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      quote_approval_tokens: {
+        Row: {
+          client_email: string | null
+          client_name: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          quote_id: string
+          responded_at: string | null
+          response: string | null
+          response_notes: string | null
+          seller_id: string
+          status: string
+          token: string
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          quote_id: string
+          responded_at?: string | null
+          response?: string | null
+          response_notes?: string | null
+          seller_id: string
+          status?: string
+          token?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          quote_id?: string
+          responded_at?: string | null
+          response?: string | null
+          response_notes?: string | null
+          seller_id?: string
+          status?: string
+          token?: string
+          updated_at?: string
+          viewed_at?: string | null
         }
         Relationships: []
       }
