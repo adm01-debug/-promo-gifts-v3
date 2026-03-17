@@ -803,6 +803,25 @@ export function ProductFormFullscreen({
             </div>
           </SectionCard>
         </div>
+
+        {/* ====== PREVIEW PANEL ====== */}
+        <div className="hidden xl:block w-64 shrink-0">
+          <div className="sticky top-24">
+            <ProductPreviewPanel
+              name={nameValue}
+              sku={skuValue}
+              salePrice={salePriceValue}
+              stockQuantity={stockQuantityValue}
+              images={images}
+              brand={brandValue}
+              isFeatured={isFeatured}
+              isNew={isNew}
+              isOnSale={isOnSale}
+              isKit={isKit}
+              isActive={isActive}
+            />
+          </div>
+        </div>
       </div>
 
       {/* ====== MOBILE BOTTOM BAR ====== */}
