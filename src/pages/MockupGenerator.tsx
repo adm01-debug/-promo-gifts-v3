@@ -3,9 +3,10 @@
  * 
  * Business logic extracted to useMockupGenerator hook.
  * This page component is now purely presentational.
+ * Heavy sub-components are lazy-loaded for optimal bundle splitting.
  */
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, lazy, Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,6 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
-import { AIMockupAssistant } from "@/components/ai";
-import { TechniqueColorConfigDialog, techniqueNeedsColorConfig, classifyTechnique } from "@/components/mockup/TechniqueColorConfigDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,18 +28,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { MockupWizard } from "@/components/mockup/MockupWizard";
-import { MockupResultCard } from "@/components/mockup/MockupResultCard";
-import { MockupConfigPanel } from "@/components/mockup/MockupConfigPanel";
-import { MockupHistoryPanel } from "@/components/mockup/MockupHistoryPanel";
 import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
-
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
-import { MockupLayoutButtons } from "@/components/mockup/approval/MockupLayoutButtons";
-import { OffscreenLayoutCapture, type LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
 import { useAuth } from "@/contexts/AuthContext";
 import type { MockupApprovalData } from "@/types/mockup-approval";
+
+// Lazy load heavy sub-components
+const LogoPositionEditor = lazy(() => import("@/components/mockup/LogoPositionEditor").then(m => ({ default: m.LogoPositionEditor })));
+const MockupWizard = lazy(() => import("@/components/mockup/MockupWizard").then(m => ({ default: m.MockupWizard })));
+const MockupResultCard = lazy(() => import("@/components/mockup/MockupResultCard").then(m => ({ default: m.MockupResultCard })));
+const MockupConfigPanel = lazy(() => import("@/components/mockup/MockupConfigPanel").then(m => ({ default: m.MockupConfigPanel })));
+const MockupHistoryPanel = lazy(() => import("@/components/mockup/MockupHistoryPanel").then(m => ({ default: m.MockupHistoryPanel })));
+const MockupLayoutButtons = lazy(() => import("@/components/mockup/approval/MockupLayoutButtons").then(m => ({ default: m.MockupLayoutButtons })));
+const OffscreenLayoutCapture = lazy(() => import("@/components/mockup/approval/OffscreenLayoutCapture").then(m => ({ default: m.OffscreenLayoutCapture })));
+const TechniqueColorConfigDialog = lazy(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
+const AIMockupAssistant = lazy(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
+
+// Keep these as static imports since they're used in logic, not rendering
+import { techniqueNeedsColorConfig, classifyTechnique } from "@/components/mockup/TechniqueColorConfigDialog";
+import type { LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
 
 // ─── Component ───────────────────────────────────────────────────────
 
