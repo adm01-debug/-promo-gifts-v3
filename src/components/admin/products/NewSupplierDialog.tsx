@@ -238,9 +238,12 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Label className="text-xs font-semibold">CNPJ</Label>
                 <Input
                   value={cnpj}
-                  onChange={(e) => setCnpj(maskCnpj(e.target.value))}
+                  onChange={(e) => { setCnpj(maskCnpj(e.target.value)); setCnpjError(''); }}
                   placeholder="00.000.000/0000-00"
-                  className={`${fieldClass} font-mono`}
+                  className={`${fieldClass} font-mono ${cnpjError ? 'border-destructive' : ''}`}
+                  maxLength={18}
+                />
+                {cnpjError && <p className="text-[10px] text-destructive mt-0.5">{cnpjError}</p>}
                   maxLength={18}
                 />
               </div>
