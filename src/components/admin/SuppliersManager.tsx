@@ -237,11 +237,21 @@ export function SuppliersManager() {
     }
     setUploadingLogo(true);
     try {
-      const ext = file.name.split('.').pop() || 'png';
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from('supplier-logos').upload(fileName, file);
+      // Padrão CRM: suppliers/{id}.ext — usa id do fornecedor ou timestamp para novos
+      const supplierId = editingSupplier?.id || `new-${Date.now()}`;
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const filePath = `suppliers/${supplierId}.${ext}`;
+
+      // Upload ao bucket local seguindo o padrão de naming do CRM
+      const { error } = await supabase.storage
+        .from('supplier-logos')
+        .upload(filePath, file, { upsert: true });
       if (error) throw error;
-      const { data: urlData } = supabase.storage.from('supplier-logos').getPublicUrl(fileName);
+
+      const { data: urlData } = supabase.storage
+        .from('supplier-logos')
+        .getPublicUrl(filePath);
+
       updateField('logo_url', urlData.publicUrl);
       toast.success('Logo enviada com sucesso');
     } catch (err: any) {
