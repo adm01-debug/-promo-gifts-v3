@@ -436,14 +436,48 @@ export function SuppliersManager() {
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4 pt-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Nome <span className="text-destructive">*</span></Label>
-                    <Input value={editingSupplier.name || ''} onChange={e => updateField('name', e.target.value)} className={fieldClass} />
+                {/* Logo Upload */}
+                <div className="flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    {editingSupplier.logo_url ? (
+                      <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
+                        <img src={editingSupplier.logo_url} alt="Logo" className="w-full h-full object-contain" />
+                        <button
+                          type="button"
+                          onClick={() => updateField('logo_url', null)}
+                          className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {uploadingLogo ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <>
+                            <ImagePlus className="h-5 w-5" />
+                            <span className="text-[10px]">Logo</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                    <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                   </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
-                    <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
+                  <div className="flex-1 grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs font-semibold">Nome <span className="text-destructive">*</span></Label>
+                      <Input value={editingSupplier.name || ''} onChange={e => updateField('name', e.target.value)} className={fieldClass} />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
+                      <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
