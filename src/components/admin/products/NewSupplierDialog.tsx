@@ -9,6 +9,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Loader2, Building2, Phone, DollarSign, Settings2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+function maskCnpj(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 14);
+  return digits
+    .replace(/^(\d{2})(\d)/, '$1.$2')
+    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/\.(\d{3})(\d)/, '.$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+}
+
+function maskPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 10) {
+    return digits
+      .replace(/^(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2');
+}
+
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
 }
@@ -188,9 +209,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Label className="text-xs font-semibold">CNPJ</Label>
                 <Input
                   value={cnpj}
-                  onChange={(e) => setCnpj(e.target.value)}
+                  onChange={(e) => setCnpj(maskCnpj(e.target.value))}
                   placeholder="00.000.000/0000-00"
                   className={`${fieldClass} font-mono`}
+                  maxLength={18}
                 />
               </div>
             </div>
@@ -233,9 +255,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Label className="text-xs font-semibold">Telefone</Label>
                 <Input
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(maskPhone(e.target.value))}
                   placeholder="(11) 99999-9999"
                   className={fieldClass}
+                  maxLength={15}
                 />
               </div>
             </div>
