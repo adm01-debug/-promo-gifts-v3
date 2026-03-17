@@ -359,6 +359,7 @@ export default function AdminProductFormPage() {
               </TabsList>
             </Tabs>
           )}
+          </div>
         </div>
 
         {/* Content */}
