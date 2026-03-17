@@ -206,6 +206,7 @@ export function ProductFormFullscreen({
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
+  const [showPreview, setShowPreview] = useState(true);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const {
