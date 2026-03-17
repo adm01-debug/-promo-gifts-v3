@@ -331,6 +331,7 @@ export default function MockupGenerator() {
           </div>
 
           <TabsContent value="generator">
+            <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Config Panel */}
               <MockupConfigPanel
