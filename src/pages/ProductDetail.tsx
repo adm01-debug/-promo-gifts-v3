@@ -495,6 +495,15 @@ export default function ProductDetail() {
           </div>
         </div>
 
+        {/* Price History Chart */}
+        <div className="pt-8 border-t border-border">
+          <PriceHistoryChart
+            productId={product.id}
+            currentPrice={product.price}
+            productName={product.name}
+          />
+        </div>
+
         {/* Product Intelligence */}
         <div className="pt-8 border-t border-border">
           <ProductIntelligence 
