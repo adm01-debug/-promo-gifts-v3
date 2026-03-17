@@ -44,14 +44,11 @@ describe('useSellerCarts', () => {
     expect(Array.isArray(result.current.carts)).toBe(true);
   });
 
-  it('exposes createCart and deleteCart methods', () => {
+  it('exposes mutation methods', () => {
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
-    expect(typeof result.current.createCart).toBe('function');
-    expect(typeof result.current.deleteCart).toBe('function');
-  });
-
-  it('exposes addItem method', () => {
-    const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
-    expect(typeof result.current.addItem).toBe('function');
+    expect(result.current.createCart).toBeDefined();
+    expect(result.current.deleteCart).toBeDefined();
+    expect(result.current.addItem).toBeDefined();
+    expect(typeof result.current.createCart.mutateAsync).toBe('function');
   });
 });
