@@ -364,25 +364,6 @@ export function ProductsManager() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedProduct) return;
-    try {
-      await invokeExternalDbDelete('products', selectedProduct.id);
-      await logAction({
-        action: 'DELETE',
-        entityType: 'products',
-        entityId: selectedProduct.id,
-        oldValues: { sku: selectedProduct.sku, name: selectedProduct.name, price: selectedProduct.price },
-        newValues: null,
-      });
-      toast.success("Produto excluído com sucesso");
-      setIsDeleteOpen(false);
-      fetchProducts(currentPage, pageSize, searchTerm);
-    } catch (error: any) {
-      console.error("Error deleting product:", error);
-      toast.error(error.message || "Erro ao excluir produto");
-    }
-  };
 
   // Bulk selection helpers
   const toggleSelect = useCallback((id: string) => {
