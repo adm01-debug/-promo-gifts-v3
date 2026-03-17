@@ -3,25 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { User, Camera, Loader2, Save, Phone, Mail, Shield, PenTool, Trash2, Upload } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-
-
-const profileSchema = z.object({
-  full_name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
-  phone: z.string().max(20).optional().or(z.literal("")),
-});
-
-type ProfileFormData = z.infer<typeof profileSchema>;
+import { profileSchema, type ProfileFormData } from "@/lib/validations";
 
 export default function ProfilePage() {
   const { user, profile, role, refreshProfile } = useAuth();
