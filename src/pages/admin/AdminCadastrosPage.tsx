@@ -1,8 +1,9 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductsManager } from "@/components/admin/ProductsManager";
+import { SuppliersManager } from "@/components/admin/SuppliersManager";
 import { EngravingRegistrationContent } from "@/pages/EngravingRegistrationPage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Package, Palette, FolderOpen } from "lucide-react";
+import { Package, Palette, FolderOpen, Truck } from "lucide-react";
 
 export default function AdminCadastrosPage() {
   return (
@@ -14,7 +15,7 @@ export default function AdminCadastrosPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Cadastros</h1>
-            <p className="text-muted-foreground">Gerencie produtos e técnicas de personalização</p>
+            <p className="text-muted-foreground">Gerencie produtos, fornecedores e técnicas de personalização</p>
           </div>
         </div>
 
@@ -24,6 +25,10 @@ export default function AdminCadastrosPage() {
               <Package className="h-4 w-4" />
               Produtos
             </TabsTrigger>
+            <TabsTrigger value="suppliers" className="gap-2">
+              <Truck className="h-4 w-4" />
+              Fornecedores
+            </TabsTrigger>
             <TabsTrigger value="personalizacao" className="gap-2">
               <Palette className="h-4 w-4" />
               Personalização
@@ -32,6 +37,10 @@ export default function AdminCadastrosPage() {
 
           <TabsContent value="products">
             <ProductsManager />
+          </TabsContent>
+
+          <TabsContent value="suppliers">
+            <SuppliersManager />
           </TabsContent>
 
           <TabsContent value="personalizacao">
