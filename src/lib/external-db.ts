@@ -607,6 +607,7 @@ export async function fetchPromobrindProducts(options?: {
       supplierCode: string | null;
       altText: string | null;
       titleText: string | null;
+      variantId: string | null;
     }>>();
     const productIdSet = new Set(productIds);
     
@@ -628,6 +629,7 @@ export async function fetchPromobrindProducts(options?: {
         supplierCode: img.supplier_code || null,
         altText: img.alt_text || null,
         titleText: img.title_text || null,
+        variantId: img.variant_id || null,
       });
     });
     
