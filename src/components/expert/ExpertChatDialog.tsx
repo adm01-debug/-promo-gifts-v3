@@ -145,7 +145,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
       
       return (
         <button
-          key={index}
+          key={`product-${part.id}-${index}`}
           onClick={() => handleProductClick(part.id)}
           className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors"
         >
