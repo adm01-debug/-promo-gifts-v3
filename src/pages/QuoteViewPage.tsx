@@ -64,7 +64,7 @@ function calcPersTotal(totalCost: number, qty: number): number {
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { fetchQuote, isLoading, logQuoteHistory } = useQuotes();
+  const { fetchQuote, isLoading, logQuoteHistory, duplicateQuote } = useQuotes();
   const { user, profile } = useAuth();
   
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
@@ -523,6 +523,13 @@ export default function QuoteViewPage() {
                 <DropdownMenuItem onClick={() => navigate(`/orcamentos/${id}/editar`)}>
                   <Edit2 className="h-4 w-4 mr-2" />
                   Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  const newQuote = await duplicateQuote(id!);
+                  if (newQuote?.id) navigate(`/orcamentos/${newQuote.id}`);
+                }}>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Duplicar
                 </DropdownMenuItem>
                 <Sheet>
                   <SheetTrigger asChild>
