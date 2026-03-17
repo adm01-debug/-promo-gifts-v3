@@ -706,6 +706,48 @@ export type Database = {
           },
         ]
       }
+      saved_filters: {
+        Row: {
+          color: string | null
+          context: string
+          created_at: string
+          description: string | null
+          filters: Json
+          icon: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          context?: string
+          created_at?: string
+          description?: string | null
+          filters?: Json
+          icon?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          context?: string
+          created_at?: string
+          description?: string | null
+          filters?: Json
+          icon?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seller_cart_items: {
         Row: {
           cart_id: string
