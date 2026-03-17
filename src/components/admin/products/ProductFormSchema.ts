@@ -11,7 +11,7 @@ export const productFormSchema = z.object({
 
   // Categoria e fornecedor (IDs reais do BD externo)
   category_id: z.string().optional().default(''),
-  supplier_id: z.string().optional().default(''),
+  supplier_id: z.string().min(1, 'Fornecedor é obrigatório'),
   supplier_reference: z.string().max(100).optional().default(''),
 
   // Preço e estoque
