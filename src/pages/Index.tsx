@@ -61,7 +61,7 @@ export default function Index() {
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
-  const { getProductById } = useProductsContext();
+  const { registerProducts } = useProductsContext();
 
   // Ler query de busca da URL
   const searchQueryFromUrl = searchParams.get("search") || "";

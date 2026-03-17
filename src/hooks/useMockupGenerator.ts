@@ -690,7 +690,7 @@ export function useMockupGenerator() {
   };
 
   const loadFromHistory = (mockup: GeneratedMockup) => {
-    const product = mockup.product_id ? products.find(p => p.id === mockup.product_id) : null;
+    const product = mockup.product_id ? getProductById(mockup.product_id) : null;
     const technique = mockup.technique_id ? techniques.find(t => t.id === mockup.technique_id) : null;
 
     if (product) {
