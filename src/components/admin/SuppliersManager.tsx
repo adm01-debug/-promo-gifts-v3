@@ -178,6 +178,7 @@ export function SuppliersManager() {
         notes: editingSupplier.notes?.trim() || null,
         is_product_supplier: editingSupplier.is_product_supplier ?? true,
         is_engraving_supplier: editingSupplier.is_engraving_supplier ?? false,
+        logo_url: editingSupplier.logo_url || null,
         updated_at: now,
       };
 
