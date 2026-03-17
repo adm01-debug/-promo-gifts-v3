@@ -98,6 +98,29 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setIsProductSupplier(true); setIsEngravingSupplier(false);
+    setLogoUrl('');
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Selecione uma imagem'); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error('Máximo 2MB'); return; }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const filePath = `suppliers/new-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('supplier-logos').upload(filePath, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('supplier-logos').getPublicUrl(filePath);
+      setLogoUrl(urlData.publicUrl);
+      toast.success('Logo enviada');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar logo');
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
   };
 
   const handleCreate = async () => {
