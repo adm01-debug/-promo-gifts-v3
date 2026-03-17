@@ -54,10 +54,7 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/date-fns/')) {
             return 'date-vendor';
           }
-          // Charts - only recharts core, d3 deps will follow naturally
-          if (id.includes('node_modules/recharts/') || id.includes('node_modules/victory-vendor/')) {
-            return 'charts-vendor';
-          }
+          // Note: recharts is already code-split via lazy page imports
           // Heavy libs stay isolated (xlsx, jspdf, html2canvas already chunked by lazy imports)
         },
       },
