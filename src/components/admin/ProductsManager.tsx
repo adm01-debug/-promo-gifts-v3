@@ -1,9 +1,10 @@
 /**
  * Gerenciador de Produtos - CRUD completo com Auditoria e Paginação
- * Refatorado: usa ProductForm unificado com validação zod e seletores reais
+ * Refatorado: usa navegação para formulário full-screen
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -25,13 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -43,7 +37,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Pencil,
@@ -53,7 +46,6 @@ import {
   Package,
   ImageIcon,
   RefreshCw,
-  History,
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
@@ -67,9 +59,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ProductFiltersBar, type ProductFilters } from "./products/ProductFiltersBar";
 import { useAuditLog } from "@/hooks/useAuditLog";
-import { AuditHistory } from "@/components/audit/AuditHistory";
-import { ProductForm } from "./products/ProductForm";
-import { type ProductFormData, defaultFormValues } from "./products/ProductFormSchema";
+
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 
