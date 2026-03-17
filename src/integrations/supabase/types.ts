@@ -500,6 +500,45 @@ export type Database = {
         }
         Relationships: []
       }
+      product_price_history: {
+        Row: {
+          created_at: string
+          id: string
+          new_price: number
+          old_price: number | null
+          price_change_percent: number | null
+          product_id: string
+          product_name: string | null
+          product_sku: string | null
+          recorded_by: string | null
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_price: number
+          old_price?: number | null
+          price_change_percent?: number | null
+          product_id: string
+          product_name?: string | null
+          product_sku?: string | null
+          recorded_by?: string | null
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_price?: number
+          old_price?: number | null
+          price_change_percent?: number | null
+          product_id?: string
+          product_name?: string | null
+          product_sku?: string | null
+          recorded_by?: string | null
+          source?: string
+        }
+        Relationships: []
+      }
       product_views: {
         Row: {
           created_at: string
