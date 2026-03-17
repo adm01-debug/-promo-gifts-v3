@@ -9,8 +9,10 @@ import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs
 const Header = lazy(() => import("./Header").then(m => ({ default: m.Header })));
 const SidebarReorganized = lazy(() => import("./SidebarReorganized").then(m => ({ default: m.SidebarReorganized })));
 const PageTransition = lazy(() => import("@/components/effects/PageTransition").then(m => ({ default: m.PageTransition })));
-const SellerCartProvider = lazy(() => import("@/contexts/SellerCartContext").then(m => ({ default: m.SellerCartProvider })));
-const OnboardingProvider = lazy(() => import("@/contexts/OnboardingContext").then(m => ({ default: m.OnboardingProvider })));
+
+// Context providers must be imported synchronously (consumers render inside them)
+import { SellerCartProvider } from "@/contexts/SellerCartContext";
+import { OnboardingProvider } from "@/contexts/OnboardingContext";
 
 // Lazy-loaded non-critical UI components
 const OnboardingTour = lazy(() => import("@/components/onboarding/OnboardingTour").then(m => ({ default: m.OnboardingTour })));
@@ -137,16 +139,14 @@ export function MainLayout({ children }: MainLayoutProps) {
   );
 
   return (
-    <Suspense fallback={layoutContent}>
-      <OnboardingProvider>
-        <SellerCartProvider>
-          <Suspense fallback={layoutContent}>
-            <GlobalCommandBar>
-              {layoutContent}
-            </GlobalCommandBar>
-          </Suspense>
-        </SellerCartProvider>
-      </OnboardingProvider>
-    </Suspense>
+    <OnboardingProvider>
+      <SellerCartProvider>
+        <Suspense fallback={layoutContent}>
+          <GlobalCommandBar>
+            {layoutContent}
+          </GlobalCommandBar>
+        </Suspense>
+      </SellerCartProvider>
+    </OnboardingProvider>
   );
 }
