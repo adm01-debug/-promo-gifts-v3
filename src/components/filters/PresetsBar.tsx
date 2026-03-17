@@ -36,7 +36,8 @@ import {
   MoreHorizontal, 
   Pencil, 
   Trash2,
-  Check
+  Check,
+  Loader2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -50,62 +51,65 @@ interface PresetsBarProps {
 
 export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
   function PresetsBar({ currentFilters, onApplyPreset, activePresetId }, ref) {
-  const { getStoredPresets, savePreset, updatePreset, deletePreset } = useFilterPresets();
-  const [presets, setPresets] = useState<FilterPreset[]>(getStoredPresets());
+  const { presets, isLoading, savePreset, updatePreset, deletePreset } = useFilterPresets();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<FilterPreset | null>(null);
   const [newPresetName, setNewPresetName] = useState("");
   const [newPresetDescription, setNewPresetDescription] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const refreshPresets = () => {
-    setPresets(getStoredPresets());
-  };
-
-  const handleCreatePreset = () => {
+  const handleCreatePreset = async () => {
     if (!newPresetName.trim()) {
       toast.error("Digite um nome para o preset");
       return;
     }
 
-    savePreset({
+    setIsSaving(true);
+    const result = await savePreset({
       name: newPresetName.trim(),
       description: newPresetDescription.trim() || undefined,
       filters: currentFilters,
     });
+    setIsSaving(false);
 
-    toast.success("Preset criado com sucesso!");
-    setNewPresetName("");
-    setNewPresetDescription("");
-    setIsCreateOpen(false);
-    refreshPresets();
+    if (result) {
+      toast.success("Preset criado com sucesso!");
+      setNewPresetName("");
+      setNewPresetDescription("");
+      setIsCreateOpen(false);
+    }
   };
 
-  const handleUpdatePreset = () => {
+  const handleUpdatePreset = async () => {
     if (!selectedPreset || !newPresetName.trim()) return;
 
-    updatePreset(selectedPreset.id, {
+    setIsSaving(true);
+    const result = await updatePreset(selectedPreset.id, {
       name: newPresetName.trim(),
       description: newPresetDescription.trim() || undefined,
     });
+    setIsSaving(false);
 
-    toast.success("Preset atualizado!");
-    setNewPresetName("");
-    setNewPresetDescription("");
-    setIsEditOpen(false);
-    setSelectedPreset(null);
-    refreshPresets();
+    if (result) {
+      toast.success("Preset atualizado!");
+      setNewPresetName("");
+      setNewPresetDescription("");
+      setIsEditOpen(false);
+      setSelectedPreset(null);
+    }
   };
 
-  const handleDeletePreset = () => {
+  const handleDeletePreset = async () => {
     if (!selectedPreset) return;
 
-    deletePreset(selectedPreset.id);
-    toast.success("Preset removido");
+    const success = await deletePreset(selectedPreset.id);
+    if (success) {
+      toast.success("Preset removido");
+    }
     setIsDeleteOpen(false);
     setSelectedPreset(null);
-    refreshPresets();
   };
 
   const handleApplyPreset = (preset: FilterPreset) => {
@@ -182,7 +186,11 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
               </Tooltip>
             </div>
 
-            {presets.length === 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : presets.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center py-4">
                 Nenhum preset salvo ainda
               </p>
@@ -280,7 +288,10 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleCreatePreset}>Salvar Preset</Button>
+            <Button onClick={handleCreatePreset} disabled={isSaving}>
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Salvar Preset
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -313,7 +324,10 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleUpdatePreset}>Salvar</Button>
+            <Button onClick={handleUpdatePreset} disabled={isSaving}>
+              {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Salvar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

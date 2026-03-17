@@ -1,87 +1,229 @@
-import { FilterState } from "./FilterPanel";
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import type { FilterState } from "./FilterPanel";
 
 export interface FilterPreset {
   id: string;
   name: string;
   description?: string;
   filters: FilterState;
-  createdAt: string;
-  updatedAt: string;
-  isDefault?: boolean;
+  context: string;
+  is_default: boolean;
   icon?: string;
   color?: string;
+  created_at: string;
+  updated_at: string;
 }
 
-// Presets padrão do sistema removidos - apenas presets do usuário são suportados
+/**
+ * Hook para gerenciar presets de filtros persistidos no banco de dados.
+ * Cada vendedor tem seus próprios presets isolados por RLS.
+ */
+export function useFilterPresets(context: string = "catalog") {
+  const { user } = useAuth();
+  const [presets, setPresets] = useState<FilterPreset[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-// Hook para gerenciar presets (usando localStorage)
-export function useFilterPresets() {
-  const STORAGE_KEY = 'filter-presets';
-
-  const getStoredPresets = (): FilterPreset[] => {
+  const fetchPresets = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        return JSON.parse(stored);
-      }
-    } catch (e) {
-      console.error('Error reading presets from localStorage:', e);
+      const { data, error } = await supabase
+        .from("saved_filters")
+        .select("*")
+        .eq("context", context)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      setPresets(
+        (data || []).map((row) => ({
+          id: row.id,
+          name: row.name,
+          description: row.description ?? undefined,
+          filters: row.filters as unknown as FilterState,
+          context: row.context,
+          is_default: row.is_default,
+          icon: row.icon ?? undefined,
+          color: row.color ?? undefined,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+        }))
+      );
+    } catch (err) {
+      console.error("Error fetching filter presets:", err);
+    } finally {
+      setIsLoading(false);
     }
-    return [];
-  };
+  }, [user, context]);
 
-  const getAllPresets = (): FilterPreset[] => {
-    const customPresets = getStoredPresets();
-    return [...DEFAULT_PRESETS, ...customPresets];
-  };
+  useEffect(() => {
+    fetchPresets();
+  }, [fetchPresets]);
 
-  const savePreset = (preset: Omit<FilterPreset, 'id' | 'createdAt' | 'updatedAt'>): FilterPreset => {
-    const newPreset: FilterPreset = {
-      ...preset,
-      id: `preset-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      isDefault: false,
-    };
+  // Legacy compat — returns presets synchronously from state
+  const getStoredPresets = useCallback((): FilterPreset[] => {
+    return presets;
+  }, [presets]);
 
-    const customPresets = getStoredPresets();
-    customPresets.push(newPreset);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customPresets));
+  const getAllPresets = useCallback((): FilterPreset[] => {
+    return presets;
+  }, [presets]);
 
-    return newPreset;
-  };
+  const savePreset = useCallback(
+    async (
+      preset: Omit<FilterPreset, "id" | "created_at" | "updated_at" | "context" | "is_default">
+    ): Promise<FilterPreset | null> => {
+      if (!user) {
+        toast.error("Faça login para salvar presets");
+        return null;
+      }
 
-  const updatePreset = (id: string, updates: Partial<FilterPreset>): FilterPreset | null => {
-    const customPresets = getStoredPresets();
-    const index = customPresets.findIndex((p) => p.id === id);
+      try {
+        const { data, error } = await supabase
+          .from("saved_filters")
+          .insert({
+            user_id: user.id,
+            name: preset.name,
+            description: preset.description || null,
+            filters: preset.filters as unknown as Record<string, unknown>,
+            context,
+            icon: preset.icon || null,
+            color: preset.color || null,
+          })
+          .select()
+          .single();
 
-    if (index === -1) return null;
+        if (error) throw error;
 
-    customPresets[index] = {
-      ...customPresets[index],
-      ...updates,
-      updatedAt: new Date().toISOString(),
-    };
+        const newPreset: FilterPreset = {
+          id: data.id,
+          name: data.name,
+          description: data.description ?? undefined,
+          filters: data.filters as unknown as FilterState,
+          context: data.context,
+          is_default: data.is_default,
+          icon: data.icon ?? undefined,
+          color: data.color ?? undefined,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customPresets));
-    return customPresets[index];
-  };
+        setPresets((prev) => [newPreset, ...prev]);
+        return newPreset;
+      } catch (err) {
+        console.error("Error saving preset:", err);
+        toast.error("Erro ao salvar preset");
+        return null;
+      }
+    },
+    [user, context]
+  );
 
-  const deletePreset = (id: string): boolean => {
-    const customPresets = getStoredPresets();
-    const filtered = customPresets.filter((p) => p.id !== id);
+  const updatePreset = useCallback(
+    async (id: string, updates: Partial<Pick<FilterPreset, "name" | "description" | "icon" | "color">>): Promise<FilterPreset | null> => {
+      try {
+        const { data, error } = await supabase
+          .from("saved_filters")
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", id)
+          .select()
+          .single();
 
-    if (filtered.length === customPresets.length) return false;
+        if (error) throw error;
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-    return true;
-  };
+        const updated: FilterPreset = {
+          id: data.id,
+          name: data.name,
+          description: data.description ?? undefined,
+          filters: data.filters as unknown as FilterState,
+          context: data.context,
+          is_default: data.is_default,
+          icon: data.icon ?? undefined,
+          color: data.color ?? undefined,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
+
+        setPresets((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        return updated;
+      } catch (err) {
+        console.error("Error updating preset:", err);
+        toast.error("Erro ao atualizar preset");
+        return null;
+      }
+    },
+    []
+  );
+
+  const deletePreset = useCallback(
+    async (id: string): Promise<boolean> => {
+      try {
+        const { error } = await supabase
+          .from("saved_filters")
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+
+        setPresets((prev) => prev.filter((p) => p.id !== id));
+        return true;
+      } catch (err) {
+        console.error("Error deleting preset:", err);
+        toast.error("Erro ao excluir preset");
+        return false;
+      }
+    },
+    []
+  );
+
+  const setDefault = useCallback(
+    async (id: string) => {
+      if (!user) return;
+      try {
+        // Remove default from all presets of this context
+        await supabase
+          .from("saved_filters")
+          .update({ is_default: false })
+          .eq("context", context);
+
+        // Set selected as default
+        if (id) {
+          await supabase
+            .from("saved_filters")
+            .update({ is_default: true })
+            .eq("id", id);
+        }
+
+        setPresets((prev) =>
+          prev.map((p) => ({ ...p, is_default: p.id === id }))
+        );
+      } catch (err) {
+        console.error("Error setting default preset:", err);
+      }
+    },
+    [user, context]
+  );
+
+  const getDefaultPreset = useCallback((): FilterPreset | undefined => {
+    return presets.find((p) => p.is_default);
+  }, [presets]);
 
   return {
+    presets,
+    isLoading,
     getAllPresets,
     getStoredPresets,
     savePreset,
     updatePreset,
     deletePreset,
+    setDefault,
+    getDefaultPreset,
+    refetch: fetchPresets,
   };
 }
