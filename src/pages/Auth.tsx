@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { useIPValidation } from "@/hooks/useIPValidation";
 import { PasskeyLogin } from "@/components/auth/PasskeyLogin";
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { supabase } from "@/integrations/supabase/client";
 
 import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from "@/lib/validations";
@@ -433,11 +434,12 @@ export default function Auth() {
                       </div>
                     </div>
 
+                    <SocialLoginButtons />
+
                     <PasskeyLogin
                       email={loginForm.watch("email")}
                       disabled={isSubmitting}
                       onSuccess={async (userId) => {
-                        // Sign in with custom token or redirect
                         toast({
                           title: "Autenticação biométrica",
                           description: "Autenticado com sucesso via passkey!",
