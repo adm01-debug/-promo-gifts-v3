@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import {
   Search, Plus, Pencil, Trash2, Loader2, Building2, Phone, DollarSign,
-  Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle,
+  Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle, ImagePlus, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
