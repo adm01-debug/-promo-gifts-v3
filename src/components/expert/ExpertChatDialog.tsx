@@ -584,7 +584,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
 
                 {messages.map((message, index) => (
                   <div
-                    key={index}
+                    key={message.id || `msg-${message.role}-${index}`}
                     className={cn(
                       "flex gap-3",
                       message.role === "user" ? "justify-end" : "justify-start"

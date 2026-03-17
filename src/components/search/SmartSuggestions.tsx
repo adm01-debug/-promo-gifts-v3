@@ -319,9 +319,9 @@ export function SmartFilters({
       </div>
       
       <div className="flex flex-wrap gap-2">
-        {suggestedFilters.map((filter, index) => (
+        {suggestedFilters.map((filter) => (
           <button
-            key={index}
+            key={`${filter.key}-${filter.value}`}
             onClick={() => toggleFilter(filter.key, filter.value)}
             className={cn(
               "px-3 py-1.5 text-xs rounded-lg border transition-all",
