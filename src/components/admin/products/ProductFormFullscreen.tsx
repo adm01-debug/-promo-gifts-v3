@@ -202,6 +202,105 @@ function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: str
 }
 
 // ============================================
+// NEW SUPPLIER DIALOG
+// ============================================
+
+function NewSupplierDialog({ onCreated }: { onCreated: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      const { invokeExternalDbSingle } = await import('@/lib/external-db');
+      const result = await invokeExternalDbSingle<{ id: string }>({
+        table: 'suppliers',
+        operation: 'insert',
+        data: {
+          name: name.trim(),
+          code: code.trim() || null,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      });
+      if (result?.id) {
+        onCreated(result.id);
+        toast.success(`Fornecedor "${name.trim()}" criado com sucesso`);
+        setOpen(false);
+        setName('');
+        setCode('');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao criar fornecedor');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="gap-1.5 shrink-0 h-9">
+          <Plus className="h-3.5 w-3.5" />
+          Novo
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar Fornecedor</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div>
+            <Label htmlFor="new-supplier-name" className="text-xs font-semibold">
+              Nome do Fornecedor <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="new-supplier-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: ABC Distribuidora"
+              className="mt-1.5 h-9"
+              autoFocus
+            />
+          </div>
+          <div>
+            <Label htmlFor="new-supplier-code" className="text-xs font-semibold">
+              Código (opcional)
+            </Label>
+            <Input
+              id="new-supplier-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Ex: ABC-001"
+              className="mt-1.5 h-9 font-mono"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={!name.trim() || saving}
+              onClick={handleCreate}
+              className="gap-1.5"
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              Criar Fornecedor
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
