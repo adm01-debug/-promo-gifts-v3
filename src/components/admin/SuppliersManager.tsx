@@ -181,9 +181,16 @@ export function SuppliersManager() {
         updated_at: now,
       };
 
-      // Só incluir logo_url se tiver valor (coluna pode não existir ainda no banco externo)
+      // logo_url: incluir condicionalmente (coluna pode não existir ainda no banco externo)
+      // Se tem valor, envia. Se tinha valor e foi removido (null explícito em edição), também envia.
       if (editingSupplier.logo_url) {
         payload.logo_url = editingSupplier.logo_url;
+      } else if (!isNew && editingSupplier.logo_url === null) {
+        // Em edição, se o usuário removeu a logo, tentar enviar null
+        // (só funciona se a coluna existir no banco externo)
+        try {
+          payload.logo_url = null;
+        } catch { /* ignore if column doesn't exist */ }
       }
 
       if (isNew) {
