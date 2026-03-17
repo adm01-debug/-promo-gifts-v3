@@ -35,7 +35,17 @@ import { classifyTechnique } from "./techniqueColorUtils";
 // ─── Helpers ─────────────────────────────────────────────────────────
 
 const LASER_TONES: Record<LaserTone, { label: string; hex: string; description: string }> = {
-
+  claro: {
+    label: "Laser Claro",
+    hex: "#C0C0C0",
+    description: "Tom cinza claro — ideal para superfícies escuras",
+  },
+  escuro: {
+    label: "Laser Escuro",
+    hex: "#4A4A4A",
+    description: "Tom chumbo/escuro — ideal para superfícies claras",
+  },
+};
 // ─── Component ───────────────────────────────────────────────────────
 
 interface TechniqueColorConfigDialogProps {
