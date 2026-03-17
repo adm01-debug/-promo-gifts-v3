@@ -874,6 +874,15 @@ export default function QuoteViewPage() {
           </CardContent>
         </Card>
 
+        {/* Approval Link */}
+        {id && quote && (
+          <QuoteApprovalLinkCard
+            quoteId={id}
+            clientName={quote.client_name}
+            clientEmail={quote.client_email}
+          />
+        )}
+
         {/* Comments Section */}
         {id && <QuoteCommentsSection quoteId={id} />}
 
