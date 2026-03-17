@@ -391,26 +391,28 @@ export default function AdminProductFormPage() {
         </div>
 
         {/* Content */}
-        {activeTab === 'form' ? (
-          <ProductFormFullscreen
-            initialData={isEdit && product ? productToFormData(product) : duplicateProduct ? productToFormData(duplicateProduct) : undefined}
-            productImages={isEdit && product ? getProductImages(product) : duplicateProduct ? getProductImages(duplicateProduct) : []}
-            productId={isEdit ? id : undefined}
-            onSubmit={handleFormSubmit}
-            onCancel={() => navigate('/admin/cadastros')}
-            isSaving={isSaving}
-            isEdit={isEdit}
-          />
-        ) : (
-          isEdit && id && (
-            <AuditHistory
-              entityType="products"
-              entityId={id}
-              title="Histórico de Alterações"
-              maxHeight="70vh"
+        <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
+          {activeTab === 'form' ? (
+            <ProductFormFullscreen
+              initialData={isEdit && product ? productToFormData(product) : duplicateProduct ? productToFormData(duplicateProduct) : undefined}
+              productImages={isEdit && product ? getProductImages(product) : duplicateProduct ? getProductImages(duplicateProduct) : []}
+              productId={isEdit ? id : undefined}
+              onSubmit={handleFormSubmit}
+              onCancel={() => navigate('/admin/cadastros')}
+              isSaving={isSaving}
+              isEdit={isEdit}
             />
-          )
-        )}
+          ) : (
+            isEdit && id && (
+              <AuditHistory
+                entityType="products"
+                entityId={id}
+                title="Histórico de Alterações"
+                maxHeight="70vh"
+              />
+            )
+          )}
+        </Suspense>
       </div>
     </MainLayout>
   );
