@@ -98,6 +98,14 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
   const handleCreate = async () => {
     if (!name.trim()) return;
+    const cnpjDigits = cnpj.replace(/\D/g, '');
+    if (cnpjDigits.length > 0 && !validateCnpj(cnpjDigits)) {
+      setCnpjError('CNPJ inválido');
+      toast.error('CNPJ informado é inválido');
+      return;
+    }
+    setCnpjError('');
+    setSaving(true);
     setSaving(true);
     try {
       const { invokeExternalDbSingle } = await import('@/lib/external-db');
