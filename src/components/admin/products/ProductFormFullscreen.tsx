@@ -45,6 +45,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Globe,
+  Search,
   Truck,
   FileText,
   Video,
