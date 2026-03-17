@@ -64,6 +64,9 @@ export default function ProductDetail() {
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedContext();
   const { registerProducts } = useProductsContext();
+
+  // Buscar produto no banco (mesma fonte da vitrine)
+  const { data: product, isLoading } = useProduct(id || "");
   
   // Fetch products in same category for Related/Recommended sections (lazy, not all 6000+)
   const categoryName = product?.category?.name;
@@ -72,8 +75,10 @@ export default function ProductDetail() {
     { enabled: !!categoryName, staleTime: 10 * 60 * 1000 }
   );
 
-  // Buscar produto no banco (mesma fonte da vitrine)
-  const { data: product, isLoading } = useProduct(id || "");
+  // Register category products into lazy cache
+  useEffect(() => {
+    if (categoryProducts.length > 0) registerProducts(categoryProducts);
+  }, [categoryProducts, registerProducts]);
 
   // Track product view and add to recently viewed
   useEffect(() => {
