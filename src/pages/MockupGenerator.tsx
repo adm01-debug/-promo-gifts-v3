@@ -191,28 +191,30 @@ export default function MockupGenerator() {
       <div className="space-y-6">
         {/* Wizard Progress — hidden on history tab */}
         {mg.activeTab !== "history" && (
-          <MockupWizard
-            currentStep={mg.wizardStep}
-            hasClient={!!mg.selectedClient}
-            hasProduct={!!mg.selectedProduct}
-            hasTechnique={!!mg.selectedTechnique}
-            hasLogo={mg.hasLogo}
-            hasPositioned={mg.hasUserInteractedPosition}
-            hasGenerated={!!mg.generatedMockup}
-            onStepClick={(step) => {
-              mg.setActiveTab("generator");
-              const sectionMap: Record<number, string> = {
-                1: "Empresa",
-                2: "Produto",
-                3: "Técnica",
-                4: "Logo",
-                5: "Posição",
-                6: "Gerar",
-              };
-              const label = sectionMap[step];
-              if (label) toast.info(`📍 ${label}`, { duration: 1500 });
-            }}
-          />
+          <Suspense fallback={null}>
+            <MockupWizard
+              currentStep={mg.wizardStep}
+              hasClient={!!mg.selectedClient}
+              hasProduct={!!mg.selectedProduct}
+              hasTechnique={!!mg.selectedTechnique}
+              hasLogo={mg.hasLogo}
+              hasPositioned={mg.hasUserInteractedPosition}
+              hasGenerated={!!mg.generatedMockup}
+              onStepClick={(step) => {
+                mg.setActiveTab("generator");
+                const sectionMap: Record<number, string> = {
+                  1: "Empresa",
+                  2: "Produto",
+                  3: "Técnica",
+                  4: "Logo",
+                  5: "Posição",
+                  6: "Gerar",
+                };
+                const label = sectionMap[step];
+                if (label) toast.info(`📍 ${label}`, { duration: 1500 });
+              }}
+            />
+          </Suspense>
         )}
 
         {/* Notices */}
