@@ -283,6 +283,120 @@ export default function QuotesDashboardPage() {
     return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
   };
 
+  const exportToPdf = useCallback(() => {
+    const doc = new jsPDF();
+    const periodLabel = selectedPeriod === "month" ? "Mês Atual" : selectedPeriod === "quarter" ? "Trimestre" : "Ano";
+    const now = new Date();
+
+    // Title
+    doc.setFontSize(18);
+    doc.text("Dashboard de Conversão de Orçamentos", 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(`Período: ${periodLabel} • Gerado em ${format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 14, 28);
+    if (selectedClientName) {
+      doc.text(`Cliente: ${selectedClientName}`, 14, 34);
+    }
+
+    // Metrics table
+    doc.setTextColor(0);
+    autoTable(doc, {
+      startY: selectedClientName ? 40 : 34,
+      head: [["Métrica", "Valor"]],
+      body: [
+        ["Total de Orçamentos", metrics.totalQuotes.toString()],
+        ["Pendentes", metrics.pendingQuotes.toString()],
+        ["Taxa de Aprovação", `${metrics.approvalRate.toFixed(1)}%`],
+        ["Taxa de Rejeição", `${metrics.rejectionRate.toFixed(1)}%`],
+        ["Tempo Médio de Resposta", formatResponseTime(metrics.averageResponseTime)],
+        ["Valor Total Orçado", formatCurrency(metrics.totalValue)],
+        ["Valor Total Aprovado", formatCurrency(metrics.approvedValue)],
+        ["Ticket Médio", formatCurrency(metrics.averageValue)],
+      ],
+      theme: "grid",
+      headStyles: { fillColor: [245, 158, 11] },
+      styles: { fontSize: 10 },
+    });
+
+    // Status distribution table
+    if (metrics.statusDistribution.length > 0) {
+      const y = (doc as any).lastAutoTable?.finalY || 80;
+      doc.setFontSize(13);
+      doc.text("Distribuição por Status", 14, y + 12);
+      autoTable(doc, {
+        startY: y + 16,
+        head: [["Status", "Quantidade"]],
+        body: metrics.statusDistribution.map((s) => [s.name, s.value.toString()]),
+        theme: "grid",
+        headStyles: { fillColor: [245, 158, 11] },
+        styles: { fontSize: 10 },
+      });
+    }
+
+    // Funnel table
+    if (metrics.conversionFunnel.length > 0) {
+      const y = (doc as any).lastAutoTable?.finalY || 120;
+      doc.setFontSize(13);
+      doc.text("Funil de Conversão", 14, y + 12);
+      autoTable(doc, {
+        startY: y + 16,
+        head: [["Etapa", "Quantidade"]],
+        body: metrics.conversionFunnel.map((f) => [f.stage, f.count.toString()]),
+        theme: "grid",
+        headStyles: { fillColor: [245, 158, 11] },
+        styles: { fontSize: 10 },
+      });
+    }
+
+    // Approval links stats
+    if (tokenStats.total > 0) {
+      const y = (doc as any).lastAutoTable?.finalY || 160;
+      doc.setFontSize(13);
+      doc.text("Links de Aprovação", 14, y + 12);
+      autoTable(doc, {
+        startY: y + 16,
+        head: [["Métrica", "Valor"]],
+        body: [
+          ["Links Enviados", tokenStats.total.toString()],
+          ["Visualizados", `${tokenStats.viewed} (${tokenStats.total > 0 ? ((tokenStats.viewed / tokenStats.total) * 100).toFixed(0) : 0}%)`],
+          ["Respondidos", `${tokenStats.responded} (${tokenStats.viewed > 0 ? ((tokenStats.responded / tokenStats.viewed) * 100).toFixed(0) : 0}%)`],
+        ],
+        theme: "grid",
+        headStyles: { fillColor: [245, 158, 11] },
+        styles: { fontSize: 10 },
+      });
+    }
+
+    // Recent responses
+    const recentResponses = quotes
+      .filter((q) => q.client_response_at)
+      .sort((a, b) => new Date(b.client_response_at!).getTime() - new Date(a.client_response_at!).getTime())
+      .slice(0, 10);
+
+    if (recentResponses.length > 0) {
+      const y = (doc as any).lastAutoTable?.finalY || 200;
+      if (y > 240) doc.addPage();
+      const startY = y > 240 ? 20 : y + 12;
+      doc.setFontSize(13);
+      doc.text("Últimas Respostas de Clientes", 14, startY);
+      autoTable(doc, {
+        startY: startY + 4,
+        head: [["Orçamento", "Status", "Data", "Valor"]],
+        body: recentResponses.map((q) => [
+          q.quote_number || q.id,
+          statusConfig[q.status as keyof typeof statusConfig]?.label || q.status,
+          q.client_response_at ? format(new Date(q.client_response_at), "dd/MM/yyyy HH:mm") : "-",
+          formatCurrency(q.total || 0),
+        ]),
+        theme: "grid",
+        headStyles: { fillColor: [245, 158, 11] },
+        styles: { fontSize: 9 },
+      });
+    }
+
+    doc.save(`dashboard-orcamentos-${format(now, "yyyy-MM-dd")}.pdf`);
+  }, [metrics, tokenStats, quotes, selectedPeriod, selectedClientName]);
+
   if (isLoading) {
     return (
       <MainLayout>
