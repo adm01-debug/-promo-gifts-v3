@@ -139,8 +139,11 @@ export default function ProductDetail() {
   const minQuantity = product.minQuantity || 1;
   const stockInfo = getStockStatusInfo(product.stockStatus);
 
+  const isFavorite = id ? isFavoriteCheck(id) : false;
+
   const handleFavorite = () => {
-    setIsFavorite(!isFavorite);
+    if (!id) return;
+    toggleFavorite(id);
     toast({
       title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
       description: product.name,
