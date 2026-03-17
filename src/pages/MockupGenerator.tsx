@@ -573,31 +573,35 @@ export default function MockupGenerator() {
       {/* Mobile FAB removed - only AI Assistant remains */}
 
       {/* Technique Color Configuration Dialog */}
-      <TechniqueColorConfigDialog
-        open={colorConfigDialogOpen}
-        onOpenChange={setColorConfigDialogOpen}
-        techniqueName={mg.selectedTechnique?.name || ""}
-        techniqueCode={mg.selectedTechnique?.code}
-        detectedColors={mg.logoColorAnalysis.colors}
-        currentConfig={mg.techniqueColorConfig}
-        onConfirm={(config) => {
-          mg.setTechniqueColorConfig(config);
-          toast.success(
-            config.category === "laser"
-              ? `Tom ${config.laserTone === "claro" ? "claro" : "escuro"} selecionado`
-              : config.category === "serigrafia"
-                ? `${config.colorCount} cor${(config.colorCount || 1) > 1 ? "es" : ""} configurada${(config.colorCount || 1) > 1 ? "s" : ""}`
-                : "Policromia (Full Color)",
-            { duration: 2000 }
-          );
-        }}
-      />
+      <Suspense fallback={null}>
+        <TechniqueColorConfigDialog
+          open={colorConfigDialogOpen}
+          onOpenChange={setColorConfigDialogOpen}
+          techniqueName={mg.selectedTechnique?.name || ""}
+          techniqueCode={mg.selectedTechnique?.code}
+          detectedColors={mg.logoColorAnalysis.colors}
+          currentConfig={mg.techniqueColorConfig}
+          onConfirm={(config) => {
+            mg.setTechniqueColorConfig(config);
+            toast.success(
+              config.category === "laser"
+                ? `Tom ${config.laserTone === "claro" ? "claro" : "escuro"} selecionado`
+                : config.category === "serigrafia"
+                  ? `${config.colorCount} cor${(config.colorCount || 1) > 1 ? "es" : ""} configurada${(config.colorCount || 1) > 1 ? "s" : ""}`
+                  : "Policromia (Full Color)",
+              { duration: 2000 }
+            );
+          }}
+        />
+      </Suspense>
 
       {/* AI Assistant */}
-      <AIMockupAssistant
-        productName={mg.selectedProduct?.name}
-        techniqueName={mg.selectedTechnique?.name}
-      />
+      <Suspense fallback={null}>
+        <AIMockupAssistant
+          productName={mg.selectedProduct?.name}
+          techniqueName={mg.selectedTechnique?.name}
+        />
+      </Suspense>
     </MainLayout>
   );
 }
