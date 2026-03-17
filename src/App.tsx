@@ -227,6 +227,7 @@ const App = () => {
                     </ComparisonProvider>
                   </CollectionsProvider>
                 </ProductsProvider>
+                </OrganizationProvider>
               </AuthProvider>
             </TooltipProvider>
           </AriaLiveProvider>
