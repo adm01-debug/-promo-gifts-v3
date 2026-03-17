@@ -98,6 +98,7 @@ const queryClient = createQueryClient();
 
 const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useGlobalErrorCatcher();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
