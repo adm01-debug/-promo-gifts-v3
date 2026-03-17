@@ -1,1 +1,4 @@
 project_id = "nmojwpihnslkssljowjh"
+
+[functions.crm-db-bridge]
+verify_jwt = false
