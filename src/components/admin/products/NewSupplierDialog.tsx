@@ -255,9 +255,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Label className="text-xs font-semibold">Telefone</Label>
                 <Input
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(maskPhone(e.target.value))}
                   placeholder="(11) 99999-9999"
                   className={fieldClass}
+                  maxLength={15}
                 />
               </div>
             </div>
