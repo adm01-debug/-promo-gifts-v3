@@ -12,7 +12,8 @@ import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductB
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
 import { type ProductFormData, defaultFormValues } from '@/components/admin/products/ProductFormSchema';
-import { Loader2, ArrowLeft, History, Pencil } from 'lucide-react';
+import { Loader2, ArrowLeft, History, Pencil, Home } from 'lucide-react';
+import { DynamicBreadcrumbs } from '@/components/navigation/DynamicBreadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -292,6 +293,17 @@ export default function AdminProductFormPage() {
   return (
     <MainLayout>
       <div className="container mx-auto py-6 space-y-4">
+        {/* Breadcrumbs */}
+        <DynamicBreadcrumbs
+          customItems={[
+            { label: 'Início', href: '/', icon: <Home className="h-4 w-4" /> },
+            { label: 'Admin', href: '/admin' },
+            { label: 'Cadastros', href: '/admin/cadastros' },
+            { label: 'Produtos', href: '/admin/cadastros' },
+            { label: isEdit && product ? product.name : 'Novo' },
+          ]}
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
