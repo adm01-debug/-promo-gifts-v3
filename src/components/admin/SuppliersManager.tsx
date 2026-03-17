@@ -138,6 +138,11 @@ export function SuppliersManager() {
       toast.error('Nome é obrigatório');
       return;
     }
+    const cnpjRaw = editingSupplier.cnpj?.replace(/\D/g, '') || '';
+    if (cnpjRaw.length > 0 && !validateCnpj(cnpjRaw)) {
+      toast.error('CNPJ informado é inválido');
+      return;
+    }
     setSaving(true);
     try {
       const now = new Date().toISOString();
