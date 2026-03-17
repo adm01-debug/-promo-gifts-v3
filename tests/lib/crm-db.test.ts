@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockInvoke = vi.fn();
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    functions: {
-      invoke: mockInvoke,
+vi.mock('@/integrations/supabase/client', () => {
+  const mockInvoke = vi.fn();
+  return {
+    supabase: {
+      functions: {
+        invoke: mockInvoke,
+      },
     },
-  },
-}));
+    __mockInvoke: mockInvoke,
+  };
+});
 
+import { __mockInvoke as mockInvoke } from '@/integrations/supabase/client';
 import { invokeCrmDb, selectCrm, selectCrmById, searchCrm, insertCrm, updateCrm, deleteCrm, invokeCrmBatch } from '@/lib/crm-db';
 
 beforeEach(() => {
@@ -17,31 +21,31 @@ beforeEach(() => {
 
 describe('invokeCrmDb', () => {
   it('returns data on success', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { data: [{ id: '1' }] }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { data: [{ id: '1' }] }, error: null });
     const result = await invokeCrmDb({ table: 'companies', operation: 'select' });
     expect(result.data).toEqual([{ id: '1' }]);
   });
 
   it('throws on edge function error', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: null, error: new Error('Network error') });
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: new Error('Network error') });
     await expect(invokeCrmDb({ table: 'companies', operation: 'select' })).rejects.toThrow('CRM DB error');
   });
 
   it('throws on query error in data', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { error: 'Table not found' }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { error: 'Table not found' }, error: null });
     await expect(invokeCrmDb({ table: 'xyz', operation: 'select' })).rejects.toThrow('CRM query error');
   });
 });
 
 describe('selectCrm', () => {
   it('returns array of records', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { data: [{ id: '1' }, { id: '2' }] }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { data: [{ id: '1' }, { id: '2' }] }, error: null });
     const result = await selectCrm('companies');
     expect(result).toHaveLength(2);
   });
 
   it('returns empty array on null data', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { data: null }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { data: null }, error: null });
     const result = await selectCrm('companies');
     expect(result).toEqual([]);
   });
@@ -49,13 +53,13 @@ describe('selectCrm', () => {
 
 describe('selectCrmById', () => {
   it('returns single record', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { data: { id: '1', name: 'Test' } }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { data: { id: '1', name: 'Test' } }, error: null });
     const result = await selectCrmById('companies', '1');
     expect(result).toEqual({ id: '1', name: 'Test' });
   });
 
   it('returns null on 404', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: null, error: new Error('404 not found') });
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: new Error('404 not found') });
     const result = await selectCrmById('companies', 'nonexistent');
     expect(result).toBeNull();
   });
@@ -63,7 +67,7 @@ describe('selectCrmById', () => {
 
 describe('searchCrm', () => {
   it('passes search params correctly', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { data: [{ id: '1' }] }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { data: [{ id: '1' }] }, error: null });
     await searchCrm('companies', 'nome_fantasia', 'Acme');
     expect(mockInvoke).toHaveBeenCalledWith('crm-db-bridge', {
       body: expect.objectContaining({
@@ -76,7 +80,7 @@ describe('searchCrm', () => {
 
 describe('insertCrm', () => {
   it('returns inserted records', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { data: [{ id: 'new1' }] }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { data: [{ id: 'new1' }] }, error: null });
     const result = await insertCrm('quotes', { client_name: 'Test' });
     expect(result).toEqual([{ id: 'new1' }]);
   });
@@ -84,7 +88,7 @@ describe('insertCrm', () => {
 
 describe('updateCrm', () => {
   it('passes id and data', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { data: [{ id: '1' }] }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { data: [{ id: '1' }] }, error: null });
     await updateCrm('quotes', '1', { status: 'approved' });
     expect(mockInvoke).toHaveBeenCalledWith('crm-db-bridge', {
       body: expect.objectContaining({ operation: 'update', id: '1', data: { status: 'approved' } }),
@@ -94,7 +98,7 @@ describe('updateCrm', () => {
 
 describe('deleteCrm', () => {
   it('calls with delete operation', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: {}, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: {}, error: null });
     await deleteCrm('quotes', '1');
     expect(mockInvoke).toHaveBeenCalledWith('crm-db-bridge', {
       body: expect.objectContaining({ operation: 'delete', id: '1' }),
@@ -104,7 +108,7 @@ describe('deleteCrm', () => {
 
 describe('invokeCrmBatch', () => {
   it('returns batch results', async () => {
-    mockInvoke.mockResolvedValueOnce({
+    (mockInvoke as any).mockResolvedValueOnce({
       data: { success: true, results: [{ success: true, data: { records: [], count: 0 } }] },
       error: null,
     });
@@ -114,7 +118,7 @@ describe('invokeCrmBatch', () => {
   });
 
   it('throws on batch failure', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { success: false, error: 'Batch failed' }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { success: false, error: 'Batch failed' }, error: null });
     await expect(invokeCrmBatch([{ table: 'companies' }])).rejects.toThrow('Batch failed');
   });
 });

@@ -1,15 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock supabase before importing the module
-const mockInvoke = vi.fn();
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    functions: {
-      invoke: mockInvoke,
+vi.mock('@/integrations/supabase/client', () => {
+  const mockInvoke = vi.fn();
+  return {
+    supabase: {
+      functions: {
+        invoke: mockInvoke,
+      },
     },
-  },
-}));
+    __mockInvoke: mockInvoke,
+  };
+});
 
+import { __mockInvoke as mockInvoke } from '@/integrations/supabase/client';
 import { invokeWithRetry, extractFunctionErrorMessage } from '@/lib/external-db/invoke';
 
 describe('extractFunctionErrorMessage', () => {
@@ -42,7 +45,7 @@ describe('invokeWithRetry', () => {
   });
 
   it('returns data on first success', async () => {
-    mockInvoke.mockResolvedValueOnce({ data: { records: [{ id: '1' }] }, error: null });
+    (mockInvoke as any).mockResolvedValueOnce({ data: { records: [{ id: '1' }] }, error: null });
 
     const result = await invokeWithRetry({ table: 'products', operation: 'select' });
     expect(result.data).toEqual({ records: [{ id: '1' }] });
@@ -52,7 +55,7 @@ describe('invokeWithRetry', () => {
 
   it('retries on retryable error and succeeds', async () => {
     const retryableError = new Error('503 bad gateway');
-    mockInvoke
+    (mockInvoke as any)
       .mockResolvedValueOnce({ data: null, error: retryableError })
       .mockResolvedValueOnce({ data: { records: [] }, error: null });
 
@@ -63,7 +66,7 @@ describe('invokeWithRetry', () => {
 
   it('does not retry on non-retryable error', async () => {
     const nonRetryableError = new Error('Invalid column "xyz"');
-    mockInvoke.mockResolvedValueOnce({ data: null, error: nonRetryableError });
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: nonRetryableError });
 
     const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
     expect(result.error).toBe(nonRetryableError);
@@ -72,12 +75,10 @@ describe('invokeWithRetry', () => {
 
   it('exhausts retries and returns error', async () => {
     const retryableError = new Error('Failed to fetch');
-    mockInvoke
-      .mockResolvedValue({ data: null, error: retryableError });
+    (mockInvoke as any).mockResolvedValue({ data: null, error: retryableError });
 
     const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 1);
     expect(result.error).toBe(retryableError);
-    // attempt 0 + retry 1 = 2 calls
     expect(mockInvoke).toHaveBeenCalledTimes(2);
   });
 });
