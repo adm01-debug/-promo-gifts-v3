@@ -75,19 +75,46 @@ export default function QuotesDashboardPage() {
   const [selectedClientId, setSelectedClientId] = useState<string>("all");
   const [clients, setClients] = useState<Client[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
+  const [tokenStats, setTokenStats] = useState<{
+    total: number;
+    viewed: number;
+    responded: number;
+  }>({ total: 0, viewed: 0, responded: 0 });
 
-  // Fetch clients for filter
+  // Fetch clients from CRM
   useEffect(() => {
     const fetchClients = async () => {
       setLoadingClients(true);
-      const { data } = await supabase
-        .from("bitrix_clients")
-        .select("id, name")
-        .order("name");
-      setClients(data || []);
+      try {
+        const data = await selectCrm<Client>("companies", {
+          select: "id,nome_fantasia",
+          orderBy: "nome_fantasia",
+          limit: 500,
+        });
+        setClients(data.map((c: any) => ({ id: c.id, name: c.nome_fantasia || c.id })));
+      } catch (err) {
+        console.error("Error fetching clients:", err);
+      }
       setLoadingClients(false);
     };
     fetchClients();
+  }, []);
+
+  // Fetch approval token stats
+  useEffect(() => {
+    const fetchTokenStats = async () => {
+      const { data } = await supabase
+        .from("quote_approval_tokens")
+        .select("id, viewed_at, responded_at");
+      if (data) {
+        setTokenStats({
+          total: data.length,
+          viewed: data.filter((t) => t.viewed_at).length,
+          responded: data.filter((t) => t.responded_at).length,
+        });
+      }
+    };
+    fetchTokenStats();
   }, []);
 
   // Get unique clients from quotes for quick access
