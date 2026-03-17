@@ -118,6 +118,7 @@ const App = () => {
           <AriaLiveProvider>
             <TooltipProvider>
               <AuthProvider>
+                <OrganizationProvider>
                 <ProductsProvider>
                   <CollectionsProvider>
                     <ComparisonProvider>
