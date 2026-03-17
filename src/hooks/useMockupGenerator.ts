@@ -90,7 +90,7 @@ const createDefaultArea = (): PersonalizationArea => ({
 export function useMockupGenerator() {
   const { user } = useAuth();
   const { saveDraft, loadDraft, clearDraft, isSaving: isDraftSaving, lastSaved, error: draftError } = useMockupDraft();
-  const { products } = useProductsContext();
+  const { getProductById } = useProductsContext();
 
   // Data state
   const [techniques, setTechniques] = useState<Technique[]>([]);
