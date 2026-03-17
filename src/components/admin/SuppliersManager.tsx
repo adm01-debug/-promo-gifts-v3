@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import {
   Search, Plus, Pencil, Trash2, Loader2, Building2, Phone, DollarSign,
-  Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle,
+  Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle, ImagePlus, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -46,6 +47,7 @@ interface Supplier {
   notes: string | null;
   is_product_supplier: boolean;
   is_engraving_supplier: boolean;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,7 +57,7 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
   contact_name: '', contact_person: '', email: '', phone: '', address: '', website: '',
   default_markup_percent: null, min_order_value: null, delivery_time_days: null,
   payment_terms: '', shipping_terms: '', priority: 50, notes: '',
-  is_product_supplier: true, is_engraving_supplier: false, active: true,
+  is_product_supplier: true, is_engraving_supplier: false, active: true, logo_url: null,
 };
 
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
@@ -87,6 +89,8 @@ export function SuppliersManager() {
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
@@ -174,6 +178,7 @@ export function SuppliersManager() {
         notes: editingSupplier.notes?.trim() || null,
         is_product_supplier: editingSupplier.is_product_supplier ?? true,
         is_engraving_supplier: editingSupplier.is_engraving_supplier ?? false,
+        logo_url: editingSupplier.logo_url || null,
         updated_at: now,
       };
 
@@ -217,6 +222,34 @@ export function SuppliersManager() {
 
   const updateField = (field: string, value: unknown) => {
     setEditingSupplier(prev => prev ? { ...prev, [field]: value } : null);
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Imagem deve ter no máximo 2MB');
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('supplier-logos').upload(fileName, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('supplier-logos').getPublicUrl(fileName);
+      updateField('logo_url', urlData.publicUrl);
+      toast.success('Logo enviada com sucesso');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar logo');
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
   };
 
   const fieldClass = "mt-1.5 h-9";
@@ -315,11 +348,20 @@ export function SuppliersManager() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="font-medium text-sm">{supplier.name}</p>
-                        {supplier.trading_name && (
-                          <p className="text-xs text-muted-foreground">{supplier.trading_name}</p>
+                      <div className="flex items-center gap-2.5">
+                        {supplier.logo_url ? (
+                          <img src={supplier.logo_url} alt="" className="w-8 h-8 rounded object-contain border border-border bg-muted shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded border border-border bg-muted flex items-center justify-center shrink-0">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                          </div>
                         )}
+                        <div>
+                          <p className="font-medium text-sm">{supplier.name}</p>
+                          {supplier.trading_name && (
+                            <p className="text-xs text-muted-foreground">{supplier.trading_name}</p>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -403,14 +445,48 @@ export function SuppliersManager() {
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4 pt-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Nome <span className="text-destructive">*</span></Label>
-                    <Input value={editingSupplier.name || ''} onChange={e => updateField('name', e.target.value)} className={fieldClass} />
+                {/* Logo Upload */}
+                <div className="flex items-center gap-4">
+                  <div className="relative shrink-0">
+                    {editingSupplier.logo_url ? (
+                      <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
+                        <img src={editingSupplier.logo_url} alt="Logo" className="w-full h-full object-contain" />
+                        <button
+                          type="button"
+                          onClick={() => updateField('logo_url', null)}
+                          className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        disabled={uploadingLogo}
+                        className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {uploadingLogo ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <>
+                            <ImagePlus className="h-5 w-5" />
+                            <span className="text-[10px]">Logo</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                    <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                   </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
-                    <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
+                  <div className="flex-1 grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs font-semibold">Nome <span className="text-destructive">*</span></Label>
+                      <Input value={editingSupplier.name || ''} onChange={e => updateField('name', e.target.value)} className={fieldClass} />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
+                      <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
+                    </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
