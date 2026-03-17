@@ -20,7 +20,7 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { useMockupWizardStep } from "@/components/mockup/MockupWizard";
 import { useLogoColorAnalysis } from "@/hooks/useLogoColorAnalysis";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
-import { classifyTechnique, techniqueNeedsColorConfig, type TechniqueColorConfig } from "@/components/mockup/TechniqueColorConfigDialog";
+import { classifyTechnique, techniqueNeedsColorConfig, type TechniqueColorConfig } from "@/components/mockup/techniqueColorUtils";
 import type { PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 import type { MockupProductSelection } from "@/components/mockup/MockupProductSelector";
 import type { MockupClient } from "@/components/mockup/MockupConfigPanel";

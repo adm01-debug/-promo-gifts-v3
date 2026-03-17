@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useProductBounds } from "@/hooks/useProductBounds";
-import type { TechniqueColorConfig } from "./TechniqueColorConfigDialog";
+import type { TechniqueColorConfig } from "./techniqueColorUtils";
 
 interface LogoPositionEditorProps {
   productImageUrl: string;
