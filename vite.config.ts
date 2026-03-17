@@ -54,8 +54,8 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/date-fns/')) {
             return 'date-vendor';
           }
-          // Charts (recharts + d3)
-          if (id.includes('node_modules/recharts/') || id.includes('node_modules/d3-')) {
+          // Charts - only recharts core, d3 deps will follow naturally
+          if (id.includes('node_modules/recharts/') || id.includes('node_modules/victory-vendor/')) {
             return 'charts-vendor';
           }
           // Heavy libs stay isolated (xlsx, jspdf, html2canvas already chunked by lazy imports)
