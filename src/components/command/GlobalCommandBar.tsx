@@ -82,7 +82,7 @@ interface GlobalCommandBarProps {
   showTrigger?: boolean;
 }
 
-export function GlobalCommandBar({ children, showTrigger = false }: GlobalCommandBarProps) {
+export const GlobalCommandBar = forwardRef<HTMLDivElement, GlobalCommandBarProps>(function GlobalCommandBar({ children, showTrigger = false }, _ref) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
