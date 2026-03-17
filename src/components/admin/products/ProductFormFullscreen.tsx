@@ -52,11 +52,20 @@ import {
   ShieldCheck,
   Save,
   X,
+  Plus,
   PanelRightClose,
   PanelRightOpen,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 // ============================================
 // TYPES & HELPERS
@@ -190,6 +199,105 @@ function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: str
   }, [currentSku, isEdit, originalSku]);
 
   return { status, duplicateName };
+}
+
+// ============================================
+// NEW SUPPLIER DIALOG
+// ============================================
+
+function NewSupplierDialog({ onCreated }: { onCreated: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [code, setCode] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      const { invokeExternalDbSingle } = await import('@/lib/external-db');
+      const result = await invokeExternalDbSingle<{ id: string }>({
+        table: 'suppliers',
+        operation: 'insert',
+        data: {
+          name: name.trim(),
+          code: code.trim() || null,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      });
+      if (result?.id) {
+        onCreated(result.id);
+        toast.success(`Fornecedor "${name.trim()}" criado com sucesso`);
+        setOpen(false);
+        setName('');
+        setCode('');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao criar fornecedor');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="gap-1.5 shrink-0 h-9">
+          <Plus className="h-3.5 w-3.5" />
+          Novo
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar Fornecedor</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div>
+            <Label htmlFor="new-supplier-name" className="text-xs font-semibold">
+              Nome do Fornecedor <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="new-supplier-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: ABC Distribuidora"
+              className="mt-1.5 h-9"
+              autoFocus
+            />
+          </div>
+          <div>
+            <Label htmlFor="new-supplier-code" className="text-xs font-semibold">
+              Código (opcional)
+            </Label>
+            <Input
+              id="new-supplier-code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Ex: ABC-001"
+              className="mt-1.5 h-9 font-mono"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={!name.trim() || saving}
+              onClick={handleCreate}
+              className="gap-1.5"
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              Criar Fornecedor
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 // ============================================
@@ -392,6 +500,31 @@ export function ProductFormFullscreen({
         {/* ====== MAIN CONTENT ====== */}
         <div id="product-form-content" className="flex-1 min-w-0 space-y-5 pb-24">
 
+          {/* === FORNECEDOR — FIXO NO TOPO === */}
+          <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden">
+            <div className="p-4">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Truck className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Fornecedor</h3>
+                  <p className="text-[11px] text-muted-foreground">Selecione ou cadastre o fornecedor do produto</p>
+                </div>
+              </div>
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <SupplierSelect
+                    value={supplierId || ''}
+                    onChange={(id) => setValue('supplier_id', id)}
+                    error={errors.supplier_id?.message}
+                  />
+                </div>
+                <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
+              </div>
+            </div>
+          </Card>
+
           {/* === INFORMAÇÕES BÁSICAS === */}
           <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -476,7 +609,7 @@ export function ProductFormFullscreen({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <FieldLabel htmlFor="brand">Marca</FieldLabel>
                 <Input id="brand" {...register('brand')} placeholder="Ex: Tramontina" className="h-9" />
@@ -484,10 +617,6 @@ export function ProductFormFullscreen({
               <div>
                 <FieldLabel>Categoria</FieldLabel>
                 <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
-              </div>
-              <div>
-                <FieldLabel>Fornecedor</FieldLabel>
-                <SupplierSelect value={supplierId || ''} onChange={(id) => setValue('supplier_id', id)} error={errors.supplier_id?.message} />
               </div>
             </div>
           </SectionCard>
