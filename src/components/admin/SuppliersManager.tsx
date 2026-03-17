@@ -81,6 +81,8 @@ export function SuppliersManager() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'product' | 'engraving'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [editingSupplier, setEditingSupplier] = useState<Partial<Supplier> | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -107,16 +109,30 @@ export function SuppliersManager() {
   useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
 
   const filtered = useMemo(() => {
-    if (!search) return suppliers;
-    const q = search.toLowerCase();
-    return suppliers.filter(s =>
-      s.name.toLowerCase().includes(q) ||
-      s.code.toLowerCase().includes(q) ||
-      (s.trading_name?.toLowerCase().includes(q)) ||
-      (s.cnpj?.includes(q)) ||
-      (s.email?.toLowerCase().includes(q))
-    );
-  }, [suppliers, search]);
+    let result = suppliers;
+
+    // Filter by type
+    if (filterType === 'product') result = result.filter(s => s.is_product_supplier);
+    else if (filterType === 'engraving') result = result.filter(s => s.is_engraving_supplier);
+
+    // Filter by status
+    if (filterStatus === 'active') result = result.filter(s => s.active);
+    else if (filterStatus === 'inactive') result = result.filter(s => !s.active);
+
+    // Filter by search
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        s.code.toLowerCase().includes(q) ||
+        (s.trading_name?.toLowerCase().includes(q)) ||
+        (s.cnpj?.includes(q)) ||
+        (s.email?.toLowerCase().includes(q))
+      );
+    }
+
+    return result;
+  }, [suppliers, search, filterType, filterStatus]);
 
   const handleNew = () => {
     setEditingSupplier({ ...EMPTY_SUPPLIER });
@@ -230,21 +246,33 @@ export function SuppliersManager() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-4">
-        <Badge variant="secondary" className="gap-1.5">
-          <Building2 className="h-3 w-3" />
-          {suppliers.length} fornecedores
-        </Badge>
-        <Badge variant="secondary" className="gap-1.5">
-          <CheckCircle2 className="h-3 w-3 text-green-500" />
-          {suppliers.filter(s => s.active).length} ativos
-        </Badge>
-        {search && (
-          <Badge variant="outline" className="gap-1.5">
-            {filtered.length} resultado(s)
+      {/* Filters & Stats */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5 rounded-lg border border-border p-1">
+          <Button variant={filterType === 'all' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('all')}>Todos</Button>
+          <Button variant={filterType === 'product' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('product')}>Produtos</Button>
+          <Button variant={filterType === 'engraving' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('engraving')}>Gravação</Button>
+        </div>
+        <div className="flex items-center gap-1.5 rounded-lg border border-border p-1">
+          <Button variant={filterStatus === 'all' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterStatus('all')}>Todos</Button>
+          <Button variant={filterStatus === 'active' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs gap-1" onClick={() => setFilterStatus('active')}>
+            <CheckCircle2 className="h-3 w-3" />Ativos
+          </Button>
+          <Button variant={filterStatus === 'inactive' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs gap-1" onClick={() => setFilterStatus('inactive')}>
+            <XCircle className="h-3 w-3" />Inativos
+          </Button>
+        </div>
+        <div className="flex gap-2 ml-auto">
+          <Badge variant="secondary" className="gap-1.5">
+            <Building2 className="h-3 w-3" />
+            {suppliers.length} fornecedores
           </Badge>
-        )}
+          {(search || filterType !== 'all' || filterStatus !== 'all') && (
+            <Badge variant="outline" className="gap-1.5">
+              {filtered.length} resultado(s)
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Table */}
