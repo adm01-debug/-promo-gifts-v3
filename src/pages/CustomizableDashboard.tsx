@@ -96,7 +96,10 @@ export function CustomizableDashboard() {
           </div>
         </div>
 
-        {/* Widget de Próximas Datas Comemorativas - Fixo no topo */}
+        {/* Quick Actions & Metrics — Sempre no topo */}
+        <QuickActionsPanel />
+
+        {/* Widget de Próximas Datas Comemorativas */}
         <UpcomingDatesWidget variant="compact" daysAhead={60} maxItems={6} />
 
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
