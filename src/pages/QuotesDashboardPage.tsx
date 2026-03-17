@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,9 +44,13 @@ import {
   Target,
   Hourglass,
   Building2,
+  Eye,
+  Link2,
+  Send,
 } from "lucide-react";
 import { useQuotes } from "@/hooks/useQuotes";
 import { supabase } from "@/integrations/supabase/client";
+import { selectCrm } from "@/lib/crm-db";
 import { format, differenceInDays, differenceInHours, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -71,19 +75,46 @@ export default function QuotesDashboardPage() {
   const [selectedClientId, setSelectedClientId] = useState<string>("all");
   const [clients, setClients] = useState<Client[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
+  const [tokenStats, setTokenStats] = useState<{
+    total: number;
+    viewed: number;
+    responded: number;
+  }>({ total: 0, viewed: 0, responded: 0 });
 
-  // Fetch clients for filter
+  // Fetch clients from CRM
   useEffect(() => {
     const fetchClients = async () => {
       setLoadingClients(true);
-      const { data } = await supabase
-        .from("bitrix_clients")
-        .select("id, name")
-        .order("name");
-      setClients(data || []);
+      try {
+        const data = await selectCrm<Client>("companies", {
+          select: "id,nome_fantasia",
+          orderBy: "nome_fantasia",
+          limit: 500,
+        });
+        setClients(data.map((c: any) => ({ id: c.id, name: c.nome_fantasia || c.id })));
+      } catch (err) {
+        console.error("Error fetching clients:", err);
+      }
       setLoadingClients(false);
     };
     fetchClients();
+  }, []);
+
+  // Fetch approval token stats
+  useEffect(() => {
+    const fetchTokenStats = async () => {
+      const { data } = await supabase
+        .from("quote_approval_tokens")
+        .select("id, viewed_at, responded_at");
+      if (data) {
+        setTokenStats({
+          total: data.length,
+          viewed: data.filter((t) => t.viewed_at).length,
+          responded: data.filter((t) => t.responded_at).length,
+        });
+      }
+    };
+    fetchTokenStats();
   }, []);
 
   // Get unique clients from quotes for quick access
@@ -422,6 +453,48 @@ export default function QuotesDashboardPage() {
           </Card>
         </div>
 
+        {/* Approval Link Metrics */}
+        {tokenStats.total > 0 && (
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Link2 className="h-5 w-5 text-primary" />
+                Links de Aprovação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <Send className="h-4 w-4 text-info" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{tokenStats.total}</p>
+                  <p className="text-xs text-muted-foreground">Enviados</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <Eye className="h-4 w-4 text-warning" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{tokenStats.viewed}</p>
+                  <p className="text-xs text-muted-foreground">Visualizados</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    ({tokenStats.total > 0 ? ((tokenStats.viewed / tokenStats.total) * 100).toFixed(0) : 0}%)
+                  </p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/30">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <CheckCircle className="h-4 w-4 text-success" />
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{tokenStats.responded}</p>
+                  <p className="text-xs text-muted-foreground">Respondidos</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    ({tokenStats.viewed > 0 ? ((tokenStats.responded / tokenStats.viewed) * 100).toFixed(0) : 0}%)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Status Distribution Pie Chart */}
