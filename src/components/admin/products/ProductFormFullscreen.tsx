@@ -51,6 +51,8 @@ import {
   ShieldCheck,
   Save,
   X,
+  PanelRightClose,
+  PanelRightOpen,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -204,6 +206,7 @@ export function ProductFormFullscreen({
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
+  const [showPreview, setShowPreview] = useState(true);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const {
@@ -808,22 +811,38 @@ export function ProductFormFullscreen({
           </SectionCard>
         </div>
 
-        {/* ====== PREVIEW PANEL ====== */}
-        <div className="hidden xl:block w-64 shrink-0">
+        {/* ====== PREVIEW TOGGLE ====== */}
+        <div className="hidden xl:flex flex-col shrink-0">
           <div className="sticky top-24">
-            <ProductPreviewPanel
-              name={nameValue}
-              sku={skuValue}
-              salePrice={salePriceValue}
-              stockQuantity={stockQuantityValue}
-              images={images}
-              brand={brandValue}
-              isFeatured={isFeatured}
-              isNew={isNew}
-              isOnSale={isOnSale}
-              isKit={isKit}
-              isActive={isActive}
-            />
+            <div className="flex items-center justify-end mb-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+                onClick={() => setShowPreview(v => !v)}
+              >
+                {showPreview ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
+                {showPreview ? 'Ocultar' : 'Preview'}
+              </Button>
+            </div>
+            {showPreview && (
+              <div className="w-64 animate-in slide-in-from-right-4 duration-200">
+                <ProductPreviewPanel
+                  name={nameValue}
+                  sku={skuValue}
+                  salePrice={salePriceValue}
+                  stockQuantity={stockQuantityValue}
+                  images={images}
+                  brand={brandValue}
+                  isFeatured={isFeatured}
+                  isNew={isNew}
+                  isOnSale={isOnSale}
+                  isKit={isKit}
+                  isActive={isActive}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
