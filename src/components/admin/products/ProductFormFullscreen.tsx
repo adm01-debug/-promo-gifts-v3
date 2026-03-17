@@ -207,6 +207,7 @@ export function ProductFormFullscreen({
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
+  const [sidebarSearch, setSidebarSearch] = useState('');
   const [showPreview, setShowPreview] = useState(() => {
     const stored = localStorage.getItem('product-form-show-preview');
     return stored !== null ? stored === 'true' : true;
