@@ -652,14 +652,56 @@ html[data-scroll-locked] body {
   animation: button-press 0.15s ease-out;
 }
 
-/* Card lift on hover */
+/* Card lift on hover — enhanced with Fusion-style glow */
 .card-lift {
-  transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth);
+  transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
 }
 
 .card-lift:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-xl);
+}
+
+.dark .card-lift:hover {
+  box-shadow: 0 20px 40px -10px hsl(225 20% 2% / 0.8), 0 0 30px hsl(25 100% 50% / 0.08);
+  border-color: hsl(25 60% 40% / 0.2);
+}
+
+/* Fusion-style ambient background glow for dark mode */
+.dark .ambient-glow {
+  position: relative;
+}
+.dark .ambient-glow::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60vh;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, hsl(25 100% 50% / 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.dark .ambient-glow::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 60vw;
+  height: 40vh;
+  background: radial-gradient(ellipse 70% 60% at 90% 100%, hsl(220 80% 50% / 0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Fusion-style card border glow on dark mode */
+.dark .card-glow {
+  border: 1px solid hsl(25 30% 25% / 0.15);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.dark .card-glow:hover {
+  border-color: hsl(25 80% 50% / 0.25);
+  box-shadow: 0 0 20px hsl(25 100% 50% / 0.08), 0 4px 20px hsl(225 20% 2% / 0.5);
 }
 
 @keyframes count-up {
