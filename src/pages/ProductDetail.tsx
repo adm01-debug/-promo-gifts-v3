@@ -20,6 +20,7 @@ import { RelatedProducts, RecommendedProducts } from "@/components/products/Rela
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
+import { PriceHistoryChart } from "@/components/products/PriceHistoryChart";
 import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
@@ -492,6 +493,15 @@ export default function ProductDetail() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Price History Chart */}
+        <div className="pt-8 border-t border-border">
+          <PriceHistoryChart
+            productId={product.id}
+            currentPrice={product.price}
+            productName={product.name}
+          />
         </div>
 
         {/* Product Intelligence */}
