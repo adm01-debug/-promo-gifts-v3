@@ -616,7 +616,12 @@ export function ProductFormFullscreen({
               </div>
               <div>
                 <FieldLabel>Categoria</FieldLabel>
-                <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
+                <div className="flex items-start gap-2">
+                  <div className="flex-1">
+                    <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
+                  </div>
+                  <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
+                </div>
               </div>
             </div>
           </SectionCard>
