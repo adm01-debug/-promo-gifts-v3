@@ -30,6 +30,26 @@ function maskPhone(value: string): string {
     .replace(/(\d{5})(\d)/, '$1-$2');
 }
 
+function validateCnpj(value: string): boolean {
+  const digits = value.replace(/\D/g, '');
+  if (digits.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(digits)) return false;
+
+  const calc = (slice: string, weights: number[]) =>
+    weights.reduce((sum, w, i) => sum + parseInt(slice[i]) * w, 0);
+
+  const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  const w2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+  let remainder = calc(digits, w1) % 11;
+  const d1 = remainder < 2 ? 0 : 11 - remainder;
+  if (parseInt(digits[12]) !== d1) return false;
+
+  remainder = calc(digits, w2) % 11;
+  const d2 = remainder < 2 ? 0 : 11 - remainder;
+  return parseInt(digits[13]) === d2;
+}
+
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
 }
@@ -45,6 +65,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [code, setCode] = useState('');
   const [tradingName, setTradingName] = useState('');
   const [cnpj, setCnpj] = useState('');
+  const [cnpjError, setCnpjError] = useState('');
 
   // Contact
   const [contactName, setContactName] = useState('');
@@ -77,6 +98,14 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
   const handleCreate = async () => {
     if (!name.trim()) return;
+    const cnpjDigits = cnpj.replace(/\D/g, '');
+    if (cnpjDigits.length > 0 && !validateCnpj(cnpjDigits)) {
+      setCnpjError('CNPJ inválido');
+      toast.error('CNPJ informado é inválido');
+      return;
+    }
+    setCnpjError('');
+    setSaving(true);
     setSaving(true);
     try {
       const { invokeExternalDbSingle } = await import('@/lib/external-db');
@@ -209,9 +238,12 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Label className="text-xs font-semibold">CNPJ</Label>
                 <Input
                   value={cnpj}
-                  onChange={(e) => setCnpj(maskCnpj(e.target.value))}
+                  onChange={(e) => { setCnpj(maskCnpj(e.target.value)); setCnpjError(''); }}
                   placeholder="00.000.000/0000-00"
-                  className={`${fieldClass} font-mono`}
+                  className={`${fieldClass} font-mono ${cnpjError ? 'border-destructive' : ''}`}
+                  maxLength={18}
+                />
+                {cnpjError && <p className="text-[10px] text-destructive mt-0.5">{cnpjError}</p>}
                   maxLength={18}
                 />
               </div>
