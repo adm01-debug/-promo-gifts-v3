@@ -1,6 +1,6 @@
 /**
  * ProductFormFullscreen — Formulário full-screen com sidebar de navegação vertical
- * Layout de 2 colunas: sidebar de seções à esquerda + conteúdo à direita
+ * Layout de 3 colunas: sidebar de seções à esquerda + conteúdo no centro + preview à direita
  */
 
 import { useForm } from 'react-hook-form';
@@ -17,6 +17,7 @@ import { ProductRamosSection } from './ProductRamosSection';
 import { ProductMarketingSection } from './ProductMarketingSection';
 import { ProductTechniquesSection } from './ProductTechniquesSection';
 import { ProductKitComponentsSection } from './ProductKitComponentsSection';
+import { ProductPreviewPanel } from './ProductPreviewPanel';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -241,6 +242,9 @@ export function ProductFormFullscreen({
   const supplierRefValue = watch('supplier_reference') || '';
   const metaTitleValue = watch('meta_title') || '';
   const metaKeywordsValue = watch('meta_keywords') || '';
+  const salePriceValue = watch('sale_price') ?? 0;
+  const stockQuantityValue = watch('stock_quantity') ?? 0;
+  const brandValue = watch('brand') || '';
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
@@ -798,6 +802,25 @@ export function ProductFormFullscreen({
               </div>
             </div>
           </SectionCard>
+        </div>
+
+        {/* ====== PREVIEW PANEL ====== */}
+        <div className="hidden xl:block w-64 shrink-0">
+          <div className="sticky top-24">
+            <ProductPreviewPanel
+              name={nameValue}
+              sku={skuValue}
+              salePrice={salePriceValue}
+              stockQuantity={stockQuantityValue}
+              images={images}
+              brand={brandValue}
+              isFeatured={isFeatured}
+              isNew={isNew}
+              isOnSale={isOnSale}
+              isKit={isKit}
+              isActive={isActive}
+            />
+          </div>
         </div>
       </div>
 
