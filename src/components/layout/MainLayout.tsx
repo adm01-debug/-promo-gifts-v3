@@ -61,15 +61,23 @@ export function MainLayout({ children }: MainLayoutProps) {
       
       <div className="flex">
         <div className="print:hidden">
-          <SidebarReorganized 
-            isOpen={sidebarOpen} 
-            onToggle={() => setSidebarOpen(!sidebarOpen)} 
-          />
+          <Suspense fallback={<div className="w-64" />}>
+            <SidebarReorganized 
+              isOpen={sidebarOpen} 
+              onToggle={() => setSidebarOpen(!sidebarOpen)} 
+            />
+          </Suspense>
         </div>
         
         <div className="flex-1 flex flex-col min-h-screen print:min-h-0">
           <div className="print:hidden">
-            <Header 
+            <Suspense fallback={<div className="h-16" />}>
+              <Header 
+                onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+            </Suspense>
               onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
