@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from "@/lib/external-db";
+import { invokeExternalDbSingle, invokeExternalDbDelete, getProductImageUrl, getProductPrice, getProductStock } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
