@@ -31,6 +31,7 @@ import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
 
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
 import { QuoteItemDetailSheet } from "@/components/quotes/QuoteItemDetailSheet";
+import { QuoteCommentsSection } from "@/components/quotes/QuoteCommentsSection";
 
 function formatCNPJ(cnpj: string): string {
   const digits = cnpj.replace(/\D/g, "");
