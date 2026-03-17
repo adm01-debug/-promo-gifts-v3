@@ -309,16 +309,7 @@ export default function AdminProductFormPage() {
   return (
     <MainLayout>
       <div className="container mx-auto py-6 space-y-4">
-        {/* Breadcrumbs */}
-        <DynamicBreadcrumbs
-          customItems={[
-            { label: 'Início', href: '/', icon: <Home className="h-4 w-4" /> },
-            { label: 'Admin', href: '/admin' },
-            { label: 'Cadastros', href: '/admin/cadastros' },
-            { label: 'Produtos', href: '/admin/cadastros' },
-            { label: isEdit && product ? product.name : 'Novo' },
-          ]}
-        />
+        {/* Breadcrumbs are rendered by MainLayout's PersistentBreadcrumbs */}
 
         {/* Header */}
         <div className="flex items-center justify-between">
