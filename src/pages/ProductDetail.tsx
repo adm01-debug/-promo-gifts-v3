@@ -48,6 +48,7 @@ import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
 import { useProductsContext } from "@/contexts/ProductsContext";
+import { useFavoritesContext } from "@/contexts/FavoritesContext";
 // useProducts removed - using useRelatedProducts instead
 
 export default function ProductDetail() {
@@ -56,7 +57,7 @@ export default function ProductDetail() {
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesContext();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
@@ -138,8 +139,11 @@ export default function ProductDetail() {
   const minQuantity = product.minQuantity || 1;
   const stockInfo = getStockStatusInfo(product.stockStatus);
 
+  const isFavorite = id ? isFavoriteCheck(id) : false;
+
   const handleFavorite = () => {
-    setIsFavorite(!isFavorite);
+    if (!id) return;
+    toggleFavorite(id);
     toast({
       title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
       description: product.name,
