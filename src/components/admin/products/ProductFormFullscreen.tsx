@@ -300,6 +300,88 @@ function NewSupplierDialog({ onCreated }: { onCreated: (id: string) => void }) {
   );
 }
 
+function NewCategoryDialog({ onCreated }: { onCreated: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleCreate = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      const { invokeExternalDbSingle } = await import('@/lib/external-db');
+      const result = await invokeExternalDbSingle<{ id: string }>({
+        table: 'categories',
+        operation: 'insert',
+        data: {
+          name: name.trim(),
+          slug: name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+          is_active: true,
+          parent_id: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      });
+      if (result?.id) {
+        onCreated(result.id);
+        toast.success(`Categoria "${name.trim()}" criada com sucesso`);
+        setOpen(false);
+        setName('');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao criar categoria');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button" variant="outline" size="sm" className="gap-1.5 shrink-0 h-9">
+          <Plus className="h-3.5 w-3.5" />
+          Novo
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar Categoria</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div>
+            <Label htmlFor="new-category-name" className="text-xs font-semibold">
+              Nome da Categoria <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="new-category-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Canecas Térmicas"
+              className="mt-1.5 h-9"
+              autoFocus
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={!name.trim() || saving}
+              onClick={handleCreate}
+              className="gap-1.5"
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+              Criar Categoria
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ============================================
 // MAIN COMPONENT
 // ============================================
