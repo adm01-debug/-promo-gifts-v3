@@ -513,7 +513,7 @@ export default function ProductDetail() {
           
           <RecommendedProducts 
             currentProduct={product} 
-            allProducts={allProducts} 
+            allProducts={categoryProducts} 
             maxItems={4} 
           />
         </div>
