@@ -69,6 +69,7 @@ export function ShareMenu({
         img.onerror = reject;
       });
 
+      const jsPDF = await getJsPDF();
       const pdf = new jsPDF({
         orientation: img.width > img.height ? "landscape" : "portrait",
         unit: "px",

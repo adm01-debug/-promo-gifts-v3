@@ -122,7 +122,8 @@ export async function exportToExcel(data: ExportData) {
 }
 
 // PDF export
-export function exportToPDF(data: ExportData) {
+export async function exportToPDF(data: ExportData) {
+  const [jsPDF, autoTable] = await Promise.all([getJsPDF(), getAutoTable()]);
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
