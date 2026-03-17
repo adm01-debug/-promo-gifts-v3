@@ -38,7 +38,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   useScrollLockFix();
 
   const layoutContent = (
-    <div className="min-h-screen bg-background print:min-h-0">
+    <div className="min-h-screen bg-background ambient-glow print:min-h-0">
       <div className="print:hidden">
         <Suspense fallback={null}>
           <ScrollProgressIndicator color="primary" height={3} />
