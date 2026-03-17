@@ -348,11 +348,20 @@ export function SuppliersManager() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <p className="font-medium text-sm">{supplier.name}</p>
-                        {supplier.trading_name && (
-                          <p className="text-xs text-muted-foreground">{supplier.trading_name}</p>
+                      <div className="flex items-center gap-2.5">
+                        {supplier.logo_url ? (
+                          <img src={supplier.logo_url} alt="" className="w-8 h-8 rounded object-contain border border-border bg-muted shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded border border-border bg-muted flex items-center justify-center shrink-0">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                          </div>
                         )}
+                        <div>
+                          <p className="font-medium text-sm">{supplier.name}</p>
+                          {supplier.trading_name && (
+                            <p className="text-xs text-muted-foreground">{supplier.trading_name}</p>
+                          )}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
