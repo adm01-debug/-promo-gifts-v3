@@ -242,6 +242,9 @@ export function ProductFormFullscreen({
   const supplierRefValue = watch('supplier_reference') || '';
   const metaTitleValue = watch('meta_title') || '';
   const metaKeywordsValue = watch('meta_keywords') || '';
+  const salePriceValue = watch('sale_price') ?? 0;
+  const stockQuantityValue = watch('stock_quantity') ?? 0;
+  const brandValue = watch('brand') || '';
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
