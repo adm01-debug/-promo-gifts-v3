@@ -81,6 +81,11 @@ export default function Index() {
     debouncedServerSearch ? { search: debouncedServerSearch } : undefined
   );
 
+  // Register fetched products into the lazy cache for other contexts (favorites, etc.)
+  useEffect(() => {
+    if (realProducts.length > 0) registerProducts(realProducts);
+  }, [realProducts, registerProducts]);
+
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
   
   const [isSearching, setIsSearching] = useState(false);

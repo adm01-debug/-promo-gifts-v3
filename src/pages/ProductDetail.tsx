@@ -63,7 +63,14 @@ export default function ProductDetail() {
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedContext();
-  const { products: allProducts } = useProductsContext();
+  const { registerProducts } = useProductsContext();
+  
+  // Fetch products in same category for Related/Recommended sections (lazy, not all 6000+)
+  const categoryName = product?.category?.name;
+  const { data: categoryProducts = [] } = useProducts(
+    categoryName ? { category: categoryName } : undefined,
+    { enabled: !!categoryName, staleTime: 10 * 60 * 1000 }
+  );
 
   // Buscar produto no banco (mesma fonte da vitrine)
   const { data: product, isLoading } = useProduct(id || "");
