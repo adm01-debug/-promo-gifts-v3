@@ -326,7 +326,7 @@ function normalizeMarketingTags(rawTags: unknown): Product['tags'] {
 }
 
 // Converte produto Promobrind para formato interno
-function mapPromobrindToProduct(p: PromobrindProduct): Product {
+export function mapPromobrindToProduct(p: PromobrindProduct): Product {
   const imageUrl = getProductImageUrl(p);
   const stock = getProductStock(p);
   const colors = normalizeColors(p.colors);
