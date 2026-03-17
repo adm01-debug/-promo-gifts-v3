@@ -3,6 +3,7 @@
  * Espelha o layout do ProductCard do catálogo, usando dados do formulário via watch()
  */
 
+import { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
