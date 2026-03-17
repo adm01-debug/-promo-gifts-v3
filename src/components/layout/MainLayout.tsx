@@ -97,9 +97,11 @@ export function MainLayout({ children }: MainLayoutProps) {
               <PersistentBreadcrumbs className="mb-4" />
             </div>
             
-            <PageTransition variant="fade-slide" duration={0.25}>
-              {children}
-            </PageTransition>
+            <Suspense fallback={<div>{children}</div>}>
+              <PageTransition variant="fade-slide" duration={0.25}>
+                {children}
+              </PageTransition>
+            </Suspense>
           </main>
           
           {!isMockupGenerator && (
