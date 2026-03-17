@@ -12,7 +12,8 @@ import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductB
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
 import { type ProductFormData, defaultFormValues } from '@/components/admin/products/ProductFormSchema';
-import { Loader2, ArrowLeft, History, Pencil, Copy } from 'lucide-react';
+import { Loader2, ArrowLeft, History, Pencil, Copy, FileDown } from 'lucide-react';
+import { exportProductPdf } from '@/utils/productPdfExport';
 
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -336,20 +337,39 @@ export default function AdminProductFormPage() {
 
           <div className="flex items-center gap-2">
             {isEdit && product && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  // Store product data for duplication in sessionStorage
-                  const dupeData = { ...product, sku: `${product.sku}-COPIA` };
-                  sessionStorage.setItem('duplicate_product', JSON.stringify(dupeData));
-                  navigate('/admin/cadastros/produto/novo');
-                }}
-              >
-                <Copy className="h-3.5 w-3.5" />
-                Duplicar
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const formData = productToFormData(product) as ProductFormData;
+                    exportProductPdf({
+                      formData,
+                      productImages: getProductImages(product),
+                      categoryName: product.category_name || product.category || '',
+                      supplierName: product.supplier_name || product.supplier || '',
+                    });
+                    toast.success('PDF gerado com sucesso!');
+                  }}
+                >
+                  <FileDown className="h-3.5 w-3.5" />
+                  Exportar PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const dupeData = { ...product, sku: `${product.sku}-COPIA` };
+                    sessionStorage.setItem('duplicate_product', JSON.stringify(dupeData));
+                    navigate('/admin/cadastros/produto/novo');
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Duplicar
+                </Button>
+              </>
             )}
 
           {isEdit && (
