@@ -342,7 +342,8 @@ export default function AdminProductFormPage() {
                   variant="outline"
                   size="sm"
                   className="gap-1.5"
-                  onClick={() => {
+                  onClick={async () => {
+                    const { exportProductPdf } = await import('@/utils/productPdfExport');
                     const formData = productToFormData(product) as ProductFormData;
                     exportProductPdf({
                       formData,
