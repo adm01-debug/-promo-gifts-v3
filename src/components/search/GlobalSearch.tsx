@@ -353,9 +353,9 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
                             Limpar
                           </button>
                         </div>
-                        {searchHistory.map((item, index) => (
+                        {searchHistory.map((item) => (
                           <button
-                            key={index}
+                            key={item.query}
                             onClick={() => setQuery(item.query)}
                             className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-muted transition-colors"
                           >

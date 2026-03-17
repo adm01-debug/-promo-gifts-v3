@@ -140,12 +140,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
     
     return parts.map((part, index) => {
       if (typeof part === "string") {
-        return <span key={index}>{part}</span>;
+        return <span key={`text-${index}`}>{part}</span>;
       }
       
       return (
         <button
-          key={index}
+          key={`product-${part.id}-${index}`}
           onClick={() => handleProductClick(part.id)}
           className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors"
         >
@@ -584,7 +584,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
 
                 {messages.map((message, index) => (
                   <div
-                    key={index}
+                    key={message.id || `msg-${message.role}-${index}`}
                     className={cn(
                       "flex gap-3",
                       message.role === "user" ? "justify-end" : "justify-start"

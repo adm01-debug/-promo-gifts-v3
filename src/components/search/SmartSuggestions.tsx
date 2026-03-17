@@ -250,9 +250,9 @@ export function InlineSuggestions({ query, onSelect, className }: InlineSuggesti
   return (
     <div className={cn("py-1 border-b border-border", className)}>
       <div className="flex flex-wrap gap-1.5 px-4">
-        {suggestions.map((suggestion, index) => (
+        {suggestions.map((suggestion) => (
           <button
-            key={index}
+            key={suggestion}
             onClick={() => onSelect(suggestion)}
             className={cn(
               "px-3 py-1 text-sm rounded-full",
@@ -319,9 +319,9 @@ export function SmartFilters({
       </div>
       
       <div className="flex flex-wrap gap-2">
-        {suggestedFilters.map((filter, index) => (
+        {suggestedFilters.map((filter) => (
           <button
-            key={index}
+            key={`${filter.key}-${filter.value}`}
             onClick={() => toggleFilter(filter.key, filter.value)}
             className={cn(
               "px-3 py-1.5 text-xs rounded-lg border transition-all",
