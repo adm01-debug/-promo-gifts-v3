@@ -730,7 +730,7 @@ export function useMockupGenerator() {
   };
 
   // Wizard step
-  const wizardStep = useMockupWizardStep({
+  const wizardStep = getMockupWizardStep({
     hasClient: !!selectedClient,
     hasProduct: !!selectedProduct,
     hasTechnique: !!selectedTechnique,

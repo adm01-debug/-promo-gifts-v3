@@ -228,20 +228,3 @@ export function MockupWizard({
   );
 }
 
-// Hook to calculate current step from state
-export function useMockupWizardStep(state: {
-  hasClient: boolean;
-  hasProduct: boolean;
-  hasTechnique: boolean;
-  hasLogo: boolean;
-  hasPositioned: boolean;
-  hasGenerated: boolean;
-}): number {
-  if (state.hasGenerated) return 6;
-  if (state.hasLogo && state.hasPositioned) return 6; // Ready to generate
-  if (state.hasLogo) return 5; // Needs positioning
-  if (state.hasTechnique) return 4; // Needs logo
-  if (state.hasProduct) return 3; // Needs technique
-  if (state.hasClient) return 2; // Needs product
-  return 1; // Needs client
-}

@@ -38,21 +38,19 @@ interface PersistentBreadcrumbsProps {
   customItems?: BreadcrumbItem[];
 }
 
-export function PersistentBreadcrumbs({ 
+export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrumbsProps>(function PersistentBreadcrumbs({ 
   className, 
   showHome = true,
   customItems 
-}: PersistentBreadcrumbsProps) {
+}, ref) {
   const location = useLocation();
   
-  // Build breadcrumb items from current path
   const buildBreadcrumbs = (): BreadcrumbItem[] => {
     if (customItems) return customItems;
     
     const items: BreadcrumbItem[] = [];
     const pathParts = location.pathname.split("/").filter(Boolean);
     
-    // If on home, just show home
     if (location.pathname === "/" && showHome) {
       return [{ label: "Catálogo de Produtos", icon: Home }];
     }
@@ -64,23 +62,17 @@ export function PersistentBreadcrumbs({
     let currentPath = "";
     pathParts.forEach((part, index) => {
       currentPath += `/${part}`;
-      
-      // Check if this part is a UUID or numeric ID
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part);
       const isNumericId = /^\d+$/.test(part);
       
       if (isUuid || isNumericId) {
         const prevPart = pathParts[index - 1];
-        // For detail pages, skip the UUID — parent label already covers it
         if (prevPart === "produto" || prevPart === "produtos" || prevPart === "orcamentos") {
-          return; // Skip UUID in breadcrumb
+          return;
         }
-        // For other routes with IDs, show a short label
         items.push({ label: `#${part.slice(0, 8)}...` });
       } else {
         const label = routeLabels[currentPath] || part.charAt(0).toUpperCase() + part.slice(1);
-        
-        // Check if next segment is a UUID that will be skipped (make this the last item)
         const nextPart = pathParts[index + 1];
         const nextIsSkippedId = nextPart && (
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextPart) ||
@@ -88,12 +80,7 @@ export function PersistentBreadcrumbs({
         ) && (part === "produto" || part === "produtos" || part === "orcamentos");
         
         const isLastVisible = index >= pathParts.length - 1 || nextIsSkippedId;
-        
-        if (isLastVisible) {
-          items.push({ label });
-        } else {
-          items.push({ label, href: currentPath });
-        }
+        items.push(isLastVisible ? { label } : { label, href: currentPath });
       }
     });
     
@@ -101,14 +88,14 @@ export function PersistentBreadcrumbs({
   };
   
   const breadcrumbs = buildBreadcrumbs();
-  
   if (breadcrumbs.length === 0) return null;
   
   return (
     <nav 
+      ref={ref}
       aria-label="Breadcrumb" 
       className={cn(
-        "hidden md:flex items-center text-sm", // Hidden on mobile - redundant with bottom nav
+        "hidden md:flex items-center text-sm",
         className
       )}
     >
@@ -118,7 +105,7 @@ export function PersistentBreadcrumbs({
           const isLast = index === breadcrumbs.length - 1;
           
           return (
-            <li key={index} className="flex items-center gap-1.5">
+            <li key={`${item.href ?? item.label}-${index}`} className="flex items-center gap-1.5">
               {index > 0 && (
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
               )}
@@ -152,4 +139,4 @@ export function PersistentBreadcrumbs({
       </ol>
     </nav>
   );
-}
+});
