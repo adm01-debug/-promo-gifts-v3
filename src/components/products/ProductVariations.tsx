@@ -28,8 +28,9 @@ export function ProductVariations({
   };
 
   const getStockStatus = (stock: number) => {
-    if (stock === 0) return { label: "Sem estoque", color: "text-destructive" };
-    if (stock < 100) return { label: "Estoque baixo", color: "text-warning" };
+    const s = Math.max(0, stock);
+    if (s === 0) return { label: "Sem estoque", color: "text-destructive" };
+    if (s < 100) return { label: "Estoque baixo", color: "text-warning" };
     return { label: "Em estoque", color: "text-success" };
   };
 
