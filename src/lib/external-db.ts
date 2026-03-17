@@ -495,7 +495,7 @@ export async function fetchPromobrindProducts(options?: {
         queryMap.images.push(batchQueries.length);
         batchQueries.push({
           table: 'product_images',
-          select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
+          select: 'product_id, url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code, variant_id',
           filters: { is_active: true, product_id: chunk },
           limit: 1000,
           offset: 0,

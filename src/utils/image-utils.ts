@@ -63,7 +63,12 @@ export interface CategorizedImages {
  */
 export function getCdnUrl(urlCdn: string, variant: CdnVariant = 'public'): string {
   if (!urlCdn) return '/placeholder.svg';
-  return urlCdn.replace(/\/[^/]+$/, `/${variant}`);
+  // Only transform Cloudflare Images URLs (imagedelivery.net)
+  if (urlCdn.includes('imagedelivery.net')) {
+    return urlCdn.replace(/\/[^/]+$/, `/${variant}`);
+  }
+  // Return non-Cloudflare URLs as-is (e.g., cdn.xbzbrindes.com.br)
+  return urlCdn;
 }
 
 /**
