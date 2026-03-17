@@ -581,17 +581,17 @@ export default function QuoteBuilderPage() {
     }));
   }, [items]);
 
-  // Validation: all required fields
+  // Validation: all required fields (Zod-based)
   const validationErrors = useMemo(() => {
-    const errors: string[] = [];
-    if (!clientId) errors.push("empresa");
-    if (!contactId) errors.push("contato");
-    if (!paymentTerms) errors.push("prazo_pagamento");
-    if (!deliveryTime) errors.push("prazo_entrega");
-    if (!shippingType) errors.push("frete");
-    if ((shippingType === "fob" || shippingType === "fob_pre") && (!shippingCost || shippingCost <= 0)) errors.push("valor_frete");
-    if (items.length === 0) errors.push("itens");
-    return errors;
+    return validateQuoteForm({
+      clientId,
+      contactId,
+      paymentTerms,
+      deliveryTime,
+      shippingType,
+      shippingCost,
+      itemsCount: items.length,
+    });
   }, [clientId, contactId, paymentTerms, deliveryTime, shippingType, shippingCost, items]);
 
   const isFormValid = validationErrors.length === 0;
@@ -599,16 +599,7 @@ export default function QuoteBuilderPage() {
   // Save quote (create or update)
   const handleSaveQuote = async (status: "draft" | "pending" = "draft") => {
     if (!isFormValid) {
-      const fieldLabels: Record<string, string> = {
-        empresa: "Empresa",
-        contato: "Contato",
-        prazo_pagamento: "Prazo de Pagamento",
-        prazo_entrega: "Prazo de Entrega",
-        frete: "Frete",
-        valor_frete: "Valor do Frete",
-        itens: "Itens do Orçamento",
-      };
-      const missing = validationErrors.map((e) => fieldLabels[e] || e).join(", ");
+      const missing = validationErrors.map((e) => QUOTE_FIELD_LABELS[e] || e).join(", ");
       toast.error(`Preencha os campos obrigatórios: ${missing}`);
       return;
     }
