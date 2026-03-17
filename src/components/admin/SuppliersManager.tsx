@@ -223,6 +223,34 @@ export function SuppliersManager() {
     setEditingSupplier(prev => prev ? { ...prev, [field]: value } : null);
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Selecione um arquivo de imagem');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Imagem deve ter no máximo 2MB');
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from('supplier-logos').upload(fileName, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('supplier-logos').getPublicUrl(fileName);
+      updateField('logo_url', urlData.publicUrl);
+      toast.success('Logo enviada com sucesso');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar logo');
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
+
   const fieldClass = "mt-1.5 h-9";
 
   return (
