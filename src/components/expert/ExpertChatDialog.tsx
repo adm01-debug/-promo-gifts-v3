@@ -140,7 +140,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
     
     return parts.map((part, index) => {
       if (typeof part === "string") {
-        return <span key={index}>{part}</span>;
+        return <span key={`text-${index}`}>{part}</span>;
       }
       
       return (
