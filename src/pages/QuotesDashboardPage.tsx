@@ -54,6 +54,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { selectCrm } from "@/lib/crm-db";
 import { format, differenceInDays, differenceInHours, startOfMonth, endOfMonth, subMonths, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Client {
   id: string;
