@@ -257,7 +257,7 @@ export function useMockupGenerator() {
         const draft = await loadDraft();
         if (draft && (draft.productId || draft.techniqueId || draft.personalizationAreas.some(a => a.logoPreview))) {
           if (draft.productId) {
-            const product = products.find(p => p.id === draft.productId);
+            const product = getProductById(draft.productId);
             if (product) setProductSelection({
               product,
               variant: null,
