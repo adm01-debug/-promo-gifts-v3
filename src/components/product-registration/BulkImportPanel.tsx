@@ -112,6 +112,7 @@ export function BulkImportPanel() {
           },
         });
       } else if (extension === 'xlsx' || extension === 'xls') {
+        const XLSX = await getXLSX();
         const buffer = await file.arrayBuffer();
         const workbook = XLSX.read(buffer, { type: 'array' });
         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
