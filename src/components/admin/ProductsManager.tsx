@@ -860,65 +860,6 @@ export function ProductsManager() {
         </CardContent>
       </Card>
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedProduct ? "Editar Produto" : "Novo Produto"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedProduct
-                ? `Editando: ${selectedProduct.sku} — ${selectedProduct.name}`
-                : "Preencha os dados para cadastrar um novo produto"}
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedProduct ? (
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "form" | "history")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="form" className="flex items-center gap-2">
-                  <Pencil className="h-4 w-4" />
-                  Editar
-                </TabsTrigger>
-                <TabsTrigger value="history" className="flex items-center gap-2">
-                  <History className="h-4 w-4" />
-                  Histórico
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="form" className="mt-4">
-                <ProductForm
-                  initialData={productToFormData(selectedProduct)}
-                  productImages={selectedProduct.images || []}
-                  productId={selectedProduct.id}
-                  onSubmit={handleFormSubmit}
-                  onCancel={() => setIsFormOpen(false)}
-                  isSaving={isSaving}
-                  isEdit
-                />
-              </TabsContent>
-
-              <TabsContent value="history" className="mt-4">
-                <AuditHistory
-                  entityType="products"
-                  entityId={selectedProduct.id}
-                  title="Histórico de Alterações"
-                  maxHeight="55vh"
-                />
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <ProductForm
-              onSubmit={handleFormSubmit}
-              onCancel={() => setIsFormOpen(false)}
-              isSaving={isSaving}
-              isEdit={false}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
-
       {/* Delete Confirmation */}
       <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
         <AlertDialogContent>
