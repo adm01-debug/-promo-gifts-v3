@@ -3,6 +3,7 @@
  * Espelha o layout do ProductCard do catálogo, usando dados do formulário via watch()
  */
 
+import { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -39,7 +40,7 @@ const getStockStatus = (qty: number) => {
   return { label: 'Em estoque', color: 'text-success' };
 };
 
-export function ProductPreviewPanel({
+export const ProductPreviewPanel = memo(function ProductPreviewPanel({
   name,
   sku,
   salePrice,
@@ -207,4 +208,4 @@ export function ProductPreviewPanel({
       </div>
     </div>
   );
-}
+});
