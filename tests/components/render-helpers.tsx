@@ -103,7 +103,9 @@ export function renderWithProviders(
     return (
       <QueryClientProvider client={queryClient}>
         <MemoryRouter initialEntries={[route]}>
-          {children}
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
         </MemoryRouter>
       </QueryClientProvider>
     );
