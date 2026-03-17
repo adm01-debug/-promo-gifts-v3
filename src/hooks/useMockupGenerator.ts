@@ -17,7 +17,7 @@ import { useFilteredTechniques, useProductCustomizationOptionsForMockup, type Te
 import { usePositionHistory } from "@/hooks/usePositionHistory";
 import { uploadLogoToStorage, downloadImageAsPdfFromUrl } from "@/lib/mockup-storage";
 import { useProductsContext } from "@/contexts/ProductsContext";
-import { useMockupWizardStep } from "@/components/mockup/MockupWizard";
+import { getMockupWizardStep } from "@/components/mockup/mockupWizardStep";
 import { useLogoColorAnalysis } from "@/hooks/useLogoColorAnalysis";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import { classifyTechnique, techniqueNeedsColorConfig, type TechniqueColorConfig } from "@/components/mockup/techniqueColorUtils";
@@ -730,7 +730,7 @@ export function useMockupGenerator() {
   };
 
   // Wizard step
-  const wizardStep = useMockupWizardStep({
+  const wizardStep = getMockupWizardStep({
     hasClient: !!selectedClient,
     hasProduct: !!selectedProduct,
     hasTechnique: !!selectedTechnique,

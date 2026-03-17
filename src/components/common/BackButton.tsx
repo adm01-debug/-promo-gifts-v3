@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,17 +30,14 @@ interface BackButtonProps {
   fallbackPath?: string;
 }
 
-export function BackButton({ className, fallbackPath }: BackButtonProps) {
+export const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(function BackButton({ className, fallbackPath }: BackButtonProps, ref) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Don't show on home page
   if (location.pathname === "/") return null;
 
-  // Calculate parent route
   const pathParts = location.pathname.split("/").filter(Boolean);
 
-  // Build parent path: remove last segment (or last two if last is a UUID/ID)
   let parentPath = "/";
   if (pathParts.length > 1) {
     const lastPart = pathParts[pathParts.length - 1];
@@ -48,7 +46,6 @@ export function BackButton({ className, fallbackPath }: BackButtonProps) {
       /^\d+$/.test(lastPart);
 
     if (isId && pathParts.length > 2) {
-      // e.g. /orcamentos/novo/123 -> /orcamentos
       parentPath = "/" + pathParts.slice(0, -2).join("/");
     } else {
       parentPath = "/" + pathParts.slice(0, -1).join("/");
@@ -59,7 +56,6 @@ export function BackButton({ className, fallbackPath }: BackButtonProps) {
   const parentLabel = routeLabels[targetPath] || targetPath.split("/").pop() || "Início";
 
   const handleBack = () => {
-    // If there's browser history, go back; otherwise navigate to parent
     if (window.history.length > 2) {
       navigate(-1);
     } else {
@@ -69,6 +65,7 @@ export function BackButton({ className, fallbackPath }: BackButtonProps) {
 
   return (
     <Button
+      ref={ref}
       variant="ghost"
       size="sm"
       onClick={handleBack}
@@ -81,4 +78,4 @@ export function BackButton({ className, fallbackPath }: BackButtonProps) {
       <span className="text-sm">Voltar para {parentLabel}</span>
     </Button>
   );
-}
+});
