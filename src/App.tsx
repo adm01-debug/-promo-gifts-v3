@@ -80,8 +80,6 @@ const SystemStatusPage = lazyWithRetry(() => import("./pages/SystemStatusPage"))
 const RateLimitDashboard = lazyWithRetry(() => import("./pages/RateLimitDashboardPage"));
 const ExternalDatabaseTest = lazyWithRetry(() => import("./pages/ExternalDatabaseTest"));
 
-// Security Pages
-const SecurityPage = lazyWithRetry(() => import("./pages/Security"));
 
 // Admin - Roles & Permissions
 const PermissionsPage = lazyWithRetry(() => import("./pages/PermissionsPage"));
