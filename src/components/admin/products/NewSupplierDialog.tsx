@@ -244,8 +244,6 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   maxLength={18}
                 />
                 {cnpjError && <p className="text-[10px] text-destructive mt-0.5">{cnpjError}</p>}
-                  maxLength={18}
-                />
               </div>
             </div>
           </TabsContent>
