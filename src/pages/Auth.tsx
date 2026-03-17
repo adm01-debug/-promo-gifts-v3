@@ -433,11 +433,12 @@ export default function Auth() {
                       </div>
                     </div>
 
+                    <SocialLoginButtons />
+
                     <PasskeyLogin
                       email={loginForm.watch("email")}
                       disabled={isSubmitting}
                       onSuccess={async (userId) => {
-                        // Sign in with custom token or redirect
                         toast({
                           title: "Autenticação biométrica",
                           description: "Autenticado com sucesso via passkey!",
