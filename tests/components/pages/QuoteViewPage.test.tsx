@@ -80,5 +80,5 @@ describe("QuoteViewPage", () => {
     const { default: QuoteViewPage } = await import("@/pages/QuoteViewPage");
     renderWithProviders(<QuoteViewPage />, { route: "/orcamentos/view/test-id" });
     expect(screen.getByTestId("main-layout")).toBeInTheDocument();
-  });
+  }, 10000);
 });

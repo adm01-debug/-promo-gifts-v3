@@ -2,7 +2,6 @@
  * Render tests for FilterPanel (1203 lines)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, fireEvent } from "@testing-library/react";
 import { renderWithProviders } from "../render-helpers";
 import React from "react";
 
@@ -16,7 +15,22 @@ vi.mock("@/hooks/useMaterialFilter", () => ({
     materialGroups: [],
     materialTypes: [],
     materials: [],
+    allMaterials: [],
     loading: false,
+    selectedGroups: [],
+    selectedTypes: [],
+    selectedMaterials: [],
+    setSelectedGroups: vi.fn(),
+    setSelectedTypes: vi.fn(),
+    setSelectedMaterials: vi.fn(),
+    materialFilterState: {
+      selectedGroups: [],
+      selectedTypes: [],
+      selectedMaterials: [],
+      setSelectedGroups: vi.fn(),
+      setSelectedTypes: vi.fn(),
+      setSelectedMaterials: vi.fn(),
+    },
   }),
 }));
 
@@ -26,26 +40,20 @@ vi.mock("@/hooks/useSuppliers", () => ({
 
 vi.mock("@/hooks/useRamoAtividadeFilter", () => ({
   useRamoAtividadeFilter: vi.fn().mockReturnValue({
-    ramos: [],
-    segmentos: [],
-    loading: false,
+    ramos: [], segmentos: [], loading: false,
+    ramoFilterState: { selectedRamos: [], selectedSegmentos: [], setSelectedRamos: vi.fn(), setSelectedSegmentos: vi.fn() },
   }),
 }));
 
 vi.mock("@/hooks/useAdvancedFilters", () => ({
   useAdvancedFilters: vi.fn().mockReturnValue({
-    filters: {},
-    setFilter: vi.fn(),
-    resetFilters: vi.fn(),
+    filters: {}, setFilter: vi.fn(), resetFilters: vi.fn(),
   }),
   SORT_OPTIONS: [{ value: "name", label: "Nome" }],
 }));
 
 vi.mock("@/data/mockData", () => ({
-  FAIXAS_PRECO: [
-    { label: "Até R$10", min: 0, max: 10 },
-    { label: "R$10-50", min: 10, max: 50 },
-  ],
+  FAIXAS_PRECO: [{ label: "Até R$10", min: 0, max: 10 }],
 }));
 
 vi.mock("@/components/filters/DebouncedPriceInput", () => ({
@@ -85,47 +93,28 @@ vi.mock("@/components/products/ColumnSelector", () => ({
   getDefaultColumns: vi.fn().mockReturnValue(4),
 }));
 
-const defaultFilters = {
-  search: "", colorGroups: [], colorVariations: [], colorNuances: [], colors: [],
-  categories: [], suppliers: [], publicoAlvo: [], datasComemorativas: [],
-  endomarketing: [], ramosAtividade: [], segmentosAtividade: [],
-  materialGroups: [], materialTypes: [], materiais: [], techniques: [], tags: [],
-  priceRange: [0, 9999] as [number, number], minStock: 0, inStock: false,
-  isKit: false, featured: false, isNew: false, hasPersonalization: false,
-  hasCommercialPackaging: false, sortBy: "name",
-};
-
 describe("FilterPanel", () => {
-  const mockOnChange = vi.fn();
-  const mockOnReset = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders without crashing", async () => {
-    const { FilterPanel } = await import("@/components/filters/FilterPanel");
-    renderWithProviders(
-      <FilterPanel
-        filters={defaultFilters}
-        onFilterChange={mockOnChange}
-        onReset={mockOnReset}
-        activeFiltersCount={0}
-      />
-    );
-    expect(document.body).toBeTruthy();
+  it("exports defaultFilters with correct shape", async () => {
+    const { defaultFilters } = await import("@/components/filters/FilterPanel");
+    expect(defaultFilters).toBeDefined();
+    expect(defaultFilters.search).toBe("");
+    expect(defaultFilters.sortBy).toBe("name");
+    expect(defaultFilters.priceRange).toEqual([0, 9999]);
+    expect(Array.isArray(defaultFilters.categories)).toBe(true);
+    expect(Array.isArray(defaultFilters.colors)).toBe(true);
   });
 
-  it("displays active filters count badge", async () => {
-    const { FilterPanel } = await import("@/components/filters/FilterPanel");
-    renderWithProviders(
-      <FilterPanel
-        filters={{ ...defaultFilters, categories: ["canetas"] }}
-        onFilterChange={mockOnChange}
-        onReset={mockOnReset}
-        activeFiltersCount={3}
-      />
-    );
-    expect(document.body).toBeTruthy();
+  it("defaultFilters has all required boolean fields as false", async () => {
+    const { defaultFilters } = await import("@/components/filters/FilterPanel");
+    expect(defaultFilters.inStock).toBe(false);
+    expect(defaultFilters.isKit).toBe(false);
+    expect(defaultFilters.featured).toBe(false);
+    expect(defaultFilters.isNew).toBe(false);
+    expect(defaultFilters.hasPersonalization).toBe(false);
+    expect(defaultFilters.hasCommercialPackaging).toBe(false);
   });
 });

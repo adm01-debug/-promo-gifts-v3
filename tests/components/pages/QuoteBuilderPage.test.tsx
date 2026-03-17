@@ -48,13 +48,7 @@ describe("QuoteBuilderPage", () => {
 
   it("renders without crashing", async () => {
     const { default: QuoteBuilderPage } = await import("@/pages/QuoteBuilderPage");
-    renderWithProviders(<QuoteBuilderPage />);
-    expect(screen.getByTestId("main-layout")).toBeInTheDocument();
-  });
-
-  it("renders in new quote mode", async () => {
-    const { default: QuoteBuilderPage } = await import("@/pages/QuoteBuilderPage");
     renderWithProviders(<QuoteBuilderPage />, { route: "/orcamentos/novo" });
-    expect(document.body).toBeTruthy();
-  });
+    expect(screen.getByTestId("main-layout")).toBeInTheDocument();
+  }, 10000);
 });

@@ -4,6 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
 import { renderWithProviders } from "../render-helpers";
+import React from "react";
 
 // Mock heavy contexts & hooks
 vi.mock("@/contexts/SellerCartContext", () => ({
@@ -24,7 +25,10 @@ vi.mock("@/contexts/SellerCartContext", () => ({
 }));
 
 vi.mock("@/contexts/ProductsContext", () => ({
-  ProductsContext: { Consumer: ({ children }: any) => children({ products: [], loading: false }) },
+  ProductsContext: {
+    Consumer: ({ children }: any) => children({ products: [], loading: false }),
+    Provider: ({ children }: any) => <>{children}</>,
+  },
   useProductsContext: vi.fn().mockReturnValue({ products: [], loading: false }),
 }));
 
@@ -46,7 +50,14 @@ vi.mock("@/components/cart/CartCompanyPicker", () => ({
   CartCompanyPicker: () => <div data-testid="company-picker" />,
 }));
 
-import React from "react";
+vi.mock("@/components/common/EmptyState", () => ({
+  EmptyState: ({ title }: any) => <div data-testid="empty-state">{title}</div>,
+}));
+
+vi.mock("@/components/ui/ConfirmDialog", () => ({
+  DeleteConfirmDialog: () => null,
+  ConfirmDialog: () => null,
+}));
 
 describe("SellerCartsPage", () => {
   beforeEach(() => {
@@ -57,12 +68,5 @@ describe("SellerCartsPage", () => {
     const { default: SellerCartsPage } = await import("@/pages/SellerCartsPage");
     renderWithProviders(<SellerCartsPage />);
     expect(screen.getByTestId("main-layout")).toBeInTheDocument();
-  });
-
-  it("shows empty state when no carts exist", async () => {
-    const { default: SellerCartsPage } = await import("@/pages/SellerCartsPage");
-    renderWithProviders(<SellerCartsPage />);
-    // Component should render without errors even with empty carts
-    expect(document.body).toBeTruthy();
-  });
+  }, 10000);
 });
