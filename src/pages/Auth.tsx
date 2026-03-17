@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { z } from "zod";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Sparkles, Mail, Lock, User, Package, Factory, SlidersHorizontal, Brain, ShieldAlert } from "lucide-react";
@@ -17,28 +17,10 @@ import { useIPValidation } from "@/hooks/useIPValidation";
 import { PasskeyLogin } from "@/components/auth/PasskeyLogin";
 import { supabase } from "@/integrations/supabase/client";
 
-const loginSchema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-});
+import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from "@/lib/validations";
 
-const signupSchema = z.object({
-  fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
-  password: z.string()
-    .min(8, "Senha deve ter pelo menos 8 caracteres")
-    .regex(/[A-Z]/, "Senha deve conter letra maiúscula")
-    .regex(/[a-z]/, "Senha deve conter letra minúscula")
-    .regex(/[0-9]/, "Senha deve conter número")
-    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Senha deve conter caractere especial"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Senhas não conferem",
-  path: ["confirmPassword"],
-});
-
-type LoginForm = z.infer<typeof loginSchema>;
-type SignupForm = z.infer<typeof signupSchema>;
+type LoginForm = LoginFormData;
+type SignupForm = SignupFormData;
 
 export default function Auth() {
   const navigate = useNavigate();
