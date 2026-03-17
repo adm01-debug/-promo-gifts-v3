@@ -20,8 +20,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { useProductsContext } from "@/contexts/ProductsContext";
-import { Product, ProductColor } from "@/hooks/useProducts";
+import { useProducts, Product, ProductColor } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useIsMobile } from "@/hooks/use-mobile";
