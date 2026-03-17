@@ -2,42 +2,30 @@
  * Render tests for GlobalSearchPalette (1059 lines)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderWithProviders } from "../render-helpers";
 import React from "react";
 
 vi.mock("@/hooks/useSearch", () => ({
   useSearch: vi.fn().mockReturnValue({
-    results: [],
-    loading: false,
-    search: vi.fn(),
-    clear: vi.fn(),
-    recentSearches: [],
+    results: [], loading: false, search: vi.fn(), clear: vi.fn(), recentSearches: [],
   }),
 }));
 
 vi.mock("@/hooks/useSpeechRecognition", () => ({
   useSpeechRecognition: vi.fn().mockReturnValue({
-    isListening: false, transcript: "", startListening: vi.fn(), stopListening: vi.fn(),
-    isSupported: false,
+    isListening: false, transcript: "", startListening: vi.fn(), stopListening: vi.fn(), isSupported: false,
   }),
 }));
 
 vi.mock("@/hooks/useVoiceCommandHistory", () => ({
-  useVoiceCommandHistory: vi.fn().mockReturnValue({
-    history: [], addCommand: vi.fn(), clearHistory: vi.fn(),
-  }),
+  useVoiceCommandHistory: vi.fn().mockReturnValue({ history: [], addCommand: vi.fn(), clearHistory: vi.fn() }),
 }));
 
 vi.mock("@/hooks/useContextualSuggestions", () => ({
-  useContextualSuggestions: vi.fn().mockReturnValue({
-    suggestions: [], loading: false,
-  }),
+  useContextualSuggestions: vi.fn().mockReturnValue({ suggestions: [], loading: false }),
 }));
 
 vi.mock("@/hooks/useVoiceFeedback", () => ({
-  useVoiceFeedback: vi.fn().mockReturnValue({
-    speak: vi.fn(), stop: vi.fn(), isSpeaking: false,
-  }),
+  useVoiceFeedback: vi.fn().mockReturnValue({ speak: vi.fn(), stop: vi.fn(), isSpeaking: false }),
 }));
 
 vi.mock("@/components/search/VoiceSearchOverlay", () => ({
@@ -49,7 +37,7 @@ describe("GlobalSearchPalette", () => {
     vi.clearAllMocks();
   });
 
-  it("module exports GlobalSearchPalette component", async () => {
+  it("exports GlobalSearchPalette component", async () => {
     const module = await import("@/components/search/GlobalSearchPalette");
     expect(module.GlobalSearchPalette).toBeDefined();
     expect(typeof module.GlobalSearchPalette).toBe("function");

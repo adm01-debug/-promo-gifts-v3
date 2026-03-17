@@ -1,5 +1,5 @@
 /**
- * Render tests for AdvancedPriceSearchPage (913 lines)
+ * Tests for AdvancedPriceSearchPage (913 lines)
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen } from "@testing-library/react";
@@ -24,6 +24,10 @@ vi.mock("@/hooks/useTecnicasUnificadas", () => ({
     data: null,
     loading: false,
   }),
+}));
+
+vi.mock("@/lib/external-db", () => ({
+  fetchPromobrindProducts: vi.fn().mockResolvedValue([]),
 }));
 
 describe("AdvancedPriceSearchPage", () => {

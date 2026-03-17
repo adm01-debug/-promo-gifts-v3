@@ -5,6 +5,7 @@ import React from "react";
 import { render, type RenderOptions } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { vi } from "vitest";
 
 // --- Supabase mock ---
@@ -102,7 +103,9 @@ export function renderWithProviders(
     return (
       <QueryClientProvider client={queryClient}>
         <MemoryRouter initialEntries={[route]}>
-          {children}
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
         </MemoryRouter>
       </QueryClientProvider>
     );
