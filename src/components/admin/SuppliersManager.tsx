@@ -181,6 +181,11 @@ export function SuppliersManager() {
         updated_at: now,
       };
 
+      // Só incluir logo_url se tiver valor (coluna pode não existir ainda no banco externo)
+      if (editingSupplier.logo_url) {
+        payload.logo_url = editingSupplier.logo_url;
+      }
+
       if (isNew) {
         payload.organization_id = ORGANIZATION_ID;
         payload.created_at = now;
