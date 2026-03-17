@@ -150,6 +150,8 @@ export function QuotesConfigurableList({
   quotes,
   onDelete,
   onBulkDelete,
+  onBulkStatusChange,
+  onBulkExport,
   onDuplicate,
 }: QuotesConfigurableListProps) {
   const navigate = useNavigate();
