@@ -1,0 +1,127 @@
+/**
+ * Product Mapper
+ * 
+ * Converts raw PromobrindProduct to the internal Product format.
+ */
+import type { Product } from '@/types/product';
+import type { PromobrindProduct } from '@/lib/external-db';
+import { getProductImageUrl, getProductPrice, getProductStock } from '@/lib/external-db';
+import { normalizeColors } from '@/utils/product-colors';
+
+function getStockStatus(stock: number): 'in-stock' | 'low-stock' | 'out-of-stock' {
+  if (stock <= 0) return 'out-of-stock';
+  if (stock < 10) return 'low-stock';
+  return 'in-stock';
+}
+
+function parseMaterials(materials: any): string[] {
+  if (!materials) return [];
+  if (Array.isArray(materials)) return materials.filter(Boolean);
+  if (typeof materials === 'string') {
+    return materials.split(/[,;|]/).map(m => m.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function parseTagList(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && !!v.trim());
+  if (typeof value === 'string') return value.split(/[,;|]/).map(v => v.trim()).filter(Boolean);
+  return [];
+}
+
+function normalizeMarketingTags(rawTags: unknown): Product['tags'] {
+  const tags = (rawTags && typeof rawTags === 'object') ? rawTags as Record<string, unknown> : {};
+  return {
+    publicoAlvo: parseTagList(tags.publicoAlvo ?? tags.publico_alvo),
+    datasComemorativas: parseTagList(tags.datasComemorativas ?? tags.datas_comemorativas),
+    endomarketing: parseTagList(tags.endomarketing),
+    ramo: parseTagList(tags.ramo ?? tags.ramosAtividade ?? tags.ramos_atividade),
+    nicho: parseTagList(tags.nicho ?? tags.segmentosAtividade ?? tags.segmentos_atividade),
+  };
+}
+
+/** Converte produto Promobrind para formato interno */
+export function mapPromobrindToProduct(p: PromobrindProduct): Product {
+  const imageUrl = getProductImageUrl(p);
+  const stock = getProductStock(p);
+  const colors = normalizeColors(p.colors);
+
+  // Extrair imagens
+  let images: string[] = [];
+  if (p.images && Array.isArray(p.images)) {
+    images = p.images.map((img: any) => {
+      if (typeof img === 'string') return img;
+      return img.url || img.src || img.image_url || '';
+    }).filter(Boolean);
+  }
+  if (images.length === 0 && imageUrl) images = [imageUrl];
+  if (images.length === 0) images = ['/placeholder.svg'];
+
+  // Mapear variações
+  const variations: any[] = [];
+  if (p.colors && Array.isArray(p.colors)) {
+    p.colors.forEach((c: any, index: number) => {
+      if (typeof c === 'object' && c.name) {
+        variations.push({
+          id: `${p.id}-${index}`,
+          sku: c.sku || p.sku,
+          color: { name: c.name, hex: c.hex || '#CCCCCC' },
+          stock: c.stock ?? 0,
+          image: c.image || null,
+          images: c.images || [],
+          videos: [],
+        });
+      }
+    });
+  }
+
+  return {
+    id: p.id,
+    name: p.name,
+    description: p.description || p.short_description || p.meta_description,
+    category_id: p.category_id || p.main_category_id,
+    category_name: p.category_name || null,
+    price: getProductPrice(p),
+    image_url: images[0],
+    og_image_url: p.og_image_url || undefined,
+    images,
+    sku: p.sku,
+    stock,
+    colors,
+    materials: parseMaterials(p.materials),
+    supplier_reference: p.supplier_reference,
+    brand: p.brand,
+    is_active: p.is_active || p.active,
+    minQuantity: p.min_quantity || 1,
+    stockStatus: getStockStatus(stock),
+    featured: Boolean(p.is_featured || p.is_bestseller),
+    newArrival: Boolean(p.is_new),
+    onSale: Boolean(p.is_on_sale),
+    isKit: Boolean(p.is_kit),
+    category: {
+      id: parseInt(p.category_id || p.main_category_id || "0") || 0,
+      name: p.category_name || "Sem categoria",
+    },
+    supplier: {
+      id: p.supplier_id || p.supplier_reference || p.brand || "unknown",
+      name: p.supplier_name || p.brand || "Fornecedor",
+    },
+    tags: normalizeMarketingTags(p.tags),
+    dimensions: {
+      height_cm: p.height_cm, width_cm: p.width_cm, length_cm: p.length_cm,
+      diameter_cm: p.diameter_cm, weight_g: p.weight_g, capacity_ml: p.capacity_ml,
+    },
+    packingType: p.packing_type,
+    packingClassification: p.packing_classification,
+    hasCommercialPackaging: p.has_commercial_packaging,
+    repackingType: p.repacking_type,
+    packagingContext: p.packaging_context as Product['packagingContext'],
+    boxImage: p.box_image,
+    boxWidthMm: p.box_width_mm, boxHeightMm: p.box_height_mm,
+    boxLengthMm: p.box_length_mm, boxWeightKg: p.box_weight_kg,
+    boxQuantity: p.box_quantity, boxVolumeCm3: p.box_volume_cm3,
+    variations: variations.length > 0 ? variations : undefined,
+    productVideos: p.product_videos?.length ? p.product_videos : undefined,
+  };
+}
