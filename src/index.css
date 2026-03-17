@@ -761,6 +761,14 @@ html[data-scroll-locked] body {
     border-color: hsl(var(--glass-border));
   }
 
+  /* Fusion-style glass with warm edge glow */
+  .dark .glass {
+    box-shadow: 0 0 1px hsl(25 60% 40% / 0.1), inset 0 1px 0 hsl(210 40% 98% / 0.03);
+  }
+  .dark .glass-strong {
+    box-shadow: 0 0 1px hsl(25 60% 40% / 0.15), inset 0 1px 0 hsl(210 40% 98% / 0.05);
+  }
+
   /* Gradient Text */
   .text-gradient {
     @apply bg-clip-text text-transparent;
