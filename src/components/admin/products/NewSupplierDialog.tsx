@@ -133,7 +133,6 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     }
     setCnpjError('');
     setSaving(true);
-    setSaving(true);
     try {
       const { invokeExternalDbSingle } = await import('@/lib/external-db');
       const now = new Date().toISOString();
