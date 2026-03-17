@@ -57,7 +57,7 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
   contact_name: '', contact_person: '', email: '', phone: '', address: '', website: '',
   default_markup_percent: null, min_order_value: null, delivery_time_days: null,
   payment_terms: '', shipping_terms: '', priority: 50, notes: '',
-  is_product_supplier: true, is_engraving_supplier: false, active: true,
+  is_product_supplier: true, is_engraving_supplier: false, active: true, logo_url: null,
 };
 
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
