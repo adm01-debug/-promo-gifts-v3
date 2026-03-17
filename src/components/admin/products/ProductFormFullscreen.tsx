@@ -392,6 +392,31 @@ export function ProductFormFullscreen({
         {/* ====== MAIN CONTENT ====== */}
         <div id="product-form-content" className="flex-1 min-w-0 space-y-5 pb-24">
 
+          {/* === FORNECEDOR — FIXO NO TOPO === */}
+          <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden">
+            <div className="p-4">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Truck className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Fornecedor</h3>
+                  <p className="text-[11px] text-muted-foreground">Selecione ou cadastre o fornecedor do produto</p>
+                </div>
+              </div>
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <SupplierSelect
+                    value={supplierId || ''}
+                    onChange={(id) => setValue('supplier_id', id)}
+                    error={errors.supplier_id?.message}
+                  />
+                </div>
+                <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
+              </div>
+            </div>
+          </Card>
+
           {/* === INFORMAÇÕES BÁSICAS === */}
           <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
