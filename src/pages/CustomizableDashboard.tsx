@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { UpcomingDatesWidget } from '@/components/dashboard/UpcomingDatesWidget';
+import { QuickActionsPanel } from '@/components/dashboard/QuickActionsPanel';
 
 interface DashboardWidget {
   id: string;
@@ -95,7 +96,10 @@ export function CustomizableDashboard() {
           </div>
         </div>
 
-        {/* Widget de Próximas Datas Comemorativas - Fixo no topo */}
+        {/* Quick Actions & Metrics — Sempre no topo */}
+        <QuickActionsPanel />
+
+        {/* Widget de Próximas Datas Comemorativas */}
         <UpcomingDatesWidget variant="compact" daysAhead={60} maxItems={6} />
 
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
