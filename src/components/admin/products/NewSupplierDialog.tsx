@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2 } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 function maskCnpj(value: string): string {
   const digits = value.replace(/\D/g, '').slice(0, 14);
@@ -59,6 +60,9 @@ const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
 export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Basic
   const [name, setName] = useState('');
@@ -94,6 +98,29 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setIsProductSupplier(true); setIsEngravingSupplier(false);
+    setLogoUrl('');
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Selecione uma imagem'); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error('Máximo 2MB'); return; }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
+      const filePath = `suppliers/new-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('supplier-logos').upload(filePath, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('supplier-logos').getPublicUrl(filePath);
+      setLogoUrl(urlData.publicUrl);
+      toast.success('Logo enviada');
+    } catch (err: any) {
+      toast.error(err.message || 'Erro ao enviar logo');
+    } finally {
+      setUploadingLogo(false);
+      if (logoInputRef.current) logoInputRef.current.value = '';
+    }
   };
 
   const handleCreate = async () => {
@@ -135,6 +162,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         notes: notes.trim() || null,
         is_product_supplier: isProductSupplier,
         is_engraving_supplier: isEngravingSupplier,
+        logo_url: logoUrl || null,
         created_at: now,
         updated_at: now,
       };
@@ -198,30 +226,64 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
           {/* DADOS BÁSICOS */}
           <TabsContent value="basic" className="space-y-4 pt-3">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs font-semibold">
-                  Nome do Fornecedor <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Asia Import"
-                  className={fieldClass}
-                  autoFocus
-                />
+            {/* Logo Upload */}
+            <div className="flex items-center gap-4">
+              <div className="relative shrink-0">
+                {logoUrl ? (
+                  <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
+                    <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                    <button
+                      type="button"
+                      onClick={() => setLogoUrl('')}
+                      className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    disabled={uploadingLogo}
+                    className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {uploadingLogo ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <>
+                        <ImagePlus className="h-5 w-5" />
+                        <span className="text-[10px]">Logo</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               </div>
-              <div>
-                <Label className="text-xs font-semibold">
-                  Código <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Auto-gerado do nome"
-                  className={`${fieldClass} font-mono uppercase`}
-                />
-                <p className="text-[10px] text-muted-foreground mt-0.5">Deixe vazio para gerar automaticamente</p>
+              <div className="flex-1 grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs font-semibold">
+                    Nome do Fornecedor <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ex: Asia Import"
+                    className={fieldClass}
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">
+                    Código <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="Auto-gerado do nome"
+                    className={`${fieldClass} font-mono uppercase`}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Deixe vazio para gerar automaticamente</p>
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
