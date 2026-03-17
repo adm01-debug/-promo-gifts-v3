@@ -7,6 +7,7 @@ import React from "react";
 vi.mock("@/contexts/ThemeContext", () => ({
   useTheme: vi.fn().mockReturnValue({
     theme: "light",
+    actualTheme: "light",
     setTheme: vi.fn(),
     toggleTheme: vi.fn(),
   }),
@@ -20,7 +21,7 @@ describe("GlobalCommandBar", () => {
   it("exports GlobalCommandBar component", async () => {
     const mod = await import("@/components/command/GlobalCommandBar");
     expect(mod.GlobalCommandBar).toBeDefined();
-    expect(typeof mod.GlobalCommandBar).toBe("function");
+    expect(typeof mod.GlobalCommandBar).toBe("object");
   });
 
   it("exports useCommandBar hook", async () => {
