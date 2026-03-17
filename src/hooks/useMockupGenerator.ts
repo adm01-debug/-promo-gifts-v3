@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeWithRetry, extractFunctionErrorMessage } from "@/lib/external-db/invoke";
 import { toast } from "sonner";
 import { needsConversion, ensureSupportedFormat } from "@/lib/image-converter";
 import { useAuth } from "@/contexts/AuthContext";
@@ -313,15 +314,22 @@ export function useMockupGenerator() {
 
   const fetchData = async () => {
     try {
-      const techniquesRes = await supabase.functions.invoke("external-db-bridge", {
-        body: {
-          table: "tabela_preco_gravacao_oficial",
-          operation: "select",
-          filters: { ativo: true },
-          limit: 100,
-        },
+      const { data: techniquesRes, error: techniquesErr } = await invokeWithRetry({
+        table: "tabela_preco_gravacao_oficial",
+        operation: "select",
+        filters: { ativo: true },
+        limit: 100,
+        countMode: "none",
       });
-      const records = techniquesRes.data?.data?.records || techniquesRes.data?.records || [];
+
+      if (techniquesErr) {
+        const msg = await extractFunctionErrorMessage(techniquesErr);
+        console.error("Error fetching techniques:", msg);
+        toast.error("Erro ao carregar técnicas. Tente recarregar a página.");
+        return;
+      }
+
+      const records = techniquesRes?.data?.records || techniquesRes?.records || [];
       const techniquesData = records.map((r: any) => ({
         id: r.id,
         name: r.nome,
@@ -331,7 +339,7 @@ export function useMockupGenerator() {
       setTechniques(techniquesData);
     } catch (error) {
       console.error("Error fetching data:", error);
-      toast.error("Erro ao carregar dados");
+      toast.error("Erro ao carregar dados. Tente novamente.");
     } finally {
       setIsLoadingData(false);
     }
