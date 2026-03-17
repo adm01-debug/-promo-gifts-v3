@@ -1,6 +1,6 @@
 /**
  * ProductFormFullscreen — Formulário full-screen com sidebar de navegação vertical
- * Layout de 2 colunas: sidebar de seções à esquerda + conteúdo à direita
+ * Layout de 3 colunas: sidebar de seções à esquerda + conteúdo no centro + preview à direita
  */
 
 import { useForm } from 'react-hook-form';
