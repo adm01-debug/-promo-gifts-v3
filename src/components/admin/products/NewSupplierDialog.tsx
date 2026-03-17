@@ -60,6 +60,9 @@ const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
 export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   // Basic
   const [name, setName] = useState('');
