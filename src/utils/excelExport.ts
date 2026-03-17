@@ -1,7 +1,8 @@
 // src/utils/excelExport.ts
 
-import * as XLSX from 'xlsx';
 import { formatDate, formatDateTime } from '@/lib/date-utils';
+
+const getXLSX = () => import('xlsx');
 
 /**
  * Configuração de exportação Excel

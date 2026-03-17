@@ -3,8 +3,8 @@
  * Usa jsPDF + jspdf-autotable para gerar um documento A4 profissional
  */
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+const getJsPDF = () => import('jspdf').then(m => m.default);
+const getAutoTable = () => import('jspdf-autotable').then(m => m.default);
 import type { ProductFormData } from '@/components/admin/products/ProductFormSchema';
 
 interface ProductPdfOptions {

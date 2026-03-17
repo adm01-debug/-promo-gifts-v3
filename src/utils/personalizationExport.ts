@@ -1,6 +1,6 @@
-import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+const getXLSX = () => import("xlsx");
+const getJsPDF = () => import("jspdf").then(m => m.jsPDF);
+const getAutoTable = () => import("jspdf-autotable").then(m => m.default);
 
 interface TechniqueInfo {
   id: string;

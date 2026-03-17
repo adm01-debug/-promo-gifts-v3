@@ -5,8 +5,8 @@
  * captures each page with html2canvas, and outputs as PDF.
  */
 
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+const getJsPDF = () => import("jspdf").then(m => m.jsPDF);
+const getHtml2Canvas = () => import("html2canvas").then(m => m.default);
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
