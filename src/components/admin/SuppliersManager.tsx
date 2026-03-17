@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { invokeExternalDb, invokeExternalDbSingle } from '@/lib/external-db';
+import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -189,11 +189,7 @@ export function SuppliersManager() {
     if (!confirm(`Deseja realmente excluir o fornecedor "${supplier.name}"?`)) return;
     setDeleting(supplier.id);
     try {
-      await invokeExternalDbSingle({
-        table: 'suppliers',
-        operation: 'delete',
-        id: supplier.id,
-      });
+      await invokeExternalDbDelete('suppliers', supplier.id);
       toast.success(`Fornecedor "${supplier.name}" excluído`);
       fetchSuppliers();
     } catch (err: any) {
