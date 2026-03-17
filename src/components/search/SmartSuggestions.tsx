@@ -250,9 +250,9 @@ export function InlineSuggestions({ query, onSelect, className }: InlineSuggesti
   return (
     <div className={cn("py-1 border-b border-border", className)}>
       <div className="flex flex-wrap gap-1.5 px-4">
-        {suggestions.map((suggestion, index) => (
+        {suggestions.map((suggestion) => (
           <button
-            key={index}
+            key={suggestion}
             onClick={() => onSelect(suggestion)}
             className={cn(
               "px-3 py-1 text-sm rounded-full",
