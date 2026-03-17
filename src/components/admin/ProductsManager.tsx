@@ -226,13 +226,10 @@ export function ProductsManager() {
   const [pageSize, setPageSize] = useState<number>(50);
   const [totalCount, setTotalCount] = useState<number | null>(null);
   
-  // Dialog states
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  // Dialog states (only delete + import remain)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<"form" | "history">("form");
   
   const { logAction, getChangedFields } = useAuditLog();
   const totalPages = totalCount ? Math.ceil(totalCount / pageSize) : 1;
