@@ -214,6 +214,7 @@ function productToFormData(p: Product): Partial<ProductFormData> {
 }
 
 export function ProductsManager() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
