@@ -141,7 +141,7 @@ export function ProductVariations({
               <div className="flex items-center gap-1">
                 <Package className="h-3 w-3 text-muted-foreground" />
                 <span className={cn("text-xs font-medium", stockStatus.color)}>
-                  {variation.stock.toLocaleString("pt-BR")} un.
+                  {Math.max(0, variation.stock).toLocaleString("pt-BR")} un.
                 </span>
               </div>
             </button>
