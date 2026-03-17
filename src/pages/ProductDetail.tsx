@@ -34,7 +34,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
-import { useProduct, type Product } from "@/hooks/useProducts";
+import { useProduct, useRelatedProducts, type Product } from "@/hooks/useProducts";
 import { sortVariationsByColor } from "@/utils/colorSorting";
 
 type ProductVariation = any;
@@ -48,7 +48,7 @@ import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
 import { useProductsContext } from "@/contexts/ProductsContext";
-import { useProducts } from "@/hooks/useProducts";
+// useProducts removed - using useRelatedProducts instead
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -68,17 +68,13 @@ export default function ProductDetail() {
   // Buscar produto no banco (mesma fonte da vitrine)
   const { data: product, isLoading } = useProduct(id || "");
   
-  // Fetch products in same category for Related/Recommended sections (lazy, not all 6000+)
-  const categoryName = product?.category?.name;
-  const { data: categoryProducts = [] } = useProducts(
-    categoryName ? { category: categoryName } : undefined,
-    { enabled: !!categoryName, staleTime: 10 * 60 * 1000 }
-  );
+  // Fetch related products (same supplier or category) — lightweight, limited query
+  const { data: relatedProductsList = [] } = useRelatedProducts(product, 20);
 
-  // Register category products into lazy cache
+  // Register related products into lazy cache
   useEffect(() => {
-    if (categoryProducts.length > 0) registerProducts(categoryProducts);
-  }, [categoryProducts, registerProducts]);
+    if (relatedProductsList.length > 0) registerProducts(relatedProductsList);
+  }, [relatedProductsList, registerProducts]);
 
   // Track product view and add to recently viewed
   useEffect(() => {
@@ -507,13 +503,13 @@ export default function ProductDetail() {
         <div className="space-y-12 pt-8 border-t border-border">
           <RelatedProducts 
             currentProduct={product} 
-            allProducts={categoryProducts} 
+            allProducts={relatedProductsList} 
             maxItems={4} 
           />
           
           <RecommendedProducts 
             currentProduct={product} 
-            allProducts={categoryProducts} 
+            allProducts={relatedProductsList} 
             maxItems={4} 
           />
         </div>

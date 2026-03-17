@@ -497,3 +497,41 @@ export function useProduct(id: string) {
     enabled: !!id,
   });
 }
+
+/**
+ * Hook leve para buscar produtos relacionados (mesmo fornecedor ou mesma categoria).
+ * Usa limit no servidor para não carregar 6000+ produtos.
+ */
+export function useRelatedProducts(product: Product | null | undefined, limit = 20) {
+  const supplierId = product?.supplier?.id;
+  const categoryId = product?.category_id;
+  const productId = product?.id;
+
+  return useQuery<Product[]>({
+    queryKey: ['related-products', productId, supplierId, categoryId],
+    queryFn: async () => {
+      // Strategy 1: Same supplier
+      const filters: Record<string, unknown> = {};
+      if (supplierId && supplierId !== 'unknown') {
+        filters.supplier_id = supplierId;
+      } else if (categoryId) {
+        filters.main_category_id = categoryId;
+      }
+
+      const raw = await fetchPromobrindProducts({
+        filters: Object.keys(filters).length > 0 ? filters : undefined,
+        limit: limit + 1, // fetch one extra to exclude current
+        orderBy: { column: 'name', ascending: true },
+      });
+
+      return raw
+        .map(mapPromobrindToProduct)
+        .filter(p => p.id !== productId)
+        .slice(0, limit);
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    enabled: !!product,
+  });
+}
