@@ -12,7 +12,7 @@ import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductB
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
 import { type ProductFormData, defaultFormValues } from '@/components/admin/products/ProductFormSchema';
-import { Loader2, ArrowLeft, History, Pencil, Home } from 'lucide-react';
+import { Loader2, ArrowLeft, History, Pencil, Home, Copy } from 'lucide-react';
 import { DynamicBreadcrumbs } from '@/components/navigation/DynamicBreadcrumbs';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -23,9 +23,25 @@ export default function AdminProductFormPage() {
   const isEdit = !!id && id !== 'novo';
 
   const [product, setProduct] = useState<any>(null);
+  const [duplicateProduct, setDuplicateProduct] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(isEdit);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'form' | 'history'>('form');
+
+  // Load duplicate data from sessionStorage for new products
+  useEffect(() => {
+    if (!isEdit) {
+      const stored = sessionStorage.getItem('duplicate_product');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setDuplicateProduct(parsed);
+          toast.info(`Duplicando produto: ${parsed.name}. Altere o SKU antes de salvar.`);
+        } catch { /* ignore */ }
+        sessionStorage.removeItem('duplicate_product');
+      }
+    }
+  }, [isEdit]);
 
   const { logAction, getChangedFields } = useAuditLog();
 
@@ -327,6 +343,24 @@ export default function AdminProductFormPage() {
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            {isEdit && product && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  // Store product data for duplication in sessionStorage
+                  const dupeData = { ...product, sku: `${product.sku}-COPIA` };
+                  sessionStorage.setItem('duplicate_product', JSON.stringify(dupeData));
+                  navigate('/admin/cadastros/produto/novo');
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" />
+                Duplicar
+              </Button>
+            )}
+
           {isEdit && (
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'history')}>
               <TabsList className="h-9">
@@ -341,13 +375,14 @@ export default function AdminProductFormPage() {
               </TabsList>
             </Tabs>
           )}
+          </div>
         </div>
 
         {/* Content */}
         {activeTab === 'form' ? (
           <ProductFormFullscreen
-            initialData={isEdit && product ? productToFormData(product) : undefined}
-            productImages={isEdit && product ? getProductImages(product) : []}
+            initialData={isEdit && product ? productToFormData(product) : duplicateProduct ? productToFormData(duplicateProduct) : undefined}
+            productImages={isEdit && product ? getProductImages(product) : duplicateProduct ? getProductImages(duplicateProduct) : []}
             productId={isEdit ? id : undefined}
             onSubmit={handleFormSubmit}
             onCancel={() => navigate('/admin/cadastros')}
