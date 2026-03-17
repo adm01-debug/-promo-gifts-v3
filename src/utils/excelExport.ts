@@ -132,7 +132,7 @@ export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
 /**
  * Exporta múltiplas planilhas em um único arquivo
  */
-export function exportMultipleSheets(
+export async function exportMultipleSheets(
   filename: string,
   sheets: Array<{
     sheetName: string;
@@ -140,9 +140,9 @@ export function exportMultipleSheets(
     data: any[];
   }>,
   includeTimestamp = true
-): void {
+): Promise<void> {
   try {
-    const workbook = XLSX.utils.book_new();
+    const XLSX = await getXLSX();
 
     sheets.forEach(({ sheetName, columns, data }) => {
       // Formatar dados
