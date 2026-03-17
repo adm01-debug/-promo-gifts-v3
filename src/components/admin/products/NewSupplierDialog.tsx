@@ -162,6 +162,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         notes: notes.trim() || null,
         is_product_supplier: isProductSupplier,
         is_engraving_supplier: isEngravingSupplier,
+        logo_url: logoUrl || null,
         created_at: now,
         updated_at: now,
       };
