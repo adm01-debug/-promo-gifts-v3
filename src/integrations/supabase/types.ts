@@ -1063,6 +1063,31 @@ export type Database = {
         Args: { _name: string; _slug: string }
         Returns: string
       }
+      get_quote_token_by_value: {
+        Args: { _token: string }
+        Returns: {
+          client_email: string | null
+          client_name: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          quote_id: string
+          responded_at: string | null
+          response: string | null
+          response_notes: string | null
+          seller_id: string
+          status: string
+          token: string
+          updated_at: string
+          viewed_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "quote_approval_tokens"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_unread_count: { Args: never; Returns: number }
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
       has_org_role: {
@@ -1091,6 +1116,10 @@ export type Database = {
       mark_notification_read: {
         Args: { p_notification_id: string }
         Returns: undefined
+      }
+      submit_quote_response: {
+        Args: { _response: string; _response_notes?: string; _token: string }
+        Returns: boolean
       }
     }
     Enums: {
