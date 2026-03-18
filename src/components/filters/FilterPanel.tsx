@@ -866,7 +866,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         )}
       </div>
     ),
-    "ramos-atividade": (
+    "ramos-atividade": () => (
       <div className="space-y-3">
         {(filters.ramosAtividade.length > 0 || filters.segmentosAtividade.length > 0) && (
           <div className="p-2.5 bg-orange/5 rounded-lg border border-orange/20">
