@@ -709,7 +709,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         )}
       </div>
     ),
-    publico: publicoAlvoOptions.length > 0 ? (
+    publico: () => publicoAlvoOptions.length > 0 ? (
       <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
         {publicoAlvoOptions.map((publico) => (
           <div key={publico} className="flex items-center gap-2">
