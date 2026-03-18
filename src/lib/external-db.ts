@@ -125,13 +125,31 @@ interface BatchResult {
 /**
  * Executa múltiplas queries SELECT em uma única invocação da edge function.
  * Elimina overhead de auth/conexão duplicada e aproveita cache server-side.
+ * Automaticamente divide em sub-batches de no máximo 10 queries para respeitar
+ * o limite do edge function.
  */
+const BATCH_MAX_QUERIES = 10;
+
 export async function invokeBatchBridge(queries: BatchQuery[]): Promise<BatchResult[]> {
-  const response = await invokeBridge<{ results: BatchResult[] }>({
-    operation: 'batch',
-    queries,
-  });
-  return response.data.results;
+  if (queries.length <= BATCH_MAX_QUERIES) {
+    const response = await invokeBridge<{ results: BatchResult[] }>({
+      operation: 'batch',
+      queries,
+    });
+    return response.data.results;
+  }
+
+  // Split into sub-batches of max 10
+  const results: BatchResult[] = [];
+  for (let i = 0; i < queries.length; i += BATCH_MAX_QUERIES) {
+    const chunk = queries.slice(i, i + BATCH_MAX_QUERIES);
+    const response = await invokeBridge<{ results: BatchResult[] }>({
+      operation: 'batch',
+      queries: chunk,
+    });
+    results.push(...response.data.results);
+  }
+  return results;
 }
 
 /**
