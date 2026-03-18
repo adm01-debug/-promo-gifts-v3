@@ -764,19 +764,43 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       />
     ),
     endomarketing: () => endomarketingOptions.length > 0 ? (
-      <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
-        {endomarketingOptions.map((endo) => (
-          <div key={endo} className="flex items-center gap-2">
-            <Checkbox
-              id={`endo-${endo}`}
-              checked={filters.endomarketing.includes(endo)}
-              onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
+      <div className="space-y-2">
+        {endomarketingOptions.length > 5 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar endomarketing..."
+              value={endoSearch}
+              onChange={(e) => setEndoSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar endomarketing"
             />
-            <Label htmlFor={`endo-${endo}`} className="text-sm cursor-pointer">
-              {toTitleCase(endo)}
-            </Label>
+            {endoSearch && (
+              <button type="button" onClick={() => setEndoSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
-        ))}
+        )}
+        <div className="max-h-48 overflow-y-auto scrollbar-thin">
+          {endomarketingOptions
+            .filter(e => !endoSearch || e.toLowerCase().includes(endoSearch.toLowerCase()))
+            .map((endo) => (
+            <div key={endo} className="flex items-center gap-2 py-0.5">
+              <Checkbox
+                id={`endo-${endo}`}
+                checked={filters.endomarketing.includes(endo)}
+                onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
+              />
+              <Label htmlFor={`endo-${endo}`} className="text-sm cursor-pointer">
+                {toTitleCase(endo)}
+              </Label>
+            </div>
+          ))}
+          {endomarketingOptions.filter(e => !endoSearch || e.toLowerCase().includes(endoSearch.toLowerCase())).length === 0 && (
+            <p className="text-xs text-muted-foreground py-2 text-center">Nenhuma opção encontrada</p>
+          )}
+        </div>
       </div>
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
