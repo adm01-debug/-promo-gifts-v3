@@ -1024,22 +1024,46 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       </div>
     ),
     tecnicas: () => techniqueOptions.length > 0 ? (
-      <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
-        <div className="space-y-2">
-          {techniqueOptions.map(tech => (
-            <div key={tech.id} className="flex items-center gap-2">
-              <Checkbox id={`tech-${tech.id}`} checked={(filters.techniques || []).includes(tech.id)} onCheckedChange={() => toggleArrayFilter('techniques', tech.id)} />
-              <Label htmlFor={`tech-${tech.id}`} className="text-sm cursor-pointer flex-1 flex items-center justify-between">
-                <span>{tech.name}</span>
-                {tech.estimatedDays && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {tech.estimatedDays}d
-                  </span>
-                )}
-              </Label>
-            </div>
-          ))}
+      <div className="space-y-2">
+        {techniqueOptions.length > 5 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar técnica..."
+              value={techniqueSearch}
+              onChange={(e) => setTechniqueSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar técnica de gravação"
+            />
+            {techniqueSearch && (
+              <button type="button" onClick={() => setTechniqueSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        )}
+        <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
+          <div className="space-y-2">
+            {techniqueOptions
+              .filter(t => !techniqueSearch || t.name.toLowerCase().includes(techniqueSearch.toLowerCase()))
+              .map(tech => (
+              <div key={tech.id} className="flex items-center gap-2">
+                <Checkbox id={`tech-${tech.id}`} checked={(filters.techniques || []).includes(tech.id)} onCheckedChange={() => toggleArrayFilter('techniques', tech.id)} />
+                <Label htmlFor={`tech-${tech.id}`} className="text-sm cursor-pointer flex-1 flex items-center justify-between">
+                  <span>{tech.name}</span>
+                  {tech.estimatedDays && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {tech.estimatedDays}d
+                    </span>
+                  )}
+                </Label>
+              </div>
+            ))}
+            {techniqueOptions.filter(t => !techniqueSearch || t.name.toLowerCase().includes(techniqueSearch.toLowerCase())).length === 0 && (
+              <p className="text-xs text-muted-foreground py-2 text-center">Nenhuma técnica encontrada</p>
+            )}
+          </div>
         </div>
       </div>
     ) : null,
