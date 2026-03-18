@@ -556,7 +556,8 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   };
 
   // Helper: renderiza uma FilterSection com config automática
-  const renderSection = (id: string, children: React.ReactNode) => {
+  // Performance: usa renderFn (callback) para lazy-render do conteúdo apenas quando aberto
+  const renderSection = (id: string, renderContent: () => React.ReactNode) => {
     const config = SECTION_CONFIG[id];
     if (!config) return null;
     if (!sectionMatchesSearch(id, config.title)) return null;
@@ -572,7 +573,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         activeCount={sectionCounts[id]}
         activeSummary={sectionSummaries[id]}
       >
-        {children}
+        {openSections.includes(id) && renderContent()}
       </FilterSection>
     );
   };
