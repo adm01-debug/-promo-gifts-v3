@@ -73,13 +73,9 @@ describe("kit-builder price-calculator", () => {
     });
 
     it("sums box and item personalization prices", () => {
-      // box: 3 * 5 = 15, item-1: 1.5 * 2 = 3 (quantity from item)
-      expect(calculatePersonalizationPrice(fullPersonalization, mockItems, 5)).toBe(30);
-      // box: 3*5=15, item-1: 1.5*2*1... wait let me re-read
-      // Actually: box = 3 * quantity(5) = 15
-      // item-1: 1.5 * item.quantity(2) = 3... but quantity param is kitQuantity
-      // Looking at code: estimatedPrice * item.quantity (not kitQuantity for items)
-      // So: 15 + 3 = 18... let me re-check the code
+      // box: 3 * 5 = 15, item-1: 1.5 * item.quantity(2) = 3
+      // Total = 15 + 3 = 18
+      expect(calculatePersonalizationPrice(fullPersonalization, mockItems, 5)).toBe(18);
     });
   });
 
