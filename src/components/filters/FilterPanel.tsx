@@ -624,7 +624,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ),
-    preco: (
+    preco: () => (
       <div className="px-1">
         <div className="flex items-center gap-2 text-sm">
           <div className="flex items-center gap-1 flex-1">
