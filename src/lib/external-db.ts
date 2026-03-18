@@ -460,14 +460,14 @@ export async function fetchPromobrindProducts(options?: {
     const productIds = products.map(p => p.id);
     const uniqueSupplierIds = [...new Set(products.map(p => p.supplier_id).filter(Boolean))] as string[];
 
-    const shouldRunHeavyEnrichment = products.length <= 1200 || typeof options?.limit === 'number';
+    const shouldRunHeavyEnrichment = products.length <= 500 || typeof options?.limit === 'number';
 
     if (!shouldRunHeavyEnrichment) {
       console.info(`[external-db] Skipping heavy enrichment for ${products.length} products to prevent timeouts`);
     }
 
-    // CHUNK product IDs for variant/image queries (max 200 per query)
-    const CHUNK_SIZE = 200;
+    // CHUNK product IDs for variant/image queries (max 80 per query to avoid statement timeout)
+    const CHUNK_SIZE = 80;
     const idChunks: string[][] = [];
     for (let i = 0; i < productIds.length; i += CHUNK_SIZE) {
       idChunks.push(productIds.slice(i, i + CHUNK_SIZE));
