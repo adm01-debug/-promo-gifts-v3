@@ -311,10 +311,10 @@ function FilterSection({
           </div>
         </CollapsibleTrigger>
 
-        {/* Melhoria #6: Conteúdo com animação suave */}
+        {/* Melhoria #6: Conteúdo com animação suave + Performance: lazy render */}
         <CollapsibleContent className="overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
           <div className="pb-3 px-3 space-y-2">
-            {children}
+            {isOpen && children}
           </div>
         </CollapsibleContent>
       </div>
@@ -556,7 +556,8 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   };
 
   // Helper: renderiza uma FilterSection com config automática
-  const renderSection = (id: string, children: React.ReactNode) => {
+  // Performance: usa renderFn (callback) para lazy-render do conteúdo apenas quando aberto
+  const renderSection = (id: string, renderContent: () => React.ReactNode) => {
     const config = SECTION_CONFIG[id];
     if (!config) return null;
     if (!sectionMatchesSearch(id, config.title)) return null;
@@ -572,14 +573,14 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         activeCount={sectionCounts[id]}
         activeSummary={sectionSummaries[id]}
       >
-        {children}
+        {openSections.includes(id) && renderContent()}
       </FilterSection>
     );
   };
 
-  // Conteúdo por seção
-  const sectionContent: Record<string, React.ReactNode> = {
-    cores: (
+  // Performance: seções como funções para lazy-render (só executam quando a seção está aberta)
+  const sectionRenderers: Record<string, () => React.ReactNode> = {
+    cores: () => (
       <InlineColorGroupFilter
         selection={{
           groups: filters.colorGroups,
@@ -598,7 +599,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         showVariations={true}
       />
     ),
-    categorias: (
+    categorias: () => (
       <ExternalCategoryFilter
         selectedCategories={filters.categories}
         onCategoriesChange={(categories) => 
@@ -607,7 +608,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         compact
       />
     ),
-    estoque: (
+    estoque: () => (
       <div className="px-1">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground text-xs whitespace-nowrap">Mínimo por cor</span>
@@ -623,7 +624,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ),
-    preco: (
+    preco: () => (
       <div className="px-1">
         <div className="flex items-center gap-2 text-sm">
           <div className="flex items-center gap-1 flex-1">
@@ -651,7 +652,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ),
-    fornecedores: (
+    fornecedores: () => (
       <div className="space-y-2">
         {!suppliersLoading && supplierOptions.length > 0 && (
           <div className="relative">
@@ -708,7 +709,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         )}
       </div>
     ),
-    publico: publicoAlvoOptions.length > 0 ? (
+    publico: () => publicoAlvoOptions.length > 0 ? (
       <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
         {publicoAlvoOptions.map((publico) => (
           <div key={publico} className="flex items-center gap-2">
@@ -726,7 +727,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
     ),
-    "datas-comemorativas": (
+    "datas-comemorativas": () => (
       <CommemorativeDateFilter
         selectedDates={filters.datasComemorativas}
         onToggleDate={(slug) => toggleArrayFilter('datasComemorativas', slug)}
@@ -734,7 +735,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         compact
       />
     ),
-    endomarketing: endomarketingOptions.length > 0 ? (
+    endomarketing: () => endomarketingOptions.length > 0 ? (
       <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
         {endomarketingOptions.map((endo) => (
           <div key={endo} className="flex items-center gap-2">
@@ -752,7 +753,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
     ),
-    materiais: (
+    materiais: () => (
       <div className="space-y-3">
         {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
           <div className="p-2.5 bg-orange/5 rounded-lg border border-orange/20">
@@ -865,7 +866,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         )}
       </div>
     ),
-    "ramos-atividade": (
+    "ramos-atividade": () => (
       <div className="space-y-3">
         {(filters.ramosAtividade.length > 0 || filters.segmentosAtividade.length > 0) && (
           <div className="p-2.5 bg-orange/5 rounded-lg border border-orange/20">
@@ -970,7 +971,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         )}
       </div>
     ),
-    tecnicas: techniqueOptions.length > 0 ? (
+    tecnicas: () => techniqueOptions.length > 0 ? (
       <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
         <div className="space-y-2">
           {techniqueOptions.map(tech => (
@@ -990,7 +991,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ) : null,
-    tags: tagOptions.length > 0 ? (
+    tags: () => tagOptions.length > 0 ? (
       <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
         {tagOptions.slice(0, 20).map(tag => (
           <button
@@ -1009,7 +1010,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         ))}
       </div>
     ) : null,
-    "opcoes-rapidas": (
+    "opcoes-rapidas": () => (
       <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain" style={{ overscrollBehavior: 'contain' }}>
         <div className="flex items-center gap-2">
           <Checkbox id="filter-isKit" checked={filters.isKit} onCheckedChange={() => toggleBooleanFilter('isKit')} />
@@ -1045,7 +1046,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ),
-    ordenacao: (
+    ordenacao: () => (
       <Select
         value={filters.sortBy || 'name'}
         onValueChange={(value) => onFilterChange({ ...filters, sortBy: value })}
@@ -1192,7 +1193,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             <div key={group.label}>
               <GroupSeparator label={group.label} icon={group.icon} />
               <div className="space-y-0">
-                {visibleSections.map(sId => renderSection(sId, sectionContent[sId]))}
+                {visibleSections.map(sId => renderSection(sId, sectionRenderers[sId]))}
               </div>
             </div>
           );
