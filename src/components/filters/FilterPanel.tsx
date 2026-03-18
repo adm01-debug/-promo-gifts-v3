@@ -1046,7 +1046,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ),
-    ordenacao: (
+    ordenacao: () => (
       <Select
         value={filters.sortBy || 'name'}
         onValueChange={(value) => onFilterChange({ ...filters, sortBy: value })}
