@@ -1,9 +1,27 @@
+import React, { Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { ProductsManager } from "@/components/admin/ProductsManager";
-import { SuppliersManager } from "@/components/admin/SuppliersManager";
-import { EngravingRegistrationContent } from "@/pages/EngravingRegistrationPage";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Palette, FolderOpen, Truck } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const ProductsManager = React.lazy(() =>
+  import("@/components/admin/ProductsManager").then(m => ({ default: m.ProductsManager }))
+);
+const SuppliersManager = React.lazy(() =>
+  import("@/components/admin/SuppliersManager").then(m => ({ default: m.SuppliersManager }))
+);
+const EngravingRegistrationContent = React.lazy(() =>
+  import("@/pages/EngravingRegistrationPage").then(m => ({ default: m.EngravingRegistrationContent }))
+);
+
+function TabFallback() {
+  return (
+    <div className="space-y-4 p-4">
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-64 w-full" />
+    </div>
+  );
+}
 
 export default function AdminCadastrosPage() {
   return (
@@ -36,15 +54,21 @@ export default function AdminCadastrosPage() {
           </TabsList>
 
           <TabsContent value="products">
-            <ProductsManager />
+            <Suspense fallback={<TabFallback />}>
+              <ProductsManager />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="suppliers">
-            <SuppliersManager />
+            <Suspense fallback={<TabFallback />}>
+              <SuppliersManager />
+            </Suspense>
           </TabsContent>
 
           <TabsContent value="personalizacao">
-            <EngravingRegistrationContent />
+            <Suspense fallback={<TabFallback />}>
+              <EngravingRegistrationContent />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </div>
