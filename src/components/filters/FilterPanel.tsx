@@ -347,6 +347,10 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
   const [supplierSearch, setSupplierSearch] = useState('');
+  const [techniqueSearch, setTechniqueSearch] = useState('');
+  const [tagSearch, setTagSearch] = useState('');
+  const [publicoSearch, setPublicoSearch] = useState('');
+  const [endoSearch, setEndoSearch] = useState('');
   // Melhoria #10: Busca rápida de filtros
   const [filterSearch, setFilterSearch] = useState('');
 
@@ -710,19 +714,43 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       </div>
     ),
     publico: () => publicoAlvoOptions.length > 0 ? (
-      <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
-        {publicoAlvoOptions.map((publico) => (
-          <div key={publico} className="flex items-center gap-2">
-            <Checkbox
-              id={`pub-${publico}`}
-              checked={filters.publicoAlvo.includes(publico)}
-              onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
+      <div className="space-y-2">
+        {publicoAlvoOptions.length > 5 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar público..."
+              value={publicoSearch}
+              onChange={(e) => setPublicoSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar público-alvo"
             />
-            <Label htmlFor={`pub-${publico}`} className="text-sm cursor-pointer">
-              {toTitleCase(publico)}
-            </Label>
+            {publicoSearch && (
+              <button type="button" onClick={() => setPublicoSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
-        ))}
+        )}
+        <div className="max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
+          {publicoAlvoOptions
+            .filter(p => !publicoSearch || p.toLowerCase().includes(publicoSearch.toLowerCase()))
+            .map((publico) => (
+            <div key={publico} className="flex items-center gap-2 py-0.5">
+              <Checkbox
+                id={`pub-${publico}`}
+                checked={filters.publicoAlvo.includes(publico)}
+                onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
+              />
+              <Label htmlFor={`pub-${publico}`} className="text-sm cursor-pointer">
+                {toTitleCase(publico)}
+              </Label>
+            </div>
+          ))}
+          {publicoAlvoOptions.filter(p => !publicoSearch || p.toLowerCase().includes(publicoSearch.toLowerCase())).length === 0 && (
+            <p className="text-xs text-muted-foreground py-2 text-center">Nenhum público encontrado</p>
+          )}
+        </div>
       </div>
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
@@ -736,19 +764,43 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       />
     ),
     endomarketing: () => endomarketingOptions.length > 0 ? (
-      <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
-        {endomarketingOptions.map((endo) => (
-          <div key={endo} className="flex items-center gap-2">
-            <Checkbox
-              id={`endo-${endo}`}
-              checked={filters.endomarketing.includes(endo)}
-              onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
+      <div className="space-y-2">
+        {endomarketingOptions.length > 5 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar endomarketing..."
+              value={endoSearch}
+              onChange={(e) => setEndoSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar endomarketing"
             />
-            <Label htmlFor={`endo-${endo}`} className="text-sm cursor-pointer">
-              {toTitleCase(endo)}
-            </Label>
+            {endoSearch && (
+              <button type="button" onClick={() => setEndoSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
-        ))}
+        )}
+        <div className="max-h-48 overflow-y-auto scrollbar-thin">
+          {endomarketingOptions
+            .filter(e => !endoSearch || e.toLowerCase().includes(endoSearch.toLowerCase()))
+            .map((endo) => (
+            <div key={endo} className="flex items-center gap-2 py-0.5">
+              <Checkbox
+                id={`endo-${endo}`}
+                checked={filters.endomarketing.includes(endo)}
+                onCheckedChange={() => toggleArrayFilter('endomarketing', endo)}
+              />
+              <Label htmlFor={`endo-${endo}`} className="text-sm cursor-pointer">
+                {toTitleCase(endo)}
+              </Label>
+            </div>
+          ))}
+          {endomarketingOptions.filter(e => !endoSearch || e.toLowerCase().includes(endoSearch.toLowerCase())).length === 0 && (
+            <p className="text-xs text-muted-foreground py-2 text-center">Nenhuma opção encontrada</p>
+          )}
+        </div>
       </div>
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
@@ -972,42 +1024,91 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       </div>
     ),
     tecnicas: () => techniqueOptions.length > 0 ? (
-      <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
-        <div className="space-y-2">
-          {techniqueOptions.map(tech => (
-            <div key={tech.id} className="flex items-center gap-2">
-              <Checkbox id={`tech-${tech.id}`} checked={(filters.techniques || []).includes(tech.id)} onCheckedChange={() => toggleArrayFilter('techniques', tech.id)} />
-              <Label htmlFor={`tech-${tech.id}`} className="text-sm cursor-pointer flex-1 flex items-center justify-between">
-                <span>{tech.name}</span>
-                {tech.estimatedDays && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {tech.estimatedDays}d
-                  </span>
-                )}
-              </Label>
-            </div>
-          ))}
+      <div className="space-y-2">
+        {techniqueOptions.length > 5 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar técnica..."
+              value={techniqueSearch}
+              onChange={(e) => setTechniqueSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar técnica de gravação"
+            />
+            {techniqueSearch && (
+              <button type="button" onClick={() => setTechniqueSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        )}
+        <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
+          <div className="space-y-2">
+            {techniqueOptions
+              .filter(t => !techniqueSearch || t.name.toLowerCase().includes(techniqueSearch.toLowerCase()))
+              .map(tech => (
+              <div key={tech.id} className="flex items-center gap-2">
+                <Checkbox id={`tech-${tech.id}`} checked={(filters.techniques || []).includes(tech.id)} onCheckedChange={() => toggleArrayFilter('techniques', tech.id)} />
+                <Label htmlFor={`tech-${tech.id}`} className="text-sm cursor-pointer flex-1 flex items-center justify-between">
+                  <span>{tech.name}</span>
+                  {tech.estimatedDays && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {tech.estimatedDays}d
+                    </span>
+                  )}
+                </Label>
+              </div>
+            ))}
+            {techniqueOptions.filter(t => !techniqueSearch || t.name.toLowerCase().includes(techniqueSearch.toLowerCase())).length === 0 && (
+              <p className="text-xs text-muted-foreground py-2 text-center">Nenhuma técnica encontrada</p>
+            )}
+          </div>
         </div>
       </div>
     ) : null,
     tags: () => tagOptions.length > 0 ? (
-      <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
-        {tagOptions.slice(0, 20).map(tag => (
-          <button
-            key={tag.id}
-            onClick={() => toggleArrayFilter('tags', tag.id)}
-            aria-label={`Tag ${tag.name}`}
-            className={cn(
-              "px-2.5 py-1 text-xs rounded-full border transition-all",
-              (filters.tags || []).includes(tag.id)
-                ? "bg-orange text-orange-foreground border-orange"
-                : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+      <div className="space-y-2">
+        {tagOptions.length > 10 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar tag..."
+              value={tagSearch}
+              onChange={(e) => setTagSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar tag"
+            />
+            {tagSearch && (
+              <button type="button" onClick={() => setTagSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
             )}
-          >
-            {tag.name}
-          </button>
-        ))}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
+          {tagOptions
+            .filter(t => !tagSearch || t.name.toLowerCase().includes(tagSearch.toLowerCase()))
+            .slice(0, 30)
+            .map(tag => (
+            <button
+              key={tag.id}
+              onClick={() => toggleArrayFilter('tags', tag.id)}
+              aria-label={`Tag ${tag.name}`}
+              className={cn(
+                "px-2.5 py-1 text-xs rounded-full border transition-all",
+                (filters.tags || []).includes(tag.id)
+                  ? "bg-orange text-orange-foreground border-orange"
+                  : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+              )}
+            >
+              {tag.name}
+            </button>
+          ))}
+          {tagOptions.filter(t => !tagSearch || t.name.toLowerCase().includes(tagSearch.toLowerCase())).length === 0 && (
+            <p className="text-xs text-muted-foreground py-2 text-center w-full">Nenhuma tag encontrada</p>
+          )}
+        </div>
       </div>
     ) : null,
     "opcoes-rapidas": () => (
