@@ -599,7 +599,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         showVariations={true}
       />
     ),
-    categorias: (
+    categorias: () => (
       <ExternalCategoryFilter
         selectedCategories={filters.categories}
         onCategoriesChange={(categories) => 
