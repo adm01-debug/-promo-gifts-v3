@@ -1,64 +1,31 @@
 /**
  * ProductFormFullscreen — Formulário full-screen com sidebar de navegação vertical
  * Layout de 3 colunas: sidebar de seções à esquerda + conteúdo no centro + preview à direita
+ *
+ * Heavy sections (Classification, Media) are lazy-loaded to reduce initial bundle.
  */
 
+import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
 import { CategorySelect } from './CategorySelect';
 import { SupplierSelect } from './SupplierSelect';
 import { NewSupplierDialog } from './NewSupplierDialog';
-import { ProductImageGallery } from './ProductImageGallery';
-import { ProductVideoGallery } from './ProductVideoGallery';
-import { ProductVariantsSection } from './ProductVariantsSection';
-import { ProductMaterialsSection } from './ProductMaterialsSection';
-import { ProductTagsSection } from './ProductTagsSection';
-import { ProductRamosSection } from './ProductRamosSection';
-import { ProductMarketingSection } from './ProductMarketingSection';
-import { ProductTechniquesSection } from './ProductTechniquesSection';
-import { ProductKitComponentsSection } from './ProductKitComponentsSection';
 import { ProductPreviewPanel } from './ProductPreviewPanel';
+import { FieldLabel, SectionCard } from './ProductFormHelpers';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Loader2,
-  Info,
-  Ruler,
-  Package,
-  Tag,
-  ImageIcon,
-  Palette,
-  Layers,
-  Building2,
-  Paintbrush,
-  Megaphone,
-  AlertCircle,
-  CheckCircle2,
-  Globe,
-  Search,
-  Truck,
-  FileText,
-  Video,
-  ShieldCheck,
-  Save,
-  X,
-  Plus,
-  PanelRightClose,
-  PanelRightOpen,
-} from 'lucide-react';
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -66,10 +33,55 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Loader2,
+  Info,
+  Ruler,
+  Package,
+  Tag,
+  ImageIcon,
+  Layers,
+  Truck,
+  Megaphone,
+  AlertCircle,
+  CheckCircle2,
+  Globe,
+  Search,
+  FileText,
+  ShieldCheck,
+  Save,
+  X,
+  Plus,
+  PanelRightClose,
+  PanelRightOpen,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+// Lazy-loaded heavy sections
+const ProductClassificationSection = lazy(() => import('./sections/ProductClassificationSection'));
+const ProductMediaSection = lazy(() => import('./sections/ProductMediaSection'));
+
+// Section loading fallback
+function SectionSkeleton() {
+  return (
+    <Card className="border-border/50 bg-card/60 overflow-hidden">
+      <div className="p-5 pb-4 border-b border-border/30">
+        <div className="flex items-center gap-2.5">
+          <Skeleton className="w-8 h-8 rounded-lg" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </div>
+      <div className="p-5 space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-3/4" />
+      </div>
+    </Card>
+  );
+}
+
 // ============================================
-// TYPES & HELPERS
+// TYPES
 // ============================================
 
 interface ProductFormFullscreenProps {
@@ -105,78 +117,10 @@ const SECTIONS: SectionDef[] = [
   { id: 'media', label: 'Mídia', icon: ImageIcon, group: 'Vínculos' },
 ];
 
-// Character counter
-function CharCounter({ current, max }: { current: number; max: number }) {
-  const pct = current / max;
-  return (
-    <span className={cn(
-      'text-[10px] tabular-nums font-medium',
-      pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-warning' : 'text-muted-foreground/50',
-    )}>
-      {current}/{max}
-    </span>
-  );
-}
+// ============================================
+// SKU VALIDATION HOOK
+// ============================================
 
-// Field label
-function FieldLabel({ htmlFor, children, required, charCount, charMax, hint }: {
-  htmlFor?: string;
-  children: React.ReactNode;
-  required?: boolean;
-  charCount?: number;
-  charMax?: number;
-  hint?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between mb-1.5">
-      <div className="flex items-center gap-1.5">
-        <Label htmlFor={htmlFor} className="text-xs font-semibold text-foreground/80">
-          {children}
-          {required && <span className="text-destructive ml-0.5">*</span>}
-        </Label>
-        {hint && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent className="text-xs max-w-[200px]">{hint}</TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-      {charCount !== undefined && charMax !== undefined && (
-        <CharCounter current={charCount} max={charMax} />
-      )}
-    </div>
-  );
-}
-
-// Section card wrapper
-function SectionCard({ id, title, icon: Icon, children, subtitle }: {
-  id: string;
-  title: string;
-  icon: React.ElementType;
-  children: React.ReactNode;
-  subtitle?: string;
-}) {
-  return (
-    <Card id={`section-${id}`} className="border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden scroll-mt-4">
-      <div className="p-5 pb-4 border-b border-border/30">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Icon className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-            {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
-          </div>
-        </div>
-      </div>
-      <div className="p-5 space-y-4">{children}</div>
-    </Card>
-  );
-}
-
-// SKU validation hook
 function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: string) {
   const [status, setStatus] = useState<'idle' | 'checking' | 'valid' | 'duplicate'>('idle');
   const [duplicateName, setDuplicateName] = useState('');
@@ -203,16 +147,14 @@ function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: str
 }
 
 // ============================================
-// NEW SUPPLIER DIALOG
-// NewSupplierDialog moved to ./NewSupplierDialog.tsx
+// NEW CATEGORY DIALOG
+// ============================================
 
 function NewCategoryDialog({ onCreated }: { onCreated: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [parentId, setParentId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  // Lazy-load categories only when dialog opens
   const [categories, setCategories] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
   const [loadingCats, setLoadingCats] = useState(false);
 
@@ -235,7 +177,6 @@ function NewCategoryDialog({ onCreated }: { onCreated: (id: string) => void }) {
     }
   };
 
-  // Build path labels for each category
   const categoryOptions = useMemo(() => {
     const map = new Map(categories.map(c => [c.id, c]));
     const getPath = (id: string): string => {
@@ -275,7 +216,7 @@ function NewCategoryDialog({ onCreated }: { onCreated: (id: string) => void }) {
         setOpen(false);
         setName('');
         setParentId(null);
-        setCategories([]); // reset so it reloads next time
+        setCategories([]);
       }
     } catch (err: any) {
       toast.error(err.message || 'Erro ao criar categoria');
@@ -298,9 +239,7 @@ function NewCategoryDialog({ onCreated }: { onCreated: (id: string) => void }) {
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div>
-            <Label htmlFor="new-category-parent" className="text-xs font-semibold">
-              Categoria Pai
-            </Label>
+            <Label htmlFor="new-category-parent" className="text-xs font-semibold">Categoria Pai</Label>
             <select
               id="new-category-parent"
               value={parentId || ''}
@@ -329,16 +268,8 @@ function NewCategoryDialog({ onCreated }: { onCreated: (id: string) => void }) {
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              disabled={!name.trim() || saving}
-              onClick={handleCreate}
-              className="gap-1.5"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="button" size="sm" disabled={!name.trim() || saving} onClick={handleCreate} className="gap-1.5">
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
               Criar Categoria
             </Button>
@@ -369,7 +300,6 @@ export function ProductFormFullscreen({
     const stored = localStorage.getItem('product-form-show-preview');
     return stored !== null ? stored === 'true' : true;
   });
-  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const {
     register,
@@ -438,7 +368,6 @@ export function ProductFormFullscreen({
     const handleScroll = () => {
       const scrollContainer = document.getElementById('product-form-content');
       if (!scrollContainer) return;
-      
       for (const section of SECTIONS) {
         const el = document.getElementById(`section-${section.id}`);
         if (el) {
@@ -450,7 +379,6 @@ export function ProductFormFullscreen({
         }
       }
     };
-
     const container = document.getElementById('product-form-content');
     if (container) {
       container.addEventListener('scroll', handleScroll, { passive: true });
@@ -458,10 +386,8 @@ export function ProductFormFullscreen({
     }
   }, []);
 
-  // Error count
   const errorCount = Object.keys(errors).length;
 
-  // Group sections
   const groups = SECTIONS.reduce<Record<string, SectionDef[]>>((acc, s) => {
     if (!acc[s.group]) acc[s.group] = [];
     acc[s.group].push(s);
@@ -474,7 +400,6 @@ export function ProductFormFullscreen({
         {/* ====== SIDEBAR NAVIGATION ====== */}
         <div className="hidden lg:block w-56 shrink-0">
           <div className="sticky top-24 space-y-3">
-            {/* Search */}
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
               <Input
@@ -522,7 +447,6 @@ export function ProductFormFullscreen({
               );
             })}
 
-            {/* Save button in sidebar */}
             <div className="pt-3 border-t border-border/30 space-y-2">
               {errorCount > 0 && (
                 <div className="flex items-center gap-1.5 text-destructive text-[11px] font-medium px-2">
@@ -530,18 +454,11 @@ export function ProductFormFullscreen({
                   {errorCount} erro(s)
                 </div>
               )}
-              <Button
-                type="submit"
-                disabled={isSaving || skuStatus === 'duplicate'}
-                className="w-full gap-2 font-semibold shadow-sm"
-                size="sm"
-              >
+              <Button type="submit" disabled={isSaving || skuStatus === 'duplicate'} className="w-full gap-2 font-semibold shadow-sm" size="sm">
                 {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                 {isEdit ? 'Salvar' : 'Criar Produto'}
               </Button>
-              <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="w-full text-xs">
-                Cancelar
-              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="w-full text-xs">Cancelar</Button>
             </div>
           </div>
         </div>
@@ -549,7 +466,7 @@ export function ProductFormFullscreen({
         {/* ====== MAIN CONTENT ====== */}
         <div id="product-form-content" className="flex-1 min-w-0 space-y-5 pb-24">
 
-          {/* === FORNECEDOR — FIXO NO TOPO === */}
+          {/* === FORNECEDOR === */}
           <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden">
             <div className="p-4">
               <div className="flex items-center gap-2.5 mb-3">
@@ -563,11 +480,7 @@ export function ProductFormFullscreen({
               </div>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
-                  <SupplierSelect
-                    value={supplierId || ''}
-                    onChange={(id) => setValue('supplier_id', id)}
-                    error={errors.supplier_id?.message}
-                  />
+                  <SupplierSelect value={supplierId || ''} onChange={(id) => setValue('supplier_id', id)} error={errors.supplier_id?.message} />
                 </div>
                 <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
               </div>
@@ -578,9 +491,7 @@ export function ProductFormFullscreen({
           <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>
-                  SKU Interno
-                </FieldLabel>
+                <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>SKU Interno</FieldLabel>
                 <div className="relative">
                   <Input
                     id="sku"
@@ -598,9 +509,7 @@ export function ProductFormFullscreen({
                     {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
                     {skuStatus === 'duplicate' && (
                       <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-                        </TooltipTrigger>
+                        <TooltipTrigger asChild><AlertCircle className="h-3.5 w-3.5 text-destructive" /></TooltipTrigger>
                         <TooltipContent className="text-xs">SKU já usado em "{duplicateName}"</TooltipContent>
                       </Tooltip>
                     )}
@@ -610,50 +519,29 @@ export function ProductFormFullscreen({
                 {skuStatus === 'duplicate' && <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>}
               </div>
               <div>
-                <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>
-                  SKU do Fornecedor
-                </FieldLabel>
+                <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>SKU do Fornecedor</FieldLabel>
                 <Input id="supplier_reference" {...register('supplier_reference')} placeholder="Ex: FORN-12345" className="font-mono h-9" />
               </div>
             </div>
 
             <div>
-              <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
-                Nome do Produto
-              </FieldLabel>
-              <Input
-                id="name"
-                {...register('name')}
-                placeholder="Nome do produto"
-                className={cn('h-9', errors.name && 'border-destructive')}
-              />
+              <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>Nome do Produto</FieldLabel>
+              <Input id="name" {...register('name')} placeholder="Nome do produto" className={cn('h-9', errors.name && 'border-destructive')} />
               {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
             </div>
 
             <div>
-              <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000}>
-                Descrição Completa
-              </FieldLabel>
-              <Textarea
-                id="description"
-                {...register('description')}
-                placeholder="Descrição detalhada do produto"
-                rows={4}
-                className="text-sm resize-y min-h-[80px]"
-              />
+              <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000}>Descrição Completa</FieldLabel>
+              <Textarea id="description" {...register('description')} placeholder="Descrição detalhada do produto" rows={4} className="text-sm resize-y min-h-[80px]" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <FieldLabel htmlFor="short_description" charCount={shortDescValue.length} charMax={500}>
-                  Descrição Curta
-                </FieldLabel>
+                <FieldLabel htmlFor="short_description" charCount={shortDescValue.length} charMax={500}>Descrição Curta</FieldLabel>
                 <Input id="short_description" {...register('short_description')} placeholder="Resumo em uma linha" className="h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>
-                  Meta Descrição (SEO)
-                </FieldLabel>
+                <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>Meta Descrição (SEO)</FieldLabel>
                 <Input id="meta_description" {...register('meta_description')} placeholder="Descrição para buscadores" className="h-9" />
               </div>
             </div>
@@ -767,11 +655,7 @@ export function ProductFormFullscreen({
                   onClick={() => setValue(key, !value)}
                 >
                   <Label className="cursor-pointer text-xs font-medium">{label}</Label>
-                  <Switch
-                    checked={value}
-                    onCheckedChange={(v) => setValue(key, v)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+                  <Switch checked={value} onCheckedChange={(v) => setValue(key, v)} onClick={(e) => e.stopPropagation()} />
                 </div>
               ))}
             </div>
@@ -796,7 +680,6 @@ export function ProductFormFullscreen({
                 </div>
               ))}
             </div>
-
             <div className="border-t border-border/30 pt-4 mt-2">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">Internas</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -933,88 +816,30 @@ export function ProductFormFullscreen({
             </div>
           </SectionCard>
 
-          {/* === CLASSIFICAÇÃO === */}
-          <SectionCard id="classification" title="Classificação e Vínculos" icon={Layers} subtitle="Cores, materiais, tags, ramos e técnicas">
-            {isEdit && productId && (
-              <>
-                <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Palette className="h-4 w-4 text-primary" />
-                    <h4 className="text-xs font-semibold">Variações de Cor</h4>
-                  </div>
-                  <ProductVariantsSection productId={productId} productName={watch('name')} productSku={watch('sku')} />
-                </div>
+          {/* === CLASSIFICAÇÃO (LAZY) === */}
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductClassificationSection
+              productId={productId}
+              isEdit={isEdit}
+              isKit={isKit}
+              productName={watch('name')}
+              productSku={watch('sku')}
+              internalDimensions={{
+                height_cm: watch('internal_height_cm') ?? null,
+                width_cm: watch('internal_width_cm') ?? null,
+                length_cm: watch('internal_length_cm') ?? null,
+              }}
+            />
+          </Suspense>
 
-                {isKit && (
-                  <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Layers className="h-4 w-4 text-primary" />
-                      <h4 className="text-xs font-semibold">Componentes do Kit</h4>
-                    </div>
-                    <ProductKitComponentsSection
-                      productId={productId}
-                      boxInternalDimensions={{
-                        height_cm: watch('internal_height_cm') ?? null,
-                        width_cm: watch('internal_width_cm') ?? null,
-                        length_cm: watch('internal_length_cm') ?? null,
-                      }}
-                    />
-                  </div>
-                )}
-
-                {[
-                  { title: 'Materiais', icon: Layers, content: <ProductMaterialsSection productId={productId} /> },
-                  { title: 'Tags', icon: Tag, content: <ProductTagsSection productId={productId} /> },
-                  { title: 'Ramos de Atividade', icon: Building2, content: <ProductRamosSection productId={productId} /> },
-                  { title: 'Marketing', icon: Megaphone, content: <ProductMarketingSection productId={productId} /> },
-                  { title: 'Técnicas de Personalização', icon: Paintbrush, content: <ProductTechniquesSection productId={productId} /> },
-                ].map(({ title, icon: SIcon, content }) => (
-                  <div key={title} className="rounded-lg border border-border/40 bg-muted/20 p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <SIcon className="h-4 w-4 text-primary" />
-                      <h4 className="text-xs font-semibold">{title}</h4>
-                    </div>
-                    {content}
-                  </div>
-                ))}
-              </>
-            )}
-
-            {!isEdit && (
-              <div className="flex items-center gap-2 p-4 rounded-lg bg-muted/30 text-xs text-muted-foreground">
-                <Info className="h-3.5 w-3.5 shrink-0" />
-                Salve o produto primeiro para gerenciar classificações e vínculos.
-              </div>
-            )}
-          </SectionCard>
-
-          {/* === MÍDIA === */}
-          <SectionCard id="media" title="Mídia" icon={ImageIcon} subtitle="Galeria de imagens e vídeos do produto">
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4 text-primary" />
-                    <h4 className="text-xs font-semibold">Galeria de Imagens</h4>
-                    <p className="text-[11px] text-muted-foreground">Classificadas por tipo</p>
-                  </div>
-                  {images.length > 0 && (
-                    <Badge variant="secondary" className="text-[10px]">{images.length} imagem(ns)</Badge>
-                  )}
-                </div>
-                <ProductImageGallery images={images} onChange={setImages} folder="products" productId={productId} />
-              </div>
-
-              <div className="border-t border-border/30 pt-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Video className="h-4 w-4 text-primary" />
-                  <h4 className="text-xs font-semibold">Galeria de Vídeos</h4>
-                  <p className="text-[11px] text-muted-foreground">Classificados por tipo</p>
-                </div>
-                <ProductVideoGallery productId={productId} />
-              </div>
-            </div>
-          </SectionCard>
+          {/* === MÍDIA (LAZY) === */}
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductMediaSection
+              images={images}
+              onImagesChange={setImages}
+              productId={productId}
+            />
+          </Suspense>
         </div>
 
         {/* ====== PREVIEW TOGGLE ====== */}
