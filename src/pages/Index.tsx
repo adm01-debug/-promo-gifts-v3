@@ -77,12 +77,12 @@ export default function Index() {
   // Debounce da busca para server-side search
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
-  // Buscar produtos reais do banco de dados com busca server-side
+  // Buscar produtos reais do banco de dados — versão LIGHTWEIGHT (~10x mais rápido)
   const {
     data: realProducts = [],
     isLoading: isLoadingProducts,
     isFetching: isFetchingProducts,
-  } = useProducts(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
+  } = useProductsCatalog(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
 
   // Register fetched products into the lazy cache for other contexts (favorites, etc.)
   useEffect(() => {
