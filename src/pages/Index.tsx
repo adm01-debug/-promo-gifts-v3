@@ -77,9 +77,11 @@ export default function Index() {
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
   // Buscar produtos reais do banco de dados com busca server-side
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
-    debouncedServerSearch ? { search: debouncedServerSearch } : undefined
-  );
+  const {
+    data: realProducts = [],
+    isLoading: isLoadingProducts,
+    isFetching: isFetchingProducts,
+  } = useProducts(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
 
   // Register fetched products into the lazy cache for other contexts (favorites, etc.)
   useEffect(() => {
@@ -112,6 +114,7 @@ export default function Index() {
   
   // Estado de loading combinado
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
+  const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
   // Sincronizar searchQuery com URL
   useEffect(() => {
