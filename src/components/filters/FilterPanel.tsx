@@ -1010,7 +1010,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         ))}
       </div>
     ) : null,
-    "opcoes-rapidas": (
+    "opcoes-rapidas": () => (
       <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain" style={{ overscrollBehavior: 'contain' }}>
         <div className="flex items-center gap-2">
           <Checkbox id="filter-isKit" checked={filters.isKit} onCheckedChange={() => toggleBooleanFilter('isKit')} />
