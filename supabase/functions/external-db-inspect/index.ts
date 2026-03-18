@@ -118,11 +118,9 @@ serve(async (req) => {
             success: true,
             table: tableName,
             columns,
-            sampleRow,
             columnTypes: columns.map(col => ({
               name: col,
               type: sampleRow ? typeof sampleRow[col] : 'unknown',
-              value: sampleRow ? sampleRow[col] : null
             }))
           }),
           { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
