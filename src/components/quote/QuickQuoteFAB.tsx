@@ -165,7 +165,6 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
       <Tooltip>
         <TooltipTrigger asChild>
           <motion.button
-            ref={undefined}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsOpen(!isOpen)}
