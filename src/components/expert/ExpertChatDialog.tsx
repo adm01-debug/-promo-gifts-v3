@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, forwardRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -52,7 +52,7 @@ interface ExpertChatDialogProps {
   clientName?: string;
 }
 
-export const ExpertChatDialog = forwardRef<HTMLDivElement, ExpertChatDialogProps>(function ExpertChatDialog({ isOpen, onClose, clientId, clientName }, _ref) {
+export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: ExpertChatDialogProps) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -660,4 +660,4 @@ export const ExpertChatDialog = forwardRef<HTMLDivElement, ExpertChatDialogProps
       </DialogContent>
     </Dialog>
   );
-});
+}
