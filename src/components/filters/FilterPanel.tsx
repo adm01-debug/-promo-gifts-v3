@@ -1193,7 +1193,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
             <div key={group.label}>
               <GroupSeparator label={group.label} icon={group.icon} />
               <div className="space-y-0">
-                {visibleSections.map(sId => renderSection(sId, sectionContent[sId]))}
+                {visibleSections.map(sId => renderSection(sId, sectionRenderers[sId]))}
               </div>
             </div>
           );
