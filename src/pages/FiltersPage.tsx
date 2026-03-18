@@ -719,9 +719,11 @@ export default function FiltersPage() {
                 }`}>
                   <Filter className="h-4 w-4" />
                   <span>
-                    {activeFiltersCount > 0 
-                      ? `Ver ${filteredProducts.length.toLocaleString('pt-BR')} resultado${filteredProducts.length !== 1 ? 's' : ''}`
-                      : `${filteredProducts.length.toLocaleString('pt-BR')} produtos disponíveis`
+                    {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                      ? 'Carregando catálogo...'
+                      : activeFiltersCount > 0
+                        ? `Ver ${filteredProducts.length.toLocaleString('pt-BR')} resultado${filteredProducts.length !== 1 ? 's' : ''}`
+                        : `${filteredProducts.length.toLocaleString('pt-BR')} produtos disponíveis`
                     }
                   </span>
                 </div>
@@ -736,7 +738,9 @@ export default function FiltersPage() {
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                   Super Filtro
                   <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
-                    · {filteredProducts.length.toLocaleString("pt-BR")} itens
+                    · {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                      ? 'carregando...'
+                      : `${filteredProducts.length.toLocaleString("pt-BR")} itens`}
                   </span>
                 </h1>
               </div>
@@ -759,7 +763,9 @@ export default function FiltersPage() {
 
                 {(filters.search || searchQuery) && (
                   <Badge variant="secondary" className="shrink-0 whitespace-nowrap">
-                    {filteredProducts.length.toLocaleString("pt-BR")} encontrado{filteredProducts.length !== 1 ? "s" : ""}
+                    {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                      ? 'Carregando...'
+                      : `${filteredProducts.length.toLocaleString("pt-BR")} encontrado${filteredProducts.length !== 1 ? "s" : ""}`}
                   </Badge>
                 )}
 
@@ -806,7 +812,9 @@ export default function FiltersPage() {
                         className="flex-1"
                         onClick={() => setMobileFiltersOpen(false)}
                       >
-                        Ver {filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''}
+                        {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                          ? 'Carregando catálogo...'
+                          : `Ver ${filteredProducts.length} resultado${filteredProducts.length !== 1 ? 's' : ''}`}
                       </Button>
                     </div>
                   </SheetContent>
@@ -885,7 +893,49 @@ export default function FiltersPage() {
               </div>
             )}
             
-            {filteredProducts.length > 0 ? (
+            {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0 ? (
+              viewMode === "grid" ? (
+                <div className="rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 p-4 sm:p-6 shadow-inner">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 animate-pulse">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index} className="overflow-hidden rounded-2xl border border-border/50 bg-card">
+                        <div className="aspect-[4/5] bg-muted/50" />
+                        <div className="space-y-3 p-4">
+                          <div className="h-3 w-24 rounded bg-muted" />
+                          <div className="h-5 w-full rounded bg-muted" />
+                          <div className="h-5 w-2/3 rounded bg-muted" />
+                          <div className="flex items-end justify-between pt-1">
+                            <div className="space-y-2">
+                              <div className="h-3 w-16 rounded bg-muted" />
+                              <div className="h-6 w-24 rounded bg-muted" />
+                            </div>
+                            <div className="space-y-2">
+                              <div className="h-5 w-20 rounded-full bg-muted" />
+                              <div className="h-3 w-12 rounded bg-muted" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 p-4 shadow-inner">
+                  <div className="space-y-3 animate-pulse">
+                    {Array.from({ length: 8 }).map((_, index) => (
+                      <div key={index} className="flex items-center gap-4 rounded-xl border border-border/50 bg-card p-4">
+                        <div className="h-20 w-20 rounded-lg bg-muted shrink-0" />
+                        <div className="flex-1 space-y-3">
+                          <div className="h-4 w-1/3 rounded bg-muted" />
+                          <div className="h-5 w-2/3 rounded bg-muted" />
+                          <div className="h-4 w-1/4 rounded bg-muted" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            ) : filteredProducts.length > 0 ? (
               viewMode === "grid" ? (
                 <VirtualizedProductGrid
                   products={filteredProducts}
