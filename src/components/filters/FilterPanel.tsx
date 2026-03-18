@@ -608,7 +608,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         compact
       />
     ),
-    estoque: (
+    estoque: () => (
       <div className="px-1">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground text-xs whitespace-nowrap">Mínimo por cor</span>
