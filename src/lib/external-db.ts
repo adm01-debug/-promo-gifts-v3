@@ -831,6 +831,9 @@ export async function fetchPromobrindProducts(options?: {
 // ============================================
 
 const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity';
+const LIGHTWEIGHT_PAGE_SIZE = 500;
+const LIGHTWEIGHT_MAX_CONCURRENCY = 2;
+const LIGHTWEIGHT_MIN_SPLIT_PAGE_SIZE = 125;
 
 export interface LightweightProduct {
   id: string;
@@ -850,9 +853,75 @@ export interface LightweightProduct {
   min_quantity?: number | null;
 }
 
+function isLightweightTimeoutError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  return /(statement timeout|canceling statement|57014|bad gateway|boot_error|function failed to start)/i.test(message);
+}
+
+async function fetchPromobrindProductsLightweightPage(params: {
+  filters: Record<string, unknown>;
+  orderBy: { column: string; ascending?: boolean };
+  limit: number;
+  offset: number;
+  countMode?: 'exact' | 'planned' | 'estimated' | 'none';
+}): Promise<InvokeResult<LightweightProduct>> {
+  return invokeExternalDb<LightweightProduct>({
+    table: 'products',
+    operation: 'select',
+    filters: params.filters,
+    select: PRODUCT_SELECT_LIGHTWEIGHT,
+    orderBy: params.orderBy,
+    limit: params.limit,
+    offset: params.offset,
+    countMode: params.countMode ?? 'none',
+  });
+}
+
+async function fetchPromobrindProductsLightweightPageResilient(params: {
+  filters: Record<string, unknown>;
+  orderBy: { column: string; ascending?: boolean };
+  limit: number;
+  offset: number;
+  countMode?: 'exact' | 'planned' | 'estimated' | 'none';
+}): Promise<InvokeResult<LightweightProduct>> {
+  try {
+    return await fetchPromobrindProductsLightweightPage(params);
+  } catch (error) {
+    if (!isLightweightTimeoutError(error) || params.limit <= LIGHTWEIGHT_MIN_SPLIT_PAGE_SIZE) {
+      throw error;
+    }
+
+    const firstHalf = Math.ceil(params.limit / 2);
+    const secondHalf = params.limit - firstHalf;
+
+    console.warn(
+      `[lightweight] Timeout at offset=${params.offset}, splitting page ${params.limit} -> ${firstHalf}+${secondHalf}`,
+    );
+
+    const [leftPage, rightPage] = await Promise.all([
+      fetchPromobrindProductsLightweightPageResilient({
+        ...params,
+        limit: firstHalf,
+        countMode: 'none',
+      }),
+      fetchPromobrindProductsLightweightPageResilient({
+        ...params,
+        offset: params.offset + firstHalf,
+        limit: secondHalf,
+        countMode: 'none',
+      }),
+    ]);
+
+    return {
+      records: [...leftPage.records, ...rightPage.records],
+      count: params.countMode === 'none' ? null : leftPage.count ?? rightPage.count ?? null,
+    };
+  }
+}
+
 /**
  * Busca produtos com campos mínimos (sem enriquecimento de cores/imagens/variantes).
- * ~10x mais rápido que fetchPromobrindProducts para catálogos grandes.
+ * Usa paginação estável com concorrência limitada para evitar statement timeouts.
  */
 export async function fetchPromobrindProductsLightweight(options?: {
   search?: string;
@@ -871,47 +940,86 @@ export async function fetchPromobrindProductsLightweight(options?: {
   }
 
   const orderBy = options?.orderBy ?? { column: 'name', ascending: true };
-  let products: LightweightProduct[] = [];
+  const baseOffset = options?.offset ?? 0;
 
   if (typeof options?.limit === 'number' && options.limit > 0) {
-    const result = await invokeExternalDb<LightweightProduct>({
-      table: 'products',
-      operation: 'select',
+    const result = await fetchPromobrindProductsLightweightPageResilient({
       filters,
-      select: PRODUCT_SELECT_LIGHTWEIGHT,
       orderBy,
       limit: options.limit,
-      offset: options?.offset ?? 0,
+      offset: baseOffset,
       countMode: 'none',
     });
-    products = result.records;
-  } else {
-    // Parallel pagination: fire all page requests simultaneously to avoid
-    // sequential cold-starts and statement timeouts on later pages.
-    const pageSize = 1000;
-    const ESTIMATED_PAGES = 8; // covers up to 8000 products
+    return result.records;
+  }
 
-    const pagePromises = Array.from({ length: ESTIMATED_PAGES }, (_, i) =>
-      invokeExternalDb<LightweightProduct>({
-        table: 'products',
-        operation: 'select',
-        filters,
-        select: PRODUCT_SELECT_LIGHTWEIGHT,
-        orderBy,
-        limit: pageSize,
-        offset: i * pageSize,
-        countMode: 'none',
-      }).catch(err => {
-        // Pages beyond actual data will fail or return empty — that's OK
-        console.warn(`[lightweight] Page ${i} failed:`, err);
-        return { records: [] as LightweightProduct[], count: 0 };
-      })
+  const firstPage = await fetchPromobrindProductsLightweightPageResilient({
+    filters,
+    orderBy,
+    limit: LIGHTWEIGHT_PAGE_SIZE,
+    offset: baseOffset,
+    countMode: 'planned',
+  });
+
+  const products: LightweightProduct[] = [...firstPage.records];
+
+  if (firstPage.records.length < LIGHTWEIGHT_PAGE_SIZE) {
+    return products;
+  }
+
+  const estimatedTotal = typeof firstPage.count === 'number' && firstPage.count > firstPage.records.length
+    ? firstPage.count
+    : null;
+
+  const plannedOffsets = estimatedTotal
+    ? Array.from(
+        { length: Math.max(Math.ceil((estimatedTotal - firstPage.records.length) / LIGHTWEIGHT_PAGE_SIZE), 0) },
+        (_, index) => baseOffset + LIGHTWEIGHT_PAGE_SIZE * (index + 1),
+      )
+    : [];
+
+  let nextOffset = baseOffset + LIGHTWEIGHT_PAGE_SIZE;
+  let lastPageSize = firstPage.records.length;
+
+  for (let index = 0; index < plannedOffsets.length; index += LIGHTWEIGHT_MAX_CONCURRENCY) {
+    const batchOffsets = plannedOffsets.slice(index, index + LIGHTWEIGHT_MAX_CONCURRENCY);
+    const pages = await Promise.all(
+      batchOffsets.map((offset) =>
+        fetchPromobrindProductsLightweightPageResilient({
+          filters,
+          orderBy,
+          limit: LIGHTWEIGHT_PAGE_SIZE,
+          offset,
+          countMode: 'none',
+        }),
+      ),
     );
 
-    const pages = await Promise.all(pagePromises);
     for (const page of pages) {
       products.push(...page.records);
     }
+
+    const lastBatchOffset = batchOffsets[batchOffsets.length - 1];
+    nextOffset = lastBatchOffset + LIGHTWEIGHT_PAGE_SIZE;
+    lastPageSize = pages[pages.length - 1]?.records.length ?? 0;
+  }
+
+  while (lastPageSize === LIGHTWEIGHT_PAGE_SIZE) {
+    const page = await fetchPromobrindProductsLightweightPageResilient({
+      filters,
+      orderBy,
+      limit: LIGHTWEIGHT_PAGE_SIZE,
+      offset: nextOffset,
+      countMode: 'none',
+    });
+
+    if (page.records.length === 0) {
+      break;
+    }
+
+    products.push(...page.records);
+    lastPageSize = page.records.length;
+    nextOffset += LIGHTWEIGHT_PAGE_SIZE;
   }
 
   return products;
