@@ -735,7 +735,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         compact
       />
     ),
-    endomarketing: endomarketingOptions.length > 0 ? (
+    endomarketing: () => endomarketingOptions.length > 0 ? (
       <div className="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
         {endomarketingOptions.map((endo) => (
           <div key={endo} className="flex items-center gap-2">
