@@ -397,4 +397,4 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
       )}
     </div>
   );
-}
+});
