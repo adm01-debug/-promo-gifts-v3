@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { Fragment } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { registerServiceWorker } from "@/lib/sw-register";
