@@ -130,13 +130,31 @@ interface BatchResult {
  */
 const BATCH_MAX_QUERIES = 10;
 
+function extractBatchResults(payload: unknown): BatchResult[] {
+  if (!payload || typeof payload !== 'object') return [];
+
+  const directResults = (payload as { results?: BatchResult[] }).results;
+  if (Array.isArray(directResults)) return directResults;
+
+  const nestedResults = (payload as { data?: { results?: BatchResult[] } }).data?.results;
+  if (Array.isArray(nestedResults)) return nestedResults;
+
+  return [];
+}
+
 export async function invokeBatchBridge(queries: BatchQuery[]): Promise<BatchResult[]> {
   if (queries.length <= BATCH_MAX_QUERIES) {
     const response = await invokeBridge<{ results: BatchResult[] }>({
       operation: 'batch',
       queries,
     });
-    return response.data.results;
+
+    const parsedResults = extractBatchResults(response);
+    if (parsedResults.length === 0 && queries.length > 0) {
+      throw new Error('Resposta inválida da batch bridge');
+    }
+
+    return parsedResults;
   }
 
   // Split into sub-batches of max 10
@@ -147,7 +165,13 @@ export async function invokeBatchBridge(queries: BatchQuery[]): Promise<BatchRes
       operation: 'batch',
       queries: chunk,
     });
-    results.push(...response.data.results);
+
+    const parsedResults = extractBatchResults(response);
+    if (parsedResults.length === 0 && chunk.length > 0) {
+      throw new Error('Resposta inválida da batch bridge');
+    }
+
+    results.push(...parsedResults);
   }
   return results;
 }

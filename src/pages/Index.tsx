@@ -77,9 +77,11 @@ export default function Index() {
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
   // Buscar produtos reais do banco de dados com busca server-side
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
-    debouncedServerSearch ? { search: debouncedServerSearch } : undefined
-  );
+  const {
+    data: realProducts = [],
+    isLoading: isLoadingProducts,
+    isFetching: isFetchingProducts,
+  } = useProducts(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
 
   // Register fetched products into the lazy cache for other contexts (favorites, etc.)
   useEffect(() => {
@@ -112,6 +114,7 @@ export default function Index() {
   
   // Estado de loading combinado
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
+  const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
   // Sincronizar searchQuery com URL
   useEffect(() => {
@@ -289,6 +292,10 @@ export default function Index() {
     return filteredProducts.slice(0, displayCount);
   }, [filteredProducts, displayCount]);
 
+  const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0);
+  const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
+  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0;
+
   // Has more products to load
   const hasMoreProducts = useMemo(() => {
     return paginatedProducts.length < filteredProducts.length;
@@ -439,7 +446,7 @@ export default function Index() {
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                   Catálogo de Produtos
                   <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
-                    · {filteredProducts.length.toLocaleString("pt-BR")} itens
+                    · {shouldShowCatalogSkeleton ? "Carregando catálogo..." : `${filteredProducts.length.toLocaleString("pt-BR")} itens`}
                   </span>
                 </h1>
               </div>
@@ -588,12 +595,22 @@ export default function Index() {
                 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
                 scrollbar-products shadow-inner p-4"
             >
-              {isLoading ? (
+              {shouldShowCatalogSkeleton ? (
                 viewMode === "grid" ? (
                   <ProductGridSkeleton count={8} />
                 ) : (
                   <ProductListSkeleton count={6} />
                 )
+              ) : shouldShowEmptyState ? (
+                <EmptyState
+                  variant={hasActiveCatalogConstraints ? "search" : "products"}
+                  title={hasActiveCatalogConstraints ? "Nenhum produto encontrado" : "Catálogo indisponível no momento"}
+                  description={hasActiveCatalogConstraints
+                    ? "Não encontramos produtos com os filtros ou busca aplicados."
+                    : "O catálogo ainda não retornou itens para exibição."
+                  }
+                  className="min-h-[420px]"
+                />
               ) : viewMode === "grid" ? (
                 <ProductGrid
                   products={paginatedProducts}
@@ -626,7 +643,7 @@ export default function Index() {
               )}
 
               {/* Infinite scroll trigger */}
-              {!isLoading && hasMoreProducts && (
+              {!shouldShowCatalogSkeleton && !shouldShowEmptyState && hasMoreProducts && (
                 <div 
                   ref={loadMoreRef}
                   className="flex flex-col items-center gap-3 pt-8 pb-4"
@@ -645,7 +662,7 @@ export default function Index() {
               )}
 
               {/* All products loaded message */}
-              {!isLoading && !hasMoreProducts && filteredProducts.length > ITEMS_PER_PAGE && (
+              {!shouldShowCatalogSkeleton && !shouldShowEmptyState && !hasMoreProducts && filteredProducts.length > ITEMS_PER_PAGE && (
                 <div className="flex justify-center pt-8">
                   <p className="text-sm text-muted-foreground">
                     Todos os {filteredProducts.length} produtos foram carregados ✓
