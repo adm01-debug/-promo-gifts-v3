@@ -36,7 +36,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
 
-import { useProducts, type Product } from "@/hooks/useProducts";
+import { useProductsCatalog } from "@/hooks/useProductsLightweight";
+import type { Product } from "@/hooks/useProducts";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useToast } from "@/hooks/use-toast";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
