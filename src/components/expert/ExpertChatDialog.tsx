@@ -660,4 +660,4 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
       </DialogContent>
     </Dialog>
   );
-});
+}
