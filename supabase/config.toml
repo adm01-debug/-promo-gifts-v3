@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.quote-public-view]
 verify_jwt = false
+
+[functions.ai-recommendations]
+verify_jwt = false
+
+[functions.external-db-inspect]
+verify_jwt = false
