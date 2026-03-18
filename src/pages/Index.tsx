@@ -1,4 +1,4 @@
-// Catálogo de Produtos - Index Page
+// Catálogo de Produtos - Index Page (v2)
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {

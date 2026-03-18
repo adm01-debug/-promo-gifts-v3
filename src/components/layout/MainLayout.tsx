@@ -5,7 +5,7 @@ import { SkipToContent } from "@/components/common/SkipToContent";
 import { BackButton } from "@/components/common/BackButton";
 import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
 
-// Lazy load heavy layout components to reduce MainLayout chunk
+// Lazy load heavy layout components to reduce MainLayout chunk size
 const Header = lazy(() => import("./Header").then(m => ({ default: m.Header })));
 const SidebarReorganized = lazy(() => import("./SidebarReorganized").then(m => ({ default: m.SidebarReorganized })));
 const PageTransition = lazy(() => import("@/components/effects/PageTransition").then(m => ({ default: m.PageTransition })));
