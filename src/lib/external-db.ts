@@ -886,25 +886,31 @@ export async function fetchPromobrindProductsLightweight(options?: {
     });
     products = result.records;
   } else {
+    // Parallel pagination: fire all page requests simultaneously to avoid
+    // sequential cold-starts and statement timeouts on later pages.
     const pageSize = 1000;
-    let offset = 0;
-    const HARD_MAX = 200000;
+    const ESTIMATED_PAGES = 8; // covers up to 8000 products
 
-    while (offset < HARD_MAX) {
-      const page = await invokeExternalDb<LightweightProduct>({
+    const pagePromises = Array.from({ length: ESTIMATED_PAGES }, (_, i) =>
+      invokeExternalDb<LightweightProduct>({
         table: 'products',
         operation: 'select',
         filters,
         select: PRODUCT_SELECT_LIGHTWEIGHT,
         orderBy,
         limit: pageSize,
-        offset,
+        offset: i * pageSize,
         countMode: 'none',
-      });
+      }).catch(err => {
+        // Pages beyond actual data will fail or return empty — that's OK
+        console.warn(`[lightweight] Page ${i} failed:`, err);
+        return { records: [] as LightweightProduct[], count: 0 };
+      })
+    );
 
+    const pages = await Promise.all(pagePromises);
+    for (const page of pages) {
       products.push(...page.records);
-      offset += page.records.length;
-      if (page.records.length < pageSize) break;
     }
   }
 
