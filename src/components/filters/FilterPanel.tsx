@@ -971,7 +971,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         )}
       </div>
     ),
-    tecnicas: techniqueOptions.length > 0 ? (
+    tecnicas: () => techniqueOptions.length > 0 ? (
       <div className="max-h-40 overflow-y-auto overscroll-contain pr-3" style={{ overscrollBehavior: 'contain' }}>
         <div className="space-y-2">
           {techniqueOptions.map(tech => (
