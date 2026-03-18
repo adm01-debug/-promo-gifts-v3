@@ -660,4 +660,4 @@ export const ExpertChatDialog = forwardRef<HTMLDivElement, ExpertChatDialogProps
       </DialogContent>
     </Dialog>
   );
-}
+});
