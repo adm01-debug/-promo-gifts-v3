@@ -652,7 +652,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ),
-    fornecedores: (
+    fornecedores: () => (
       <div className="space-y-2">
         {!suppliersLoading && supplierOptions.length > 0 && (
           <div className="relative">
