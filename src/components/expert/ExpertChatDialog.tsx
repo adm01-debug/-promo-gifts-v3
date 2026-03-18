@@ -52,7 +52,7 @@ interface ExpertChatDialogProps {
   clientName?: string;
 }
 
-export const ExpertChatDialog = forwardRef<HTMLDivElement, ExpertChatDialogProps>(function ExpertChatDialog({ isOpen, onClose, clientId, clientName }, _ref) {
+export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: ExpertChatDialogProps) {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
