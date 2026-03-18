@@ -991,7 +991,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
         </div>
       </div>
     ) : null,
-    tags: tagOptions.length > 0 ? (
+    tags: () => tagOptions.length > 0 ? (
       <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
         {tagOptions.slice(0, 20).map(tag => (
           <button
