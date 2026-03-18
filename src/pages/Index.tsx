@@ -292,6 +292,10 @@ export default function Index() {
     return filteredProducts.slice(0, displayCount);
   }, [filteredProducts, displayCount]);
 
+  const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0);
+  const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
+  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0;
+
   // Has more products to load
   const hasMoreProducts = useMemo(() => {
     return paginatedProducts.length < filteredProducts.length;
