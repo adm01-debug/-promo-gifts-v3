@@ -347,6 +347,10 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
   const [materialSearch, setMaterialSearch] = useState('');
   const [ramoSearch, setRamoSearch] = useState('');
   const [supplierSearch, setSupplierSearch] = useState('');
+  const [techniqueSearch, setTechniqueSearch] = useState('');
+  const [tagSearch, setTagSearch] = useState('');
+  const [publicoSearch, setPublicoSearch] = useState('');
+  const [endoSearch, setEndoSearch] = useState('');
   // Melhoria #10: Busca rápida de filtros
   const [filterSearch, setFilterSearch] = useState('');
 
