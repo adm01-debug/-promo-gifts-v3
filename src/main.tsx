@@ -13,13 +13,13 @@ if (!root) {
 }
 
 createRoot(root).render(
-  <StrictMode>
+  <Fragment>
     <HelmetProvider>
       <EnhancedErrorBoundary>
         <App />
       </EnhancedErrorBoundary>
     </HelmetProvider>
-  </StrictMode>
+  </Fragment>
 );
 
 // Registrar Service Worker para PWA (apenas em produção para evitar cache issues no preview)
