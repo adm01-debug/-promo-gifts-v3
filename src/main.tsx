@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { Fragment } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { registerServiceWorker } from "@/lib/sw-register";
@@ -13,13 +13,13 @@ if (!root) {
 }
 
 createRoot(root).render(
-  <StrictMode>
+  <Fragment>
     <HelmetProvider>
       <EnhancedErrorBoundary>
         <App />
       </EnhancedErrorBoundary>
     </HelmetProvider>
-  </StrictMode>
+  </Fragment>
 );
 
 // Registrar Service Worker para PWA (apenas em produção para evitar cache issues no preview)
