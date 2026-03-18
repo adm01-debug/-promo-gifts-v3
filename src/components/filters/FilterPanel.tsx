@@ -727,7 +727,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
     ),
-    "datas-comemorativas": (
+    "datas-comemorativas": () => (
       <CommemorativeDateFilter
         selectedDates={filters.datasComemorativas}
         onToggleDate={(slug) => toggleArrayFilter('datasComemorativas', slug)}
