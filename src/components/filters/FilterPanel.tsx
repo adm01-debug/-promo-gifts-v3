@@ -311,10 +311,10 @@ function FilterSection({
           </div>
         </CollapsibleTrigger>
 
-        {/* Melhoria #6: Conteúdo com animação suave */}
+        {/* Melhoria #6: Conteúdo com animação suave + Performance: lazy render */}
         <CollapsibleContent className="overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
           <div className="pb-3 px-3 space-y-2">
-            {children}
+            {isOpen && children}
           </div>
         </CollapsibleContent>
       </div>
