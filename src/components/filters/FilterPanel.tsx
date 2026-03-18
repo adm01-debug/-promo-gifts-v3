@@ -753,7 +753,7 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
     ),
-    materiais: (
+    materiais: () => (
       <div className="space-y-3">
         {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
           <div className="p-2.5 bg-orange/5 rounded-lg border border-orange/20">
