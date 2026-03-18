@@ -1068,22 +1068,47 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       </div>
     ) : null,
     tags: () => tagOptions.length > 0 ? (
-      <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
-        {tagOptions.slice(0, 20).map(tag => (
-          <button
-            key={tag.id}
-            onClick={() => toggleArrayFilter('tags', tag.id)}
-            aria-label={`Tag ${tag.name}`}
-            className={cn(
-              "px-2.5 py-1 text-xs rounded-full border transition-all",
-              (filters.tags || []).includes(tag.id)
-                ? "bg-orange text-orange-foreground border-orange"
-                : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+      <div className="space-y-2">
+        {tagOptions.length > 10 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar tag..."
+              value={tagSearch}
+              onChange={(e) => setTagSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar tag"
+            />
+            {tagSearch && (
+              <button type="button" onClick={() => setTagSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
             )}
-          >
-            {tag.name}
-          </button>
-        ))}
+          </div>
+        )}
+        <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto overscroll-contain pr-1" style={{ overscrollBehavior: 'contain' }}>
+          {tagOptions
+            .filter(t => !tagSearch || t.name.toLowerCase().includes(tagSearch.toLowerCase()))
+            .slice(0, 30)
+            .map(tag => (
+            <button
+              key={tag.id}
+              onClick={() => toggleArrayFilter('tags', tag.id)}
+              aria-label={`Tag ${tag.name}`}
+              className={cn(
+                "px-2.5 py-1 text-xs rounded-full border transition-all",
+                (filters.tags || []).includes(tag.id)
+                  ? "bg-orange text-orange-foreground border-orange"
+                  : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
+              )}
+            >
+              {tag.name}
+            </button>
+          ))}
+          {tagOptions.filter(t => !tagSearch || t.name.toLowerCase().includes(tagSearch.toLowerCase())).length === 0 && (
+            <p className="text-xs text-muted-foreground py-2 text-center w-full">Nenhuma tag encontrada</p>
+          )}
+        </div>
       </div>
     ) : null,
     "opcoes-rapidas": () => (
