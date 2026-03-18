@@ -714,19 +714,43 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
       </div>
     ),
     publico: () => publicoAlvoOptions.length > 0 ? (
-      <div className="space-y-2 max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
-        {publicoAlvoOptions.map((publico) => (
-          <div key={publico} className="flex items-center gap-2">
-            <Checkbox
-              id={`pub-${publico}`}
-              checked={filters.publicoAlvo.includes(publico)}
-              onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
+      <div className="space-y-2">
+        {publicoAlvoOptions.length > 5 && (
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar público..."
+              value={publicoSearch}
+              onChange={(e) => setPublicoSearch(e.target.value)}
+              className="h-8 text-sm pl-8 pr-8"
+              aria-label="Buscar público-alvo"
             />
-            <Label htmlFor={`pub-${publico}`} className="text-sm cursor-pointer">
-              {toTitleCase(publico)}
-            </Label>
+            {publicoSearch && (
+              <button type="button" onClick={() => setPublicoSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
-        ))}
+        )}
+        <div className="max-h-48 overflow-y-auto overscroll-contain scrollbar-thin" style={{ overscrollBehavior: 'contain' }}>
+          {publicoAlvoOptions
+            .filter(p => !publicoSearch || p.toLowerCase().includes(publicoSearch.toLowerCase()))
+            .map((publico) => (
+            <div key={publico} className="flex items-center gap-2 py-0.5">
+              <Checkbox
+                id={`pub-${publico}`}
+                checked={filters.publicoAlvo.includes(publico)}
+                onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)}
+              />
+              <Label htmlFor={`pub-${publico}`} className="text-sm cursor-pointer">
+                {toTitleCase(publico)}
+              </Label>
+            </div>
+          ))}
+          {publicoAlvoOptions.filter(p => !publicoSearch || p.toLowerCase().includes(publicoSearch.toLowerCase())).length === 0 && (
+            <p className="text-xs text-muted-foreground py-2 text-center">Nenhum público encontrado</p>
+          )}
+        </div>
       </div>
     ) : (
       <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>
