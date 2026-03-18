@@ -39,13 +39,13 @@ const typeIcons: Record<string, React.ReactNode> = {
   history: <Clock className="h-4 w-4 text-muted-foreground" />,
 };
 
-export function SmartSearchInput({
+export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps>(function SmartSearchInput({
   placeholder = "Buscar produtos, categorias, fornecedores...",
   onSelect,
   onSearch,
   className,
   autoFocus = false,
-}: SmartSearchInputProps) {
+}, _ref) {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
