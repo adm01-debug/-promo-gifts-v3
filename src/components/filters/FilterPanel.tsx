@@ -578,9 +578,9 @@ export function FilterPanel({ filters, onFilterChange, onReset, activeFiltersCou
     );
   };
 
-  // Conteúdo por seção
-  const sectionContent: Record<string, React.ReactNode> = {
-    cores: (
+  // Performance: seções como funções para lazy-render (só executam quando a seção está aberta)
+  const sectionRenderers: Record<string, () => React.ReactNode> = {
+    cores: () => (
       <InlineColorGroupFilter
         selection={{
           groups: filters.colorGroups,
