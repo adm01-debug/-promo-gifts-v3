@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 import { fetchAddressByCep } from '@/utils/viacep';
+import { fetchCnpjData } from '@/utils/cnpj-lookup';
 
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
@@ -32,6 +33,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [tradingName, setTradingName] = useState('');
   const [cnpj, setCnpj] = useState('');
   const [cnpjError, setCnpjError] = useState('');
+  const [fetchingCnpj, setFetchingCnpj] = useState(false);
+  const [website, setWebsite] = useState('');
 
   // Contact
   const [contactName, setContactName] = useState('');
@@ -300,13 +303,50 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
               </div>
               <div>
                 <Label className="text-xs font-semibold">CNPJ</Label>
-                <Input
-                  value={cnpj}
-                  onChange={(e) => { setCnpj(maskCnpj(e.target.value)); setCnpjError(''); }}
-                  placeholder="00.000.000/0000-00"
-                  className={`${fieldClass} font-mono ${cnpjError ? 'border-destructive' : ''}`}
-                  maxLength={18}
-                />
+                <div className="flex gap-1.5">
+                  <Input
+                    value={cnpj}
+                    onChange={(e) => { setCnpj(maskCnpj(e.target.value)); setCnpjError(''); }}
+                    placeholder="00.000.000/0000-00"
+                    className={`${fieldClass} font-mono flex-1 ${cnpjError ? 'border-destructive' : ''}`}
+                    maxLength={18}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 px-2.5 shrink-0"
+                    disabled={fetchingCnpj || cnpj.replace(/\D/g, '').length !== 14}
+                    onClick={async () => {
+                      const digits = cnpj.replace(/\D/g, '');
+                      if (!validateCnpj(digits)) { setCnpjError('CNPJ inválido'); return; }
+                      setFetchingCnpj(true);
+                      try {
+                        const data = await fetchCnpjData(digits);
+                        if (data) {
+                          if (data.razao_social) setName(data.razao_social);
+                          if (data.nome_fantasia) setTradingName(data.nome_fantasia);
+                          if (data.logradouro) setLogradouro(data.logradouro);
+                          if (data.numero) setNumero(data.numero);
+                          if (data.complemento) setComplemento(data.complemento);
+                          if (data.bairro) setBairro(data.bairro);
+                          if (data.cidade) setCidade(data.cidade);
+                          if (data.estado) setEstado(data.estado);
+                          if (data.cep) setCep(maskCep(data.cep));
+                          if (data.email) setEmail(data.email);
+                          if (data.telefone) setPhone(data.telefone);
+                          toast.success('Dados preenchidos via CNPJ!');
+                        }
+                      } catch (err: any) {
+                        toast.error(err.message || 'Erro ao consultar CNPJ');
+                      } finally {
+                        setFetchingCnpj(false);
+                      }
+                    }}
+                  >
+                    {fetchingCnpj ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
                 {cnpjError && <p className="text-[10px] text-destructive mt-0.5">{cnpjError}</p>}
               </div>
             </div>
