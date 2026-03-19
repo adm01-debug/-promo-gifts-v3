@@ -19,7 +19,7 @@ import {
 import {
   Search, Plus, Pencil, Trash2, Loader2, Building2, Phone, DollarSign,
   Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle, ImagePlus, X,
-  MapPin, Globe, UserPlus,
+  MapPin, Globe, UserPlus, Landmark,
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -127,6 +127,11 @@ export function SuppliersManager() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [contacts, setContacts] = useState<SupplierContact[]>([createEmptyContact()]);
+  const [formaPagamento, setFormaPagamento] = useState<string[]>([]);
+  const [pixTipo, setPixTipo] = useState('');
+  const [pixNumero, setPixNumero] = useState('');
+  const [pixFavorecido, setPixFavorecido] = useState('');
+  const [pixDataCadastro, setPixDataCadastro] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
@@ -225,6 +230,22 @@ export function SuppliersManager() {
     } catch {
       setContacts([createEmptyContact()]);
     }
+
+    // Parse financial data from notes
+    const notesStr = supplier.notes || '';
+    const finMatch = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
+    if (finMatch) {
+      const formas = finMatch[1] !== '-' ? finMatch[1].split(',').filter(Boolean) : [];
+      setFormaPagamento(formas);
+      setPixTipo(finMatch[2] !== '-' ? finMatch[2] : '');
+      setPixNumero(finMatch[3] !== '-' ? finMatch[3] : '');
+      setPixFavorecido(finMatch[4] !== '-' ? finMatch[4] : '');
+      setPixDataCadastro(finMatch[5] !== '-' ? finMatch[5] : '');
+    } else {
+      setFormaPagamento([]);
+      setPixTipo(''); setPixNumero(''); setPixFavorecido(''); setPixDataCadastro('');
+    }
+
     setIsNew(false);
   };
 
@@ -278,6 +299,7 @@ export function SuppliersManager() {
             ?.replace(/\[Contato 1 extras:.*?\]/g, '')
             ?.replace(/\[Contatos adicionais:.*?\]/g, '')
             ?.replace(/\[Redes Sociais:.*?\]/g, '')
+            ?.replace(/\[Financeiro:.*?\]/g, '')
             ?.trim();
           if (userNotes) parts.push(userNotes);
           const c0 = contacts[0];
@@ -288,6 +310,11 @@ export function SuppliersManager() {
           if (extraContacts.length > 0) {
             const extraInfo = `[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'}, Assinatura: ${c.signature?.trim() || '-'}, Apelido: ${c.nickname?.trim() || '-'})`).join('; ')}]`;
             parts.push(extraInfo);
+          }
+          // Persist financial/PIX data
+          if (formaPagamento.length > 0 || pixTipo || pixNumero || pixFavorecido) {
+            const now_date = new Date().toISOString().split('T')[0];
+            parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX Tipo: ${pixTipo || '-'}, PIX Número: ${pixNumero || '-'}, PIX Favorecido: ${pixFavorecido || '-'}, PIX Atualizado: ${now_date}]`);
           }
           return parts.join('\n') || null;
         })(),
@@ -573,12 +600,13 @@ export function SuppliersManager() {
 
           {editingSupplier && (
             <Tabs defaultValue="basic" className="mt-2">
-              <TabsList className="grid w-full grid-cols-6 h-9">
+              <TabsList className="grid w-full grid-cols-7 h-9">
                 <TabsTrigger value="basic" className="text-xs gap-1.5"><Building2 className="h-3.5 w-3.5" />Dados</TabsTrigger>
                 <TabsTrigger value="contact" className="text-xs gap-1.5"><Phone className="h-3.5 w-3.5" />Contatos</TabsTrigger>
                 <TabsTrigger value="address" className="text-xs gap-1.5"><MapPin className="h-3.5 w-3.5" />Endereço</TabsTrigger>
                 <TabsTrigger value="social" className="text-xs gap-1.5"><Globe className="h-3.5 w-3.5" />Site/Redes</TabsTrigger>
                 <TabsTrigger value="commercial" className="text-xs gap-1.5"><DollarSign className="h-3.5 w-3.5" />Comercial</TabsTrigger>
+                <TabsTrigger value="financial" className="text-xs gap-1.5"><Landmark className="h-3.5 w-3.5" />Financeiro</TabsTrigger>
                 <TabsTrigger value="classification" className="text-xs gap-1.5"><Settings2 className="h-3.5 w-3.5" />Tipo</TabsTrigger>
               </TabsList>
 
@@ -899,6 +927,66 @@ export function SuppliersManager() {
                   <Label className="text-xs font-semibold">Observações</Label>
                   <Textarea value={editingSupplier.notes || ''} onChange={e => updateField('notes', e.target.value)} className="mt-1.5 min-h-[80px]" />
                 </div>
+              </TabsContent>
+
+              {/* FINANCEIRO */}
+              <TabsContent value="financial" className="space-y-4 pt-3">
+                <div>
+                  <Label className="text-xs font-semibold">Formas de Pagamento</Label>
+                  <div className="flex gap-3 mt-1.5">
+                    {['Boleto', 'PIX', 'Transferência', 'Cartão'].map(method => (
+                      <label key={method} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formaPagamento.includes(method)}
+                          onChange={(e) => {
+                            if (e.target.checked) setFormaPagamento(prev => [...prev, method]);
+                            else setFormaPagamento(prev => prev.filter(m => m !== method));
+                          }}
+                          className="rounded border-border"
+                        />
+                        {method}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {formaPagamento.includes('PIX') && (
+                  <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Dados do PIX</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs font-semibold">Tipo de Chave PIX</Label>
+                        <Select value={pixTipo} onValueChange={setPixTipo}>
+                          <SelectTrigger className={`${fieldClass} w-full`}>
+                            <SelectValue placeholder="Selecione..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="CNPJ">CNPJ</SelectItem>
+                            <SelectItem value="CPF">CPF</SelectItem>
+                            <SelectItem value="Email">E-mail</SelectItem>
+                            <SelectItem value="Telefone">Telefone</SelectItem>
+                            <SelectItem value="Aleatória">Chave Aleatória</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs font-semibold">Chave PIX</Label>
+                        <Input value={pixNumero} onChange={e => setPixNumero(e.target.value)} placeholder="Ex: 00.000.000/0000-00" className={fieldClass} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs font-semibold">Favorecido (Nome)</Label>
+                        <Input value={pixFavorecido} onChange={e => setPixFavorecido(e.target.value)} placeholder="Nome do titular da conta PIX" className={fieldClass} />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-semibold">Data de Cadastro/Atualização</Label>
+                        <Input value={pixDataCadastro} disabled className={`${fieldClass} text-muted-foreground`} placeholder="Atualizado automaticamente" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="classification" className="space-y-6 pt-3">
