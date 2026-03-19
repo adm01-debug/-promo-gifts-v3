@@ -393,8 +393,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                           if (data.cidade) setCidade(data.cidade);
                           if (data.estado) setEstado(data.estado);
                           if (data.cep) setCep(maskCep(data.cep));
-                          if (data.email) setEmail(data.email);
-                          if (data.telefone) setPhone(data.telefone);
+                          if (data.email) updateContact(contacts[0].id, 'email', data.email);
+                          if (data.telefone) updateContact(contacts[0].id, 'phone', data.telefone);
                           toast.success('Dados preenchidos via CNPJ!');
                         }
                       } catch (err: any) {
