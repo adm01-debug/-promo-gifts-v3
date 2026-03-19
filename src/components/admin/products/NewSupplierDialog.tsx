@@ -104,9 +104,21 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [isProductSupplier, setIsProductSupplier] = useState(true);
   const [isEngravingSupplier, setIsEngravingSupplier] = useState(false);
 
+  const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
+    setContacts(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+  };
+
+  const addContact = () => {
+    setContacts(prev => [...prev, createEmptyContact()]);
+  };
+
+  const removeContact = (id: string) => {
+    setContacts(prev => prev.length > 1 ? prev.filter(c => c.id !== id) : prev);
+  };
+
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
-    setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setWebsite('');
+    setContacts([createEmptyContact()]); setWebsite('');
     setInstagram(''); setFacebook(''); setLinkedin(''); setYoutube(''); setTiktok('');
     setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
