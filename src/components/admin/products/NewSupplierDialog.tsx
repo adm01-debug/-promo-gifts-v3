@@ -623,94 +623,108 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
           </TabsContent>
 
           {/* ENDEREÇO */}
-          <TabsContent value="address" className="space-y-4 pt-3">
-            <div>
-              <Label className="text-xs font-semibold">CEP</Label>
-              <Input value={cep} onChange={async (e) => {
-                const masked = maskCep(e.target.value);
-                setCep(masked);
-                if (masked.replace(/\D/g, '').length === 8) {
-                  const addr = await fetchAddressByCep(masked);
-                  if (addr) {
-                    if (addr.logradouro) setLogradouro(addr.logradouro);
-                    if (addr.bairro) setBairro(addr.bairro);
-                    if (addr.localidade) setCidade(addr.localidade);
-                    if (addr.uf) setEstado(addr.uf);
-                    toast.success('Endereço preenchido via CEP');
+          <TabsContent value="address" className="space-y-3 pt-3">
+            {/* Linha 1: CEP + Tipo Logradouro */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">CEP</Label>
+                <Input value={cep} onChange={async (e) => {
+                  const masked = maskCep(e.target.value);
+                  setCep(masked);
+                  if (masked.replace(/\D/g, '').length === 8) {
+                    const addr = await fetchAddressByCep(masked);
+                    if (addr) {
+                      if (addr.logradouro) setLogradouro(addr.logradouro);
+                      if (addr.bairro) setBairro(addr.bairro);
+                      if (addr.localidade) setCidade(addr.localidade);
+                      if (addr.uf) setEstado(addr.uf);
+                      toast.success('Endereço preenchido via CEP');
+                    }
                   }
-                }
-              }} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
+                }} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Tipo Logradouro</Label>
+                <select value={tipoLogradouro} onChange={(e) => setTipoLogradouro(e.target.value)} className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="">Selecione</option>
+                  {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Tipo Logradouro</Label>
-              <select
-                value={tipoLogradouro}
-                onChange={(e) => setTipoLogradouro(e.target.value)}
-                className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="">Selecione</option>
-                {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
+            {/* Linha 2: Logradouro */}
             <div>
               <Label className="text-xs font-semibold">Logradouro</Label>
               <Input value={logradouro} onChange={(e) => setLogradouro(e.target.value)} placeholder="Nome da rua" className={fieldClass} />
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Número</Label>
-              <Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="123" className={fieldClass} />
+            {/* Linha 3: Número + Complemento */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Número</Label>
+                <Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="123" className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Complemento</Label>
+                <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Sala 101, Bloco A" className={fieldClass} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Complemento</Label>
-              <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Sala 101, Bloco A" className={fieldClass} />
+            {/* Linha 4: Bairro + Cidade */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Bairro</Label>
+                <Input value={bairro} onChange={(e) => setBairro(e.target.value)} placeholder="Centro" className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Cidade</Label>
+                <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="São Paulo" className={fieldClass} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Bairro</Label>
-              <Input value={bairro} onChange={(e) => setBairro(e.target.value)} placeholder="Centro" className={fieldClass} />
+            {/* Linha 5: Estado + País */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Estado</Label>
+                <select value={estado} onChange={(e) => setEstado(e.target.value)} className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="">Selecione</option>
+                  {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">País</Label>
+                <Input value={pais} onChange={(e) => setPais(e.target.value)} className={fieldClass} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Cidade</Label>
-              <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="São Paulo" className={fieldClass} />
-            </div>
-            <div>
-              <Label className="text-xs font-semibold">Estado</Label>
-              <select
-                value={estado}
-                onChange={(e) => setEstado(e.target.value)}
-                className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-              >
-                <option value="">Selecione</option>
-                {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
-              </select>
-            </div>
-            <div>
-              <Label className="text-xs font-semibold">País</Label>
-              <Input value={pais} onChange={(e) => setPais(e.target.value)} className={fieldClass} />
-            </div>
+            {/* Linha 6: Ponto de Referência */}
             <div>
               <Label className="text-xs font-semibold">Ponto de Referência</Label>
               <Input value={pontoReferencia} onChange={(e) => setPontoReferencia(e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Latitude</Label>
-              <Input type="number" step="any" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
+            {/* Linha 7: Latitude + Longitude */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Latitude</Label>
+                <Input type="number" step="any" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Longitude</Label>
+                <Input type="number" step="any" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Longitude</Label>
-              <Input type="number" step="any" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+            {/* Linha 8: Google Maps URL + Place ID */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Google Maps URL</Label>
+                <Input value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Google Place ID</Label>
+                <Input value={googlePlaceId} onChange={(e) => setGooglePlaceId(e.target.value)} placeholder="ChIJ..." className={fieldClass} />
+              </div>
             </div>
-            <div>
-              <Label className="text-xs font-semibold">Google Maps URL</Label>
-              <Input value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
-            </div>
-            <div>
-              <Label className="text-xs font-semibold">Google Place ID</Label>
-              <Input value={googlePlaceId} onChange={(e) => setGooglePlaceId(e.target.value)} placeholder="ChIJ..." className={fieldClass} />
-            </div>
+            {/* Linha 9: Horário */}
             <div>
               <Label className="text-xs font-semibold">Horário de Funcionamento</Label>
               <Input value={horarioFuncionamento} onChange={(e) => setHorarioFuncionamento(e.target.value)} placeholder="Seg-Sex 08:00-18:00" className={fieldClass} />
             </div>
+            {/* Linha 10: Instruções de Entrega */}
             <div>
               <Label className="text-xs font-semibold">Instruções de Entrega</Label>
               <Textarea value={instrucoesEntrega} onChange={(e) => setInstrucoesEntrega(e.target.value)} placeholder="Entrar pela portaria lateral..." className="mt-1.5 min-h-[60px]" />
