@@ -35,6 +35,8 @@ const createEmptyContact = (): SupplierContact => ({
   id: crypto.randomUUID(),
   role: '',
   name: '',
+  signature: '',
+  nickname: '',
   email: '',
   phone: '',
 });
