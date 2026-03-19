@@ -67,6 +67,12 @@ interface Supplier {
   is_product_supplier: boolean;
   is_engraving_supplier: boolean;
   logo_url: string | null;
+  contacts: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  youtube: string | null;
+  tiktok: string | null;
   // Endereço estruturado (company_addresses)
   tipo_logradouro: string | null;
   logradouro: string | null;
