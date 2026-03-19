@@ -136,6 +136,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setLatitude(''); setLongitude(''); setHorarioFuncionamento(''); setInstrucoesEntrega('');
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
+    setFormaPagamento([]); setPixTipo(''); setPixNumero(''); setPixFavorecido('');
     setIsProductSupplier(true); setIsEngravingSupplier(false);
     setLogoUrl('');
   };
