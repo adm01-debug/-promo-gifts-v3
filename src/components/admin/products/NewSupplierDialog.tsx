@@ -10,7 +10,7 @@ import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X } 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-import { maskCnpj, maskPhone, validateCnpj } from '@/utils/masks';
+import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
