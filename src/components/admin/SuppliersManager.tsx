@@ -181,11 +181,29 @@ export function SuppliersManager() {
 
   const handleNew = () => {
     setEditingSupplier({ ...EMPTY_SUPPLIER });
+    setContacts([createEmptyContact()]);
     setIsNew(true);
   };
 
   const handleEdit = (supplier: Supplier) => {
     setEditingSupplier({ ...supplier });
+    // Parse contacts from JSON if available
+    try {
+      const parsed = supplier.contacts ? JSON.parse(supplier.contacts) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setContacts(parsed.map((c: any) => ({ ...c, id: c.id || crypto.randomUUID() })));
+      } else {
+        // Fallback: create from legacy single-contact fields
+        const legacy = createEmptyContact();
+        if (supplier.contact_name) legacy.name = supplier.contact_name;
+        if (supplier.contact_person) legacy.role = supplier.contact_person;
+        if (supplier.email) legacy.email = supplier.email;
+        if (supplier.phone) legacy.phone = supplier.phone;
+        setContacts([legacy]);
+      }
+    } catch {
+      setContacts([createEmptyContact()]);
+    }
     setIsNew(false);
   };
 
