@@ -49,7 +49,7 @@ const quickActions: NavItem[] = [
   { icon: BarChart3, label: "Dashboard", href: "/bi" },
 ];
 
-export function SmartMobileNav() {
+export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav(_props, _ref) {
   const location = useLocation();
   const navigate = useNavigate();
   const [fabOpen, setFabOpen] = useState(false);
