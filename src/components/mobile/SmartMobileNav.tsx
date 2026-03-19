@@ -228,4 +228,4 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
       </motion.nav>
     </>
   );
-}
+});
