@@ -708,6 +708,16 @@ export function SuppliersManager() {
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
+                          <Label className="text-xs font-semibold">Assinatura</Label>
+                          <Input value={contact.signature} onChange={(e) => updateContact(contact.id, 'signature', e.target.value)} placeholder="Ex: João S. - Diretor Comercial" className={fieldClass} />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold">Apelido</Label>
+                          <Input value={contact.nickname} onChange={(e) => updateContact(contact.id, 'nickname', e.target.value)} placeholder="Ex: Joãozinho" className={fieldClass} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
                           <Label className="text-xs font-semibold">E-mail</Label>
                           <Input type="email" value={contact.email} onChange={(e) => updateContact(contact.id, 'email', e.target.value)} placeholder="contato@fornecedor.com" className={fieldClass} />
                         </div>
