@@ -600,12 +600,13 @@ export function SuppliersManager() {
 
           {editingSupplier && (
             <Tabs defaultValue="basic" className="mt-2">
-              <TabsList className="grid w-full grid-cols-6 h-9">
+              <TabsList className="grid w-full grid-cols-7 h-9">
                 <TabsTrigger value="basic" className="text-xs gap-1.5"><Building2 className="h-3.5 w-3.5" />Dados</TabsTrigger>
                 <TabsTrigger value="contact" className="text-xs gap-1.5"><Phone className="h-3.5 w-3.5" />Contatos</TabsTrigger>
                 <TabsTrigger value="address" className="text-xs gap-1.5"><MapPin className="h-3.5 w-3.5" />Endereço</TabsTrigger>
                 <TabsTrigger value="social" className="text-xs gap-1.5"><Globe className="h-3.5 w-3.5" />Site/Redes</TabsTrigger>
                 <TabsTrigger value="commercial" className="text-xs gap-1.5"><DollarSign className="h-3.5 w-3.5" />Comercial</TabsTrigger>
+                <TabsTrigger value="financial" className="text-xs gap-1.5"><Landmark className="h-3.5 w-3.5" />Financeiro</TabsTrigger>
                 <TabsTrigger value="classification" className="text-xs gap-1.5"><Settings2 className="h-3.5 w-3.5" />Tipo</TabsTrigger>
               </TabsList>
 
