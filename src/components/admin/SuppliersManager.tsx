@@ -547,8 +547,44 @@ export function SuppliersManager() {
                   </div>
                   <div>
                     <Label className="text-xs font-semibold">CNPJ</Label>
-                    <Input value={editingSupplier.cnpj || ''} onChange={e => updateField('cnpj', maskCnpj(e.target.value))} className={`${fieldClass} font-mono`} maxLength={18} />
-                  </div>
+                    <div className="flex gap-1.5">
+                      <Input value={editingSupplier.cnpj || ''} onChange={e => updateField('cnpj', maskCnpj(e.target.value))} className={`${fieldClass} font-mono flex-1`} maxLength={18} />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-9 px-2.5 shrink-0"
+                        disabled={fetchingCnpj || (editingSupplier.cnpj?.replace(/\D/g, '') || '').length !== 14}
+                        onClick={async () => {
+                          const digits = editingSupplier.cnpj?.replace(/\D/g, '') || '';
+                          if (!validateCnpj(digits)) { toast.error('CNPJ inválido'); return; }
+                          setFetchingCnpj(true);
+                          try {
+                            const data = await fetchCnpjData(digits);
+                            if (data) {
+                              if (data.razao_social) updateField('name', data.razao_social);
+                              if (data.nome_fantasia) updateField('trading_name', data.nome_fantasia);
+                              if (data.logradouro) updateField('logradouro', data.logradouro);
+                              if (data.numero) updateField('numero', data.numero);
+                              if (data.complemento) updateField('complemento', data.complemento);
+                              if (data.bairro) updateField('bairro', data.bairro);
+                              if (data.cidade) updateField('cidade', data.cidade);
+                              if (data.estado) updateField('estado', data.estado);
+                              if (data.cep) updateField('cep', maskCep(data.cep));
+                              if (data.email) updateField('email', data.email);
+                              if (data.telefone) updateField('phone', data.telefone);
+                              toast.success('Dados preenchidos via CNPJ!');
+                            }
+                          } catch (err: any) {
+                            toast.error(err.message || 'Erro ao consultar CNPJ');
+                          } finally {
+                            setFetchingCnpj(false);
+                          }
+                        }}
+                      >
+                        {fetchingCnpj ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+                      </Button>
+                    </div>
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <Label className="text-sm">Ativo</Label>
