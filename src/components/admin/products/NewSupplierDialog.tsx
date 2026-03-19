@@ -71,9 +71,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
     setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setWebsite('');
-    setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
+    setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
-    setPontoReferencia(''); setGoogleMapsUrl('');
+    setPontoReferencia(''); setGoogleMapsUrl(''); setGooglePlaceId('');
+    setLatitude(''); setLongitude(''); setHorarioFuncionamento(''); setInstrucoesEntrega('');
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setIsProductSupplier(true); setIsEngravingSupplier(false);
