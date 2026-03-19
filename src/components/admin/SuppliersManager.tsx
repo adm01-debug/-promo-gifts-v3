@@ -311,6 +311,11 @@ export function SuppliersManager() {
             const extraInfo = `[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'}, Assinatura: ${c.signature?.trim() || '-'}, Apelido: ${c.nickname?.trim() || '-'})`).join('; ')}]`;
             parts.push(extraInfo);
           }
+          // Persist financial/PIX data
+          if (formaPagamento.length > 0 || pixTipo || pixNumero || pixFavorecido) {
+            const now_date = new Date().toISOString().split('T')[0];
+            parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX Tipo: ${pixTipo || '-'}, PIX Número: ${pixNumero || '-'}, PIX Favorecido: ${pixFavorecido || '-'}, PIX Atualizado: ${now_date}]`);
+          }
           return parts.join('\n') || null;
         })(),
         is_product_supplier: es.is_product_supplier ?? true,
