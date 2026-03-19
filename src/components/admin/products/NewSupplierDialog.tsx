@@ -81,6 +81,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
     setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setWebsite('');
+    setInstagram(''); setFacebook(''); setLinkedin(''); setYoutube(''); setTiktok('');
     setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
     setPontoReferencia(''); setGoogleMapsUrl(''); setGooglePlaceId('');
