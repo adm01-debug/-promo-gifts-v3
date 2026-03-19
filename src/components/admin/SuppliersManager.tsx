@@ -247,34 +247,8 @@ export function SuppliersManager() {
         es.cep ? `CEP ${es.cep}` : null,
       ].filter(Boolean).join(', ') || es.address?.trim() || null;
 
-      // Store detailed address/social fields as JSON metadata
-      const addressDetails: Record<string, unknown> = {
-        tipo_logradouro: es.tipo_logradouro?.trim() || null,
-        logradouro: es.logradouro?.trim() || null,
-        numero: es.numero?.trim() || null,
-        complemento: es.complemento?.trim() || null,
-        bairro: es.bairro?.trim() || null,
-        cidade: es.cidade?.trim() || null,
-        estado: es.estado?.trim() || null,
-        cep: es.cep?.trim() || null,
-        pais: es.pais?.trim() || 'Brasil',
-        ponto_referencia: es.ponto_referencia?.trim() || null,
-        google_maps_url: es.google_maps_url?.trim() || null,
-        google_place_id: es.google_place_id?.trim() || null,
-        latitude: es.latitude ?? null,
-        longitude: es.longitude ?? null,
-        horario_funcionamento: es.horario_funcionamento?.trim() || null,
-        instrucoes_entrega: es.instrucoes_entrega?.trim() || null,
-      };
-
-      const socialDetails: Record<string, unknown> = {
-        website: es.website?.trim() || null,
-        instagram: es.instagram?.trim() || null,
-        facebook: es.facebook?.trim() || null,
-        linkedin: es.linkedin?.trim() || null,
-        youtube: es.youtube?.trim() || null,
-        tiktok: es.tiktok?.trim() || null,
-      };
+      // addressDetails and socialDetails are kept in-memory only for the edit form
+      // The external DB only has 'address' (string), plus individual social columns
 
       const payload: Record<string, unknown> = {
         name: es.name!.trim(),
