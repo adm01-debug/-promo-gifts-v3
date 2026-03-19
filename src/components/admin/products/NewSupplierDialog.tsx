@@ -342,14 +342,62 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 />
               </div>
             </div>
+            {/* Endereço Estruturado */}
+            <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2">
+                <Label className="text-xs font-semibold">Logradouro</Label>
+                <Input value={logradouro} onChange={(e) => setLogradouro(e.target.value)} placeholder="Rua, Avenida..." className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Número</Label>
+                <Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="123" className={fieldClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Complemento</Label>
+                <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Sala 101, Bloco A" className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Bairro</Label>
+                <Input value={bairro} onChange={(e) => setBairro(e.target.value)} placeholder="Centro" className={fieldClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Cidade</Label>
+                <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="São Paulo" className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Estado</Label>
+                <select
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value)}
+                  className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Selecione</option>
+                  {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">CEP</Label>
+                <Input value={cep} onChange={(e) => setCep(maskCep(e.target.value))} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">País</Label>
+                <Input value={pais} onChange={(e) => setPais(e.target.value)} className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Ponto de Referência</Label>
+                <Input value={pontoReferencia} onChange={(e) => setPontoReferencia(e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
+              </div>
+            </div>
             <div>
-              <Label className="text-xs font-semibold">Endereço</Label>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Rua, número, cidade - UF"
-                className={fieldClass}
-              />
+              <Label className="text-xs font-semibold">Google Maps URL</Label>
+              <Input value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
             </div>
             <div>
               <Label className="text-xs font-semibold">Website</Label>
