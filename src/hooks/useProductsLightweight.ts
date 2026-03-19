@@ -3,7 +3,7 @@
  * 
  * Loads ~10x faster than useProducts (no color/variant enrichment).
  */
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { fetchPromobrindProductsLightweight, LightweightProduct } from '@/lib/external-db';
 
 // Re-export type for consumers
@@ -80,6 +80,18 @@ function mapLightweightToProduct(p: LightweightProduct): Product {
   };
 }
 
+/** Prefetch the catalog so data is ready before the page renders */
+export function prefetchCatalog(queryClient: ReturnType<typeof useQueryClient>) {
+  return queryClient.prefetchQuery({
+    queryKey: ['promobrind-products-catalog', ''],
+    queryFn: async () => {
+      const products = await fetchPromobrindProductsLightweight();
+      return products.map(mapLightweightToProduct);
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
 /**
  * Hook leve para buscar lista de produtos com campos mínimos.
  */
@@ -101,6 +113,7 @@ export function useProductsLightweight() {
 /**
  * Hook leve que retorna Product[] — para uso no catálogo/Index.
  * ~10x mais rápido que useProducts (sem enriquecimento de cores/imagens/variantes).
+ * Uses placeholderData to keep previous results visible while fetching new search.
  */
 export function useProductsCatalog(filters?: { search?: string }) {
   return useQuery<Product[]>({
@@ -114,6 +127,7 @@ export function useProductsCatalog(filters?: { search?: string }) {
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
