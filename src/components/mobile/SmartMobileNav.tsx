@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { 
   Home, 
@@ -19,7 +20,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { VisuallyHidden } from "@/components/a11y/VisuallyHidden";
 
@@ -48,7 +49,7 @@ const quickActions: NavItem[] = [
   { icon: BarChart3, label: "Dashboard", href: "/bi" },
 ];
 
-export function SmartMobileNav() {
+export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav(_props, _ref) {
   const location = useLocation();
   const navigate = useNavigate();
   const [fabOpen, setFabOpen] = useState(false);
@@ -227,4 +228,4 @@ export function SmartMobileNav() {
       </motion.nav>
     </>
   );
-}
+});
