@@ -38,3 +38,13 @@ export function validateCnpj(value: string): boolean {
   const d2 = remainder < 2 ? 0 : 11 - remainder;
   return parseInt(digits[13]) === d2;
 }
+
+export function maskCep(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 8);
+  return digits.replace(/^(\d{5})(\d)/, '$1-$2');
+}
+
+export const ESTADOS_BR = [
+  'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
+  'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO',
+] as const;

@@ -48,6 +48,17 @@ interface Supplier {
   is_product_supplier: boolean;
   is_engraving_supplier: boolean;
   logo_url: string | null;
+  // Endereço estruturado (company_addresses)
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  estado: string | null;
+  cep: string | null;
+  pais: string | null;
+  ponto_referencia: string | null;
+  google_maps_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,6 +69,9 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
   default_markup_percent: null, min_order_value: null, delivery_time_days: null,
   payment_terms: '', shipping_terms: '', priority: 50, notes: '',
   is_product_supplier: true, is_engraving_supplier: false, active: true, logo_url: null,
+  logradouro: '', numero: '', complemento: '', bairro: '',
+  cidade: '', estado: '', cep: '', pais: 'Brasil',
+  ponto_referencia: '', google_maps_url: '',
 };
 
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
