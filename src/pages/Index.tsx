@@ -470,7 +470,12 @@ export default function Index() {
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                   Catálogo de Produtos
                   <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
-                    · {shouldShowCatalogSkeleton ? "Carregando catálogo..." : `${filteredProducts.length.toLocaleString("pt-BR")} itens`}
+                    · {shouldShowCatalogSkeleton 
+                      ? "Carregando catálogo..." 
+                      : totalEstimate && totalEstimate > filteredProducts.length
+                        ? `${filteredProducts.length.toLocaleString("pt-BR")} de ${totalEstimate.toLocaleString("pt-BR")} itens`
+                        : `${filteredProducts.length.toLocaleString("pt-BR")} itens`
+                    }{hasNextPage && !shouldShowCatalogSkeleton ? '+' : ''}
                   </span>
                 </h1>
               </div>
