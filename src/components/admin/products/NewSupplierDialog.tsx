@@ -308,7 +308,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="mt-2">
-          <TabsList className="grid w-full grid-cols-6 h-9">
+          <TabsList className="grid w-full grid-cols-7 h-9">
             <TabsTrigger value="basic" className="text-xs gap-1">
               <Building2 className="h-3.5 w-3.5" />
               Dados
