@@ -127,6 +127,11 @@ export function SuppliersManager() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [contacts, setContacts] = useState<SupplierContact[]>([createEmptyContact()]);
+  const [formaPagamento, setFormaPagamento] = useState<string[]>([]);
+  const [pixTipo, setPixTipo] = useState('');
+  const [pixNumero, setPixNumero] = useState('');
+  const [pixFavorecido, setPixFavorecido] = useState('');
+  const [pixDataCadastro, setPixDataCadastro] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
