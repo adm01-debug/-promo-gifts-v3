@@ -216,13 +216,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         contact_person: contacts[0]?.role?.trim() || null,
         email: contacts[0]?.email?.trim() || null,
         phone: contacts[0]?.phone?.trim() || null,
-        contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
+        // contacts/social columns don't exist in external DB
         address: addressParts,
-        instagram: instagram.trim() || null,
-        facebook: facebook.trim() || null,
-        linkedin: linkedin.trim() || null,
-        youtube: youtube.trim() || null,
-        tiktok: tiktok.trim() || null,
         website: website.trim() || null,
         default_markup_percent: defaultMarkup ? parseFloat(defaultMarkup) : null,
         min_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
@@ -231,7 +226,14 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         payment_terms: paymentTerms.trim() || null,
         shipping_terms: shippingTerms.trim() || null,
         priority: priority ? parseInt(priority) : 50,
-        notes: notes.trim() || null,
+        notes: (() => {
+          const extraContacts = contacts.slice(1).filter(c => c.name.trim());
+          const extraInfo = extraContacts.length > 0
+            ? `[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'})`).join('; ')}]`
+            : '';
+          const userNotes = notes.trim();
+          return [userNotes, extraInfo].filter(Boolean).join('\n') || null;
+        })(),
         is_product_supplier: isProductSupplier,
         is_engraving_supplier: isEngravingSupplier,
         created_at: now,
