@@ -51,13 +51,10 @@ export function ScrollProgressIndicator({
 /**
  * ScrollToTop - Botão para voltar ao topo
  */
-export function ScrollToTopButton({
-  threshold = 300,
-  className,
-}: {
-  threshold?: number;
-  className?: string;
-}) {
+export const ScrollToTopButton = forwardRef<
+  HTMLButtonElement,
+  { threshold?: number; className?: string }
+>(function ScrollToTopButton({ threshold = 300, className }, ref) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
