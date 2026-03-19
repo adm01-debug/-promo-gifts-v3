@@ -274,7 +274,11 @@ export function SuppliersManager() {
         priority: es.priority ?? 50,
         notes: (() => {
           const parts: string[] = [];
-          const userNotes = es.notes?.trim();
+          const userNotes = es.notes?.trim()
+            ?.replace(/\[Contato 1 extras:.*?\]/g, '')
+            ?.replace(/\[Contatos adicionais:.*?\]/g, '')
+            ?.replace(/\[Redes Sociais:.*?\]/g, '')
+            ?.trim();
           if (userNotes) parts.push(userNotes);
           const c0 = contacts[0];
           if (c0?.signature?.trim() || c0?.nickname?.trim()) {
