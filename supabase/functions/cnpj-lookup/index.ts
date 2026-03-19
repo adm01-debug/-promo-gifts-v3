@@ -59,9 +59,9 @@ serve(async (req) => {
       });
     }
 
-    // CNPJá Open API (gratuita)
+    // CNPJá Commercial API
     const response = await fetch(
-      `https://open.cnpja.com/office/${cnpjDigits}`,
+      `https://api.cnpja.com/office/${cnpjDigits}`,
       {
         headers: {
           Authorization: apiKey,
