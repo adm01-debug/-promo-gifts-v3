@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowUp } from "lucide-react";
@@ -51,13 +51,10 @@ export function ScrollProgressIndicator({
 /**
  * ScrollToTop - Botão para voltar ao topo
  */
-export function ScrollToTopButton({
-  threshold = 300,
-  className,
-}: {
-  threshold?: number;
-  className?: string;
-}) {
+export const ScrollToTopButton = forwardRef<
+  HTMLButtonElement,
+  { threshold?: number; className?: string }
+>(function ScrollToTopButton({ threshold = 300, className }, ref) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -153,6 +150,7 @@ export function ScrollToTopButton({
 
   return (
     <motion.button
+      ref={ref}
       key="scroll-to-top"
       className={cn(
         "fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-40 p-3 rounded-full",
@@ -172,5 +170,5 @@ export function ScrollToTopButton({
       <ArrowUp className="h-5 w-5" />
     </motion.button>
   );
-}
+});
 export default ScrollProgressIndicator;
