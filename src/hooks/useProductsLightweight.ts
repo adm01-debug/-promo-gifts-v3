@@ -3,8 +3,8 @@
  * 
  * Loads ~10x faster than useProducts (no color/variant enrichment).
  */
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
-import { fetchPromobrindProductsLightweight, LightweightProduct } from '@/lib/external-db';
+import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
+import { fetchPromobrindProductsLightweight, invokeBatchBridge, LightweightProduct } from '@/lib/external-db';
 
 // Re-export type for consumers
 export type { ProductLightweight } from '@/types/product-catalog';
@@ -80,16 +80,71 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
   };
 }
 
-/** Prefetch the catalog so data is ready before the page renders */
-export function prefetchCatalog(queryClient: ReturnType<typeof useQueryClient>) {
-  return queryClient.prefetchQuery({
-    queryKey: ['promobrind-products-catalog', ''],
-    queryFn: async () => {
-      const products = await fetchPromobrindProductsLightweight();
-      return products.map(mapLightweightToProduct);
-    },
-    staleTime: 10 * 60 * 1000,
-  });
+// ============================================
+// INFINITE CATALOG HOOK
+// ============================================
+
+const CATALOG_PAGE_SIZE = 500; // Products per server page
+const CATALOG_BATCH_PAGES = 4; // Fetch 4 pages per batch call (first load = 2000)
+const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity';
+
+interface CatalogPage {
+  products: Product[];
+  nextOffset: number | null; // null = no more pages
+  totalEstimate: number | null;
+}
+
+/**
+ * Fetches a batch of catalog pages starting at the given offset.
+ * First call fetches 4 pages (2000 products) via batch bridge.
+ * Subsequent calls fetch 1 page (500 products) each.
+ */
+async function fetchCatalogPage(
+  offset: number,
+  search?: string,
+): Promise<CatalogPage> {
+  const filters: Record<string, unknown> = { active: true };
+  if (search) filters._search = search;
+  const orderBy = { column: 'name', ascending: true };
+
+  const isFirstLoad = offset === 0;
+  const pagesToFetch = isFirstLoad ? CATALOG_BATCH_PAGES : 1;
+
+  const batchQueries = Array.from({ length: pagesToFetch }, (_, i) => ({
+    table: 'products',
+    operation: 'select' as const,
+    select: PRODUCT_SELECT_LIGHTWEIGHT,
+    filters,
+    orderBy,
+    limit: CATALOG_PAGE_SIZE,
+    offset: offset + i * CATALOG_PAGE_SIZE,
+    ...(i === 0 && isFirstLoad ? { countMode: 'planned' } : {}),
+  }));
+
+  const batchResults = await invokeBatchBridge(batchQueries);
+  const products: Product[] = [];
+  let totalEstimate: number | null = null;
+  let lastPageSize = 0;
+
+  for (const result of batchResults) {
+    if (result.success && result.data?.records) {
+      const mapped = (result.data.records as LightweightProduct[]).map(mapLightweightToProduct);
+      products.push(...mapped);
+      lastPageSize = result.data.records.length;
+      if (result.data.count != null && totalEstimate === null) {
+        totalEstimate = result.data.count as number;
+      }
+    }
+  }
+
+  const fetchedUpTo = offset + pagesToFetch * CATALOG_PAGE_SIZE;
+  const hasMore = lastPageSize === CATALOG_PAGE_SIZE;
+
+  return {
+    products,
+    nextOffset: hasMore ? fetchedUpTo : null,
+    totalEstimate,
+  };
 }
 
 /**
@@ -111,23 +166,21 @@ export function useProductsLightweight() {
 }
 
 /**
- * Hook leve que retorna Product[] — para uso no catálogo/Index.
- * ~10x mais rápido que useProducts (sem enriquecimento de cores/imagens/variantes).
- * Uses placeholderData to keep previous results visible while fetching new search.
+ * Hook com paginação infinita server-side para o catálogo.
+ * Primeiro carregamento: 2000 produtos (4 páginas batch).
+ * Carregamentos seguintes: 500 produtos por vez, sob demanda.
  */
 export function useProductsCatalog(filters?: { search?: string }) {
-  return useQuery<Product[]>({
-    queryKey: ['promobrind-products-catalog', filters?.search || ''],
-    queryFn: async () => {
-      const products = await fetchPromobrindProductsLightweight({
-        search: filters?.search,
-      });
-      return products.map(mapLightweightToProduct);
-    },
+  const search = filters?.search || '';
+
+  return useInfiniteQuery<CatalogPage, Error>({
+    queryKey: ['promobrind-products-catalog', search],
+    queryFn: ({ pageParam }) => fetchCatalogPage(pageParam as number, search || undefined),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextOffset,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    placeholderData: keepPreviousData,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });

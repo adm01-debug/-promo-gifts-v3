@@ -77,12 +77,23 @@ export default function Index() {
   // Debounce da busca para server-side search
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
-  // Buscar produtos reais do banco de dados — versão LIGHTWEIGHT (~10x mais rápido)
+  // Buscar produtos reais do banco de dados — versão LIGHTWEIGHT com paginação infinita server-side
   const {
-    data: realProducts = [],
+    data: catalogData,
     isLoading: isLoadingProducts,
     isFetching: isFetchingProducts,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
   } = useProductsCatalog(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
+
+  // Flatten infinite query pages into a single array
+  const realProducts = useMemo(() => {
+    if (!catalogData?.pages) return [] as Product[];
+    return catalogData.pages.flatMap(page => page.products);
+  }, [catalogData]);
+
+  const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
 
   // Register fetched products into the lazy cache for other contexts (favorites, etc.)
   useEffect(() => {
@@ -297,10 +308,12 @@ export default function Index() {
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
   const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0;
 
-  // Has more products to load
+  // Has more products to load (client-side pagination OR server-side pages)
   const hasMoreProducts = useMemo(() => {
-    return paginatedProducts.length < filteredProducts.length;
-  }, [paginatedProducts, filteredProducts]);
+    const hasMoreClientSide = paginatedProducts.length < filteredProducts.length;
+    const hasMoreServerSide = !!hasNextPage;
+    return hasMoreClientSide || hasMoreServerSide;
+  }, [paginatedProducts, filteredProducts, hasNextPage]);
 
   // INFINITE SCROLL com IntersectionObserver SEGURO
   // Usa refs para evitar loops de re-renderização
@@ -312,21 +325,31 @@ export default function Index() {
   const loadMore = useCallback(() => {
     // Proteção tripla contra loops
     if (isUpdatingRef.current) return;
-    if (isLoading || isLoadingMore) return;
+    if (isLoading || isLoadingMore || isFetchingNextPage) return;
     if (!hasMoreProducts) return;
     
     isUpdatingRef.current = true;
     setIsLoadingMore(true);
     
-    setTimeout(() => {
-      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
-      setIsLoadingMore(false);
-      // Libera para próximo load após um delay extra
+    // Check if we need more server-side data
+    const nextDisplayCount = displayCount + ITEMS_PER_PAGE;
+    const needsServerData = nextDisplayCount >= filteredProducts.length && hasNextPage;
+
+    if (needsServerData) {
+      // Fetch next server page, then increase display count
+      fetchNextPage().finally(() => {
+        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        setIsLoadingMore(false);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+      });
+    } else {
       setTimeout(() => {
-        isUpdatingRef.current = false;
-      }, 100);
-    }, 300);
-  }, [isLoading, isLoadingMore, hasMoreProducts]);
+        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        setIsLoadingMore(false);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+      }, 150);
+    }
+  }, [isLoading, isLoadingMore, isFetchingNextPage, hasMoreProducts, displayCount, filteredProducts.length, hasNextPage, fetchNextPage]);
 
   // Observer com proteções - reconecta apenas quando necessário
   useEffect(() => {
@@ -447,7 +470,12 @@ export default function Index() {
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                   Catálogo de Produtos
                   <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
-                    · {shouldShowCatalogSkeleton ? "Carregando catálogo..." : `${filteredProducts.length.toLocaleString("pt-BR")} itens`}
+                    · {shouldShowCatalogSkeleton 
+                      ? "Carregando catálogo..." 
+                      : totalEstimate && totalEstimate > filteredProducts.length
+                        ? `${filteredProducts.length.toLocaleString("pt-BR")} de ${totalEstimate.toLocaleString("pt-BR")} itens`
+                        : `${filteredProducts.length.toLocaleString("pt-BR")} itens`
+                    }{hasNextPage && !shouldShowCatalogSkeleton ? '+' : ''}
                   </span>
                 </h1>
               </div>
@@ -651,7 +679,7 @@ export default function Index() {
                   style={{ minHeight: '60px' }}
                 >
                   <p className="text-sm text-muted-foreground">
-                    Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
+                    Mostrando {paginatedProducts.length} de {totalEstimate ? `~${totalEstimate.toLocaleString("pt-BR")}` : filteredProducts.length.toLocaleString("pt-BR")} produtos
                   </p>
                   {isLoadingMore && (
                     <div className="flex items-center gap-2 text-muted-foreground">
