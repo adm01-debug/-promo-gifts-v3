@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface Message {
+  id?: string;
   role: "user" | "assistant";
   content: string;
 }
