@@ -77,12 +77,23 @@ export default function Index() {
   // Debounce da busca para server-side search
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
-  // Buscar produtos reais do banco de dados — versão LIGHTWEIGHT (~10x mais rápido)
+  // Buscar produtos reais do banco de dados — versão LIGHTWEIGHT com paginação infinita server-side
   const {
-    data: realProducts = [],
+    data: catalogData,
     isLoading: isLoadingProducts,
     isFetching: isFetchingProducts,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
   } = useProductsCatalog(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
+
+  // Flatten infinite query pages into a single array
+  const realProducts = useMemo(() => {
+    if (!catalogData?.pages) return [] as Product[];
+    return catalogData.pages.flatMap(page => page.products);
+  }, [catalogData]);
+
+  const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
 
   // Register fetched products into the lazy cache for other contexts (favorites, etc.)
   useEffect(() => {
