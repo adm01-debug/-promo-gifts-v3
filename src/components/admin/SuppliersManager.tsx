@@ -577,101 +577,88 @@ export function SuppliersManager() {
                 </div>
                 {/* Endereço Estruturado */}
                 <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
-                {/* Tipo Logradouro + Logradouro + Número */}
-                <div className="grid grid-cols-4 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Tipo Logradouro</Label>
-                    <select
-                      value={editingSupplier.tipo_logradouro || ''}
-                      onChange={e => updateField('tipo_logradouro', e.target.value)}
-                      className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      <option value="">Selecione</option>
-                      {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-xs font-semibold">Logradouro</Label>
-                    <Input value={editingSupplier.logradouro || ''} onChange={e => updateField('logradouro', e.target.value)} placeholder="Nome da rua" className={fieldClass} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Número</Label>
-                    <Input value={editingSupplier.numero || ''} onChange={e => updateField('numero', e.target.value)} placeholder="123" className={fieldClass} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Complemento</Label>
-                    <Input value={editingSupplier.complemento || ''} onChange={e => updateField('complemento', e.target.value)} placeholder="Sala 101, Bloco A" className={fieldClass} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Bairro</Label>
-                    <Input value={editingSupplier.bairro || ''} onChange={e => updateField('bairro', e.target.value)} placeholder="Centro" className={fieldClass} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Cidade</Label>
-                    <Input value={editingSupplier.cidade || ''} onChange={e => updateField('cidade', e.target.value)} placeholder="São Paulo" className={fieldClass} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Estado</Label>
-                    <select
-                      value={editingSupplier.estado || ''}
-                      onChange={e => updateField('estado', e.target.value)}
-                      className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      <option value="">Selecione</option>
-                      {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">CEP</Label>
-                    <Input value={editingSupplier.cep || ''} onChange={async e => {
-                      const masked = maskCep(e.target.value);
-                      updateField('cep', masked);
-                      if (masked.replace(/\D/g, '').length === 8) {
-                        const addr = await fetchAddressByCep(masked);
-                        if (addr) {
-                          if (addr.logradouro) updateField('logradouro', addr.logradouro);
-                          if (addr.bairro) updateField('bairro', addr.bairro);
-                          if (addr.localidade) updateField('cidade', addr.localidade);
-                          if (addr.uf) updateField('estado', addr.uf);
-                          toast.success('Endereço preenchido via CEP');
-                        }
+                <div>
+                  <Label className="text-xs font-semibold">CEP</Label>
+                  <Input value={editingSupplier.cep || ''} onChange={async e => {
+                    const masked = maskCep(e.target.value);
+                    updateField('cep', masked);
+                    if (masked.replace(/\D/g, '').length === 8) {
+                      const addr = await fetchAddressByCep(masked);
+                      if (addr) {
+                        if (addr.logradouro) updateField('logradouro', addr.logradouro);
+                        if (addr.bairro) updateField('bairro', addr.bairro);
+                        if (addr.localidade) updateField('cidade', addr.localidade);
+                        if (addr.uf) updateField('estado', addr.uf);
+                        toast.success('Endereço preenchido via CEP');
                       }
-                    }} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
-                  </div>
+                    }
+                  }} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">País</Label>
-                    <Input value={editingSupplier.pais || 'Brasil'} onChange={e => updateField('pais', e.target.value)} className={fieldClass} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Ponto de Referência</Label>
-                    <Input value={editingSupplier.ponto_referencia || ''} onChange={e => updateField('ponto_referencia', e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
-                  </div>
+                <div>
+                  <Label className="text-xs font-semibold">Tipo Logradouro</Label>
+                  <select
+                    value={editingSupplier.tipo_logradouro || ''}
+                    onChange={e => updateField('tipo_logradouro', e.target.value)}
+                    className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Selecione</option>
+                    {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Google Maps URL</Label>
-                    <Input value={editingSupplier.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Google Place ID</Label>
-                    <Input value={editingSupplier.google_place_id || ''} onChange={e => updateField('google_place_id', e.target.value)} placeholder="ChIJ..." className={fieldClass} />
-                  </div>
+                <div>
+                  <Label className="text-xs font-semibold">Logradouro</Label>
+                  <Input value={editingSupplier.logradouro || ''} onChange={e => updateField('logradouro', e.target.value)} placeholder="Nome da rua" className={fieldClass} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Latitude</Label>
-                    <Input type="number" step="any" value={editingSupplier.latitude ?? ''} onChange={e => updateField('latitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Longitude</Label>
-                    <Input type="number" step="any" value={editingSupplier.longitude ?? ''} onChange={e => updateField('longitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
-                  </div>
+                <div>
+                  <Label className="text-xs font-semibold">Número</Label>
+                  <Input value={editingSupplier.numero || ''} onChange={e => updateField('numero', e.target.value)} placeholder="123" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Complemento</Label>
+                  <Input value={editingSupplier.complemento || ''} onChange={e => updateField('complemento', e.target.value)} placeholder="Sala 101, Bloco A" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Bairro</Label>
+                  <Input value={editingSupplier.bairro || ''} onChange={e => updateField('bairro', e.target.value)} placeholder="Centro" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Cidade</Label>
+                  <Input value={editingSupplier.cidade || ''} onChange={e => updateField('cidade', e.target.value)} placeholder="São Paulo" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Estado</Label>
+                  <select
+                    value={editingSupplier.estado || ''}
+                    onChange={e => updateField('estado', e.target.value)}
+                    className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Selecione</option>
+                    {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">País</Label>
+                  <Input value={editingSupplier.pais || 'Brasil'} onChange={e => updateField('pais', e.target.value)} className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Ponto de Referência</Label>
+                  <Input value={editingSupplier.ponto_referencia || ''} onChange={e => updateField('ponto_referencia', e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Latitude</Label>
+                  <Input type="number" step="any" value={editingSupplier.latitude ?? ''} onChange={e => updateField('latitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Longitude</Label>
+                  <Input type="number" step="any" value={editingSupplier.longitude ?? ''} onChange={e => updateField('longitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Google Maps URL</Label>
+                  <Input value={editingSupplier.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Google Place ID</Label>
+                  <Input value={editingSupplier.google_place_id || ''} onChange={e => updateField('google_place_id', e.target.value)} placeholder="ChIJ..." className={fieldClass} />
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">Horário de Funcionamento</Label>
