@@ -216,7 +216,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         contact_person: contacts[0]?.role?.trim() || null,
         email: contacts[0]?.email?.trim() || null,
         phone: contacts[0]?.phone?.trim() || null,
-        contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
+        // contacts column doesn't exist in external DB; store extra contacts in notes
         address: addressParts,
         instagram: instagram.trim() || null,
         facebook: facebook.trim() || null,
