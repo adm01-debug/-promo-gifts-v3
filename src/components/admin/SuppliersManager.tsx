@@ -585,7 +585,7 @@ export function SuppliersManager() {
                         {fetchingCnpj ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
                       </Button>
                     </div>
-                </div>
+                  </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <Label className="text-sm">Ativo</Label>
                   <Switch checked={editingSupplier.active ?? true} onCheckedChange={v => updateField('active', v)} />
