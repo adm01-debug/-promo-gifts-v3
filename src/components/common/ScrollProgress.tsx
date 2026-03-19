@@ -150,6 +150,7 @@ export const ScrollToTopButton = forwardRef<
 
   return (
     <motion.button
+      ref={ref}
       key="scroll-to-top"
       className={cn(
         "fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-40 p-3 rounded-full",
@@ -169,5 +170,5 @@ export const ScrollToTopButton = forwardRef<
       <ArrowUp className="h-5 w-5" />
     </motion.button>
   );
-}
+});
 export default ScrollProgressIndicator;
