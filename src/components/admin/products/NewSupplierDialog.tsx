@@ -216,13 +216,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         contact_person: contacts[0]?.role?.trim() || null,
         email: contacts[0]?.email?.trim() || null,
         phone: contacts[0]?.phone?.trim() || null,
-        // contacts column doesn't exist in external DB; store extra contacts in notes
+        // contacts/social columns don't exist in external DB
         address: addressParts,
-        instagram: instagram.trim() || null,
-        facebook: facebook.trim() || null,
-        linkedin: linkedin.trim() || null,
-        youtube: youtube.trim() || null,
-        tiktok: tiktok.trim() || null,
         website: website.trim() || null,
         default_markup_percent: defaultMarkup ? parseFloat(defaultMarkup) : null,
         min_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
