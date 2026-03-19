@@ -195,7 +195,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
 
   const loadConversation = async (conversation: ExpertConversation) => {
     const loadedMessages = await fetchMessages(conversation.id);
-    setMessages(loadedMessages.map(m => ({ role: m.role, content: m.content })));
+    setMessages(loadedMessages.map(m => ({ id: m.id, role: m.role, content: m.content })));
     setCurrentConversationId(conversation.id);
     setShowHistory(false);
   };
