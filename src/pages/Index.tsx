@@ -308,10 +308,12 @@ export default function Index() {
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
   const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0;
 
-  // Has more products to load
+  // Has more products to load (client-side pagination OR server-side pages)
   const hasMoreProducts = useMemo(() => {
-    return paginatedProducts.length < filteredProducts.length;
-  }, [paginatedProducts, filteredProducts]);
+    const hasMoreClientSide = paginatedProducts.length < filteredProducts.length;
+    const hasMoreServerSide = !!hasNextPage;
+    return hasMoreClientSide || hasMoreServerSide;
+  }, [paginatedProducts, filteredProducts, hasNextPage]);
 
   // INFINITE SCROLL com IntersectionObserver SEGURO
   // Usa refs para evitar loops de re-renderização
