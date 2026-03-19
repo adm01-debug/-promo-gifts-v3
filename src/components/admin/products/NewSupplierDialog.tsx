@@ -231,12 +231,21 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         shipping_terms: shippingTerms.trim() || null,
         priority: priority ? parseInt(priority) : 50,
         notes: (() => {
-          const extraContacts = contacts.slice(1).filter(c => c.name.trim());
-          const extraInfo = extraContacts.length > 0
-            ? `[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'})`).join('; ')}]`
-            : '';
+          const parts: string[] = [];
           const userNotes = notes.trim();
-          return [userNotes, extraInfo].filter(Boolean).join('\n') || null;
+          if (userNotes) parts.push(userNotes);
+          // Persist signature/nickname of primary contact
+          const c0 = contacts[0];
+          if (c0?.signature?.trim() || c0?.nickname?.trim()) {
+            parts.push(`[Contato 1 extras: Assinatura: ${c0.signature?.trim() || '-'}, Apelido: ${c0.nickname?.trim() || '-'}]`);
+          }
+          // Persist extra contacts with all fields
+          const extraContacts = contacts.slice(1).filter(c => c.name.trim());
+          if (extraContacts.length > 0) {
+            const extraInfo = `[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'}, Assinatura: ${c.signature?.trim() || '-'}, Apelido: ${c.nickname?.trim() || '-'})`).join('; ')}]`;
+            parts.push(extraInfo);
+          }
+          return parts.join('\n') || null;
         })(),
         is_product_supplier: isProductSupplier,
         is_engraving_supplier: isEngravingSupplier,
