@@ -261,7 +261,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
       const decoder = new TextDecoder();
       let assistantMessage = "";
 
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "" }]);
 
       if (reader) {
         let buffer = "";
