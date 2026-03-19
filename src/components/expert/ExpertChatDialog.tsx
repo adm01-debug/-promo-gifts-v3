@@ -80,18 +80,21 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
 
   // Fetch categories and materials from Promobrind
   useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+
     const fetchFilters = async () => {
       try {
         const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        if (cancelled) return;
         const productsData = await fetchPromobrindProducts({ limit: 500 });
+        if (cancelled) return;
 
-        // Extrair categorias únicas
         const uniqueCategories = [...new Set(
           productsData.map(p => p.category_name).filter(Boolean)
         )] as string[];
         setCategories(uniqueCategories.sort());
 
-        // Extrair materiais únicos
         const allMaterials = productsData.flatMap(p => p.materials || []).filter(Boolean);
         const uniqueMaterials = [...new Set(allMaterials)] as string[];
         setMaterials(uniqueMaterials.sort());
@@ -99,10 +102,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
         console.error("Error fetching filters:", error);
       }
     };
-    
-    if (isOpen) {
-      fetchFilters();
-    }
+
+    fetchFilters();
+    return () => { cancelled = true; };
   }, [isOpen]);
 
   // Parse product links from message content
