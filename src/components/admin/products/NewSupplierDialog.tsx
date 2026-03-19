@@ -347,41 +347,29 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
               </div>
               <div className="flex-1 grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-xs font-semibold">
-                    Nome do Fornecedor <span className="text-destructive">*</span>
-                  </Label>
+                  <Label className="text-xs font-semibold">Nome Fantasia</Label>
                   <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ex: Asia Import"
+                    value={tradingName}
+                    onChange={(e) => setTradingName(e.target.value)}
+                    placeholder="Ex: Asia Import LTDA"
                     className={fieldClass}
                     autoFocus
                   />
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">
-                    Código <span className="text-destructive">*</span>
+                    Razão Social <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="Auto-gerado do nome"
-                    className={`${fieldClass} font-mono uppercase`}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ex: Asia Import Comércio LTDA"
+                    className={fieldClass}
                   />
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Deixe vazio para gerar automaticamente</p>
                 </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs font-semibold">Nome Fantasia</Label>
-                <Input
-                  value={tradingName}
-                  onChange={(e) => setTradingName(e.target.value)}
-                  placeholder="Ex: Asia Import LTDA"
-                  className={fieldClass}
-                />
-              </div>
               <div>
                 <Label className="text-xs font-semibold">CNPJ</Label>
                 <div className="flex gap-1.5">
@@ -429,6 +417,18 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   </Button>
                 </div>
                 {cnpjError && <p className="text-[10px] text-destructive mt-0.5">{cnpjError}</p>}
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">
+                  Código <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Auto-gerado do nome"
+                  className={`${fieldClass} font-mono uppercase`}
+                />
+                <p className="text-[10px] text-muted-foreground mt-0.5">Deixe vazio para gerar automaticamente</p>
               </div>
             </div>
           </TabsContent>
