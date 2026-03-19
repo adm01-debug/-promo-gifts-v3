@@ -48,6 +48,17 @@ interface Supplier {
   is_product_supplier: boolean;
   is_engraving_supplier: boolean;
   logo_url: string | null;
+  // Endereço estruturado (company_addresses)
+  logradouro: string | null;
+  numero: string | null;
+  complemento: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  estado: string | null;
+  cep: string | null;
+  pais: string | null;
+  ponto_referencia: string | null;
+  google_maps_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -58,11 +69,14 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
   default_markup_percent: null, min_order_value: null, delivery_time_days: null,
   payment_terms: '', shipping_terms: '', priority: 50, notes: '',
   is_product_supplier: true, is_engraving_supplier: false, active: true, logo_url: null,
+  logradouro: '', numero: '', complemento: '', bairro: '',
+  cidade: '', estado: '', cep: '', pais: 'Brasil',
+  ponto_referencia: '', google_maps_url: '',
 };
 
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
 
-import { maskCnpj, maskPhone, validateCnpj } from '@/utils/masks';
+import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 
 export function SuppliersManager() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -157,6 +171,16 @@ export function SuppliersManager() {
         email: editingSupplier.email?.trim() || null,
         phone: editingSupplier.phone?.trim() || null,
         address: editingSupplier.address?.trim() || null,
+        logradouro: editingSupplier.logradouro?.trim() || null,
+        numero: editingSupplier.numero?.trim() || null,
+        complemento: editingSupplier.complemento?.trim() || null,
+        bairro: editingSupplier.bairro?.trim() || null,
+        cidade: editingSupplier.cidade?.trim() || null,
+        estado: editingSupplier.estado?.trim() || null,
+        cep: editingSupplier.cep?.trim() || null,
+        pais: editingSupplier.pais?.trim() || 'Brasil',
+        ponto_referencia: editingSupplier.ponto_referencia?.trim() || null,
+        google_maps_url: editingSupplier.google_maps_url?.trim() || null,
         website: editingSupplier.website?.trim() || null,
         default_markup_percent: editingSupplier.default_markup_percent ?? null,
         min_order_value: editingSupplier.min_order_value ?? null,
@@ -537,9 +561,62 @@ export function SuppliersManager() {
                     <Input value={editingSupplier.phone || ''} onChange={e => updateField('phone', maskPhone(e.target.value))} className={fieldClass} maxLength={15} />
                   </div>
                 </div>
+                {/* Endereço Estruturado */}
+                <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2">
+                    <Label className="text-xs font-semibold">Logradouro</Label>
+                    <Input value={editingSupplier.logradouro || ''} onChange={e => updateField('logradouro', e.target.value)} placeholder="Rua, Avenida..." className={fieldClass} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Número</Label>
+                    <Input value={editingSupplier.numero || ''} onChange={e => updateField('numero', e.target.value)} placeholder="123" className={fieldClass} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Complemento</Label>
+                    <Input value={editingSupplier.complemento || ''} onChange={e => updateField('complemento', e.target.value)} placeholder="Sala 101, Bloco A" className={fieldClass} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Bairro</Label>
+                    <Input value={editingSupplier.bairro || ''} onChange={e => updateField('bairro', e.target.value)} placeholder="Centro" className={fieldClass} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Cidade</Label>
+                    <Input value={editingSupplier.cidade || ''} onChange={e => updateField('cidade', e.target.value)} placeholder="São Paulo" className={fieldClass} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Estado</Label>
+                    <select
+                      value={editingSupplier.estado || ''}
+                      onChange={e => updateField('estado', e.target.value)}
+                      className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Selecione</option>
+                      {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">CEP</Label>
+                    <Input value={editingSupplier.cep || ''} onChange={e => updateField('cep', maskCep(e.target.value))} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">País</Label>
+                    <Input value={editingSupplier.pais || 'Brasil'} onChange={e => updateField('pais', e.target.value)} className={fieldClass} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Ponto de Referência</Label>
+                    <Input value={editingSupplier.ponto_referencia || ''} onChange={e => updateField('ponto_referencia', e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
+                  </div>
+                </div>
                 <div>
-                  <Label className="text-xs font-semibold">Endereço</Label>
-                  <Input value={editingSupplier.address || ''} onChange={e => updateField('address', e.target.value)} className={fieldClass} />
+                  <Label className="text-xs font-semibold">Google Maps URL</Label>
+                  <Input value={editingSupplier.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">Website</Label>

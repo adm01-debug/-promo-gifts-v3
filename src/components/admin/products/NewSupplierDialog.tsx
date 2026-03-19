@@ -10,7 +10,7 @@ import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X } 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-import { maskCnpj, maskPhone, validateCnpj } from '@/utils/masks';
+import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
@@ -37,8 +37,16 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [contactPerson, setContactPerson] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [website, setWebsite] = useState('');
+  const [logradouro, setLogradouro] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
+  const [cep, setCep] = useState('');
+  const [pais, setPais] = useState('Brasil');
+  const [pontoReferencia, setPontoReferencia] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
 
   // Commercial
   const [defaultMarkup, setDefaultMarkup] = useState('');
@@ -55,7 +63,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
-    setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setAddress(''); setWebsite('');
+    setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setWebsite('');
+    setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
+    setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
+    setPontoReferencia(''); setGoogleMapsUrl('');
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setIsProductSupplier(true); setIsEngravingSupplier(false);
@@ -113,7 +124,17 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         contact_person: contactPerson.trim() || null,
         email: email.trim() || null,
         phone: phone.trim() || null,
-        address: address.trim() || null,
+        address: [logradouro, numero, bairro, cidade, estado].filter(Boolean).join(', ') || null,
+        logradouro: logradouro.trim() || null,
+        numero: numero.trim() || null,
+        complemento: complemento.trim() || null,
+        bairro: bairro.trim() || null,
+        cidade: cidade.trim() || null,
+        estado: estado.trim() || null,
+        cep: cep.trim() || null,
+        pais: pais.trim() || 'Brasil',
+        ponto_referencia: pontoReferencia.trim() || null,
+        google_maps_url: googleMapsUrl.trim() || null,
         website: website.trim() || null,
         default_markup_percent: defaultMarkup ? parseFloat(defaultMarkup) : null,
         min_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
@@ -321,14 +342,62 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 />
               </div>
             </div>
+            {/* Endereço Estruturado */}
+            <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2">
+                <Label className="text-xs font-semibold">Logradouro</Label>
+                <Input value={logradouro} onChange={(e) => setLogradouro(e.target.value)} placeholder="Rua, Avenida..." className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Número</Label>
+                <Input value={numero} onChange={(e) => setNumero(e.target.value)} placeholder="123" className={fieldClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Complemento</Label>
+                <Input value={complemento} onChange={(e) => setComplemento(e.target.value)} placeholder="Sala 101, Bloco A" className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Bairro</Label>
+                <Input value={bairro} onChange={(e) => setBairro(e.target.value)} placeholder="Centro" className={fieldClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Cidade</Label>
+                <Input value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="São Paulo" className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Estado</Label>
+                <select
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value)}
+                  className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Selecione</option>
+                  {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">CEP</Label>
+                <Input value={cep} onChange={(e) => setCep(maskCep(e.target.value))} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">País</Label>
+                <Input value={pais} onChange={(e) => setPais(e.target.value)} className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Ponto de Referência</Label>
+                <Input value={pontoReferencia} onChange={(e) => setPontoReferencia(e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
+              </div>
+            </div>
             <div>
-              <Label className="text-xs font-semibold">Endereço</Label>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Rua, número, cidade - UF"
-                className={fieldClass}
-              />
+              <Label className="text-xs font-semibold">Google Maps URL</Label>
+              <Input value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
             </div>
             <div>
               <Label className="text-xs font-semibold">Website</Label>
