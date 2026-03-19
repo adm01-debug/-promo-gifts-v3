@@ -75,9 +75,10 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
   default_markup_percent: null, min_order_value: null, delivery_time_days: null,
   payment_terms: '', shipping_terms: '', priority: 50, notes: '',
   is_product_supplier: true, is_engraving_supplier: false, active: true, logo_url: null,
-  logradouro: '', numero: '', complemento: '', bairro: '',
+  tipo_logradouro: '', logradouro: '', numero: '', complemento: '', bairro: '',
   cidade: '', estado: '', cep: '', pais: 'Brasil',
-  ponto_referencia: '', google_maps_url: '',
+  ponto_referencia: '', google_maps_url: '', google_place_id: '',
+  latitude: null, longitude: null, horario_funcionamento: '', instrucoes_entrega: '',
 };
 
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
