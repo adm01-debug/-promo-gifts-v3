@@ -383,7 +383,20 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
               </div>
               <div>
                 <Label className="text-xs font-semibold">CEP</Label>
-                <Input value={cep} onChange={(e) => setCep(maskCep(e.target.value))} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
+                <Input value={cep} onChange={async (e) => {
+                  const masked = maskCep(e.target.value);
+                  setCep(masked);
+                  if (masked.replace(/\D/g, '').length === 8) {
+                    const addr = await fetchAddressByCep(masked);
+                    if (addr) {
+                      if (addr.logradouro) setLogradouro(addr.logradouro);
+                      if (addr.bairro) setBairro(addr.bairro);
+                      if (addr.localidade) setCidade(addr.localidade);
+                      if (addr.uf) setEstado(addr.uf);
+                      toast.success('Endereço preenchido via CEP');
+                    }
+                  }
+                }} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
