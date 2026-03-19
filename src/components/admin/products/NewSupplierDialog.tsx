@@ -6,7 +6,36 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin, Globe } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin, Globe, Trash2, UserPlus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface SupplierContact {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+const CONTACT_ROLES = [
+  'Proprietário',
+  'Diretor',
+  'Gerente',
+  'Vendedor',
+  'Financeiro',
+  'Compras',
+  'Logística',
+  'Suporte',
+  'Outro',
+] as const;
+
+const createEmptyContact = (): SupplierContact => ({
+  id: crypto.randomUUID(),
+  role: '',
+  name: '',
+  email: '',
+  phone: '',
+});
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -43,11 +72,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [youtube, setYoutube] = useState('');
   const [tiktok, setTiktok] = useState('');
 
-  // Contact
-  const [contactName, setContactName] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  // Contacts (multiple)
+  const [contacts, setContacts] = useState<SupplierContact[]>([createEmptyContact()]);
   const [tipoLogradouro, setTipoLogradouro] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
@@ -78,9 +104,21 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [isProductSupplier, setIsProductSupplier] = useState(true);
   const [isEngravingSupplier, setIsEngravingSupplier] = useState(false);
 
+  const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
+    setContacts(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+  };
+
+  const addContact = () => {
+    setContacts(prev => [...prev, createEmptyContact()]);
+  };
+
+  const removeContact = (id: string) => {
+    setContacts(prev => prev.length > 1 ? prev.filter(c => c.id !== id) : prev);
+  };
+
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
-    setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setWebsite('');
+    setContacts([createEmptyContact()]); setWebsite('');
     setInstagram(''); setFacebook(''); setLinkedin(''); setYoutube(''); setTiktok('');
     setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
@@ -139,10 +177,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         cnpj: cnpj.trim() || null,
         active: true,
         organization_id: ORGANIZATION_ID,
-        contact_name: contactName.trim() || null,
-        contact_person: contactPerson.trim() || null,
-        email: email.trim() || null,
-        phone: phone.trim() || null,
+        contact_name: contacts[0]?.name?.trim() || null,
+        contact_person: contacts[0]?.role?.trim() || null,
+        email: contacts[0]?.email?.trim() || null,
+        phone: contacts[0]?.phone?.trim() || null,
+        contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
         address: [logradouro, numero, bairro, cidade, estado].filter(Boolean).join(', ') || null,
         tipo_logradouro: tipoLogradouro.trim() || null,
         logradouro: logradouro.trim() || null,
@@ -354,8 +393,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                           if (data.cidade) setCidade(data.cidade);
                           if (data.estado) setEstado(data.estado);
                           if (data.cep) setCep(maskCep(data.cep));
-                          if (data.email) setEmail(data.email);
-                          if (data.telefone) setPhone(data.telefone);
+                          if (data.email) updateContact(contacts[0].id, 'email', data.email);
+                          if (data.telefone) updateContact(contacts[0].id, 'phone', data.telefone);
                           toast.success('Dados preenchidos via CNPJ!');
                         }
                       } catch (err: any) {
@@ -373,49 +412,83 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
             </div>
           </TabsContent>
 
-          {/* CONTATO */}
-          <TabsContent value="contact" className="space-y-4 pt-3">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs font-semibold">Nome do Contato</Label>
-                <Input
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Ex: João Silva"
-                  className={fieldClass}
-                />
-              </div>
-              <div>
-                <Label className="text-xs font-semibold">Pessoa de Contato</Label>
-                <Input
-                  value={contactPerson}
-                  onChange={(e) => setContactPerson(e.target.value)}
-                  placeholder="Ex: Depto. Comercial"
-                  className={fieldClass}
-                />
-              </div>
+          {/* CONTATOS */}
+          <TabsContent value="contact" className="space-y-3 pt-3">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs text-muted-foreground">
+                Adicione os contatos do fornecedor (proprietário, vendedor, gerente, etc.)
+              </p>
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addContact}>
+                <UserPlus className="h-3.5 w-3.5" />
+                Adicionar Contato
+              </Button>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs font-semibold">E-mail</Label>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="contato@fornecedor.com"
-                  className={fieldClass}
-                />
-              </div>
-              <div>
-                <Label className="text-xs font-semibold">Telefone</Label>
-                <Input
-                  value={phone}
-                  onChange={(e) => setPhone(maskPhone(e.target.value))}
-                  placeholder="(11) 99999-9999"
-                  className={fieldClass}
-                  maxLength={15}
-                />
-              </div>
+
+            <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+              {contacts.map((contact, index) => (
+                <div key={contact.id} className="rounded-lg border border-border bg-muted/30 p-3 space-y-3 relative">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">Contato {index + 1}</span>
+                    {contacts.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                        onClick={() => removeContact(contact.id)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-semibold">Função / Cargo</Label>
+                      <Select value={contact.role} onValueChange={(v) => updateContact(contact.id, 'role', v)}>
+                        <SelectTrigger className={`${fieldClass} w-full`}>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CONTACT_ROLES.map(role => (
+                            <SelectItem key={role} value={role}>{role}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-semibold">Nome</Label>
+                      <Input
+                        value={contact.name}
+                        onChange={(e) => updateContact(contact.id, 'name', e.target.value)}
+                        placeholder="Ex: João Silva"
+                        className={fieldClass}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-semibold">E-mail</Label>
+                      <Input
+                        type="email"
+                        value={contact.email}
+                        onChange={(e) => updateContact(contact.id, 'email', e.target.value)}
+                        placeholder="contato@fornecedor.com"
+                        className={fieldClass}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-semibold">Telefone</Label>
+                      <Input
+                        value={contact.phone}
+                        onChange={(e) => updateContact(contact.id, 'phone', maskPhone(e.target.value))}
+                        placeholder="(11) 99999-9999"
+                        className={fieldClass}
+                        maxLength={15}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
 
