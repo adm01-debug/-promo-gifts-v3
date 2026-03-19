@@ -77,6 +77,7 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
 
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
+import { fetchAddressByCep } from '@/utils/viacep';
 
 export function SuppliersManager() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -601,7 +602,20 @@ export function SuppliersManager() {
                   </div>
                   <div>
                     <Label className="text-xs font-semibold">CEP</Label>
-                    <Input value={editingSupplier.cep || ''} onChange={e => updateField('cep', maskCep(e.target.value))} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
+                    <Input value={editingSupplier.cep || ''} onChange={async e => {
+                      const masked = maskCep(e.target.value);
+                      updateField('cep', masked);
+                      if (masked.replace(/\D/g, '').length === 8) {
+                        const addr = await fetchAddressByCep(masked);
+                        if (addr) {
+                          if (addr.logradouro) updateField('logradouro', addr.logradouro);
+                          if (addr.bairro) updateField('bairro', addr.bairro);
+                          if (addr.localidade) updateField('cidade', addr.localidade);
+                          if (addr.uf) updateField('estado', addr.uf);
+                          toast.success('Endereço preenchido via CEP');
+                        }
+                      }
+                    }} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
