@@ -411,13 +411,61 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   maxLength={15}
                 />
               </div>
-            </div>
+          </TabsContent>
+
+          {/* SITE E REDES SOCIAIS */}
+          <TabsContent value="social" className="space-y-4 pt-3">
             <div>
               <Label className="text-xs font-semibold">Website</Label>
               <Input
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="https://www.fornecedor.com.br"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">Instagram</Label>
+              <Input
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                placeholder="@fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">Facebook</Label>
+              <Input
+                value={facebook}
+                onChange={(e) => setFacebook(e.target.value)}
+                placeholder="https://facebook.com/fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">LinkedIn</Label>
+              <Input
+                value={linkedin}
+                onChange={(e) => setLinkedin(e.target.value)}
+                placeholder="https://linkedin.com/company/fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">YouTube</Label>
+              <Input
+                value={youtube}
+                onChange={(e) => setYoutube(e.target.value)}
+                placeholder="https://youtube.com/@fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">TikTok</Label>
+              <Input
+                value={tiktok}
+                onChange={(e) => setTiktok(e.target.value)}
+                placeholder="@fornecedor"
                 className={fieldClass}
               />
             </div>
