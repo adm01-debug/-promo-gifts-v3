@@ -679,7 +679,7 @@ export default function Index() {
                   style={{ minHeight: '60px' }}
                 >
                   <p className="text-sm text-muted-foreground">
-                    Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos
+                    Mostrando {paginatedProducts.length} de {totalEstimate ? `~${totalEstimate.toLocaleString("pt-BR")}` : filteredProducts.length.toLocaleString("pt-BR")} produtos
                   </p>
                   {isLoadingMore && (
                     <div className="flex items-center gap-2 text-muted-foreground">
