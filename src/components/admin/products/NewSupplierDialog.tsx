@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,6 +35,13 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [cnpjError, setCnpjError] = useState('');
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [website, setWebsite] = useState('');
+
+  // Social Media
+  const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [youtube, setYoutube] = useState('');
+  const [tiktok, setTiktok] = useState('');
 
   // Contact
   const [contactName, setContactName] = useState('');
@@ -74,6 +81,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
     setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setWebsite('');
+    setInstagram(''); setFacebook(''); setLinkedin(''); setYoutube(''); setTiktok('');
     setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
     setPontoReferencia(''); setGoogleMapsUrl(''); setGooglePlaceId('');
@@ -153,6 +161,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         horario_funcionamento: horarioFuncionamento.trim() || null,
         instrucoes_entrega: instrucoesEntrega.trim() || null,
         website: website.trim() || null,
+        instagram: instagram.trim() || null,
+        facebook: facebook.trim() || null,
+        linkedin: linkedin.trim() || null,
+        youtube: youtube.trim() || null,
+        tiktok: tiktok.trim() || null,
         default_markup_percent: defaultMarkup ? parseFloat(defaultMarkup) : null,
         min_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
         minimum_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
@@ -210,24 +223,28 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="mt-2">
-          <TabsList className="grid w-full grid-cols-5 h-9">
-            <TabsTrigger value="basic" className="text-xs gap-1.5">
+          <TabsList className="grid w-full grid-cols-6 h-9">
+            <TabsTrigger value="basic" className="text-xs gap-1">
               <Building2 className="h-3.5 w-3.5" />
               Dados
             </TabsTrigger>
-            <TabsTrigger value="contact" className="text-xs gap-1.5">
+            <TabsTrigger value="contact" className="text-xs gap-1">
               <Phone className="h-3.5 w-3.5" />
               Contato
             </TabsTrigger>
-            <TabsTrigger value="address" className="text-xs gap-1.5">
+            <TabsTrigger value="address" className="text-xs gap-1">
               <MapPin className="h-3.5 w-3.5" />
               Endereço
             </TabsTrigger>
-            <TabsTrigger value="commercial" className="text-xs gap-1.5">
+            <TabsTrigger value="social" className="text-xs gap-1">
+              <Globe className="h-3.5 w-3.5" />
+              Site/Redes
+            </TabsTrigger>
+            <TabsTrigger value="commercial" className="text-xs gap-1">
               <DollarSign className="h-3.5 w-3.5" />
               Comercial
             </TabsTrigger>
-            <TabsTrigger value="classification" className="text-xs gap-1.5">
+            <TabsTrigger value="classification" className="text-xs gap-1">
               <Settings2 className="h-3.5 w-3.5" />
               Tipo
             </TabsTrigger>
@@ -399,13 +416,61 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   maxLength={15}
                 />
               </div>
-            </div>
+          </TabsContent>
+
+          {/* SITE E REDES SOCIAIS */}
+          <TabsContent value="social" className="space-y-4 pt-3">
             <div>
               <Label className="text-xs font-semibold">Website</Label>
               <Input
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 placeholder="https://www.fornecedor.com.br"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">Instagram</Label>
+              <Input
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                placeholder="@fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">Facebook</Label>
+              <Input
+                value={facebook}
+                onChange={(e) => setFacebook(e.target.value)}
+                placeholder="https://facebook.com/fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">LinkedIn</Label>
+              <Input
+                value={linkedin}
+                onChange={(e) => setLinkedin(e.target.value)}
+                placeholder="https://linkedin.com/company/fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">YouTube</Label>
+              <Input
+                value={youtube}
+                onChange={(e) => setYoutube(e.target.value)}
+                placeholder="https://youtube.com/@fornecedor"
+                className={fieldClass}
+              />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">TikTok</Label>
+              <Input
+                value={tiktok}
+                onChange={(e) => setTiktok(e.target.value)}
+                placeholder="@fornecedor"
                 className={fieldClass}
               />
             </div>
