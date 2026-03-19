@@ -272,7 +272,21 @@ export function SuppliersManager() {
         payment_terms: es.payment_terms?.trim() || null,
         shipping_terms: es.shipping_terms?.trim() || null,
         priority: es.priority ?? 50,
-        notes: es.notes?.trim() || null,
+        notes: (() => {
+          const parts: string[] = [];
+          const userNotes = es.notes?.trim();
+          if (userNotes) parts.push(userNotes);
+          const c0 = contacts[0];
+          if (c0?.signature?.trim() || c0?.nickname?.trim()) {
+            parts.push(`[Contato 1 extras: Assinatura: ${c0.signature?.trim() || '-'}, Apelido: ${c0.nickname?.trim() || '-'}]`);
+          }
+          const extraContacts = contacts.slice(1).filter(c => c.name.trim());
+          if (extraContacts.length > 0) {
+            const extraInfo = `[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'}, Assinatura: ${c.signature?.trim() || '-'}, Apelido: ${c.nickname?.trim() || '-'})`).join('; ')}]`;
+            parts.push(extraInfo);
+          }
+          return parts.join('\n') || null;
+        })(),
         is_product_supplier: es.is_product_supplier ?? true,
         is_engraving_supplier: es.is_engraving_supplier ?? false,
         updated_at: now,
