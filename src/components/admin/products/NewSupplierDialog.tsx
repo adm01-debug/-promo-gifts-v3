@@ -170,19 +170,14 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
       const now = new Date().toISOString();
       const generatedCode = code.trim() || name.trim().toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '').slice(0, 20);
 
-      const data: Record<string, unknown> = {
-        name: name.trim(),
-        code: generatedCode,
-        trading_name: tradingName.trim() || null,
-        cnpj: cnpj.trim() || null,
-        active: true,
-        organization_id: ORGANIZATION_ID,
-        contact_name: contacts[0]?.name?.trim() || null,
-        contact_person: contacts[0]?.role?.trim() || null,
-        email: contacts[0]?.email?.trim() || null,
-        phone: contacts[0]?.phone?.trim() || null,
-        contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
-        address: [logradouro, numero, bairro, cidade, estado].filter(Boolean).join(', ') || null,
+      // Build rich address string from individual fields
+      const addressParts = [
+        tipoLogradouro && logradouro ? `${tipoLogradouro} ${logradouro}` : logradouro,
+        numero, complemento, bairro, cidade, estado, cep ? `CEP ${cep}` : null,
+      ].filter(Boolean).join(', ') || null;
+
+      // Store detailed address/social fields as JSON metadata
+      const addressDetails: Record<string, unknown> = {
         tipo_logradouro: tipoLogradouro.trim() || null,
         logradouro: logradouro.trim() || null,
         numero: numero.trim() || null,
@@ -199,12 +194,33 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         longitude: longitude ? parseFloat(longitude) : null,
         horario_funcionamento: horarioFuncionamento.trim() || null,
         instrucoes_entrega: instrucoesEntrega.trim() || null,
+      };
+
+      const socialDetails: Record<string, unknown> = {
         website: website.trim() || null,
         instagram: instagram.trim() || null,
         facebook: facebook.trim() || null,
         linkedin: linkedin.trim() || null,
         youtube: youtube.trim() || null,
         tiktok: tiktok.trim() || null,
+      };
+
+      const data: Record<string, unknown> = {
+        name: name.trim(),
+        code: generatedCode,
+        trading_name: tradingName.trim() || null,
+        cnpj: cnpj.trim() || null,
+        active: true,
+        organization_id: ORGANIZATION_ID,
+        contact_name: contacts[0]?.name?.trim() || null,
+        contact_person: contacts[0]?.role?.trim() || null,
+        email: contacts[0]?.email?.trim() || null,
+        phone: contacts[0]?.phone?.trim() || null,
+        contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
+        address: addressParts,
+        address_details: JSON.stringify(addressDetails),
+        social_details: JSON.stringify(socialDetails),
+        website: website.trim() || null,
         default_markup_percent: defaultMarkup ? parseFloat(defaultMarkup) : null,
         min_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
         minimum_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
