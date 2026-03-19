@@ -19,7 +19,26 @@ import {
 import {
   Search, Plus, Pencil, Trash2, Loader2, Building2, Phone, DollarSign,
   Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle, ImagePlus, X,
+  MapPin, Globe, UserPlus,
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface SupplierContact {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+const CONTACT_ROLES = [
+  'Proprietário', 'Diretor', 'Gerente', 'Vendedor',
+  'Financeiro', 'Compras', 'Logística', 'Suporte', 'Outro',
+] as const;
+
+const createEmptyContact = (): SupplierContact => ({
+  id: crypto.randomUUID(), role: '', name: '', email: '', phone: '',
+});
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +67,12 @@ interface Supplier {
   is_product_supplier: boolean;
   is_engraving_supplier: boolean;
   logo_url: string | null;
+  contacts: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  linkedin: string | null;
+  youtube: string | null;
+  tiktok: string | null;
   // Endereço estruturado (company_addresses)
   tipo_logradouro: string | null;
   logradouro: string | null;
@@ -99,7 +124,14 @@ export function SuppliersManager() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
+  const [contacts, setContacts] = useState<SupplierContact[]>([createEmptyContact()]);
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
+    setContacts(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
+  };
+  const addContact = () => setContacts(prev => [...prev, createEmptyContact()]);
+  const removeContact = (id: string) => setContacts(prev => prev.length > 1 ? prev.filter(c => c.id !== id) : prev);
 
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
@@ -149,11 +181,29 @@ export function SuppliersManager() {
 
   const handleNew = () => {
     setEditingSupplier({ ...EMPTY_SUPPLIER });
+    setContacts([createEmptyContact()]);
     setIsNew(true);
   };
 
   const handleEdit = (supplier: Supplier) => {
     setEditingSupplier({ ...supplier });
+    // Parse contacts from JSON if available
+    try {
+      const parsed = supplier.contacts ? JSON.parse(supplier.contacts) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setContacts(parsed.map((c: any) => ({ ...c, id: c.id || crypto.randomUUID() })));
+      } else {
+        // Fallback: create from legacy single-contact fields
+        const legacy = createEmptyContact();
+        if (supplier.contact_name) legacy.name = supplier.contact_name;
+        if (supplier.contact_person) legacy.role = supplier.contact_person;
+        if (supplier.email) legacy.email = supplier.email;
+        if (supplier.phone) legacy.phone = supplier.phone;
+        setContacts([legacy]);
+      }
+    } catch {
+      setContacts([createEmptyContact()]);
+    }
     setIsNew(false);
   };
 
@@ -176,11 +226,17 @@ export function SuppliersManager() {
         trading_name: editingSupplier.trading_name?.trim() || null,
         cnpj: editingSupplier.cnpj?.trim() || null,
         active: editingSupplier.active ?? true,
-        contact_name: editingSupplier.contact_name?.trim() || null,
-        contact_person: editingSupplier.contact_person?.trim() || null,
-        email: editingSupplier.email?.trim() || null,
-        phone: editingSupplier.phone?.trim() || null,
+        contact_name: contacts[0]?.name?.trim() || null,
+        contact_person: contacts[0]?.role?.trim() || null,
+        email: contacts[0]?.email?.trim() || null,
+        phone: contacts[0]?.phone?.trim() || null,
+        contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
         address: editingSupplier.address?.trim() || null,
+        instagram: editingSupplier.instagram?.trim() || null,
+        facebook: editingSupplier.facebook?.trim() || null,
+        linkedin: editingSupplier.linkedin?.trim() || null,
+        youtube: editingSupplier.youtube?.trim() || null,
+        tiktok: editingSupplier.tiktok?.trim() || null,
         tipo_logradouro: editingSupplier.tipo_logradouro?.trim() || null,
         logradouro: editingSupplier.logradouro?.trim() || null,
         numero: editingSupplier.numero?.trim() || null,
@@ -488,9 +544,11 @@ export function SuppliersManager() {
 
           {editingSupplier && (
             <Tabs defaultValue="basic" className="mt-2">
-              <TabsList className="grid w-full grid-cols-4 h-9">
+              <TabsList className="grid w-full grid-cols-6 h-9">
                 <TabsTrigger value="basic" className="text-xs gap-1.5"><Building2 className="h-3.5 w-3.5" />Dados</TabsTrigger>
                 <TabsTrigger value="contact" className="text-xs gap-1.5"><Phone className="h-3.5 w-3.5" />Contato</TabsTrigger>
+                <TabsTrigger value="address" className="text-xs gap-1.5"><MapPin className="h-3.5 w-3.5" />Endereço</TabsTrigger>
+                <TabsTrigger value="social" className="text-xs gap-1.5"><Globe className="h-3.5 w-3.5" />Site/Redes</TabsTrigger>
                 <TabsTrigger value="commercial" className="text-xs gap-1.5"><DollarSign className="h-3.5 w-3.5" />Comercial</TabsTrigger>
                 <TabsTrigger value="classification" className="text-xs gap-1.5"><Settings2 className="h-3.5 w-3.5" />Tipo</TabsTrigger>
               </TabsList>
@@ -593,29 +651,64 @@ export function SuppliersManager() {
                 </div>
               </TabsContent>
 
-              <TabsContent value="contact" className="space-y-4 pt-3">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">Nome do Contato</Label>
-                    <Input value={editingSupplier.contact_name || ''} onChange={e => updateField('contact_name', e.target.value)} className={fieldClass} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Pessoa de Contato</Label>
-                    <Input value={editingSupplier.contact_person || ''} onChange={e => updateField('contact_person', e.target.value)} className={fieldClass} />
-                  </div>
+              {/* CONTATOS */}
+              <TabsContent value="contact" className="space-y-3 pt-3">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-muted-foreground">
+                    Adicione os contatos do fornecedor (proprietário, vendedor, gerente, etc.)
+                  </p>
+                  <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addContact}>
+                    <UserPlus className="h-3.5 w-3.5" />
+                    Adicionar Contato
+                  </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs font-semibold">E-mail</Label>
-                    <Input type="email" value={editingSupplier.email || ''} onChange={e => updateField('email', e.target.value)} className={fieldClass} />
-                  </div>
-                  <div>
-                    <Label className="text-xs font-semibold">Telefone</Label>
-                    <Input value={editingSupplier.phone || ''} onChange={e => updateField('phone', maskPhone(e.target.value))} className={fieldClass} maxLength={15} />
-                  </div>
+                <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+                  {contacts.map((contact, index) => (
+                    <div key={contact.id} className="rounded-lg border border-border bg-muted/30 p-3 space-y-3 relative">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-muted-foreground">Contato {index + 1}</span>
+                        {contacts.length > 1 && (
+                          <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => removeContact(contact.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs font-semibold">Função / Cargo</Label>
+                          <Select value={contact.role} onValueChange={(v) => updateContact(contact.id, 'role', v)}>
+                            <SelectTrigger className={`${fieldClass} w-full`}>
+                              <SelectValue placeholder="Selecione..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {CONTACT_ROLES.map(role => (
+                                <SelectItem key={role} value={role}>{role}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold">Nome</Label>
+                          <Input value={contact.name} onChange={(e) => updateContact(contact.id, 'name', e.target.value)} placeholder="Ex: João Silva" className={fieldClass} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs font-semibold">E-mail</Label>
+                          <Input type="email" value={contact.email} onChange={(e) => updateContact(contact.id, 'email', e.target.value)} placeholder="contato@fornecedor.com" className={fieldClass} />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold">Telefone</Label>
+                          <Input value={contact.phone} onChange={(e) => updateContact(contact.id, 'phone', maskPhone(e.target.value))} placeholder="(11) 99999-9999" className={fieldClass} maxLength={15} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {/* Endereço Estruturado */}
-                <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
+              </TabsContent>
+
+              {/* ENDEREÇO */}
+              <TabsContent value="address" className="space-y-4 pt-3">
                 <div>
                   <Label className="text-xs font-semibold">CEP</Label>
                   <Input value={editingSupplier.cep || ''} onChange={async e => {
@@ -635,11 +728,7 @@ export function SuppliersManager() {
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">Tipo Logradouro</Label>
-                  <select
-                    value={editingSupplier.tipo_logradouro || ''}
-                    onChange={e => updateField('tipo_logradouro', e.target.value)}
-                    className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
+                  <select value={editingSupplier.tipo_logradouro || ''} onChange={e => updateField('tipo_logradouro', e.target.value)} className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                     <option value="">Selecione</option>
                     {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
@@ -666,11 +755,7 @@ export function SuppliersManager() {
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">Estado</Label>
-                  <select
-                    value={editingSupplier.estado || ''}
-                    onChange={e => updateField('estado', e.target.value)}
-                    className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
+                  <select value={editingSupplier.estado || ''} onChange={e => updateField('estado', e.target.value)} className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                     <option value="">Selecione</option>
                     {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
                   </select>
@@ -683,13 +768,15 @@ export function SuppliersManager() {
                   <Label className="text-xs font-semibold">Ponto de Referência</Label>
                   <Input value={editingSupplier.ponto_referencia || ''} onChange={e => updateField('ponto_referencia', e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
                 </div>
-                <div>
-                  <Label className="text-xs font-semibold">Latitude</Label>
-                  <Input type="number" step="any" value={editingSupplier.latitude ?? ''} onChange={e => updateField('latitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
-                </div>
-                <div>
-                  <Label className="text-xs font-semibold">Longitude</Label>
-                  <Input type="number" step="any" value={editingSupplier.longitude ?? ''} onChange={e => updateField('longitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Latitude</Label>
+                    <Input type="number" step="any" value={editingSupplier.latitude ?? ''} onChange={e => updateField('latitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Longitude</Label>
+                    <Input type="number" step="any" value={editingSupplier.longitude ?? ''} onChange={e => updateField('longitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+                  </div>
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">Google Maps URL</Label>
@@ -707,9 +794,33 @@ export function SuppliersManager() {
                   <Label className="text-xs font-semibold">Instruções de Entrega</Label>
                   <Textarea value={editingSupplier.instrucoes_entrega || ''} onChange={e => updateField('instrucoes_entrega', e.target.value)} placeholder="Entrar pela portaria lateral..." className="mt-1.5 min-h-[60px]" />
                 </div>
+              </TabsContent>
+
+              {/* SITE E REDES SOCIAIS */}
+              <TabsContent value="social" className="space-y-4 pt-3">
                 <div>
                   <Label className="text-xs font-semibold">Website</Label>
-                  <Input value={editingSupplier.website || ''} onChange={e => updateField('website', e.target.value)} className={fieldClass} />
+                  <Input value={editingSupplier.website || ''} onChange={e => updateField('website', e.target.value)} placeholder="https://www.fornecedor.com.br" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Instagram</Label>
+                  <Input value={editingSupplier.instagram || ''} onChange={e => updateField('instagram', e.target.value)} placeholder="@fornecedor" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Facebook</Label>
+                  <Input value={editingSupplier.facebook || ''} onChange={e => updateField('facebook', e.target.value)} placeholder="facebook.com/fornecedor" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">LinkedIn</Label>
+                  <Input value={editingSupplier.linkedin || ''} onChange={e => updateField('linkedin', e.target.value)} placeholder="linkedin.com/company/fornecedor" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">YouTube</Label>
+                  <Input value={editingSupplier.youtube || ''} onChange={e => updateField('youtube', e.target.value)} placeholder="youtube.com/@fornecedor" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">TikTok</Label>
+                  <Input value={editingSupplier.tiktok || ''} onChange={e => updateField('tiktok', e.target.value)} placeholder="@fornecedor" className={fieldClass} />
                 </div>
               </TabsContent>
 
