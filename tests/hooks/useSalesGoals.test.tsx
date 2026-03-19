@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSalesGoals } from '@/hooks/useSalesGoals';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -17,13 +17,18 @@ const createWrapper = () => {
 };
 
 describe('useSalesGoals', () => {
-  it('should return sales goals state and functions', () => {
-    const { result } = renderHook(() => useSalesGoals(), { wrapper: createWrapper() });
+  it('should return sales goals state and functions', async () => {
+    let hookResult: ReturnType<typeof renderHook>;
+    await act(async () => {
+      hookResult = renderHook(() => useSalesGoals(), { wrapper: createWrapper() });
+    });
 
-    expect(result.current).toBeDefined();
-    expect(result.current.goals).toBeDefined();
-    expect(typeof result.current.isLoading).toBe('boolean');
-    expect(typeof result.current.createGoal).toBe('function');
-    expect(typeof result.current.getProgress).toBe('function');
+    await waitFor(() => {
+      expect(hookResult!.result.current).toBeDefined();
+      expect(hookResult!.result.current.goals).toBeDefined();
+      expect(typeof hookResult!.result.current.isLoading).toBe('boolean');
+      expect(typeof hookResult!.result.current.createGoal).toBe('function');
+      expect(typeof hookResult!.result.current.getProgress).toBe('function');
+    });
   });
 });
