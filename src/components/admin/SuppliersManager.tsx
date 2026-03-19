@@ -260,13 +260,8 @@ export function SuppliersManager() {
         contact_person: contacts[0]?.role?.trim() || null,
         email: contacts[0]?.email?.trim() || null,
         phone: contacts[0]?.phone?.trim() || null,
-        // contacts column doesn't exist in external DB
+        // contacts/social columns don't exist in external DB
         address: addressParts,
-        instagram: es.instagram?.trim() || null,
-        facebook: es.facebook?.trim() || null,
-        linkedin: es.linkedin?.trim() || null,
-        youtube: es.youtube?.trim() || null,
-        tiktok: es.tiktok?.trim() || null,
         website: es.website?.trim() || null,
         default_markup_percent: es.default_markup_percent ?? null,
         min_order_value: es.min_order_value ?? null,
