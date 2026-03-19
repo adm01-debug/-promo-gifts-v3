@@ -799,6 +799,70 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
             </div>
           </TabsContent>
 
+          {/* FINANCEIRO */}
+          <TabsContent value="financial" className="space-y-4 pt-3">
+            <div>
+              <Label className="text-xs font-semibold">Formas de Pagamento</Label>
+              <div className="flex gap-3 mt-1.5">
+                {['Boleto', 'PIX', 'Transferência', 'Cartão'].map(method => (
+                  <label key={method} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formaPagamento.includes(method)}
+                      onChange={(e) => {
+                        if (e.target.checked) setFormaPagamento(prev => [...prev, method]);
+                        else setFormaPagamento(prev => prev.filter(m => m !== method));
+                      }}
+                      className="rounded border-border"
+                    />
+                    {method}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {formaPagamento.includes('PIX') && (
+              <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Dados do PIX</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Tipo de Chave PIX</Label>
+                    <Select value={pixTipo} onValueChange={setPixTipo}>
+                      <SelectTrigger className={`${fieldClass} w-full`}>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CNPJ">CNPJ</SelectItem>
+                        <SelectItem value="CPF">CPF</SelectItem>
+                        <SelectItem value="Email">E-mail</SelectItem>
+                        <SelectItem value="Telefone">Telefone</SelectItem>
+                        <SelectItem value="Aleatória">Chave Aleatória</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Chave PIX</Label>
+                    <Input
+                      value={pixNumero}
+                      onChange={(e) => setPixNumero(e.target.value)}
+                      placeholder="Ex: 00.000.000/0000-00"
+                      className={fieldClass}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Favorecido (Nome)</Label>
+                  <Input
+                    value={pixFavorecido}
+                    onChange={(e) => setPixFavorecido(e.target.value)}
+                    placeholder="Nome do titular da conta PIX"
+                    className={fieldClass}
+                  />
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
           {/* CLASSIFICAÇÃO */}
           <TabsContent value="classification" className="space-y-6 pt-3">
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
