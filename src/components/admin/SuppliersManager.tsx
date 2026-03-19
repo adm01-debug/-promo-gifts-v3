@@ -19,7 +19,26 @@ import {
 import {
   Search, Plus, Pencil, Trash2, Loader2, Building2, Phone, DollarSign,
   Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle, ImagePlus, X,
+  MapPin, Globe, Trash2 as TrashIcon, UserPlus,
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface SupplierContact {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+const CONTACT_ROLES = [
+  'Proprietário', 'Diretor', 'Gerente', 'Vendedor',
+  'Financeiro', 'Compras', 'Logística', 'Suporte', 'Outro',
+] as const;
+
+const createEmptyContact = (): SupplierContact => ({
+  id: crypto.randomUUID(), role: '', name: '', email: '', phone: '',
+});
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
