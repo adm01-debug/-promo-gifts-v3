@@ -98,6 +98,7 @@ export function SuppliersManager() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const fetchSuppliers = useCallback(async () => {
