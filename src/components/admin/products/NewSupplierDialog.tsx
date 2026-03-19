@@ -512,28 +512,28 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-xs font-semibold">E-mail</Label>
-                      <Input
-                        type="email"
-                        value={contact.email}
-                        onChange={(e) => updateContact(contact.id, 'email', e.target.value)}
-                        placeholder="contato@fornecedor.com"
-                        className={fieldClass}
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-semibold">Telefone</Label>
-                      <Input
-                        value={contact.phone}
-                        onChange={(e) => updateContact(contact.id, 'phone', maskPhone(e.target.value))}
-                        placeholder="(11) 99999-9999"
-                        className={fieldClass}
-                        maxLength={15}
-                      />
-                    </div>
-                  </div>
+                   <div className="grid grid-cols-2 gap-3">
+                     <div>
+                       <Label className="text-xs font-semibold">Telefone</Label>
+                       <Input
+                         value={contact.phone}
+                         onChange={(e) => updateContact(contact.id, 'phone', maskPhone(e.target.value))}
+                         placeholder="(11) 99999-9999"
+                         className={fieldClass}
+                         maxLength={15}
+                       />
+                     </div>
+                     <div>
+                       <Label className="text-xs font-semibold">E-mail</Label>
+                       <Input
+                         type="email"
+                         value={contact.email}
+                         onChange={(e) => updateContact(contact.id, 'email', e.target.value)}
+                         placeholder="contato@fornecedor.com"
+                         className={fieldClass}
+                       />
+                     </div>
+                   </div>
                 </div>
               ))}
             </div>
