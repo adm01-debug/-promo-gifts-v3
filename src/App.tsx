@@ -96,6 +96,18 @@ const SSOCallbackPage = lazy(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
 
+// Prefetch catalog data as early as possible
+import { fetchPromobrindProductsLightweight, LightweightProduct } from '@/lib/external-db';
+queryClient.prefetchQuery({
+  queryKey: ['promobrind-products-catalog', ''],
+  queryFn: async () => {
+    const { mapLightweightToProductBatch } = await import('@/hooks/useProductsLightweight');
+    const products = await fetchPromobrindProductsLightweight();
+    return products;
+  },
+  staleTime: 10 * 60 * 1000,
+});
+
 const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   useGlobalErrorCatcher();
