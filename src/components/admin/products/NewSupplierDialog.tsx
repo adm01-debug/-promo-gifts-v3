@@ -38,6 +38,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [contactPerson, setContactPerson] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [tipoLogradouro, setTipoLogradouro] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
   const [complemento, setComplemento] = useState('');
@@ -48,6 +49,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [pais, setPais] = useState('Brasil');
   const [pontoReferencia, setPontoReferencia] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [googlePlaceId, setGooglePlaceId] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [horarioFuncionamento, setHorarioFuncionamento] = useState('');
+  const [instrucoesEntrega, setInstrucoesEntrega] = useState('');
 
   // Commercial
   const [defaultMarkup, setDefaultMarkup] = useState('');
@@ -65,9 +71,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
     setContactName(''); setContactPerson(''); setEmail(''); setPhone(''); setWebsite('');
-    setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
+    setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
-    setPontoReferencia(''); setGoogleMapsUrl('');
+    setPontoReferencia(''); setGoogleMapsUrl(''); setGooglePlaceId('');
+    setLatitude(''); setLongitude(''); setHorarioFuncionamento(''); setInstrucoesEntrega('');
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setIsProductSupplier(true); setIsEngravingSupplier(false);
@@ -126,6 +133,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         email: email.trim() || null,
         phone: phone.trim() || null,
         address: [logradouro, numero, bairro, cidade, estado].filter(Boolean).join(', ') || null,
+        tipo_logradouro: tipoLogradouro.trim() || null,
         logradouro: logradouro.trim() || null,
         numero: numero.trim() || null,
         complemento: complemento.trim() || null,
@@ -136,6 +144,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         pais: pais.trim() || 'Brasil',
         ponto_referencia: pontoReferencia.trim() || null,
         google_maps_url: googleMapsUrl.trim() || null,
+        google_place_id: googlePlaceId.trim() || null,
+        latitude: latitude ? parseFloat(latitude) : null,
+        longitude: longitude ? parseFloat(longitude) : null,
+        horario_funcionamento: horarioFuncionamento.trim() || null,
+        instrucoes_entrega: instrucoesEntrega.trim() || null,
         website: website.trim() || null,
         default_markup_percent: defaultMarkup ? parseFloat(defaultMarkup) : null,
         min_order_value: minOrderValue ? parseFloat(minOrderValue) : null,
@@ -345,10 +358,21 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
             </div>
             {/* Endereço Estruturado */}
             <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Tipo Logradouro</Label>
+                <select
+                  value={tipoLogradouro}
+                  onChange={(e) => setTipoLogradouro(e.target.value)}
+                  className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">Selecione</option>
+                  {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
               <div className="col-span-2">
                 <Label className="text-xs font-semibold">Logradouro</Label>
-                <Input value={logradouro} onChange={(e) => setLogradouro(e.target.value)} placeholder="Rua, Avenida..." className={fieldClass} />
+                <Input value={logradouro} onChange={(e) => setLogradouro(e.target.value)} placeholder="Nome da rua" className={fieldClass} />
               </div>
               <div>
                 <Label className="text-xs font-semibold">Número</Label>
@@ -409,9 +433,33 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Input value={pontoReferencia} onChange={(e) => setPontoReferencia(e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
               </div>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Google Maps URL</Label>
+                <Input value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Google Place ID</Label>
+                <Input value={googlePlaceId} onChange={(e) => setGooglePlaceId(e.target.value)} placeholder="ChIJ..." className={fieldClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Latitude</Label>
+                <Input type="number" step="any" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Longitude</Label>
+                <Input type="number" step="any" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+              </div>
+            </div>
             <div>
-              <Label className="text-xs font-semibold">Google Maps URL</Label>
-              <Input value={googleMapsUrl} onChange={(e) => setGoogleMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+              <Label className="text-xs font-semibold">Horário de Funcionamento</Label>
+              <Input value={horarioFuncionamento} onChange={(e) => setHorarioFuncionamento(e.target.value)} placeholder="Seg-Sex 08:00-18:00" className={fieldClass} />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold">Instruções de Entrega</Label>
+              <Textarea value={instrucoesEntrega} onChange={(e) => setInstrucoesEntrega(e.target.value)} placeholder="Entrar pela portaria lateral..." className="mt-1.5 min-h-[60px]" />
             </div>
             <div>
               <Label className="text-xs font-semibold">Website</Label>

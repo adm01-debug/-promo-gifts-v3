@@ -49,6 +49,7 @@ interface Supplier {
   is_engraving_supplier: boolean;
   logo_url: string | null;
   // Endereço estruturado (company_addresses)
+  tipo_logradouro: string | null;
   logradouro: string | null;
   numero: string | null;
   complemento: string | null;
@@ -59,6 +60,11 @@ interface Supplier {
   pais: string | null;
   ponto_referencia: string | null;
   google_maps_url: string | null;
+  google_place_id: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  horario_funcionamento: string | null;
+  instrucoes_entrega: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,9 +75,10 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
   default_markup_percent: null, min_order_value: null, delivery_time_days: null,
   payment_terms: '', shipping_terms: '', priority: 50, notes: '',
   is_product_supplier: true, is_engraving_supplier: false, active: true, logo_url: null,
-  logradouro: '', numero: '', complemento: '', bairro: '',
+  tipo_logradouro: '', logradouro: '', numero: '', complemento: '', bairro: '',
   cidade: '', estado: '', cep: '', pais: 'Brasil',
-  ponto_referencia: '', google_maps_url: '',
+  ponto_referencia: '', google_maps_url: '', google_place_id: '',
+  latitude: null, longitude: null, horario_funcionamento: '', instrucoes_entrega: '',
 };
 
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
@@ -172,6 +179,7 @@ export function SuppliersManager() {
         email: editingSupplier.email?.trim() || null,
         phone: editingSupplier.phone?.trim() || null,
         address: editingSupplier.address?.trim() || null,
+        tipo_logradouro: editingSupplier.tipo_logradouro?.trim() || null,
         logradouro: editingSupplier.logradouro?.trim() || null,
         numero: editingSupplier.numero?.trim() || null,
         complemento: editingSupplier.complemento?.trim() || null,
@@ -182,6 +190,11 @@ export function SuppliersManager() {
         pais: editingSupplier.pais?.trim() || 'Brasil',
         ponto_referencia: editingSupplier.ponto_referencia?.trim() || null,
         google_maps_url: editingSupplier.google_maps_url?.trim() || null,
+        google_place_id: editingSupplier.google_place_id?.trim() || null,
+        latitude: editingSupplier.latitude ?? null,
+        longitude: editingSupplier.longitude ?? null,
+        horario_funcionamento: editingSupplier.horario_funcionamento?.trim() || null,
+        instrucoes_entrega: editingSupplier.instrucoes_entrega?.trim() || null,
         website: editingSupplier.website?.trim() || null,
         default_markup_percent: editingSupplier.default_markup_percent ?? null,
         min_order_value: editingSupplier.min_order_value ?? null,
@@ -564,10 +577,22 @@ export function SuppliersManager() {
                 </div>
                 {/* Endereço Estruturado */}
                 <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
-                <div className="grid grid-cols-3 gap-4">
+                {/* Tipo Logradouro + Logradouro + Número */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Tipo Logradouro</Label>
+                    <select
+                      value={editingSupplier.tipo_logradouro || ''}
+                      onChange={e => updateField('tipo_logradouro', e.target.value)}
+                      className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Selecione</option>
+                      {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
                   <div className="col-span-2">
                     <Label className="text-xs font-semibold">Logradouro</Label>
-                    <Input value={editingSupplier.logradouro || ''} onChange={e => updateField('logradouro', e.target.value)} placeholder="Rua, Avenida..." className={fieldClass} />
+                    <Input value={editingSupplier.logradouro || ''} onChange={e => updateField('logradouro', e.target.value)} placeholder="Nome da rua" className={fieldClass} />
                   </div>
                   <div>
                     <Label className="text-xs font-semibold">Número</Label>
@@ -628,9 +653,33 @@ export function SuppliersManager() {
                     <Input value={editingSupplier.ponto_referencia || ''} onChange={e => updateField('ponto_referencia', e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Google Maps URL</Label>
+                    <Input value={editingSupplier.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Google Place ID</Label>
+                    <Input value={editingSupplier.google_place_id || ''} onChange={e => updateField('google_place_id', e.target.value)} placeholder="ChIJ..." className={fieldClass} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Latitude</Label>
+                    <Input type="number" step="any" value={editingSupplier.latitude ?? ''} onChange={e => updateField('latitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Longitude</Label>
+                    <Input type="number" step="any" value={editingSupplier.longitude ?? ''} onChange={e => updateField('longitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+                  </div>
+                </div>
                 <div>
-                  <Label className="text-xs font-semibold">Google Maps URL</Label>
-                  <Input value={editingSupplier.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+                  <Label className="text-xs font-semibold">Horário de Funcionamento</Label>
+                  <Input value={editingSupplier.horario_funcionamento || ''} onChange={e => updateField('horario_funcionamento', e.target.value)} placeholder="Seg-Sex 08:00-18:00" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Instruções de Entrega</Label>
+                  <Textarea value={editingSupplier.instrucoes_entrega || ''} onChange={e => updateField('instrucoes_entrega', e.target.value)} placeholder="Entrar pela portaria lateral..." className="mt-1.5 min-h-[60px]" />
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">Website</Label>
