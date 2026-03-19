@@ -49,6 +49,7 @@ interface Supplier {
   is_engraving_supplier: boolean;
   logo_url: string | null;
   // Endereço estruturado (company_addresses)
+  tipo_logradouro: string | null;
   logradouro: string | null;
   numero: string | null;
   complemento: string | null;
@@ -59,6 +60,11 @@ interface Supplier {
   pais: string | null;
   ponto_referencia: string | null;
   google_maps_url: string | null;
+  google_place_id: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  horario_funcionamento: string | null;
+  instrucoes_entrega: string | null;
   created_at: string;
   updated_at: string;
 }
