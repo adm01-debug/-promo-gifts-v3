@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -210,7 +210,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="mt-2">
-          <TabsList className="grid w-full grid-cols-4 h-9">
+          <TabsList className="grid w-full grid-cols-5 h-9">
             <TabsTrigger value="basic" className="text-xs gap-1.5">
               <Building2 className="h-3.5 w-3.5" />
               Dados
@@ -218,6 +218,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
             <TabsTrigger value="contact" className="text-xs gap-1.5">
               <Phone className="h-3.5 w-3.5" />
               Contato
+            </TabsTrigger>
+            <TabsTrigger value="address" className="text-xs gap-1.5">
+              <MapPin className="h-3.5 w-3.5" />
+              Endereço
             </TabsTrigger>
             <TabsTrigger value="commercial" className="text-xs gap-1.5">
               <DollarSign className="h-3.5 w-3.5" />
@@ -396,8 +400,19 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 />
               </div>
             </div>
-            {/* Endereço Estruturado */}
-            <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
+            <div>
+              <Label className="text-xs font-semibold">Website</Label>
+              <Input
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://www.fornecedor.com.br"
+                className={fieldClass}
+              />
+            </div>
+          </TabsContent>
+
+          {/* ENDEREÇO */}
+          <TabsContent value="address" className="space-y-4 pt-3">
             <div>
               <Label className="text-xs font-semibold">CEP</Label>
               <Input value={cep} onChange={async (e) => {
@@ -488,15 +503,6 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
             <div>
               <Label className="text-xs font-semibold">Instruções de Entrega</Label>
               <Textarea value={instrucoesEntrega} onChange={(e) => setInstrucoesEntrega(e.target.value)} placeholder="Entrar pela portaria lateral..." className="mt-1.5 min-h-[60px]" />
-            </div>
-            <div>
-              <Label className="text-xs font-semibold">Website</Label>
-              <Input
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="https://www.fornecedor.com.br"
-                className={fieldClass}
-              />
             </div>
           </TabsContent>
 
