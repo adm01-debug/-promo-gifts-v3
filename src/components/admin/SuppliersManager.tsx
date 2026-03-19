@@ -586,6 +586,7 @@ export function SuppliersManager() {
                       </Button>
                     </div>
                   </div>
+                </div>
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <Label className="text-sm">Ativo</Label>
                   <Switch checked={editingSupplier.active ?? true} onCheckedChange={v => updateField('active', v)} />
