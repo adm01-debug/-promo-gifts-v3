@@ -968,19 +968,20 @@ export async function fetchPromobrindProductsLightweight(options?: {
     return products;
   }
 
+  // Cap total products to avoid cascading timeouts
+  const maxTotal = options?.limit ?? LIGHTWEIGHT_MAX_TOTAL;
+
   const estimatedTotal = typeof firstPage.count === 'number' && firstPage.count > firstPage.records.length
-    ? firstPage.count
-    : null;
+    ? Math.min(firstPage.count, maxTotal)
+    : maxTotal;
 
-  const plannedOffsets = estimatedTotal
-    ? Array.from(
-        { length: Math.max(Math.ceil((estimatedTotal - firstPage.records.length) / LIGHTWEIGHT_PAGE_SIZE), 0) },
-        (_, index) => baseOffset + LIGHTWEIGHT_PAGE_SIZE * (index + 1),
-      )
-    : [];
+  const remainingToFetch = estimatedTotal - products.length;
+  if (remainingToFetch <= 0) return products;
 
-  let nextOffset = baseOffset + LIGHTWEIGHT_PAGE_SIZE;
-  let lastPageSize = firstPage.records.length;
+  const plannedOffsets = Array.from(
+    { length: Math.ceil(remainingToFetch / LIGHTWEIGHT_PAGE_SIZE) },
+    (_, index) => baseOffset + LIGHTWEIGHT_PAGE_SIZE * (index + 1),
+  );
 
   for (let index = 0; index < plannedOffsets.length; index += LIGHTWEIGHT_MAX_CONCURRENCY) {
     const batchOffsets = plannedOffsets.slice(index, index + LIGHTWEIGHT_MAX_CONCURRENCY);
@@ -1000,27 +1001,12 @@ export async function fetchPromobrindProductsLightweight(options?: {
       products.push(...page.records);
     }
 
-    const lastBatchOffset = batchOffsets[batchOffsets.length - 1];
-    nextOffset = lastBatchOffset + LIGHTWEIGHT_PAGE_SIZE;
-    lastPageSize = pages[pages.length - 1]?.records.length ?? 0;
-  }
+    // Stop early if last page was incomplete
+    const lastBatchPageSize = pages[pages.length - 1]?.records.length ?? 0;
+    if (lastBatchPageSize < LIGHTWEIGHT_PAGE_SIZE) break;
 
-  while (lastPageSize === LIGHTWEIGHT_PAGE_SIZE) {
-    const page = await fetchPromobrindProductsLightweightPageResilient({
-      filters,
-      orderBy,
-      limit: LIGHTWEIGHT_PAGE_SIZE,
-      offset: nextOffset,
-      countMode: 'none',
-    });
-
-    if (page.records.length === 0) {
-      break;
-    }
-
-    products.push(...page.records);
-    lastPageSize = page.records.length;
-    nextOffset += LIGHTWEIGHT_PAGE_SIZE;
+    // Respect cap
+    if (products.length >= maxTotal) break;
   }
 
   return products;
