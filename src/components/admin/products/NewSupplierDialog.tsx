@@ -329,6 +329,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
               <DollarSign className="h-3.5 w-3.5" />
               Comercial
             </TabsTrigger>
+            <TabsTrigger value="financial" className="text-xs gap-1">
+              <Landmark className="h-3.5 w-3.5" />
+              Financeiro
+            </TabsTrigger>
             <TabsTrigger value="classification" className="text-xs gap-1">
               <Settings2 className="h-3.5 w-3.5" />
               Tipo
