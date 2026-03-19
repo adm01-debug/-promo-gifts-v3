@@ -923,7 +923,7 @@ async function fetchPromobrindProductsLightweightPageResilient(params: {
 
 /**
  * Busca produtos com campos mínimos (sem enriquecimento de cores/imagens/variantes).
- * Usa paginação estável com concorrência limitada para evitar statement timeouts.
+ * Usa BATCH BRIDGE para buscar múltiplas páginas em 1 HTTP call (~4x mais rápido).
  */
 export async function fetchPromobrindProductsLightweight(options?: {
   search?: string;
@@ -944,6 +944,7 @@ export async function fetchPromobrindProductsLightweight(options?: {
   const orderBy = options?.orderBy ?? { column: 'name', ascending: true };
   const baseOffset = options?.offset ?? 0;
 
+  // When a specific limit is requested, use a single direct call
   if (typeof options?.limit === 'number' && options.limit > 0) {
     const result = await fetchPromobrindProductsLightweightPageResilient({
       filters,
@@ -955,6 +956,47 @@ export async function fetchPromobrindProductsLightweight(options?: {
     return result.records;
   }
 
+  // === BATCH STRATEGY ===
+  // Fetch multiple pages in a single HTTP call using batch bridge.
+  // This reduces 8+ round-trips to 1, dramatically improving load time.
+  const maxTotal = LIGHTWEIGHT_MAX_TOTAL;
+  const pagesToFetch = Math.ceil(maxTotal / LIGHTWEIGHT_PAGE_SIZE);
+
+  const batchQueries = Array.from({ length: pagesToFetch }, (_, i) => ({
+    table: 'products',
+    operation: 'select' as const,
+    select: PRODUCT_SELECT_LIGHTWEIGHT,
+    filters,
+    orderBy,
+    limit: LIGHTWEIGHT_PAGE_SIZE,
+    offset: baseOffset + i * LIGHTWEIGHT_PAGE_SIZE,
+  }));
+
+  try {
+    const batchResults = await invokeBatchBridge(batchQueries);
+    const products: LightweightProduct[] = [];
+
+    for (const result of batchResults) {
+      if (result.success && result.data?.records) {
+        products.push(...(result.data.records as LightweightProduct[]));
+      }
+    }
+
+    return products;
+  } catch (batchError) {
+    // Fallback to sequential fetching if batch fails
+    console.warn('[lightweight] Batch fetch failed, falling back to sequential:', batchError);
+    return fetchPromobrindProductsLightweightSequential(filters, orderBy, baseOffset, maxTotal);
+  }
+}
+
+/** Sequential fallback for when batch bridge fails */
+async function fetchPromobrindProductsLightweightSequential(
+  filters: Record<string, unknown>,
+  orderBy: { column: string; ascending?: boolean },
+  baseOffset: number,
+  maxTotal: number,
+): Promise<LightweightProduct[]> {
   const firstPage = await fetchPromobrindProductsLightweightPageResilient({
     filters,
     orderBy,
@@ -968,9 +1010,6 @@ export async function fetchPromobrindProductsLightweight(options?: {
   if (firstPage.records.length < LIGHTWEIGHT_PAGE_SIZE) {
     return products;
   }
-
-  // Cap total products to avoid cascading timeouts
-  const maxTotal = options?.limit ?? LIGHTWEIGHT_MAX_TOTAL;
 
   const estimatedTotal = typeof firstPage.count === 'number' && firstPage.count > firstPage.records.length
     ? Math.min(firstPage.count, maxTotal)
@@ -1002,11 +1041,8 @@ export async function fetchPromobrindProductsLightweight(options?: {
       products.push(...page.records);
     }
 
-    // Stop early if last page was incomplete
     const lastBatchPageSize = pages[pages.length - 1]?.records.length ?? 0;
     if (lastBatchPageSize < LIGHTWEIGHT_PAGE_SIZE) break;
-
-    // Respect cap
     if (products.length >= maxTotal) break;
   }
 
