@@ -210,7 +210,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="mt-2">
-          <TabsList className="grid w-full grid-cols-4 h-9">
+          <TabsList className="grid w-full grid-cols-5 h-9">
             <TabsTrigger value="basic" className="text-xs gap-1.5">
               <Building2 className="h-3.5 w-3.5" />
               Dados
@@ -218,6 +218,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
             <TabsTrigger value="contact" className="text-xs gap-1.5">
               <Phone className="h-3.5 w-3.5" />
               Contato
+            </TabsTrigger>
+            <TabsTrigger value="address" className="text-xs gap-1.5">
+              <MapPin className="h-3.5 w-3.5" />
+              Endereço
             </TabsTrigger>
             <TabsTrigger value="commercial" className="text-xs gap-1.5">
               <DollarSign className="h-3.5 w-3.5" />
