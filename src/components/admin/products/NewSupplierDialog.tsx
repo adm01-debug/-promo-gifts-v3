@@ -38,6 +38,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [contactPerson, setContactPerson] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [tipoLogradouro, setTipoLogradouro] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
   const [complemento, setComplemento] = useState('');
@@ -48,6 +49,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [pais, setPais] = useState('Brasil');
   const [pontoReferencia, setPontoReferencia] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [googlePlaceId, setGooglePlaceId] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [horarioFuncionamento, setHorarioFuncionamento] = useState('');
+  const [instrucoesEntrega, setInstrucoesEntrega] = useState('');
 
   // Commercial
   const [defaultMarkup, setDefaultMarkup] = useState('');
