@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 import { fetchAddressByCep } from '@/utils/viacep';
+import { fetchCnpjData } from '@/utils/cnpj-lookup';
 
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
