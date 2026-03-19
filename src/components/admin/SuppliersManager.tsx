@@ -27,6 +27,8 @@ interface SupplierContact {
   id: string;
   role: string;
   name: string;
+  signature: string;
+  nickname: string;
   email: string;
   phone: string;
 }
