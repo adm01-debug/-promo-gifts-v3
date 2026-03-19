@@ -72,11 +72,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [youtube, setYoutube] = useState('');
   const [tiktok, setTiktok] = useState('');
 
-  // Contact
-  const [contactName, setContactName] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  // Contacts (multiple)
+  const [contacts, setContacts] = useState<SupplierContact[]>([createEmptyContact()]);
   const [tipoLogradouro, setTipoLogradouro] = useState('');
   const [logradouro, setLogradouro] = useState('');
   const [numero, setNumero] = useState('');
