@@ -19,7 +19,7 @@ import {
 import {
   Search, Plus, Pencil, Trash2, Loader2, Building2, Phone, DollarSign,
   Settings2, RefreshCw, ExternalLink, CheckCircle2, XCircle, ImagePlus, X,
-  MapPin, Globe, Trash2 as TrashIcon, UserPlus,
+  MapPin, Globe, UserPlus,
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
