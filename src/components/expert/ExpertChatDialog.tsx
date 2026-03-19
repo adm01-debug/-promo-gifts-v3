@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface Message {
+  id?: string;
   role: "user" | "assistant";
   content: string;
 }
@@ -79,18 +80,21 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
 
   // Fetch categories and materials from Promobrind
   useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+
     const fetchFilters = async () => {
       try {
         const { fetchPromobrindProducts } = await import('@/lib/external-db');
+        if (cancelled) return;
         const productsData = await fetchPromobrindProducts({ limit: 500 });
+        if (cancelled) return;
 
-        // Extrair categorias únicas
         const uniqueCategories = [...new Set(
           productsData.map(p => p.category_name).filter(Boolean)
         )] as string[];
         setCategories(uniqueCategories.sort());
 
-        // Extrair materiais únicos
         const allMaterials = productsData.flatMap(p => p.materials || []).filter(Boolean);
         const uniqueMaterials = [...new Set(allMaterials)] as string[];
         setMaterials(uniqueMaterials.sort());
@@ -98,10 +102,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
         console.error("Error fetching filters:", error);
       }
     };
-    
-    if (isOpen) {
-      fetchFilters();
-    }
+
+    fetchFilters();
+    return () => { cancelled = true; };
   }, [isOpen]);
 
   // Parse product links from message content
@@ -192,7 +195,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
 
   const loadConversation = async (conversation: ExpertConversation) => {
     const loadedMessages = await fetchMessages(conversation.id);
-    setMessages(loadedMessages.map(m => ({ role: m.role, content: m.content })));
+    setMessages(loadedMessages.map(m => ({ id: m.id, role: m.role, content: m.content })));
     setCurrentConversationId(conversation.id);
     setShowHistory(false);
   };
@@ -221,7 +224,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
       }
     }
 
-    setMessages(prev => [...prev, { role: "user", content: userMessage }]);
+    setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: "user", content: userMessage }]);
     setIsLoading(true);
 
     // Save user message
@@ -258,7 +261,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
       const decoder = new TextDecoder();
       let assistantMessage = "";
 
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "" }]);
 
       if (reader) {
         let buffer = "";
@@ -313,7 +316,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
         ? `Desculpe, ocorreu um erro: ${error.message}` 
         : "Desculpe, ocorreu um erro ao processar sua mensagem.";
       
-      setMessages(prev => [...prev, { role: "assistant", content: errorMessage }]);
+      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: errorMessage }]);
       
       if (convId) {
         await saveMessage(convId, "assistant", errorMessage);
