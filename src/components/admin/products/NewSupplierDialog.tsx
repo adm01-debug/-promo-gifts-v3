@@ -104,6 +104,12 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [priority, setPriority] = useState('50');
   const [notes, setNotes] = useState('');
 
+  // Financial
+  const [formaPagamento, setFormaPagamento] = useState<string[]>([]);
+  const [pixTipo, setPixTipo] = useState('');
+  const [pixNumero, setPixNumero] = useState('');
+  const [pixFavorecido, setPixFavorecido] = useState('');
+
   // Classification
   const [isProductSupplier, setIsProductSupplier] = useState(true);
   const [isEngravingSupplier, setIsEngravingSupplier] = useState(false);
