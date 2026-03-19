@@ -186,7 +186,26 @@ export function SuppliersManager() {
   };
 
   const handleEdit = (supplier: Supplier) => {
-    setEditingSupplier({ ...supplier });
+    const s = { ...supplier };
+
+    // Parse address_details JSON if available
+    try {
+      const addr = supplier.address_details ? JSON.parse(supplier.address_details as string) : null;
+      if (addr && typeof addr === 'object') {
+        Object.assign(s, addr);
+      }
+    } catch { /* ignore */ }
+
+    // Parse social_details JSON if available
+    try {
+      const social = supplier.social_details ? JSON.parse(supplier.social_details as string) : null;
+      if (social && typeof social === 'object') {
+        Object.assign(s, social);
+      }
+    } catch { /* ignore */ }
+
+    setEditingSupplier(s);
+
     // Parse contacts from JSON if available
     try {
       const parsed = supplier.contacts ? JSON.parse(supplier.contacts) : null;
@@ -220,50 +239,45 @@ export function SuppliersManager() {
     setSaving(true);
     try {
       const now = new Date().toISOString();
+      // Build rich address string from individual fields
+      const es = editingSupplier;
+      const addressParts = [
+        es.tipo_logradouro && es.logradouro ? `${es.tipo_logradouro} ${es.logradouro}` : es.logradouro,
+        es.numero, es.complemento, es.bairro, es.cidade, es.estado,
+        es.cep ? `CEP ${es.cep}` : null,
+      ].filter(Boolean).join(', ') || es.address?.trim() || null;
+
+      // addressDetails and socialDetails are kept in-memory only for the edit form
+      // The external DB only has 'address' (string), plus individual social columns
+
       const payload: Record<string, unknown> = {
-        name: editingSupplier.name!.trim(),
-        code: editingSupplier.code?.trim() || editingSupplier.name!.trim().toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '').slice(0, 20),
-        trading_name: editingSupplier.trading_name?.trim() || null,
-        cnpj: editingSupplier.cnpj?.trim() || null,
-        active: editingSupplier.active ?? true,
+        name: es.name!.trim(),
+        code: es.code?.trim() || es.name!.trim().toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '').slice(0, 20),
+        trading_name: es.trading_name?.trim() || null,
+        cnpj: es.cnpj?.trim() || null,
+        active: es.active ?? true,
         contact_name: contacts[0]?.name?.trim() || null,
         contact_person: contacts[0]?.role?.trim() || null,
         email: contacts[0]?.email?.trim() || null,
         phone: contacts[0]?.phone?.trim() || null,
         contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
-        address: editingSupplier.address?.trim() || null,
-        instagram: editingSupplier.instagram?.trim() || null,
-        facebook: editingSupplier.facebook?.trim() || null,
-        linkedin: editingSupplier.linkedin?.trim() || null,
-        youtube: editingSupplier.youtube?.trim() || null,
-        tiktok: editingSupplier.tiktok?.trim() || null,
-        tipo_logradouro: editingSupplier.tipo_logradouro?.trim() || null,
-        logradouro: editingSupplier.logradouro?.trim() || null,
-        numero: editingSupplier.numero?.trim() || null,
-        complemento: editingSupplier.complemento?.trim() || null,
-        bairro: editingSupplier.bairro?.trim() || null,
-        cidade: editingSupplier.cidade?.trim() || null,
-        estado: editingSupplier.estado?.trim() || null,
-        cep: editingSupplier.cep?.trim() || null,
-        pais: editingSupplier.pais?.trim() || 'Brasil',
-        ponto_referencia: editingSupplier.ponto_referencia?.trim() || null,
-        google_maps_url: editingSupplier.google_maps_url?.trim() || null,
-        google_place_id: editingSupplier.google_place_id?.trim() || null,
-        latitude: editingSupplier.latitude ?? null,
-        longitude: editingSupplier.longitude ?? null,
-        horario_funcionamento: editingSupplier.horario_funcionamento?.trim() || null,
-        instrucoes_entrega: editingSupplier.instrucoes_entrega?.trim() || null,
-        website: editingSupplier.website?.trim() || null,
-        default_markup_percent: editingSupplier.default_markup_percent ?? null,
-        min_order_value: editingSupplier.min_order_value ?? null,
-        minimum_order_value: editingSupplier.min_order_value ?? null,
-        delivery_time_days: editingSupplier.delivery_time_days ?? null,
-        payment_terms: editingSupplier.payment_terms?.trim() || null,
-        shipping_terms: editingSupplier.shipping_terms?.trim() || null,
-        priority: editingSupplier.priority ?? 50,
-        notes: editingSupplier.notes?.trim() || null,
-        is_product_supplier: editingSupplier.is_product_supplier ?? true,
-        is_engraving_supplier: editingSupplier.is_engraving_supplier ?? false,
+        address: addressParts,
+        instagram: es.instagram?.trim() || null,
+        facebook: es.facebook?.trim() || null,
+        linkedin: es.linkedin?.trim() || null,
+        youtube: es.youtube?.trim() || null,
+        tiktok: es.tiktok?.trim() || null,
+        website: es.website?.trim() || null,
+        default_markup_percent: es.default_markup_percent ?? null,
+        min_order_value: es.min_order_value ?? null,
+        minimum_order_value: es.min_order_value ?? null,
+        delivery_time_days: es.delivery_time_days ?? null,
+        payment_terms: es.payment_terms?.trim() || null,
+        shipping_terms: es.shipping_terms?.trim() || null,
+        priority: es.priority ?? 50,
+        notes: es.notes?.trim() || null,
+        is_product_supplier: es.is_product_supplier ?? true,
+        is_engraving_supplier: es.is_engraving_supplier ?? false,
         updated_at: now,
       };
 
