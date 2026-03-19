@@ -34,7 +34,7 @@ function getStockStatus(stock: number): 'in-stock' | 'low-stock' | 'out-of-stock
   return 'in-stock';
 }
 
-function mapLightweightToProduct(p: LightweightProduct): Product {
+export function mapLightweightToProduct(p: LightweightProduct): Product {
   const imageUrl = p.primary_image_url || p.image_url || '/placeholder.svg';
   const price = p.sale_price ?? p.cost_price ?? 0;
   const stock = p.stock_quantity || 0;
