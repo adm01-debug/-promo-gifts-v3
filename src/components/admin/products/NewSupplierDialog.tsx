@@ -416,6 +416,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   maxLength={15}
                 />
               </div>
+            </div>
           </TabsContent>
 
           {/* SITE E REDES SOCIAIS */}
