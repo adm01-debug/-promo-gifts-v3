@@ -85,6 +85,7 @@ const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
 
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 import { fetchAddressByCep } from '@/utils/viacep';
+import { fetchCnpjData } from '@/utils/cnpj-lookup';
 
 export function SuppliersManager() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
