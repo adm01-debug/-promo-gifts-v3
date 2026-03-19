@@ -230,6 +230,22 @@ export function SuppliersManager() {
     } catch {
       setContacts([createEmptyContact()]);
     }
+
+    // Parse financial data from notes
+    const notesStr = supplier.notes || '';
+    const finMatch = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
+    if (finMatch) {
+      const formas = finMatch[1] !== '-' ? finMatch[1].split(',').filter(Boolean) : [];
+      setFormaPagamento(formas);
+      setPixTipo(finMatch[2] !== '-' ? finMatch[2] : '');
+      setPixNumero(finMatch[3] !== '-' ? finMatch[3] : '');
+      setPixFavorecido(finMatch[4] !== '-' ? finMatch[4] : '');
+      setPixDataCadastro(finMatch[5] !== '-' ? finMatch[5] : '');
+    } else {
+      setFormaPagamento([]);
+      setPixTipo(''); setPixNumero(''); setPixFavorecido(''); setPixDataCadastro('');
+    }
+
     setIsNew(false);
   };
 
