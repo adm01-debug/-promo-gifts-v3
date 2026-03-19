@@ -260,7 +260,7 @@ export function SuppliersManager() {
         contact_person: contacts[0]?.role?.trim() || null,
         email: contacts[0]?.email?.trim() || null,
         phone: contacts[0]?.phone?.trim() || null,
-        contacts: JSON.stringify(contacts.filter(c => c.name.trim()).map(({ id, ...rest }) => rest)),
+        // contacts column doesn't exist in external DB
         address: addressParts,
         instagram: es.instagram?.trim() || null,
         facebook: es.facebook?.trim() || null,
