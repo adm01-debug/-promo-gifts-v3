@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
+import { fetchAddressByCep } from '@/utils/viacep';
 
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
