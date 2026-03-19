@@ -6,7 +6,36 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin, Globe } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin, Globe, Trash2, UserPlus } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface SupplierContact {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+const CONTACT_ROLES = [
+  'Proprietário',
+  'Diretor',
+  'Gerente',
+  'Vendedor',
+  'Financeiro',
+  'Compras',
+  'Logística',
+  'Suporte',
+  'Outro',
+] as const;
+
+const createEmptyContact = (): SupplierContact => ({
+  id: crypto.randomUUID(),
+  role: '',
+  name: '',
+  email: '',
+  phone: '',
+});
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
