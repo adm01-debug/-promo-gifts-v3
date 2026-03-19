@@ -77,6 +77,7 @@ const EMPTY_SUPPLIER: Partial<Supplier> = {
 const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
 
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
+import { fetchAddressByCep } from '@/utils/viacep';
 
 export function SuppliersManager() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
