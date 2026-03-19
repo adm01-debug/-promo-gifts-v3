@@ -27,6 +27,8 @@ interface SupplierContact {
   id: string;
   role: string;
   name: string;
+  signature: string;
+  nickname: string;
   email: string;
   phone: string;
 }
@@ -37,7 +39,7 @@ const CONTACT_ROLES = [
 ] as const;
 
 const createEmptyContact = (): SupplierContact => ({
-  id: crypto.randomUUID(), role: '', name: '', email: '', phone: '',
+  id: crypto.randomUUID(), role: '', name: '', signature: '', nickname: '', email: '', phone: '',
 });
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -702,6 +704,16 @@ export function SuppliersManager() {
                         <div>
                           <Label className="text-xs font-semibold">Nome</Label>
                           <Input value={contact.name} onChange={(e) => updateContact(contact.id, 'name', e.target.value)} placeholder="Ex: João Silva" className={fieldClass} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs font-semibold">Assinatura</Label>
+                          <Input value={contact.signature} onChange={(e) => updateContact(contact.id, 'signature', e.target.value)} placeholder="Ex: João S. - Diretor Comercial" className={fieldClass} />
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold">Apelido</Label>
+                          <Input value={contact.nickname} onChange={(e) => updateContact(contact.id, 'nickname', e.target.value)} placeholder="Ex: Joãozinho" className={fieldClass} />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
