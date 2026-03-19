@@ -39,7 +39,7 @@ const CONTACT_ROLES = [
 ] as const;
 
 const createEmptyContact = (): SupplierContact => ({
-  id: crypto.randomUUID(), role: '', name: '', email: '', phone: '',
+  id: crypto.randomUUID(), role: '', name: '', signature: '', nickname: '', email: '', phone: '',
 });
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
