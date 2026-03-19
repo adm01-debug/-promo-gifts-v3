@@ -316,7 +316,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
         ? `Desculpe, ocorreu um erro: ${error.message}` 
         : "Desculpe, ocorreu um erro ao processar sua mensagem.";
       
-      setMessages(prev => [...prev, { role: "assistant", content: errorMessage }]);
+      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: errorMessage }]);
       
       if (convId) {
         await saveMessage(convId, "assistant", errorMessage);
