@@ -325,21 +325,31 @@ export default function Index() {
   const loadMore = useCallback(() => {
     // Proteção tripla contra loops
     if (isUpdatingRef.current) return;
-    if (isLoading || isLoadingMore) return;
+    if (isLoading || isLoadingMore || isFetchingNextPage) return;
     if (!hasMoreProducts) return;
     
     isUpdatingRef.current = true;
     setIsLoadingMore(true);
     
-    setTimeout(() => {
-      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
-      setIsLoadingMore(false);
-      // Libera para próximo load após um delay extra
+    // Check if we need more server-side data
+    const nextDisplayCount = displayCount + ITEMS_PER_PAGE;
+    const needsServerData = nextDisplayCount >= filteredProducts.length && hasNextPage;
+
+    if (needsServerData) {
+      // Fetch next server page, then increase display count
+      fetchNextPage().finally(() => {
+        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        setIsLoadingMore(false);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+      });
+    } else {
       setTimeout(() => {
-        isUpdatingRef.current = false;
-      }, 100);
-    }, 300);
-  }, [isLoading, isLoadingMore, hasMoreProducts]);
+        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        setIsLoadingMore(false);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+      }, 150);
+    }
+  }, [isLoading, isLoadingMore, isFetchingNextPage, hasMoreProducts, displayCount, filteredProducts.length, hasNextPage, fetchNextPage]);
 
   // Observer com proteções - reconecta apenas quando necessário
   useEffect(() => {
