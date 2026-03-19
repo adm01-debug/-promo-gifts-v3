@@ -269,7 +269,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
             </TabsTrigger>
             <TabsTrigger value="contact" className="text-xs gap-1">
               <Phone className="h-3.5 w-3.5" />
-              Contato
+              Contatos
             </TabsTrigger>
             <TabsTrigger value="address" className="text-xs gap-1">
               <MapPin className="h-3.5 w-3.5" />
