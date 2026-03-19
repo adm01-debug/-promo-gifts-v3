@@ -831,9 +831,10 @@ export async function fetchPromobrindProducts(options?: {
 // ============================================
 
 const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity';
-const LIGHTWEIGHT_PAGE_SIZE = 500;
+const LIGHTWEIGHT_PAGE_SIZE = 250;
 const LIGHTWEIGHT_MAX_CONCURRENCY = 2;
 const LIGHTWEIGHT_MIN_SPLIT_PAGE_SIZE = 125;
+const LIGHTWEIGHT_MAX_TOTAL = 2000; // Cap total products to avoid timeouts
 
 export interface LightweightProduct {
   id: string;
