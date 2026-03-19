@@ -37,8 +37,16 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [contactPerson, setContactPerson] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [website, setWebsite] = useState('');
+  const [logradouro, setLogradouro] = useState('');
+  const [numero, setNumero] = useState('');
+  const [complemento, setComplemento] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
+  const [cep, setCep] = useState('');
+  const [pais, setPais] = useState('Brasil');
+  const [pontoReferencia, setPontoReferencia] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
 
   // Commercial
   const [defaultMarkup, setDefaultMarkup] = useState('');
