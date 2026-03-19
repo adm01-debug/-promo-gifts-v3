@@ -36,6 +36,13 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [website, setWebsite] = useState('');
 
+  // Social Media
+  const [instagram, setInstagram] = useState('');
+  const [facebook, setFacebook] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [youtube, setYoutube] = useState('');
+  const [tiktok, setTiktok] = useState('');
+
   // Contact
   const [contactName, setContactName] = useState('');
   const [contactPerson, setContactPerson] = useState('');
