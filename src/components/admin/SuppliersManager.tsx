@@ -563,7 +563,7 @@ export function SuppliersManager() {
               </TabsList>
 
               <TabsContent value="basic" className="space-y-4 pt-3">
-                {/* Logo Upload */}
+                {/* 1 - LOGO + 2 - NOME FANTASIA */}
                 <div className="flex items-center gap-4">
                   <div className="relative shrink-0">
                     {editingSupplier.logo_url ? (
@@ -596,22 +596,20 @@ export function SuppliersManager() {
                     )}
                     <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                   </div>
-                  <div className="flex-1 grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs font-semibold">Nome <span className="text-destructive">*</span></Label>
-                      <Input value={editingSupplier.name || ''} onChange={e => updateField('name', e.target.value)} className={fieldClass} />
-                    </div>
-                    <div>
-                      <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
-                      <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div className="flex-1">
                     <Label className="text-xs font-semibold">Nome Fantasia</Label>
                     <Input value={editingSupplier.trading_name || ''} onChange={e => updateField('trading_name', e.target.value)} className={fieldClass} />
                   </div>
+                </div>
+
+                {/* 3 - RAZÃO SOCIAL */}
+                <div>
+                  <Label className="text-xs font-semibold">Razão Social <span className="text-destructive">*</span></Label>
+                  <Input value={editingSupplier.name || ''} onChange={e => updateField('name', e.target.value)} className={fieldClass} />
+                </div>
+
+                {/* 4 - CNPJ + 5 - CÓDIGO */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-xs font-semibold">CNPJ</Label>
                     <div className="flex gap-1.5">
@@ -653,7 +651,12 @@ export function SuppliersManager() {
                       </Button>
                     </div>
                   </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
+                    <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
+                  </div>
                 </div>
+
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <Label className="text-sm">Ativo</Label>
                   <Switch checked={editingSupplier.active ?? true} onCheckedChange={v => updateField('active', v)} />
