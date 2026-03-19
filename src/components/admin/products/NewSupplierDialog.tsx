@@ -33,6 +33,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [tradingName, setTradingName] = useState('');
   const [cnpj, setCnpj] = useState('');
   const [cnpjError, setCnpjError] = useState('');
+  const [fetchingCnpj, setFetchingCnpj] = useState(false);
+  const [website, setWebsite] = useState('');
 
   // Contact
   const [contactName, setContactName] = useState('');
