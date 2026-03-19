@@ -186,7 +186,26 @@ export function SuppliersManager() {
   };
 
   const handleEdit = (supplier: Supplier) => {
-    setEditingSupplier({ ...supplier });
+    const s = { ...supplier };
+
+    // Parse address_details JSON if available
+    try {
+      const addr = supplier.address_details ? JSON.parse(supplier.address_details as string) : null;
+      if (addr && typeof addr === 'object') {
+        Object.assign(s, addr);
+      }
+    } catch { /* ignore */ }
+
+    // Parse social_details JSON if available
+    try {
+      const social = supplier.social_details ? JSON.parse(supplier.social_details as string) : null;
+      if (social && typeof social === 'object') {
+        Object.assign(s, social);
+      }
+    } catch { /* ignore */ }
+
+    setEditingSupplier(s);
+
     // Parse contacts from JSON if available
     try {
       const parsed = supplier.contacts ? JSON.parse(supplier.contacts) : null;
