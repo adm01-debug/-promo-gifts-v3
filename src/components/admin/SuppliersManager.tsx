@@ -577,10 +577,22 @@ export function SuppliersManager() {
                 </div>
                 {/* Endereço Estruturado */}
                 <p className="text-xs font-semibold text-muted-foreground pt-2 border-t border-border">Endereço</p>
-                <div className="grid grid-cols-3 gap-4">
+                {/* Tipo Logradouro + Logradouro + Número */}
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Tipo Logradouro</Label>
+                    <select
+                      value={editingSupplier.tipo_logradouro || ''}
+                      onChange={e => updateField('tipo_logradouro', e.target.value)}
+                      className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">Selecione</option>
+                      {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
                   <div className="col-span-2">
                     <Label className="text-xs font-semibold">Logradouro</Label>
-                    <Input value={editingSupplier.logradouro || ''} onChange={e => updateField('logradouro', e.target.value)} placeholder="Rua, Avenida..." className={fieldClass} />
+                    <Input value={editingSupplier.logradouro || ''} onChange={e => updateField('logradouro', e.target.value)} placeholder="Nome da rua" className={fieldClass} />
                   </div>
                   <div>
                     <Label className="text-xs font-semibold">Número</Label>
@@ -641,9 +653,33 @@ export function SuppliersManager() {
                     <Input value={editingSupplier.ponto_referencia || ''} onChange={e => updateField('ponto_referencia', e.target.value)} placeholder="Próximo ao..." className={fieldClass} />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Google Maps URL</Label>
+                    <Input value={editingSupplier.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Google Place ID</Label>
+                    <Input value={editingSupplier.google_place_id || ''} onChange={e => updateField('google_place_id', e.target.value)} placeholder="ChIJ..." className={fieldClass} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Latitude</Label>
+                    <Input type="number" step="any" value={editingSupplier.latitude ?? ''} onChange={e => updateField('latitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-23.5505" className={`${fieldClass} font-mono`} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Longitude</Label>
+                    <Input type="number" step="any" value={editingSupplier.longitude ?? ''} onChange={e => updateField('longitude', e.target.value ? parseFloat(e.target.value) : null)} placeholder="-46.6333" className={`${fieldClass} font-mono`} />
+                  </div>
+                </div>
                 <div>
-                  <Label className="text-xs font-semibold">Google Maps URL</Label>
-                  <Input value={editingSupplier.google_maps_url || ''} onChange={e => updateField('google_maps_url', e.target.value)} placeholder="https://maps.google.com/..." className={fieldClass} />
+                  <Label className="text-xs font-semibold">Horário de Funcionamento</Label>
+                  <Input value={editingSupplier.horario_funcionamento || ''} onChange={e => updateField('horario_funcionamento', e.target.value)} placeholder="Seg-Sex 08:00-18:00" className={fieldClass} />
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold">Instruções de Entrega</Label>
+                  <Textarea value={editingSupplier.instrucoes_entrega || ''} onChange={e => updateField('instrucoes_entrega', e.target.value)} placeholder="Entrar pela portaria lateral..." className="mt-1.5 min-h-[60px]" />
                 </div>
                 <div>
                   <Label className="text-xs font-semibold">Website</Label>
