@@ -231,7 +231,14 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         payment_terms: paymentTerms.trim() || null,
         shipping_terms: shippingTerms.trim() || null,
         priority: priority ? parseInt(priority) : 50,
-        notes: notes.trim() || null,
+        notes: (() => {
+          const extraContacts = contacts.slice(1).filter(c => c.name.trim());
+          const extraInfo = extraContacts.length > 0
+            ? `[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'})`).join('; ')}]`
+            : '';
+          const userNotes = notes.trim();
+          return [userNotes, extraInfo].filter(Boolean).join('\n') || null;
+        })(),
         is_product_supplier: isProductSupplier,
         is_engraving_supplier: isEngravingSupplier,
         created_at: now,
