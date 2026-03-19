@@ -312,7 +312,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
           {/* DADOS BÁSICOS */}
           <TabsContent value="basic" className="space-y-4 pt-3">
-            {/* Logo Upload */}
+            {/* 1 - LOGO + 2 - NOME FANTASIA (lado a lado) */}
             <div className="flex items-center gap-4">
               <div className="relative shrink-0">
                 {logoUrl ? (
@@ -345,30 +345,32 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 )}
                 <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
               </div>
-              <div className="flex-1 grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-xs font-semibold">Nome Fantasia</Label>
-                  <Input
-                    value={tradingName}
-                    onChange={(e) => setTradingName(e.target.value)}
-                    placeholder="Ex: Asia Import LTDA"
-                    className={fieldClass}
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs font-semibold">
-                    Razão Social <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ex: Asia Import Comércio LTDA"
-                    className={fieldClass}
-                  />
-                </div>
+              <div className="flex-1">
+                <Label className="text-xs font-semibold">Nome Fantasia</Label>
+                <Input
+                  value={tradingName}
+                  onChange={(e) => setTradingName(e.target.value)}
+                  placeholder="Ex: Asia Import"
+                  className={fieldClass}
+                  autoFocus
+                />
               </div>
             </div>
+
+            {/* 3 - RAZÃO SOCIAL (linha inteira) */}
+            <div>
+              <Label className="text-xs font-semibold">
+                Razão Social <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex: Asia Import Comércio LTDA"
+                className={fieldClass}
+              />
+            </div>
+
+            {/* 4 - CNPJ + 5 - CÓDIGO */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-semibold">CNPJ</Label>
