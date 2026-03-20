@@ -51,73 +51,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Guards contra race conditions (#4)
-  const fetchingRef = useRef<string | null>(null);
+  // Guards contra race conditions (#4) — usando Promise para coordenar chamadores
+  const fetchPromiseRef = useRef<Promise<void> | null>(null);
   const mountedRef = useRef(true);
 
   const fetchUserData = useCallback(async (userId: string) => {
-    // Evitar chamadas duplicadas simultâneas (#4)
-    if (fetchingRef.current === userId) return;
-    fetchingRef.current = userId;
-    
-    try {
-      // Buscar profile e role em paralelo
-      const [profileResult, roleResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("user_id", userId)
-          .single(),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId)
-          .single()
-      ]);
-
-      if (!mountedRef.current) return;
-
-      if (profileResult.error) {
-        if (import.meta.env.DEV) {
-          console.error("Error fetching profile:", profileResult.error);
-        }
-      } else if (profileResult.data) {
-        setProfile(profileResult.data as Profile);
-        
-        // Atualizar last_login_at (não bloqueia) — com logging em dev (#14)
-        supabase
-          .from("profiles")
-          .update({ last_login_at: new Date().toISOString() })
-          .eq("user_id", userId)
-          .then(({ error }) => {
-            if (error && import.meta.env.DEV) {
-              console.warn("Failed to update last_login_at:", error.message);
-            }
-          });
-      }
-
-      if (roleResult.error) {
-        if (import.meta.env.DEV) {
-          console.error("Error fetching user role:", roleResult.error);
-        }
-        setUserRole("vendedor");
-      } else if (roleResult.data) {
-        setUserRole(roleResult.data.role as AppRole);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error("Error fetching user data:", error);
-      }
-      if (mountedRef.current) {
-        setUserRole("vendedor");
-      }
-    } finally {
-      fetchingRef.current = null;
-      // isLoading só fica false APÓS os dados carregarem (#5)
-      if (mountedRef.current) {
-        setIsLoading(false);
-      }
+    // Se já existe um fetch em andamento para este userId, aguardar ao invés de ignorar
+    if (fetchPromiseRef.current) {
+      await fetchPromiseRef.current;
+      return;
     }
+    
+    const doFetch = async () => {
+      try {
+        // Buscar profile e role em paralelo
+        const [profileResult, roleResult] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("*")
+            .eq("user_id", userId)
+            .single(),
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", userId)
+            .single()
+        ]);
+
+        if (!mountedRef.current) return;
+
+        if (profileResult.error) {
+          if (import.meta.env.DEV) {
+            console.error("Error fetching profile:", profileResult.error);
+          }
+        } else if (profileResult.data) {
+          setProfile(profileResult.data as Profile);
+          
+          // Atualizar last_login_at (não bloqueia)
+          supabase
+            .from("profiles")
+            .update({ last_login_at: new Date().toISOString() })
+            .eq("user_id", userId)
+            .then(({ error }) => {
+              if (error && import.meta.env.DEV) {
+                console.warn("Failed to update last_login_at:", error.message);
+              }
+            });
+        }
+
+        if (roleResult.error) {
+          if (import.meta.env.DEV) {
+            console.error("Error fetching user role:", roleResult.error);
+          }
+          setUserRole("vendedor");
+        } else if (roleResult.data) {
+          setUserRole(roleResult.data.role as AppRole);
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error("Error fetching user data:", error);
+        }
+        if (mountedRef.current) {
+          setUserRole("vendedor");
+        }
+      } finally {
+        fetchPromiseRef.current = null;
+        // isLoading só fica false APÓS os dados carregarem (#5)
+        if (mountedRef.current) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchPromiseRef.current = doFetch();
+    await fetchPromiseRef.current;
   }, []);
 
   useEffect(() => {
