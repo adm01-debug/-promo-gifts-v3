@@ -47,11 +47,6 @@ const rolePermissions: Record<RoleName, Permission[]> = {
     { action: 'read', resource: 'mockups' },
     { action: 'create', resource: 'mockups' },
   ],
-  viewer: [
-    { action: 'read', resource: 'products' },
-    { action: 'read', resource: 'quotes' },
-    { action: 'read', resource: 'orders' },
-  ],
 };
 
 /**
