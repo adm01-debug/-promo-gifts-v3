@@ -506,7 +506,7 @@ export default function QuoteViewPage() {
                   <DropdownMenuItem
                     onClick={async () => {
                       try {
-                        await updateCrm("quotes", quote.id, { status: "pending" });
+                        await supabase.from("quotes").update({ status: "pending" } as any).eq("id", quote.id);
                         await logQuoteHistory(quote.id, "status_change", "Sincronização cancelada — status revertido para Pendente", {
                           oldValue: "sent",
                           newValue: "pending",

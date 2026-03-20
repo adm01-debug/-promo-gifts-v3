@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { selectCrm, insertCrm } from "@/lib/crm-db";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export interface QuoteHistoryEntry {
@@ -23,14 +23,17 @@ export function useQuoteHistory() {
   const fetchHistory = async (quoteId: string): Promise<QuoteHistoryEntry[]> => {
     setIsLoading(true);
     try {
-      const data = await selectCrm<QuoteHistoryEntry>("quote_history", {
-        filters: { quote_id: quoteId },
-        orderBy: { column: "created_at", ascending: false },
-        limit: 200,
-      });
+      const { data, error } = await supabase
+        .from("quote_history")
+        .select("*")
+        .eq("quote_id", quoteId)
+        .order("created_at", { ascending: false })
+        .limit(200);
 
-      setHistory(data || []);
-      return data || [];
+      if (error) throw error;
+      const entries = (data as any[] || []) as QuoteHistoryEntry[];
+      setHistory(entries);
+      return entries;
     } catch (err) {
       console.error("Error fetching history:", err);
       return [];
@@ -53,7 +56,7 @@ export function useQuoteHistory() {
     if (!user) return false;
 
     try {
-      await insertCrm("quote_history", {
+      await supabase.from("quote_history").insert({
         quote_id: quoteId,
         user_id: user.id,
         action,
@@ -62,8 +65,7 @@ export function useQuoteHistory() {
         old_value: options?.oldValue || null,
         new_value: options?.newValue || null,
         metadata: options?.metadata || {},
-      });
-
+      } as any);
       return true;
     } catch (err) {
       console.error("Error adding history entry:", err);
@@ -71,76 +73,38 @@ export function useQuoteHistory() {
     }
   };
 
-  const logQuoteCreated = async (quoteId: string, quoteNumber: string) => {
-    return addHistoryEntry(quoteId, "created", `Orçamento ${quoteNumber} criado`);
-  };
+  const logQuoteCreated = async (quoteId: string, quoteNumber: string) =>
+    addHistoryEntry(quoteId, "created", `Orçamento ${quoteNumber} criado`);
 
   const logQuoteUpdated = async (quoteId: string, changes: string[]) => {
-    const description = changes.length > 0 
+    const description = changes.length > 0
       ? `Orçamento atualizado: ${changes.join(", ")}`
       : "Orçamento atualizado";
     return addHistoryEntry(quoteId, "updated", description);
   };
 
-  const logStatusChanged = async (
-    quoteId: string,
-    oldStatus: string,
-    newStatus: string
-  ) => {
+  const logStatusChanged = async (quoteId: string, oldStatus: string, newStatus: string) => {
     const statusLabels: Record<string, string> = {
-      draft: "Rascunho",
-      pending: "Pendente",
-      sent: "Enviado",
-      approved: "Aprovado",
-      rejected: "Rejeitado",
-      expired: "Expirado",
+      draft: "Rascunho", pending: "Pendente", sent: "Enviado",
+      approved: "Aprovado", rejected: "Rejeitado", expired: "Expirado",
     };
-    return addHistoryEntry(
-      quoteId,
-      "status_changed",
+    return addHistoryEntry(quoteId, "status_changed",
       `Status alterado de "${statusLabels[oldStatus] || oldStatus}" para "${statusLabels[newStatus] || newStatus}"`,
-      {
-        fieldChanged: "status",
-        oldValue: oldStatus,
-        newValue: newStatus,
-      }
+      { fieldChanged: "status", oldValue: oldStatus, newValue: newStatus }
     );
   };
 
-  const logItemAdded = async (quoteId: string, productName: string, quantity: number) => {
-    return addHistoryEntry(
-      quoteId,
-      "item_added",
-      `Item adicionado: ${productName} (${quantity}x)`,
-      {
-        metadata: { productName, quantity },
-      }
-    );
-  };
+  const logItemAdded = async (quoteId: string, productName: string, quantity: number) =>
+    addHistoryEntry(quoteId, "item_added", `Item adicionado: ${productName} (${quantity}x)`, { metadata: { productName, quantity } });
 
-  const logItemRemoved = async (quoteId: string, productName: string) => {
-    return addHistoryEntry(quoteId, "item_removed", `Item removido: ${productName}`);
-  };
+  const logItemRemoved = async (quoteId: string, productName: string) =>
+    addHistoryEntry(quoteId, "item_removed", `Item removido: ${productName}`);
 
-  const logItemUpdated = async (
-    quoteId: string,
-    productName: string,
-    change: string
-  ) => {
-    return addHistoryEntry(
-      quoteId,
-      "item_updated",
-      `Item "${productName}" atualizado: ${change}`
-    );
-  };
+  const logItemUpdated = async (quoteId: string, productName: string, change: string) =>
+    addHistoryEntry(quoteId, "item_updated", `Item "${productName}" atualizado: ${change}`);
 
-  const logDuplicated = async (quoteId: string, originalQuoteNumber: string) => {
-    return addHistoryEntry(
-      quoteId,
-      "created",
-      `Orçamento duplicado a partir de ${originalQuoteNumber}`
-    );
-  };
+  const logDuplicated = async (quoteId: string, originalQuoteNumber: string) =>
+    addHistoryEntry(quoteId, "created", `Orçamento duplicado a partir de ${originalQuoteNumber}`);
 
   return {
     history,
