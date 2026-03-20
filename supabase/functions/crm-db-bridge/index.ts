@@ -33,6 +33,15 @@ const VENDOR_WRITE_TABLES = [
   "quote_history", "quote_approval_tokens", "quote_templates",
 ];
 
+const OPTIONAL_QUOTE_TABLES = new Set([
+  "quotes",
+  "quote_items",
+  "quote_item_personalizations",
+  "quote_history",
+  "quote_approval_tokens",
+  "quote_templates",
+]);
+
 // ============================================
 // TYPES
 // ============================================
@@ -67,6 +76,11 @@ interface AuthResult {
   userId: string | null;
   userRole: string;
   error?: Response;
+}
+
+interface PostgrestLikeError {
+  code?: string;
+  message?: string;
 }
 
 // ============================================
@@ -136,6 +150,42 @@ function applyOrdering(query: any, orderBy: string | { column: string; ascending
 }
 
 // ============================================
+// OPTIONAL QUOTES MODULE FALLBACKS
+// ============================================
+
+function isOptionalQuoteTable(table: string): boolean {
+  return OPTIONAL_QUOTE_TABLES.has(table);
+}
+
+function isMissingTableError(error: PostgrestLikeError | null | undefined, table: string): boolean {
+  if (!error) return false;
+  const message = error.message || "";
+  return error.code === "PGRST205" || message.includes(`Could not find the table 'public.${table}' in the schema cache`);
+}
+
+function getOptionalTableMessage(table: string): string {
+  return `Módulo de orçamentos indisponível no CRM externo (${table})`;
+}
+
+function createOptionalSelectFallback(table: string, isSingleRecord = false): Response {
+  const warning = getOptionalTableMessage(table);
+  console.warn(`[crm-db-bridge] ${warning} — retornando fallback vazio para leitura.`);
+
+  return jsonResponse({
+    data: isSingleRecord ? null : [],
+    count: 0,
+    unavailable: true,
+    warning,
+  });
+}
+
+function createOptionalWriteError(table: string): Response {
+  const error = getOptionalTableMessage(table);
+  console.warn(`[crm-db-bridge] ${error} — bloqueando operação de escrita.`);
+  return jsonResponse({ error }, 503);
+}
+
+// ============================================
 // QUOTE NUMBER GENERATOR
 // ============================================
 
@@ -201,6 +251,17 @@ async function handleBatch(crm: SupabaseClient, queries: BatchQuery[]): Promise<
         const duration = Math.round(performance.now() - queryStart);
 
         if (error) {
+          if (isOptionalQuoteTable(q.table) && isMissingTableError(error, q.table)) {
+            const warning = getOptionalTableMessage(q.table);
+            console.warn(`[batch] Query ${idx} (${q.table}) optional table missing — fallback vazio.`);
+            return {
+              success: true,
+              unavailable: true,
+              warning,
+              data: { records: [], count: 0 },
+            };
+          }
+
           console.error(`[batch] Query ${idx} (${q.table}) error: ${error.message}`);
           return { success: false, error: error.message };
         }
@@ -240,6 +301,9 @@ async function handleInsert(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   }
 
   if (error) {
+    if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
+      return createOptionalWriteError(table);
+    }
     console.error("CRM insert error:", error);
     return jsonResponse({ error: error.message }, 500);
   }
@@ -260,6 +324,9 @@ async function handleUpdate(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 
   const { data: result, error } = await query.select(returning || "*");
   if (error) {
+    if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
+      return createOptionalWriteError(table);
+    }
     console.error("CRM update error:", error);
     return jsonResponse({ error: error.message }, 500);
   }
@@ -280,6 +347,9 @@ async function handleDelete(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 
   const { error } = await query;
   if (error) {
+    if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
+      return createOptionalWriteError(table);
+    }
     console.error("CRM delete error:", error);
     return jsonResponse({ error: error.message }, 500);
   }
@@ -294,6 +364,9 @@ async function handleSelect(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   if (id) {
     const { data, error } = await query.eq("id", id).single();
     if (error) {
+      if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
+        return createOptionalSelectFallback(table, true);
+      }
       return jsonResponse({ error: error.message }, error.code === "PGRST116" ? 404 : 500);
     }
     return jsonResponse({ data, count: 1 });
@@ -306,7 +379,12 @@ async function handleSelect(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   if (offset) query = query.range(offset, offset + (limit || 50) - 1);
 
   const { data, error, count } = await query;
-  if (error) return jsonResponse({ error: error.message }, 500);
+  if (error) {
+    if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
+      return createOptionalSelectFallback(table, false);
+    }
+    return jsonResponse({ error: error.message }, 500);
+  }
   return jsonResponse({ data: data || [], count });
 }
 
@@ -321,7 +399,12 @@ async function handleSearch(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   query = query.limit(limit || 50);
 
   const { data, error } = await query;
-  if (error) return jsonResponse({ error: error.message }, 500);
+  if (error) {
+    if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
+      return createOptionalSelectFallback(table, false);
+    }
+    return jsonResponse({ error: error.message }, 500);
+  }
   return jsonResponse({ data: data || [], count: data?.length || 0 });
 }
 
