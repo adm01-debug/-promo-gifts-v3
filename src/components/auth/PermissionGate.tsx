@@ -4,7 +4,7 @@ import { useRBAC } from '@/hooks/useRBAC';
 interface PermissionGateProps {
   children: ReactNode;
   permission?: { action: string; resource: string };
-  roles?: Array<'admin' | 'manager' | 'seller' | 'viewer'>;
+  roles?: Array<'admin' | 'manager' | 'seller'>;
   fallback?: ReactNode;
   requireAll?: boolean;
 }

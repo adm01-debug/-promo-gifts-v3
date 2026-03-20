@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 
-export type RoleName = 'admin' | 'manager' | 'seller' | 'viewer';
+export type RoleName = 'admin' | 'manager' | 'seller';
 
 export interface Role {
   id: string;
@@ -47,11 +47,6 @@ const rolePermissions: Record<RoleName, Permission[]> = {
     { action: 'read', resource: 'mockups' },
     { action: 'create', resource: 'mockups' },
   ],
-  viewer: [
-    { action: 'read', resource: 'products' },
-    { action: 'read', resource: 'quotes' },
-    { action: 'read', resource: 'orders' },
-  ],
 };
 
 /**
@@ -66,7 +61,7 @@ export function useRBAC() {
     const roleStr = authRole || 'seller';
     // Suporte para "vendedor" (valor do enum no banco) → "seller" (valor interno do RBAC)
     if (roleStr === 'vendedor') return 'seller';
-    if (['admin', 'manager', 'seller', 'viewer'].includes(roleStr)) {
+    if (['admin', 'manager', 'seller'].includes(roleStr)) {
       return roleStr as RoleName;
     }
     return 'seller'; // Default
@@ -132,7 +127,6 @@ function getDescriptionForRole(role: RoleName): string {
     admin: 'Administrador',
     manager: 'Gerente',
     seller: 'Vendedor',
-    viewer: 'Visualizador',
   };
   return descriptions[role] || 'Vendedor';
 }

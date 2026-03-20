@@ -10,6 +10,7 @@ import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { AdminRoute } from "@/components/layout/AdminRoute";
 
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
 import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
@@ -96,44 +97,13 @@ const SSOCallbackPage = lazy(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
 
-// Prefetch first catalog page as early as possible (before any component renders)
-import { invokeBatchBridge } from '@/lib/external-db';
-import { mapLightweightToProduct } from '@/hooks/useProductsLightweight';
-queryClient.prefetchInfiniteQuery({
-  queryKey: ['promobrind-products-catalog', ''],
-  queryFn: async () => {
-    const batchQueries = Array.from({ length: 4 }, (_, i) => ({
-      table: 'products',
-      operation: 'select' as const,
-      select: 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity',
-      filters: { active: true },
-      orderBy: { column: 'name', ascending: true },
-      limit: 500,
-      offset: i * 500,
-      ...(i === 0 ? { countMode: 'planned' } : {}),
-    }));
-    const batchResults = await invokeBatchBridge(batchQueries);
-    const products: any[] = [];
-    let totalEstimate: number | null = null;
-    let lastPageSize = 0;
-    for (const result of batchResults) {
-      if (result.success && result.data?.records) {
-        products.push(...(result.data.records as any[]).map(mapLightweightToProduct));
-        lastPageSize = result.data.records.length;
-        if (result.data.count != null && totalEstimate === null) {
-          totalEstimate = result.data.count as number;
-        }
-      }
-    }
-    return {
-      products,
-      nextOffset: lastPageSize === 500 ? 2000 : null,
-      totalEstimate,
-    };
-  },
-  initialPageParam: 0,
-  staleTime: 10 * 60 * 1000,
-});
+import { useCatalogPrefetch } from '@/hooks/useCatalogPrefetch';
+
+/** Componente interno que roda hooks que dependem de AuthProvider */
+function AppWithAuth({ children }: { children: React.ReactNode }) {
+  useCatalogPrefetch();
+  return <>{children}</>;
+}
 
 const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -159,6 +129,7 @@ const App = () => {
           <AriaLiveProvider>
             <TooltipProvider>
               <AuthProvider>
+                <AppWithAuth>
                 <OrganizationProvider>
                 <ProductsProvider>
                   <CollectionsProvider>
@@ -212,22 +183,22 @@ const App = () => {
                                         <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
                                         <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
-                                        {/* Admin */}
+                                        {/* Admin — protegido por role */}
                                         <Route path="/configuracoes" element={<Navigate to="/admin/usuarios" replace />} />
                                         <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
-                                        <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
-                                        <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
-                                        <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
-                                        <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
-                                        <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
-                                        <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
+                                        <Route path="/admin/usuarios" element={<AdminRoute><AdminUsuariosPage /></AdminRoute>} />
+                                        <Route path="/admin/seguranca" element={<AdminRoute><AdminSegurancaPage /></AdminRoute>} />
+                                        <Route path="/admin/cadastros" element={<AdminRoute><AdminCadastrosPage /></AdminRoute>} />
+                                        <Route path="/admin/cadastros/produto/:id" element={<AdminRoute><AdminProductFormPage /></AdminRoute>} />
+                                        <Route path="/admin/prompts-ia" element={<AdminRoute><AdminPromptsIAPage /></AdminRoute>} />
+                                        <Route path="/admin/telemetria" element={<AdminRoute><AdminTelemetriaPage /></AdminRoute>} />
                                         <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
                                         <Route path="/cadastro-produtos" element={<Navigate to="/admin/cadastros" replace />} />
                                         <Route path="/cadastro-gravacao" element={<Navigate to="/admin/cadastros" replace />} />
-                                        <Route path="/admin/permissoes" element={<PermissionsPage />} />
-                                        <Route path="/admin/roles" element={<RolesPage />} />
-                                        <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
-                                        <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
+                                        <Route path="/admin/permissoes" element={<AdminRoute><PermissionsPage /></AdminRoute>} />
+                                        <Route path="/admin/roles" element={<AdminRoute><RolesPage /></AdminRoute>} />
+                                        <Route path="/admin/role-permissoes" element={<AdminRoute><RolePermissionsPage /></AdminRoute>} />
+                                        <Route path="/admin/rate-limit" element={<AdminRoute><RateLimitDashboard /></AdminRoute>} />
 
                                         {/* Tools Routes */}
                                         <Route path="/simulador" element={<SimuladorWizard />} />
@@ -270,6 +241,7 @@ const App = () => {
                   </CollectionsProvider>
                 </ProductsProvider>
                 </OrganizationProvider>
+                </AppWithAuth>
               </AuthProvider>
             </TooltipProvider>
           </AriaLiveProvider>
