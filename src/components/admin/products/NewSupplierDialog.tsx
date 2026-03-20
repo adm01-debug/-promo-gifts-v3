@@ -199,6 +199,26 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         // Continua o cadastro se a verificação falhar (tolerância a erro)
       }
     }
+
+    // === Verificação de duplicidade por Nome (Razão Social) ===
+    try {
+      const { invokeExternalDb: invokeDbName } = await import('@/lib/external-db');
+      const existingByName = await invokeDbName<{ id: string; name: string }>({
+        table: 'suppliers',
+        operation: 'select',
+        select: 'id,name',
+        filters: { name: name.trim() },
+        limit: 1,
+      });
+      if (existingByName.records && existingByName.records.length > 0) {
+        toast.error(`Já existe um fornecedor com este nome: "${existingByName.records[0].name}". Cadastro duplicado não é permitido.`);
+        setSaving(false);
+        return;
+      }
+    } catch (err) {
+      console.warn('[NewSupplierDialog] Falha ao verificar duplicidade de nome:', err);
+    }
+
     try {
       const { invokeExternalDbSingle } = await import('@/lib/external-db');
       const now = new Date().toISOString();

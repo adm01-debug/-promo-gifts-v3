@@ -282,6 +282,29 @@ export function SuppliersManager() {
         console.warn('[SuppliersManager] Falha ao verificar duplicidade de CNPJ:', err);
       }
     }
+
+    // === Verificação de duplicidade por Nome/Razão Social (excluindo o próprio) ===
+    if (editingSupplier.name?.trim()) {
+      try {
+        const { invokeExternalDb: invokeDbName } = await import('@/lib/external-db');
+        const existingByName = await invokeDbName<{ id: string; name: string }>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id,name',
+          filters: { name: editingSupplier.name.trim() },
+          limit: 5,
+        });
+        const dupByName = existingByName.records?.find(r => r.id !== editingSupplier.id);
+        if (dupByName) {
+          toast.error(`Já existe outro fornecedor com este nome: "${dupByName.name}". Cadastro duplicado não é permitido.`);
+          setSaving(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[SuppliersManager] Falha ao verificar duplicidade de nome:', err);
+      }
+    }
+
     try {
       const now = new Date().toISOString();
       // Build rich address string from individual fields
