@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 
-export type RoleName = 'admin' | 'manager' | 'seller' | 'viewer';
+export type RoleName = 'admin' | 'manager' | 'seller';
 
 export interface Role {
   id: string;
