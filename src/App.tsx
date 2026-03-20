@@ -129,6 +129,7 @@ const App = () => {
           <AriaLiveProvider>
             <TooltipProvider>
               <AuthProvider>
+                <AppWithAuth>
                 <OrganizationProvider>
                 <ProductsProvider>
                   <CollectionsProvider>
