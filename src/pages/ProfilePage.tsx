@@ -1,5 +1,5 @@
 import { useState, useRef, type ChangeEvent } from "react";
-import { User, Save, Upload, Camera, Shield, PenTool, Loader2, Trash2 } from "lucide-react";
+import { User, Save, Upload, Camera, Shield, PenTool, Loader2, Trash2, Mail, Phone } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
