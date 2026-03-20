@@ -305,6 +305,28 @@ export function SuppliersManager() {
       }
     }
 
+    // === Verificação de duplicidade por Nome Fantasia (trading_name), excluindo o próprio ===
+    if (editingSupplier.trading_name?.trim()) {
+      try {
+        const { invokeExternalDb: invokeDbTN } = await import('@/lib/external-db');
+        const existingByTN = await invokeDbTN<{ id: string; name: string; trading_name: string }>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id,name,trading_name',
+          filters: { trading_name: editingSupplier.trading_name.trim() },
+          limit: 5,
+        });
+        const dupByTN = existingByTN.records?.find(r => r.id !== editingSupplier.id);
+        if (dupByTN) {
+          toast.error(`Já existe outro fornecedor com este Nome Fantasia: "${dupByTN.trading_name || dupByTN.name}". Cadastro duplicado não é permitido.`);
+          setSaving(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[SuppliersManager] Falha ao verificar duplicidade de nome fantasia:', err);
+      }
+    }
+
     try {
       const now = new Date().toISOString();
       // Build rich address string from individual fields

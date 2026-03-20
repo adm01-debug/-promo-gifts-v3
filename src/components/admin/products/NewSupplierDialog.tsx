@@ -219,6 +219,28 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
       console.warn('[NewSupplierDialog] Falha ao verificar duplicidade de nome:', err);
     }
 
+    // === Verificação de duplicidade por Nome Fantasia (trading_name) ===
+    if (tradingName.trim()) {
+      try {
+        const { invokeExternalDb: invokeDbTN } = await import('@/lib/external-db');
+        const existingByTN = await invokeDbTN<{ id: string; name: string; trading_name: string }>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id,name,trading_name',
+          filters: { trading_name: tradingName.trim() },
+          limit: 1,
+        });
+        if (existingByTN.records && existingByTN.records.length > 0) {
+          const found = existingByTN.records[0];
+          toast.error(`Já existe um fornecedor com este Nome Fantasia: "${found.trading_name || found.name}". Cadastro duplicado não é permitido.`);
+          setSaving(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[NewSupplierDialog] Falha ao verificar duplicidade de nome fantasia:', err);
+      }
+    }
+
     try {
       const { invokeExternalDbSingle } = await import('@/lib/external-db');
       const now = new Date().toISOString();
