@@ -97,8 +97,13 @@ const SSOCallbackPage = lazy(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
 
-// Prefetch moved to after auth — see useCatalogPrefetch hook
 import { useCatalogPrefetch } from '@/hooks/useCatalogPrefetch';
+
+/** Componente interno que roda hooks que dependem de AuthProvider */
+function AppWithAuth({ children }: { children: React.ReactNode }) {
+  useCatalogPrefetch();
+  return <>{children}</>;
+}
 
 const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
