@@ -241,6 +241,7 @@ const App = () => {
                   </CollectionsProvider>
                 </ProductsProvider>
                 </OrganizationProvider>
+                </AppWithAuth>
               </AuthProvider>
             </TooltipProvider>
           </AriaLiveProvider>
