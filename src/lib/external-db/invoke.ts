@@ -45,7 +45,8 @@ export async function extractFunctionErrorMessage(error: unknown): Promise<strin
 
 export async function invokeWithRetry(
   body: Record<string, unknown>,
-  retries = MAX_RETRIES
+  retries = MAX_RETRIES,
+  onRetry?: (attempt: number, maxRetries: number, delayMs: number) => void
 ): Promise<{ data: any; error: any }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
@@ -54,8 +55,9 @@ export async function invokeWithRetry(
 
     const msg = await extractFunctionErrorMessage(error);
     if (attempt < retries && isRetryableError(msg)) {
-      const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+      const delay = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, attempt), 4000); // Cap at 4s
       console.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
+      onRetry?.(attempt + 1, retries, delay);
       await new Promise(r => setTimeout(r, delay));
       continue;
     }
