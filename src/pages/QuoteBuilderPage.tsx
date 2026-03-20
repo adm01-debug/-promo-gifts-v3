@@ -596,10 +596,16 @@ export default function QuoteBuilderPage() {
   }, [clientId, contactId, paymentTerms, deliveryTime, shippingType, shippingCost, items]);
 
   const isFormValid = validationErrors.length === 0;
+  const isDraftValid = !!clientId; // Rascunho só precisa de empresa
 
   // Save quote (create or update)
   const handleSaveQuote = async (status: "draft" | "pending" = "draft") => {
-    if (!isFormValid) {
+    if (status === "draft") {
+      if (!isDraftValid) {
+        toast.error("Selecione uma empresa para salvar o rascunho.");
+        return;
+      }
+    } else if (!isFormValid) {
       const missing = validationErrors.map((e) => QUOTE_FIELD_LABELS[e] || e).join(", ");
       toast.error(`Preencha os campos obrigatórios: ${missing}`);
       return;
@@ -1327,7 +1333,7 @@ export default function QuoteBuilderPage() {
                     variant="outline"
                     className="w-full"
                     onClick={() => handleSaveQuote("draft")}
-                    disabled={quotesLoading || !isFormValid}
+                    disabled={quotesLoading || !isDraftValid}
                   >
                     {quotesLoading ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
