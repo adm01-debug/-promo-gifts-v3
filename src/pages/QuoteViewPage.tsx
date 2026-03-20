@@ -16,7 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
 import { selectCrmById } from "@/lib/crm-db";
-import { supabase } from "@/integrations/supabase/client";
 
 import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
 import { ProposalHtmlTemplate, ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
