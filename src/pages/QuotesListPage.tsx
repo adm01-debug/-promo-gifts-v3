@@ -90,7 +90,7 @@ function getValidityInfo(validUntil: string | undefined | null) {
 
 export default function QuotesListPage() {
   const navigate = useNavigate();
-  const { quotes, isLoading, deleteQuote, duplicateQuote, updateQuoteStatus } = useQuotes();
+  const { quotes, isLoading, error, deleteQuote, duplicateQuote, updateQuoteStatus } = useQuotes();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
