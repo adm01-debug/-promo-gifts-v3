@@ -1,4 +1,8 @@
-import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
+
+// ============================================
+// CORS
+// ============================================
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,32 +10,36 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Whitelist de tabelas permitidas
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+// ============================================
+// CONSTANTS
+// ============================================
+
 const ALLOWED_TABLES = [
-  "companies",
-  "contacts",
-  "company_addresses",
-  "company_social_media",
-  "contact_emails",
-  "contact_phones",
-  "customers",
-  "suppliers",
-  "carriers",
-  // Quote tables
-  "quotes",
-  "quote_items",
-  "quote_item_personalizations",
-  "quote_history",
-  "quote_approval_tokens",
-  "quote_templates",
+  "companies", "contacts", "company_addresses", "company_social_media",
+  "contact_emails", "contact_phones", "customers", "suppliers", "carriers",
+  "quotes", "quote_items", "quote_item_personalizations",
+  "quote_history", "quote_approval_tokens", "quote_templates",
 ];
 
-// Operações que requerem role de admin ou manager
-const WRITE_OPERATIONS = ["insert", "update", "delete"];
+const VENDOR_WRITE_TABLES = [
+  "quotes", "quote_items", "quote_item_personalizations",
+  "quote_history", "quote_approval_tokens", "quote_templates",
+];
+
+// ============================================
+// TYPES
+// ============================================
 
 interface CrmQuery {
   table: string;
-  operation: "select" | "search" | "insert" | "update" | "delete";
+  operation: "select" | "search" | "insert" | "update" | "delete" | "batch";
   id?: string;
   filters?: Record<string, unknown>;
   select?: string;
@@ -40,68 +48,286 @@ interface CrmQuery {
   offset?: number;
   search?: { column: string; term: string };
   relations?: string;
-  // Write operations
   data?: Record<string, unknown> | Record<string, unknown>[];
   returning?: string;
+  queries?: BatchQuery[];
 }
 
-// ============================
-// AUTH HELPER
-// ============================
-async function authenticateRequest(req: Request): Promise<{
+interface BatchQuery {
+  table: string;
+  select?: string;
+  filters?: Record<string, unknown>;
+  orderBy?: string | { column: string; ascending?: boolean };
+  limit?: number;
+  offset?: number;
+  search?: { column: string; term: string };
+}
+
+interface AuthResult {
   userId: string | null;
   userRole: string;
   error?: Response;
-}> {
-  const authHeader = req.headers.get("Authorization");
+}
 
+// ============================================
+// AUTH
+// ============================================
+
+async function authenticateRequest(req: Request): Promise<AuthResult> {
+  const authHeader = req.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return {
-      userId: null,
-      userRole: "public",
-      error: new Response(
-        JSON.stringify({ error: "Autenticação necessária" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      ),
-    };
+    return { userId: null, userRole: "public", error: jsonResponse({ error: "Autenticação necessária" }, 401) };
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-  // Validate token via getUser
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } },
   });
 
   const { data: { user }, error: userError } = await userClient.auth.getUser();
-
   if (!user || userError) {
     console.error("CRM auth failed:", userError?.message);
-    return {
-      userId: null,
-      userRole: "public",
-      error: new Response(
-        JSON.stringify({ error: "Token inválido ou expirado" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      ),
-    };
+    return { userId: null, userRole: "public", error: jsonResponse({ error: "Token inválido ou expirado" }, 401) };
   }
 
-  // Fetch role from user_roles (using service key to bypass RLS)
   const adminClient = createClient(supabaseUrl, supabaseServiceKey);
   const { data: roleData } = await adminClient
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", user.id)
-    .single();
+    .from("user_roles").select("role").eq("user_id", user.id).single();
 
   const userRole = roleData?.role || "vendedor";
   console.log(`Request from user: ${user.id}, role: ${userRole}`);
-
   return { userId: user.id, userRole };
 }
+
+// ============================================
+// FILTER BUILDER (shared by all operations)
+// ============================================
+
+function applyFilters(query: any, filters: Record<string, unknown>): any {
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === null) {
+      query = query.is(key, null);
+    } else if (typeof value === "object" && value !== null) {
+      const f = value as Record<string, unknown>;
+      if ("in" in f) query = query.in(key, f.in as unknown[]);
+      if ("ilike" in f) query = query.ilike(key, f.ilike as string);
+      if ("eq" in f) query = query.eq(key, f.eq);
+      if ("neq" in f) query = query.neq(key, f.neq as string);
+      if ("gt" in f) query = query.gt(key, f.gt as string);
+      if ("gte" in f) query = query.gte(key, f.gte as string);
+      if ("lt" in f) query = query.lt(key, f.lt as string);
+      if ("lte" in f) query = query.lte(key, f.lte as string);
+      if ("not_null" in f) query = query.not(key, "is", null);
+    } else {
+      query = query.eq(key, value);
+    }
+  }
+  return query;
+}
+
+function applyOrdering(query: any, orderBy: string | { column: string; ascending?: boolean }): any {
+  if (typeof orderBy === "string") {
+    return query.order(orderBy);
+  }
+  return query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
+}
+
+// ============================================
+// QUOTE NUMBER GENERATOR
+// ============================================
+
+async function generateQuoteNumber(crm: SupabaseClient, data: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
+  const now = new Date();
+  const yearShort = String(now.getFullYear()).slice(-2);
+
+  const { data: lastQuotes } = await crm
+    .from("quotes")
+    .select("quote_number")
+    .ilike("quote_number", `%/${yearShort}`)
+    .order("quote_number", { ascending: false })
+    .limit(50);
+
+  let maxNum = 10000;
+  if (lastQuotes?.length) {
+    for (const row of lastQuotes) {
+      const parsed = parseInt((row.quote_number || "").replace(/\s+/g, "").split("/")[0] || "0", 10);
+      if (!isNaN(parsed) && parsed > maxNum) maxNum = parsed;
+    }
+  }
+
+  const generatedNumber = `${maxNum + 1}/${yearShort}`;
+  const rows = Array.isArray(data) ? data : [data];
+  for (const row of rows) {
+    if (!row.quote_number || row.quote_number === "") {
+      row.quote_number = generatedNumber;
+    }
+  }
+}
+
+// ============================================
+// OPERATION HANDLERS
+// ============================================
+
+async function handleBatch(crm: SupabaseClient, queries: BatchQuery[]): Promise<Response> {
+  if (!Array.isArray(queries) || queries.length === 0) {
+    return jsonResponse({ error: 'Batch requires a non-empty "queries" array' }, 400);
+  }
+  if (queries.length > 10) {
+    return jsonResponse({ error: "Batch limited to 10 queries max" }, 400);
+  }
+
+  const batchStart = performance.now();
+  const results = await Promise.all(
+    queries.map(async (q, idx) => {
+      if (!q.table || !ALLOWED_TABLES.includes(q.table)) {
+        return { success: false, error: `Table '${q.table}' not allowed` };
+      }
+      try {
+        const queryStart = performance.now();
+        let query = crm.from(q.table).select(q.select || "*");
+
+        if (q.filters) query = applyFilters(query, q.filters);
+        if (q.search?.column && q.search?.term) {
+          query = query.ilike(q.search.column, `%${q.search.term}%`);
+        }
+        if (q.orderBy) query = applyOrdering(query, q.orderBy);
+        if (q.limit) query = query.limit(q.limit);
+        if (q.offset) query = query.range(q.offset, q.offset + (q.limit || 50) - 1);
+
+        const { data, error } = await query;
+        const duration = Math.round(performance.now() - queryStart);
+
+        if (error) {
+          console.error(`[batch] Query ${idx} (${q.table}) error: ${error.message}`);
+          return { success: false, error: error.message };
+        }
+        console.log(`[batch] Query ${idx} (${q.table}) ${duration}ms, ${(data || []).length} records`);
+        return { success: true, data: { records: data || [], count: (data || []).length } };
+      } catch (err: unknown) {
+        return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+      }
+    })
+  );
+
+  console.log(`[batch] Total: ${Math.round(performance.now() - batchStart)}ms for ${queries.length} queries`);
+  return jsonResponse({ success: true, results });
+}
+
+async function handleInsert(crm: SupabaseClient, body: CrmQuery): Promise<Response> {
+  const { table, data, returning } = body;
+  if (!data) return jsonResponse({ error: "Insert requires 'data' field" }, 400);
+
+  if (table === "quotes") {
+    await generateQuoteNumber(crm, data);
+  }
+
+  const { data: result, error } = await crm.from(table).insert(data as any).select(returning || "*");
+
+  // Fix quote_number if it was overridden by DB default
+  if (!error && result?.length && table === "quotes") {
+    const insertedRow = result[0] as Record<string, unknown>;
+    const targetNumber = Array.isArray(data)
+      ? (data[0] as Record<string, unknown>).quote_number
+      : (data as Record<string, unknown>).quote_number;
+
+    if (targetNumber && targetNumber !== "" && insertedRow.quote_number !== targetNumber) {
+      await crm.from("quotes").update({ quote_number: targetNumber }).eq("id", insertedRow.id as string);
+      insertedRow.quote_number = targetNumber;
+    }
+  }
+
+  if (error) {
+    console.error("CRM insert error:", error);
+    return jsonResponse({ error: error.message }, 500);
+  }
+  return jsonResponse({ data: result, count: result?.length || 0 });
+}
+
+async function handleUpdate(crm: SupabaseClient, body: CrmQuery): Promise<Response> {
+  const { table, id, filters, data, returning } = body;
+  if (!data) return jsonResponse({ error: "Update requires 'data' field" }, 400);
+
+  let query = crm.from(table).update(data as any);
+
+  if (id) {
+    query = query.eq("id", id);
+  } else if (filters) {
+    query = applyFilters(query, filters);
+  }
+
+  const { data: result, error } = await query.select(returning || "*");
+  if (error) {
+    console.error("CRM update error:", error);
+    return jsonResponse({ error: error.message }, 500);
+  }
+  return jsonResponse({ data: result, count: result?.length || 0 });
+}
+
+async function handleDelete(crm: SupabaseClient, body: CrmQuery): Promise<Response> {
+  const { table, id, filters } = body;
+  let query = crm.from(table).delete();
+
+  if (id) {
+    query = query.eq("id", id);
+  } else if (filters) {
+    query = applyFilters(query, filters);
+  } else {
+    return jsonResponse({ error: "Delete requires 'id' or 'filters' to prevent mass deletion" }, 400);
+  }
+
+  const { error } = await query;
+  if (error) {
+    console.error("CRM delete error:", error);
+    return jsonResponse({ error: error.message }, 500);
+  }
+  return jsonResponse({ data: null, success: true });
+}
+
+async function handleSelect(crm: SupabaseClient, body: CrmQuery): Promise<Response> {
+  const { table, id, filters, select, orderBy, limit, offset, search, relations } = body;
+  const selectFields = select || (relations ? `${select || "*"}, ${relations}` : "*");
+  let query = crm.from(table).select(selectFields);
+
+  if (id) {
+    const { data, error } = await query.eq("id", id).single();
+    if (error) {
+      return jsonResponse({ error: error.message }, error.code === "PGRST116" ? 404 : 500);
+    }
+    return jsonResponse({ data, count: 1 });
+  }
+
+  if (filters) query = applyFilters(query, filters);
+  if (search) query = query.ilike(search.column, `%${search.term}%`);
+  if (orderBy) query = applyOrdering(query, orderBy);
+  if (limit) query = query.limit(limit);
+  if (offset) query = query.range(offset, offset + (limit || 50) - 1);
+
+  const { data, error, count } = await query;
+  if (error) return jsonResponse({ error: error.message }, 500);
+  return jsonResponse({ data: data || [], count });
+}
+
+async function handleSearch(crm: SupabaseClient, body: CrmQuery): Promise<Response> {
+  const { table, search, select, orderBy, limit } = body;
+  if (!search?.column || !search?.term) {
+    return jsonResponse({ error: "Search requires 'column' and 'term'" }, 400);
+  }
+
+  let query = crm.from(table).select(select || "*").ilike(search.column, `%${search.term}%`);
+  if (orderBy) query = applyOrdering(query, orderBy);
+  query = query.limit(limit || 50);
+
+  const { data, error } = await query;
+  if (error) return jsonResponse({ error: error.message }, 500);
+  return jsonResponse({ data: data || [], count: data?.length || 0 });
+}
+
+// ============================================
+// MAIN HANDLER
+// ============================================
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -109,445 +335,47 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // ============================
-    // 1. AUTHENTICATE USER
-    // ============================
     const auth = await authenticateRequest(req);
     if (auth.error) return auth.error;
 
     const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
     const CRM_KEY = Deno.env.get("CRM_SUPABASE_ANON_KEY");
-
     if (!CRM_URL || !CRM_KEY) {
-      return new Response(
-        JSON.stringify({ error: "CRM database credentials not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
 
     const crm = createClient(CRM_URL, CRM_KEY);
-    const body = await req.json();
+    const body = await req.json() as CrmQuery;
+    const { operation, table } = body;
 
-    // ============================
-    // 2. CHECK WRITE PERMISSIONS
-    // ============================
-    const operation = body.operation as string;
-    if (WRITE_OPERATIONS.includes(operation) && auth.userRole === "vendedor") {
-      // Vendedores podem criar/editar orçamentos próprios mas não podem alterar tabelas de empresas/contatos
-      const table = body.table as string;
-      const allowedWriteTables = ["quotes", "quote_items", "quote_item_personalizations", "quote_history", "quote_approval_tokens", "quote_templates"];
-      if (!allowedWriteTables.includes(table)) {
-        return new Response(
-          JSON.stringify({ error: "Permissão insuficiente para modificar esta tabela" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    // Write permission check for vendedores
+    if (["insert", "update", "delete"].includes(operation) && auth.userRole === "vendedor") {
+      if (!VENDOR_WRITE_TABLES.includes(table)) {
+        return jsonResponse({ error: "Permissão insuficiente para modificar esta tabela" }, 403);
       }
     }
 
-    // ===== BATCH OPERATION =====
-    if (body.operation === "batch") {
-      const queries = body.queries as Array<{
-        table: string;
-        select?: string;
-        filters?: Record<string, unknown>;
-        orderBy?: string | { column: string; ascending?: boolean };
-        limit?: number;
-        offset?: number;
-        search?: { column: string; term: string };
-      }>;
-
-      if (!Array.isArray(queries) || queries.length === 0) {
-        return new Response(
-          JSON.stringify({ error: 'Batch requires a non-empty "queries" array' }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (queries.length > 10) {
-        return new Response(
-          JSON.stringify({ error: "Batch limited to 10 queries max" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const batchStart = performance.now();
-      const results = await Promise.all(
-        queries.map(async (q, idx) => {
-          const qTable = q.table;
-          if (!qTable || !ALLOWED_TABLES.includes(qTable)) {
-            return { success: false, error: `Table '${qTable}' not allowed` };
-          }
-          try {
-            const queryStart = performance.now();
-            const selectFields = q.select || "*";
-            let query = crm.from(qTable).select(selectFields);
-
-            // Apply filters
-            if (q.filters) {
-              for (const [key, value] of Object.entries(q.filters)) {
-                if (value === null) {
-                  query = query.is(key, null);
-                } else if (typeof value === "object" && value !== null) {
-                  const filterObj = value as Record<string, unknown>;
-                  if ("in" in filterObj) query = query.in(key, filterObj.in as unknown[]);
-                  if ("ilike" in filterObj) query = query.ilike(key, filterObj.ilike as string);
-                  if ("eq" in filterObj) query = query.eq(key, filterObj.eq);
-                  if ("neq" in filterObj) query = query.neq(key, filterObj.neq as string);
-                  if ("gt" in filterObj) query = query.gt(key, filterObj.gt as string);
-                  if ("gte" in filterObj) query = query.gte(key, filterObj.gte as string);
-                  if ("lt" in filterObj) query = query.lt(key, filterObj.lt as string);
-                  if ("lte" in filterObj) query = query.lte(key, filterObj.lte as string);
-                  if ("not_null" in filterObj) query = query.not(key, "is", null);
-                } else {
-                  query = query.eq(key, value);
-                }
-              }
-            }
-
-            // Apply search
-            if (q.search?.column && q.search?.term) {
-              query = query.ilike(q.search.column, `%${q.search.term}%`);
-            }
-
-            // Apply ordering
-            if (q.orderBy) {
-              if (typeof q.orderBy === "string") {
-                query = query.order(q.orderBy);
-              } else {
-                query = query.order(q.orderBy.column, { ascending: q.orderBy.ascending ?? true });
-              }
-            }
-
-            if (q.limit) query = query.limit(q.limit);
-            if (q.offset) query = query.range(q.offset, q.offset + (q.limit || 50) - 1);
-
-            const { data, error } = await query;
-            const duration = Math.round(performance.now() - queryStart);
-
-            if (error) {
-              console.error(`[batch] Query ${idx} (${qTable}) error: ${error.message}`);
-              return { success: false, error: error.message };
-            }
-
-            console.log(`[batch] Query ${idx} (${qTable}) ${duration}ms, ${(data || []).length} records`);
-            return { success: true, data: { records: data || [], count: (data || []).length } };
-          } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : "Unknown error";
-            return { success: false, error: msg };
-          }
-        })
-      );
-
-      const totalDuration = Math.round(performance.now() - batchStart);
-      console.log(`[batch] Total: ${totalDuration}ms for ${queries.length} queries`);
-
-      return new Response(
-        JSON.stringify({ success: true, results }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Batch handler (no table validation needed — done per-query inside)
+    if (operation === "batch") {
+      return handleBatch(crm, body.queries || []);
     }
 
-    // Non-batch: destructure as CrmQuery
-    const { table, id, filters, select, orderBy, limit, offset, search, relations, data, returning } = body as CrmQuery;
-
-    // Validar tabela
+    // Table whitelist
     if (!ALLOWED_TABLES.includes(table)) {
-      return new Response(
-        JSON.stringify({ error: `Table '${table}' is not allowed. Allowed: ${ALLOWED_TABLES.join(", ")}` }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return jsonResponse({ error: `Table '${table}' is not allowed. Allowed: ${ALLOWED_TABLES.join(", ")}` }, 403);
     }
 
-    // ===== INSERT =====
-    if (operation === "insert") {
-      if (!data) {
-        return new Response(
-          JSON.stringify({ error: "Insert requires 'data' field" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Auto-generate quote_number for quotes table
-      if (table === "quotes") {
-        const now = new Date();
-        const year = now.getFullYear();
-        const yearShort = String(year).slice(-2);
-
-        const { data: lastQuotes } = await crm
-          .from("quotes")
-          .select("quote_number")
-          .ilike("quote_number", `%/${yearShort}`)
-          .order("quote_number", { ascending: false })
-          .limit(50);
-
-        let nextNumber = 10001;
-
-        if (lastQuotes && lastQuotes.length > 0) {
-          let maxNum = 10000;
-          for (const row of lastQuotes) {
-            const rawNum = (row.quote_number || "").replace(/\s+/g, "").split("/")[0];
-            const parsed = parseInt(rawNum || "0", 10);
-            if (!isNaN(parsed) && parsed > maxNum) {
-              maxNum = parsed;
-            }
-          }
-          nextNumber = maxNum + 1;
-        }
-
-        const generatedNumber = `${nextNumber}/${yearShort}`;
-
-        if (Array.isArray(data)) {
-          (data as Record<string, unknown>[]).forEach((row) => {
-            if (!row.quote_number || row.quote_number === "") {
-              row.quote_number = generatedNumber;
-            }
-          });
-        } else {
-          const row = data as Record<string, unknown>;
-          if (!row.quote_number || row.quote_number === "") {
-            row.quote_number = generatedNumber;
-          }
-        }
-      }
-
-      let query = crm.from(table).insert(data as any).select(returning || "*");
-
-      const { data: result, error } = await query;
-
-      if (!error && result && result.length > 0 && table === "quotes") {
-        const insertedRow = result[0] as Record<string, unknown>;
-        const targetNumber = Array.isArray(data)
-          ? (data[0] as Record<string, unknown>).quote_number
-          : (data as Record<string, unknown>).quote_number;
-
-        if (
-          targetNumber &&
-          targetNumber !== "" &&
-          insertedRow.quote_number !== targetNumber
-        ) {
-          await crm
-            .from("quotes")
-            .update({ quote_number: targetNumber })
-            .eq("id", insertedRow.id as string);
-
-          insertedRow.quote_number = targetNumber;
-        }
-      }
-
-      if (error) {
-        console.error("CRM insert error:", error);
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ data: result, count: result?.length || 0 }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Route to operation handler
+    switch (operation) {
+      case "insert": return handleInsert(crm, body);
+      case "update": return handleUpdate(crm, body);
+      case "delete": return handleDelete(crm, body);
+      case "select": return handleSelect(crm, body);
+      case "search": return handleSearch(crm, body);
+      default: return jsonResponse({ error: `Operation '${operation}' not supported.` }, 400);
     }
-
-    // ===== UPDATE =====
-    if (operation === "update") {
-      if (!data) {
-        return new Response(
-          JSON.stringify({ error: "Update requires 'data' field" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      let query = crm.from(table).update(data as any);
-
-      if (id) {
-        query = query.eq("id", id);
-      } else if (filters) {
-        for (const [key, value] of Object.entries(filters)) {
-          if (value === null) {
-            query = query.is(key, null);
-          } else if (typeof value === "object" && value !== null) {
-            const filterObj = value as Record<string, unknown>;
-            if ("eq" in filterObj) query = query.eq(key, filterObj.eq);
-            if ("in" in filterObj) query = query.in(key, filterObj.in as unknown[]);
-            if ("neq" in filterObj) query = query.neq(key, filterObj.neq as string);
-          } else {
-            query = query.eq(key, value);
-          }
-        }
-      }
-
-      const { data: result, error } = await query.select(returning || "*");
-
-      if (error) {
-        console.error("CRM update error:", error);
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ data: result, count: result?.length || 0 }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ===== DELETE =====
-    if (operation === "delete") {
-      let query = crm.from(table).delete();
-
-      if (id) {
-        query = query.eq("id", id);
-      } else if (filters) {
-        for (const [key, value] of Object.entries(filters)) {
-          if (value === null) {
-            query = query.is(key, null);
-          } else if (typeof value === "object" && value !== null) {
-            const filterObj = value as Record<string, unknown>;
-            if ("eq" in filterObj) query = query.eq(key, filterObj.eq);
-            if ("in" in filterObj) query = query.in(key, filterObj.in as unknown[]);
-          } else {
-            query = query.eq(key, value);
-          }
-        }
-      } else {
-        return new Response(
-          JSON.stringify({ error: "Delete requires 'id' or 'filters' to prevent mass deletion" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      const { error } = await query;
-
-      if (error) {
-        console.error("CRM delete error:", error);
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ data: null, success: true }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ===== SELECT =====
-    if (operation === "select") {
-      const selectFields = select || (relations ? `${select || "*"}, ${relations}` : "*");
-      let query = crm.from(table).select(selectFields);
-
-      if (id) {
-        const { data, error } = await query.eq("id", id).single();
-        if (error) {
-          return new Response(
-            JSON.stringify({ error: error.message }),
-            { status: error.code === "PGRST116" ? 404 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        return new Response(
-          JSON.stringify({ data, count: 1 }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (filters) {
-        for (const [key, value] of Object.entries(filters)) {
-          if (value === null) {
-            query = query.is(key, null);
-          } else if (typeof value === "object" && value !== null) {
-            const filterObj = value as Record<string, unknown>;
-            if ("in" in filterObj) query = query.in(key, filterObj.in as unknown[]);
-            if ("ilike" in filterObj) query = query.ilike(key, filterObj.ilike as string);
-            if ("eq" in filterObj) query = query.eq(key, filterObj.eq);
-            if ("neq" in filterObj) query = query.neq(key, filterObj.neq as string);
-            if ("gt" in filterObj) query = query.gt(key, filterObj.gt as string);
-            if ("gte" in filterObj) query = query.gte(key, filterObj.gte as string);
-            if ("lt" in filterObj) query = query.lt(key, filterObj.lt as string);
-            if ("lte" in filterObj) query = query.lte(key, filterObj.lte as string);
-            if ("not_null" in filterObj) query = query.not(key, "is", null);
-          } else {
-            query = query.eq(key, value);
-          }
-        }
-      }
-
-      if (search) {
-        query = query.ilike(search.column, `%${search.term}%`);
-      }
-
-      if (orderBy) {
-        if (typeof orderBy === "string") {
-          query = query.order(orderBy);
-        } else {
-          query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
-        }
-      }
-
-      if (limit) query = query.limit(limit);
-      if (offset) query = query.range(offset, offset + (limit || 50) - 1);
-
-      const { data, error, count } = await query;
-
-      if (error) {
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ data: data || [], count }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // ===== SEARCH =====
-    if (operation === "search") {
-      if (!search?.column || !search?.term) {
-        return new Response(
-          JSON.stringify({ error: "Search requires 'column' and 'term'" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      let query = crm.from(table).select(select || "*").ilike(search.column, `%${search.term}%`);
-
-      if (orderBy) {
-        if (typeof orderBy === "string") {
-          query = query.order(orderBy);
-        } else {
-          query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
-        }
-      }
-
-      query = query.limit(limit || 50);
-
-      const { data, error } = await query;
-
-      if (error) {
-        return new Response(
-          JSON.stringify({ error: error.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      return new Response(
-        JSON.stringify({ data: data || [], count: data?.length || 0 }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({ error: `Operation '${operation}' not supported.` }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   } catch (error: unknown) {
     console.error("CRM Bridge error:", error);
-    const message = error instanceof Error ? error.message : "Internal error";
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ error: error instanceof Error ? error.message : "Internal error" }, 500);
   }
 });
