@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
           };
 
           if (webhook.secret) {
-            const signature = generateHMACSignature(
+            const signature = await generateHMACSignature(
               JSON.stringify(payload),
               webhook.secret
             );
