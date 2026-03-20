@@ -71,6 +71,7 @@ export default function QuoteViewPage() {
   
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [isLoadingQuote, setIsLoadingQuote] = useState(true);
   const [clientCnpj, setClientCnpj] = useState<string | undefined>(undefined);
   // bitrix_company_id = numeric Bitrix ID from companies.bitrix_id (string in DB)
   const [bitrixCompanyId, setBitrixCompanyId] = useState<string | null>(null);
