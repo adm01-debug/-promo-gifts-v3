@@ -162,7 +162,7 @@ const App = () => {
                                         <Route path="/produtos" element={<FiltersPage />} />
                                         <Route path="/produto" element={<Navigate to="/produtos" replace />} />
                                         <Route path="/produto/:id" element={<ProductDetail />} />
-                                        <Route path="/filtros" element={<FiltersPage />} />
+                                        <Route path="/filtros" element={<Navigate to="/produtos" replace />} />
                                         <Route path="/novidades" element={<NoveltiesPage />} />
                                         <Route path="/favoritos" element={<FavoritesPage />} />
                                          <Route path="/carrinhos" element={<SellerCartsPage />} />
