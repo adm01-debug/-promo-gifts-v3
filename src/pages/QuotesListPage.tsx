@@ -90,7 +90,7 @@ function getValidityInfo(validUntil: string | undefined | null) {
 
 export default function QuotesListPage() {
   const navigate = useNavigate();
-  const { quotes, isLoading, deleteQuote, duplicateQuote, updateQuoteStatus } = useQuotes();
+  const { quotes, isLoading, error, deleteQuote, duplicateQuote, updateQuoteStatus } = useQuotes();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -291,6 +291,17 @@ export default function QuotesListPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Error banner */}
+          {error && (
+            <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-destructive">Módulo de orçamentos indisponível</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{error}</p>
+              </div>
+            </div>
+          )}
 
           {/* Filters + Sort */}
           <div className="flex flex-col sm:flex-row gap-3">
