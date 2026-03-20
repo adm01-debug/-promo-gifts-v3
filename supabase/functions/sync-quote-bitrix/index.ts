@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
 // Full CORS headers required by Supabase web clients
 const corsHeaders = {
@@ -18,7 +17,7 @@ const SELLER_EMAIL_MAP: Record<string, number> = {
   "comercial07@promobrindes.com.br": 16558,
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
