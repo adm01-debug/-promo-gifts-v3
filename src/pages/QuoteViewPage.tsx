@@ -407,7 +407,7 @@ export default function QuoteViewPage() {
   // Check if any items have personalizations
   const hasPersonalizations = quote?.items?.some(item => item.personalizations && item.personalizations.length > 0);
 
-  if (isLoading) {
+  if (isLoadingQuote) {
     return (
       <MainLayout>
         <div className="container py-6 space-y-6">
