@@ -127,7 +127,6 @@ function getDescriptionForRole(role: RoleName): string {
     admin: 'Administrador',
     manager: 'Gerente',
     seller: 'Vendedor',
-    viewer: 'Visualizador',
   };
   return descriptions[role] || 'Vendedor';
 }

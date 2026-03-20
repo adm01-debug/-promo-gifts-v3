@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -50,8 +50,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Guards contra race conditions (#4)
+  const fetchingRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
 
-  const fetchUserData = async (userId: string) => {
+  const fetchUserData = useCallback(async (userId: string) => {
+    // Evitar chamadas duplicadas simultâneas (#4)
+    if (fetchingRef.current === userId) return;
+    fetchingRef.current = userId;
+    
     try {
       // Buscar profile e role em paralelo
       const [profileResult, roleResult] = await Promise.all([
@@ -67,6 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .single()
       ]);
 
+      if (!mountedRef.current) return;
+
       if (profileResult.error) {
         if (import.meta.env.DEV) {
           console.error("Error fetching profile:", profileResult.error);
@@ -74,19 +84,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else if (profileResult.data) {
         setProfile(profileResult.data as Profile);
         
-        // Atualizar last_login_at (não bloqueia)
+        // Atualizar last_login_at (não bloqueia) — com logging em dev (#14)
         supabase
           .from("profiles")
           .update({ last_login_at: new Date().toISOString() })
           .eq("user_id", userId)
-          .then(() => {});
+          .then(({ error }) => {
+            if (error && import.meta.env.DEV) {
+              console.warn("Failed to update last_login_at:", error.message);
+            }
+          });
       }
 
       if (roleResult.error) {
         if (import.meta.env.DEV) {
           console.error("Error fetching user role:", roleResult.error);
         }
-        // Fallback para vendedor se não encontrar role
         setUserRole("vendedor");
       } else if (roleResult.data) {
         setUserRole(roleResult.data.role as AppRole);
@@ -95,19 +108,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (import.meta.env.DEV) {
         console.error("Error fetching user data:", error);
       }
-      setUserRole("vendedor");
+      if (mountedRef.current) {
+        setUserRole("vendedor");
+      }
+    } finally {
+      fetchingRef.current = null;
+      // isLoading só fica false APÓS os dados carregarem (#5)
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
-        // Defer Supabase calls with setTimeout to avoid deadlocks
         if (session?.user) {
+          // Defer Supabase calls with setTimeout to avoid deadlocks
           setTimeout(() => {
             fetchUserData(session.user.id);
             // Pre-warm external DB to avoid cold starts
@@ -116,9 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setProfile(null);
           setUserRole(null);
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
+        // NÃO seta isLoading=false aqui — espera fetchUserData terminar (#5)
       }
     );
 
@@ -129,13 +152,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         fetchUserData(session.user.id);
+      } else {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mountedRef.current = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchUserData]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -173,6 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
+      fetchingRef.current = null; // Forçar refresh
       await fetchUserData(user.id);
     }
   };
