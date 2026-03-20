@@ -1007,10 +1007,12 @@ Deno.serve(async (req) => {
 
         const safeLimitForCount = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
         const safeOffsetForCount = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
-        const isHeavyTable = ['products', 'product_images', 'product_variants'].includes(table);
+        const isHeavyTable = ['products', 'product_images', 'product_variants', 'color_variations', 'product_categories', 'product_category_assignments'].includes(table);
+        const hasSearchFilter = filters && '_search' in filters;
 
+        // Heavy tables or search queries: avoid exact count to prevent timeouts
         const countMode = requestCountMode
-          ?? ((isHeavyTable && (safeOffsetForCount > 0 || safeLimitForCount >= 1000)) ? 'planned' : 'exact');
+          ?? (hasSearchFilter ? 'none' : (isHeavyTable ? 'planned' : 'exact'));
 
         const queryCountMode = countMode === 'none' ? undefined : countMode;
 
