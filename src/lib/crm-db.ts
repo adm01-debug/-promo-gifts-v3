@@ -68,28 +68,84 @@ export async function invokeCrmBatch(queries: CrmBatchQuery[]): Promise<CrmBatch
 }
 
 // ============================================
+// RETRY CONFIG
+// ============================================
+
+const MAX_RETRIES = 2;
+const INITIAL_BACKOFF_MS = 600;
+const RETRYABLE_PATTERNS = [
+  "statement timeout", "57014", "502", "503", "504",
+  "bad gateway", "FunctionsHttpError", "non-2xx",
+  "network", "fetch", "ECONNRESET", "socket hang up",
+  "AbortError", "Failed to fetch", "boot",
+];
+
+function isRetryableCrmError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return RETRYABLE_PATTERNS.some(p => lower.includes(p.toLowerCase()));
+}
+
+async function extractCrmErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof Error) {
+    const maybeContext = error as Error & { context?: Response };
+    if (maybeContext.context instanceof Response) {
+      try {
+        const raw = await maybeContext.context.clone().text();
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw) as { error?: string; details?: string };
+            const detailed = [parsed.error, parsed.details].filter(Boolean).join(" | ");
+            if (detailed) return detailed;
+          } catch {
+            return `${error.message} | ${raw}`;
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    return error.message;
+  }
+  return "Erro ao acessar CRM";
+}
+
+// ============================================
 // SINGLE OPERATIONS
 // ============================================
 
 /**
- * Invoca o crm-db-bridge para acessar dados do CRM externo
+ * Invoca o crm-db-bridge para acessar dados do CRM externo (com retry automático)
  */
 export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
-  const { data, error } = await supabase.functions.invoke("crm-db-bridge", {
-    body: query,
-  });
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const { data, error } = await supabase.functions.invoke("crm-db-bridge", {
+      body: query,
+    });
 
-  if (error) {
-    console.error("[CRM-DB] Edge function error:", error);
-    throw new Error(`CRM DB error: ${error.message}`);
+    if (!error && !data?.error) {
+      return data as CrmResponse<T>;
+    }
+
+    const msg = error
+      ? await extractCrmErrorMessage(error)
+      : data?.error || "Unknown CRM error";
+
+    if (attempt < MAX_RETRIES && isRetryableCrmError(msg)) {
+      const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+      console.warn(`[CRM-DB] Retry ${attempt + 1}/${MAX_RETRIES} after ${delay}ms: ${msg}`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
+
+    // Final attempt failed
+    if (error) {
+      console.error("[CRM-DB] Edge function error:", msg);
+      throw new Error(`CRM DB error: ${msg}`);
+    }
+
+    console.error("[CRM-DB] Query error:", msg);
+    throw new Error(`CRM query error: ${msg}`);
   }
 
-  if (data?.error) {
-    console.error("[CRM-DB] Query error:", data.error);
-    throw new Error(`CRM query error: ${data.error}`);
-  }
-
-  return data as CrmResponse<T>;
+  throw new Error("CRM DB: max retries exceeded");
 }
 
 /**
