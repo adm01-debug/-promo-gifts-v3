@@ -213,22 +213,22 @@ const App = () => {
                                         <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
                                         <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
-                                        {/* Admin */}
+                                        {/* Admin — protegido por role */}
                                         <Route path="/configuracoes" element={<Navigate to="/admin/usuarios" replace />} />
                                         <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
-                                        <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
-                                        <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
-                                        <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
-                                        <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
-                                        <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
-                                        <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
+                                        <Route path="/admin/usuarios" element={<AdminRoute><AdminUsuariosPage /></AdminRoute>} />
+                                        <Route path="/admin/seguranca" element={<AdminRoute><AdminSegurancaPage /></AdminRoute>} />
+                                        <Route path="/admin/cadastros" element={<AdminRoute><AdminCadastrosPage /></AdminRoute>} />
+                                        <Route path="/admin/cadastros/produto/:id" element={<AdminRoute><AdminProductFormPage /></AdminRoute>} />
+                                        <Route path="/admin/prompts-ia" element={<AdminRoute><AdminPromptsIAPage /></AdminRoute>} />
+                                        <Route path="/admin/telemetria" element={<AdminRoute><AdminTelemetriaPage /></AdminRoute>} />
                                         <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
                                         <Route path="/cadastro-produtos" element={<Navigate to="/admin/cadastros" replace />} />
                                         <Route path="/cadastro-gravacao" element={<Navigate to="/admin/cadastros" replace />} />
-                                        <Route path="/admin/permissoes" element={<PermissionsPage />} />
-                                        <Route path="/admin/roles" element={<RolesPage />} />
-                                        <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
-                                        <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
+                                        <Route path="/admin/permissoes" element={<AdminRoute><PermissionsPage /></AdminRoute>} />
+                                        <Route path="/admin/roles" element={<AdminRoute><RolesPage /></AdminRoute>} />
+                                        <Route path="/admin/role-permissoes" element={<AdminRoute><RolePermissionsPage /></AdminRoute>} />
+                                        <Route path="/admin/rate-limit" element={<AdminRoute><RateLimitDashboard /></AdminRoute>} />
 
                                         {/* Tools Routes */}
                                         <Route path="/simulador" element={<SimuladorWizard />} />
