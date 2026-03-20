@@ -144,9 +144,10 @@ export default function Auth() {
 
       toast({
         title: "Cadastro realizado!",
-        description: "Sua conta foi criada com sucesso",
+        description: "Verifique seu e-mail para confirmar sua conta antes de fazer login.",
+        duration: 10000,
       });
-      navigate("/");
+      setActiveTab("login");
     } catch (error) {
       toast({
         variant: "destructive",
