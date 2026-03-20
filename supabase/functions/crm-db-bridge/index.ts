@@ -24,23 +24,11 @@ function jsonResponse(body: unknown, status = 200): Response {
 const ALLOWED_TABLES = [
   "companies", "contacts", "company_addresses", "company_social_media",
   "contact_emails", "contact_phones", "customers", "suppliers", "carriers",
-  "quotes", "quote_items", "quote_item_personalizations",
-  "quote_history", "quote_approval_tokens", "quote_templates",
 ];
 
-const VENDOR_WRITE_TABLES = [
-  "quotes", "quote_items", "quote_item_personalizations",
-  "quote_history", "quote_approval_tokens", "quote_templates",
-];
+const VENDOR_WRITE_TABLES: string[] = [];
 
-const OPTIONAL_QUOTE_TABLES = new Set([
-  "quotes",
-  "quote_items",
-  "quote_item_personalizations",
-  "quote_history",
-  "quote_approval_tokens",
-  "quote_templates",
-]);
+const OPTIONAL_QUOTE_TABLES = new Set<string>();
 
 // ============================================
 // TYPES

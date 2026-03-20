@@ -790,6 +790,342 @@ export type Database = {
           },
         ]
       }
+      quote_history: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          field_changed: string | null
+          id: string
+          metadata: Json | null
+          new_value: string | null
+          old_value: string | null
+          quote_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          field_changed?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: string | null
+          old_value?: string | null
+          quote_id: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          field_changed?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: string | null
+          old_value?: string | null
+          quote_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_history_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_item_personalizations: {
+        Row: {
+          area_cm2: number | null
+          colors_count: number | null
+          created_at: string
+          height_cm: number | null
+          id: string
+          notes: string | null
+          personalized_quantity: number | null
+          positions_count: number | null
+          quote_item_id: string
+          setup_cost: number | null
+          technique_id: string | null
+          technique_name: string | null
+          total_cost: number | null
+          unit_cost: number | null
+          updated_at: string
+          width_cm: number | null
+        }
+        Insert: {
+          area_cm2?: number | null
+          colors_count?: number | null
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          notes?: string | null
+          personalized_quantity?: number | null
+          positions_count?: number | null
+          quote_item_id: string
+          setup_cost?: number | null
+          technique_id?: string | null
+          technique_name?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+          updated_at?: string
+          width_cm?: number | null
+        }
+        Update: {
+          area_cm2?: number | null
+          colors_count?: number | null
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          notes?: string | null
+          personalized_quantity?: number | null
+          positions_count?: number | null
+          quote_item_id?: string
+          setup_cost?: number | null
+          technique_id?: string | null
+          technique_name?: string | null
+          total_cost?: number | null
+          unit_cost?: number | null
+          updated_at?: string
+          width_cm?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_item_personalizations_quote_item_id_fkey"
+            columns: ["quote_item_id"]
+            isOneToOne: false
+            referencedRelation: "quote_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_items: {
+        Row: {
+          color_hex: string | null
+          color_name: string | null
+          created_at: string
+          display_order: number | null
+          id: string
+          notes: string | null
+          product_id: string | null
+          product_image_url: string | null
+          product_name: string
+          product_sku: string | null
+          quantity: number
+          quote_id: string
+          sort_order: number | null
+          subtotal: number | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_image_url?: string | null
+          product_name: string
+          product_sku?: string | null
+          quantity?: number
+          quote_id: string
+          sort_order?: number | null
+          subtotal?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          product_image_url?: string | null
+          product_name?: string
+          product_sku?: string | null
+          quantity?: number
+          quote_id?: string
+          sort_order?: number | null
+          subtotal?: number | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_templates: {
+        Row: {
+          created_at: string
+          delivery_time: string | null
+          description: string | null
+          discount_amount: number | null
+          discount_percent: number | null
+          id: string
+          internal_notes: string | null
+          is_default: boolean | null
+          items_data: Json | null
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          seller_id: string
+          template_data: Json | null
+          updated_at: string
+          validity_days: number | null
+        }
+        Insert: {
+          created_at?: string
+          delivery_time?: string | null
+          description?: string | null
+          discount_amount?: number | null
+          discount_percent?: number | null
+          id?: string
+          internal_notes?: string | null
+          is_default?: boolean | null
+          items_data?: Json | null
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          seller_id: string
+          template_data?: Json | null
+          updated_at?: string
+          validity_days?: number | null
+        }
+        Update: {
+          created_at?: string
+          delivery_time?: string | null
+          description?: string | null
+          discount_amount?: number | null
+          discount_percent?: number | null
+          id?: string
+          internal_notes?: string | null
+          is_default?: boolean | null
+          items_data?: Json | null
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          seller_id?: string
+          template_data?: Json | null
+          updated_at?: string
+          validity_days?: number | null
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          bitrix_deal_id: string | null
+          bitrix_quote_id: string | null
+          client_cnpj: string | null
+          client_company: string | null
+          client_email: string | null
+          client_id: string | null
+          client_name: string | null
+          client_phone: string | null
+          client_response: string | null
+          client_response_at: string | null
+          client_response_notes: string | null
+          created_at: string
+          delivery_time: string | null
+          discount_amount: number
+          discount_percent: number
+          id: string
+          internal_notes: string | null
+          notes: string | null
+          payment_terms: string | null
+          quote_number: string
+          seller_id: string
+          sent_at: string | null
+          shipping_cost: number | null
+          shipping_type: string | null
+          status: string
+          subtotal: number
+          synced_at: string | null
+          synced_to_bitrix: boolean | null
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          bitrix_deal_id?: string | null
+          bitrix_quote_id?: string | null
+          client_cnpj?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          client_response?: string | null
+          client_response_at?: string | null
+          client_response_notes?: string | null
+          created_at?: string
+          delivery_time?: string | null
+          discount_amount?: number
+          discount_percent?: number
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          quote_number?: string
+          seller_id: string
+          sent_at?: string | null
+          shipping_cost?: number | null
+          shipping_type?: string | null
+          status?: string
+          subtotal?: number
+          synced_at?: string | null
+          synced_to_bitrix?: boolean | null
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          bitrix_deal_id?: string | null
+          bitrix_quote_id?: string | null
+          client_cnpj?: string | null
+          client_company?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          client_response?: string | null
+          client_response_at?: string | null
+          client_response_notes?: string | null
+          created_at?: string
+          delivery_time?: string | null
+          discount_amount?: number
+          discount_percent?: number
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          quote_number?: string
+          seller_id?: string
+          sent_at?: string | null
+          shipping_cost?: number | null
+          shipping_type?: string | null
+          status?: string
+          subtotal?: number
+          synced_at?: string | null
+          synced_to_bitrix?: boolean | null
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       saved_filters: {
         Row: {
           color: string | null

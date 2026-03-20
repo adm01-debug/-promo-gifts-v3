@@ -15,7 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
-import { selectCrmById, updateCrm } from "@/lib/crm-db";
+import { selectCrmById } from "@/lib/crm-db";
 
 import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
 import { ProposalHtmlTemplate, ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
@@ -345,7 +345,7 @@ export default function QuoteViewPage() {
       }
 
       try {
-        await updateCrm("quotes", quote.id, crmUpdates);
+        await supabase.from("quotes").update(crmUpdates as any).eq("id", quote.id);
       } catch (updateErr) {
         console.warn("Falha ao atualizar quote no CRM após sync:", updateErr);
       }
@@ -505,7 +505,7 @@ export default function QuoteViewPage() {
                   <DropdownMenuItem
                     onClick={async () => {
                       try {
-                        await updateCrm("quotes", quote.id, { status: "pending" });
+                        await supabase.from("quotes").update({ status: "pending" } as any).eq("id", quote.id);
                         await logQuoteHistory(quote.id, "status_change", "Sincronização cancelada — status revertido para Pendente", {
                           oldValue: "sent",
                           newValue: "pending",
