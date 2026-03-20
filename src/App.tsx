@@ -216,15 +216,15 @@ const App = () => {
 
                                         {/* User Routes */}
                                         <Route path="/perfil" element={<ProfilePage />} />
-                                        <Route path="/seguranca" element={<Navigate to="/admin/seguranca" replace />} />
+                                        <Route path="/seguranca" element={<Navigate to="/perfil" replace />} />
 
-                                        {/* Analytics */}
-                                        <Route path="/bi" element={<BIDashboard />} />
-                                        <Route path="/tendencias" element={<TrendsPage />} />
+                                        {/* Analytics — admin/manager only */}
+                                        <Route path="/bi" element={<AdminRoute><BIDashboard /></AdminRoute>} />
+                                        <Route path="/tendencias" element={<AdminRoute><TrendsPage /></AdminRoute>} />
 
-                                        {/* System */}
-                                        <Route path="/status" element={<SystemStatusPage />} />
-                                        <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
+                                        {/* System — admin only */}
+                                        <Route path="/status" element={<AdminRoute><SystemStatusPage /></AdminRoute>} />
+                                        <Route path="/external-db-test" element={<AdminRoute><ExternalDatabaseTest /></AdminRoute>} />
 
                                         {/* Fallback */}
                                         <Route path="*" element={<NotFound />} />

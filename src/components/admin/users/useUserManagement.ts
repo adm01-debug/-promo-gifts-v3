@@ -63,8 +63,12 @@ export function useUserManagement() {
       toast.error("Email e senha são obrigatórios");
       return false;
     }
-    if (form.password.length < 6) {
-      toast.error("A senha deve ter no mínimo 6 caracteres");
+    if (form.password.length < 8) {
+      toast.error("A senha deve ter no mínimo 8 caracteres");
+      return false;
+    }
+    if (!/[A-Z]/.test(form.password) || !/[a-z]/.test(form.password) || !/[0-9]/.test(form.password) || !/[!@#$%^&*(),.?":{}|<>]/.test(form.password)) {
+      toast.error("A senha deve conter maiúscula, minúscula, número e caractere especial");
       return false;
     }
     try {

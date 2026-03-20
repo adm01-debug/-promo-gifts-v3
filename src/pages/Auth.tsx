@@ -144,9 +144,10 @@ export default function Auth() {
 
       toast({
         title: "Cadastro realizado!",
-        description: "Sua conta foi criada com sucesso",
+        description: "Verifique seu e-mail para confirmar sua conta antes de fazer login.",
+        duration: 10000,
       });
-      navigate("/");
+      setActiveTab("login");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -388,17 +389,7 @@ export default function Auth() {
                     </div>
 
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id="remember-me"
-                          className="h-4 w-4 rounded border-border text-orange focus:ring-orange"
-                        />
-                        <label htmlFor="remember-me" className="text-sm text-muted-foreground cursor-pointer">
-                          Lembrar de mim
-                        </label>
-                      </div>
+                    <div className="flex items-center justify-end">
                       <Button
                         type="button"
                         variant="link"
