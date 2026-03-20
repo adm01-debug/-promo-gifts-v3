@@ -66,11 +66,12 @@ function calcPersTotal(totalCost: number, qty: number): number {
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { fetchQuote, isLoading, logQuoteHistory, duplicateQuote } = useQuotes();
+  const { fetchQuote, logQuoteHistory, duplicateQuote } = useQuotes();
   const { user, profile } = useAuth();
   
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
   const [quote, setQuote] = useState<Quote | null>(null);
+  const [isLoadingQuote, setIsLoadingQuote] = useState(true);
   const [clientCnpj, setClientCnpj] = useState<string | undefined>(undefined);
   // bitrix_company_id = numeric Bitrix ID from companies.bitrix_id (string in DB)
   const [bitrixCompanyId, setBitrixCompanyId] = useState<string | null>(null);
@@ -87,8 +88,10 @@ export default function QuoteViewPage() {
 
   const loadQuote = async () => {
     if (!id) return;
+    setIsLoadingQuote(true);
     const data = await fetchQuote(id);
     setQuote(data);
+    setIsLoadingQuote(false);
     // Fetch company data from CRM (CNPJ + bitrix_id for Bitrix sync)
     if (data?.client_id) {
       try {
@@ -404,7 +407,7 @@ export default function QuoteViewPage() {
   // Check if any items have personalizations
   const hasPersonalizations = quote?.items?.some(item => item.personalizations && item.personalizations.length > 0);
 
-  if (isLoading) {
+  if (isLoadingQuote) {
     return (
       <MainLayout>
         <div className="container py-6 space-y-6">
