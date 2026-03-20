@@ -61,7 +61,7 @@ export function useRBAC() {
     const roleStr = authRole || 'seller';
     // Suporte para "vendedor" (valor do enum no banco) → "seller" (valor interno do RBAC)
     if (roleStr === 'vendedor') return 'seller';
-    if (['admin', 'manager', 'seller', 'viewer'].includes(roleStr)) {
+    if (['admin', 'manager', 'seller'].includes(roleStr)) {
       return roleStr as RoleName;
     }
     return 'seller'; // Default
