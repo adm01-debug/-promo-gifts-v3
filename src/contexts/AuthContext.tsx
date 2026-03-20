@@ -206,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      fetchingRef.current = null; // Forçar refresh
+      fetchPromiseRef.current = null; // Forçar refresh
       await fetchUserData(user.id);
     }
   };

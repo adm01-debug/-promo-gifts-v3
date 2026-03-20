@@ -32,10 +32,23 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   const fetchingRef = useRef<Set<string>>(new Set());
   const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const batchIdsRef = useRef<Set<string>>(new Set());
+  const mountedRef = useRef(true);
 
   useEffect(() => {
     cacheRef.current = cache;
   }, [cache]);
+
+  // Cleanup on unmount (#11)
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (batchTimerRef.current) {
+        clearTimeout(batchTimerRef.current);
+        batchTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Batched fetch: collects IDs over a microtask and fetches them together
   const scheduleBatchFetch = useCallback(() => {
@@ -49,7 +62,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       if (idsToFetch.length === 0) return;
 
       idsToFetch.forEach(id => fetchingRef.current.add(id));
-      setIsLoading(true);
+      if (mountedRef.current) setIsLoading(true);
 
       try {
         const raw = await fetchPromobrindProducts({
@@ -58,16 +71,18 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         });
         const mapped = raw.map(mapPromobrindToProduct);
 
-        setCache(prev => {
-          const next = new Map(prev);
-          mapped.forEach(p => next.set(p.id, p));
-          return next;
-        });
+        if (mountedRef.current) {
+          setCache(prev => {
+            const next = new Map(prev);
+            mapped.forEach(p => next.set(p.id, p));
+            return next;
+          });
+        }
       } catch (err) {
         console.warn('[ProductsContext] Failed to fetch products by IDs:', err);
       } finally {
         idsToFetch.forEach(id => fetchingRef.current.delete(id));
-        setIsLoading(false);
+        if (mountedRef.current) setIsLoading(false);
       }
     }, 50); // 50ms batching window
   }, []);
