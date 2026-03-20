@@ -88,8 +88,10 @@ export default function QuoteViewPage() {
 
   const loadQuote = async () => {
     if (!id) return;
+    setIsLoadingQuote(true);
     const data = await fetchQuote(id);
     setQuote(data);
+    setIsLoadingQuote(false);
     // Fetch company data from CRM (CNPJ + bitrix_id for Bitrix sync)
     if (data?.client_id) {
       try {
