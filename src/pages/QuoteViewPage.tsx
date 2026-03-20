@@ -66,7 +66,7 @@ function calcPersTotal(totalCost: number, qty: number): number {
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { fetchQuote, isLoading, logQuoteHistory, duplicateQuote } = useQuotes();
+  const { fetchQuote, logQuoteHistory, duplicateQuote } = useQuotes();
   const { user, profile } = useAuth();
   
   const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
