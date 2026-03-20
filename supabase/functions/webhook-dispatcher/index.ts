@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-import { HmacSha256 } from "https://deno.land/std@0.177.0/hash/sha256.ts";
+import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
+import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
 
 Deno.serve(async (req) => {
   try {

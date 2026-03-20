@@ -1,10 +1,8 @@
-/// <reference lib="deno.ns" />
 // ============================================================
 // EDGE FUNCTION: generate-mockup-nanobanana
 // Geração de Mockups com IA usando Nano Banana API
 // ============================================================
 
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 import { createClient } from "npm:@supabase/supabase-js@2.49.4"
 
 const corsHeaders = {
