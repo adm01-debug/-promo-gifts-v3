@@ -260,6 +260,28 @@ export function SuppliersManager() {
       return;
     }
     setSaving(true);
+
+    // === Verificação de duplicidade por CNPJ (excluindo o próprio registro) ===
+    if (cnpjRaw.length === 14 && editingSupplier.cnpj) {
+      try {
+        const { invokeExternalDb } = await import('@/lib/external-db');
+        const existing = await invokeExternalDb<{ id: string; name: string; cnpj: string }>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id,name,cnpj',
+          filters: { cnpj: editingSupplier.cnpj.trim() },
+          limit: 5,
+        });
+        const duplicate = existing.records?.find(r => r.id !== editingSupplier.id);
+        if (duplicate) {
+          toast.error(`Já existe outro fornecedor com este CNPJ: "${duplicate.name}". Cadastro duplicado não é permitido.`);
+          setSaving(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[SuppliersManager] Falha ao verificar duplicidade de CNPJ:', err);
+      }
+    }
     try {
       const now = new Date().toISOString();
       // Build rich address string from individual fields

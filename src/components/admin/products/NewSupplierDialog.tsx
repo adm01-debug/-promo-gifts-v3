@@ -176,6 +176,29 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     }
     setCnpjError('');
     setSaving(true);
+
+    // === Verificação de duplicidade por CNPJ ===
+    if (cnpjDigits.length === 14) {
+      try {
+        const { invokeExternalDb } = await import('@/lib/external-db');
+        const existing = await invokeExternalDb<{ id: string; name: string; cnpj: string }>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id,name,cnpj',
+          filters: { cnpj: cnpj.trim() },
+          limit: 1,
+        });
+        if (existing.records && existing.records.length > 0) {
+          const found = existing.records[0];
+          toast.error(`Já existe um fornecedor com este CNPJ: "${found.name}". Cadastro duplicado não é permitido.`);
+          setSaving(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[NewSupplierDialog] Falha ao verificar duplicidade de CNPJ:', err);
+        // Continua o cadastro se a verificação falhar (tolerância a erro)
+      }
+    }
     try {
       const { invokeExternalDbSingle } = await import('@/lib/external-db');
       const now = new Date().toISOString();
