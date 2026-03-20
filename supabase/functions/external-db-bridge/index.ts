@@ -973,7 +973,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const externalSupabase = createClient(externalUrl, externalKey);
+    const externalSupabase = createClient(externalUrl, externalKey, {
+      db: { schema: 'public' },
+      global: { headers: { 'x-connection-timeout': '15000' } },
+    });
     let result;
 
     switch (operation) {
