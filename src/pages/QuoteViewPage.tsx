@@ -346,7 +346,7 @@ export default function QuoteViewPage() {
       }
 
       try {
-        await updateCrm("quotes", quote.id, crmUpdates);
+        await supabase.from("quotes").update(crmUpdates as any).eq("id", quote.id);
       } catch (updateErr) {
         console.warn("Falha ao atualizar quote no CRM após sync:", updateErr);
       }
