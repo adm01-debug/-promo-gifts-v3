@@ -142,7 +142,7 @@ export function useVariantStock() {
         100000,
         { active: true }
       );
-      console.log(`[Stock] Carregados ${allProducts.length} produtos`);
+      logger.log(`[Stock] Carregados ${allProducts.length} produtos`);
       setLoadingProgress({ step: 'Carregando variantes...', current: 1, total: 3 });
 
       // 2) Variantes - busca todas as ativas
