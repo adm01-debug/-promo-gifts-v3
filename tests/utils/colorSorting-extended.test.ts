@@ -29,12 +29,12 @@ describe('sortByColorGroup', () => {
 
   it('should handle hex-based luminance sorting', () => {
     const items = [
-      { name: 'Azul', hex: '#0000FF' },
-      { name: 'Azul', hex: '#0000AA' },
+      { name: 'Azul', hex: '#5555FF' },  // lighter blue
+      { name: 'Azul', hex: '#000044' },  // very dark blue
     ];
     const sorted = sortByColorGroup(items, (i) => i.name, (i) => i.hex);
     // Darker hex (lower luminance) should come first
-    expect(sorted[0].hex).toBe('#0000AA');
+    expect(sorted[0].hex).toBe('#000044');
   });
 
   it('should handle null/undefined color names', () => {
