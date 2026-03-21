@@ -154,7 +154,7 @@ function useAllTechniqueDimensions(techniques: Technique[], shouldFetch: boolean
         codeMap.set(tech.code, { maxWidth, maxHeight });
       }
 
-      console.log('[useMockupTechniques] Loaded technique dimensions for', codeMap.size, 'techniques');
+      logger.log('[useMockupTechniques] Loaded technique dimensions for', codeMap.size, 'techniques');
       return codeMap;
     },
     enabled: shouldFetch,

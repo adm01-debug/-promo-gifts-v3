@@ -233,7 +233,7 @@ export function useMockupGenerator() {
     if (!selectedTechnique) return;
     const mw = 'maxWidth' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxWidth : null;
     const mh = 'maxHeight' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxHeight : null;
-    console.log('[MockupGenerator] Technique changed:', selectedTechnique.name, '| maxWidth:', mw, '| maxHeight:', mh);
+    logger.log('[MockupGenerator] Technique changed:', selectedTechnique.name, '| maxWidth:', mw, '| maxHeight:', mh);
 
     if (!mw || !mh || mw <= 0 || mh <= 0) return;
 

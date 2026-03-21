@@ -114,7 +114,7 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
           return;
         }
 
-        console.log("Layout auto-captured for record:", currentRecordId);
+        logger.log("Layout auto-captured for record:", currentRecordId);
         if (mountedRef.current) {
           onCaptured?.(currentRecordId);
         }

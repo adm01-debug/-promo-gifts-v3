@@ -164,7 +164,7 @@ export function useVariantStock() {
         100000,
         { is_active: true }
       );
-      console.log(`[Stock] Carregados ${allSupplierSources.length} supplier sources`);
+      logger.log(`[Stock] Carregados ${allSupplierSources.length} supplier sources`);
       setLoadingProgress({ step: 'Processando dados...', current: 3, total: 3 });
       
       // Agrupar variantes por product_id

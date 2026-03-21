@@ -660,7 +660,7 @@ Opção ${idx + 1}: ${opt.techniqueName}
   const handleAddToQuote = useCallback((selectedOptions: SimulationOption[]) => {
     // TODO: Integrar com sistema de orçamentos quando implementado
     toast.success(`${selectedOptions.length} técnica(s) adicionadas ao orçamento!`);
-    console.log("Opções selecionadas para orçamento:", selectedOptions);
+    logger.log("Opções selecionadas para orçamento:", selectedOptions);
   }, []);
 
   return {
