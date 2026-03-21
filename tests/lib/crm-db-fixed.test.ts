@@ -1,9 +1,12 @@
 /**
- * Fixed CRM-DB tests — updated mock to match actual invokeCrmDb retry logic.
+ * Fixed CRM-DB tests — uses vi.hoisted for proper mock hoisting.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const mockInvoke = vi.fn();
+const { mockInvoke } = vi.hoisted(() => {
+  const mockInvoke = vi.fn();
+  return { mockInvoke };
+});
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -11,6 +14,10 @@ vi.mock('@/integrations/supabase/client', () => ({
       invoke: mockInvoke,
     },
   },
+}));
+
+vi.mock('@/lib/logger', () => ({
+  logger: { log: vi.fn(), warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
 import {
