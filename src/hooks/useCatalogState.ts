@@ -1,0 +1,381 @@
+/**
+ * useCatalogState — all catalog page state & logic extracted from Index.tsx
+ */
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Package, TrendingUp, Users, Layers } from "lucide-react";
+import React from "react";
+
+import { defaultFilters, type FilterState } from "@/components/filters/FilterPanel";
+import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
+import { useProductsCatalog } from "@/hooks/useProductsLightweight";
+import type { Product } from "@/hooks/useProducts";
+import { useProductsContext } from "@/contexts/ProductsContext";
+import { useSearch } from "@/hooks/useSearch";
+import { useFavoritesContext } from "@/contexts/FavoritesContext";
+import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
+import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
+import { useProductsByCategory } from "@/hooks/useProductsByCategory";
+import { useDebounce } from "@/hooks/useDebounce";
+import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
+import { useToast } from "@/hooks/use-toast";
+
+export type ViewMode = "grid" | "list";
+export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
+
+const ITEMS_PER_PAGE = 12;
+
+export function useCatalogState() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+  const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
+  const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { registerProducts } = useProductsContext();
+
+  const searchQueryFromUrl = searchParams.get("search") || "";
+
+  const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
+  const [sortBy, setSortBy] = useState<SortOption>("name");
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
+  const [isSearching, setIsSearching] = useState(false);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Debounce for server-side search
+  const debouncedServerSearch = useDebounce(searchQuery, 400);
+
+  // Fetch products from DB
+  const {
+    data: catalogData,
+    isLoading: isLoadingProducts,
+    isFetching: isFetchingProducts,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useProductsCatalog(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
+
+  const realProducts = useMemo(() => {
+    if (!catalogData?.pages) return [] as Product[];
+    return catalogData.pages.flatMap(page => page.products);
+  }, [catalogData]);
+
+  const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
+
+  useEffect(() => {
+    if (realProducts.length > 0) registerProducts(realProducts);
+  }, [realProducts, registerProducts]);
+
+  const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
+
+  // Material filter hook
+  const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
+    materialGroupSlugs: filters.materialGroups || [],
+    materialTypeSlugs: filters.materialTypes || [],
+  });
+
+  // Category filter hook
+  const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
+    categoryIds: filters.categories?.map(String) || [],
+    includeDescendants: true,
+  });
+
+  const { data: externalCategories = [] } = useExternalCategoriesQuery();
+
+  const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
+  const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
+
+  // Sync search with URL
+  useEffect(() => {
+    setSearchQuery(searchQueryFromUrl);
+  }, [searchQueryFromUrl]);
+
+  // Reset pagination on filter change
+  useEffect(() => {
+    setDisplayCount(ITEMS_PER_PAGE);
+  }, [filters, sortBy, searchQuery]);
+
+  // Active filters count
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.colors.length) count += filters.colors.length;
+    if (filters.colorGroups?.length) count += filters.colorGroups.length;
+    if (filters.colorVariations?.length) count += filters.colorVariations.length;
+    if (filters.colorNuances?.length) count += filters.colorNuances.length;
+    if (filters.categories.length) count += filters.categories.length;
+    if (filters.suppliers.length) count += filters.suppliers.length;
+    if (filters.publicoAlvo.length) count += filters.publicoAlvo.length;
+    if (filters.datasComemorativas.length) count += filters.datasComemorativas.length;
+    if (filters.endomarketing.length) count += filters.endomarketing.length;
+    if (filters.ramosAtividade?.length) count += filters.ramosAtividade.length;
+    if (filters.segmentosAtividade?.length) count += filters.segmentosAtividade.length;
+    if (filters.materialGroups?.length) count += filters.materialGroups.length;
+    if (filters.materialTypes?.length) count += filters.materialTypes.length;
+    if (filters.materiais.length) count += filters.materiais.length;
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) count += 1;
+    if (filters.inStock) count += 1;
+    if (filters.isKit) count += 1;
+    if (filters.featured) count += 1;
+    return count;
+  }, [filters]);
+
+  // Debounced search for fuzzy
+  const debouncedSearchQuery = useDebounce(searchQuery, 350);
+  const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(realProducts, debouncedSearchQuery);
+
+  // Filter & sort products
+  const filteredProducts = useMemo(() => {
+    let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
+
+    if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
+      result = result.filter((p) => categoryFilteredProductIds.has(p.id));
+    } else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) {
+      result = [];
+    }
+
+    if (filters.colors.length) {
+      result = result.filter((p) =>
+        p.colors?.some((c: any) => filters.colors.includes(c.name)) || false
+      );
+    }
+
+    if (filters.colorGroups?.length) {
+      result = result.filter((p) =>
+        p.colors?.some((c: any) => {
+          const colorGroupSlug = c.groupSlug || '';
+          const colorGroup = (c.group || '').toLowerCase().trim();
+          const colorName = (c.name || '').toLowerCase().trim();
+          return filters.colorGroups.some(slug => {
+            const slugLower = slug.toLowerCase().trim();
+            if (colorGroupSlug === slugLower) return true;
+            if (colorGroup === slugLower) return true;
+            if (colorGroup.includes(slugLower) || slugLower.includes(colorGroup)) return true;
+            if (colorName.includes(slugLower) || slugLower.includes(colorName.split(/[\s-]/)[0])) return true;
+            return false;
+          });
+        }) || false
+      );
+    }
+
+    if (filters.colorVariations?.length) {
+      result = result.filter((p) =>
+        p.colors?.some((c: any) => {
+          const colorVariationSlug = c.variationSlug || '';
+          const colorName = (c.name || '').toLowerCase().trim();
+          return filters.colorVariations.some(slug => {
+            const slugLower = slug.toLowerCase().trim();
+            if (colorVariationSlug === slugLower) return true;
+            const slugWords = slugLower.split('-');
+            return slugWords.every(word => colorName.includes(word));
+          });
+        }) || false
+      );
+    }
+
+    if (filters.categories.length) {
+      result = result.filter((p) =>
+        filters.categories.includes(parseInt(p.category_id || '0')) ||
+        filters.categories.map(String).includes(p.category_id || '')
+      );
+    }
+
+    if (filters.suppliers.length) {
+      result = result.filter((p) =>
+        filters.suppliers.includes(p.brand || '') ||
+        filters.suppliers.includes(p.supplier_reference || '')
+      );
+    }
+
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
+      result = result.filter((p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]);
+    }
+
+    if (filters.inStock) {
+      result = result.filter((p) => (p.stock || 0) > 0);
+    }
+
+    if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
+      result = result.filter((p) => materialFilteredProductIds.has(p.id));
+    } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
+      result = [];
+    }
+
+    if (!hasMaterialFilter && filters.materiais.length) {
+      result = result.filter((p) => {
+        const materialsStr = Array.isArray(p.materials) ? p.materials.join(' ').toLowerCase() : (p.materials || '').toLowerCase();
+        return filters.materiais.some((m) => materialsStr.includes(m.toLowerCase()));
+      });
+    }
+
+    const skipSort = hasFuzzySearch && sortBy === 'name';
+    if (!skipSort) {
+      switch (sortBy) {
+        case "name": result.sort((a, b) => a.name.localeCompare(b.name)); break;
+        case "price-asc": result.sort((a, b) => a.price - b.price); break;
+        case "price-desc": result.sort((a, b) => b.price - a.price); break;
+        case "stock": result.sort((a, b) => (b.stock || 0) - (a.stock || 0)); break;
+        case "newest": result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()); break;
+      }
+    }
+
+    return result;
+  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
+
+  // Paginated products
+  const paginatedProducts = useMemo(() => filteredProducts.slice(0, displayCount), [filteredProducts, displayCount]);
+
+  const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0);
+  const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
+  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0;
+
+  const hasMoreProducts = useMemo(() => {
+    return paginatedProducts.length < filteredProducts.length || !!hasNextPage;
+  }, [paginatedProducts, filteredProducts, hasNextPage]);
+
+  // Infinite scroll
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const isUpdatingRef = useRef(false);
+
+  const loadMore = useCallback(() => {
+    if (isUpdatingRef.current) return;
+    if (isLoading || isLoadingMore || isFetchingNextPage) return;
+    if (!hasMoreProducts) return;
+
+    isUpdatingRef.current = true;
+    setIsLoadingMore(true);
+
+    const nextDisplayCount = displayCount + ITEMS_PER_PAGE;
+    const needsServerData = nextDisplayCount >= filteredProducts.length && hasNextPage;
+
+    if (needsServerData) {
+      fetchNextPage().finally(() => {
+        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        setIsLoadingMore(false);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+      });
+    } else {
+      setTimeout(() => {
+        setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
+        setIsLoadingMore(false);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+      }, 150);
+    }
+  }, [isLoading, isLoadingMore, isFetchingNextPage, hasMoreProducts, displayCount, filteredProducts.length, hasNextPage, fetchNextPage]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasMoreProducts && !isLoadingMore && !isUpdatingRef.current) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: "200px" }
+    );
+
+    if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
+    return () => { observerRef.current?.disconnect(); };
+  }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
+
+  // Stats
+  const statBadges = useMemo(() => {
+    const totalVariants = filteredProducts.reduce((sum, p) => sum + (p.colors?.length || 0), 0);
+    const uniqueCategoryIds = new Set(
+      filteredProducts.map((p) => p.category_id || (p.category?.id ? String(p.category.id) : "")).filter((id) => id && id !== "0")
+    );
+    const uniqueSuppliers = new Set(filteredProducts.map(p => p.supplier?.name).filter(Boolean).filter(n => n !== "Sem fornecedor"));
+    const categoriesCount = externalCategories.length || uniqueCategoryIds.size;
+
+    return [
+      { id: "products", label: "Produtos Únicos", value: filteredProducts.length, icon: React.createElement(Package, { className: "h-4 w-4" }) },
+      { id: "variants", label: "Variações", value: totalVariants, icon: React.createElement(Layers, { className: "h-4 w-4" }) },
+      { id: "categories", label: "Categorias", value: categoriesCount, icon: React.createElement(Layers, { className: "h-4 w-4" }) },
+      { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size, icon: React.createElement(Users, { className: "h-4 w-4" }) },
+      { id: "favorites", label: "Favoritos", value: favoriteCount, icon: React.createElement(TrendingUp, { className: "h-4 w-4" }) },
+    ];
+  }, [filteredProducts, favoriteCount, externalCategories.length]);
+
+  const resetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+    setSortBy("name");
+  }, []);
+
+  const handleViewProduct = useCallback((product: Product) => {
+    navigate(`/produto/${product.id}`);
+  }, [navigate]);
+
+  const handleShareProduct = useCallback((product: Product) => {
+    const shareUrl = `${window.location.origin}/produto/${product.id}`;
+    const shareText = `Confira ${product.name} por R$ ${product.price.toFixed(2)}`;
+    if (navigator.share) {
+      navigator.share({ title: product.name, text: shareText, url: shareUrl })
+        .then(() => toast({ title: "Compartilhado!", description: "Produto compartilhado com sucesso" }))
+        .catch(() => {});
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast({ title: "Link copiado!", description: "O link do produto foi copiado para a área de transferência" });
+    }
+  }, [toast]);
+
+  const handleFavoriteProduct = useCallback((product: Product) => {
+    toggleFavorite(product.id);
+  }, [toggleFavorite]);
+
+  const handleSearch = useCallback((query: string) => {
+    setIsSearching(true);
+    setSearchQuery(query);
+    if (query) addToHistory(query);
+    setTimeout(() => setIsSearching(false), 300);
+  }, [addToHistory]);
+
+  return {
+    // State
+    filters, setFilters,
+    viewMode, setViewMode,
+    gridColumns, setGridColumns,
+    sortBy, setSortBy,
+    filterSheetOpen, setFilterSheetOpen,
+    searchQuery,
+
+    // Derived
+    filteredProducts,
+    paginatedProducts,
+    activeFiltersCount,
+    shouldShowCatalogSkeleton,
+    shouldShowEmptyState,
+    hasActiveCatalogConstraints,
+    hasMoreProducts,
+    isLoadingMore,
+    totalEstimate,
+    hasNextPage,
+    statBadges,
+
+    // Refs
+    loadMoreRef,
+
+    // Handlers
+    resetFilters,
+    handleViewProduct,
+    handleShareProduct,
+    handleFavoriteProduct,
+    handleSearch,
+
+    // Context values
+    isFavorite,
+    toggleFavorite,
+    isInCompare,
+    toggleCompare,
+    canAddMore,
+    navigate,
+
+    ITEMS_PER_PAGE,
+  };
+}
