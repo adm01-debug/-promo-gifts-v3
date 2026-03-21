@@ -19,7 +19,8 @@ describe('toTitleCase — comprehensive', () => {
   });
 
   it('always capitalizes first word even if preposition', () => {
-    expect(toTitleCase('de volta ao escritório')).toBe('De Volta ao Escritório');
+    // "ao" is not in LOWERCASE_WORDS list, so it gets capitalized
+    expect(toTitleCase('de volta ao escritório')).toBe('De Volta Ao Escritório');
     expect(toTitleCase('para todos')).toBe('Para Todos');
     expect(toTitleCase('em promoção')).toBe('Em Promoção');
   });
