@@ -34,6 +34,7 @@ interface CatalogContentProps {
   isInCompare: (id: string) => boolean;
   onToggleCompare: (id: string) => { added: boolean; isFull: boolean };
   canAddToCompare: boolean;
+  onLoadMore?: () => void;
 }
 
 /** Virtualized grid that only renders visible rows */
@@ -52,6 +53,7 @@ function VirtualGrid({
   filteredCount,
   loadMoreRef,
   itemsPerPage,
+  onLoadMore,
 }: {
   products: Product[];
   columns: ColumnCount;
@@ -67,6 +69,7 @@ function VirtualGrid({
   filteredCount: number;
   loadMoreRef: RefObject<HTMLDivElement>;
   itemsPerPage: number;
+  onLoadMore?: () => void;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -95,11 +98,19 @@ function VirtualGrid({
     return 32;
   };
 
-  // Scroll listener for "scroll to top" button + triggering loadMoreRef intersection
+  // Scroll listener: show/hide scroll-to-top + trigger loadMore near bottom
   const handleScroll = useCallback(() => {
     if (!parentRef.current) return;
-    setShowScrollTop(parentRef.current.scrollTop > 400);
-  }, []);
+    const { scrollTop, scrollHeight, clientHeight } = parentRef.current;
+    setShowScrollTop(scrollTop > 400);
+
+    // Trigger load more when within 500px of bottom
+    if (hasMore && !isLoadingMore && onLoadMore) {
+      if (scrollHeight - scrollTop - clientHeight < 500) {
+        onLoadMore();
+      }
+    }
+  }, [hasMore, isLoadingMore, onLoadMore]);
 
   useEffect(() => {
     const el = parentRef.current;
@@ -253,6 +264,7 @@ export function CatalogContent({
   isInCompare,
   onToggleCompare,
   canAddToCompare,
+  onLoadMore,
 }: CatalogContentProps) {
   if (shouldShowCatalogSkeleton) {
     return (
@@ -328,6 +340,7 @@ export function CatalogContent({
       filteredCount={filteredProducts.length}
       loadMoreRef={loadMoreRef}
       itemsPerPage={itemsPerPage}
+      onLoadMore={onLoadMore}
     />
   );
 }

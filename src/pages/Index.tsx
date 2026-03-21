@@ -81,6 +81,7 @@ export default function Index() {
               isInCompare={catalog.isInCompare}
               onToggleCompare={catalog.toggleCompare}
               canAddToCompare={catalog.canAddMore}
+              onLoadMore={catalog.loadMore}
             />
           </div>
         </div>
