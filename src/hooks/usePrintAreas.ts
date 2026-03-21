@@ -8,11 +8,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { 
-import { logger } from "@/lib/logger";
   PrintAreaWithTechniques, 
   ProductPrintArea,
   TecnicaGravacao,
 } from '@/types/gravacao';
+import { logger } from "@/lib/logger";
 
 // ============================================
 // FUNÇÕES AUXILIARES

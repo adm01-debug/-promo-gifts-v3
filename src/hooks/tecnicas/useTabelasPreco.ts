@@ -12,11 +12,11 @@ import {
 } from '@/lib/personalization';
 import { TECNICAS_QUERY_KEYS } from './keys';
 import type { 
-import { logger } from "@/lib/logger";
   TabelaPrecoTecnica,
   TabelaPrecoFiltros,
   CustomizationPriceTableRaw,
 } from '@/types/tecnica-unificada';
+import { logger } from "@/lib/logger";
 
 /**
  * Lista de tabelas de preço com filtros
