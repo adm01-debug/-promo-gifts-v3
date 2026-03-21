@@ -48,7 +48,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-import { logger } from "@/lib/logger";
   Table,
   TableBody,
   TableCell,
@@ -56,6 +55,7 @@ import { logger } from "@/lib/logger";
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { logger } from "@/lib/logger";
 
 // ============================================
 // TYPES

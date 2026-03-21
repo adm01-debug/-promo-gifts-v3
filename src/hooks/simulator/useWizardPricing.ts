@@ -8,13 +8,13 @@ import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
 import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
 import type {
-import { logger } from "@/lib/logger";
   SimulatorWizardState,
   WizardAction,
   TechniqueComparisonResult,
   Personalization,
   AvailableTechnique,
 } from '@/types/domain/simulator-wizard';
+import { logger } from "@/lib/logger";
 
 interface UseWizardPricingParams {
   state: SimulatorWizardState;
