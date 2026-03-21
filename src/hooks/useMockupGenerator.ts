@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeWithRetry, extractFunctionErrorMessage } from "@/lib/external-db/invoke";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { needsConversion, ensureSupportedFormat } from "@/lib/image-converter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";

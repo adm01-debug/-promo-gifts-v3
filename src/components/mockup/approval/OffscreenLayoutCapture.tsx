@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { MockupApprovalTemplate } from "./MockupApprovalTemplate";
 import { supabase } from "@/integrations/supabase/client";
 import type { MockupApprovalData } from "@/types/mockup-approval";
+import { logger } from "@/lib/logger";
 
 export interface LayoutCaptureRequest {
   data: MockupApprovalData;

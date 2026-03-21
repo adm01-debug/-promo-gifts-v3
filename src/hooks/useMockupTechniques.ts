@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalRpc } from "@/lib/external-rpc";
 import { invokeExternalDb } from "@/lib/external-db";
+import { logger } from "@/lib/logger";
 
 interface Technique {
   id: string;
