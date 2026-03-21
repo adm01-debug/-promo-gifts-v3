@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeWithRetry, extractFunctionErrorMessage } from "@/lib/external-db/invoke";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { needsConversion, ensureSupportedFormat } from "@/lib/image-converter";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMockupDraft, MockupDraftData } from "@/hooks/useMockupDraft";
@@ -233,7 +234,7 @@ export function useMockupGenerator() {
     if (!selectedTechnique) return;
     const mw = 'maxWidth' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxWidth : null;
     const mh = 'maxHeight' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxHeight : null;
-    console.log('[MockupGenerator] Technique changed:', selectedTechnique.name, '| maxWidth:', mw, '| maxHeight:', mh);
+    logger.log('[MockupGenerator] Technique changed:', selectedTechnique.name, '| maxWidth:', mw, '| maxHeight:', mh);
 
     if (!mw || !mh || mw <= 0 || mh <= 0) return;
 

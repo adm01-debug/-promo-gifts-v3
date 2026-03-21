@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { MockupApprovalTemplate } from "./MockupApprovalTemplate";
 import { supabase } from "@/integrations/supabase/client";
 import type { MockupApprovalData } from "@/types/mockup-approval";
+import { logger } from "@/lib/logger";
 
 export interface LayoutCaptureRequest {
   data: MockupApprovalData;
@@ -114,7 +115,7 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
           return;
         }
 
-        console.log("Layout auto-captured for record:", currentRecordId);
+        logger.log("Layout auto-captured for record:", currentRecordId);
         if (mountedRef.current) {
           onCaptured?.(currentRecordId);
         }

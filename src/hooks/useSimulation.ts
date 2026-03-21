@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from "@/lib/external-db";
 import { useMultipleTechniquePricing } from "./useTechniquePricingOptions";
 import { useSimulatorPreferences } from "./useSimulatorPreferences";
@@ -660,7 +661,7 @@ Opção ${idx + 1}: ${opt.techniqueName}
   const handleAddToQuote = useCallback((selectedOptions: SimulationOption[]) => {
     // TODO: Integrar com sistema de orçamentos quando implementado
     toast.success(`${selectedOptions.length} técnica(s) adicionadas ao orçamento!`);
-    console.log("Opções selecionadas para orçamento:", selectedOptions);
+    logger.log("Opções selecionadas para orçamento:", selectedOptions);
   }, []);
 
   return {

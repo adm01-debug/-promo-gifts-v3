@@ -1,5 +1,7 @@
 // src/lib/sw-register.ts
 
+import { logger } from '@/lib/logger';
+
 /**
  * Registra Service Worker para PWA
  * 
@@ -12,7 +14,7 @@ export async function registerServiceWorker(): Promise<void> {
         scope: '/'
       });
 
-      console.log('✅ Service Worker registrado:', registration.scope);
+      logger.log('✅ Service Worker registrado:', registration.scope);
 
       // Checar atualizações
       registration.addEventListener('updatefound', () => {
@@ -20,7 +22,7 @@ export async function registerServiceWorker(): Promise<void> {
         if (newWorker) {
         newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('🔄 Nova versão do Service Worker disponível');
+              logger.log('🔄 Nova versão do Service Worker disponível');
               // Reload automático removido para evitar auto-refresh intermitente
             }
           });
@@ -28,13 +30,13 @@ export async function registerServiceWorker(): Promise<void> {
       });
 
       // Controllerchange listener removido para evitar auto-refresh
-      console.log('✅ Service Worker configurado sem auto-reload');
+      logger.log('✅ Service Worker configurado sem auto-reload');
 
     } catch (error) {
-      console.error('❌ Falha ao registrar Service Worker:', error);
+      logger.error('❌ Falha ao registrar Service Worker:', error);
     }
   } else {
-    console.warn('⚠️ Service Workers não suportados neste navegador');
+    logger.warn('⚠️ Service Workers não suportados neste navegador');
   }
 }
 
@@ -46,7 +48,7 @@ export async function unregisterServiceWorker(): Promise<void> {
     const registrations = await navigator.serviceWorker.getRegistrations();
     for (const registration of registrations) {
       await registration.unregister();
-      console.log('🗑️ Service Worker desregistrado');
+      logger.log('🗑️ Service Worker desregistrado');
     }
   }
 }
@@ -64,7 +66,7 @@ export function isPWA(): boolean {
  */
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (!('Notification' in window)) {
-    console.warn('⚠️ Notificações não suportadas');
+    logger.warn('⚠️ Notificações não suportadas');
     return 'denied';
   }
 

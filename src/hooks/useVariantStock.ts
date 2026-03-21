@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
 import {
   VariantStock,
   ProductStockSummary,
@@ -142,7 +143,7 @@ export function useVariantStock() {
         100000,
         { active: true }
       );
-      console.log(`[Stock] Carregados ${allProducts.length} produtos`);
+      logger.log(`[Stock] Carregados ${allProducts.length} produtos`);
       setLoadingProgress({ step: 'Carregando variantes...', current: 1, total: 3 });
 
       // 2) Variantes - busca todas as ativas
@@ -153,7 +154,7 @@ export function useVariantStock() {
         100000,
         { is_active: true }
       );
-      console.log(`[Stock] Carregadas ${allVariants.length} variantes`);
+      logger.log(`[Stock] Carregadas ${allVariants.length} variantes`);
       setLoadingProgress({ step: 'Carregando previsões de estoque...', current: 2, total: 3 });
 
       // 3) Supplier Sources - estoque futuro
@@ -164,7 +165,7 @@ export function useVariantStock() {
         100000,
         { is_active: true }
       );
-      console.log(`[Stock] Carregados ${allSupplierSources.length} supplier sources`);
+      logger.log(`[Stock] Carregados ${allSupplierSources.length} supplier sources`);
       setLoadingProgress({ step: 'Processando dados...', current: 3, total: 3 });
       
       // Agrupar variantes por product_id
@@ -371,7 +372,7 @@ export function useVariantStock() {
         const newAlerts = generateStockAlerts(summaries);
         setAlerts(newAlerts);
         
-        console.log(`[Stock] Processados ${summaries.length} produtos com ${futureEntries.length} previsões de estoque futuro`);
+        logger.log(`[Stock] Processados ${summaries.length} produtos com ${futureEntries.length} previsões de estoque futuro`);
       }
     } catch (error) {
       console.error('Erro ao buscar dados de estoque:', error);

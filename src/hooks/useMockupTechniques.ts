@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalRpc } from "@/lib/external-rpc";
 import { invokeExternalDb } from "@/lib/external-db";
+import { logger } from "@/lib/logger";
 
 interface Technique {
   id: string;
@@ -154,7 +155,7 @@ function useAllTechniqueDimensions(techniques: Technique[], shouldFetch: boolean
         codeMap.set(tech.code, { maxWidth, maxHeight });
       }
 
-      console.log('[useMockupTechniques] Loaded technique dimensions for', codeMap.size, 'techniques');
+      logger.log('[useMockupTechniques] Loaded technique dimensions for', codeMap.size, 'techniques');
       return codeMap;
     },
     enabled: shouldFetch,
