@@ -48,6 +48,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
+import { logger } from "@/lib/logger";
   Table,
   TableBody,
   TableCell,
@@ -294,7 +295,7 @@ function TechniqueMultiSelector({
         }
         return techList;
       } catch (err) {
-        console.warn('Error fetching techniques via v6:', err);
+        logger.warn('Error fetching techniques via v6:', err);
         return [];
       }
     },

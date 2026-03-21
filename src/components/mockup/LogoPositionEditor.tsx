@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { useProductBounds } from "@/hooks/useProductBounds";
 import type { TechniqueColorConfig } from "./techniqueColorUtils";
+import { logger } from "@/lib/logger";
 
 interface LogoPositionEditorProps {
   productImageUrl: string;
@@ -366,7 +367,7 @@ export function LogoPositionEditor({
     const physH = prodH || (prodW ? prodW * 2.5 : (effectiveMaxH ? effectiveMaxH * 2.5 : 20));
 
     if (!prodH && !prodW) {
-      console.warn('[LogoPositionEditor] Product physical dims missing — using estimates:', { physW, physH });
+      logger.warn('[LogoPositionEditor] Product physical dims missing — using estimates:', { physW, physH });
     }
 
     const scaleByW = (renderedImgW * productBounds.fractionX) / physW;

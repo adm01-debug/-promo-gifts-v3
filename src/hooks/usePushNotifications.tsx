@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from "@/lib/logger";
 
 interface NotificationPermissionState {
   permission: NotificationPermission;
@@ -28,7 +29,7 @@ export function usePushNotifications() {
 
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!state.isSupported) {
-      console.warn('Push notifications not supported');
+      logger.warn('Push notifications not supported');
       return false;
     }
 

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { exportToExcel, exportToPDF } from "@/utils/personalizationExport";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface ProductPersonalizationRulesProps {
   productId: string;
@@ -145,7 +146,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
           }],
         }));
       } catch (err) {
-        console.warn('Error fetching product rules via v6:', err);
+        logger.warn('Error fetching product rules via v6:', err);
         return null;
       }
     },
@@ -185,7 +186,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
           }],
         }));
       } catch (err) {
-        console.warn('Error fetching group rules via v6:', err);
+        logger.warn('Error fetching group rules via v6:', err);
         return null;
       }
     },

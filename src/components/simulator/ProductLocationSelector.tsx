@@ -44,6 +44,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalRpc } from "@/lib/external-rpc";
+import { logger } from "@/lib/logger";
 
 // Tipos
 interface ProductLocation {
@@ -143,7 +144,7 @@ export function ProductLocationSelector({
 
         return productLocations;
       } catch (err) {
-        console.warn("Error fetching product locations via v6:", err);
+        logger.warn("Error fetching product locations via v6:", err);
         return [];
       }
     },

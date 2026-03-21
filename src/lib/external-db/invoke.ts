@@ -3,6 +3,7 @@
  * Extraído de useExternalDatabase.ts para modularização.
  */
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from "@/lib/logger";
 
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
@@ -56,7 +57,7 @@ export async function invokeWithRetry(
     const msg = await extractFunctionErrorMessage(error);
     if (attempt < retries && isRetryableError(msg)) {
       const delay = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, attempt), 4000); // Cap at 4s
-      console.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
+      logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
       onRetry?.(attempt + 1, retries, delay);
       await new Promise(r => setTimeout(r, delay));
       continue;

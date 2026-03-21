@@ -1,4 +1,5 @@
 import { lazy, ComponentType } from 'react';
+import { logger } from "@/lib/logger";
 
 /**
  * Wrapper around React.lazy that retries on chunk loading failures.
@@ -26,14 +27,14 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
            error.message.includes('ChunkLoadError'));
         
         if (isChunkError) {
-          console.warn(`Chunk load failed (attempt ${i + 1}/${retries}), retrying...`);
+          logger.warn(`Chunk load failed (attempt ${i + 1}/${retries}), retrying...`);
           
           // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, interval));
           
           // On last retry, force reload the page to get fresh chunks
           if (i === retries - 1) {
-            console.warn('All retries failed, reloading page to get fresh chunks...');
+            logger.warn('All retries failed, reloading page to get fresh chunks...');
             window.location.reload();
             // Return a never-resolving promise since we're reloading
             return new Promise(() => {});

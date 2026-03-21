@@ -6,6 +6,7 @@
  * Enquanto não houver dados populados, retorna array vazio sem erro.
  */
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from "@/lib/logger";
 
 export interface PrintAreaFromProduct {
   id: string;
@@ -49,7 +50,7 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
     });
 
     if (error || !data?.success) {
-      console.warn('[fetchPrintAreas] Erro ao buscar produto:', error?.message || data?.error);
+      logger.warn('[fetchPrintAreas] Erro ao buscar produto:', error?.message || data?.error);
       return [];
     }
 
@@ -84,7 +85,7 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
       area_cm2: area.area_cm2 || null,
     }));
   } catch (err) {
-    console.warn('[fetchPrintAreas] Exceção:', err);
+    logger.warn('[fetchPrintAreas] Exceção:', err);
     return [];
   }
 }

@@ -8,6 +8,7 @@ import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
 import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
 import type {
+import { logger } from "@/lib/logger";
   SimulatorWizardState,
   WizardAction,
   TechniqueComparisonResult,
@@ -81,7 +82,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
             });
           }
         } catch (err) {
-          console.warn(`Erro ao recalcular preço para ${pers.technique.name}:`, err);
+          logger.warn(`Erro ao recalcular preço para ${pers.technique.name}:`, err);
         }
       }
       toast.success('Preços recalculados para nova tiragem!');
@@ -181,7 +182,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
             rawData: result as unknown as Record<string, unknown>,
           });
         } catch (err) {
-          console.warn(`Erro ao calcular preço para ${tech.techniqueName}:`, err);
+          logger.warn(`Erro ao calcular preço para ${tech.techniqueName}:`, err);
           allResults.push(createUnavailableResult(tech, 'Erro ao calcular preço'));
         }
       });

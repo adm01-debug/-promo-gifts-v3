@@ -12,6 +12,7 @@ import {
 } from '@/lib/personalization';
 import { TECNICAS_QUERY_KEYS } from './keys';
 import type { 
+import { logger } from "@/lib/logger";
   TabelaPrecoTecnica,
   TabelaPrecoFiltros,
   CustomizationPriceTableRaw,
@@ -159,10 +160,10 @@ export async function buscarTabelaAdequada(
   // Validar dimensões se fornecidas
   if (tabelaAdequada && larguraCm && alturaCm) {
     if (tabelaAdequada.larguraMaxCm && larguraCm > tabelaAdequada.larguraMaxCm) {
-      console.warn(`Largura ${larguraCm}cm excede máximo ${tabelaAdequada.larguraMaxCm}cm`);
+      logger.warn(`Largura ${larguraCm}cm excede máximo ${tabelaAdequada.larguraMaxCm}cm`);
     }
     if (tabelaAdequada.alturaMaxCm && alturaCm > tabelaAdequada.alturaMaxCm) {
-      console.warn(`Altura ${alturaCm}cm excede máximo ${tabelaAdequada.alturaMaxCm}cm`);
+      logger.warn(`Altura ${alturaCm}cm excede máximo ${tabelaAdequada.alturaMaxCm}cm`);
     }
   }
 

@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 // Tipos de role conforme app_role enum no banco
 type AppRole = "admin" | "manager" | "vendedor";
@@ -94,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq("user_id", userId)
             .then(({ error }) => {
               if (error && import.meta.env.DEV) {
-                console.warn("Failed to update last_login_at:", error.message);
+                logger.warn("Failed to update last_login_at:", error.message);
               }
             });
         }

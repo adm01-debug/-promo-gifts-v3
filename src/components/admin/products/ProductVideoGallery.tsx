@@ -42,6 +42,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+import { logger } from "@/lib/logger";
   Select,
   SelectContent,
   SelectItem,
@@ -363,7 +364,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         thumbFailed = true;
       }
     } catch (e) {
-      console.warn('Thumbnail generation failed:', e);
+      logger.warn('Thumbnail generation failed:', e);
       thumbFailed = true;
     }
 

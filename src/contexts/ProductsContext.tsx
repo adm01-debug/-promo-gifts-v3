@@ -4,6 +4,7 @@ import { fetchPromobrindProducts } from "@/lib/external-db";
 
 // Re-use the same mapping logic from useProducts
 import { mapPromobrindToProduct } from "@/hooks/useProducts";
+import { logger } from "@/lib/logger";
 
 interface ProductsContextType {
   /** Cached products (only those that have been requested) */
@@ -79,7 +80,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
           });
         }
       } catch (err) {
-        console.warn('[ProductsContext] Failed to fetch products by IDs:', err);
+        logger.warn('[ProductsContext] Failed to fetch products by IDs:', err);
       } finally {
         idsToFetch.forEach(id => fetchingRef.current.delete(id));
         if (mountedRef.current) setIsLoading(false);

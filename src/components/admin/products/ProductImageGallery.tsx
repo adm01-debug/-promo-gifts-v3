@@ -51,6 +51,7 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import {
+import { logger } from "@/lib/logger";
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -461,7 +462,7 @@ export function ProductImageGallery({
       return { ok: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao criar registro no BD externo';
-      console.warn('Erro ao criar registro no BD externo:', message);
+      logger.warn('Erro ao criar registro no BD externo:', message);
       return { ok: false, error: message };
     }
   }, [productId, variantMap, externalImages]);
@@ -600,7 +601,7 @@ export function ProductImageGallery({
       queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
       toast.success('Ordem salva automaticamente');
     } catch (err) {
-      console.warn('Erro ao persistir ordem:', err);
+      logger.warn('Erro ao persistir ordem:', err);
       toast.error('Erro ao salvar nova ordem');
     }
   }, [productId, extImageMap, queryClient]);

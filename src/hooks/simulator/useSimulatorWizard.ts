@@ -36,6 +36,7 @@ import {
 import { useWizardPricing } from './useWizardPricing';
 import { useWizardPersistence, loadSession, clearSession } from './useWizardPersistence';
 import { useUndoableReducer } from './useUndoRedo';
+import { logger } from "@/lib/logger";
 
 // ============================================
 // ESTADO INICIAL
@@ -270,7 +271,7 @@ export function useSimulatorWizard() {
           return mapV6LocationsToWizard(result.locations);
         }
       } catch (err) {
-        console.warn('Falha ao buscar opções de personalização v6:', err);
+        logger.warn('Falha ao buscar opções de personalização v6:', err);
       }
 
       // Sem dados do DB externo — retornar vazio

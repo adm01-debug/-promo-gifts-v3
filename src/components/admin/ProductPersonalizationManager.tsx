@@ -79,6 +79,7 @@ import {
 import { InlineEditField } from "./InlineEditField";
 import { ImageUploadButton } from "./ImageUploadButton";
 import { SortableItem } from "./SortableItem";
+import { logger } from "@/lib/logger";
 
 interface Product {
   id: string;
@@ -268,7 +269,7 @@ export function ProductPersonalizationManager() {
           .select("*")
           .in("component_id", componentIds);
         if (error) {
-          console.warn("[Admin] product_component_locations table not available:", error.message);
+          logger.warn("[Admin] product_component_locations table not available:", error.message);
           return [];
         }
         return data as Location[];
@@ -311,7 +312,7 @@ export function ProductPersonalizationManager() {
           `)
           .in("component_location_id", locationIds);
         if (error) {
-          console.warn("[Admin] product_component_location_techniques table not available:", error.message);
+          logger.warn("[Admin] product_component_location_techniques table not available:", error.message);
           return [];
         }
         return data as LocationTechnique[];
