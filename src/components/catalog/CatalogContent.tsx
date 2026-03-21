@@ -264,6 +264,7 @@ export function CatalogContent({
   isInCompare,
   onToggleCompare,
   canAddToCompare,
+  onLoadMore,
 }: CatalogContentProps) {
   if (shouldShowCatalogSkeleton) {
     return (
