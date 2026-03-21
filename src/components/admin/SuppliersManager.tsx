@@ -113,6 +113,7 @@ const ORGANIZATION_ID = '5db5aee1-064b-4ef4-9193-345dcd8274ea';
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 import { fetchAddressByCep } from '@/utils/viacep';
 import { fetchCnpjData } from '@/utils/cnpj-lookup';
+import { logger } from "@/lib/logger";
 
 export function SuppliersManager() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -279,7 +280,7 @@ export function SuppliersManager() {
           return;
         }
       } catch (err) {
-        console.warn('[SuppliersManager] Falha ao verificar duplicidade de CNPJ:', err);
+        logger.warn('[SuppliersManager] Falha ao verificar duplicidade de CNPJ:', err);
       }
     }
 
@@ -301,7 +302,7 @@ export function SuppliersManager() {
           return;
         }
       } catch (err) {
-        console.warn('[SuppliersManager] Falha ao verificar duplicidade de nome:', err);
+        logger.warn('[SuppliersManager] Falha ao verificar duplicidade de nome:', err);
       }
     }
 
@@ -323,7 +324,7 @@ export function SuppliersManager() {
           return;
         }
       } catch (err) {
-        console.warn('[SuppliersManager] Falha ao verificar duplicidade de nome fantasia:', err);
+        logger.warn('[SuppliersManager] Falha ao verificar duplicidade de nome fantasia:', err);
       }
     }
 

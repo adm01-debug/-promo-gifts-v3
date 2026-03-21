@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from "@/lib/logger";
 
 export interface RecentProduct {
   id: string;
@@ -40,7 +41,7 @@ export function useRecentProducts() {
         setRecentProducts(parsed.slice(0, MAX_RECENT_PRODUCTS));
       }
     } catch (e) {
-      console.warn('Error loading recent products:', e);
+      logger.warn('Error loading recent products:', e);
       setRecentProducts([]);
     }
   }, [user?.id]);
@@ -71,7 +72,7 @@ export function useRecentProducts() {
       try {
         localStorage.setItem(getStorageKey(user.id), JSON.stringify(updated));
       } catch (e) {
-        console.warn('Error saving recent products:', e);
+        logger.warn('Error saving recent products:', e);
       }
       
       return updated;
@@ -86,7 +87,7 @@ export function useRecentProducts() {
     try {
       localStorage.removeItem(getStorageKey(user.id));
     } catch (e) {
-      console.warn('Error clearing recent products:', e);
+      logger.warn('Error clearing recent products:', e);
     }
   }, [user?.id]);
 

@@ -19,6 +19,7 @@ export { extractFunctionErrorMessage } from '@/lib/external-db/invoke';
 import type { ExternalTable } from '@/lib/external-db/tables';
 import { invokeWithRetry, extractFunctionErrorMessage } from '@/lib/external-db/invoke';
 import type {
+import { logger } from "@/lib/logger";
   ExternalProduct,
   ExternalProductImage,
   ExternalProductVariant,
@@ -270,7 +271,7 @@ export function useExternalTags() {
 
 // Empresas/Clientes — MIGRADO para CRM externo
 export function useExternalCompanies() {
-  console.warn("[DEPRECATED] useExternalCompanies() → use useCrmCompanies() from '@/hooks/useCrmCompanies'");
+  logger.warn("[DEPRECATED] useExternalCompanies() → use useCrmCompanies() from '@/hooks/useCrmCompanies'");
   return useExternalDatabase<ExternalCompany>('companies');
 }
 

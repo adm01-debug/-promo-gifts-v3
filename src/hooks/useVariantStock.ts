@@ -99,7 +99,7 @@ async function fetchPaginatedFromBridge<T extends { id: string }>(
 
     // Trava anti-loop: primeiro ID repetido = offset ignorado
     if (records[0]?.id === lastFirstId) {
-      console.warn(`[Stock] Paginação ignorando offset em ${table}; parando.`);
+      logger.warn(`[Stock] Paginação ignorando offset em ${table}; parando.`);
       break;
     }
     lastFirstId = records[0]?.id;

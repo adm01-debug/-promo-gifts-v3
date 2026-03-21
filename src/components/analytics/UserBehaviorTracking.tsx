@@ -4,6 +4,7 @@
  */
 
 import React, { 
+import { logger } from "@/lib/logger";
   createContext, 
   useContext, 
   useCallback, 
@@ -56,7 +57,7 @@ export function AnalyticsProvider({
     setEvents([...eventsRef.current]);
     
     if (debug) {
-      console.log("[Analytics] Track:", name, properties);
+      logger.log("[Analytics] Track:", name, properties);
     }
     
     onEvent?.(event);
@@ -64,14 +65,14 @@ export function AnalyticsProvider({
 
   const identify = useCallback((userId: string, traits?: Record<string, unknown>) => {
     if (debug) {
-      console.log("[Analytics] Identify:", userId, traits);
+      logger.log("[Analytics] Identify:", userId, traits);
     }
     track("identify", { userId, ...traits });
   }, [debug, track]);
 
   const page = useCallback((name: string, properties?: Record<string, unknown>) => {
     if (debug) {
-      console.log("[Analytics] Page:", name, properties);
+      logger.log("[Analytics] Page:", name, properties);
     }
     track("page_view", { page: name, ...properties });
   }, [debug, track]);

@@ -1,3 +1,4 @@
+import { logger } from "@/lib/logger";
 /**
  * Product Bounds Detector
  * 
@@ -165,7 +166,7 @@ export async function detectProductBounds(
     return result;
 
   } catch (err) {
-    console.warn("[ProductBoundsDetector] Failed to detect bounds, using fallback:", err);
+    logger.warn("[ProductBoundsDetector] Failed to detect bounds, using fallback:", err);
     return DEFAULT_BOUNDS;
   }
 }

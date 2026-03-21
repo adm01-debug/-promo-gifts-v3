@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from "@/lib/logger";
 
 // =====================================================
 // TIPOS DO SISTEMA DE CORES (3 Níveis)
@@ -114,7 +115,7 @@ export function useColorSystem() {
         .order('sort_order');
 
       if (nuancesError) {
-        console.warn('Nuances não encontradas localmente:', nuancesError);
+        logger.warn('Nuances não encontradas localmente:', nuancesError);
       }
 
       return {

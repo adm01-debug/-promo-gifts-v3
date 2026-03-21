@@ -19,7 +19,8 @@ export { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete, invok
 export type { InvokeOptions, InvokeResult, BatchQuery, BatchResult, BridgeResponse, Operation } from './bridge';
 
 // Product types + helpers
-export { PromobrindProduct, getProductImageUrl, getProductPrice, getProductStock } from './product-types';
+export type { PromobrindProduct } from './product-types';
+export { getProductImageUrl, getProductPrice, getProductStock } from './product-types';
 export { PRODUCT_SELECT_FIELDS_WITH_SALE, PRODUCT_SELECT_FIELDS_LEGACY, PRODUCT_SELECT_FIELDS_DETAIL, shouldFallbackSelect } from './product-types';
 
 // Product fetch (full enrichment)

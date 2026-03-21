@@ -46,6 +46,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { maskCnpj, maskPhone, validateCnpj, maskCep, ESTADOS_BR } from '@/utils/masks';
 import { fetchAddressByCep } from '@/utils/viacep';
 import { fetchCnpjData } from '@/utils/cnpj-lookup';
+import { logger } from "@/lib/logger";
 
 interface NewSupplierDialogProps {
   onCreated: (id: string) => void;
@@ -195,7 +196,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
           return;
         }
       } catch (err) {
-        console.warn('[NewSupplierDialog] Falha ao verificar duplicidade de CNPJ:', err);
+        logger.warn('[NewSupplierDialog] Falha ao verificar duplicidade de CNPJ:', err);
         // Continua o cadastro se a verificação falhar (tolerância a erro)
       }
     }
@@ -216,7 +217,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         return;
       }
     } catch (err) {
-      console.warn('[NewSupplierDialog] Falha ao verificar duplicidade de nome:', err);
+      logger.warn('[NewSupplierDialog] Falha ao verificar duplicidade de nome:', err);
     }
 
     // === Verificação de duplicidade por Nome Fantasia (trading_name) ===
@@ -237,7 +238,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
           return;
         }
       } catch (err) {
-        console.warn('[NewSupplierDialog] Falha ao verificar duplicidade de nome fantasia:', err);
+        logger.warn('[NewSupplierDialog] Falha ao verificar duplicidade de nome fantasia:', err);
       }
     }
 

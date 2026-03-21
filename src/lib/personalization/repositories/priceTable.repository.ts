@@ -8,6 +8,7 @@
 import { invokeExternalDb } from '@/lib/external-db';
 import { transformRawToTabelas, rawToTabelaPrecoTecnica } from '../transformers';
 import type { TabelaPrecoTecnica, CustomizationPriceTableRaw } from '@/types/tecnica-unificada';
+import { logger } from "@/lib/logger";
 
 // ============================================
 // TYPES
@@ -161,10 +162,10 @@ export async function findBestMatch(params: {
   // Validar dimensões se fornecidas
   if (tabelaAdequada && widthCm && heightCm) {
     if (tabelaAdequada.larguraMaxCm && widthCm > tabelaAdequada.larguraMaxCm) {
-      console.warn(`Largura ${widthCm}cm excede máximo ${tabelaAdequada.larguraMaxCm}cm`);
+      logger.warn(`Largura ${widthCm}cm excede máximo ${tabelaAdequada.larguraMaxCm}cm`);
     }
     if (tabelaAdequada.alturaMaxCm && heightCm > tabelaAdequada.alturaMaxCm) {
-      console.warn(`Altura ${heightCm}cm excede máximo ${tabelaAdequada.alturaMaxCm}cm`);
+      logger.warn(`Altura ${heightCm}cm excede máximo ${tabelaAdequada.alturaMaxCm}cm`);
     }
   }
 

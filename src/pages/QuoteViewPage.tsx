@@ -42,6 +42,7 @@ function formatCNPJ(cnpj: string): string {
   return cnpj; // return as-is if not 14 digits
 }
 import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
+import { logger } from "@/lib/logger";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Rascunho", variant: "secondary" },
@@ -302,7 +303,7 @@ export default function QuoteViewPage() {
           });
 
         if (uploadError) {
-          console.warn("PDF upload failed, syncing without PDF:", uploadError);
+          logger.warn("PDF upload failed, syncing without PDF:", uploadError);
           logQuoteHistory(quote.id, "sync_pdf_error", `Falha no upload do PDF: ${uploadError.message}`).catch(() => {});
         } else {
           const { data: urlData } = supabase.storage
@@ -314,7 +315,7 @@ export default function QuoteViewPage() {
           }).catch(() => {});
         }
       } catch (pdfErr: any) {
-        console.warn("PDF generation failed, syncing without PDF:", pdfErr);
+        logger.warn("PDF generation failed, syncing without PDF:", pdfErr);
         logQuoteHistory(quote.id, "sync_pdf_error", `Erro ao gerar PDF: ${pdfErr?.message || "desconhecido"}`).catch(() => {});
       }
 
@@ -350,7 +351,7 @@ export default function QuoteViewPage() {
       try {
         await supabase.from("quotes").update(crmUpdates as any).eq("id", quote.id);
       } catch (updateErr) {
-        console.warn("Falha ao atualizar quote no CRM após sync:", updateErr);
+        logger.warn("Falha ao atualizar quote no CRM após sync:", updateErr);
       }
 
       // ── Log: sincronização concluída ────────────────────────────────────

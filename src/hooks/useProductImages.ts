@@ -15,6 +15,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb, type InvokeResult } from '@/lib/external-db';
+import { logger } from "@/lib/logger";
 
 // ============================================
 // TIPOS
@@ -69,7 +70,7 @@ export async function fetchProductImages(productId: string): Promise<ProductImag
 
     return result.records;
   } catch (err) {
-    console.warn('Erro ao buscar imagens do produto:', productId, err);
+    logger.warn('Erro ao buscar imagens do produto:', productId, err);
     return [];
   }
 }
@@ -107,7 +108,7 @@ export async function fetchProductImagesBatch(productIds: string[]): Promise<Map
 
     return imagesByProduct;
   } catch (err) {
-    console.warn('Erro ao buscar imagens em batch:', err);
+    logger.warn('Erro ao buscar imagens em batch:', err);
     return new Map();
   }
 }
@@ -131,7 +132,7 @@ export async function fetchPrimaryImage(productId: string): Promise<string | nul
 
     return result.records[0]?.url_cdn || null;
   } catch (err) {
-    console.warn('Erro ao buscar imagem principal:', productId, err);
+    logger.warn('Erro ao buscar imagem principal:', productId, err);
     return null;
   }
 }

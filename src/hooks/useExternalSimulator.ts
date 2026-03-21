@@ -1,6 +1,7 @@
 // Hook para buscar dados do simulador do banco externo Promobrind
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from "@/lib/logger";
 
 // ============================================
 // TIPOS
@@ -175,7 +176,7 @@ export function useExternalProductSearch(searchQuery: string) {
             }
           });
         } catch (err) {
-          console.warn('Não foi possível buscar imagens da tabela product_images:', err);
+          logger.warn('Não foi possível buscar imagens da tabela product_images:', err);
         }
       }
 
@@ -225,7 +226,7 @@ export function useExternalProduct(productId: string | null) {
             product.images = sortedImages.map(img => img.url_cdn);
           }
         } catch (err) {
-          console.warn('Não foi possível buscar imagens da tabela product_images:', err);
+          logger.warn('Não foi possível buscar imagens da tabela product_images:', err);
         }
       }
       
@@ -360,7 +361,7 @@ export function useExternalProductsList(options?: {
             }
           });
         } catch (err) {
-          console.warn('Não foi possível buscar imagens da tabela product_images:', err);
+          logger.warn('Não foi possível buscar imagens da tabela product_images:', err);
         }
       }
 

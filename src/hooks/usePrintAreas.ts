@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { 
+import { logger } from "@/lib/logger";
   PrintAreaWithTechniques, 
   ProductPrintArea,
   TecnicaGravacao,
@@ -38,7 +39,7 @@ async function fetchProductPrintAreas(productId: string): Promise<ProductPrintAr
     });
 
     if (error || !data?.success) {
-      console.warn('[usePrintAreas] Erro ao buscar produto:', error?.message || data?.error);
+      logger.warn('[usePrintAreas] Erro ao buscar produto:', error?.message || data?.error);
       return [];
     }
 
@@ -68,7 +69,7 @@ async function fetchProductPrintAreas(productId: string): Promise<ProductPrintAr
       allowed_technique_ids: area.allowed_technique_ids || area.technique_ids || [],
     }));
   } catch (err) {
-    console.warn('[usePrintAreas] Exceção ao buscar áreas:', err);
+    logger.warn('[usePrintAreas] Exceção ao buscar áreas:', err);
     return [];
   }
 }
