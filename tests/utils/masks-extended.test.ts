@@ -29,9 +29,13 @@ describe('maskPhone', () => {
     expect(maskPhone('11987654321')).toBe('(11) 98765-4321');
   });
 
-  it('should handle partial input', () => {
-    expect(maskPhone('11')).toBe('(11) ');
-    // maskPhone adds formatting as digits come in
+  it('should handle partial input (2 digits = no formatting yet)', () => {
+    // maskPhone only formats when there are 3+ digits after DDD
+    expect(maskPhone('11')).toBe('11');
+  });
+
+  it('should format when 3+ digits present', () => {
+    expect(maskPhone('119')).toBe('(11) 9');
   });
 });
 
