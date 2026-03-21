@@ -340,6 +340,7 @@ export function CatalogContent({
       filteredCount={filteredProducts.length}
       loadMoreRef={loadMoreRef}
       itemsPerPage={itemsPerPage}
+      onLoadMore={onLoadMore}
     />
   );
 }
