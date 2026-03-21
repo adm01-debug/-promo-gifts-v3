@@ -362,6 +362,7 @@ export function useCatalogState() {
     loadMoreRef,
 
     // Handlers
+    loadMore,
     resetFilters,
     handleViewProduct,
     handleShareProduct,

@@ -34,6 +34,7 @@ interface CatalogContentProps {
   isInCompare: (id: string) => boolean;
   onToggleCompare: (id: string) => { added: boolean; isFull: boolean };
   canAddToCompare: boolean;
+  onLoadMore?: () => void;
 }
 
 /** Virtualized grid that only renders visible rows */
