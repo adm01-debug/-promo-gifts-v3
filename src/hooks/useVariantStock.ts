@@ -153,7 +153,7 @@ export function useVariantStock() {
         100000,
         { is_active: true }
       );
-      console.log(`[Stock] Carregadas ${allVariants.length} variantes`);
+      logger.log(`[Stock] Carregadas ${allVariants.length} variantes`);
       setLoadingProgress({ step: 'Carregando previsões de estoque...', current: 2, total: 3 });
 
       // 3) Supplier Sources - estoque futuro
