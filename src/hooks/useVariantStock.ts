@@ -372,7 +372,7 @@ export function useVariantStock() {
         const newAlerts = generateStockAlerts(summaries);
         setAlerts(newAlerts);
         
-        console.log(`[Stock] Processados ${summaries.length} produtos com ${futureEntries.length} previsões de estoque futuro`);
+        logger.log(`[Stock] Processados ${summaries.length} produtos com ${futureEntries.length} previsões de estoque futuro`);
       }
     } catch (error) {
       console.error('Erro ao buscar dados de estoque:', error);

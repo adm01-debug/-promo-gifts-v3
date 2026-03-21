@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from "@/lib/external-db";
 import { useMultipleTechniquePricing } from "./useTechniquePricingOptions";
 import { useSimulatorPreferences } from "./useSimulatorPreferences";
