@@ -18,8 +18,8 @@ export { extractFunctionErrorMessage } from '@/lib/external-db/invoke';
 
 import type { ExternalTable } from '@/lib/external-db/tables';
 import { invokeWithRetry, extractFunctionErrorMessage } from '@/lib/external-db/invoke';
-import type {
 import { logger } from "@/lib/logger";
+import type {
   ExternalProduct,
   ExternalProductImage,
   ExternalProductVariant,
