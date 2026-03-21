@@ -43,7 +43,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProductRegistration, PRODUCT_FIELDS, BulkImportRow, ColumnMapping } from '@/hooks/useProductRegistration';
 import { cn } from '@/lib/utils';
-const getXLSX = () => import('xlsx');
+const getXLSX = () => import('@e965/xlsx');
 import Papa from 'papaparse';
 
 type ImportMode = 'template' | 'custom';

@@ -118,7 +118,7 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         setHeaders(h);
         setRawData(rows);
       } else if (['xlsx', 'xls'].includes(ext || '')) {
-        const XLSX = await import('xlsx');
+        const XLSX = await import('@e965/xlsx');
         const buffer = await file.arrayBuffer();
         const wb = XLSX.read(buffer, { type: 'array' });
         const sheet = wb.Sheets[wb.SheetNames[0]];
