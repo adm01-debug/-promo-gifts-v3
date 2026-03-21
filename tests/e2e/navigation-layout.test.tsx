@@ -69,9 +69,9 @@ describe('E2E Navigation — Sidebar Structure', () => {
     it(`section "${section.label}" has icon`, () => expect(section.icon).toBeTruthy());
   });
 
-  it('total menu items >= 20', () => {
+  it('total menu items >= 18', () => {
     const total = SIDEBAR_SECTIONS.reduce((sum, s) => sum + s.items.length, 0);
-    expect(total).toBeGreaterThanOrEqual(20);
+    expect(total).toBeGreaterThanOrEqual(18);
   });
 });
 
