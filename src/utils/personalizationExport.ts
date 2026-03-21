@@ -1,4 +1,4 @@
-const getXLSX = () => import("xlsx");
+const getXLSX = () => import("@e965/xlsx");
 const getJsPDF = () => import("jspdf").then(m => m.jsPDF);
 const getAutoTable = () => import("jspdf-autotable").then(m => m.default);
 

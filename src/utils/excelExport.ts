@@ -2,7 +2,7 @@
 
 import { formatDate, formatDateTime } from '@/lib/date-utils';
 
-const getXLSX = () => import('xlsx');
+const getXLSX = () => import('@e965/xlsx');
 
 /**
  * Configuração de exportação Excel
