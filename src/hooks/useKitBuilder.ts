@@ -111,16 +111,16 @@ export function useKitBuilder() {
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.boxes, boxFilters],
     queryFn: async () => {
-      // Busca produtos que podem ser caixas (categoria embalagem ou tem dimensões internas)
+      // Busca APENAS embalagens (product_type = 'packaging')
       const result = await invokeExternalDb<ExternalProductForKit>({
         table: 'products',
         operation: 'select',
         filters: { 
           active: true,
-          // Filtra por nome/sku se houver busca
+          product_type: 'packaging',
           ...(boxFilters.search ? { name: boxFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, internal_width_cm, internal_height_cm, internal_length_cm, box_width_cm, box_height_cm, box_length_cm, category_id',
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, internal_width_cm, internal_height_cm, internal_length_cm, box_width_cm, box_height_cm, box_length_cm, category_id',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
       });
@@ -145,14 +145,16 @@ export function useKitBuilder() {
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.items, itemFilters],
     queryFn: async () => {
+      // Busca APENAS produtos (exclui embalagens)
       const result = await invokeExternalDb<ExternalProductForKit>({
         table: 'products',
         operation: 'select',
         filters: { 
           active: true,
+          product_type: 'product',
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, box_width_cm, box_height_cm, box_length_cm, category_id',
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, box_width_cm, box_height_cm, box_length_cm, category_id',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
       });
