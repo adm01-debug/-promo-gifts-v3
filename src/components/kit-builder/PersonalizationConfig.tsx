@@ -4,7 +4,7 @@
  * Integrado com técnicas reais do banco externo via useProductCustomizationOptions
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Palette, Package, ChevronDown, ChevronUp, Check, Settings, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
