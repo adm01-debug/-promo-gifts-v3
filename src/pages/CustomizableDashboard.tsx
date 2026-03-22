@@ -105,6 +105,9 @@ export function CustomizableDashboard() {
         {/* Widget de Próximas Datas Comemorativas */}
         <UpcomingDatesWidget variant="compact" daysAhead={60} maxItems={6} />
 
+        {/* Kits Recentes */}
+        <RecentKitsWidget />
+
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={widgets.map(w => w.id)} strategy={verticalListSortingStrategy}>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
