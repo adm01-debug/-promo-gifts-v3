@@ -327,9 +327,9 @@ export function CompanyContactSelector({
             name: getCompanyDisplayName(c),
             razao_social: c.razao_social,
             nome_fantasia: c.nome_fantasia,
-            ramo_atividade: (c as any).ramo_atividade || null,
+            ramo_atividade: c.ramo_atividade || null,
             cnpj: c.cnpj,
-            logo_url: (c as any).logo_url || null,
+            logo_url: c.logo_url || null,
           });
         }
       }
