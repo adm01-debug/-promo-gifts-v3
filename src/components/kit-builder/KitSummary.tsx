@@ -4,7 +4,7 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image } from 'lucide-react';
+import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useKitStockValidation } from '@/hooks/useKitStockValidation';
 import { cn } from '@/lib/utils';
 import {
   formatCurrency,
@@ -52,6 +53,9 @@ export function KitSummary({
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const personalizedCount = (personalization.box.enabled ? 1 : 0) +
     Object.values(personalization.items).filter(p => p.enabled).length;
+
+  // Stock validation
+  const { alerts: stockAlerts, isLoading: isLoadingStock, stockByProduct } = useKitStockValidation(items, box, kitQuantity);
 
   const handleOpenMockup = (productId: string, techniqueName?: string) => {
     const params = new URLSearchParams();
@@ -204,12 +208,24 @@ export function KitSummary({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="font-mono">{item.sku}</span>
-                      {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
-                      {item.material ? ` • ${item.material}` : ''}
-                      {item.isOptional && <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">Opcional</Badge>}
-                    </p>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-mono">{item.sku}</span>
+                        {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
+                        {item.material ? ` • ${item.material}` : ''}
+                        {item.isOptional && <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">Opcional</Badge>}
+                      </p>
+                      {stockByProduct.has(item.id) && (
+                        <Badge
+                          variant={stockByProduct.get(item.id)! >= item.quantity * kitQuantity ? 'secondary' : 'destructive'}
+                          className="text-[10px] px-1.5 py-0"
+                        >
+                          {stockByProduct.get(item.id)! >= item.quantity * kitQuantity
+                            ? `${stockByProduct.get(item.id)} em estoque`
+                            : `⚠ ${stockByProduct.get(item.id)} disponível`}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {/* Botão Gerar Mockup */}
@@ -308,6 +324,35 @@ export function KitSummary({
           </div>
         </CardContent>
       </Card>
+
+      {/* Alertas de Estoque */}
+      {stockAlerts.length > 0 && (
+        <Card className="border-warning bg-warning/5">
+          <CardContent className="pt-6">
+            <h4 className="font-medium text-warning flex items-center gap-2 mb-3">
+              <AlertTriangle className="h-4 w-4" />
+              Alerta de Estoque ({stockAlerts.length} {stockAlerts.length === 1 ? 'item' : 'itens'})
+            </h4>
+            <ul className="space-y-2">
+              {stockAlerts.map(alert => (
+                <li key={alert.itemId} className="text-sm flex items-center justify-between bg-background/50 rounded-lg p-2">
+                  <div>
+                    <p className="font-medium">{alert.isBox ? '📦 ' : ''}{alert.itemName}</p>
+                    <p className="text-xs text-muted-foreground font-mono">{alert.sku}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm">
+                      <span className="text-destructive font-bold">{alert.available}</span>
+                      <span className="text-muted-foreground"> / {alert.required} necessários</span>
+                    </p>
+                    <p className="text-xs text-destructive">Faltam {alert.deficit} un.</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Validação */}
       {!kitState.isValid && (
