@@ -43,8 +43,21 @@ const KIT_BUILDER_KEYS = {
 // TRANSFORMADORES
 // ============================================
 
+function resolveProductMaterial(product: ExternalProductForKit): string | undefined {
+  if (product.material) return product.material;
+  if (!Array.isArray(product.materials) || product.materials.length === 0) return undefined;
+
+  const firstMaterial = product.materials[0];
+  if (typeof firstMaterial === 'string') return firstMaterial;
+  if (firstMaterial && typeof firstMaterial === 'object') {
+    const candidate = (firstMaterial as { name?: string; material?: string }).name ?? (firstMaterial as { name?: string; material?: string }).material;
+    return typeof candidate === 'string' && candidate.trim() ? candidate : undefined;
+  }
+
+  return undefined;
+}
+
 function transformToKitBox(product: ExternalProductForKit): KitBox | null {
-  // Try mm dimensions first (from product_kit_components), then cm
   let dimensions: { width: number; height: number; depth: number } | null = null;
 
   const wMm = mmToCm(product.width_mm);
@@ -72,13 +85,12 @@ function transformToKitBox(product: ExternalProductForKit): KitBox | null {
     internalHeight: dimensions.height,
     internalDepth: dimensions.depth,
     internalVolume: volume,
-    material: product.material || undefined,
+    material: resolveProductMaterial(product),
     weight: product.weight_g ?? undefined,
   };
 }
 
 function transformToKitItem(product: ExternalProductForKit, category?: string): KitItem {
-  // Try mm dimensions first
   let dimensions: { width: number; height: number; depth: number } | null = null;
 
   const wMm = mmToCm(product.width_mm);
@@ -105,14 +117,12 @@ function transformToKitItem(product: ExternalProductForKit, category?: string): 
     depth: dimensions.depth,
     volume,
     weight: product.weight_g ?? undefined,
-    material: product.material || undefined,
+    material: resolveProductMaterial(product),
     category,
     quantity: 1,
-    isOptional: product.is_optional ?? false,
-    isReplaceable: product.is_replaceable ?? false,
-    allowsPersonalization: product.allows_personalization ?? true,
-    personalizationNotes: product.personalization_notes || undefined,
-    allowedVariantIds: product.allowed_variant_ids || undefined,
+    isOptional: false,
+    isReplaceable: false,
+    allowsPersonalization: true,
   };
 }
 

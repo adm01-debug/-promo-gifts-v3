@@ -198,6 +198,9 @@ export function parseDimensionsString(
 export function extractProductDimensions(
   product: {
     dimensions?: string | { width_cm?: number; height_cm?: number; length_cm?: number; diameter_cm?: number } | null;
+    width_cm?: number | null;
+    height_cm?: number | null;
+    length_cm?: number | null;
     box_length_cm?: number | null;
     box_width_cm?: number | null;
     box_height_cm?: number | null;
