@@ -133,6 +133,8 @@ export function SuppliersManager() {
   const [pixNumero, setPixNumero] = useState('');
   const [pixFavorecido, setPixFavorecido] = useState('');
   const [pixDataCadastro, setPixDataCadastro] = useState('');
+  const [foneFixo1, setFoneFixo1] = useState('');
+  const [foneFixo2, setFoneFixo2] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
@@ -245,6 +247,15 @@ export function SuppliersManager() {
     } else {
       setFormaPagamento([]);
       setPixTipo(''); setPixNumero(''); setPixFavorecido(''); setPixDataCadastro('');
+    }
+
+    // Parse landline phones from notes
+    const foneMatch = notesStr.match(/\[Fones Fixos: 01: (.*?), 02: (.*?)\]/);
+    if (foneMatch) {
+      setFoneFixo1(foneMatch[1] !== '-' ? foneMatch[1] : '');
+      setFoneFixo2(foneMatch[2] !== '-' ? foneMatch[2] : '');
+    } else {
+      setFoneFixo1(''); setFoneFixo2('');
     }
 
     setIsNew(false);
@@ -368,6 +379,7 @@ export function SuppliersManager() {
             ?.replace(/\[Contatos adicionais:.*?\]/g, '')
             ?.replace(/\[Redes Sociais:.*?\]/g, '')
             ?.replace(/\[Financeiro:.*?\]/g, '')
+            ?.replace(/\[Fones Fixos:.*?\]/g, '')
             ?.trim();
           if (userNotes) parts.push(userNotes);
           const c0 = contacts[0];
@@ -383,6 +395,10 @@ export function SuppliersManager() {
           if (formaPagamento.length > 0 || pixTipo || pixNumero || pixFavorecido) {
             const now_date = new Date().toISOString().split('T')[0];
             parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX Tipo: ${pixTipo || '-'}, PIX Número: ${pixNumero || '-'}, PIX Favorecido: ${pixFavorecido || '-'}, PIX Atualizado: ${now_date}]`);
+          }
+          // Persist landline phones
+          if (foneFixo1.trim() || foneFixo2.trim()) {
+            parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
           }
           return parts.join('\n') || null;
         })(),
@@ -770,6 +786,18 @@ export function SuppliersManager() {
                   <div>
                     <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
                     <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
+                  </div>
+                </div>
+
+                {/* Fone Fixo 01 + Fone Fixo 02 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Fone Fixo 01</Label>
+                    <Input value={foneFixo1} onChange={e => setFoneFixo1(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Fone Fixo 02</Label>
+                    <Input value={foneFixo2} onChange={e => setFoneFixo2(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} />
                   </div>
                 </div>
 
