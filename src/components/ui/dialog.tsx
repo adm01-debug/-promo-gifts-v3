@@ -6,42 +6,6 @@ import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
 
-// Focus trap helper - ensures focus stays within modal
-const useFocusTrap = (isOpen: boolean, containerRef: React.RefObject<HTMLElement>) => {
-  React.useEffect(() => {
-    if (!isOpen || !containerRef.current) return;
-
-    const container = containerRef.current;
-    const focusableElements = container.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    const firstElement = focusableElements[0];
-    const lastElement = focusableElements[focusableElements.length - 1];
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement?.focus();
-        }
-      } else {
-        if (document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement?.focus();
-        }
-      }
-    };
-
-    // Auto-focus first element
-    firstElement?.focus();
-    
-    container.addEventListener('keydown', handleKeyDown);
-    return () => container.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, containerRef]);
-};
-
 const DialogTrigger = DialogPrimitive.Trigger;
 
 const DialogPortal = DialogPrimitive.Portal;
@@ -64,12 +28,6 @@ const DialogOverlay = React.forwardRef<
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
-  /** Auto-focus first focusable element on open */
-  autoFocus?: boolean;
-  /** Trap focus within dialog */
-  trapFocus?: boolean;
-  /** Close on Escape key */
-  closeOnEscape?: boolean;
   /** Show close button */
   showCloseButton?: boolean;
 }
@@ -80,73 +38,21 @@ const DialogContent = React.forwardRef<
 >(({ 
   className, 
   children, 
-  autoFocus = true,
-  trapFocus = true,
-  closeOnEscape = true,
   showCloseButton = true,
   ...props 
 }, ref) => {
-  const contentRef = React.useRef<HTMLDivElement>(null);
-  const [isOpen, setIsOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    // Detect open state from data attribute
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === 'data-state') {
-          const state = contentRef.current?.getAttribute('data-state');
-          setIsOpen(state === 'open');
-        }
-      });
-    });
-
-    if (contentRef.current) {
-      observer.observe(contentRef.current, { attributes: true });
-      setIsOpen(contentRef.current.getAttribute('data-state') === 'open');
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Use focus trap when enabled
-  useFocusTrap(trapFocus && isOpen, contentRef);
-
-  // Handle escape key
-  React.useEffect(() => {
-    if (!closeOnEscape || !isOpen) return;
-    
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        const closeButton = contentRef.current?.querySelector('[data-radix-collection-item]') as HTMLElement;
-        closeButton?.click();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [closeOnEscape, isOpen]);
-
-  // NOTE: Removed manual body overflow lock — Radix Dialog handles scroll lock internally.
-  // The manual implementation caused scroll to permanently break when dialogs
-  // opened/closed in sequence or when other components cleared the overflow.
-
+  // Radix Dialog natively handles: focus trap, escape key, scroll lock.
+  // We only add a lightweight cleanup on close to prevent stale scroll locks.
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
-        ref={(node) => {
-          // Merge refs
-          (contentRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-          if (typeof ref === 'function') ref(node);
-          else if (ref) ref.current = node;
-        }}
-        // Force scroll restoration when dialog closes
-        onCloseAutoFocus={(e) => {
-          // Small delay to let Radix cleanup finish, then force-restore scroll
+        ref={ref}
+        onCloseAutoFocus={() => {
+          // Ensure scroll is restored after dialog closes
           requestAnimationFrame(() => {
-            document.documentElement.removeAttribute('data-scroll-locked');
-            document.body.removeAttribute('data-scroll-locked');
             for (const el of [document.documentElement, document.body]) {
+              el.removeAttribute('data-scroll-locked');
               el.style.overflow = '';
               el.style.overflowY = '';
               el.style.paddingRight = '';
