@@ -208,6 +208,7 @@ const App = () => {
                                         <Route path="/estoque" element={<StockDashboardPage />} />
                                         <Route path="/busca-preco" element={<AdvancedPriceSearchPage />} />
                                         <Route path="/montar-kit" element={<KitBuilderPage />} />
+                                        <Route path="/meus-kits" element={<MeusKitsPage />} />
                                         <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
                                         <Route path="/mockup-generator" element={<MockupGenerator />} />
                                         <Route path="/magic-up" element={<MagicUp />} />
