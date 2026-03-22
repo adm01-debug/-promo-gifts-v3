@@ -76,7 +76,7 @@ export default function QuoteBuilderPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => s.navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={() => guardNavigation(() => s.navigate(-1))}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
