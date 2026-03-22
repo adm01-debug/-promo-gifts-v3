@@ -60,7 +60,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
     featured: false,
     newArrival: false,
     onSale: false,
-    isKit: false,
+    isKit: p.is_kit ?? false,
     category: {
       id: parseInt(p.category_id || p.main_category_id || "0") || 0,
       name: "Sem categoria",
