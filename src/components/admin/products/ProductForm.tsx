@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
 import { CategorySelect } from './CategorySelect';
 import { SupplierSelect } from './SupplierSelect';
-import { ProductImageGallery } from './ProductImageGallery';
+import { ProductImageGallery } from './image-gallery';
 import { ProductVideoGallery } from './ProductVideoGallery';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
