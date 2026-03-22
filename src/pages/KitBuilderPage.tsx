@@ -61,6 +61,7 @@ export default function KitBuilderPage() {
     nextStep,
     prevStep,
     resetKit,
+    loadKit,
   } = useKitBuilder();
 
   const { saveKit, isSaving } = useCustomKitPersistence();
