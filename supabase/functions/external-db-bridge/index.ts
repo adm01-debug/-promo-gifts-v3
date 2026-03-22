@@ -575,8 +575,10 @@ Deno.serve(async (req) => {
           const qSelect = (q.select as string) || '*';
           const qFilters = q.filters as Record<string, unknown> | undefined;
           const qOrderBy = q.orderBy as { column: string; ascending?: boolean } | undefined;
-          const qLimit = (q.limit as number) || 500;
+          const isHeavyBatchTable = ['products', 'product_images', 'product_variants', 'color_variations', 'product_categories', 'product_category_assignments'].includes(qTable);
+          const rawLimit = (q.limit as number) || 500;
           const qOffset = (q.offset as number) || 0;
+          const qLimit = isHeavyBatchTable && qOffset >= 500 ? Math.min(rawLimit, 250) : rawLimit;
           const qCacheKey = q.cacheKey as string | undefined;
 
           // Check in-memory cache first
@@ -1070,9 +1072,12 @@ Deno.serve(async (req) => {
         }
         // Não aplicar ordenação default - nem todas as tabelas têm created_at
 
-        // Paginação (default compatível)
-        const safeLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
+        // Paginação adaptativa: reduz page size em offsets altos para evitar statement timeout
+        const requestedLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
         const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
+        const safeLimit = isHeavyTable && safeOffset >= 500
+          ? Math.min(requestedLimit, 250)  // Reduzir para 250 em offsets altos de tabelas pesadas
+          : requestedLimit;
         query = query.range(safeOffset, safeOffset + safeLimit - 1);
         
         const selectStart = performance.now();
