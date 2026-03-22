@@ -554,7 +554,6 @@ export function trackABTestConversion(testName: string, conversionName: string) 
   const variant = localStorage.getItem(storageKey);
   
   if (variant) {
-    // TODO: Integrar com analytics real quando disponível
-    // Silenciado: A/B Test conversion tracking
+    logger.log(`[A/B] Conversion: test=${testName}, variant=${variant}, conversion=${conversionName}`);
   }
 }
