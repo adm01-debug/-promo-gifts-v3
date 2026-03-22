@@ -56,6 +56,7 @@ import { format, differenceInDays, differenceInHours, startOfMonth, endOfMonth, 
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
 
 interface Client {
   id: string;
