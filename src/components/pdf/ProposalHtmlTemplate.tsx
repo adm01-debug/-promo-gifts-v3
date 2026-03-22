@@ -26,6 +26,8 @@ export interface ProposalItem {
   imageUrl?: string;
   material?: string;
   personalizations?: ProposalItemPersonalization[];
+  kit_group_id?: string | null;
+  kit_name?: string | null;
 }
 
 export interface ProposalTemplateData {
