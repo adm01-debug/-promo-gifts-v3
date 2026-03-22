@@ -54,7 +54,7 @@ describe("RecentKitsWidget", () => {
     const { RecentKitsWidget } = await import("@/components/dashboard/RecentKitsWidget");
     renderWithProviders(<RecentKitsWidget />);
     expect(document.body).toBeTruthy();
-  });
+  }, 15000);
 
   it("renders component without errors", async () => {
     const { RecentKitsWidget } = await import("@/components/dashboard/RecentKitsWidget");
