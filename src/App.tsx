@@ -70,6 +70,7 @@ const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
 
 // Orders Pages
 const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
+const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
 // User Pages
 const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
