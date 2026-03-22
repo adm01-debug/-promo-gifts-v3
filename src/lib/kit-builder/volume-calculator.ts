@@ -235,6 +235,19 @@ export function extractProductDimensions(
     };
   }
 
+  // Depois tenta campos diretos em cm
+  if (
+    product.width_cm &&
+    product.length_cm &&
+    product.height_cm
+  ) {
+    return {
+      width: product.width_cm,
+      height: product.height_cm,
+      depth: product.length_cm,
+    };
+  }
+
   // Tenta JSONB dimensions (formato do banco externo)
   if (product.dimensions && typeof product.dimensions === 'object') {
     const dims = product.dimensions as { width_cm?: number; height_cm?: number; length_cm?: number };
@@ -245,7 +258,6 @@ export function extractProductDimensions(
         depth: dims.length_cm,
       };
     }
-    // Fallback: se só tem width e height, usa length_cm ou estima
     if (dims.width_cm && dims.height_cm) {
       return {
         width: dims.width_cm,

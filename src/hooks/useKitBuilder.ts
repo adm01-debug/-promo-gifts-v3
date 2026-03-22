@@ -197,7 +197,7 @@ export function useKitBuilder() {
           product_type: 'product',
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, material, width_mm, height_mm, length_mm, allows_personalization, personalization_notes, is_optional, is_replaceable',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',

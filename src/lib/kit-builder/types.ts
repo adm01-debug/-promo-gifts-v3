@@ -172,16 +172,21 @@ export interface ExternalProductForKit {
   dimensions?: string | { width_cm?: number; height_cm?: number; length_cm?: number; diameter_cm?: number; shape_type?: string } | null;
   category_id?: string | null;
   colors?: any[] | null;
+  materials?: any[] | null;
   // Tipo do produto (product, packaging, etc.)
   product_type?: string | null;
   // Peso em gramas
   weight_g?: number | null;
-  // Material
+  // Material legado
   material?: string | null;
-  // Dimensões em mm (do product_kit_components)
+  // Dimensões em mm (compatibilidade)
   length_mm?: number | null;
   width_mm?: number | null;
   height_mm?: number | null;
+  // Dimensões diretas em cm
+  length_cm?: number | null;
+  width_cm?: number | null;
+  height_cm?: number | null;
   // Campos específicos para caixas
   box_length_cm?: number | null;
   box_width_cm?: number | null;
