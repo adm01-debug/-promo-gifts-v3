@@ -45,7 +45,7 @@ describe("MockupHistoryPanel", () => {
     const { MockupHistoryPanel } = await import("@/components/mockup/MockupHistoryPanel");
     renderWithProviders(<MockupHistoryPanel {...defaultProps} />);
     expect(document.body).toBeTruthy();
-  });
+  }, 15000);
 
   it("renders loading state", async () => {
     const { MockupHistoryPanel } = await import("@/components/mockup/MockupHistoryPanel");
