@@ -72,7 +72,7 @@ export async function fetchPromobrindProducts(options?: {
     products = result.records;
     totalCount = result.count;
   } else {
-    const BASE_PAGE_SIZE = 500;
+    const BASE_PAGE_SIZE = 200;
     let offset = 0;
     let loopCount: number | null = null;
     let consecutiveErrors = 0;

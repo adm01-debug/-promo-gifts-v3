@@ -576,9 +576,16 @@ Deno.serve(async (req) => {
           const qFilters = q.filters as Record<string, unknown> | undefined;
           const qOrderBy = q.orderBy as { column: string; ascending?: boolean } | undefined;
           const isHeavyBatchTable = ['products', 'product_images', 'product_variants', 'color_variations', 'product_categories', 'product_category_assignments'].includes(qTable);
+          const qHasSearchFilter = !!(qFilters && '_search' in qFilters);
           const rawLimit = (q.limit as number) || 500;
           const qOffset = (q.offset as number) || 0;
-          const qLimit = isHeavyBatchTable && qOffset >= 500 ? Math.min(rawLimit, 250) : rawLimit;
+          const qLimit = !isHeavyBatchTable
+            ? rawLimit
+            : qHasSearchFilter
+              ? Math.min(rawLimit, 120)
+              : qOffset >= 1000
+                ? Math.min(rawLimit, 125)
+                : Math.min(rawLimit, 200);
           const qCacheKey = q.cacheKey as string | undefined;
 
           // Check in-memory cache first
