@@ -203,6 +203,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
       toast.error('Nome do fornecedor é obrigatório');
       return;
     }
+    const dupPix = hasPixDuplicate(pixKeys);
+    if (dupPix) {
+      toast.error(`Chave PIX duplicada: "${dupPix}". Remova a duplicata antes de salvar.`);
+      return;
+    }
     const cnpjDigits = cnpj.replace(/\D/g, '');
     if (cnpjDigits.length > 0 && !validateCnpj(cnpjDigits)) {
       setCnpjError('CNPJ inválido');

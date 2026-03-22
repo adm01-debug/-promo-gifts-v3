@@ -321,6 +321,11 @@ export function SuppliersManager() {
       toast.error('Nome é obrigatório');
       return;
     }
+    const dupPix = hasPixDuplicate(pixKeys);
+    if (dupPix) {
+      toast.error(`Chave PIX duplicada: "${dupPix}". Remova a duplicata antes de salvar.`);
+      return;
+    }
     const cnpjRaw = editingSupplier.cnpj?.replace(/\D/g, '') || '';
     if (cnpjRaw.length > 0 && !validateCnpj(cnpjRaw)) {
       toast.error('CNPJ informado é inválido');
