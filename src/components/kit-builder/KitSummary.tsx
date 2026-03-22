@@ -446,6 +446,9 @@ export function KitSummary({
         </Card>
       )}
 
+      {/* Freight Estimator */}
+      <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
+
       {/* Validação */}
       {!kitState.isValid && (
         <Card className="border-destructive bg-destructive/5">
