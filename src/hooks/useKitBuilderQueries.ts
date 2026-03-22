@@ -60,42 +60,41 @@ export function useKitBuilderQueries() {
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
     queryKey: ['kit-builder', 'boxes', debouncedBoxSearch, boxDimFilters.minWidth ?? '', boxDimFilters.minHeight ?? '', boxDimFilters.minDepth ?? ''],
     queryFn: async () => {
-      const filters: Record<string, unknown> = {
-        active: true,
-      };
-      if (debouncedBoxSearch) {
-        filters._search = debouncedBoxSearch;
+      try {
+        const filters: Record<string, unknown> = { active: true };
+        if (debouncedBoxSearch) filters._search = debouncedBoxSearch;
+
+        const result = await invokeExternalDb<ExternalProductForKit>({
+          table: 'products',
+          operation: 'select',
+          filters,
+          select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm, packing_type, packing_classification',
+          limit: 200,
+          orderBy: { column: 'name', ascending: true },
+          countMode: 'none',
+        });
+
+        const boxes = result.records
+          .filter(p => {
+            const pt = (p.packing_type || '').toLowerCase();
+            return pt.includes('caixa') || pt.includes('embalagem') || pt.includes('box');
+          })
+          .map(p => transformToKitBox(p))
+          .filter((box): box is KitBox => box !== null);
+
+        if (boxes.length === 0) {
+          console.info('[KitBuilder] No boxes from external DB, using mock data');
+          return filterBoxes(MOCK_BOXES, debouncedBoxSearch);
+        }
+
+        return filterBoxes(boxes, null);
+      } catch (err) {
+        console.warn('[KitBuilder] External DB unavailable for boxes, using mock data', err);
+        return filterBoxes(MOCK_BOXES, debouncedBoxSearch);
       }
-
-      const result = await invokeExternalDb<ExternalProductForKit>({
-        table: 'products',
-        operation: 'select',
-        filters,
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm, packing_type, packing_classification',
-        limit: 200,
-        orderBy: { column: 'name', ascending: true },
-        countMode: 'none',
-      });
-
-      // Filter products that can serve as boxes:
-      // - packing_type contains "Caixa" (case-insensitive)
-      // - OR packing_classification is "commercial" and has dimensions
-      const boxes = result.records
-        .filter(p => {
-          const pt = (p.packing_type || '').toLowerCase();
-          return pt.includes('caixa') || pt.includes('embalagem') || pt.includes('box');
-        })
-        .map(p => transformToKitBox(p))
-        .filter((box): box is KitBox => box !== null);
-
-      return boxes.filter(box => {
-        if (boxDimFilters.minWidth && box.internalWidth < boxDimFilters.minWidth) return false;
-        if (boxDimFilters.minHeight && box.internalHeight < boxDimFilters.minHeight) return false;
-        if (boxDimFilters.minDepth && box.internalDepth < boxDimFilters.minDepth) return false;
-        return true;
-      });
     },
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   // Query: items
