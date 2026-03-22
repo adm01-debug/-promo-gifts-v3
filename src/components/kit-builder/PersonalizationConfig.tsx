@@ -1,10 +1,11 @@
 /**
  * Personalization Config
  * Configuração de personalização para caixa e itens
+ * Integrado com técnicas reais do banco externo via useProductCustomizationOptions
  */
 
-import { useState } from 'react';
-import { Palette, Package, ChevronDown, ChevronUp, Check, Settings } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Palette, Package, ChevronDown, ChevronUp, Check, Settings, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -26,39 +27,101 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/kit-builder';
 import type { KitBox, KitItem, KitItemPersonalization } from '@/lib/kit-builder';
-
-// Técnicas mock - em produção viriam do banco
-const AVAILABLE_TECHNIQUES = [
-  { id: 'silk', name: 'Serigrafia', code: 'SILK', basePrice: 2.5 },
-  { id: 'laser', name: 'Gravação a Laser', code: 'LASER', basePrice: 3.0 },
-  { id: 'uv', name: 'Impressão UV', code: 'UV', basePrice: 4.0 },
-  { id: 'transfer', name: 'Transfer', code: 'TRANSFER', basePrice: 2.0 },
-  { id: 'bordado', name: 'Bordado', code: 'BORDADO', basePrice: 5.0 },
-];
+import { useProductCustomizationOptions } from '@/hooks/useProductCustomizationOptions';
+import { useCustomizationPriceReactive } from '@/hooks/useCustomizationPrice';
+import type { GravacaoLocation } from '@/types/customization';
 
 interface PersonalizationConfigProps {
   box: KitBox | null;
   items: KitItem[];
+  kitQuantity?: number;
   boxPersonalization: KitItemPersonalization;
   itemPersonalizations: Record<string, KitItemPersonalization>;
   onBoxPersonalizationChange: (config: KitItemPersonalization) => void;
   onItemPersonalizationChange: (itemId: string, config: KitItemPersonalization) => void;
 }
 
+/** Flattened technique with location info */
+interface FlatTechnique {
+  technique_id: string;
+  tecnica_nome: string;
+  grupo_tecnica: string;
+  codigo_tabela: string;
+  location_name: string;
+  location_code: string;
+  max_cores: number;
+  usa_dimensao: boolean;
+  efetiva_largura_max: number;
+  efetiva_altura_max: number;
+}
+
+function flattenTechniques(locations: GravacaoLocation[]): FlatTechnique[] {
+  const result: FlatTechnique[] = [];
+  for (const loc of locations) {
+    for (const tech of loc.options) {
+      result.push({
+        technique_id: tech.technique_id,
+        tecnica_nome: tech.tecnica_nome,
+        grupo_tecnica: tech.grupo_tecnica,
+        codigo_tabela: tech.codigo_tabela,
+        location_name: loc.location_name,
+        location_code: loc.location_code,
+        max_cores: tech.max_cores,
+        usa_dimensao: tech.usa_dimensao,
+        efetiva_largura_max: tech.efetiva_largura_max,
+        efetiva_altura_max: tech.efetiva_altura_max,
+      });
+    }
+  }
+  return result;
+}
+
+// ============================================
+// Card de personalização — busca técnicas internamente
+// ============================================
+
 interface ItemPersonalizationCardProps {
-  item: KitItem | { id: 'box'; name: string; imageUrl: string | null };
+  productId: string;
+  displayName: string;
+  imageUrl: string | null;
   personalization: KitItemPersonalization;
   onChange: (config: KitItemPersonalization) => void;
   isBox?: boolean;
+  kitQuantity: number;
 }
 
 function ItemPersonalizationCard({
-  item,
+  productId,
+  displayName,
+  imageUrl,
   personalization,
   onChange,
   isBox = false,
+  kitQuantity,
 }: ItemPersonalizationCardProps) {
   const [isOpen, setIsOpen] = useState(personalization.enabled);
+
+  // Fetch real techniques for this product
+  const { data: options, isLoading: loadingTechniques } = useProductCustomizationOptions(productId);
+  const techniques = useMemo(
+    () => options?.locations ? flattenTechniques(options.locations) : [],
+    [options]
+  );
+
+  // Find current technique for reactive price
+  const currentTech = techniques.find(t => t.technique_id === personalization.techniqueId);
+
+  // Reactive price from real RPC
+  const { price: priceData, loading: priceLoading } = useCustomizationPriceReactive(
+    personalization.enabled ? (personalization.techniqueId || null) : null,
+    kitQuantity,
+    personalization.colors || 1,
+    personalization.width || null,
+    personalization.height || null,
+    currentTech?.usa_dimensao || false,
+  );
+
+  const currentUnitPrice = priceData?.preco_unitario ?? personalization.estimatedPrice;
 
   const handleToggle = (enabled: boolean) => {
     onChange({ ...personalization, enabled });
@@ -66,31 +129,28 @@ function ItemPersonalizationCard({
   };
 
   const handleTechniqueChange = (techniqueId: string) => {
-    const technique = AVAILABLE_TECHNIQUES.find(t => t.id === techniqueId);
-    if (technique) {
-      const colors = personalization.colors || 1;
-      const estimatedPrice = technique.basePrice * colors;
-      
+    const tech = techniques.find(t => t.technique_id === techniqueId);
+    if (tech) {
       onChange({
         ...personalization,
-        techniqueId: technique.id,
-        techniqueName: technique.name,
-        techniqueCode: technique.code,
-        estimatedPrice,
+        techniqueId: tech.technique_id,
+        techniqueName: tech.tecnica_nome,
+        techniqueCode: tech.codigo_tabela,
+        position: tech.location_name,
+        colors: Math.min(personalization.colors || 1, tech.max_cores),
+        width: personalization.width || (tech.usa_dimensao ? tech.efetiva_largura_max : undefined),
+        height: personalization.height || (tech.usa_dimensao ? tech.efetiva_altura_max : undefined),
+        estimatedPrice: undefined,
       });
     }
   };
 
   const handleColorsChange = (colors: number) => {
-    const technique = AVAILABLE_TECHNIQUES.find(t => t.id === personalization.techniqueId);
-    const basePrice = technique?.basePrice || 2.5;
-    
-    onChange({
-      ...personalization,
-      colors,
-      estimatedPrice: basePrice * colors,
-    });
+    onChange({ ...personalization, colors });
   };
+
+  const maxColors = currentTech?.max_cores || 6;
+  const colorOptions = Array.from({ length: maxColors }, (_, i) => i + 1);
 
   return (
     <Card className={cn(personalization.enabled && "border-primary/50 bg-primary/5")}>
@@ -98,60 +158,44 @@ function ItemPersonalizationCard({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {/* Imagem pequena */}
               <div className="w-10 h-10 rounded-md bg-secondary overflow-hidden flex-shrink-0">
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
+                {imageUrl ? (
+                  <img src={imageUrl} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    {isBox ? (
-                      <Package className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <Palette className="h-5 w-5 text-muted-foreground" />
-                    )}
+                    {isBox ? <Package className="h-5 w-5 text-muted-foreground" /> : <Palette className="h-5 w-5 text-muted-foreground" />}
                   </div>
                 )}
               </div>
-
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  {item.name}
-                  {isBox && (
-                    <Badge variant="outline" className="text-xs">Caixa</Badge>
-                  )}
+                  {displayName}
+                  {isBox && <Badge variant="outline" className="text-xs">Caixa</Badge>}
                 </CardTitle>
                 {personalization.enabled && personalization.techniqueName && (
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {personalization.techniqueName} • {personalization.colors || 1} cor(es)
+                    {personalization.position && ` • ${personalization.position}`}
                   </p>
                 )}
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              {personalization.enabled && personalization.estimatedPrice && (
+              {personalization.enabled && (
                 <span className="text-sm font-semibold text-primary">
-                  +{formatCurrency(personalization.estimatedPrice)}/un
+                  {priceLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin inline" />
+                  ) : currentUnitPrice ? (
+                    `+${formatCurrency(currentUnitPrice)}/un`
+                  ) : null}
                 </span>
               )}
-
-              <Switch
-                checked={personalization.enabled}
-                onCheckedChange={handleToggle}
-              />
-
+              <Switch checked={personalization.enabled} onCheckedChange={handleToggle} />
               {personalization.enabled && (
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">
-                    {isOpen ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
+                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
               )}
@@ -165,21 +209,33 @@ function ItemPersonalizationCard({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Técnica de Gravação</Label>
-                <Select
-                  value={personalization.techniqueId || ''}
-                  onValueChange={handleTechniqueChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AVAILABLE_TECHNIQUES.map(tech => (
-                      <SelectItem key={tech.id} value={tech.id}>
-                        {tech.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {loadingTechniques ? (
+                  <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-secondary/50">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Carregando...</span>
+                  </div>
+                ) : techniques.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">
+                    Nenhuma técnica disponível para este produto
+                  </p>
+                ) : (
+                  <Select value={personalization.techniqueId || ''} onValueChange={handleTechniqueChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a técnica..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {techniques.map(tech => (
+                        <SelectItem key={tech.technique_id} value={tech.technique_id}>
+                          <span className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[10px] px-1 py-0">{tech.grupo_tecnica}</Badge>
+                            {tech.tecnica_nome}
+                            <span className="text-muted-foreground text-xs">({tech.location_name})</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -188,11 +244,9 @@ function ItemPersonalizationCard({
                   value={String(personalization.colors || 1)}
                   onValueChange={(v) => handleColorsChange(parseInt(v))}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5, 6].map(n => (
+                    {colorOptions.map(n => (
                       <SelectItem key={n} value={String(n)}>
                         {n} {n === 1 ? 'cor' : 'cores'}
                       </SelectItem>
@@ -202,46 +256,63 @@ function ItemPersonalizationCard({
               </div>
             </div>
 
-            {/* Dimensões opcionais */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Largura (cm)</Label>
-                <Input
-                  type="number"
-                  placeholder="Ex: 5"
-                  value={personalization.width || ''}
-                  onChange={(e) => onChange({
-                    ...personalization,
-                    width: e.target.value ? parseFloat(e.target.value) : undefined,
-                  })}
-                />
+            {/* Dimensões — somente se técnica usa dimensão */}
+            {currentTech?.usa_dimensao && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Largura (cm) <span className="text-xs text-muted-foreground">máx {currentTech.efetiva_largura_max}</span></Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    max={currentTech.efetiva_largura_max}
+                    placeholder={`Até ${currentTech.efetiva_largura_max}cm`}
+                    value={personalization.width || ''}
+                    onChange={(e) => onChange({
+                      ...personalization,
+                      width: e.target.value ? Math.min(parseFloat(e.target.value), currentTech.efetiva_largura_max) : undefined,
+                    })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Altura (cm) <span className="text-xs text-muted-foreground">máx {currentTech.efetiva_altura_max}</span></Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    max={currentTech.efetiva_altura_max}
+                    placeholder={`Até ${currentTech.efetiva_altura_max}cm`}
+                    value={personalization.height || ''}
+                    onChange={(e) => onChange({
+                      ...personalization,
+                      height: e.target.value ? Math.min(parseFloat(e.target.value), currentTech.efetiva_altura_max) : undefined,
+                    })}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Altura (cm)</Label>
-                <Input
-                  type="number"
-                  placeholder="Ex: 3"
-                  value={personalization.height || ''}
-                  onChange={(e) => onChange({
-                    ...personalization,
-                    height: e.target.value ? parseFloat(e.target.value) : undefined,
-                  })}
-                />
-              </div>
-            </div>
+            )}
 
-            {/* Posição */}
-            <div className="space-y-2">
-              <Label>Posição da Gravação</Label>
-              <Input
-                placeholder="Ex: Frontal, Tampa, Lateral..."
-                value={personalization.position || ''}
-                onChange={(e) => onChange({
-                  ...personalization,
-                  position: e.target.value,
-                })}
-              />
-            </div>
+            {/* Preço detalhado */}
+            {priceData?.success && (
+              <div className="bg-secondary/50 rounded-lg p-3 space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Preço unitário</span>
+                  <span>{formatCurrency(priceData.preco_unitario)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Gravação ({kitQuantity}un)</span>
+                  <span>{formatCurrency(priceData.valor_gravacao)}</span>
+                </div>
+                {priceData.setup_total > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Setup</span>
+                    <span>{formatCurrency(priceData.setup_total)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-semibold border-t pt-1 mt-1">
+                  <span>Total gravação</span>
+                  <span className="text-primary">{formatCurrency(priceData.total_cobrado)}</span>
+                </div>
+              </div>
+            )}
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
@@ -249,9 +320,14 @@ function ItemPersonalizationCard({
   );
 }
 
+// ============================================
+// Componente principal
+// ============================================
+
 export function PersonalizationConfig({
   box,
   items,
+  kitQuantity = 100,
   boxPersonalization,
   itemPersonalizations,
   onBoxPersonalizationChange,
@@ -287,10 +363,13 @@ export function PersonalizationConfig({
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">Embalagem</h4>
           <ItemPersonalizationCard
-            item={{ id: 'box', name: box.name, imageUrl: box.imageUrl }}
+            productId={box.id}
+            displayName={box.name}
+            imageUrl={box.imageUrl}
             personalization={boxPersonalization}
             onChange={onBoxPersonalizationChange}
             isBox
+            kitQuantity={kitQuantity}
           />
         </div>
       )}
@@ -305,9 +384,12 @@ export function PersonalizationConfig({
             {items.map(item => (
               <ItemPersonalizationCard
                 key={item.id}
-                item={item}
+                productId={item.id}
+                displayName={item.name}
+                imageUrl={item.imageUrl}
                 personalization={itemPersonalizations[item.id] || { enabled: false }}
                 onChange={(config) => onItemPersonalizationChange(item.id, config)}
+                kitQuantity={kitQuantity}
               />
             ))}
           </div>
