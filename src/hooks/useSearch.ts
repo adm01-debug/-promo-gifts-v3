@@ -112,6 +112,22 @@ export function useSearch(products: Product[] = []) {
       return results;
     }
 
+    // Priority 0: Exact SKU match (most precise)
+    const exactSkuMatch = products.find(p => 
+      p.sku?.toLowerCase() === searchLower || 
+      p.supplier_reference?.toLowerCase() === searchLower
+    );
+    if (exactSkuMatch) {
+      results.push({
+        type: "product",
+        id: exactSkuMatch.id,
+        label: exactSkuMatch.name,
+        sublabel: `SKU: ${exactSkuMatch.sku || ''} • ${exactSkuMatch.category_name || ''}`,
+        icon: "📦",
+        data: exactSkuMatch,
+      });
+    }
+
     // Search products - busca fuzzy com priorização por relevância
     const searchLower = searchTerm.toLowerCase();
     
@@ -152,7 +168,9 @@ export function useSearch(products: Product[] = []) {
       }
     }
 
-    orderedProducts.slice(0, 5).forEach((product) => {
+    orderedProducts.slice(0, 6).forEach((product) => {
+      // Skip if already added as exact SKU match
+      if (results.some(r => r.id === product.id)) return;
       results.push({
         type: "product",
         id: product.id,
