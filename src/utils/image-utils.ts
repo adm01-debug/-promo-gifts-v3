@@ -69,8 +69,8 @@ export function getCdnUrl(urlCdn: string, variant: CdnVariant = 'public'): strin
   if (urlCdn.includes('imagedelivery.net')) {
     return urlCdn.replace(/\/[^/]+$/, `/${variant}`);
   }
-  // Return non-Cloudflare URLs as-is (e.g., cdn.xbzbrindes.com.br)
-  return urlCdn;
+  // Proxy non-Cloudflare URLs (e.g., spotgifts.com.br) to avoid CORS
+  return getProxiedImageUrl(urlCdn) || urlCdn;
 }
 
 /**
