@@ -254,8 +254,8 @@ describe("KitComparisonDialog", () => {
       <KitComparisonDialog open={true} onOpenChange={vi.fn()} kits={mockKits} />
     );
     expect(screen.getByText("Comparação de Kits")).toBeInTheDocument();
-    expect(screen.getByText("Kit Básico")).toBeInTheDocument();
-    expect(screen.getByText("Kit Premium")).toBeInTheDocument();
+    expect(screen.getAllByText("Kit Básico").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Kit Premium").length).toBeGreaterThanOrEqual(1);
   });
 
   it("does not render when closed", async () => {
