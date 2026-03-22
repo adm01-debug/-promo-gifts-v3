@@ -379,6 +379,7 @@ export function SuppliersManager() {
             ?.replace(/\[Contatos adicionais:.*?\]/g, '')
             ?.replace(/\[Redes Sociais:.*?\]/g, '')
             ?.replace(/\[Financeiro:.*?\]/g, '')
+            ?.replace(/\[Fones Fixos:.*?\]/g, '')
             ?.trim();
           if (userNotes) parts.push(userNotes);
           const c0 = contacts[0];
