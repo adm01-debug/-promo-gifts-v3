@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
+import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -174,7 +175,17 @@ export default function KitBuilderPage() {
   };
 
   const handleExportPDF = () => {
-    toast.info('Exportação em desenvolvimento');
+    try {
+      downloadKitPDF({
+        kitState,
+        kitQuantity,
+        kitName: kitState.name,
+      });
+      toast.success('PDF do kit exportado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      toast.error('Erro ao gerar PDF do kit');
+    }
   };
 
   const handleResetKit = () => {
