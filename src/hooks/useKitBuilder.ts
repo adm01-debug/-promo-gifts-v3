@@ -165,7 +165,7 @@ export function useKitBuilder() {
           product_type: 'packaging',
           ...(boxFilters.search ? { name: boxFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, material, width_mm, height_mm, length_mm',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
