@@ -95,7 +95,8 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
       ref={ref}
       aria-label="Breadcrumb" 
       className={cn(
-        "hidden md:flex items-center text-sm",
+        "flex items-center text-sm overflow-x-auto scrollbar-hide",
+        "max-w-full",
         className
       )}
     >
