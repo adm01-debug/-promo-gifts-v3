@@ -61,6 +61,23 @@ export interface PromobrindProduct {
     is_primary: boolean;
     title: string | null;
   }> | null;
+  is_featured?: boolean | null;
+  is_bestseller?: boolean | null;
+  is_new?: boolean | null;
+  is_on_sale?: boolean | null;
+  is_kit?: boolean | null;
+  category_name?: string | null;
+  tags?: Record<string, unknown> | null;
+  kit_components?: Array<{
+    id: string; component_name: string | null; component_code: string | null;
+    component_product_id: string | null; component_sku: string | null;
+    quantity: number | null; display_order: number | null;
+    is_optional: boolean | null; is_packaging: boolean | null;
+    is_replaceable: boolean | null; allows_personalization: boolean | null;
+    material: string | null; primary_image_url: string | null;
+    height_mm: number | null; width_mm: number | null; length_mm: number | null;
+    weight_g: number | null; notes: string | null;
+  }> | null;
 }
 
 export function getProductImageUrl(product: PromobrindProduct): string | null {

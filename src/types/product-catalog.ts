@@ -77,7 +77,22 @@ export interface Product {
   subcategory?: string;
   groups?: Array<{ id: number; name: string }>;
   variations?: any[];
-  kitItems?: any[];
+  kitItems?: KitComponent[];
+}
+
+export interface KitComponent {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  sku: string;
+  imageUrl?: string | null;
+  isOptional?: boolean;
+  isPackaging?: boolean;
+  isReplaceable?: boolean;
+  allowsPersonalization?: boolean;
+  material?: string | null;
+  weightG?: number | null;
   video?: string;
   productVideos?: Array<{
     id: string;
