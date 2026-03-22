@@ -72,8 +72,105 @@ export default function KitBuilderPage() {
     }
   };
 
-  const handleAddToQuote = () => {
-    toast.success('Kit adicionado ao orçamento!');
+  const [isCreatingQuote, setIsCreatingQuote] = useState(false);
+
+  const handleAddToQuote = async () => {
+    if (!user?.id) {
+      toast.error('Você precisa estar logado para criar um orçamento.');
+      return;
+    }
+    if (!kitState.isValid) return;
+
+    setIsCreatingQuote(true);
+    try {
+      // 1. Create the quote
+      const kitLabel = kitState.name || 'Kit sem nome';
+      const { data: quote, error: quoteError } = await supabase
+        .from('quotes')
+        .insert({
+          seller_id: user.id,
+          status: 'draft',
+          subtotal: kitState.totalPrice * kitQuantity,
+          total: kitState.totalPrice * kitQuantity,
+          notes: `Kit "${kitLabel}" (${kitQuantity}x) — tipo: ${kitState.kitType}`,
+          internal_notes: kitState.box
+            ? `Caixa: ${kitState.box.name} | Volume: ${kitState.volumeUsagePercent.toFixed(0)}%`
+            : undefined,
+        })
+        .select('id, quote_number')
+        .single();
+
+      if (quoteError) throw quoteError;
+
+      // 2. Build quote_items from kit items (+ box as first item)
+      const quoteItems: Array<{
+        quote_id: string;
+        product_name: string;
+        product_sku: string | null;
+        product_image_url: string | null;
+        product_id: string | null;
+        quantity: number;
+        unit_price: number;
+        sort_order: number;
+        notes: string | null;
+        color_name: string | null;
+        color_hex: string | null;
+      }> = [];
+
+      // Add box as first item
+      if (kitState.box) {
+        quoteItems.push({
+          quote_id: quote.id,
+          product_name: `[Embalagem] ${kitState.box.name}`,
+          product_sku: kitState.box.sku || null,
+          product_image_url: kitState.box.imageUrl || null,
+          product_id: kitState.box.id,
+          quantity: kitQuantity,
+          unit_price: kitState.box.price,
+          sort_order: 0,
+          notes: `Dimensões internas: ${kitState.box.internalWidth}×${kitState.box.internalHeight}×${kitState.box.internalDepth}mm`,
+          color_name: null,
+          color_hex: null,
+        });
+      }
+
+      // Add kit items
+      kitState.items.forEach((item, index) => {
+        quoteItems.push({
+          quote_id: quote.id,
+          product_name: item.name,
+          product_sku: item.sku || null,
+          product_image_url: item.imageUrl || null,
+          product_id: item.id,
+          quantity: item.quantity * kitQuantity,
+          unit_price: item.price,
+          sort_order: index + 1,
+          notes: item.isOptional ? 'Item opcional' : null,
+          color_name: item.selectedColor?.name || null,
+          color_hex: item.selectedColor?.hex || null,
+        });
+      });
+
+      if (quoteItems.length > 0) {
+        const { error: itemsError } = await supabase
+          .from('quote_items')
+          .insert(quoteItems);
+        if (itemsError) throw itemsError;
+      }
+
+      toast.success(`Orçamento ${quote.quote_number} criado!`, {
+        description: `${quoteItems.length} itens adicionados ao rascunho.`,
+        action: {
+          label: 'Ver orçamento',
+          onClick: () => navigate(`/orcamentos/${quote.id}`),
+        },
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      toast.error(`Erro ao criar orçamento: ${message}`);
+    } finally {
+      setIsCreatingQuote(false);
+    }
   };
 
   const handleExportPDF = () => {
