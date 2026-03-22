@@ -817,7 +817,7 @@ export function SuppliersManager() {
                         </div>
                         <div>
                           <Label className="text-xs font-semibold">Nome</Label>
-                          <Input value={contact.name} onChange={(e) => updateContact(contact.id, 'name', e.target.value)} placeholder="Ex: João Silva" className={fieldClass} />
+                          <Input value={contact.name} onChange={(e) => updateContact(contact.id, 'name', e.target.value)} placeholder="Ex.: João" className={fieldClass} />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
