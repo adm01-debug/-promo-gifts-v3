@@ -84,8 +84,8 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
 // INFINITE CATALOG HOOK
 // ============================================
 
-const CATALOG_PAGE_SIZE = 500; // Products per server page
-const CATALOG_BATCH_PAGES = 4; // Fetch 4 pages per batch call (first load = 2000)
+const CATALOG_PAGE_SIZE = 120; // Products per server page
+const CATALOG_BATCH_PAGES = 2; // Fetch 2 lightweight pages on first load (240 products)
 const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit';
 
 interface CatalogPage {
@@ -121,7 +121,25 @@ async function fetchCatalogPage(
     ...(i === 0 && isFirstLoad ? { countMode: 'planned' } : {}),
   }));
 
-  const batchResults = await invokeBatchBridge(batchQueries);
+  let batchResults;
+  try {
+    batchResults = await invokeBatchBridge(batchQueries);
+  } catch {
+    const fallbackProducts = await fetchPromobrindProductsLightweight({
+      search,
+      limit: CATALOG_PAGE_SIZE,
+      offset,
+      orderBy,
+      filters: { active: true },
+    });
+
+    return {
+      products: fallbackProducts.map(mapLightweightToProduct),
+      nextOffset: fallbackProducts.length === CATALOG_PAGE_SIZE ? offset + CATALOG_PAGE_SIZE : null,
+      totalEstimate: null,
+    };
+  }
+
   const products: Product[] = [];
   let totalEstimate: number | null = null;
   let lastPageSize = 0;
