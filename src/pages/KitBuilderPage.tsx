@@ -77,7 +77,7 @@ export default function KitBuilderPage() {
           .from('custom_kits')
           .select('*')
           .eq('id', kitIdParam)
-          .single();
+          .maybeSingle();
 
         if (error || !data) {
           toast.error('Kit não encontrado');
