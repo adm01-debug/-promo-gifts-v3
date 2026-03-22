@@ -3,7 +3,7 @@
  * Gerencia o estado completo do montador de kits
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getProductImageUrl, getProductPrice, invokeExternalDb } from '@/lib/external-db';
 import {
@@ -73,6 +73,9 @@ function transformToKitBox(product: ExternalProductForKit): KitBox | null {
 
   if (!dimensions) return null;
 
+  // #9 FIX: Guard against zero dimensions
+  if (dimensions.width <= 0 || dimensions.height <= 0 || dimensions.depth <= 0) return null;
+
   const volume = calculateVolume(dimensions.width, dimensions.height, dimensions.depth);
 
   return {
@@ -121,8 +124,9 @@ function transformToKitItem(product: ExternalProductForKit, category?: string): 
     category,
     quantity: 1,
     isOptional: false,
-    isReplaceable: false,
-    allowsPersonalization: true,
+    isReplaceable: product.is_replaceable ?? false,
+    allowsPersonalization: product.allows_personalization ?? true,
+    allowedVariantIds: product.allowed_variant_ids ?? undefined,
   };
 }
 
@@ -149,6 +153,24 @@ export function useKitBuilder() {
   const [boxFilters, setBoxFilters] = useState<BoxFilters>({});
   const [itemFilters, setItemFilters] = useState<ItemFilters>({});
 
+  // #1 FIX: Debounce refs for cleanup
+  const boxSearchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const itemSearchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const setBoxFiltersDebounced = useCallback((filters: BoxFilters) => {
+    if (boxSearchTimerRef.current) clearTimeout(boxSearchTimerRef.current);
+    boxSearchTimerRef.current = setTimeout(() => {
+      setBoxFilters(filters);
+    }, 300);
+  }, []);
+
+  const setItemFiltersDebounced = useCallback((filters: ItemFilters) => {
+    if (itemSearchTimerRef.current) clearTimeout(itemSearchTimerRef.current);
+    itemSearchTimerRef.current = setTimeout(() => {
+      setItemFilters(filters);
+    }, 300);
+  }, []);
+
   // ============================================
   // QUERIES
   // ============================================
@@ -157,14 +179,19 @@ export function useKitBuilder() {
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.boxes, boxFilters],
     queryFn: async () => {
+      const filters: Record<string, unknown> = {
+        active: true,
+        product_type: 'packaging',
+      };
+      // #8 FIX: Use _search for partial name matching
+      if (boxFilters.search) {
+        filters._search = boxFilters.search;
+      }
+
       const result = await invokeExternalDb<ExternalProductForKit>({
         table: 'products',
         operation: 'select',
-        filters: { 
-          active: true,
-          product_type: 'packaging',
-          ...(boxFilters.search ? { name: boxFilters.search } : {}),
-        },
+        filters,
         select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
@@ -189,15 +216,20 @@ export function useKitBuilder() {
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.items, itemFilters],
     queryFn: async () => {
+      const filters: Record<string, unknown> = {
+        active: true,
+        product_type: 'product',
+      };
+      // #8 FIX: Use _search for partial name matching
+      if (itemFilters.search) {
+        filters._search = itemFilters.search;
+      }
+
       const result = await invokeExternalDb<ExternalProductForKit>({
         table: 'products',
         operation: 'select',
-        filters: { 
-          active: true,
-          product_type: 'product',
-          ...(itemFilters.search ? { name: itemFilters.search } : {}),
-        },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm',
+        filters,
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm, is_replaceable, allowed_variant_ids, allows_personalization',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
@@ -356,17 +388,51 @@ export function useKitBuilder() {
     });
   }, []);
 
+  // #5 FIX: Validate volume on quantity increment
   const updateItemQuantity = useCallback((itemId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(itemId);
       return;
     }
+
+    if (selectedBox) {
+      const item = selectedItems.find(i => i.id === itemId);
+      if (item && quantity > item.quantity) {
+        const otherItems = selectedItems.filter(i => i.id !== itemId);
+        const result = checkItemFits(item, selectedBox, otherItems, quantity);
+        if (!result.fits) {
+          return; // Silently prevent overflow
+        }
+      }
+    }
+
     setSelectedItems(prev =>
       prev.map(item =>
         item.id === itemId ? { ...item, quantity } : item
       )
     );
-  }, [removeItem]);
+  }, [removeItem, selectedBox, selectedItems]);
+
+  // #4 FIX: Update variant data (price, image, SKU, color)
+  const updateItemVariant = useCallback((itemId: string, variantData: {
+    color: { name: string; hex?: string };
+    sku?: string;
+    imageUrl?: string | null;
+    price?: number;
+  }) => {
+    setSelectedItems(prev =>
+      prev.map(item => {
+        if (item.id !== itemId) return item;
+        return {
+          ...item,
+          selectedColor: variantData.color,
+          ...(variantData.sku && { sku: variantData.sku }),
+          ...(variantData.imageUrl !== undefined && { imageUrl: variantData.imageUrl }),
+          ...(variantData.price !== undefined && { price: variantData.price }),
+        };
+      })
+    );
+  }, []);
 
   const updateItemColor = useCallback((itemId: string, color: { name: string; hex?: string }) => {
     setSelectedItems(prev =>
@@ -377,11 +443,15 @@ export function useKitBuilder() {
   }, []);
 
   /** Toggle optional item inclusion (G10) */
-  const toggleOptionalItem = useCallback((itemId: string) => {
+  // #6 FIX: Accept full item for re-add
+  const toggleOptionalItem = useCallback((itemId: string, item?: KitItem) => {
     setSelectedItems(prev => {
       const exists = prev.find(i => i.id === itemId);
       if (exists) {
         return prev.filter(i => i.id !== itemId);
+      }
+      if (item) {
+        return [...prev, { ...item, quantity: 1 }];
       }
       return prev;
     });
@@ -477,11 +547,11 @@ export function useKitBuilder() {
     isLoadingBoxes,
     isLoadingItems,
 
-    // Filtros
+    // Filtros (with debounce)
     boxFilters,
-    setBoxFilters,
+    setBoxFilters: setBoxFiltersDebounced,
     itemFilters,
-    setItemFilters,
+    setItemFilters: setItemFiltersDebounced,
 
     // Ações - Kit
     setKitName,
@@ -496,6 +566,7 @@ export function useKitBuilder() {
     removeItem,
     updateItemQuantity,
     updateItemColor,
+    updateItemVariant,
     toggleOptionalItem,
 
     // Ações - Personalização

@@ -1,26 +1,17 @@
 /**
  * Item Selector
- * Seletor de itens para compor o kit
+ * Seletor de itens para compor o kit (refatorado)
  */
 
 import { useState } from 'react';
-import { Search, Plus, Check, AlertTriangle, X, Package, RefreshCw } from 'lucide-react';
-import { VariantSelector } from './VariantSelector';
+import { Search, AlertTriangle, X, Package } from 'lucide-react';
+import { SelectedItemsBadges } from './SelectedItemsBadges';
+import { ItemCard } from './ItemCard';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { formatVolume, formatCurrency } from '@/lib/kit-builder';
 import type { KitItem, ItemFilters, CompatibilityResult } from '@/lib/kit-builder';
 
 interface ItemWithCompatibility extends KitItem {
@@ -52,14 +43,13 @@ export function ItemSelector({
   onUpdateColor,
   boxSelected,
 }: ItemSelectorProps) {
-  const [searchDebounce, setSearchDebounce] = useState('');
+  const [searchValue, setSearchValue] = useState('');
   const [lastError, setLastError] = useState<string | null>(null);
 
+  // #1 FIX: Debounce is now handled by the hook via setItemFiltersDebounced
   const handleSearchChange = (value: string) => {
-    setSearchDebounce(value);
-    setTimeout(() => {
-      onFiltersChange({ ...filters, search: value || undefined });
-    }, 300);
+    setSearchValue(value);
+    onFiltersChange({ ...filters, search: value || undefined });
   };
 
   const handleAddItem = (item: KitItem) => {
@@ -96,7 +86,7 @@ export function ItemSelector({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar item..."
-            value={searchDebounce}
+            value={searchValue}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10"
           />
@@ -119,60 +109,12 @@ export function ItemSelector({
       </div>
 
       {/* Itens selecionados */}
-      {selectedItems.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-sm font-medium text-muted-foreground">
-            Itens no Kit ({selectedItems.length})
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {selectedItems.map(item => (
-              <Badge
-                key={item.id}
-                variant="secondary"
-                className="pl-2 pr-1 py-1 flex items-center gap-2"
-              >
-                <span className="font-medium">{item.quantity}x</span>
-                <span className="max-w-[150px] truncate">{item.name}</span>
-                {item.isReplaceable && item.allowedVariantIds && item.allowedVariantIds.length > 0 && (
-                  <VariantSelector
-                    itemId={item.id}
-                    itemName={item.name}
-                    allowedVariantIds={item.allowedVariantIds}
-                    selectedColor={item.selectedColor}
-                    onSelectVariant={onUpdateColor}
-                  />
-                )}
-                <div className="flex items-center gap-1 ml-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5"
-                    onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                  >
-                    -
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5"
-                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                  >
-                    +
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 text-destructive hover:text-destructive"
-                    onClick={() => onRemoveItem(item.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
+      <SelectedItemsBadges
+        items={selectedItems}
+        onRemoveItem={onRemoveItem}
+        onUpdateQuantity={onUpdateQuantity}
+        onUpdateColor={onUpdateColor}
+      />
 
       {/* Lista de itens disponíveis */}
       <ScrollArea className="h-[350px] pr-4">
@@ -189,113 +131,16 @@ export function ItemSelector({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {items.map(item => {
-              const isSelected = selectedItemIds.has(item.id);
-              const fits = item.compatibility?.fits !== false;
-              const cantFit = boxSelected && !fits;
-
-              return (
-                <Card
-                  key={item.id}
-                  className={cn(
-                    "transition-all",
-                    isSelected && "ring-2 ring-primary bg-primary/5",
-                    cantFit && "opacity-60",
-                    !cantFit && !isSelected && "hover:shadow-md hover:border-primary/30 cursor-pointer"
-                  )}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex gap-3">
-                      {/* Imagem pequena */}
-                      <div className="w-14 h-14 rounded-md bg-secondary overflow-hidden flex-shrink-0">
-                        {item.imageUrl ? (
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Package className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                        <p className="text-xs text-muted-foreground font-mono">{item.sku}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs text-muted-foreground">
-                            {formatVolume(item.volume)}
-                          </span>
-                          <span className="text-sm font-semibold text-primary">
-                            {formatCurrency(item.price)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Badge de compatibilidade e ação */}
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t">
-                      {boxSelected && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                      <Badge
-                              variant={fits ? "secondary" : "destructive"}
-                              className={cn(
-                                "text-xs",
-                                fits && "bg-green-500/10 text-green-700 dark:text-green-400 hover:bg-green-500/20"
-                              )}
-                            >
-                              {fits ? (
-                                <>
-                                  <Check className="h-3 w-3 mr-1" />
-                                  CABE
-                                </>
-                              ) : (
-                                <>
-                                  <X className="h-3 w-3 mr-1" />
-                                  NÃO CABE
-                                </>
-                              )}
-                            </Badge>
-                          </TooltipTrigger>
-                          {!fits && item.compatibility?.reason && (
-                            <TooltipContent>
-                              <p className="max-w-[200px]">{item.compatibility.reason}</p>
-                            </TooltipContent>
-                          )}
-                        </Tooltip>
-                      )}
-
-                      {isSelected ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="ml-auto"
-                          onClick={() => onRemoveItem(item.id)}
-                        >
-                          <X className="h-3 w-3 mr-1" />
-                          Remover
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="ml-auto"
-                          disabled={cantFit}
-                          onClick={() => handleAddItem(item)}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Adicionar
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {items.map(item => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                isSelected={selectedItemIds.has(item.id)}
+                boxSelected={boxSelected}
+                onAdd={handleAddItem}
+                onRemove={onRemoveItem}
+              />
+            ))}
           </div>
         )}
       </ScrollArea>

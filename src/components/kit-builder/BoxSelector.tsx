@@ -34,14 +34,12 @@ export function BoxSelector({
   onSelect,
   onClear,
 }: BoxSelectorProps) {
-  const [searchDebounce, setSearchDebounce] = useState('');
+  const [searchValue, setSearchValue] = useState('');
 
+  // #1 FIX: Debounce is now handled by the hook via setBoxFiltersDebounced
   const handleSearchChange = (value: string) => {
-    setSearchDebounce(value);
-    // Debounce search
-    setTimeout(() => {
-      onFiltersChange({ ...filters, search: value || undefined });
-    }, 300);
+    setSearchValue(value);
+    onFiltersChange({ ...filters, search: value || undefined });
   };
 
   // Se já tem uma caixa selecionada, mostra resumo
@@ -108,7 +106,7 @@ export function BoxSelector({
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar caixa ou embalagem..."
-          value={searchDebounce}
+          value={searchValue}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="pl-10"
         />
