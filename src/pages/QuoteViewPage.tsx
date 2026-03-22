@@ -465,7 +465,7 @@ export default function QuoteViewPage() {
             {/* Desktop-only buttons */}
             <div className="hidden md:flex items-center gap-2">
 
-            <QuoteConvertToOrder quoteId={id!} status={quote.status} />
+            <QuoteConvertToOrder quoteId={id!} status={quote.status} onConverted={() => { if (id) fetchQuote(id).then(setQuote); }} />
 
             {/* Sincronizar com Bitrix24 */}
             <Button
