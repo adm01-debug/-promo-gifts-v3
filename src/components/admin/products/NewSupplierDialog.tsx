@@ -69,6 +69,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [cnpjError, setCnpjError] = useState('');
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [website, setWebsite] = useState('');
+  const [foneFixo1, setFoneFixo1] = useState('');
+  const [foneFixo2, setFoneFixo2] = useState('');
 
   // Social Media
   const [instagram, setInstagram] = useState('');
@@ -129,7 +131,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
-    setContacts([createEmptyContact()]); setWebsite('');
+    setContacts([createEmptyContact()]); setWebsite(''); setFoneFixo1(''); setFoneFixo2('');
     setInstagram(''); setFacebook(''); setLinkedin(''); setYoutube(''); setTiktok('');
     setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
@@ -322,6 +324,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
           if (formaPagamento.length > 0 || pixTipo || pixNumero || pixFavorecido) {
             const now_date = new Date().toISOString().split('T')[0];
             parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX Tipo: ${pixTipo || '-'}, PIX Número: ${pixNumero || '-'}, PIX Favorecido: ${pixFavorecido || '-'}, PIX Atualizado: ${now_date}]`);
+          }
+          // Persist landline phones
+          if (foneFixo1.trim() || foneFixo2.trim()) {
+            parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
           }
           return parts.join('\n') || null;
         })(),
@@ -526,6 +532,30 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   className={`${fieldClass} font-mono uppercase`}
                 />
                 <p className="text-[10px] text-muted-foreground mt-0.5">Deixe vazio para gerar automaticamente</p>
+              </div>
+            </div>
+
+            {/* FONE FIXO 01 + FONE FIXO 02 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Fone Fixo 01</Label>
+                <Input
+                  value={foneFixo1}
+                  onChange={(e) => setFoneFixo1(maskPhone(e.target.value))}
+                  placeholder="(00) 0000-0000"
+                  className={fieldClass}
+                  maxLength={15}
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Fone Fixo 02</Label>
+                <Input
+                  value={foneFixo2}
+                  onChange={(e) => setFoneFixo2(maskPhone(e.target.value))}
+                  placeholder="(00) 0000-0000"
+                  className={fieldClass}
+                  maxLength={15}
+                />
               </div>
             </div>
           </TabsContent>
