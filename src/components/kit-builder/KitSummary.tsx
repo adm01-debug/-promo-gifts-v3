@@ -54,6 +54,9 @@ export function KitSummary({
   const personalizedCount = (personalization.box.enabled ? 1 : 0) +
     Object.values(personalization.items).filter(p => p.enabled).length;
 
+  // Stock validation
+  const { alerts: stockAlerts, isLoading: isLoadingStock, stockByProduct } = useKitStockValidation(items, box, kitQuantity);
+
   const handleOpenMockup = (productId: string, techniqueName?: string) => {
     const params = new URLSearchParams();
     params.set('product_id', productId);
