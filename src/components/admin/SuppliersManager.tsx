@@ -150,7 +150,12 @@ export function SuppliersManager() {
     setPixKeys(prev => {
       const updated = prev.map(k => {
         if (k.id !== id) return field === 'principal' && value === true ? { ...k, principal: false } : k;
-        return { ...k, [field]: value };
+        const next = { ...k, [field]: value };
+        // Re-apply mask when tipo changes
+        if (field === 'tipo' && typeof value === 'string' && k.chave.trim()) {
+          next.chave = applyPixMask(k.chave, value);
+        }
+        return next;
       });
       if (field === 'chave' && typeof value === 'string' && value.trim()) {
         const dup = hasPixDuplicate(updated);
