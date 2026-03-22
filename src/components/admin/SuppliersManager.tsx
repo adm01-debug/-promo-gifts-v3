@@ -133,6 +133,8 @@ export function SuppliersManager() {
   const [pixNumero, setPixNumero] = useState('');
   const [pixFavorecido, setPixFavorecido] = useState('');
   const [pixDataCadastro, setPixDataCadastro] = useState('');
+  const [foneFixo1, setFoneFixo1] = useState('');
+  const [foneFixo2, setFoneFixo2] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
