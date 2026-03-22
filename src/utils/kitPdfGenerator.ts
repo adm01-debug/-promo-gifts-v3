@@ -335,7 +335,7 @@ export function generateKitPDF(options: KitPdfOptions): Blob {
   const { kitState, kitQuantity, kitName } = options;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  let y = drawHeader(doc, kitName, 0);
+  let y = drawHeader(doc, kitName, 0, options.orgName, options.orgLogoUrl);
 
   // KPI cards
   y = drawKpiCards(doc, kitState, kitQuantity, y);
