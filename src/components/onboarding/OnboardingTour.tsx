@@ -254,4 +254,4 @@ export const OnboardingTour = forwardRef<HTMLDivElement, Record<string, never>>(
       </div>
     </AnimatePresence>
   );
-}
+});

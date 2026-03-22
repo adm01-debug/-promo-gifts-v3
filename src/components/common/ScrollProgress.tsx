@@ -46,7 +46,7 @@ export const ScrollProgressIndicator = forwardRef<HTMLDivElement, ScrollProgress
       }}
     />
   );
-}
+});
 
 /**
  * ScrollToTop - Botão para voltar ao topo

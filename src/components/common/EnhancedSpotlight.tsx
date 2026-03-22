@@ -496,7 +496,7 @@ export const EnhancedSpotlight = forwardRef<HTMLDivElement, Record<string, never
       )}
     </AnimatePresence>
   );
-}
+});
 
 // Trigger button component
 export function EnhancedSpotlightTrigger({ className }: { className?: string }) {
