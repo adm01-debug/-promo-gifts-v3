@@ -9,6 +9,8 @@
  *   is_og_image = true → imagem MAIN (cor individual)       → Cards, OG tags
  */
 
+import { getProxiedImageUrl } from '@/utils/imageProxy';
+
 // ============================================
 // TIPOS
 // ============================================
