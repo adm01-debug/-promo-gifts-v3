@@ -5,6 +5,7 @@
 
 // Types
 export * from './types';
+export { mmToCm } from './types';
 
 // Volume Calculator
 export {

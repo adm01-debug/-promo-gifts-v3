@@ -257,18 +257,12 @@ export default function KitBuilderPage() {
                     <span>Total/kit</span>
                     <span className="text-primary">R$ {kitState.totalPrice.toFixed(2)}</span>
                   </div>
-                  {/* Peso total */}
-                  {(() => {
-                    const totalWeight = (kitState.items || []).reduce(
-                      (sum, item) => sum + ((item.weight || 0) * (item.quantity || 1)), 0
-                    );
-                    return totalWeight > 0 ? (
-                      <div className="flex justify-between text-xs text-muted-foreground pt-1">
-                        <span>Peso estimado</span>
-                        <span>{totalWeight >= 1000 ? `${(totalWeight / 1000).toFixed(2)} kg` : `${totalWeight} g`}</span>
-                      </div>
-                    ) : null;
-                  })()}
+                  {kitState.totalWeight > 0 && (
+                    <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                      <span>Peso estimado</span>
+                      <span>{kitState.totalWeight >= 1000 ? `${(kitState.totalWeight / 1000).toFixed(2)} kg` : `${kitState.totalWeight} g`}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
