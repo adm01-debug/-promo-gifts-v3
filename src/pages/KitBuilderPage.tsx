@@ -139,11 +139,37 @@ export default function KitBuilderPage() {
               <CardContent className="p-6">
                 {/* Step: Box Selection */}
                 {wizardState.currentStep === 'box' && (
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">1. Selecione a Embalagem</h2>
-                    <p className="text-muted-foreground">
-                      Escolha a caixa ou embalagem que será a base do seu kit
-                    </p>
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold">1. Selecione a Embalagem</h2>
+                      <p className="text-muted-foreground">
+                        Escolha a caixa ou embalagem que será a base do seu kit
+                      </p>
+                    </div>
+
+                    {/* Kit Type Selector */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Tipo de Kit</Label>
+                      <RadioGroup
+                        value={kitState.kitType}
+                        onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="montado" id="kit-montado" />
+                          <Label htmlFor="kit-montado" className="cursor-pointer text-sm">Montado</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="original" id="kit-original" />
+                          <Label htmlFor="kit-original" className="cursor-pointer text-sm">Original</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="simples" id="kit-simples" />
+                          <Label htmlFor="kit-simples" className="cursor-pointer text-sm">Simples</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
                     <BoxSelector
                       boxes={availableBoxes}
                       selectedBox={kitState.box}
