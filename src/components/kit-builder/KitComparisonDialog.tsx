@@ -68,6 +68,7 @@ export function KitComparisonDialog({ open, onOpenChange, kits }: KitComparisonD
             <Package className="h-5 w-5 text-primary" />
             Comparação de Kits
           </DialogTitle>
+          <DialogDescription className="sr-only">Compare os kits criados lado a lado</DialogDescription>
         </DialogHeader>
 
         <div className="overflow-x-auto">

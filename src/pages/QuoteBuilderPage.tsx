@@ -363,6 +363,13 @@ export default function QuoteBuilderPage() {
         onAddWithColor={s.addProductWithColor}
         formatCurrency={s.formatCurrency}
       />
+
+      <UnsavedChangesDialog
+        open={showDialog}
+        onConfirm={confirmLeave}
+        onCancel={cancelLeave}
+        message={message}
+      />
     </MainLayout>
   );
 }
