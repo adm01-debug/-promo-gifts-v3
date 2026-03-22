@@ -46,6 +46,7 @@ export function KitSummary({
   isAddingToQuote,
 }: KitSummaryProps) {
   const navigate = useNavigate();
+  const [markupPercent, setMarkupPercent] = useState<number>(30);
   const { box, items, personalization } = kitState;
   
   const pricing = calculateTotalKitPrice(box, items, personalization, kitQuantity);
