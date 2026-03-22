@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react';
-import { Search, Plus, Check, AlertTriangle, X, Package } from 'lucide-react';
+import { Search, Plus, Check, AlertTriangle, X, Package, RefreshCw } from 'lucide-react';
+import { VariantSelector } from './VariantSelector';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
