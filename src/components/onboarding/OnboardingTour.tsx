@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, forwardRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, SkipForward, Sparkles, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
