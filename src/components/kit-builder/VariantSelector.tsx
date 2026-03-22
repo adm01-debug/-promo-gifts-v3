@@ -1,6 +1,7 @@
 /**
  * Variant Selector for replaceable kit items (G9)
  * Fetches allowed variants and lets the user swap color/variant for an item.
+ * #4 FIX: Now also updates SKU, image, and price when selecting a variant.
  */
 
 import { useState } from 'react';
@@ -22,6 +23,7 @@ interface VariantOption {
   color_code: string | null;
   sku: string | null;
   selected_thumbnail: string | null;
+  sale_price?: number | null;
 }
 
 interface VariantSelectorProps {
@@ -49,7 +51,7 @@ export function VariantSelector({
       const result = await invokeExternalDb<VariantOption>({
         table: 'product_variants',
         operation: 'select',
-        select: 'id, color_name, color_hex, color_code, sku, selected_thumbnail',
+        select: 'id, color_name, color_hex, color_code, sku, selected_thumbnail, sale_price',
         filters: { id: allowedVariantIds, is_active: true },
         limit: 50,
       });
@@ -132,6 +134,11 @@ export function VariantSelector({
                   <span className="truncate flex-1">
                     {variant.color_name || 'Padrão'}
                   </span>
+                  {variant.sku && (
+                    <span className="text-[10px] text-muted-foreground font-mono flex-shrink-0">
+                      {variant.sku}
+                    </span>
+                  )}
                   {isActive && <Check className="h-3 w-3 flex-shrink-0" />}
                 </button>
               );

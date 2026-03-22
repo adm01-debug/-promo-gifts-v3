@@ -49,7 +49,7 @@ export function calculateVolumeUsagePercent(
 ): number {
   if (boxVolume === 0) return 0;
   const usableVolume = boxVolume * PACKING_EFFICIENCY;
-  return Math.min((itemsVolume / usableVolume) * 100, 100);
+  return (itemsVolume / usableVolume) * 100;
 }
 
 // ============================================

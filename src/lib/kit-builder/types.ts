@@ -160,6 +160,21 @@ export interface ItemFilters {
 // PRODUTO EXTERNO (para conversão)
 // ============================================
 
+/** Material object from the external DB */
+interface ExternalMaterialEntry {
+  name?: string;
+  material?: string;
+  [key: string]: unknown;
+}
+
+/** Color variation from the external DB */
+interface ExternalColorEntry {
+  color_name?: string;
+  color_hex?: string;
+  color_code?: string;
+  [key: string]: unknown;
+}
+
 export interface ExternalProductForKit {
   id: string;
   name: string;
@@ -171,8 +186,8 @@ export interface ExternalProductForKit {
   images?: string[] | null;
   dimensions?: string | { width_cm?: number; height_cm?: number; length_cm?: number; diameter_cm?: number; shape_type?: string } | null;
   category_id?: string | null;
-  colors?: any[] | null;
-  materials?: any[] | null;
+  colors?: ExternalColorEntry[] | null;
+  materials?: (string | ExternalMaterialEntry)[] | null;
   // Tipo do produto (product, packaging, etc.)
   product_type?: string | null;
   // Peso em gramas
