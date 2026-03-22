@@ -129,10 +129,24 @@ export function SuppliersManager() {
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [contacts, setContacts] = useState<SupplierContact[]>([createEmptyContact()]);
   const [formaPagamento, setFormaPagamento] = useState<string[]>([]);
-  const [pixTipo, setPixTipo] = useState('');
-  const [pixNumero, setPixNumero] = useState('');
-  const [pixFavorecido, setPixFavorecido] = useState('');
-  const [pixDataCadastro, setPixDataCadastro] = useState('');
+
+  interface PixKey { id: string; tipo: string; chave: string; favorecido: string; principal: boolean; }
+  const createEmptyPixKey = (principal = false): PixKey => ({ id: crypto.randomUUID(), tipo: '', chave: '', favorecido: '', principal });
+  const [pixKeys, setPixKeys] = useState<PixKey[]>([createEmptyPixKey(true)]);
+
+  const updatePixKey = (id: string, field: keyof Omit<PixKey, 'id'>, value: string | boolean) => {
+    setPixKeys(prev => prev.map(k => {
+      if (k.id !== id) return field === 'principal' && value === true ? { ...k, principal: false } : k;
+      return { ...k, [field]: value };
+    }));
+  };
+  const addPixKey = () => setPixKeys(prev => [...prev, createEmptyPixKey(prev.length === 0)]);
+  const removePixKey = (id: string) => setPixKeys(prev => {
+    const next = prev.filter(k => k.id !== id);
+    if (next.length > 0 && !next.some(k => k.principal)) next[0].principal = true;
+    return next.length > 0 ? next : [createEmptyPixKey(true)];
+  });
+
   const [foneFixo1, setFoneFixo1] = useState('');
   const [foneFixo2, setFoneFixo2] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -236,17 +250,40 @@ export function SuppliersManager() {
 
     // Parse financial data from notes
     const notesStr = supplier.notes || '';
-    const finMatch = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
-    if (finMatch) {
-      const formas = finMatch[1] !== '-' ? finMatch[1].split(',').filter(Boolean) : [];
+    
+    // Try new multi-PIX format first
+    const finMatchNew = notesStr.match(/\[Financeiro: Forma: (.*?), PIX: (.*?), PIX Atualizado: (.*?)\]/);
+    // Fallback to legacy single-PIX format
+    const finMatchLegacy = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
+    
+    if (finMatchNew) {
+      const formas = finMatchNew[1] !== '-' ? finMatchNew[1].split(',').filter(Boolean) : [];
       setFormaPagamento(formas);
-      setPixTipo(finMatch[2] !== '-' ? finMatch[2] : '');
-      setPixNumero(finMatch[3] !== '-' ? finMatch[3] : '');
-      setPixFavorecido(finMatch[4] !== '-' ? finMatch[4] : '');
-      setPixDataCadastro(finMatch[5] !== '-' ? finMatch[5] : '');
+      const pixData = finMatchNew[2];
+      if (pixData && pixData !== '-') {
+        const keys = pixData.split(';;').map(entry => {
+          const [tipo, chave, favorecido, principal] = entry.split('|');
+          return { id: crypto.randomUUID(), tipo: tipo === '-' ? '' : tipo, chave, favorecido: favorecido === '-' ? '' : favorecido, principal: principal === '1' };
+        });
+        if (keys.length > 0 && !keys.some(k => k.principal)) keys[0].principal = true;
+        setPixKeys(keys.length > 0 ? keys : [createEmptyPixKey(true)]);
+      } else {
+        setPixKeys([createEmptyPixKey(true)]);
+      }
+    } else if (finMatchLegacy) {
+      const formas = finMatchLegacy[1] !== '-' ? finMatchLegacy[1].split(',').filter(Boolean) : [];
+      setFormaPagamento(formas);
+      const tipo = finMatchLegacy[2] !== '-' ? finMatchLegacy[2] : '';
+      const chave = finMatchLegacy[3] !== '-' ? finMatchLegacy[3] : '';
+      const favorecido = finMatchLegacy[4] !== '-' ? finMatchLegacy[4] : '';
+      if (chave) {
+        setPixKeys([{ id: crypto.randomUUID(), tipo, chave, favorecido, principal: true }]);
+      } else {
+        setPixKeys([createEmptyPixKey(true)]);
+      }
     } else {
       setFormaPagamento([]);
-      setPixTipo(''); setPixNumero(''); setPixFavorecido(''); setPixDataCadastro('');
+      setPixKeys([createEmptyPixKey(true)]);
     }
 
     // Parse landline phones from notes
@@ -392,9 +429,10 @@ export function SuppliersManager() {
             parts.push(extraInfo);
           }
           // Persist financial/PIX data
-          if (formaPagamento.length > 0 || pixTipo || pixNumero || pixFavorecido) {
+          if (formaPagamento.length > 0 || pixKeys.some(k => k.chave.trim())) {
             const now_date = new Date().toISOString().split('T')[0];
-            parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX Tipo: ${pixTipo || '-'}, PIX Número: ${pixNumero || '-'}, PIX Favorecido: ${pixFavorecido || '-'}, PIX Atualizado: ${now_date}]`);
+            const pixData = pixKeys.filter(k => k.chave.trim()).map(k => `${k.tipo || '-'}|${k.chave}|${k.favorecido || '-'}|${k.principal ? '1' : '0'}`).join(';;');
+            parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX: ${pixData || '-'}, PIX Atualizado: ${now_date}]`);
           }
           // Persist landline phones
           if (foneFixo1.trim() || foneFixo2.trim()) {
@@ -1069,38 +1107,61 @@ export function SuppliersManager() {
 
                 {formaPagamento.includes('PIX') && (
                   <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Dados do PIX</p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs font-semibold">Tipo de Chave PIX</Label>
-                        <Select value={pixTipo} onValueChange={setPixTipo}>
-                          <SelectTrigger className={`${fieldClass} w-full`}>
-                            <SelectValue placeholder="Selecione..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="CNPJ">CNPJ</SelectItem>
-                            <SelectItem value="CPF">CPF</SelectItem>
-                            <SelectItem value="Email">E-mail</SelectItem>
-                            <SelectItem value="Telefone">Telefone</SelectItem>
-                            <SelectItem value="Aleatória">Chave Aleatória</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-xs font-semibold">Chave PIX</Label>
-                        <Input value={pixNumero} onChange={e => setPixNumero(e.target.value)} placeholder="Ex: 00.000.000/0000-00" className={fieldClass} />
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Chaves PIX</p>
+                      <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addPixKey}>
+                        <Plus className="h-3.5 w-3.5" />
+                        Adicionar Chave
+                      </Button>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-xs font-semibold">Favorecido (Nome)</Label>
-                        <Input value={pixFavorecido} onChange={e => setPixFavorecido(e.target.value)} placeholder="Nome do titular da conta PIX" className={fieldClass} />
+                    {pixKeys.map((pix, idx) => (
+                      <div key={pix.id} className="rounded-lg border border-border bg-background/50 p-3 space-y-3 relative">
+                        <div className="flex items-center justify-between">
+                          <label className="flex items-center gap-2 text-xs cursor-pointer">
+                            <input
+                              type="radio"
+                              name="pix-principal-edit"
+                              checked={pix.principal}
+                              onChange={() => updatePixKey(pix.id, 'principal', true)}
+                              className="accent-primary"
+                            />
+                            <span className={pix.principal ? 'font-semibold text-primary' : 'text-muted-foreground'}>
+                              {pix.principal ? '★ Principal' : `Chave ${idx + 1}`}
+                            </span>
+                          </label>
+                          {pixKeys.length > 1 && (
+                            <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => removePixKey(pix.id)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label className="text-xs font-semibold">Tipo de Chave</Label>
+                            <Select value={pix.tipo} onValueChange={v => updatePixKey(pix.id, 'tipo', v)}>
+                              <SelectTrigger className={`${fieldClass} w-full`}>
+                                <SelectValue placeholder="Selecione..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="CNPJ">CNPJ</SelectItem>
+                                <SelectItem value="CPF">CPF</SelectItem>
+                                <SelectItem value="Email">E-mail</SelectItem>
+                                <SelectItem value="Telefone">Telefone</SelectItem>
+                                <SelectItem value="Aleatória">Chave Aleatória</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs font-semibold">Chave PIX</Label>
+                            <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', e.target.value)} placeholder="Ex: 00.000.000/0000-00" className={fieldClass} />
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-xs font-semibold">Favorecido (Nome)</Label>
+                          <Input value={pix.favorecido} onChange={e => updatePixKey(pix.id, 'favorecido', e.target.value)} placeholder="Nome do titular da conta PIX" className={fieldClass} />
+                        </div>
                       </div>
-                      <div>
-                        <Label className="text-xs font-semibold">Data de Cadastro/Atualização</Label>
-                        <Input value={pixDataCadastro} disabled className={`${fieldClass} text-muted-foreground`} placeholder="Atualizado automaticamente" />
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 )}
               </TabsContent>
