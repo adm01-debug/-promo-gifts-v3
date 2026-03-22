@@ -69,6 +69,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [cnpjError, setCnpjError] = useState('');
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [website, setWebsite] = useState('');
+  const [foneFixo1, setFoneFixo1] = useState('');
+  const [foneFixo2, setFoneFixo2] = useState('');
 
   // Social Media
   const [instagram, setInstagram] = useState('');
