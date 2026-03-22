@@ -429,9 +429,10 @@ export function SuppliersManager() {
             parts.push(extraInfo);
           }
           // Persist financial/PIX data
-          if (formaPagamento.length > 0 || pixTipo || pixNumero || pixFavorecido) {
+          if (formaPagamento.length > 0 || pixKeys.some(k => k.chave.trim())) {
             const now_date = new Date().toISOString().split('T')[0];
-            parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX Tipo: ${pixTipo || '-'}, PIX Número: ${pixNumero || '-'}, PIX Favorecido: ${pixFavorecido || '-'}, PIX Atualizado: ${now_date}]`);
+            const pixData = pixKeys.filter(k => k.chave.trim()).map(k => `${k.tipo || '-'}|${k.chave}|${k.favorecido || '-'}|${k.principal ? '1' : '0'}`).join(';;');
+            parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX: ${pixData || '-'}, PIX Atualizado: ${now_date}]`);
           }
           // Persist landline phones
           if (foneFixo1.trim() || foneFixo2.trim()) {
