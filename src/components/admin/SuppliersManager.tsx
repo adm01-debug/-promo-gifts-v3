@@ -1176,7 +1176,7 @@ export function SuppliersManager() {
                           </div>
                           <div>
                             <Label className="text-xs font-semibold">Chave PIX</Label>
-                            <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', e.target.value)} placeholder="Ex: 00.000.000/0000-00" className={fieldClass} />
+                            <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', applyPixMask(e.target.value, pix.tipo))} placeholder={pixPlaceholder(pix.tipo)} className={fieldClass} />
                           </div>
                         </div>
                         <div>
