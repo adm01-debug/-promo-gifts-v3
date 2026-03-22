@@ -110,8 +110,8 @@ export function useKitBuilder() {
   // ============================================
 
   // Busca caixas/embalagens disponíveis
-  // Estratégia: busca produtos com dimensões internas OU product_type 'packaging'
-  // Depois filtra no frontend os que têm dimensões válidas (transformToKitBox retorna null se não tem)
+  // No banco externo, qualquer produto pode ser usado como embalagem.
+  // Busca todos com dimensões válidas e o usuário filtra por nome (ex: "caixa", "maleta")
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.boxes, boxFilters],
     queryFn: async () => {
@@ -122,17 +122,14 @@ export function useKitBuilder() {
           active: true,
           ...(boxFilters.search ? { name: boxFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, internal_width_cm, internal_height_cm, internal_length_cm, box_width_cm, box_height_cm, box_length_cm, category_id',
-        limit: 200,
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, category_id',
+        limit: 100,
         orderBy: { column: 'name', ascending: true },
+        countMode: 'none',
       });
 
-      // Transforma e filtra: só produtos com dimensões internas válidas são caixas
+      // Transforma e filtra apenas produtos com dimensões válidas
       const boxes = result.records
-        .filter(p => 
-          p.product_type === 'packaging' || 
-          (p.internal_width_cm && p.internal_height_cm && p.internal_length_cm)
-        )
         .map(p => transformToKitBox(p))
         .filter((box): box is KitBox => box !== null);
 
