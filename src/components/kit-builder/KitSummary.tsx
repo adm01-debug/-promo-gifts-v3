@@ -39,6 +39,7 @@ export function KitSummary({
   onKitQuantityChange,
   onAddToQuote,
   onExportPDF,
+  isAddingToQuote,
 }: KitSummaryProps) {
   const { box, items, personalization } = kitState;
   
