@@ -14,6 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useKitStockValidation } from '@/hooks/useKitStockValidation';
+import { KitVisualPreview } from './KitVisualPreview';
+import { DiscontinuedItemsAlert } from './DiscontinuedItemsAlert';
+import { FreightEstimator } from './FreightEstimator';
 import { cn } from '@/lib/utils';
 import {
   formatCurrency,
