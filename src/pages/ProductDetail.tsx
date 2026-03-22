@@ -39,7 +39,8 @@ import { useProduct, useRelatedProducts, type Product } from "@/hooks/useProduct
 import { sortVariationsByColor } from "@/utils/colorSorting";
 
 type ProductVariation = any;
-type KitItem = any;
+import type { KitComponent } from "@/types/product-catalog";
+type KitItem = KitComponent;
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
