@@ -589,7 +589,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                       <Input
                         value={contact.signature}
                         onChange={(e) => updateContact(contact.id, 'signature', e.target.value)}
-                        placeholder="Ex: João S. - Diretor Comercial"
+                        placeholder="Ex.: Silva"
                         className={fieldClass}
                       />
                     </div>
