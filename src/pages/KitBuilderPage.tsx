@@ -176,7 +176,6 @@ export default function KitBuilderPage() {
 
   const handleExportPDF = () => {
     try {
-      const { downloadKitPDF } = require('@/utils/kitPdfGenerator');
       downloadKitPDF({
         kitState,
         kitQuantity,
