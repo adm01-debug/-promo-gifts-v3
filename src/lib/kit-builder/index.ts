@@ -7,6 +7,9 @@
 export * from './types';
 export { mmToCm } from './types';
 
+// Mock data
+export { MOCK_BOXES, MOCK_ITEMS } from './mock-data';
+
 // Volume Calculator
 export {
   calculateVolume,
