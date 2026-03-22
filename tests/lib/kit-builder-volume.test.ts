@@ -83,10 +83,10 @@ describe("kit-builder volume-calculator", () => {
       expect(result.fits).toBe(true);
     });
 
-    it("returns fits:false when width exceeds box", () => {
+    it("returns fits:false when dimensions exceed box in all orientations", () => {
       const result = checkItemFits(oversizedItem, mockBox, []);
       expect(result.fits).toBe(false);
-      expect(result.reason).toContain("Largura");
+      expect(result.reason).toContain("Dimensões");
     });
 
     it("returns fits:false when total volume exceeds capacity", () => {
