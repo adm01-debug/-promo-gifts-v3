@@ -305,11 +305,15 @@ export function KitSummary({
         </Button>
         <Button
           className="flex-1"
-          disabled={!kitState.isValid}
+          disabled={!kitState.isValid || isAddingToQuote}
           onClick={onAddToQuote}
         >
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          Adicionar ao Orçamento
+          {isAddingToQuote ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <ShoppingCart className="h-4 w-4 mr-2" />
+          )}
+          {isAddingToQuote ? 'Criando orçamento...' : 'Adicionar ao Orçamento'}
         </Button>
       </div>
     </div>
