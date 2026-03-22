@@ -1022,7 +1022,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                       </div>
                       <div>
                         <Label className="text-xs font-semibold">Chave PIX</Label>
-                        <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', applyPixMask(e.target.value, pix.tipo))} placeholder={pixPlaceholder(pix.tipo)} className={fieldClass} />
+                        <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', applyPixMask(e.target.value, pix.tipo))} placeholder={pixPlaceholder(pix.tipo)} className={`${fieldClass} ${validatePixKey(pix.chave, pix.tipo) ? 'border-destructive' : ''}`} />
+                        {validatePixKey(pix.chave, pix.tipo) && (
+                          <p className="text-xs text-destructive mt-1">{validatePixKey(pix.chave, pix.tipo)}</p>
+                        )}
                       </div>
                     </div>
                     <div>
