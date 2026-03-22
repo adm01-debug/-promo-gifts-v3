@@ -416,6 +416,13 @@ export default function MeusKitsPage() {
         </div>
       )}
 
+      {/* Kit Comparison Dialog */}
+      <KitComparisonDialog
+        open={showComparison}
+        onOpenChange={setShowComparison}
+        kits={kits.filter(k => compareIds.has(k.id))}
+      />
+
       {/* Delete Confirm */}
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
