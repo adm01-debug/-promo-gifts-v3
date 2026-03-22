@@ -162,7 +162,7 @@ export default function Auth() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <main className="min-h-screen flex items-center justify-center bg-background" role="main" aria-label="Carregando autenticação">
         <Loader2 className="h-8 w-8 animate-spin text-orange" />
       </div>
     );
