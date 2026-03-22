@@ -347,9 +347,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                   Oráculo
                   <Sparkles className="h-4 w-4 text-primary" />
                 </DialogTitle>
-                <p className="text-xs text-muted-foreground">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Consultor de Produtos IA
-                </p>
+                </DialogDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
