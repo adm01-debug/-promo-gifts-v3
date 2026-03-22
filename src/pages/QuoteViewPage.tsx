@@ -155,6 +155,8 @@ export default function QuoteViewPage() {
         color: item.color_name || undefined,
         imageUrl: item.product_image_url || undefined,
         bitrix_product_id: item.bitrix_product_id ?? null,
+        kit_group_id: item.kit_group_id || null,
+        kit_name: item.kit_name || null,
         personalizations: item.personalizations?.map((p: any) => ({
           technique_name: p.technique_name || "Personalizacao",
           colors_count: p.colors_count || 1,
