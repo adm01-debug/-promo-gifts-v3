@@ -63,6 +63,7 @@ export default function KitBuilderPage() {
     removeItem,
     updateItemQuantity,
     updateItemVariant,
+    reorderItems,
     setItemPersonalization,
     setBoxPersonalization,
     setKitQuantity,
