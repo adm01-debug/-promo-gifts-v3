@@ -39,6 +39,8 @@ export interface KitItem {
   depth: number;
   // Volume calculado
   volume: number;
+  // Peso em gramas
+  weight?: number;
   // Categoria do item
   category?: string;
   // Cor selecionada
@@ -48,6 +50,11 @@ export interface KitItem {
   };
   // Quantidade no kit
   quantity: number;
+  // Flags de composição (do product_kit_components)
+  isOptional?: boolean;
+  isReplaceable?: boolean;
+  isPackaging?: boolean;
+  allowsPersonalization?: boolean;
   // Personalização configurada
   personalization?: KitItemPersonalization;
 }
