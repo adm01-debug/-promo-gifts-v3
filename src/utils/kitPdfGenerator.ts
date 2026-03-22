@@ -20,6 +20,8 @@ interface KitPdfOptions {
   kitState: KitState;
   kitQuantity: number;
   kitName: string;
+  orgName?: string;
+  orgLogoUrl?: string;
 }
 
 // Brand colors
