@@ -6,6 +6,9 @@
 import { useState } from 'react';
 import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { formatCurrency } from '@/lib/kit-builder';
 import { Card, CardContent } from '@/components/ui/card';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
