@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, type Ref } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowUp } from "lucide-react";
@@ -13,12 +13,12 @@ interface ScrollProgressProps {
 /**
  * ScrollProgressIndicator - Barra de progresso de scroll (AN-12)
  */
-export const ScrollProgressIndicator = forwardRef<HTMLDivElement, ScrollProgressProps>(function ScrollProgressIndicator({
+export function ScrollProgressIndicator({
   className,
   color = "primary",
   height = 3,
   position = "top",
-}: ScrollProgressProps, ref: Ref<HTMLDivElement>) {
+}: ScrollProgressProps) {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -46,7 +46,7 @@ export const ScrollProgressIndicator = forwardRef<HTMLDivElement, ScrollProgress
       }}
     />
   );
-});
+}
 
 /**
  * ScrollToTop - Botão para voltar ao topo
