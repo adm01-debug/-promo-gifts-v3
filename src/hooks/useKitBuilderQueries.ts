@@ -19,6 +19,18 @@ import { MOCK_BOXES, MOCK_ITEMS } from '@/lib/kit-builder/mock-data';
 // Import transformers from the main hook file
 import { transformToKitBox, transformToKitItem } from './useKitBuilderTransformers';
 
+function filterBoxes(boxes: KitBox[], search: string | null): KitBox[] {
+  if (!search) return boxes;
+  const q = search.toLowerCase();
+  return boxes.filter(b => b.name.toLowerCase().includes(q) || b.sku.toLowerCase().includes(q));
+}
+
+function filterItems(items: KitItem[], search: string): KitItem[] {
+  if (!search) return items;
+  const q = search.toLowerCase();
+  return items.filter(i => i.name.toLowerCase().includes(q) || (i.sku && i.sku.toLowerCase().includes(q)));
+}
+
 export function useKitBuilderQueries() {
   // Debounced search state
   const [boxSearchInput, setBoxSearchInput] = useState('');
