@@ -548,7 +548,7 @@ export function LogoPositionEditor({
                       (techniqueColorConfig?.category === "laser" || techniqueColorConfig?.category === "serigrafia"))
                     ? (colorConfigFilter?.filter ?? techniqueFilter.filter)
                     : "none",
-                  mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as any,
+                  mixBlendMode: (showPreviewMode ? techniqueFilter.blend : undefined) as React.CSSProperties['mixBlendMode'],
                 }}
                 draggable={false}
                 loading="lazy"

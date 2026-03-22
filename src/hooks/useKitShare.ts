@@ -23,7 +23,7 @@ export function useKitShare() {
       expiresAt.setDate(expiresAt.getDate() + 30);
 
       const { data, error } = await supabase
-        .from("kit_share_tokens" as any)
+        .from("kit_share_tokens")
         .insert({
           kit_id: kitId,
           seller_id: user.id,
@@ -36,7 +36,7 @@ export function useKitShare() {
 
       if (error) throw error;
 
-      const link = `${window.location.origin}/kit/${(data as any).token}`;
+      const link = `${window.location.origin}/kit/${(data as Record<string, string>).token}`;
       toast.success("Link de apresentação gerado!");
       return link;
     } catch (err) {
@@ -51,7 +51,7 @@ export function useKitShare() {
   const revokeShareLink = useCallback(async (tokenId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
-        .from("kit_share_tokens" as any)
+        .from("kit_share_tokens")
         .update({ status: "revoked" })
         .eq("id", tokenId);
 

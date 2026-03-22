@@ -1,3 +1,4 @@
+import { ExternalProduct } from "@/types/external-db";
 /**
  * Fetch products with full enrichment (colors, images, variants, suppliers).
  */
@@ -243,18 +244,18 @@ async function enrichProducts(
   const suppliersRecords: { id: string; name: string; code: string }[] = [];
   for (const idx of queryMap.suppliers) {
     const r = batchResults[idx];
-    if (r?.success && r.data?.records) suppliersRecords.push(...(r.data.records as any[]));
+    if (r?.success && r.data?.records) suppliersRecords.push(...(r.data.records as ExternalProduct[]));
   }
 
   let colorVariationsRecords: any[] = [];
   for (const idx of queryMap.colorVariations) {
     const r = batchResults[idx];
-    if (r?.success && r.data?.records) colorVariationsRecords = r.data.records as any[];
+    if (r?.success && r.data?.records) colorVariationsRecords = r.data.records as unknown[];
   }
   let colorGroupsRecords: any[] = [];
   for (const idx of queryMap.colorGroups) {
     const r = batchResults[idx];
-    if (r?.success && r.data?.records) colorGroupsRecords = r.data.records as any[];
+    if (r?.success && r.data?.records) colorGroupsRecords = r.data.records as unknown[];
   }
 
   const suppliersMap = new Map(suppliersRecords.map(s => [s.id, s.name]));

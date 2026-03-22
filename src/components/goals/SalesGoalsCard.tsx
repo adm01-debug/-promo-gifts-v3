@@ -107,7 +107,7 @@ export function SalesGoalsCard() {
                   <Label>Período</Label>
                   <Select
                     value={formData.goal_type}
-                    onValueChange={(v) => setFormData({ ...formData, goal_type: v as any })}
+                    onValueChange={(v) => setFormData({ ...formData, goal_type: v as string })}
                   >
                     <SelectTrigger>
                       <SelectValue />

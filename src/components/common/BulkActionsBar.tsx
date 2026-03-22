@@ -53,7 +53,7 @@ export function BulkActionsBar({
             {actions.map((action) => (
               <Button
                 key={action.id}
-                variant={(action.variant as any) || "secondary"}
+                variant={action.variant || "secondary"}
                 size="sm"
                 className="text-xs gap-1.5"
                 onClick={() => action.onClick([...selectedIds])}

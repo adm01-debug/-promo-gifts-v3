@@ -258,9 +258,9 @@ export function QuotesConfigurableList({
             <span className="text-sm font-semibold text-foreground truncate">
               {quote.client_company || quote.client_name}
             </span>
-            {(quote as any).client_cnpj && (
+            {quote.client_cnpj && (
               <span className="text-[10px] text-muted-foreground/70 font-mono truncate">
-                {(quote as any).client_cnpj}
+                {quote.client_cnpj}
               </span>
             )}
           </div>

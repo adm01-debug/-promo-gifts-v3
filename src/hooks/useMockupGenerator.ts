@@ -489,7 +489,7 @@ export function useMockupGenerator() {
       let safeProductId: string | null = null;
       if (selectedProduct.id) {
         const { data: productRow } = await supabase
-          .from("products" as any)
+          .from("products")
           .select("id")
           .eq("id", selectedProduct.id)
           .maybeSingle();
@@ -530,7 +530,7 @@ export function useMockupGenerator() {
         location_name: extra?.locationName || area.name || null,
         colors_count: extra?.colorsCount || null,
         annotations: mockupAnnotations.length > 0 ? mockupAnnotations : null,
-      } as any).select("id").single();
+      } as Record<string, unknown>).select("id").single();
 
       if (error) throw error;
       fetchHistory();

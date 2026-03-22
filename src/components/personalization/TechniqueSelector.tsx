@@ -1,3 +1,4 @@
+import { ExternalTechnique } from "@/types/external-db";
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalDb } from "@/lib/external-db";
@@ -92,8 +93,8 @@ export function TechniqueSelector({
       // Mapear campos do BD externo para interface
       return result.records.map(t => ({
         ...t,
-        setup_cost: (t as any).setup_price ?? t.setup_cost ?? null,
-        unit_cost: (t as any).handling_price ?? t.unit_cost ?? null,
+        setup_cost: (t as ExternalTechnique).setup_price ?? t.setup_cost ?? null,
+        unit_cost: (t as ExternalTechnique).handling_price ?? t.unit_cost ?? null,
       }));
     },
     staleTime: 10 * 60 * 1000, // 10 minutos

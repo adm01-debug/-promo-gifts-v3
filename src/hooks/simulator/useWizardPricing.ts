@@ -30,7 +30,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
 
   useEffect(() => {
     const persToRecalc = state.personalizations.filter(
-      (p) => (p.pricing as any)?._needsRecalc === true
+      (p) => (p.pricing as unknown)?._needsRecalc === true
     );
     if (persToRecalc.length === 0) return;
 

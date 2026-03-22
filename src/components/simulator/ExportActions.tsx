@@ -202,7 +202,7 @@ export function ExportActions({
       });
 
       // Best option highlight
-      const finalY = (doc as any).lastAutoTable.finalY + 10;
+      const finalY = doc.lastAutoTable.finalY + 10;
       doc.setFillColor(220, 252, 231);
       doc.roundedRect(14, finalY, pageWidth - 28, 25, 3, 3, 'F');
       doc.setFontSize(11);

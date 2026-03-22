@@ -125,7 +125,7 @@ export default function MeusKitsPage() {
         user_id: user.id,
         name: `${kit.name} (cópia)`,
         status: 'draft',
-      } as any);
+      } as Record<string, unknown>);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -183,7 +183,7 @@ export default function MeusKitsPage() {
 
   const getBoxName = (kit: CustomKit): string => {
     if (!kit.box_data) return 'Sem caixa';
-    return (kit.box_data as any).name || 'Caixa';
+    return (kit.box_data as Record<string, unknown>)?.name || 'Caixa';
   };
 
   // Stats

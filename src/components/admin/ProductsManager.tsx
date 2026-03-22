@@ -1,3 +1,4 @@
+import { ExternalProduct } from "@/types/external-db";
 /**
  * Gerenciador de Produtos - CRUD completo com Auditoria e Paginação
  * Refatorado: usa navegação para formulário full-screen
@@ -215,10 +216,10 @@ export function ProductsManager() {
           materials: p.materials ? (typeof p.materials === 'string' ? [p.materials] : p.materials) : [],
           min_quantity: p.min_quantity ?? 1,
           is_featured: p.is_featured ?? false,
-          is_bestseller: (p as any).is_bestseller ?? false,
+          is_bestseller: (p as ExternalProduct).is_bestseller ?? false,
           is_new: p.is_new ?? false,
           is_on_sale: p.is_on_sale ?? false,
-          is_kit: (p as any).is_kit ?? false,
+          is_kit: (p as ExternalProduct).is_kit ?? false,
           has_commercial_packaging: p.has_commercial_packaging ?? false,
           is_imported: p.is_imported ?? false,
           is_textil: p.is_textil ?? false,
@@ -265,7 +266,7 @@ export function ProductsManager() {
           meta_keywords: Array.isArray(p.meta_keywords) ? p.meta_keywords : null,
           slug: p.slug ?? null,
           canonical_url: p.canonical_url ?? null,
-          video_url: (p as any).videos?.[0] ?? null,
+          video_url: (p as ExternalProduct).videos?.[0] ?? null,
           key_benefits: p.key_benefits ?? null,
           use_cases: p.use_cases ?? null,
           created_at: p.created_at ?? '',

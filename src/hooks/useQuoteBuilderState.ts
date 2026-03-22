@@ -103,7 +103,7 @@ export function useQuoteBuilderState() {
           setContactInfo({ id: "", name: quote.client_name, email: quote.client_email || undefined, phone: quote.client_phone || undefined });
         }
         if (quote.client_company) {
-          setCompanyInfo({ id: quote.client_id || "", name: quote.client_company, cnpj: (quote as any).client_cnpj || undefined, ramo_atividade: undefined });
+          setCompanyInfo({ id: quote.client_id || "", name: quote.client_company, cnpj: quote.client_cnpj || undefined, ramo_atividade: undefined });
         }
         if (quote.discount_percent && quote.discount_percent > 0) { setDiscountType("percent"); setDiscountValue(quote.discount_percent); }
         else if (quote.discount_amount && quote.discount_amount > 0) { setDiscountType("amount"); setDiscountValue(quote.discount_amount); }

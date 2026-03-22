@@ -36,7 +36,7 @@ export function useCatalogPrefetch() {
         let lastPageSize = 0;
         for (const result of batchResults) {
           if (result.success && result.data?.records) {
-            products.push(...(result.data.records as any[]).map(mapLightweightToProduct));
+            products.push(...(result.data.records as unknown[]).map(mapLightweightToProduct));
             lastPageSize = result.data.records.length;
             if (result.data.count != null && totalEstimate === null) {
               totalEstimate = result.data.count as number;

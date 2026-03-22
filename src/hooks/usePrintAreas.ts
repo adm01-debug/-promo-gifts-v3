@@ -1,3 +1,4 @@
+import { ExternalPrintArea } from "@/types/external-db";
 /**
  * Hooks: Áreas de Gravação (Print Areas)
  * 
@@ -134,7 +135,7 @@ export function usePrintAreas(productId: string | null) {
       // Montar resultado
       return areas.map(area => {
         const techniques: { id: string; nome: string; codigo: string }[] = [];
-        const allowedIds = (area as any).allowed_technique_ids || [];
+        const allowedIds = (area as ExternalPrintArea).allowed_technique_ids || [];
         
         for (const tid of allowedIds) {
           const tech = techById.get(tid);
@@ -147,11 +148,11 @@ export function usePrintAreas(productId: string | null) {
           area_id: area.id,
           area_code: area.area_code || '',
           area_name: area.area_name || '',
-          component_name: (area as any).component_name,
-          location_name: (area as any).location_name,
+          component_name: (area as ExternalPrintArea).component_name,
+          location_name: (area as ExternalPrintArea).location_name,
           max_width: area.max_width || 0,
           max_height: area.max_height || 0,
-          unit: (area as any).unit || 'cm',
+          unit: (area as ExternalPrintArea).unit || 'cm',
           shape: area.shape || 'rectangle',
           is_curved: area.is_curved,
           is_primary: area.is_primary,

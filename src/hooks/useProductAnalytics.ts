@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { untypedFrom } from "@/lib/supabase-untyped";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface TrackViewParams {
@@ -25,7 +26,7 @@ export function useProductAnalytics() {
       try {
         // Using type assertion since table was just created
         // Silently insert - all errors are ignored for analytics to not affect UX
-        await (supabase.from("product_views") as any).insert({
+        await untypedFrom("product_views").insert({
           product_id: productId,
           product_sku: productSku,
           product_name: productName,
@@ -47,7 +48,7 @@ export function useProductAnalytics() {
 
       try {
         // Silently insert - all errors are ignored for analytics to not affect UX
-        await (supabase.from("search_analytics") as any).insert({
+        await untypedFrom("search_analytics").insert({
           search_term: searchTerm.toLowerCase().trim(),
           results_count: resultsCount,
           seller_id: user.id,

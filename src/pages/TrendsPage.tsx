@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { untypedFrom } from "@/lib/supabase-untyped";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -43,7 +44,7 @@ export default function TrendsPage() {
   const { data: topProducts, isLoading: loadingProducts, refetch: refetchProducts } = useQuery({
     queryKey: ["trends-products", dateRange],
     queryFn: async () => {
-      const { data, error } = await (supabase.from("product_views") as any)
+      const { data, error } = await untypedFrom("product_views")
         .select("product_id, product_name, product_sku, view_type")
         .gte("created_at", dateFilter)
         .order("created_at", { ascending: false });
@@ -81,7 +82,7 @@ export default function TrendsPage() {
   const { data: topSearches, isLoading: loadingSearches, refetch: refetchSearches } = useQuery({
     queryKey: ["trends-searches", dateRange],
     queryFn: async () => {
-      const { data, error } = await (supabase.from("search_analytics") as any)
+      const { data, error } = await untypedFrom("search_analytics")
         .select("search_term, results_count")
         .gte("created_at", dateFilter)
         .order("created_at", { ascending: false });
@@ -111,11 +112,11 @@ export default function TrendsPage() {
   const { data: dailyTrends, isLoading: loadingDaily } = useQuery({
     queryKey: ["trends-daily", dateRange],
     queryFn: async () => {
-      const { data: views, error: viewsError } = await (supabase.from("product_views") as any)
+      const { data: views, error: viewsError } = await untypedFrom("product_views")
         .select("created_at")
         .gte("created_at", dateFilter);
 
-      const { data: searches, error: searchesError } = await (supabase.from("search_analytics") as any)
+      const { data: searches, error: searchesError } = await untypedFrom("search_analytics")
         .select("created_at")
         .gte("created_at", dateFilter);
 

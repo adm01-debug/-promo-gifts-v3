@@ -79,7 +79,7 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
       let safeProductId: string | null = null;
       if (data.productId) {
         const { data: productRow } = await supabase
-          .from("products" as any)
+          .from("products")
           .select("id")
           .eq("id", data.productId)
           .maybeSingle();
@@ -123,7 +123,7 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
         technique_name: data.techniqueName,
         client_id: safeClientId,
         client_name: data.clientName,
-        personalization_areas: areasWithoutLogos as unknown as any,
+        personalization_areas: areasWithoutLogos as unknown as Record<string, unknown>[],
         logo_data: safeLogoData,
         updated_at: new Date().toISOString(),
       };
@@ -136,7 +136,7 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
       if (upsertError) {
         // If FK violation or conflict, try update-only as fallback
         if (upsertError.code === "23503" || upsertError.code === "409") {
-          const { product_id, technique_id, client_id, ...safePayload } = payload as any;
+          const { product_id, technique_id, client_id, ...safePayload } = payload as Record<string, unknown>;
           const { error: updateError } = await supabase
             .from("mockup_drafts")
             .update({
@@ -184,7 +184,7 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
 
       if (data) {
         const areas = Array.isArray(data.personalization_areas) 
-          ? (data.personalization_areas as any[]).map(a => ({
+          ? (data.personalization_areas as unknown[]).map(a => ({
               id: a.id || crypto.randomUUID(),
               name: a.name || "Frente",
               positionX: a.positionX ?? 50,

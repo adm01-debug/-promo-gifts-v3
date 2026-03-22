@@ -47,7 +47,7 @@ export function useCartTemplates() {
       if (error) throw error;
       return (data || []).map(t => ({
         ...t,
-        items: (t.items as any as CartTemplateItem[]) || [],
+        items: (t.items as unknown as CartTemplateItem[]) || [],
       }));
     },
     enabled: !!userId,
@@ -60,7 +60,7 @@ export function useCartTemplates() {
         user_id: userId,
         name,
         description: description || null,
-        items: items as any,
+        items: items as unknown as Record<string, unknown>[],
       });
       if (error) throw error;
     },

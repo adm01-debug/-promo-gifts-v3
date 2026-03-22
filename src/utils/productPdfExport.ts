@@ -100,7 +100,7 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
       },
       body: filteredRows,
     });
-    y = (doc as any).lastAutoTable.finalY + 6;
+    y = doc.lastAutoTable.finalY + 6;
   };
 
   // ====== INFORMAÇÕES BÁSICAS ======
