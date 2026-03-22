@@ -311,6 +311,24 @@ export function useKitBuilder() {
     setCurrentStep('box');
   }, []);
 
+  /** Load a saved kit (from custom_kits JSONB snapshots) into the wizard */
+  const loadKit = useCallback((data: {
+    name: string;
+    kitType: KitType;
+    box: KitBox | null;
+    items: KitItem[];
+    personalization: KitPersonalization;
+    kitQuantity: number;
+  }) => {
+    setKitName(data.name);
+    setKitType(data.kitType);
+    setSelectedBox(data.box);
+    setSelectedItems(data.items);
+    setPersonalization(data.personalization || { box: { enabled: false }, items: {} });
+    setKitQuantity(data.kitQuantity || 1);
+    setCurrentStep('summary');
+  }, []);
+
   // ============================================
   // FILTROS COM COMPATIBILIDADE
   // ============================================
