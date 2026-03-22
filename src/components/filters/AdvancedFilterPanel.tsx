@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { 
   RefreshCw, Package, Truck, Layers, Tag, DollarSign, Clock,
-  Filter, Sparkles, Box, Paintbrush, Search, X, Calendar, Users, Briefcase
+  Filter, Sparkles, Box, Paintbrush, Search, X, Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
