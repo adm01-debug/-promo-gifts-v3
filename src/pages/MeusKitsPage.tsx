@@ -205,10 +205,18 @@ export default function MeusKitsPage() {
             {totalValue > 0 && ` • ${formatCurrency(totalValue)} total`}
           </p>
         </div>
-        <Button onClick={() => navigate('/montar-kit')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Montar Novo Kit
-        </Button>
+        <div className="flex items-center gap-2">
+          {compareIds.size >= 2 && (
+            <Button variant="outline" onClick={() => setShowComparison(true)} className="gap-2">
+              <GitCompare className="h-4 w-4" />
+              Comparar ({compareIds.size})
+            </Button>
+          )}
+          <Button onClick={() => navigate('/montar-kit')} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Montar Novo Kit
+          </Button>
+        </div>
       </div>
 
       {/* Filters Bar */}
