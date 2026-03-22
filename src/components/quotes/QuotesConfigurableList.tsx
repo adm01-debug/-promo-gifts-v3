@@ -87,14 +87,11 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
 ];
 
-const statusConfig: Record<Quote["status"], { label: string; className?: string }> = {
-  draft: { label: "Rascunho", className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
-  pending: { label: "Pendente", className: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  sent: { label: "Enviado", className: "bg-primary/15 text-primary border-primary/30" },
-  approved: { label: "Aprovado", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
-  rejected: { label: "Rejeitado", className: "bg-red-500/15 text-red-400 border-red-500/30" },
-  expired: { label: "Expirado", className: "bg-muted text-muted-foreground border-muted" },
-};
+import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
+
+const statusConfig = Object.fromEntries(
+  Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, className: v.badgeClassName }])
+) as Record<Quote["status"], { label: string; className?: string }>;
 
 function getValidityInfo(validUntil: string | undefined | null) {
   if (!validUntil) return null;
