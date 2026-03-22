@@ -35,6 +35,7 @@ export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [ipBlocked, setIpBlocked] = useState(false);
   const [blockedIP, setBlockedIP] = useState<string | null>(null);
+  const [isPasswordSafe, setIsPasswordSafe] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
