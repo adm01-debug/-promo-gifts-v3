@@ -124,15 +124,15 @@ function ItemPersonalizationCard({
   const currentUnitPrice = priceData?.preco_unitario ?? personalization.estimatedPrice;
 
   // #3 FIX: Sync estimatedPrice with RPC result so price-calculator picks it up
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  
   useEffect(() => {
     if (priceData?.success && priceData.preco_unitario != null) {
       const rpcPrice = priceData.preco_unitario;
-      if (personalization.estimatedPrice !== rpcPrice) {
-        onChange({ ...personalization, estimatedPrice: rpcPrice });
-      }
+      onChangeRef.current({ ...personalization, estimatedPrice: rpcPrice });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [priceData?.preco_unitario, priceData?.success]);
+  }, [priceData?.preco_unitario, priceData?.success, personalization]);
 
   const handleToggle = (enabled: boolean) => {
     onChange({ ...personalization, enabled, estimatedPrice: enabled ? personalization.estimatedPrice : undefined });
