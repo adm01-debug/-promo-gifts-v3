@@ -308,6 +308,15 @@ export function useKitBuilder() {
     }
   }, [currentStep]);
 
+  const reorderItems = useCallback((fromIndex: number, toIndex: number) => {
+    setSelectedItems(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }, []);
+
   const resetKit = useCallback(() => {
     setKitName('');
     setKitType('montado');
