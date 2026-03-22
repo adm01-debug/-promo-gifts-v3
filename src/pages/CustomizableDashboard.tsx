@@ -9,6 +9,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from "@/components/seo/PageSEO";
 import { UpcomingDatesWidget } from '@/components/dashboard/UpcomingDatesWidget';
 import { QuickActionsPanel } from '@/components/dashboard/QuickActionsPanel';
+import { RecentKitsWidget } from '@/components/dashboard/RecentKitsWidget';
 
 interface DashboardWidget {
   id: string;
@@ -103,6 +104,9 @@ export function CustomizableDashboard() {
 
         {/* Widget de Próximas Datas Comemorativas */}
         <UpcomingDatesWidget variant="compact" daysAhead={60} maxItems={6} />
+
+        {/* Kits Recentes */}
+        <RecentKitsWidget />
 
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={widgets.map(w => w.id)} strategy={verticalListSortingStrategy}>

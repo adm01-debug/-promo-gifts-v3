@@ -14,6 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useKitStockValidation } from '@/hooks/useKitStockValidation';
+import { KitVisualPreview } from './KitVisualPreview';
+import { DiscontinuedItemsAlert } from './DiscontinuedItemsAlert';
+import { FreightEstimator } from './FreightEstimator';
 import { cn } from '@/lib/utils';
 import {
   formatCurrency,
@@ -152,6 +155,12 @@ export function KitSummary({
           </CardContent>
         </Card>
       </div>
+
+      {/* Visual Preview */}
+      <KitVisualPreview kitState={kitState} />
+
+      {/* Discontinued Items Alert */}
+      <DiscontinuedItemsAlert items={items} />
 
       {/* Composição do Kit */}
       <Card>
@@ -436,6 +445,9 @@ export function KitSummary({
           </CardContent>
         </Card>
       )}
+
+      {/* Freight Estimator */}
+      <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
 
       {/* Validação */}
       {!kitState.isValid && (

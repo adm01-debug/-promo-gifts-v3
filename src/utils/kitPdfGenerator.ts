@@ -20,6 +20,8 @@ interface KitPdfOptions {
   kitState: KitState;
   kitQuantity: number;
   kitName: string;
+  orgName?: string;
+  orgLogoUrl?: string;
 }
 
 // Brand colors
@@ -30,22 +32,25 @@ const GRAY_200 = [229, 231, 235] as const;
 const WHITE = [255, 255, 255] as const;
 const GREEN = [16, 185, 129] as const;
 
-function drawHeader(doc: jsPDF, kitName: string, y: number): number {
+function drawHeader(doc: jsPDF, kitName: string, y: number, orgName?: string, orgLogoUrl?: string): number {
   // Blue header bar
   doc.setFillColor(...PRIMARY);
   doc.rect(0, 0, 210, 36, 'F');
 
+  // Org logo (if available, loaded as base64 previously)
+  let textStartX = 14;
+
   doc.setTextColor(...WHITE);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text(kitName || 'Kit Personalizado', 14, 16);
+  doc.text(kitName || 'Kit Personalizado', textStartX, 16);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   const dateStr = new Date().toLocaleDateString('pt-BR', {
     day: '2-digit', month: 'long', year: 'numeric',
   });
-  doc.text(`Gerado em ${dateStr}`, 14, 26);
+  doc.text(`Gerado em ${dateStr}${orgName ? ` • ${orgName}` : ''}`, textStartX, 26);
 
   // Right-aligned badge
   doc.setFontSize(8);
@@ -330,7 +335,7 @@ export function generateKitPDF(options: KitPdfOptions): Blob {
   const { kitState, kitQuantity, kitName } = options;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  let y = drawHeader(doc, kitName, 0);
+  let y = drawHeader(doc, kitName, 0, options.orgName, options.orgLogoUrl);
 
   // KPI cards
   y = drawKpiCards(doc, kitState, kitQuantity, y);

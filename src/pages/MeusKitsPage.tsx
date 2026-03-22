@@ -7,7 +7,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Package, Plus, Copy, Trash2, Pencil, Search, Loader2, FileText, Calendar, Layers, Filter, X, TrendingUp, Share2 } from 'lucide-react';
+import { Package, Plus, Copy, Trash2, Pencil, Search, Loader2, FileText, Calendar, Layers, Filter, X, TrendingUp, Share2, GitCompare, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,8 @@ import {
 import { formatCurrency } from '@/lib/kit-builder';
 import { toast } from 'sonner';
 import { useKitShare } from '@/hooks/useKitShare';
+import { KitComparisonDialog } from '@/components/kit-builder/KitComparisonDialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -74,6 +76,18 @@ export default function MeusKitsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const { generateShareLink, isLoading: shareLoading } = useKitShare();
+  const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
+  const [showComparison, setShowComparison] = useState(false);
+
+  const toggleCompare = (id: string) => {
+    setCompareIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 3) next.add(id);
+      else toast.error('Máximo 3 kits para comparação');
+      return next;
+    });
+  };
 
   const { data: kits = [], isLoading } = useQuery({
     queryKey: ['custom-kits', user?.id],
@@ -191,10 +205,18 @@ export default function MeusKitsPage() {
             {totalValue > 0 && ` • ${formatCurrency(totalValue)} total`}
           </p>
         </div>
-        <Button onClick={() => navigate('/montar-kit')} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Montar Novo Kit
-        </Button>
+        <div className="flex items-center gap-2">
+          {compareIds.size >= 2 && (
+            <Button variant="outline" onClick={() => setShowComparison(true)} className="gap-2">
+              <GitCompare className="h-4 w-4" />
+              Comparar ({compareIds.size})
+            </Button>
+          )}
+          <Button onClick={() => navigate('/montar-kit')} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Montar Novo Kit
+          </Button>
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -292,9 +314,16 @@ export default function MeusKitsPage() {
               <Card key={kit.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    {/* Icon */}
-                    <div className="hidden sm:flex w-14 h-14 rounded-xl bg-primary/10 items-center justify-center flex-shrink-0">
-                      <Package className="h-7 w-7 text-primary" />
+                    {/* Compare checkbox + Icon */}
+                    <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                      <Checkbox
+                        checked={compareIds.has(kit.id)}
+                        onCheckedChange={() => toggleCompare(kit.id)}
+                        className="h-4 w-4"
+                      />
+                      <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Package className="h-7 w-7 text-primary" />
+                      </div>
                     </div>
 
                     {/* Info */}
@@ -386,6 +415,13 @@ export default function MeusKitsPage() {
           })}
         </div>
       )}
+
+      {/* Kit Comparison Dialog */}
+      <KitComparisonDialog
+        open={showComparison}
+        onOpenChange={setShowComparison}
+        kits={kits.filter(k => compareIds.has(k.id))}
+      />
 
       {/* Delete Confirm */}
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
