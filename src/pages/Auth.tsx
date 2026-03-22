@@ -524,7 +524,7 @@ export default function Auth() {
                           {signupForm.formState.errors.password.message}
                         </p>
                       )}
-                      <PasswordStrengthIndicator password={signupForm.watch("password")} />
+                      <PasswordStrengthIndicator password={signupForm.watch("password")} onStrengthChange={setIsPasswordSafe} />
                     </div>
 
                     <div className="space-y-2">
