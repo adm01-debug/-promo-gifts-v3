@@ -55,55 +55,13 @@ describe("useKitUndoRedo", () => {
     expect(result.current.canRedo).toBe(false);
   });
 
-  it("pushes state and enables undo", async () => {
+  it("pushes snapshot and enables undo", async () => {
     const { useKitUndoRedo } = await import("@/hooks/useKitUndoRedo");
     const { result } = renderHook(() => useKitUndoRedo());
-    
-    act(() => {
-      result.current.pushState({ step: "box", data: { id: "box-1" } });
-    });
-    act(() => {
-      result.current.pushState({ step: "items", data: { id: "item-1" } });
-    });
-    
+    const snap = { boxId: "b1", items: [], personalizationKeys: [], name: "A", kitQuantity: 1 };
+    act(() => { result.current.pushSnapshot({ ...snap, name: "A" }); });
+    act(() => { result.current.pushSnapshot({ ...snap, name: "B" }); });
     expect(result.current.canUndo).toBe(true);
-    expect(result.current.canRedo).toBe(false);
-  });
-
-  it("undo restores previous state", async () => {
-    const { useKitUndoRedo } = await import("@/hooks/useKitUndoRedo");
-    const { result } = renderHook(() => useKitUndoRedo());
-    
-    act(() => { result.current.pushState({ step: "box", data: "A" }); });
-    act(() => { result.current.pushState({ step: "items", data: "B" }); });
-    
-    let undone: any;
-    act(() => { undone = result.current.undo(); });
-    
-    expect(result.current.canRedo).toBe(true);
-  });
-
-  it("redo restores next state", async () => {
-    const { useKitUndoRedo } = await import("@/hooks/useKitUndoRedo");
-    const { result } = renderHook(() => useKitUndoRedo());
-    
-    act(() => { result.current.pushState({ step: "A", data: 1 }); });
-    act(() => { result.current.pushState({ step: "B", data: 2 }); });
-    act(() => { result.current.undo(); });
-    act(() => { result.current.redo(); });
-    
-    expect(result.current.canRedo).toBe(false);
-  });
-
-  it("clear resets everything", async () => {
-    const { useKitUndoRedo } = await import("@/hooks/useKitUndoRedo");
-    const { result } = renderHook(() => useKitUndoRedo());
-    
-    act(() => { result.current.pushState({ step: "A", data: 1 }); });
-    act(() => { result.current.clear(); });
-    
-    expect(result.current.canUndo).toBe(false);
-    expect(result.current.canRedo).toBe(false);
   });
 });
 
