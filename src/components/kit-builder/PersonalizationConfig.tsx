@@ -29,7 +29,7 @@ import { formatCurrency } from '@/lib/kit-builder';
 import type { KitBox, KitItem, KitItemPersonalization } from '@/lib/kit-builder';
 import { useProductCustomizationOptions } from '@/hooks/useProductCustomizationOptions';
 import { useCustomizationPriceReactive } from '@/hooks/useCustomizationPrice';
-import type { TechniqueOption, GravacaoLocation } from '@/types/customization';
+import type { GravacaoLocation } from '@/types/customization';
 
 interface PersonalizationConfigProps {
   box: KitBox | null;
@@ -41,7 +41,7 @@ interface PersonalizationConfigProps {
   onItemPersonalizationChange: (itemId: string, config: KitItemPersonalization) => void;
 }
 
-/** Flattened technique with location info for the select */
+/** Flattened technique with location info */
 interface FlatTechnique {
   technique_id: string;
   tecnica_nome: string;
@@ -77,29 +77,36 @@ function flattenTechniques(locations: GravacaoLocation[]): FlatTechnique[] {
 }
 
 // ============================================
-// Card de personalização por item
+// Card de personalização — busca técnicas internamente
 // ============================================
 
 interface ItemPersonalizationCardProps {
-  item: KitItem | { id: string; name: string; imageUrl: string | null };
+  productId: string;
+  displayName: string;
+  imageUrl: string | null;
   personalization: KitItemPersonalization;
   onChange: (config: KitItemPersonalization) => void;
   isBox?: boolean;
-  techniques: FlatTechnique[];
-  loadingTechniques: boolean;
   kitQuantity: number;
 }
 
 function ItemPersonalizationCard({
-  item,
+  productId,
+  displayName,
+  imageUrl,
   personalization,
   onChange,
   isBox = false,
-  techniques,
-  loadingTechniques,
   kitQuantity,
 }: ItemPersonalizationCardProps) {
   const [isOpen, setIsOpen] = useState(personalization.enabled);
+
+  // Fetch real techniques for this product
+  const { data: options, isLoading: loadingTechniques } = useProductCustomizationOptions(productId);
+  const techniques = useMemo(
+    () => options?.locations ? flattenTechniques(options.locations) : [],
+    [options]
+  );
 
   // Find current technique for reactive price
   const currentTech = techniques.find(t => t.technique_id === personalization.techniqueId);
@@ -114,7 +121,6 @@ function ItemPersonalizationCard({
     currentTech?.usa_dimensao || false,
   );
 
-  // Sync price to parent when it changes
   const currentUnitPrice = priceData?.preco_unitario ?? personalization.estimatedPrice;
 
   const handleToggle = (enabled: boolean) => {
@@ -132,10 +138,9 @@ function ItemPersonalizationCard({
         techniqueCode: tech.codigo_tabela,
         position: tech.location_name,
         colors: Math.min(personalization.colors || 1, tech.max_cores),
-        // Width/height defaults from technique limits
         width: personalization.width || (tech.usa_dimensao ? tech.efetiva_largura_max : undefined),
         height: personalization.height || (tech.usa_dimensao ? tech.efetiva_altura_max : undefined),
-        estimatedPrice: undefined, // will be set by reactive price
+        estimatedPrice: undefined,
       });
     }
   };
@@ -144,7 +149,6 @@ function ItemPersonalizationCard({
     onChange({ ...personalization, colors });
   };
 
-  // Max colors based on selected technique
   const maxColors = currentTech?.max_cores || 6;
   const colorOptions = Array.from({ length: maxColors }, (_, i) => i + 1);
 
@@ -155,8 +159,8 @@ function ItemPersonalizationCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-md bg-secondary overflow-hidden flex-shrink-0">
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                {imageUrl ? (
+                  <img src={imageUrl} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     {isBox ? <Package className="h-5 w-5 text-muted-foreground" /> : <Palette className="h-5 w-5 text-muted-foreground" />}
@@ -165,7 +169,7 @@ function ItemPersonalizationCard({
               </div>
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  {item.name}
+                  {displayName}
                   {isBox && <Badge variant="outline" className="text-xs">Caixa</Badge>}
                 </CardTitle>
                 {personalization.enabled && personalization.techniqueName && (
@@ -187,9 +191,7 @@ function ItemPersonalizationCard({
                   ) : null}
                 </span>
               )}
-
               <Switch checked={personalization.enabled} onCheckedChange={handleToggle} />
-
               {personalization.enabled && (
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -210,7 +212,7 @@ function ItemPersonalizationCard({
                 {loadingTechniques ? (
                   <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-secondary/50">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Carregando técnicas...</span>
+                    <span className="text-sm text-muted-foreground">Carregando...</span>
                   </div>
                 ) : techniques.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-2">
@@ -242,9 +244,7 @@ function ItemPersonalizationCard({
                   value={String(personalization.colors || 1)}
                   onValueChange={(v) => handleColorsChange(parseInt(v))}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {colorOptions.map(n => (
                       <SelectItem key={n} value={String(n)}>
@@ -333,22 +333,6 @@ export function PersonalizationConfig({
   onBoxPersonalizationChange,
   onItemPersonalizationChange,
 }: PersonalizationConfigProps) {
-  // Fetch real techniques for each product from external DB
-  const { data: boxOptions, isLoading: loadingBoxTech } = useProductCustomizationOptions(box?.id || null);
-  
-  // Collect unique item IDs and fetch their techniques
-  const itemTechQueries = items.map(item => ({
-    id: item.id,
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    query: useProductCustomizationOptions(item.id),
-  }));
-
-  // Flatten techniques for box
-  const boxTechniques = useMemo(
-    () => boxOptions?.locations ? flattenTechniques(boxOptions.locations) : [],
-    [boxOptions]
-  );
-
   const totalPersonalizations = (boxPersonalization.enabled ? 1 : 0) +
     Object.values(itemPersonalizations).filter(p => p.enabled).length;
 
@@ -379,12 +363,12 @@ export function PersonalizationConfig({
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-muted-foreground">Embalagem</h4>
           <ItemPersonalizationCard
-            item={{ id: 'box', name: box.name, imageUrl: box.imageUrl }}
+            productId={box.id}
+            displayName={box.name}
+            imageUrl={box.imageUrl}
             personalization={boxPersonalization}
             onChange={onBoxPersonalizationChange}
             isBox
-            techniques={boxTechniques}
-            loadingTechniques={loadingBoxTech}
             kitQuantity={kitQuantity}
           />
         </div>
@@ -397,24 +381,17 @@ export function PersonalizationConfig({
             Itens do Kit ({items.length})
           </h4>
           <div className="space-y-3">
-            {items.map((item, index) => {
-              const itemQuery = itemTechQueries[index];
-              const itemTechniques = itemQuery?.query.data?.locations
-                ? flattenTechniques(itemQuery.query.data.locations)
-                : [];
-              
-              return (
-                <ItemPersonalizationCard
-                  key={item.id}
-                  item={item}
-                  personalization={itemPersonalizations[item.id] || { enabled: false }}
-                  onChange={(config) => onItemPersonalizationChange(item.id, config)}
-                  techniques={itemTechniques}
-                  loadingTechniques={itemQuery?.query.isLoading || false}
-                  kitQuantity={kitQuantity}
-                />
-              );
-            })}
+            {items.map(item => (
+              <ItemPersonalizationCard
+                key={item.id}
+                productId={item.id}
+                displayName={item.name}
+                imageUrl={item.imageUrl}
+                personalization={itemPersonalizations[item.id] || { enabled: false }}
+                onChange={(config) => onItemPersonalizationChange(item.id, config)}
+                kitQuantity={kitQuantity}
+              />
+            ))}
           </div>
         </div>
       )}
