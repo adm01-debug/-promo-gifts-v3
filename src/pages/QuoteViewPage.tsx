@@ -49,6 +49,7 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   pending: { label: "Pendente", variant: "outline" },
   sent: { label: "Enviado", variant: "default" },
   approved: { label: "Aprovado", variant: "default" },
+  converted: { label: "Convertido em Pedido", variant: "default" },
   rejected: { label: "Rejeitado", variant: "destructive" },
   expired: { label: "Expirado", variant: "secondary" },
 };
@@ -464,7 +465,7 @@ export default function QuoteViewPage() {
             {/* Desktop-only buttons */}
             <div className="hidden md:flex items-center gap-2">
 
-            <QuoteConvertToOrder quoteId={id!} status={quote.status} />
+            <QuoteConvertToOrder quoteId={id!} status={quote.status} onConverted={() => { if (id) fetchQuote(id).then(setQuote); }} />
 
             {/* Sincronizar com Bitrix24 */}
             <Button

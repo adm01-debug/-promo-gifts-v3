@@ -70,6 +70,7 @@ const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
 
 // Orders Pages
 const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
+const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
 // User Pages
 const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
@@ -212,7 +213,7 @@ const App = () => {
 
                                         {/* Orders */}
                                         <Route path="/pedidos" element={<OrdersPage />} />
-                                        <Route path="/pedidos/:id" element={<OrdersPage />} />
+                                        <Route path="/pedidos/:id" element={<OrderDetailPage />} />
 
                                         {/* User Routes */}
                                         <Route path="/perfil" element={<ProfilePage />} />
