@@ -84,8 +84,8 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
 // INFINITE CATALOG HOOK
 // ============================================
 
-const CATALOG_PAGE_SIZE = 120; // Products per server page
-const CATALOG_BATCH_PAGES = 2; // Fetch 2 lightweight pages on first load (240 products)
+const CATALOG_PAGE_SIZE = 100; // Products per server page — smaller for faster progressive loading
+const CATALOG_BATCH_PAGES = 2; // Fetch 2 lightweight pages on first load (200 products)
 const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit';
 
 interface CatalogPage {
@@ -185,8 +185,8 @@ export function useProductsLightweight() {
 
 /**
  * Hook com paginação infinita server-side para o catálogo.
- * Primeiro carregamento: 2000 produtos (4 páginas batch).
- * Carregamentos seguintes: 500 produtos por vez, sob demanda.
+ * Primeiro carregamento: 200 produtos (2 páginas batch).
+ * Carregamentos seguintes: 100 produtos por vez, sob demanda.
  */
 export function useProductsCatalog(filters?: { search?: string }) {
   const search = filters?.search || '';
