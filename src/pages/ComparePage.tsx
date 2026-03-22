@@ -84,6 +84,7 @@ export default function ComparePage() {
   if (compareCount < 2) {
     return (
       <MainLayout>
+        <PageSEO title="Comparar Produtos" description="Compare brindes lado a lado: preço, materiais, cores e disponibilidade." path="/comparar" />
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
           <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
             <GitCompare className="h-10 w-10 text-muted-foreground" />

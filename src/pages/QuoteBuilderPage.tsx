@@ -662,6 +662,7 @@ export default function QuoteBuilderPage() {
 
   return (
     <MainLayout>
+      <PageSEO title={quoteId ? "Editar Orçamento" : "Novo Orçamento"} description="Crie e edite orçamentos com seleção de produtos e personalização." path="/orcamentos/novo" noIndex />
       {/* Auto-save component */}
       <QuoteAutoSave
         quoteId={quoteId}

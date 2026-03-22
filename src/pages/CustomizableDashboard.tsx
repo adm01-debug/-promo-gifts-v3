@@ -84,6 +84,7 @@ export function CustomizableDashboard() {
 
   return (
     <MainLayout>
+      <PageSEO title="Dashboard" description="Painel personalizado com métricas, ações rápidas e widgets." path="/dashboard" />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>

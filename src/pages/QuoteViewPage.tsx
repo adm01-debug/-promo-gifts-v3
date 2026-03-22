@@ -443,6 +443,7 @@ export default function QuoteViewPage() {
 
   return (
     <MainLayout>
+      <PageSEO title={`Orçamento ${quote.quote_number}`} description={`Visualização do orçamento ${quote.quote_number}`} path={`/orcamentos/${id}`} noIndex />
       <div className="container py-6 space-y-6 pb-24 md:pb-6 print:py-0 print:max-w-none print:px-0">
         {/* Header — Reorganized (#1) */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
