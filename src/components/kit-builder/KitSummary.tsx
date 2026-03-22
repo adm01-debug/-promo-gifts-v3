@@ -4,7 +4,7 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image } from 'lucide-react';
+import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useKitStockValidation } from '@/hooks/useKitStockValidation';
 import { cn } from '@/lib/utils';
 import {
   formatCurrency,
