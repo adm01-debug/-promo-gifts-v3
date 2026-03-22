@@ -308,6 +308,15 @@ export function useKitBuilder() {
     }
   }, [currentStep]);
 
+  const reorderItems = useCallback((fromIndex: number, toIndex: number) => {
+    setSelectedItems(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
+      return next;
+    });
+  }, []);
+
   const resetKit = useCallback(() => {
     setKitName('');
     setKitType('montado');
@@ -360,6 +369,10 @@ export function useKitBuilder() {
       items = items.filter(item => item.volume <= (itemFilters.maxVolume || Infinity));
     }
 
+    if (itemFilters.category) {
+      items = items.filter(item => item.category?.toLowerCase().includes(itemFilters.category!.toLowerCase()));
+    }
+
     return items;
   }, [itemsWithCompatibility, itemFilters]);
 
@@ -389,6 +402,7 @@ export function useKitBuilder() {
     updateItemColor,
     updateItemVariant,
     toggleOptionalItem,
+    reorderItems,
     setItemPersonalization,
     setBoxPersonalization,
     setKitQuantity,

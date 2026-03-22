@@ -3,7 +3,7 @@
  * Seletor de itens para compor o kit (refatorado)
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, AlertTriangle, X, Package } from 'lucide-react';
 import { SelectedItemsBadges } from './SelectedItemsBadges';
 import { ItemCard } from './ItemCard';
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { KitItem, ItemFilters, CompatibilityResult } from '@/lib/kit-builder';
 import type { VariantSelectionData } from './VariantSelector';
 
@@ -29,6 +30,7 @@ interface ItemSelectorProps {
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   onUpdateVariant: (itemId: string, data: VariantSelectionData) => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
   boxSelected: boolean;
 }
 
@@ -42,6 +44,7 @@ export function ItemSelector({
   onRemoveItem,
   onUpdateQuantity,
   onUpdateVariant,
+  onReorder,
   boxSelected,
 }: ItemSelectorProps) {
   const [searchValue, setSearchValue] = useState('');
@@ -59,6 +62,13 @@ export function ItemSelector({
       setTimeout(() => setLastError(null), 3000);
     }
   };
+
+  // Extract unique categories for filter
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    items.forEach(i => { if (i.category) cats.add(i.category); });
+    return Array.from(cats).sort();
+  }, [items]);
 
   const selectedItemIds = new Set(selectedItems.map(i => i.id));
 
@@ -105,11 +115,30 @@ export function ItemSelector({
         )}
       </div>
 
+      {/* Category filter */}
+      {categories.length > 1 && (
+        <Select
+          value={filters.category || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, category: v === 'all' ? undefined : v })}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as categorias</SelectItem>
+            {categories.map(cat => (
+              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
       <SelectedItemsBadges
         items={selectedItems}
         onRemoveItem={onRemoveItem}
         onUpdateQuantity={onUpdateQuantity}
         onUpdateVariant={onUpdateVariant}
+        onReorder={onReorder}
       />
 
       <ScrollArea className="h-[350px] pr-4">
