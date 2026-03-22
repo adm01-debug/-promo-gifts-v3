@@ -90,7 +90,7 @@ export async function fetchPromobrindProducts(options?: {
 
       // Reduce page size aggressively because the external products table is timing out under larger ranges
       const pageSize = offset >= 1000 ? 125 : BASE_PAGE_SIZE;
-      const countMode: 'exact' | 'none' = shouldRequestCount && offset === 0 ? 'planned' as never : 'none';
+      const countMode: 'planned' | 'none' = shouldRequestCount && offset === 0 ? 'planned' : 'none';
       let page: InvokeResult<PromobrindProduct>;
       try {
         page = await invokeExternalDb<PromobrindProduct>({
