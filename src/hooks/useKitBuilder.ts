@@ -31,13 +31,6 @@ import {
 } from '@/lib/kit-builder';
 
 // ============================================
-// QUERY KEYS
-// ============================================
-
-const KIT_BUILDER_KEYS = {
-  boxes: ['kit-builder', 'boxes'] as const,
-  items: ['kit-builder', 'items'] as const,
-};
 
 // ============================================
 // TRANSFORMADORES
