@@ -38,6 +38,9 @@ import { UnsavedChangesDialog } from "@/components/common/UnsavedChangesDialog";
 
 export default function QuoteBuilderPage() {
   const s = useQuoteBuilderState();
+  const { showDialog, guardNavigation, confirmLeave, cancelLeave, message } = useUnsavedChangesGuard({
+    hasUnsavedChanges: s.hasUnsavedData,
+  });
 
   if (s.loadingQuote) {
     return (
