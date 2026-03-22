@@ -3,7 +3,7 @@
  * Compare 2-3 kits side by side (composition, price, weight)
  */
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Package, Scale, Box, DollarSign } from 'lucide-react';
