@@ -762,6 +762,9 @@ export default function QuoteBuilderPage() {
           </div>
         </div>
 
+        {/* Progress stepper */}
+        <QuoteBuilderStepper completedSteps={completedSteps} />
+
         {/* Template applied notification */}
         {templateApplied && (
           <Card className="bg-primary/5 border-primary/20">
