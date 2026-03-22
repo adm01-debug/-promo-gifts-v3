@@ -155,7 +155,7 @@ export interface ExternalProductForKit {
   image_url: string | null;
   primary_image_url: string | null;
   images?: string[] | null;
-  dimensions?: string | null;
+  dimensions?: string | { width_cm?: number; height_cm?: number; length_cm?: number; diameter_cm?: number; shape_type?: string } | null;
   category_id?: string | null;
   colors?: any[] | null;
   // Tipo do produto (product, packaging, etc.)
