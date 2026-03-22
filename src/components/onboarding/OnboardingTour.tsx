@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, SkipForward, Sparkles, Play, Pause } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ interface TooltipPosition {
   bottom?: number;
 }
 
-export function OnboardingTour() {
+export const OnboardingTour = forwardRef<HTMLDivElement, Record<string, never>>(function OnboardingTour(_props, ref) {
   const {
     showTour,
     currentStep,
@@ -254,4 +254,4 @@ export function OnboardingTour() {
       </div>
     </AnimatePresence>
   );
-}
+});

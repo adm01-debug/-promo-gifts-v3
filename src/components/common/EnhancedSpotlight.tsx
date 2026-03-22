@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Fuse from "fuse.js";
@@ -38,7 +38,7 @@ interface SpotlightItem {
   isQuickAction?: boolean;
 }
 
-export function EnhancedSpotlight() {
+export const EnhancedSpotlight = forwardRef<HTMLDivElement, Record<string, never>>(function EnhancedSpotlight(_props, ref) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -496,7 +496,7 @@ export function EnhancedSpotlight() {
       )}
     </AnimatePresence>
   );
-}
+});
 
 // Trigger button component
 export function EnhancedSpotlightTrigger({ className }: { className?: string }) {
