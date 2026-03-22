@@ -35,6 +35,7 @@ export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [ipBlocked, setIpBlocked] = useState(false);
   const [blockedIP, setBlockedIP] = useState<string | null>(null);
+  const [isPasswordSafe, setIsPasswordSafe] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -122,6 +123,14 @@ export default function Auth() {
   };
 
   const handleSignup = async (data: SignupForm) => {
+    if (!isPasswordSafe) {
+      toast({
+        variant: "destructive",
+        title: "Senha insegura",
+        description: "Sua senha foi encontrada em vazamentos de dados. Escolha outra senha.",
+      });
+      return;
+    }
     setIsSubmitting(true);
     try {
       const { error } = await signUp(data.email, data.password, data.fullName);
@@ -515,7 +524,7 @@ export default function Auth() {
                           {signupForm.formState.errors.password.message}
                         </p>
                       )}
-                      <PasswordStrengthIndicator password={signupForm.watch("password")} />
+                      <PasswordStrengthIndicator password={signupForm.watch("password")} onStrengthChange={setIsPasswordSafe} />
                     </div>
 
                     <div className="space-y-2">
@@ -541,7 +550,7 @@ export default function Auth() {
                       type="submit" 
                       variant="orange"
                       className="w-full h-11 text-base font-semibold" 
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !isPasswordSafe}
                     >
                       {isSubmitting ? (
                         <>
