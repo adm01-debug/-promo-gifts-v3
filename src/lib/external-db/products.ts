@@ -58,7 +58,7 @@ export async function fetchPromobrindProducts(options?: {
         table: 'products', operation: 'select', filters,
         select: PRODUCT_SELECT_FIELDS_WITH_SALE, orderBy,
         limit: options.limit, offset: fetchOffset,
-        countMode: shouldRequestCount ? 'exact' : 'none',
+        countMode: shouldRequestCount ? 'planned' : 'none',
       });
     } catch (err) {
       if (!shouldFallbackSelect(err)) throw err;
