@@ -1,0 +1,374 @@
+/**
+ * useQuoteBuilderState — Estado centralizado do QuoteBuilder
+ * Extrai toda a lógica de estado, cálculos e ações do QuoteBuilderPage.
+ */
+
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { format, addDays } from "date-fns";
+import { toast } from "sonner";
+import { validateQuoteForm, QUOTE_FIELD_LABELS } from "@/lib/validations";
+import { useQuotes, type QuoteItem, type QuoteItemPersonalization } from "@/hooks/useQuotes";
+import { useQuoteTemplates, type QuoteTemplate, type QuoteTemplateItem } from "@/hooks/useQuoteTemplates";
+import { useAuth } from "@/contexts/AuthContext";
+import { findKnownHex } from "@/hooks/useProducts";
+import type { SelectedCompanyInfo, SelectedContactInfo } from "@/components/quotes/CompanyContactSelector";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import type { QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
+
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  price: number;
+  images: string[] | null;
+  colors?: { name: string; hex?: string; stock?: number }[];
+  minQuantity?: number;
+  totalStock?: number;
+}
+
+export function useQuoteBuilderState() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id: quoteId } = useParams();
+  const [searchParams] = useSearchParams();
+  const isEditMode = Boolean(quoteId);
+
+  const { user } = useAuth();
+  const { createQuote, updateQuote, fetchQuote, techniques, isLoading: quotesLoading } = useQuotes();
+  const { templates } = useQuoteTemplates();
+
+  // ── State ──
+  const [clientId, setClientId] = useState("");
+  const [contactId, setContactId] = useState("");
+  const [companyInfo, setCompanyInfo] = useState<SelectedCompanyInfo | null>(null);
+  const [contactInfo, setContactInfo] = useState<SelectedContactInfo | null>(null);
+  const [validityDays, setValidityDays] = useState("7");
+  const [validUntil, setValidUntil] = useState(format(addDays(new Date(), 7), "yyyy-MM-dd"));
+  const [discountType, setDiscountType] = useState<"percent" | "amount">("percent");
+  const [discountValue, setDiscountValue] = useState(0);
+  const [notes, setNotes] = useState("");
+  const [internalNotes, setInternalNotes] = useState("");
+  const [items, setItems] = useState<QuoteItem[]>([]);
+  const [quoteNumber, setQuoteNumber] = useState("");
+  const [currentStatus, setCurrentStatus] = useState("draft");
+
+  const [paymentTerms, setPaymentTerms] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("");
+  const [deliveryMode, setDeliveryMode] = useState<"prazo" | "data">("prazo");
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(undefined);
+  const [shippingType, setShippingType] = useState("");
+  const [shippingCost, setShippingCost] = useState(0);
+
+  const [productSearchOpen, setProductSearchOpen] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
+  const [selectedProductForColor, setSelectedProductForColor] = useState<Product | null>(null);
+  const [templateApplied, setTemplateApplied] = useState<string | null>(null);
+  const [loadingQuote, setLoadingQuote] = useState(isEditMode);
+  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
+
+  // ── Stepper ──
+  const completedSteps = useMemo((): QuoteBuilderStep[] => {
+    const steps: QuoteBuilderStep[] = [];
+    if (clientId) steps.push("client");
+    if (items.length > 0) steps.push("items");
+    if (paymentTerms && deliveryTime && shippingType) steps.push("conditions");
+    if (clientId && items.length > 0 && paymentTerms && deliveryTime && shippingType) steps.push("review");
+    return steps;
+  }, [clientId, items.length, paymentTerms, deliveryTime, shippingType]);
+
+  // ── Route guard ──
+  const hasUnsavedData = useMemo(() => {
+    return clientId !== "" || items.length > 0 || notes !== "" || internalNotes !== "";
+  }, [clientId, items.length, notes, internalNotes]);
+
+  useEffect(() => {
+    if (!hasUnsavedData) return;
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedData]);
+
+  // ── Load existing quote ──
+  useEffect(() => {
+    if (!isEditMode || !quoteId) return;
+    setLoadingQuote(true);
+    fetchQuote(quoteId).then((quote) => {
+      if (quote) {
+        setClientId(quote.client_id || "");
+        setContactId(quote.client_id || "");
+        setValidUntil(quote.valid_until || format(addDays(new Date(), 30), "yyyy-MM-dd"));
+        setNotes(quote.notes || "");
+        setInternalNotes(quote.internal_notes || "");
+        setQuoteNumber(quote.quote_number || "");
+        setCurrentStatus(quote.status);
+        if (quote.client_name) {
+          setContactInfo({ id: "", name: quote.client_name, email: quote.client_email || undefined, phone: quote.client_phone || undefined });
+        }
+        if (quote.client_company) {
+          setCompanyInfo({ id: quote.client_id || "", name: quote.client_company, cnpj: (quote as any).client_cnpj || undefined, ramo_atividade: undefined });
+        }
+        if (quote.discount_percent && quote.discount_percent > 0) { setDiscountType("percent"); setDiscountValue(quote.discount_percent); }
+        else if (quote.discount_amount && quote.discount_amount > 0) { setDiscountType("amount"); setDiscountValue(quote.discount_amount); }
+        if (quote.payment_terms) setPaymentTerms(quote.payment_terms);
+        if (quote.shipping_type) setShippingType(quote.shipping_type);
+        if (quote.shipping_cost) setShippingCost(quote.shipping_cost);
+        if (quote.delivery_time) {
+          if (quote.delivery_time.startsWith("date:")) {
+            setDeliveryMode("data");
+            setDeliveryDate(new Date(quote.delivery_time.slice(5) + "T12:00:00"));
+          } else {
+            setDeliveryMode("prazo");
+          }
+          setDeliveryTime(quote.delivery_time);
+        }
+        if (quote.items) setItems(quote.items);
+      }
+      setLoadingQuote(false);
+    });
+  }, [isEditMode, quoteId]);
+
+  // ── Pre-fill from simulator ──
+  useEffect(() => {
+    const state = location.state as { fromSimulator?: boolean; simulationData?: any } | null;
+    if (!state?.fromSimulator || !state.simulationData) return;
+    const { product, quantity, personalizations } = state.simulationData;
+    if (!product) return;
+    const quotePersonalizations: QuoteItemPersonalization[] = (personalizations || []).map((p: any) => ({
+      technique_id: p.technique?.id || '', technique_name: p.technique?.name || '',
+      colors_count: p.specs?.colors || 1, positions_count: 1,
+      width_cm: p.specs?.width || undefined, height_cm: p.specs?.height || undefined,
+      area_cm2: (p.specs?.width || 0) * (p.specs?.height || 0),
+      setup_cost: p.pricing?.setupPrice || 0, unit_cost: p.pricing?.unitPrice || 0,
+      total_cost: p.pricing?.totalPrice || 0,
+    }));
+    const newItem: QuoteItem = {
+      product_id: product.id, product_name: product.name, product_sku: product.sku || '',
+      product_image_url: product.imageUrl || undefined, quantity: quantity || 1,
+      unit_price: product.price || 0, personalizations: quotePersonalizations,
+    };
+    setItems([newItem]); setActiveItemIndex(0);
+    if (quotePersonalizations.length > 0) setExpandedItems(new Set([0]));
+    toast.success(`Produto "${product.name}" importado do simulador com ${quotePersonalizations.length} gravação(ões)`);
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
+
+  // ── Pre-fill from cart ──
+  useEffect(() => {
+    const state = location.state as { fromCart?: boolean; companyId?: string; companyName?: string; companyLocation?: string; items?: any[] } | null;
+    if (!state?.fromCart || !state.items?.length) return;
+    if (state.companyId) setClientId(state.companyId);
+    const cartItems: QuoteItem[] = state.items.map((i: any) => ({
+      product_id: i.product_id, product_name: i.product_name, product_sku: i.product_sku || '',
+      product_image_url: i.product_image_url || undefined, quantity: i.quantity,
+      unit_price: i.unit_price, color_name: i.color_name || undefined,
+      color_hex: i.color_hex || undefined, personalizations: [],
+    }));
+    setItems(cartItems);
+    const companyLabel = state.companyName ? (state.companyLocation ? `${state.companyName} – ${state.companyLocation}` : state.companyName) : '';
+    toast.success(`${cartItems.length} item(ns) importado(s) do carrinho`, { description: companyLabel || undefined });
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
+
+  // ── Products query ──
+  const { data: products } = useQuery({
+    queryKey: ["quote-products-promobrind-full"],
+    queryFn: async () => {
+      const { fetchPromobrindProducts, getProductImageUrl } = await import('@/lib/external-db');
+      const productsData = await fetchPromobrindProducts();
+      return productsData.map(p => {
+        const imgUrl = getProductImageUrl(p);
+        const images = (p.images && p.images.length > 0) ? p.images : (imgUrl ? [imgUrl] : []);
+        return {
+          id: p.id, name: p.name, sku: p.sku,
+          price: p.sale_price ?? p.base_price ?? 0, images,
+          colors: (p.colors || []).map((c: any) => {
+            const name = typeof c === 'string' ? c : c.name;
+            const hex = (typeof c === 'string' ? undefined : c.hex) || findKnownHex(name) || undefined;
+            return { name, hex, stock: typeof c === 'string' ? undefined : c.stock };
+          }),
+          minQuantity: p.min_quantity ?? 1,
+          totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: any) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
+        };
+      }) as Product[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return products?.slice(0, 20) || [];
+    const search = productSearch.toLowerCase();
+    return products?.filter(p => p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search)).slice(0, 20) || [];
+  }, [products, productSearch]);
+
+  // ── Calculations ──
+  const formatCurrency = useCallback((value: number) => {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  }, []);
+
+  const calculateItemPersonalizationTotal = useCallback((item: QuoteItem) => {
+    return (item.personalizations || []).reduce((sum, p) => sum + (p.total_cost || 0), 0);
+  }, []);
+
+  const calculateItemTotal = useCallback((item: QuoteItem) => {
+    return item.quantity * item.unit_price + calculateItemPersonalizationTotal(item);
+  }, [calculateItemPersonalizationTotal]);
+
+  const subtotal = useMemo(() => items.reduce((sum, item) => sum + calculateItemTotal(item), 0), [items, calculateItemTotal]);
+  const discountAmount = useMemo(() => discountType === "percent" ? subtotal * (discountValue / 100) : discountValue, [subtotal, discountType, discountValue]);
+  const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
+
+  // ── Item actions ──
+  const toggleExpanded = useCallback((index: number) => {
+    setExpandedItems(prev => { const n = new Set(prev); n.has(index) ? n.delete(index) : n.add(index); return n; });
+  }, []);
+
+  const handlePersonalizationsChange = useCallback((index: number, personalizations: QuoteItemPersonalization[]) => {
+    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, personalizations } : item));
+  }, []);
+
+  const handleProductClick = useCallback((product: Product) => {
+    setSelectedProductForColor(product);
+  }, []);
+
+  const addProductWithColor = useCallback((product: Product, variant: ExternalVariantStock | null) => {
+    const colorName = variant?.color_name || undefined;
+    const colorHex = variant?.color_hex || undefined;
+    const imageUrl = variant?.selected_thumbnail || (variant?.images?.length ? variant.images[0] : undefined) || (Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : undefined);
+    const existingIndex = items.findIndex(i => i.product_id === product.id && i.color_name === colorName);
+    if (existingIndex >= 0) {
+      setItems(prev => prev.map((item, idx) => idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item));
+      setActiveItemIndex(existingIndex);
+    } else {
+      setItems(prev => {
+        const newItems = [...prev, {
+          product_id: product.id, product_name: product.name, product_sku: product.sku,
+          product_image_url: imageUrl, quantity: 1, unit_price: product.price,
+          color_name: colorName, color_hex: colorHex,
+          bitrix_product_id: variant?.bitrix_product_id ?? null, personalizations: [],
+        }];
+        setActiveItemIndex(newItems.length - 1);
+        return newItems;
+      });
+    }
+    setSelectedProductForColor(null); setProductSearchOpen(false); setProductSearch("");
+  }, [items]);
+
+  const updateItemQuantity = useCallback((index: number, quantity: number) => {
+    if (quantity < 1) return;
+    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, quantity } : item));
+  }, []);
+
+  const updateItemPrice = useCallback((index: number, price: number) => {
+    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, unit_price: price } : item));
+  }, []);
+
+  const removeItem = useCallback((index: number) => {
+    setItems(prev => prev.filter((_, idx) => idx !== index));
+  }, []);
+
+  // ── Template ──
+  const applyTemplate = useCallback((template: QuoteTemplate) => {
+    const newItems: QuoteItem[] = template.items_data.map((item) => ({
+      product_id: item.productId || "", product_name: item.productName,
+      product_sku: item.productSku, product_image_url: item.productImageUrl,
+      quantity: item.quantity, unit_price: item.unitPrice,
+      color_name: item.colorName, color_hex: item.colorHex,
+      personalizations: item.personalizations?.map(p => ({
+        technique_id: p.techniqueId, technique_name: p.techniqueName,
+        colors_count: p.colorsCount, positions_count: p.positionsCount,
+        unit_cost: p.unitCost, setup_cost: p.setupCost,
+      })),
+    }));
+    setItems(newItems);
+    if (template.discount_percent > 0) { setDiscountType("percent"); setDiscountValue(template.discount_percent); }
+    else if (template.discount_amount > 0) { setDiscountType("amount"); setDiscountValue(template.discount_amount); }
+    if (template.notes) setNotes(template.notes);
+    if (template.internal_notes) setInternalNotes(template.internal_notes);
+    if (template.validity_days) setValidUntil(format(addDays(new Date(), template.validity_days), "yyyy-MM-dd"));
+    setTemplateApplied(template.name);
+    toast.success(`Template "${template.name}" aplicado!`);
+  }, []);
+
+  const getTemplateItems = useCallback((): QuoteTemplateItem[] => {
+    return items.map(item => ({
+      productId: item.product_id, productSku: item.product_sku,
+      productName: item.product_name, productImageUrl: item.product_image_url,
+      quantity: item.quantity, unitPrice: item.unit_price,
+      colorName: item.color_name, colorHex: item.color_hex,
+      personalizations: item.personalizations?.map(p => ({
+        techniqueId: p.technique_id, techniqueName: p.technique_name || "",
+        colorsCount: p.colors_count, positionsCount: p.positions_count,
+        unitCost: p.unit_cost, setupCost: p.setup_cost,
+      })),
+    }));
+  }, [items]);
+
+  // ── Validation ──
+  const validationErrors = useMemo(() => validateQuoteForm({
+    clientId, contactId, paymentTerms, deliveryTime, shippingType, shippingCost, itemsCount: items.length,
+  }), [clientId, contactId, paymentTerms, deliveryTime, shippingType, shippingCost, items]);
+
+  const isFormValid = validationErrors.length === 0;
+  const isDraftValid = !!clientId;
+
+  // ── Save ──
+  const handleSaveQuote = useCallback(async (status: "draft" | "pending" = "draft") => {
+    if (status === "draft") {
+      if (!isDraftValid) { toast.error("Selecione uma empresa para salvar o rascunho."); return; }
+    } else if (!isFormValid) {
+      const missing = validationErrors.map(e => QUOTE_FIELD_LABELS[e] || e).join(", ");
+      toast.error(`Preencha os campos obrigatórios: ${missing}`); return;
+    }
+    const quoteData = {
+      client_id: clientId || undefined, client_name: contactInfo?.name || undefined,
+      client_company: companyInfo?.name || undefined, client_cnpj: companyInfo?.cnpj || undefined,
+      client_email: contactInfo?.email || undefined, client_phone: contactInfo?.phone || undefined,
+      status, discount_percent: discountType === "percent" ? discountValue : 0,
+      discount_amount: discountType === "amount" ? discountValue : 0,
+      notes: notes || undefined, internal_notes: internalNotes || undefined,
+      valid_until: validUntil || undefined, payment_terms: paymentTerms || undefined,
+      delivery_time: deliveryTime || undefined, shipping_type: shippingType || undefined,
+      shipping_cost: (shippingType === "fob_pre" || shippingType === "fob") ? shippingCost : undefined,
+    };
+    let result;
+    if (isEditMode && quoteId) { result = await updateQuote(quoteId, quoteData, items); }
+    else { result = await createQuote(quoteData, items); }
+    if (result) navigate(`/orcamentos/${result.id}`);
+  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote]);
+
+  const defaultTemplate = useMemo(() => templates.find(t => t.is_default), [templates]);
+
+  return {
+    // Navigation
+    navigate, quoteId, isEditMode, loadingQuote,
+    // Auth
+    user,
+    // State setters
+    clientId, setClientId, contactId, setContactId,
+    companyInfo, setCompanyInfo, contactInfo, setContactInfo,
+    validityDays, setValidityDays, validUntil, setValidUntil,
+    discountType, setDiscountType, discountValue, setDiscountValue,
+    notes, setNotes, internalNotes, setInternalNotes,
+    items, setItems, quoteNumber, currentStatus,
+    paymentTerms, setPaymentTerms, deliveryTime, setDeliveryTime,
+    deliveryMode, setDeliveryMode, deliveryDate, setDeliveryDate,
+    shippingType, setShippingType, shippingCost, setShippingCost,
+    productSearchOpen, setProductSearchOpen, productSearch, setProductSearch,
+    selectedProductForColor, setSelectedProductForColor,
+    templateApplied, setTemplateApplied,
+    expandedItems, setExpandedItems, activeItemIndex, setActiveItemIndex,
+    // Computed
+    completedSteps, filteredProducts, subtotal, discountAmount, total,
+    validationErrors, isFormValid, isDraftValid,
+    quotesLoading, templates, defaultTemplate,
+    // Actions
+    formatCurrency, calculateItemPersonalizationTotal, calculateItemTotal,
+    toggleExpanded, handlePersonalizationsChange,
+    handleProductClick, addProductWithColor,
+    updateItemQuantity, updateItemPrice, removeItem,
+    applyTemplate, getTemplateItems, handleSaveQuote,
+  };
+}
