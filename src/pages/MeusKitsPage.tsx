@@ -76,6 +76,18 @@ export default function MeusKitsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const { generateShareLink, isLoading: shareLoading } = useKitShare();
+  const [compareIds, setCompareIds] = useState<Set<string>>(new Set());
+  const [showComparison, setShowComparison] = useState(false);
+
+  const toggleCompare = (id: string) => {
+    setCompareIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else if (next.size < 3) next.add(id);
+      else toast.error('Máximo 3 kits para comparação');
+      return next;
+    });
+  };
 
   const { data: kits = [], isLoading } = useQuery({
     queryKey: ['custom-kits', user?.id],
