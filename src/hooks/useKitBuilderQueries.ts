@@ -77,7 +77,7 @@ export function useKitBuilderQueries() {
 
   // Query: boxes — products that have packing_type containing "Caixa" or similar packaging terms
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
-    queryKey: ['kit-builder', 'boxes', debouncedBoxSearch, boxDimFilters.minWidth ?? '', boxDimFilters.minHeight ?? '', boxDimFilters.minDepth ?? ''],
+    queryKey: ['kit-builder', 'boxes', debouncedBoxSearch, boxDimFilters.minWidth ?? '', boxDimFilters.minHeight ?? '', boxDimFilters.minDepth ?? '', boxDimFilters.material ?? ''],
     queryFn: async () => {
       try {
         const filters: Record<string, unknown> = { active: true };
