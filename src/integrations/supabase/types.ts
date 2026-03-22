@@ -1085,6 +1085,8 @@ export type Database = {
           created_at: string
           display_order: number | null
           id: string
+          kit_group_id: string | null
+          kit_name: string | null
           notes: string | null
           product_id: string | null
           product_image_url: string | null
@@ -1103,6 +1105,8 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           id?: string
+          kit_group_id?: string | null
+          kit_name?: string | null
           notes?: string | null
           product_id?: string | null
           product_image_url?: string | null
@@ -1121,6 +1125,8 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           id?: string
+          kit_group_id?: string | null
+          kit_name?: string | null
           notes?: string | null
           product_id?: string | null
           product_image_url?: string | null
