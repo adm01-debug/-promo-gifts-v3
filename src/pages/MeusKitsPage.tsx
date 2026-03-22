@@ -314,9 +314,16 @@ export default function MeusKitsPage() {
               <Card key={kit.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    {/* Icon */}
-                    <div className="hidden sm:flex w-14 h-14 rounded-xl bg-primary/10 items-center justify-center flex-shrink-0">
-                      <Package className="h-7 w-7 text-primary" />
+                    {/* Compare checkbox + Icon */}
+                    <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                      <Checkbox
+                        checked={compareIds.has(kit.id)}
+                        onCheckedChange={() => toggleCompare(kit.id)}
+                        className="h-4 w-4"
+                      />
+                      <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <Package className="h-7 w-7 text-primary" />
+                      </div>
                     </div>
 
                     {/* Info */}
