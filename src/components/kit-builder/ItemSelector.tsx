@@ -29,6 +29,7 @@ interface ItemSelectorProps {
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   onUpdateVariant: (itemId: string, data: VariantSelectionData) => void;
+  onReorder?: (fromIndex: number, toIndex: number) => void;
   boxSelected: boolean;
 }
 
