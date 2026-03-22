@@ -6,7 +6,7 @@
  * Briefing v6 (12/02/2026).
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Loader2, Palette, Clock, Ruler, AlertCircle, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

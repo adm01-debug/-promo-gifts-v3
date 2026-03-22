@@ -7,7 +7,7 @@
  * Calcula preço somente quando todos os campos obrigatórios estão preenchidos.
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Loader2, Palette, Clock, Ruler, AlertCircle, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
