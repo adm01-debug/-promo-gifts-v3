@@ -49,6 +49,7 @@ export function ItemSelector({
   onAddItem,
   onRemoveItem,
   onUpdateQuantity,
+  onUpdateColor,
   boxSelected,
 }: ItemSelectorProps) {
   const [searchDebounce, setSearchDebounce] = useState('');
