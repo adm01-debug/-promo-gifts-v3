@@ -156,6 +156,12 @@ export function KitSummary({
         </Card>
       </div>
 
+      {/* Visual Preview */}
+      <KitVisualPreview kitState={kitState} />
+
+      {/* Discontinued Items Alert */}
+      <DiscontinuedItemsAlert items={items} />
+
       {/* Composição do Kit */}
       <Card>
         <CardHeader className="pb-3">
