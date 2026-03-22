@@ -122,7 +122,7 @@ export function useKitBuilder() {
           active: true,
           ...(boxFilters.search ? { name: boxFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, category_id',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, dimensions, product_type, category_id',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
