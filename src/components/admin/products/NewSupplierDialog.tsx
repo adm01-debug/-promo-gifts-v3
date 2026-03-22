@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { applyPixMask, pixPlaceholder } from '@/utils/pixMask';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -129,7 +130,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setPixKeys(prev => {
       const updated = prev.map(k => {
         if (k.id !== id) return field === 'principal' && value === true ? { ...k, principal: false } : k;
-        return { ...k, [field]: value };
+        const next = { ...k, [field]: value };
+        if (field === 'tipo' && typeof value === 'string' && k.chave.trim()) {
+          next.chave = applyPixMask(k.chave, value);
+        }
+        return next;
       });
       if (field === 'chave' && typeof value === 'string' && value.trim()) {
         const dup = hasPixDuplicate(updated);
@@ -1017,7 +1022,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                       </div>
                       <div>
                         <Label className="text-xs font-semibold">Chave PIX</Label>
-                        <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', e.target.value)} placeholder="Ex: 00.000.000/0000-00" className={fieldClass} />
+                        <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', applyPixMask(e.target.value, pix.tipo))} placeholder={pixPlaceholder(pix.tipo)} className={fieldClass} />
                       </div>
                     </div>
                     <div>
