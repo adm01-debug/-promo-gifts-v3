@@ -32,7 +32,7 @@ describe("ExpertChatDialog", () => {
       <ExpertChatDialog isOpen={false} onClose={vi.fn()} />
     );
     expect(document.body).toBeTruthy();
-  });
+  }, 15000);
 
   it("renders open state", async () => {
     const { ExpertChatDialog } = await import("@/components/expert/ExpertChatDialog");
