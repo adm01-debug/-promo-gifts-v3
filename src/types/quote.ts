@@ -1,7 +1,7 @@
 // src/types/quote.ts
 // Orçamentos
 
-export type QuoteStatus = 'draft' | 'sent' | 'viewed' | 'approved' | 'rejected' | 'expired';
+export type QuoteStatus = 'draft' | 'pending' | 'sent' | 'viewed' | 'approved' | 'converted' | 'rejected' | 'expired';
 export type ClientResponse = 'approved' | 'rejected' | 'changes_requested';
 
 export interface Quote {
