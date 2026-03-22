@@ -3,7 +3,7 @@
  * Resumo final do kit com breakdown de preços
  */
 
-import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check } from 'lucide-react';
+import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +28,7 @@ interface KitSummaryProps {
   onKitQuantityChange: (quantity: number) => void;
   onAddToQuote?: () => void;
   onExportPDF?: () => void;
+  isAddingToQuote?: boolean;
 }
 
 export function KitSummary({
@@ -38,6 +39,7 @@ export function KitSummary({
   onKitQuantityChange,
   onAddToQuote,
   onExportPDF,
+  isAddingToQuote,
 }: KitSummaryProps) {
   const { box, items, personalization } = kitState;
   
@@ -303,11 +305,15 @@ export function KitSummary({
         </Button>
         <Button
           className="flex-1"
-          disabled={!kitState.isValid}
+          disabled={!kitState.isValid || isAddingToQuote}
           onClick={onAddToQuote}
         >
-          <ShoppingCart className="h-4 w-4 mr-2" />
-          Adicionar ao Orçamento
+          {isAddingToQuote ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <ShoppingCart className="h-4 w-4 mr-2" />
+          )}
+          {isAddingToQuote ? 'Criando orçamento...' : 'Adicionar ao Orçamento'}
         </Button>
       </div>
     </div>
