@@ -48,7 +48,7 @@ export default function AdminTelemetriaPage() {
     queryKey: ["query-telemetry", severityFilter, timeFilter],
     queryFn: async () => {
       let query = supabase
-        .from("query_telemetry" as any)
+        .from("query_telemetry")
         .select("*")
         .gte("created_at", getTimeThreshold())
         .order("created_at", { ascending: false })
@@ -69,7 +69,7 @@ export default function AdminTelemetriaPage() {
   const handleCleanup = async () => {
     const threshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const { error } = await supabase
-      .from("query_telemetry" as any)
+      .from("query_telemetry")
       .delete()
       .lt("created_at", threshold);
     if (error) {

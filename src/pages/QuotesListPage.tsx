@@ -373,7 +373,7 @@ export default function QuotesListPage() {
                 onBulkStatusChange={async (ids, status) => {
                   let successCount = 0;
                   for (const id of ids) {
-                    const ok = await updateQuoteStatus(id, status as any);
+                    const ok = await updateQuoteStatus(id, status as string);
                     if (ok) successCount++;
                   }
                   toast.success(`${successCount} orçamento(s) atualizado(s)`);

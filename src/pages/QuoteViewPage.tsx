@@ -349,7 +349,7 @@ export default function QuoteViewPage() {
       }
 
       try {
-        await supabase.from("quotes").update(crmUpdates as any).eq("id", quote.id);
+        await supabase.from("quotes").update(crmUpdates as Record<string, unknown>).eq("id", quote.id);
       } catch (updateErr) {
         logger.warn("Falha ao atualizar quote no CRM após sync:", updateErr);
       }
@@ -510,7 +510,7 @@ export default function QuoteViewPage() {
                   <DropdownMenuItem
                     onClick={async () => {
                       try {
-                        await supabase.from("quotes").update({ status: "pending" } as any).eq("id", quote.id);
+                        await supabase.from("quotes").update({ status: "pending" } as Record<string, unknown>).eq("id", quote.id);
                         await logQuoteHistory(quote.id, "status_change", "Sincronização cancelada — status revertido para Pendente", {
                           oldValue: "sent",
                           newValue: "pending",

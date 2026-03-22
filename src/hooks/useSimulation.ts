@@ -1,3 +1,4 @@
+import { ExternalTechnique } from "@/types/external-db";
 // src/hooks/useSimulation.ts
 // Hook centralizado para lógica do simulador
 
@@ -167,8 +168,8 @@ export function useSimulation() {
       });
       return result.records.map(t => ({
         ...t,
-        setup_cost: (t as any).setup_price ?? t.setup_cost,
-        unit_cost: (t as any).handling_price ?? t.unit_cost,
+        setup_cost: (t as ExternalTechnique).setup_price ?? t.setup_cost,
+        unit_cost: (t as ExternalTechnique).handling_price ?? t.unit_cost,
       }));
     },
   });

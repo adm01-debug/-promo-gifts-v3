@@ -111,8 +111,8 @@ export function useScrollLockFix() {
     return () => {
       observer.disconnect();
       clearInterval(interval);
-      document.removeEventListener('wheel', interceptScroll, { capture: true } as any);
-      document.removeEventListener('touchmove', interceptScroll, { capture: true } as any);
+      document.removeEventListener('wheel', interceptScroll, { capture: true } as EventListenerOptions);
+      document.removeEventListener('touchmove', interceptScroll, { capture: true } as EventListenerOptions);
     };
   }, []);
 }

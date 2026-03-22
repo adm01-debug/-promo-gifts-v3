@@ -174,7 +174,7 @@ function drawCompositionTable(doc: jsPDF, kitState: KitState, y: number): number
     margin: { left: 14, right: 14 },
   });
 
-  return (doc as any).lastAutoTable.finalY + 8;
+  return doc.lastAutoTable.finalY + 8;
 }
 
 function drawPersonalizationDetails(
@@ -233,7 +233,7 @@ function drawPersonalizationDetails(
     margin: { left: 14, right: 14 },
   });
 
-  return (doc as any).lastAutoTable.finalY + 8;
+  return doc.lastAutoTable.finalY + 8;
 }
 
 function drawPriceBreakdown(
@@ -288,7 +288,7 @@ function drawPriceBreakdown(
     },
   });
 
-  const finalTableY = (doc as any).lastAutoTable.finalY;
+  const finalTableY = doc.lastAutoTable.finalY;
 
   // Total box
   const totalBoxY = finalTableY + 4;

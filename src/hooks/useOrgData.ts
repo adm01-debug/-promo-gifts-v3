@@ -84,7 +84,7 @@ export function useOrgData<T extends Record<string, unknown> = Record<string, un
       if (!orgId) throw new Error('No organization selected');
       const { data, error } = await supabase
         .from(table)
-        .insert({ ...row, organization_id: orgId } as any)
+        .insert({ ...row, organization_id: orgId } as Record<string, unknown>)
         .select()
         .single();
       if (error) throw error;
@@ -101,7 +101,7 @@ export function useOrgData<T extends Record<string, unknown> = Record<string, un
       if (!orgId) throw new Error('No organization selected');
       const { data, error } = await supabase
         .from(table)
-        .update(updates as any)
+        .update(updates as Record<string, unknown>)
         .eq('id', id)
         .eq('organization_id', orgId)
         .select()

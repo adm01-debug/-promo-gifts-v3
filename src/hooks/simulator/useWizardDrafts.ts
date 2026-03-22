@@ -56,9 +56,9 @@ export function useWizardDrafts() {
         .insert({
           user_id: user.id,
           title,
-          product_data: state.selectedProduct as any,
+          product_data: state.selectedProduct as unknown,
           quantity: state.quantity,
-          personalizations: state.personalizations as any,
+          personalizations: state.personalizations as unknown,
           wizard_step: state.currentStep,
         });
 

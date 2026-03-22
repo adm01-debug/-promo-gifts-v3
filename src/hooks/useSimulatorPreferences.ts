@@ -85,7 +85,7 @@ export function useSimulatorPreferences() {
           preferences: { 
             ...existingPrefs,
             simulator: prefs 
-          } as any 
+          } as Record<string, unknown> 
         })
         .eq("user_id", user.id);
       
@@ -138,10 +138,10 @@ export function useSimulatorPreferences() {
       if (user) {
         // Debounce cloud saves by 2 seconds
         const timeoutKey = 'simulator_prefs_save_timeout';
-        if ((window as any)[timeoutKey]) {
-          clearTimeout((window as any)[timeoutKey]);
+        if ((window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey]) {
+          clearTimeout((window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey]);
         }
-        (window as any)[timeoutKey] = setTimeout(() => {
+        (window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey] = setTimeout(() => {
           saveToCloudMutation.mutate(updated);
         }, 2000);
       }

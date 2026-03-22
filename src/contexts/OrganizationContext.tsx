@@ -133,7 +133,7 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
 
       // Use atomic RPC to create org + add owner in a single transaction
       const { data: orgId, error } = await supabase.rpc(
-        "create_organization_with_owner" as any,
+        "create_organization_with_owner",
         { _name: name, _slug: slug }
       );
 

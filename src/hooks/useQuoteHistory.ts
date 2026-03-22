@@ -31,7 +31,7 @@ export function useQuoteHistory() {
         .limit(200);
 
       if (error) throw error;
-      const entries = (data as any[] || []) as QuoteHistoryEntry[];
+      const entries = (data as unknown[] || []) as QuoteHistoryEntry[];
       setHistory(entries);
       return entries;
     } catch (err) {
@@ -65,7 +65,7 @@ export function useQuoteHistory() {
         old_value: options?.oldValue || null,
         new_value: options?.newValue || null,
         metadata: options?.metadata || {},
-      } as any);
+      } as Record<string, unknown>);
       return true;
     } catch (err) {
       console.error("Error adding history entry:", err);

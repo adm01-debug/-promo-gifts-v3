@@ -116,10 +116,10 @@ export default function KitBuilderPage() {
 
         loadKit({
           name: data.name || '',
-          kitType: (data.kit_type as any) || 'montado',
-          box: data.box_data as any,
-          items: (data.items_data as any[]) || [],
-          personalization: (data.personalization_data as any) || { box: { enabled: false }, items: {} },
+          kitType: (data.kit_type as string) || 'montado',
+          box: data.box_data as Record<string, unknown>,
+          items: (data.items_data as unknown[]) || [],
+          personalization: (data.personalization_data as Record<string, unknown>) || { box: { enabled: false }, items: {} },
           kitQuantity: data.kit_quantity || 1,
         });
 
@@ -149,7 +149,7 @@ export default function KitBuilderPage() {
 
         if (result.records?.length > 0) {
           const product = result.records[0];
-          const kitItem = transformToKitItem(product as any);
+          const kitItem = transformToKitItem(product as Record<string, unknown>);
           addItem(kitItem);
           setKitName(product.name || '');
           toast.success(`"${product.name}" adicionado ao kit!`, {

@@ -318,7 +318,7 @@ export default function QuotesDashboardPage() {
 
     // Status distribution table
     if (metrics.statusDistribution.length > 0) {
-      const y = (doc as any).lastAutoTable?.finalY || 80;
+      const y = doc.lastAutoTable?.finalY || 80;
       doc.setFontSize(13);
       doc.text("Distribuição por Status", 14, y + 12);
       autoTable(doc, {
@@ -333,7 +333,7 @@ export default function QuotesDashboardPage() {
 
     // Funnel table
     if (metrics.conversionFunnel.length > 0) {
-      const y = (doc as any).lastAutoTable?.finalY || 120;
+      const y = doc.lastAutoTable?.finalY || 120;
       doc.setFontSize(13);
       doc.text("Funil de Conversão", 14, y + 12);
       autoTable(doc, {
@@ -348,7 +348,7 @@ export default function QuotesDashboardPage() {
 
     // Approval links stats
     if (tokenStats.total > 0) {
-      const y = (doc as any).lastAutoTable?.finalY || 160;
+      const y = doc.lastAutoTable?.finalY || 160;
       doc.setFontSize(13);
       doc.text("Links de Aprovação", 14, y + 12);
       autoTable(doc, {
@@ -372,7 +372,7 @@ export default function QuotesDashboardPage() {
       .slice(0, 10);
 
     if (recentResponses.length > 0) {
-      const y = (doc as any).lastAutoTable?.finalY || 200;
+      const y = doc.lastAutoTable?.finalY || 200;
       if (y > 240) doc.addPage();
       const startY = y > 240 ? 20 : y + 12;
       doc.setFontSize(13);

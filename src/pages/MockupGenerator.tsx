@@ -1,3 +1,4 @@
+import { MockupTechnique } from "@/types/external-db";
 /**
  * MockupGenerator — Refactored v4
  * 
@@ -152,7 +153,7 @@ export default function MockupGenerator() {
       personalization: {
         techniqueName: mg.selectedTechnique.name,
         techniqueCode: mg.selectedTechnique.code || undefined,
-        locationName: ('locationName' in mg.selectedTechnique ? (mg.selectedTechnique as any).locationName : null) || mg.activeArea?.name || "Frente",
+        locationName: ('locationName' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).locationName : null) || mg.activeArea?.name || "Frente",
         widthCm: mg.activeArea?.logoWidth || 0,
         heightCm: mg.activeArea?.logoHeight || 0,
         colorsCount: mg.techniqueColorConfig?.colorCount,
@@ -378,8 +379,8 @@ export default function MockupGenerator() {
                     logoScale={mg.activeArea.logoScale ?? 100}
                     techniqueCode={mg.selectedTechnique?.code}
                     techniqueName={mg.selectedTechnique?.name}
-                    maxWidth={'maxWidth' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as any).maxWidth : null}
-                    maxHeight={'maxHeight' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as any).maxHeight : null}
+                    maxWidth={'maxWidth' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as MockupTechnique).maxWidth : null}
+                    maxHeight={'maxHeight' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as MockupTechnique).maxHeight : null}
                     // CRITICAL: Dimensões físicas vêm de dimensions.height_cm (mapeado do banco externo),
                     // NÃO de metadata.height_mm (campo legado, quase sempre null).
                     // Para garrafas cilíndricas, diameter_cm é usado como largura.
@@ -412,9 +413,9 @@ export default function MockupGenerator() {
                         technique={mg.selectedTechnique ? {
                           name: mg.selectedTechnique.name,
                           code: mg.selectedTechnique.code,
-                          maxWidth: 'maxWidth' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxWidth : null,
-                          maxHeight: 'maxHeight' in mg.selectedTechnique ? (mg.selectedTechnique as any).maxHeight : null,
-                          locationName: 'locationName' in mg.selectedTechnique ? (mg.selectedTechnique as any).locationName : null,
+                          maxWidth: 'maxWidth' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).maxWidth : null,
+                          maxHeight: 'maxHeight' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).maxHeight : null,
+                          locationName: 'locationName' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).locationName : null,
                         } : null}
                         client={mg.selectedClient}
                         seller={profile ? { name: profile.full_name || "—", email: profile.email || undefined } : null}

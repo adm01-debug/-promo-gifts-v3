@@ -1,3 +1,4 @@
+import { ExternalProduct } from "@/types/external-db";
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -514,9 +515,9 @@ export function GlobalSearchPalette() {
           
           if (intent.filters.priceRange) {
             if (intent.filters.priceRange === 'low') {
-              filteredProducts = filteredProducts.filter(p => ((p as any).sale_price || (p as any).base_price || 0) < 50);
+              filteredProducts = filteredProducts.filter(p => ((p as ExternalProduct).sale_price || (p as ExternalProduct).base_price || 0) < 50);
             } else if (intent.filters.priceRange === 'high') {
-              filteredProducts = filteredProducts.filter(p => ((p as any).sale_price || (p as any).base_price || 0) > 200);
+              filteredProducts = filteredProducts.filter(p => ((p as ExternalProduct).sale_price || (p as ExternalProduct).base_price || 0) > 200);
             }
           }
 
@@ -574,7 +575,7 @@ export function GlobalSearchPalette() {
             allResults.push({
               id: p.id,
               title: p.name,
-              subtitle: `SKU: ${p.sku} • ${p.category_name || "Sem categoria"} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((p as any).sale_price || (p as any).base_price || 0)}`,
+              subtitle: `SKU: ${p.sku} • ${p.category_name || "Sem categoria"} • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format((p as ExternalProduct).sale_price || (p as ExternalProduct).base_price || 0)}`,
               type: "product",
               href: `/produto/${p.id}`,
             });
@@ -648,7 +649,7 @@ export function GlobalSearchPalette() {
       }
 
       if (intent.type === 'order' || intent.type === 'mixed') {
-        let orderQuery = (supabase.from("orders") as any)
+        let orderQuery = supabase.from("orders")
           .select("id, order_number, status, total, client:bitrix_clients(name)");
 
         if (intent.filters.status) {

@@ -11,7 +11,7 @@ export function useVoiceFeedback(options: VoiceFeedbackOptions = {}) {
 
   const getAudioContext = useCallback(() => {
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext!)();
     }
     return audioContextRef.current;
   }, []);

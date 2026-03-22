@@ -177,7 +177,7 @@ function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: str
       try {
         const { fetchPromobrindProducts } = await import('@/lib/external-db');
         const existing = await fetchPromobrindProducts({ search: currentSku, limit: 5 });
-        const products = Array.isArray(existing) ? existing : (existing as any).products || [];
+        const products = Array.isArray(existing) ? existing : (existing as Record<string, unknown>).products || [];
         const duplicate = products.find(
           (p: any) => p.sku?.toLowerCase() === currentSku.toLowerCase()
         );
@@ -272,8 +272,8 @@ export function ProductForm({
   const flagCount = [isActive, isFeatured, isBestseller, isNew, isOnSale, isKit, hasCommercialPackaging, isImported, isTextil, isThermal, allowsPersonalization, hasGiftBox, hasOptionalPackaging].filter(Boolean).length;
 
   // Error count per tab for visual feedback
-  const basicErrors = ['sku', 'name', 'description', 'short_description', 'meta_description', 'brand', 'category_id', 'supplier_id', 'supplier_reference'].filter(k => (errors as any)[k]).length;
-  const priceErrors = ['sale_price', 'cost_price', 'stock_quantity', 'min_quantity'].filter(k => (errors as any)[k]).length;
+  const basicErrors = ['sku', 'name', 'description', 'short_description', 'meta_description', 'brand', 'category_id', 'supplier_id', 'supplier_reference'].filter(k => (errors as Record<string, unknown>)[k]).length;
+  const priceErrors = ['sale_price', 'cost_price', 'stock_quantity', 'min_quantity'].filter(k => (errors as Record<string, unknown>)[k]).length;
 
   return (
     <form onSubmit={onFormSubmit} className="flex flex-col">

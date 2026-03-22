@@ -87,9 +87,9 @@ export async function fetchPromobrindPrintAreas(productId: string): Promise<Prom
         component_name: area.component_name, location_name: area.location_name,
         max_width_cm: area.max_width, max_height_cm: area.max_height,
         max_area_cm2: null, is_curved: area.is_curved ?? false,
-        technique_id: undefined as any, technique_code: undefined as any,
-        technique_name: undefined as any, max_colors: undefined as any,
-        is_default: area.is_primary ?? false, area_image_url: undefined as any,
+        technique_id: undefined as unknown, technique_code: undefined as unknown,
+        technique_name: undefined as unknown, max_colors: undefined as unknown,
+        is_default: area.is_primary ?? false, area_image_url: undefined as unknown,
       });
     } else {
       for (const tid of allowedIds) {
@@ -102,7 +102,7 @@ export async function fetchPromobrindPrintAreas(productId: string): Promise<Prom
           max_area_cm2: null, is_curved: area.is_curved ?? false,
           technique_id: tech?.id || tid, technique_code: tech?.codigo,
           technique_name: tech?.nome, max_colors: tech?.max_cores,
-          is_default: area.is_primary ?? false, area_image_url: undefined as any,
+          is_default: area.is_primary ?? false, area_image_url: undefined as unknown,
         });
       }
     }

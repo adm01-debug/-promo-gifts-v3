@@ -99,8 +99,8 @@ export function useSellerCarts() {
 
       return carts.map(cart => ({
         ...cart,
-        notes: (cart as any).notes ?? null,
-        status: (cart as any).status ?? "novo",
+        notes: (cart as Record<string, unknown>).notes ?? null,
+        status: (cart as Record<string, unknown>).status ?? "novo",
         items: (items || []).filter(i => i.cart_id === cart.id),
       }));
     },
@@ -259,7 +259,7 @@ export function useSellerCarts() {
     mutationFn: async ({ cartId, notes }: { cartId: string; notes: string }) => {
       const { error } = await supabase
         .from("seller_carts")
-        .update({ notes: notes || null } as any)
+        .update({ notes: notes || null } as Record<string, unknown>)
         .eq("id", cartId);
       if (error) throw error;
     },
@@ -273,7 +273,7 @@ export function useSellerCarts() {
     mutationFn: async ({ cartId, status }: { cartId: string; status: CartStatus }) => {
       const { error } = await supabase
         .from("seller_carts")
-        .update({ status } as any)
+        .update({ status } as Record<string, unknown>)
         .eq("id", cartId);
       if (error) throw error;
     },

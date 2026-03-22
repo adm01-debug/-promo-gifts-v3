@@ -96,7 +96,7 @@ export function KitComparisonDialog({ open, onOpenChange, kits }: KitComparisonD
                     {row.label}
                   </td>
                   {kits.map(kit => (
-                    <td key={kit.id} className={`py-2.5 px-2 text-center ${(row as any).bold ? 'font-bold text-primary' : ''}`}>
+                    <td key={kit.id} className={`py-2.5 px-2 text-center ${(row as Record<string, unknown>).bold ? 'font-bold text-primary' : ''}`}>
                       {row.getValue(kit)}
                     </td>
                   ))}

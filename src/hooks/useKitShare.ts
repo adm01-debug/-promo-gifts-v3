@@ -23,7 +23,7 @@ export function useKitShare() {
       expiresAt.setDate(expiresAt.getDate() + 30);
 
       const { data, error } = await supabase
-        .from("kit_share_tokens" as any)
+        .from("kit_share_tokens")
         .insert({
           kit_id: kitId,
           seller_id: user.id,
@@ -51,7 +51,7 @@ export function useKitShare() {
   const revokeShareLink = useCallback(async (tokenId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
-        .from("kit_share_tokens" as any)
+        .from("kit_share_tokens")
         .update({ status: "revoked" })
         .eq("id", tokenId);
 
