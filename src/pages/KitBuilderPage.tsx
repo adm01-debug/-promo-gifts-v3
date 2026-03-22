@@ -29,7 +29,10 @@ import { toast } from 'sonner';
 export default function KitBuilderPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [currentKitId, setCurrentKitId] = useState<string | undefined>();
+  const [searchParams] = useSearchParams();
+  const kitIdParam = searchParams.get('kit');
+  const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
+  const hasLoadedRef = useRef(false);
   
   const {
     kitState,
