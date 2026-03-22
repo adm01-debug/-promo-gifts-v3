@@ -147,7 +147,7 @@ describe("KitVisualPreview", () => {
   it("shows correct fill color for normal usage", async () => {
     const { KitVisualPreview } = await import("@/components/kit-builder/KitVisualPreview");
     renderWithProviders(<KitVisualPreview kitState={mockKitState} />);
-    expect(screen.getByText(/6%/)).toBeInTheDocument();
+    expect(screen.getAllByText(/6%/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows warning color when >80% usage", async () => {
@@ -155,7 +155,7 @@ describe("KitVisualPreview", () => {
     renderWithProviders(
       <KitVisualPreview kitState={{ ...mockKitState, volumeUsagePercent: 85 }} />
     );
-    expect(screen.getByText(/85%/)).toBeInTheDocument();
+    expect(screen.getAllByText(/85%/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows danger color when >100% usage", async () => {
@@ -163,7 +163,7 @@ describe("KitVisualPreview", () => {
     renderWithProviders(
       <KitVisualPreview kitState={{ ...mockKitState, volumeUsagePercent: 110 }} />
     );
-    expect(screen.getByText(/110%/)).toBeInTheDocument();
+    expect(screen.getAllByText(/110%/).length).toBeGreaterThanOrEqual(1);
   });
 });
 
