@@ -185,8 +185,8 @@ export function useProductsLightweight() {
 
 /**
  * Hook com paginação infinita server-side para o catálogo.
- * Primeiro carregamento: 2000 produtos (4 páginas batch).
- * Carregamentos seguintes: 500 produtos por vez, sob demanda.
+ * Primeiro carregamento: 200 produtos (2 páginas batch).
+ * Carregamentos seguintes: 100 produtos por vez, sob demanda.
  */
 export function useProductsCatalog(filters?: { search?: string }) {
   const search = filters?.search || '';
