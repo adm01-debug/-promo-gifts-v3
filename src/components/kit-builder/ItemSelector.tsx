@@ -43,6 +43,7 @@ export function ItemSelector({
   onRemoveItem,
   onUpdateQuantity,
   onUpdateVariant,
+  onReorder,
   boxSelected,
 }: ItemSelectorProps) {
   const [searchValue, setSearchValue] = useState('');
