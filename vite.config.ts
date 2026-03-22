@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Core React (split router separately to reduce main vendor)
+          // Core React
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
             return 'react-vendor';
           }
@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/@supabase/')) {
             return 'supabase-vendor';
           }
-          // Animation library
+          // Animation library — lazy loaded with most pages
           if (id.includes('node_modules/framer-motion/')) {
             return 'motion-vendor';
           }
@@ -57,9 +57,13 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/date-fns/')) {
             return 'date-vendor';
           }
-          // Charts - isolate recharts into its own chunk
+          // Charts - isolate recharts into its own chunk (only loaded by dashboard pages)
           if (id.includes('node_modules/recharts/') || id.includes('node_modules/d3-')) {
             return 'charts-vendor';
+          }
+          // Icons — split into separate chunk to allow tree shaking per-route
+          if (id.includes('node_modules/lucide-react/')) {
+            return 'icons-vendor';
           }
           // Validation
           if (id.includes('node_modules/zod/')) {
@@ -72,6 +76,14 @@ export default defineConfig(({ mode }) => ({
           // Sonner + toast
           if (id.includes('node_modules/sonner/')) {
             return 'toast-vendor';
+          }
+          // PDF/Export libs — only loaded on demand
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) {
+            return 'export-vendor';
+          }
+          // DnD — only used in kit builder / kanban
+          if (id.includes('node_modules/@dnd-kit/')) {
+            return 'dnd-vendor';
           }
         },
       },
