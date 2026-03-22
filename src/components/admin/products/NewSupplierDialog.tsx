@@ -530,6 +530,30 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <p className="text-[10px] text-muted-foreground mt-0.5">Deixe vazio para gerar automaticamente</p>
               </div>
             </div>
+
+            {/* FONE FIXO 01 + FONE FIXO 02 */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Fone Fixo 01</Label>
+                <Input
+                  value={foneFixo1}
+                  onChange={(e) => setFoneFixo1(maskPhone(e.target.value))}
+                  placeholder="(00) 0000-0000"
+                  className={fieldClass}
+                  maxLength={15}
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Fone Fixo 02</Label>
+                <Input
+                  value={foneFixo2}
+                  onChange={(e) => setFoneFixo2(maskPhone(e.target.value))}
+                  placeholder="(00) 0000-0000"
+                  className={fieldClass}
+                  maxLength={15}
+                />
+              </div>
+            </div>
           </TabsContent>
 
           {/* CONTATOS */}
