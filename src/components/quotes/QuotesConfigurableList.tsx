@@ -4,6 +4,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { formatDeliveryTime } from "@/components/pdf/ProposalHtmlTemplate";
+import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
