@@ -211,6 +211,8 @@ export interface ExternalProductForKit {
   internal_height_cm?: number | null;
   is_box?: boolean;
   is_kit?: boolean;
+  packing_classification?: string | null;
+  packing_type?: string | null;
   // Composição de kit
   allows_personalization?: boolean;
   personalization_notes?: string | null;
