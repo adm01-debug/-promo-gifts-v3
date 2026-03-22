@@ -47,6 +47,7 @@ export default function FavoritesPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Favoritos" description="Seus produtos favoritos salvos para referência rápida." path="/favoritos" />
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
