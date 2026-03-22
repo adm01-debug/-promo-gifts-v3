@@ -273,21 +273,21 @@ export default function KitBuilderPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Caixa</span>
-                    <span>R$ {kitState.boxPrice.toFixed(2)}</span>
+                    <span>{formatCurrency(kitState.boxPrice)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Itens</span>
-                    <span>R$ {kitState.itemsPrice.toFixed(2)}</span>
+                    <span>{formatCurrency(kitState.itemsPrice)}</span>
                   </div>
                   {kitState.personalizationPrice > 0 && (
                     <div className="flex justify-between text-primary">
                       <span>Personalização</span>
-                      <span>R$ {kitState.personalizationPrice.toFixed(2)}</span>
+                      <span>{formatCurrency(kitState.personalizationPrice)}</span>
                     </div>
                   )}
                   <div className="border-t pt-2 flex justify-between font-semibold">
                     <span>Total/kit</span>
-                    <span className="text-primary">R$ {kitState.totalPrice.toFixed(2)}</span>
+                    <span className="text-primary">{formatCurrency(kitState.totalPrice)}</span>
                   </div>
                   {kitState.totalWeight > 0 && (
                     <div className="flex justify-between text-xs text-muted-foreground pt-1">
