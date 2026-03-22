@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import type { KitItem, ItemFilters, CompatibilityResult } from '@/lib/kit-builder';
+import type { VariantSelectionData } from './VariantSelector';
 
 interface ItemWithCompatibility extends KitItem {
   compatibility: CompatibilityResult | null;
@@ -27,7 +28,7 @@ interface ItemSelectorProps {
   onAddItem: (item: KitItem) => CompatibilityResult;
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
-  onUpdateColor: (itemId: string, color: { name: string; hex?: string }) => void;
+  onUpdateVariant: (itemId: string, data: VariantSelectionData) => void;
   boxSelected: boolean;
 }
 
@@ -40,13 +41,12 @@ export function ItemSelector({
   onAddItem,
   onRemoveItem,
   onUpdateQuantity,
-  onUpdateColor,
+  onUpdateVariant,
   boxSelected,
 }: ItemSelectorProps) {
   const [searchValue, setSearchValue] = useState('');
   const [lastError, setLastError] = useState<string | null>(null);
 
-  // #1 FIX: Debounce is now handled by the hook via setItemFiltersDebounced
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
     onFiltersChange({ ...filters, search: value || undefined });
@@ -64,7 +64,6 @@ export function ItemSelector({
 
   return (
     <div className="space-y-4">
-      {/* Alerta se caixa não selecionada */}
       {!boxSelected && (
         <div className="bg-warning/10 border border-warning/30 rounded-lg p-4 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0" />
@@ -72,7 +71,6 @@ export function ItemSelector({
         </div>
       )}
 
-      {/* Erro temporário */}
       {lastError && (
         <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
           <X className="h-5 w-5 text-destructive flex-shrink-0" />
@@ -80,7 +78,6 @@ export function ItemSelector({
         </div>
       )}
 
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -108,15 +105,13 @@ export function ItemSelector({
         )}
       </div>
 
-      {/* Itens selecionados */}
       <SelectedItemsBadges
         items={selectedItems}
         onRemoveItem={onRemoveItem}
         onUpdateQuantity={onUpdateQuantity}
-        onUpdateColor={onUpdateColor}
+        onUpdateVariant={onUpdateVariant}
       />
 
-      {/* Lista de itens disponíveis */}
       <ScrollArea className="h-[350px] pr-4">
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
