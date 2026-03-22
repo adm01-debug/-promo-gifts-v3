@@ -19,10 +19,17 @@ import { MOCK_BOXES, MOCK_ITEMS } from '@/lib/kit-builder/mock-data';
 // Import transformers from the main hook file
 import { transformToKitBox, transformToKitItem } from './useKitBuilderTransformers';
 
-function filterBoxes(boxes: KitBox[], search: string | null): KitBox[] {
-  if (!search) return boxes;
-  const q = search.toLowerCase();
-  return boxes.filter(b => b.name.toLowerCase().includes(q) || b.sku.toLowerCase().includes(q));
+function filterBoxes(boxes: KitBox[], search: string | null, dimFilters?: Omit<BoxFilters, 'search'>): KitBox[] {
+  let filtered = boxes;
+  if (search) {
+    const q = search.toLowerCase();
+    filtered = filtered.filter(b => b.name.toLowerCase().includes(q) || b.sku.toLowerCase().includes(q));
+  }
+  if (dimFilters?.minWidth) filtered = filtered.filter(b => b.internalWidth >= dimFilters.minWidth!);
+  if (dimFilters?.minHeight) filtered = filtered.filter(b => b.internalHeight >= dimFilters.minHeight!);
+  if (dimFilters?.minDepth) filtered = filtered.filter(b => b.internalDepth >= dimFilters.minDepth!);
+  if (dimFilters?.material) filtered = filtered.filter(b => b.material === dimFilters.material);
+  return filtered;
 }
 
 function filterItems(items: KitItem[], search: string): KitItem[] {
@@ -70,7 +77,7 @@ export function useKitBuilderQueries() {
 
   // Query: boxes — products that have packing_type containing "Caixa" or similar packaging terms
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
-    queryKey: ['kit-builder', 'boxes', debouncedBoxSearch, boxDimFilters.minWidth ?? '', boxDimFilters.minHeight ?? '', boxDimFilters.minDepth ?? ''],
+    queryKey: ['kit-builder', 'boxes', debouncedBoxSearch, boxDimFilters.minWidth ?? '', boxDimFilters.minHeight ?? '', boxDimFilters.minDepth ?? '', boxDimFilters.material ?? ''],
     queryFn: async () => {
       try {
         const filters: Record<string, unknown> = { active: true };
@@ -96,13 +103,13 @@ export function useKitBuilderQueries() {
 
         if (boxes.length === 0) {
           console.info('[KitBuilder] No boxes from external DB, using mock data');
-          return filterBoxes(MOCK_BOXES, debouncedBoxSearch);
+          return filterBoxes(MOCK_BOXES, debouncedBoxSearch, boxDimFilters);
         }
 
-        return filterBoxes(boxes, null);
+        return filterBoxes(boxes, null, boxDimFilters);
       } catch (err) {
         console.warn('[KitBuilder] External DB unavailable for boxes, using mock data', err);
-        return filterBoxes(MOCK_BOXES, debouncedBoxSearch);
+        return filterBoxes(MOCK_BOXES, debouncedBoxSearch, boxDimFilters);
       }
     },
     staleTime: 5 * 60 * 1000,
