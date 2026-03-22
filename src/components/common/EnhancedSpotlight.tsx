@@ -38,7 +38,7 @@ interface SpotlightItem {
   isQuickAction?: boolean;
 }
 
-export function EnhancedSpotlight() {
+export const EnhancedSpotlight = forwardRef<HTMLDivElement, Record<string, never>>(function EnhancedSpotlight(_props, ref) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);

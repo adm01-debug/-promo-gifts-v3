@@ -13,12 +13,12 @@ interface ScrollProgressProps {
 /**
  * ScrollProgressIndicator - Barra de progresso de scroll (AN-12)
  */
-export function ScrollProgressIndicator({
+export const ScrollProgressIndicator = forwardRef<HTMLDivElement, ScrollProgressProps>(function ScrollProgressIndicator({
   className,
   color = "primary",
   height = 3,
   position = "top",
-}: ScrollProgressProps) {
+}: ScrollProgressProps, ref: Ref<HTMLDivElement>) {
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
