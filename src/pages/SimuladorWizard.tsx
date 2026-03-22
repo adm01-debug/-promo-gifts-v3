@@ -126,6 +126,7 @@ export default function SimuladorWizard() {
   return (
     <>
     <MainLayout>
+      <PageSEO title="Simulador de Personalização" description="Simule personalizações de brindes com cálculo automático de custos." path="/simulador" />
       <div className="min-h-[calc(100vh-8rem)]">
         {/* Compact Header */}
         <motion.div 
