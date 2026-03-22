@@ -39,6 +39,8 @@ export interface KitItem {
   depth: number;
   // Volume calculado
   volume: number;
+  // Peso em gramas
+  weight?: number;
   // Categoria do item
   category?: string;
   // Cor selecionada
@@ -48,6 +50,11 @@ export interface KitItem {
   };
   // Quantidade no kit
   quantity: number;
+  // Flags de composição (do product_kit_components)
+  isOptional?: boolean;
+  isReplaceable?: boolean;
+  isPackaging?: boolean;
+  allowsPersonalization?: boolean;
   // Personalização configurada
   personalization?: KitItemPersonalization;
 }
@@ -153,6 +160,8 @@ export interface ExternalProductForKit {
   colors?: any[] | null;
   // Tipo do produto (product, packaging, etc.)
   product_type?: string | null;
+  // Peso em gramas
+  weight_g?: number | null;
   // Campos específicos para caixas
   box_length_cm?: number | null;
   box_width_cm?: number | null;

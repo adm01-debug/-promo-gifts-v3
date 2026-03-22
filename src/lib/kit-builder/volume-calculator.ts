@@ -72,25 +72,17 @@ export function checkItemFits(
   
   const percentAfterAdd = (totalVolumeAfter / usableVolume) * 100;
 
-  // Verifica dimensões individuais
-  if (item.width > box.internalWidth) {
-    return {
-      fits: false,
-      reason: `Largura do item (${item.width}cm) excede a largura interna da caixa (${box.internalWidth}cm)`,
-    };
-  }
+  // Verifica se o item cabe em alguma das 6 orientações possíveis
+  const itemDims = [item.width, item.height, item.depth].sort((a, b) => a - b);
+  const boxDims = [box.internalWidth, box.internalHeight, box.internalDepth].sort((a, b) => a - b);
 
-  if (item.height > box.internalHeight) {
-    return {
-      fits: false,
-      reason: `Altura do item (${item.height}cm) excede a altura interna da caixa (${box.internalHeight}cm)`,
-    };
-  }
+  // Se as dimensões ordenadas do item excedem as da caixa, não cabe em nenhuma orientação
+  const fitsAnyOrientation = itemDims[0] <= boxDims[0] && itemDims[1] <= boxDims[1] && itemDims[2] <= boxDims[2];
 
-  if (item.depth > box.internalDepth) {
+  if (!fitsAnyOrientation) {
     return {
       fits: false,
-      reason: `Profundidade do item (${item.depth}cm) excede a profundidade interna da caixa (${box.internalDepth}cm)`,
+      reason: `Dimensões do item (${item.width}×${item.height}×${item.depth}cm) não cabem na caixa (${box.internalWidth}×${box.internalHeight}×${box.internalDepth}cm) em nenhuma orientação`,
     };
   }
 
