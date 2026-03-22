@@ -145,14 +145,16 @@ export function useKitBuilder() {
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.items, itemFilters],
     queryFn: async () => {
+      // Busca APENAS produtos (exclui embalagens)
       const result = await invokeExternalDb<ExternalProductForKit>({
         table: 'products',
         operation: 'select',
         filters: { 
           active: true,
+          product_type: 'product',
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, box_width_cm, box_height_cm, box_length_cm, category_id',
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, box_width_cm, box_height_cm, box_length_cm, category_id',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
       });

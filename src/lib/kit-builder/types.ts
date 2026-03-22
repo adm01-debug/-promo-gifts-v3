@@ -144,12 +144,15 @@ export interface ExternalProductForKit {
   name: string;
   sku: string;
   base_price: number | null;
+  sale_price?: number | null;
   image_url: string | null;
   primary_image_url: string | null;
   images?: string[] | null;
   dimensions?: string | null;
   category_id?: string | null;
   colors?: any[] | null;
+  // Tipo do produto (product, packaging, etc.)
+  product_type?: string | null;
   // Campos específicos para caixas
   box_length_cm?: number | null;
   box_width_cm?: number | null;
