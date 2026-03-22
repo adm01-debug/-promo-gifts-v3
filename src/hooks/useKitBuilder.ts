@@ -389,5 +389,6 @@ export function useKitBuilder() {
     nextStep,
     prevStep,
     resetKit,
+    loadKit,
   };
 }
