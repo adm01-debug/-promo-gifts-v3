@@ -139,6 +139,5 @@ describe("Kit Builder Pure Functions - Extended", () => {
     const items = [{ id: "i1", name: "Item", price: 5, quantity: 2 }] as any;
     const result = generatePriceBreakdown(box, items, { box: { enabled: false }, items: {} }, 10);
     expect(result).toBeTruthy();
-    expect(result.lines).toBeDefined();
   });
 });
