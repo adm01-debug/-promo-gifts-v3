@@ -187,7 +187,7 @@ export default function PublicKitViewPage() {
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge variant="outline" className="text-xs">{item.quantity}x</Badge>
                       {item.category && <Badge variant="secondary" className="text-xs">{item.category}</Badge>}
-                      {item.isOptional && <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Opcional</Badge>}
+                      {item.isOptional && <Badge variant="outline" className="text-xs">Opcional</Badge>}
                     </div>
                   </div>
                   {item.selectedColor && (
