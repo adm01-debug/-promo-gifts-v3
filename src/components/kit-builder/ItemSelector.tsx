@@ -35,6 +35,7 @@ interface ItemSelectorProps {
   onAddItem: (item: KitItem) => CompatibilityResult;
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
+  onUpdateColor: (itemId: string, color: { name: string; hex?: string }) => void;
   boxSelected: boolean;
 }
 
