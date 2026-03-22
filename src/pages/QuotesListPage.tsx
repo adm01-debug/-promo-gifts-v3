@@ -210,6 +210,7 @@ export default function QuotesListPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Orçamentos" description="Gerencie seus orçamentos. Crie, edite e acompanhe propostas comerciais." path="/orcamentos" />
       <TooltipProvider>
         <div className="space-y-5">
 

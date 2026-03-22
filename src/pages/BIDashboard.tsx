@@ -80,6 +80,7 @@ export default function BIDashboard() {
 
   return (
     <MainLayout>
+      <PageSEO title="Dashboard BI" description="Painel de Business Intelligence com métricas e indicadores do catálogo." path="/bi" noIndex />
 
       <div className="space-y-6">
         {/* Header */}

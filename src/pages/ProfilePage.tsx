@@ -128,6 +128,7 @@ export default function ProfilePage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Meu Perfil" description="Gerencie suas informações pessoais, avatar e configurações de conta." path="/perfil" />
       <div className="container mx-auto py-8 max-w-2xl space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-primary/10">
