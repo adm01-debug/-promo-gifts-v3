@@ -3,7 +3,7 @@
  * Gerencia o estado completo do montador de kits
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getProductImageUrl, getProductPrice, invokeExternalDb } from '@/lib/external-db';
 import {
