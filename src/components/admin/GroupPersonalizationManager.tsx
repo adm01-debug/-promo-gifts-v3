@@ -153,8 +153,7 @@ export function GroupPersonalizationManager() {
     queryFn: async () => {
       if (!selectedGroup) return [];
       try {
-        const { data, error } = await supabase
-          .from("product_group_components" as any)
+        const { data, error } = await untypedFrom("product_group_components")
           .select("*")
           .eq("product_group_id", selectedGroup)
           .order("sort_order");
@@ -177,8 +176,7 @@ export function GroupPersonalizationManager() {
       if (!components?.length) return [];
       try {
         const componentIds = components.map((c) => c.id);
-        const { data, error } = await supabase
-          .from("product_group_locations" as any)
+        const { data, error } = await untypedFrom("product_group_locations")
           .select("*")
           .in("group_component_id", componentIds);
         if (error) {
@@ -216,8 +214,7 @@ export function GroupPersonalizationManager() {
       if (!locations?.length) return [];
       try {
         const locationIds = locations.map((l) => l.id);
-        const { data, error } = await supabase
-          .from("product_group_location_techniques" as any)
+        const { data, error } = await untypedFrom("product_group_location_techniques")
           .select(`
             *,
             technique:personalization_techniques(id, code, name)
@@ -411,8 +408,7 @@ export function GroupPersonalizationManager() {
     // Update sort_order for all affected components
     for (let i = 0; i < reordered.length; i++) {
       if (reordered[i].sort_order !== i) {
-        await supabase
-          .from("product_group_components" as any)
+        await untypedFrom("product_group_components")
           .update({ sort_order: i })
           .eq("id", reordered[i].id);
       }

@@ -265,8 +265,7 @@ export function ProductPersonalizationManager() {
       if (!components?.length) return [];
       try {
         const componentIds = components.map((c) => c.id);
-        const { data, error } = await supabase
-          .from("product_component_locations" as any)
+        const { data, error } = await untypedFrom("product_component_locations")
           .select("*")
           .in("component_id", componentIds);
         if (error) {
@@ -305,8 +304,7 @@ export function ProductPersonalizationManager() {
       if (!locations?.length) return [];
       try {
         const locationIds = locations.map((l) => l.id);
-        const { data, error } = await supabase
-          .from("product_component_location_techniques" as any)
+        const { data, error } = await untypedFrom("product_component_location_techniques")
           .select(`
             *,
             technique:personalization_techniques(id, code, name)
@@ -347,8 +345,7 @@ export function ProductPersonalizationManager() {
     setIsCopying(true);
     try {
       // Fetch group components
-      const { data: groupComponents } = await supabase
-        .from("product_group_components" as any)
+      const { data: groupComponents } = await untypedFrom("product_group_components")
         .select("*")
         .eq("product_group_id", productMembership.product_group_id);
 
@@ -381,15 +378,13 @@ export function ProductPersonalizationManager() {
         if (compError) throw compError;
 
         // Fetch group locations for this component
-        const { data: groupLocations } = await supabase
-          .from("product_group_locations" as any)
+        const { data: groupLocations } = await untypedFrom("product_group_locations")
           .select("*")
           .eq("group_component_id", gc.id);
 
         if (groupLocations?.length) {
           for (const gl of groupLocations) {
-            const { data: newLocation, error: locError } = await supabase
-              .from("product_component_locations" as any)
+            const { data: newLocation, error: locError } = await untypedFrom("product_component_locations")
               .insert({
                 component_id: newComponent.id,
                 location_code: gl.location_code,
@@ -406,8 +401,7 @@ export function ProductPersonalizationManager() {
             if (locError) throw locError;
 
             // Fetch group techniques for this location
-            const { data: groupTechniques } = await supabase
-              .from("product_group_location_techniques" as any)
+            const { data: groupTechniques } = await untypedFrom("product_group_location_techniques")
               .select("*")
               .eq("group_location_id", gl.id);
 
@@ -416,8 +410,7 @@ export function ProductPersonalizationManager() {
                 const technique = techniques?.find(t => t.id === gt.technique_id);
                 const composedCode = `${gc.component_code}-${gl.location_code}-${technique?.code || ""}`;
 
-                await supabase
-                  .from("product_component_location_techniques" as any)
+                await untypedFrom("product_component_location_techniques")
                   .insert({
                     component_location_id: newLocation.id,
                     technique_id: gt.technique_id,
