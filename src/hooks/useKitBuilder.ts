@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { invokeExternalDb } from '@/lib/external-db';
+import { getProductImageUrl, getProductPrice, invokeExternalDb } from '@/lib/external-db';
 import {
   type KitBox,
   type KitItem,
