@@ -199,14 +199,23 @@ export function QuoteAutoSave({
     switch (status) {
       case "saving":
         return "Salvando...";
-      case "saved":
+      case "saved": {
+        if (lastSaved) {
+          const secsAgo = Math.round((Date.now() - lastSaved.getTime()) / 1000);
+          if (secsAgo < 60) return "Salvo agora";
+          const minsAgo = Math.round(secsAgo / 60);
+          return `Salvo há ${minsAgo} min`;
+        }
         return "Salvo";
+      }
       case "error":
         return "Erro ao salvar";
       case "offline":
         return "Offline";
       default:
-        return hasUnsavedChanges ? "Alterações não salvas" : "Salvo automaticamente";
+        return hasUnsavedChanges ? "Alterações não salvas" : lastSaved
+          ? `Salvo às ${format(lastSaved, "HH:mm", { locale: ptBR })}`
+          : "Salvo automaticamente";
     }
   };
 
