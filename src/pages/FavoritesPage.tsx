@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,7 @@ export default function FavoritesPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Favoritos" description="Seus produtos favoritos salvos para referência rápida." path="/favoritos" />
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

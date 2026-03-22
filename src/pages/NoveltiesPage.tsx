@@ -1,4 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NoveltyStatsCards } from "@/components/novelties/NoveltyStatsCards";
 import { NoveltyProductGrid } from "@/components/novelties/NoveltyProductGrid";
@@ -8,6 +9,7 @@ import { Sparkles } from "lucide-react";
 export default function NoveltiesPage() {
   return (
     <MainLayout>
+      <PageSEO title="Novidades" description="Confira os produtos mais recentes adicionados ao catálogo de brindes promocionais." path="/novidades" />
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-24 md:pb-6">
         {/* Header responsivo */}
         <PageHeader

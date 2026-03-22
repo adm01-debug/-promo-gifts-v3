@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
@@ -169,6 +170,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex bg-background">
+      <PageSEO title="Login" description="Acesse a plataforma Promo Brindes. Faça login para gerenciar seus orçamentos e catálogo." path="/login" />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-card via-card to-background relative overflow-hidden">
         {/* Background decoration */}

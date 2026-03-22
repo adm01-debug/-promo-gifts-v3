@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams, useLocation } from "react-rout
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { cn } from "@/lib/utils";
 import { validateQuoteForm, QUOTE_FIELD_LABELS } from "@/lib/validations";
 
@@ -661,6 +662,7 @@ export default function QuoteBuilderPage() {
 
   return (
     <MainLayout>
+      <PageSEO title={quoteId ? "Editar Orçamento" : "Novo Orçamento"} description="Crie e edite orçamentos com seleção de produtos e personalização." path="/orcamentos/novo" noIndex />
       {/* Auto-save component */}
       <QuoteAutoSave
         quoteId={quoteId}

@@ -1,4 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { useBIMetrics } from "@/hooks/useBIMetrics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -79,6 +80,7 @@ export default function BIDashboard() {
 
   return (
     <MainLayout>
+      <PageSEO title="Dashboard BI" description="Painel de Business Intelligence com métricas e indicadores do catálogo." path="/bi" noIndex />
 
       <div className="space-y-6">
         {/* Header */}

@@ -1,4 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { AccessSecurityManager } from "@/components/admin/AccessSecurityManager";
 import { SecurityDashboard } from "@/components/security/SecurityDashboard";
 import { ShieldCheck, Shield, Lock } from "lucide-react";
@@ -7,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function AdminSegurancaPage() {
   return (
     <MainLayout>
+      <PageSEO title="Segurança" description="Central de segurança, monitoramento de acessos e restrições." path="/admin/seguranca" noIndex />
       <div className="container mx-auto py-8 space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-primary/10">

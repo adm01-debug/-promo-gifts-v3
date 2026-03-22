@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Palette, FolderOpen, Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +27,7 @@ function TabFallback() {
 export default function AdminCadastrosPage() {
   return (
     <MainLayout>
+      <PageSEO title="Cadastros" description="Gerencie produtos, fornecedores e técnicas de personalização." path="/admin/cadastros" noIndex />
       <div className="container mx-auto py-8 space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-primary/10">
