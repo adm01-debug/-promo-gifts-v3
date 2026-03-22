@@ -197,7 +197,7 @@ export function parseDimensionsString(
  */
 export function extractProductDimensions(
   product: {
-    dimensions?: string | null;
+    dimensions?: string | { width_cm?: number; height_cm?: number; length_cm?: number; diameter_cm?: number } | null;
     box_length_cm?: number | null;
     box_width_cm?: number | null;
     box_height_cm?: number | null;
@@ -232,8 +232,32 @@ export function extractProductDimensions(
     };
   }
 
+  // Tenta JSONB dimensions (formato do banco externo)
+  if (product.dimensions && typeof product.dimensions === 'object') {
+    const dims = product.dimensions as { width_cm?: number; height_cm?: number; length_cm?: number };
+    if (dims.width_cm && dims.height_cm && dims.length_cm) {
+      return {
+        width: dims.width_cm,
+        height: dims.height_cm,
+        depth: dims.length_cm,
+      };
+    }
+    // Fallback: se só tem width e height, usa length_cm ou estima
+    if (dims.width_cm && dims.height_cm) {
+      return {
+        width: dims.width_cm,
+        height: dims.height_cm,
+        depth: dims.length_cm || Math.min(dims.width_cm, dims.height_cm) * 0.5,
+      };
+    }
+  }
+
   // Por fim tenta parsear string de dimensões
-  return parseDimensionsString(product.dimensions);
+  if (typeof product.dimensions === 'string') {
+    return parseDimensionsString(product.dimensions);
+  }
+
+  return null;
 }
 
 // ============================================
