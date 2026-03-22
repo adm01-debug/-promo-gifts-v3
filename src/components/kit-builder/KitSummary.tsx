@@ -192,7 +192,12 @@ export function KitSummary({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground font-mono">{item.sku}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-mono">{item.sku}</span>
+                      {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
+                      {item.material ? ` • ${item.material}` : ''}
+                      {item.isOptional && <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">Opcional</Badge>}
+                    </p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
