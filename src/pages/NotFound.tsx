@@ -1,5 +1,6 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 const NotFound = () => {
   const location = useLocation();

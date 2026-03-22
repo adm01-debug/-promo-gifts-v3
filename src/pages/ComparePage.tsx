@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { useComparisonContext } from "@/contexts/ComparisonContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
