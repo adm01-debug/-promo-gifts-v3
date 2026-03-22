@@ -63,6 +63,13 @@ export function ItemSelector({
     }
   };
 
+  // Extract unique categories for filter
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    items.forEach(i => { if (i.category) cats.add(i.category); });
+    return Array.from(cats).sort();
+  }, [items]);
+
   const selectedItemIds = new Set(selectedItems.map(i => i.id));
 
   return (
