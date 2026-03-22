@@ -393,6 +393,7 @@ export function useKitBuilder() {
     updateItemColor,
     updateItemVariant,
     toggleOptionalItem,
+    reorderItems,
     setItemPersonalization,
     setBoxPersonalization,
     setKitQuantity,
