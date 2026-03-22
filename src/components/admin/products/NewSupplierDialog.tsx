@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { applyPixMask, pixPlaceholder } from '@/utils/pixMask';
+import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -211,6 +211,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     const dupPix = hasPixDuplicate(pixKeys);
     if (dupPix) {
       toast.error(`Chave PIX duplicada: "${dupPix}". Remova a duplicata antes de salvar.`);
+      return;
+    }
+    const invalidPix = pixKeys.filter(k => k.chave.trim()).find(k => validatePixKey(k.chave, k.tipo));
+    if (invalidPix) {
+      toast.error(validatePixKey(invalidPix.chave, invalidPix.tipo)!);
       return;
     }
     const cnpjDigits = cnpj.replace(/\D/g, '');
@@ -1022,7 +1027,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                       </div>
                       <div>
                         <Label className="text-xs font-semibold">Chave PIX</Label>
-                        <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', applyPixMask(e.target.value, pix.tipo))} placeholder={pixPlaceholder(pix.tipo)} className={fieldClass} />
+                        <Input value={pix.chave} onChange={e => updatePixKey(pix.id, 'chave', applyPixMask(e.target.value, pix.tipo))} placeholder={pixPlaceholder(pix.tipo)} className={`${fieldClass} ${validatePixKey(pix.chave, pix.tipo) ? 'border-destructive' : ''}`} />
+                        {validatePixKey(pix.chave, pix.tipo) && (
+                          <p className="text-xs text-destructive mt-1">{validatePixKey(pix.chave, pix.tipo)}</p>
+                        )}
                       </div>
                     </div>
                     <div>
