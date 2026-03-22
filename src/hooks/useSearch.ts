@@ -168,7 +168,9 @@ export function useSearch(products: Product[] = []) {
       }
     }
 
-    orderedProducts.slice(0, 5).forEach((product) => {
+    orderedProducts.slice(0, 6).forEach((product) => {
+      // Skip if already added as exact SKU match
+      if (results.some(r => r.id === product.id)) return;
       results.push({
         type: "product",
         id: product.id,
