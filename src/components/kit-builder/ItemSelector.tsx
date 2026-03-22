@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react';
-import { Search, Plus, Check, AlertTriangle, X, Package } from 'lucide-react';
+import { Search, Plus, Check, AlertTriangle, X, Package, RefreshCw } from 'lucide-react';
+import { VariantSelector } from './VariantSelector';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,6 +36,7 @@ interface ItemSelectorProps {
   onAddItem: (item: KitItem) => CompatibilityResult;
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
+  onUpdateColor: (itemId: string, color: { name: string; hex?: string }) => void;
   boxSelected: boolean;
 }
 
@@ -47,6 +49,7 @@ export function ItemSelector({
   onAddItem,
   onRemoveItem,
   onUpdateQuantity,
+  onUpdateColor,
   boxSelected,
 }: ItemSelectorProps) {
   const [searchDebounce, setSearchDebounce] = useState('');
@@ -130,6 +133,15 @@ export function ItemSelector({
               >
                 <span className="font-medium">{item.quantity}x</span>
                 <span className="max-w-[150px] truncate">{item.name}</span>
+                {item.isReplaceable && item.allowedVariantIds && item.allowedVariantIds.length > 0 && (
+                  <VariantSelector
+                    itemId={item.id}
+                    itemName={item.name}
+                    allowedVariantIds={item.allowedVariantIds}
+                    selectedColor={item.selectedColor}
+                    onSelectVariant={onUpdateColor}
+                  />
+                )}
                 <div className="flex items-center gap-1 ml-1">
                   <Button
                     variant="ghost"
