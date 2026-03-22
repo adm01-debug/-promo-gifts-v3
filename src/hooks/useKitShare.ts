@@ -36,7 +36,7 @@ export function useKitShare() {
 
       if (error) throw error;
 
-      const link = `${window.location.origin}/kit/${(data as any).token}`;
+      const link = `${window.location.origin}/kit/${(data as Record<string, string>).token}`;
       toast.success("Link de apresentação gerado!");
       return link;
     } catch (err) {

@@ -250,12 +250,12 @@ async function enrichProducts(
   let colorVariationsRecords: any[] = [];
   for (const idx of queryMap.colorVariations) {
     const r = batchResults[idx];
-    if (r?.success && r.data?.records) colorVariationsRecords = r.data.records as any[];
+    if (r?.success && r.data?.records) colorVariationsRecords = r.data.records as unknown[];
   }
   let colorGroupsRecords: any[] = [];
   for (const idx of queryMap.colorGroups) {
     const r = batchResults[idx];
-    if (r?.success && r.data?.records) colorGroupsRecords = r.data.records as any[];
+    if (r?.success && r.data?.records) colorGroupsRecords = r.data.records as unknown[];
   }
 
   const suppliersMap = new Map(suppliersRecords.map(s => [s.id, s.name]));
