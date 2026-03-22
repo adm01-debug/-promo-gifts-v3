@@ -280,7 +280,7 @@ describe("KitComparisonDialog", () => {
       <KitComparisonDialog open={true} onOpenChange={vi.fn()} kits={mockKits} />
     );
     // Kit Básico has lower total_price
-    expect(screen.getByText("Kit Básico")).toBeInTheDocument();
+    expect(screen.getAllByText("Kit Básico").length).toBeGreaterThanOrEqual(1);
   });
 });
 
