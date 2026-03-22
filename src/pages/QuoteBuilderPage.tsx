@@ -60,6 +60,7 @@ import { CompanyContactSelector, type SelectedCompanyInfo, type SelectedContactI
 import { QuoteAutoSave } from "@/components/quotes/QuoteAutoSave";
 import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
 import { QuoteProductColorSelector } from "@/components/quotes/QuoteProductColorSelector";
+import { QuoteBuilderStepper, type QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { findKnownHex } from "@/hooks/useProducts";
@@ -148,7 +149,31 @@ export default function QuoteBuilderPage() {
   // Active item for personalization (middle column)
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
 
-  // Load existing quote data when editing
+  // ── Stepper: compute completed steps ──
+  const completedSteps = useMemo((): QuoteBuilderStep[] => {
+    const steps: QuoteBuilderStep[] = [];
+    if (clientId) steps.push("client");
+    if (items.length > 0) steps.push("items");
+    if (paymentTerms && deliveryTime && shippingType) steps.push("conditions");
+    if (clientId && items.length > 0 && paymentTerms && deliveryTime && shippingType) steps.push("review");
+    return steps;
+  }, [clientId, items.length, paymentTerms, deliveryTime, shippingType]);
+
+  // ── Route guard: warn on unsaved changes ──
+  const hasUnsavedData = useMemo(() => {
+    return clientId !== "" || items.length > 0 || notes !== "" || internalNotes !== "";
+  }, [clientId, items.length, notes, internalNotes]);
+
+  useEffect(() => {
+    if (!hasUnsavedData) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasUnsavedData]);
+
   useEffect(() => {
     if (isEditMode && quoteId) {
       setLoadingQuote(true);
@@ -736,6 +761,9 @@ export default function QuoteBuilderPage() {
             )}
           </div>
         </div>
+
+        {/* Progress stepper */}
+        <QuoteBuilderStepper completedSteps={completedSteps} />
 
         {/* Template applied notification */}
         {templateApplied && (

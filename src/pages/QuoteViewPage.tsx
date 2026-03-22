@@ -45,15 +45,11 @@ function formatCNPJ(cnpj: string): string {
 import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
 import { logger } from "@/lib/logger";
 
-const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  draft: { label: "Rascunho", variant: "secondary" },
-  pending: { label: "Pendente", variant: "outline" },
-  sent: { label: "Enviado", variant: "default" },
-  approved: { label: "Aprovado", variant: "default" },
-  converted: { label: "Convertido em Pedido", variant: "default" },
-  rejected: { label: "Rejeitado", variant: "destructive" },
-  expired: { label: "Expirado", variant: "secondary" },
-};
+import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
+
+const statusConfig = Object.fromEntries(
+  Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, variant: v.badgeVariant }])
+) as Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }>;
 
 function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

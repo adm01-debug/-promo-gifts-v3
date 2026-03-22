@@ -62,14 +62,11 @@ interface Client {
   name: string;
 }
 
-const statusConfig = {
-  draft: { label: "Rascunho", color: "hsl(var(--muted-foreground))" },
-  pending: { label: "Pendente", color: "hsl(var(--warning))" },
-  sent: { label: "Enviado", color: "hsl(var(--info))" },
-  approved: { label: "Aprovado", color: "hsl(var(--success))" },
-  rejected: { label: "Rejeitado", color: "hsl(var(--destructive))" },
-  expired: { label: "Expirado", color: "hsl(var(--muted-foreground))" },
-};
+import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
+
+const statusConfig = Object.fromEntries(
+  Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, color: v.color }])
+) as Record<string, { label: string; color: string }>;
 
 export default function QuotesDashboardPage() {
   const navigate = useNavigate();
