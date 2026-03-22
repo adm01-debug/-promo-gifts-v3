@@ -27,6 +27,7 @@ function TabFallback() {
 export default function AdminCadastrosPage() {
   return (
     <MainLayout>
+      <PageSEO title="Cadastros" description="Gerencie produtos, fornecedores e técnicas de personalização." path="/admin/cadastros" noIndex />
       <div className="container mx-auto py-8 space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-primary/10">

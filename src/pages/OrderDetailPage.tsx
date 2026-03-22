@@ -139,6 +139,7 @@ export default function OrderDetailPage() {
 
   return (
     <MainLayout>
+      <PageSEO title={`Pedido #${order.order_number}`} description={`Detalhes do pedido ${order.order_number}`} path={`/pedidos/${id}`} noIndex />
       <div className="space-y-6 max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

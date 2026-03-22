@@ -51,6 +51,7 @@ export default function AdminUsuariosPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Gerenciar Usuários" description="Administre usuários, permissões e roles do sistema." path="/admin/usuarios" noIndex />
       <div className="container mx-auto py-8 space-y-8">
         <div className="flex items-center gap-3">
           <div className="p-3 rounded-xl bg-primary/10">

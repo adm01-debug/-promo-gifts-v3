@@ -179,6 +179,7 @@ export default function MockupGenerator() {
 
   return (
     <MainLayout>
+      <PageSEO title="Gerador de Mockups" description="Crie mockups profissionais de brindes personalizados com sua logo." path="/mockup-generator" />
       {/* Offscreen layout capture - auto-captures approval document after mockup generation */}
       <Suspense fallback={null}>
         <OffscreenLayoutCapture
