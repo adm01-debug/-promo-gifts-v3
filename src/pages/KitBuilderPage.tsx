@@ -329,6 +329,7 @@ export default function KitBuilderPage() {
                     onKitQuantityChange={setKitQuantity}
                     onAddToQuote={handleAddToQuote}
                     onExportPDF={handleExportPDF}
+                    isAddingToQuote={isCreatingQuote}
                   />
                 )}
               </CardContent>

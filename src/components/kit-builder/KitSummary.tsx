@@ -28,6 +28,7 @@ interface KitSummaryProps {
   onKitQuantityChange: (quantity: number) => void;
   onAddToQuote?: () => void;
   onExportPDF?: () => void;
+  isAddingToQuote?: boolean;
 }
 
 export function KitSummary({
