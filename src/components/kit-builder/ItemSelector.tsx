@@ -133,6 +133,15 @@ export function ItemSelector({
               >
                 <span className="font-medium">{item.quantity}x</span>
                 <span className="max-w-[150px] truncate">{item.name}</span>
+                {item.isReplaceable && item.allowedVariantIds && item.allowedVariantIds.length > 0 && (
+                  <VariantSelector
+                    itemId={item.id}
+                    itemName={item.name}
+                    allowedVariantIds={item.allowedVariantIds}
+                    selectedColor={item.selectedColor}
+                    onSelectVariant={onUpdateColor}
+                  />
+                )}
                 <div className="flex items-center gap-1 ml-1">
                   <Button
                     variant="ghost"
