@@ -3,7 +3,7 @@
  * Página principal do montador de kits
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   WizardSteps,
   BoxSelector,
@@ -29,7 +29,10 @@ import { toast } from 'sonner';
 export default function KitBuilderPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [currentKitId, setCurrentKitId] = useState<string | undefined>();
+  const [searchParams] = useSearchParams();
+  const kitIdParam = searchParams.get('kit');
+  const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
+  const hasLoadedRef = useRef(false);
   
   const {
     kitState,
@@ -58,9 +61,46 @@ export default function KitBuilderPage() {
     nextStep,
     prevStep,
     resetKit,
+    loadKit,
   } = useKitBuilder();
 
   const { saveKit, isSaving } = useCustomKitPersistence();
+
+  // Load saved kit from query param
+  useEffect(() => {
+    if (!kitIdParam || hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+
+    const loadSavedKit = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('custom_kits')
+          .select('*')
+          .eq('id', kitIdParam)
+          .single();
+
+        if (error || !data) {
+          toast.error('Kit não encontrado');
+          return;
+        }
+
+        loadKit({
+          name: data.name || '',
+          kitType: (data.kit_type as any) || 'montado',
+          box: data.box_data as any,
+          items: (data.items_data as any[]) || [],
+          personalization: (data.personalization_data as any) || { box: { enabled: false }, items: {} },
+          kitQuantity: data.kit_quantity || 1,
+        });
+
+        toast.success('Kit carregado para edição');
+      } catch {
+        toast.error('Erro ao carregar kit');
+      }
+    };
+
+    loadSavedKit();
+  }, [kitIdParam, loadKit]);
 
   const handleSaveKit = async () => {
     try {
