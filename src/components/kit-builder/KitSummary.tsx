@@ -84,7 +84,7 @@ export function KitSummary({
       </Card>
 
       {/* Resumo Visual */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Caixa */}
         <Card>
           <CardContent className="pt-6 text-center">
@@ -118,6 +118,19 @@ export function KitSummary({
             <p className="text-sm text-muted-foreground">
               {personalizedCount === 1 ? 'Personalização' : 'Personalizações'}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Peso Total */}
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <Package className="h-8 w-8 mx-auto text-primary mb-2" />
+            <p className="text-2xl font-bold">
+              {kitState.totalWeight >= 1000
+                ? `${(kitState.totalWeight / 1000).toFixed(1)}kg`
+                : `${kitState.totalWeight}g`}
+            </p>
+            <p className="text-sm text-muted-foreground">Peso estimado</p>
           </CardContent>
         </Card>
       </div>
