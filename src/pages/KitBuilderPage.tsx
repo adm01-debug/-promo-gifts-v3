@@ -27,6 +27,7 @@ export default function KitBuilderPage() {
   
   const {
     kitState,
+    setKitType,
     wizardState,
     kitQuantity,
     availableBoxes,

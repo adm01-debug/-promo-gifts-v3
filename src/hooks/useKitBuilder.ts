@@ -208,6 +208,9 @@ export function useKitBuilder() {
         const otherItems = selectedItems.filter(i => i.id !== itemId);
         const result = checkItemFits(item, selectedBox, otherItems, quantity);
         if (!result.fits) {
+          toast.warning('Volume excedido', {
+            description: result.reason || 'Essa quantidade não cabe na caixa selecionada.',
+          });
           return;
         }
       }
