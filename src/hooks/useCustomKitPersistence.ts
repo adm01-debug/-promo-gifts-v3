@@ -73,6 +73,7 @@ export function useCustomKitPersistence() {
         user_id: user.id,
         name: kitState.name || 'Kit sem nome',
         status: kitState.isValid ? 'complete' : 'draft',
+        kit_type: kitState.kitType || 'montado',
         box_data: kitState.box ? JSON.parse(JSON.stringify(kitState.box)) : null,
         items_data: JSON.parse(JSON.stringify(kitState.items)),
         personalization_data: JSON.parse(JSON.stringify(kitState.personalization)),

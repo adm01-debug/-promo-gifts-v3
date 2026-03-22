@@ -40,7 +40,7 @@ export default function KitBuilderPage() {
     addItem,
     removeItem,
     updateItemQuantity,
-    updateItemColor,
+    updateItemVariant,
     setItemPersonalization,
     setBoxPersonalization,
     setKitQuantity,
@@ -168,7 +168,7 @@ export default function KitBuilderPage() {
                       onAddItem={addItem}
                       onRemoveItem={removeItem}
                       onUpdateQuantity={updateItemQuantity}
-                      onUpdateColor={updateItemColor}
+                      onUpdateVariant={(itemId, data) => updateItemVariant(itemId, data)}
                       boxSelected={kitState.box !== null}
                     />
                   </div>

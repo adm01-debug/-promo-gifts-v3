@@ -1,7 +1,7 @@
 /**
  * Variant Selector for replaceable kit items (G9)
  * Fetches allowed variants and lets the user swap color/variant for an item.
- * #4 FIX: Now also updates SKU, image, and price when selecting a variant.
+ * Now passes full variant data (SKU, image, price, color) back to the parent.
  */
 
 import { useState } from 'react';
@@ -26,12 +26,19 @@ interface VariantOption {
   sale_price?: number | null;
 }
 
+export interface VariantSelectionData {
+  color: { name: string; hex?: string };
+  sku?: string;
+  imageUrl?: string | null;
+  price?: number;
+}
+
 interface VariantSelectorProps {
   itemId: string;
   itemName: string;
   allowedVariantIds: string[];
   selectedColor?: { name: string; hex?: string };
-  onSelectVariant: (itemId: string, color: { name: string; hex?: string }) => void;
+  onSelectVariant: (itemId: string, data: VariantSelectionData) => void;
 }
 
 export function VariantSelector({
@@ -117,8 +124,13 @@ export function VariantSelector({
                   )}
                   onClick={() => {
                     onSelectVariant(itemId, {
-                      name: variant.color_name || 'Padrão',
-                      hex: variant.color_hex || undefined,
+                      color: {
+                        name: variant.color_name || 'Padrão',
+                        hex: variant.color_hex || undefined,
+                      },
+                      sku: variant.sku || undefined,
+                      imageUrl: variant.selected_thumbnail || undefined,
+                      price: variant.sale_price ?? undefined,
                     });
                     setOpen(false);
                   }}
