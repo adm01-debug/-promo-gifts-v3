@@ -106,7 +106,7 @@ export function useKitBuilderQueries() {
           return filterBoxes(MOCK_BOXES, debouncedBoxSearch, boxDimFilters);
         }
 
-        return filterBoxes(boxes, null);
+        return filterBoxes(boxes, null, boxDimFilters);
       } catch (err) {
         console.warn('[KitBuilder] External DB unavailable for boxes, using mock data', err);
         return filterBoxes(MOCK_BOXES, debouncedBoxSearch);
