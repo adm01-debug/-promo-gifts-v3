@@ -339,6 +339,21 @@ export default function MeusKitsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        title="Compartilhar apresentação"
+                        onClick={async () => {
+                          const link = await generateShareLink(kit.id);
+                          if (link) {
+                            await navigator.clipboard.writeText(link);
+                            toast.success("Link copiado para a área de transferência!");
+                          }
+                        }}
+                        disabled={shareLoading}
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         title="Editar"
                         onClick={() => navigate(`/montar-kit?kit=${kit.id}`)}
                       >
