@@ -30,6 +30,7 @@ const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Index = lazyWithRetry(() => import("./pages/Index"));
 const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteApprovalPage"));
+const PublicKitView = lazyWithRetry(() => import("./pages/PublicKitViewPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Product Pages
@@ -148,6 +149,7 @@ const App = () => {
                                 <Route path="/reset-password" element={<ResetPassword />} errorElement={<RouteErrorBoundary />} />
                                 <Route path="/approve/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
                                 <Route path="/proposta/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
+                                <Route path="/kit/:token" element={<PublicKitView />} errorElement={<RouteErrorBoundary />} />
                                 <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
                                 {/* Protected Routes */}

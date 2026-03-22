@@ -292,6 +292,56 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_share_tokens: {
+        Row: {
+          client_email: string | null
+          client_name: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          kit_id: string
+          seller_id: string
+          status: string
+          token: string
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kit_id: string
+          seller_id: string
+          status?: string
+          token?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kit_id?: string
+          seller_id?: string
+          status?: string
+          token?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_share_tokens_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "custom_kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_attempts: {
         Row: {
           created_at: string
