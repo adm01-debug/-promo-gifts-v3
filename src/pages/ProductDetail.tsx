@@ -439,6 +439,18 @@ export default function ProductDetail() {
 
               <ShareActions product={product} />
               
+              {product.isKit && (
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="rounded-full px-6 bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70"
+                  onClick={() => navigate(`/kit-builder?product=${id}`)}
+                >
+                  <Package className="h-5 w-5 mr-2" />
+                  Montar no Kit Builder
+                </Button>
+              )}
+              
               <Button
                 variant="outline"
                 size="lg"

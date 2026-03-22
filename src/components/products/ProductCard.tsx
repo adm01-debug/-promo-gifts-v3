@@ -267,12 +267,6 @@ export function ProductCard({
               <span className="sm:hidden">%</span>
             </Badge>
           )}
-          {product.isKit && (
-            <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-md">
-              <Layers className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
-              KIT
-            </Badge>
-          )}
         </div>
 
 
