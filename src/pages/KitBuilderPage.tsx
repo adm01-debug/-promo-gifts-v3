@@ -12,6 +12,9 @@ import { formatCurrency } from '@/lib/kit-builder';
 import { Card, CardContent } from '@/components/ui/card';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import {
   WizardSteps,
   BoxSelector,
@@ -23,6 +26,8 @@ import {
 import { toast } from 'sonner';
 
 export default function KitBuilderPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentKitId, setCurrentKitId] = useState<string | undefined>();
   
   const {
