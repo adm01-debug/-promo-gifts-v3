@@ -1,19 +1,11 @@
 import { useEffect } from "react";
 
 /**
- * Scroll-lock prevention v7.
+ * Scroll-lock fix v8 — Performance-optimized.
  * 
- * react-remove-scroll blocks scroll TWO ways:
- *   1. CSS/DOM: data-scroll-locked attribute + overflow:hidden (handled by index.css)
- *   2. JS: wheel/touchmove event listeners calling preventDefault() (handled here)
- * 
- * Strategy:
- *   Layer 1 — CSS in index.css (outside @layer) overrides visual lock
- *   Layer 2 — MutationObserver: strips residual DOM attributes
- *   Layer 3 — Capture-phase interception: stopImmediatePropagation on wheel/touchmove
- *             when no overlay is active, preventing react-remove-scroll's preventDefault()
- *             NOTE: passive:true is fine because we only need stopImmediatePropagation,
- *             not preventDefault. passive only restricts preventDefault.
+ * Previous versions caused DOM thrashing via MutationObserver + setInterval
+ * feedback loops. This version only cleans up scroll locks when overlays
+ * actually close, using a single targeted MutationObserver on dialog state.
  */
 
 function hasActiveOverlay(): boolean {
@@ -36,7 +28,7 @@ function hasActiveOverlay(): boolean {
   return false;
 }
 
-function cleanup() {
+function cleanupScrollLock() {
   if (hasActiveOverlay()) return;
 
   for (const el of [document.documentElement, document.body]) {
@@ -67,52 +59,49 @@ function cleanup() {
 
 export function useScrollLockFix() {
   useEffect(() => {
-    // ── Layer 2: MutationObserver ──
-    const observer = new MutationObserver(() => {
-      requestAnimationFrame(cleanup);
-    });
+    // Only observe the document body for dialog open/close transitions.
+    // Use a debounced approach to avoid feedback loops.
+    let cleanupScheduled = false;
 
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style', 'data-scroll-locked', 'class'],
-    });
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['style', 'data-scroll-locked', 'class'],
-    });
-
-    // ── Layer 3: Capture-phase scroll event interception ──
-    // react-remove-scroll adds wheel/touchmove listeners that call preventDefault().
-    // We intercept BEFORE them (capture phase) and stopImmediatePropagation
-    // when no overlay is active, so native scroll proceeds unblocked.
-    // passive:true is OK — it only restricts preventDefault(), NOT stopImmediatePropagation().
-    const interceptScroll = (e: Event) => {
-      if (!hasActiveOverlay()) {
-        const isLocked =
-          document.documentElement.hasAttribute('data-scroll-locked') ||
-          document.body.hasAttribute('data-scroll-locked') ||
-          document.body.style.overflow === 'hidden' ||
-          document.documentElement.style.overflow === 'hidden';
-
-        if (isLocked) {
-          e.stopImmediatePropagation();
-          cleanup();
-        }
-      }
+    const scheduleCleanup = () => {
+      if (cleanupScheduled) return;
+      cleanupScheduled = true;
+      requestAnimationFrame(() => {
+        cleanupScrollLock();
+        cleanupScheduled = false;
+      });
     };
 
-    document.addEventListener('wheel', interceptScroll, { capture: true, passive: true });
-    document.addEventListener('touchmove', interceptScroll, { capture: true, passive: true });
+    // Watch for dialog state changes (open→closed) in the DOM
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        // Only react to removed nodes (overlay closing) or attribute changes on dialogs
+        if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
+          scheduleCleanup();
+          break;
+        }
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-state') {
+          const target = mutation.target as HTMLElement;
+          if (target.getAttribute('data-state') === 'closed') {
+            scheduleCleanup();
+            break;
+          }
+        }
+      }
+    });
 
-    // Safety net
-    const interval = setInterval(cleanup, 500);
-    cleanup();
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-state'],
+    });
+
+    // One-time initial cleanup
+    cleanupScrollLock();
 
     return () => {
       observer.disconnect();
-      clearInterval(interval);
-      document.removeEventListener('wheel', interceptScroll, { capture: true } as EventListenerOptions);
-      document.removeEventListener('touchmove', interceptScroll, { capture: true } as EventListenerOptions);
     };
   }, []);
 }
