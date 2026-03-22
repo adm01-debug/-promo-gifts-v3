@@ -83,6 +83,7 @@ export type Database = {
           items_data: Json
           items_price: number
           kit_quantity: number
+          kit_type: string
           name: string
           personalization_data: Json
           personalization_price: number
@@ -100,6 +101,7 @@ export type Database = {
           items_data?: Json
           items_price?: number
           kit_quantity?: number
+          kit_type?: string
           name?: string
           personalization_data?: Json
           personalization_price?: number
@@ -117,6 +119,7 @@ export type Database = {
           items_data?: Json
           items_price?: number
           kit_quantity?: number
+          kit_type?: string
           name?: string
           personalization_data?: Json
           personalization_price?: number
