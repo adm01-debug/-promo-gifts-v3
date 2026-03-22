@@ -3,10 +3,12 @@
  * Página principal do montador de kits
  */
 
-import { Package, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
+import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
 import {
   WizardSteps,
   BoxSelector,
