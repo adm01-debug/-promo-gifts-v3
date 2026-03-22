@@ -83,6 +83,13 @@ export function useKitBuilder() {
     if (!selectedBox) validationErrors.push('Selecione uma caixa');
     if (selectedItems.length === 0) validationErrors.push('Adicione pelo menos um item ao kit');
     if (volumeUsagePercent > 100) validationErrors.push('Volume dos itens excede a capacidade da caixa');
+    
+    // Weight validation
+    if (selectedBox?.maxWeight && itemsWeight > selectedBox.maxWeight) {
+      validationErrors.push(
+        `Peso dos itens (${(itemsWeight / 1000).toFixed(1)}kg) excede o limite da caixa (${(selectedBox.maxWeight / 1000).toFixed(1)}kg)`
+      );
+    }
 
     return {
       name: kitName,
