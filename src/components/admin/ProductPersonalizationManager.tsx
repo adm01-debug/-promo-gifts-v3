@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { untypedFrom } from "@/lib/supabase-untyped";
 import { invokeExternalDb } from "@/lib/external-db";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -264,8 +265,7 @@ export function ProductPersonalizationManager() {
       if (!components?.length) return [];
       try {
         const componentIds = components.map((c) => c.id);
-        const { data, error } = await supabase
-          .from("product_component_locations" as any)
+        const { data, error } = await untypedFrom("product_component_locations")
           .select("*")
           .in("component_id", componentIds);
         if (error) {
@@ -304,8 +304,7 @@ export function ProductPersonalizationManager() {
       if (!locations?.length) return [];
       try {
         const locationIds = locations.map((l) => l.id);
-        const { data, error } = await supabase
-          .from("product_component_location_techniques" as any)
+        const { data, error } = await untypedFrom("product_component_location_techniques")
           .select(`
             *,
             technique:personalization_techniques(id, code, name)
@@ -346,8 +345,7 @@ export function ProductPersonalizationManager() {
     setIsCopying(true);
     try {
       // Fetch group components
-      const { data: groupComponents } = await supabase
-        .from("product_group_components" as any)
+      const { data: groupComponents } = await untypedFrom("product_group_components")
         .select("*")
         .eq("product_group_id", productMembership.product_group_id);
 
@@ -380,15 +378,13 @@ export function ProductPersonalizationManager() {
         if (compError) throw compError;
 
         // Fetch group locations for this component
-        const { data: groupLocations } = await supabase
-          .from("product_group_locations" as any)
+        const { data: groupLocations } = await untypedFrom("product_group_locations")
           .select("*")
           .eq("group_component_id", gc.id);
 
         if (groupLocations?.length) {
           for (const gl of groupLocations) {
-            const { data: newLocation, error: locError } = await supabase
-              .from("product_component_locations" as any)
+            const { data: newLocation, error: locError } = await untypedFrom("product_component_locations")
               .insert({
                 component_id: newComponent.id,
                 location_code: gl.location_code,
@@ -405,8 +401,7 @@ export function ProductPersonalizationManager() {
             if (locError) throw locError;
 
             // Fetch group techniques for this location
-            const { data: groupTechniques } = await supabase
-              .from("product_group_location_techniques" as any)
+            const { data: groupTechniques } = await untypedFrom("product_group_location_techniques")
               .select("*")
               .eq("group_location_id", gl.id);
 
@@ -415,8 +410,7 @@ export function ProductPersonalizationManager() {
                 const technique = techniques?.find(t => t.id === gt.technique_id);
                 const composedCode = `${gc.component_code}-${gl.location_code}-${technique?.code || ""}`;
 
-                await supabase
-                  .from("product_component_location_techniques" as any)
+                await untypedFrom("product_component_location_techniques")
                   .insert({
                     component_location_id: newLocation.id,
                     technique_id: gt.technique_id,
@@ -499,7 +493,7 @@ export function ProductPersonalizationManager() {
       max_height_cm?: number;
       max_area_cm2?: number;
     }) => {
-      const { error } = await supabase.from("product_component_locations" as any).insert(data);
+      const { error } = await untypedFrom("product_component_locations").insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -513,7 +507,7 @@ export function ProductPersonalizationManager() {
 
   const updateLocationMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; location_code?: string; location_name?: string; max_width_cm?: number | null; max_height_cm?: number | null; max_area_cm2?: number | null; area_image_url?: string | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_component_locations" as any).update(data).eq("id", id);
+      const { error } = await untypedFrom("product_component_locations").update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -525,7 +519,7 @@ export function ProductPersonalizationManager() {
 
   const deleteLocationMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_component_locations" as any).delete().eq("id", id);
+      const { error } = await untypedFrom("product_component_locations").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -542,7 +536,7 @@ export function ProductPersonalizationManager() {
       composed_code: string;
       max_colors?: number;
     }) => {
-      const { error } = await supabase.from("product_component_location_techniques" as any).insert(data);
+      const { error } = await untypedFrom("product_component_location_techniques").insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -557,7 +551,7 @@ export function ProductPersonalizationManager() {
 
   const updateTechniqueMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; is_default?: boolean; max_colors?: number | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_component_location_techniques" as any).update(data).eq("id", id);
+      const { error } = await untypedFrom("product_component_location_techniques").update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -569,7 +563,7 @@ export function ProductPersonalizationManager() {
 
   const deleteTechniqueMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_component_location_techniques" as any).delete().eq("id", id);
+      const { error } = await untypedFrom("product_component_location_techniques").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
