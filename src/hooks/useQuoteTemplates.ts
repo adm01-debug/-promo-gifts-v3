@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+
+// ============================================
+// Types
+// ============================================
+
+type QuoteTemplateRow = Tables<"quote_templates">;
 
 export interface QuoteTemplateItem {
   productId?: string;
@@ -55,17 +62,25 @@ export interface CreateTemplateInput {
   validity_days?: number;
 }
 
-function transformTemplates(data: any[]): QuoteTemplate[] {
+function transformTemplates(data: QuoteTemplateRow[]): QuoteTemplate[] {
   return (data || []).map((item) => ({
     ...item,
+    is_default: item.is_default ?? false,
     items_data: Array.isArray(item.items_data)
       ? item.items_data as unknown as QuoteTemplateItem[]
       : [],
     template_data: typeof item.template_data === 'object' && item.template_data !== null
       ? item.template_data as Record<string, unknown>
       : {},
+    discount_percent: item.discount_percent ?? 0,
+    discount_amount: item.discount_amount ?? 0,
+    validity_days: item.validity_days ?? 30,
   }));
 }
+
+// ============================================
+// Hook
+// ============================================
 
 export function useQuoteTemplates() {
   const [templates, setTemplates] = useState<QuoteTemplate[]>([]);
@@ -157,37 +172,40 @@ export function useQuoteTemplates() {
 
     try {
       if (input.is_default) {
+        const resetPayload: TablesUpdate<"quote_templates"> = { is_default: false };
         await supabase
           .from("quote_templates")
-          .update({ is_default: false } as any)
+          .update(resetPayload)
           .eq("seller_id", user.id)
           .eq("is_default", true);
       }
 
+      const insertPayload: TablesInsert<"quote_templates"> = {
+        seller_id: user.id,
+        name: input.name,
+        description: input.description || null,
+        is_default: input.is_default || false,
+        items_data: JSON.parse(JSON.stringify(input.items_data || [])),
+        template_data: {},
+        discount_percent: input.discount_percent || 0,
+        discount_amount: input.discount_amount || 0,
+        notes: input.notes || null,
+        internal_notes: input.internal_notes || null,
+        payment_terms: input.payment_terms || null,
+        delivery_time: input.delivery_time || null,
+        validity_days: input.validity_days || 30,
+      };
+
       const { data: inserted, error: insErr } = await supabase
         .from("quote_templates")
-        .insert({
-          seller_id: user.id,
-          name: input.name,
-          description: input.description || null,
-          is_default: input.is_default || false,
-          items_data: JSON.parse(JSON.stringify(input.items_data || [])),
-          template_data: {},
-          discount_percent: input.discount_percent || 0,
-          discount_amount: input.discount_amount || 0,
-          notes: input.notes || null,
-          internal_notes: input.internal_notes || null,
-          payment_terms: input.payment_terms || null,
-          delivery_time: input.delivery_time || null,
-          validity_days: input.validity_days || 30,
-        } as any)
+        .insert(insertPayload)
         .select("*");
 
       if (insErr) throw new Error(insErr.message);
 
       toast({ title: "Template criado", description: `Template "${input.name}" salvo com sucesso` });
       await fetchTemplates();
-      return (inserted as any[])?.[0] || null;
+      return inserted?.[0] || null;
     } catch (err) {
       console.error("Error creating template:", err);
       toast({ title: "Erro", description: "Não foi possível criar o template", variant: "destructive" });
@@ -200,14 +218,15 @@ export function useQuoteTemplates() {
 
     try {
       if (updates.is_default) {
+        const resetPayload: TablesUpdate<"quote_templates"> = { is_default: false };
         await supabase
           .from("quote_templates")
-          .update({ is_default: false } as any)
+          .update(resetPayload)
           .eq("seller_id", user.id)
           .eq("is_default", true);
       }
 
-      const updatePayload: Record<string, unknown> = {
+      const updatePayload: TablesUpdate<"quote_templates"> = {
         ...updates,
         updated_at: new Date().toISOString(),
       };
@@ -217,7 +236,7 @@ export function useQuoteTemplates() {
 
       const { data: result, error: updErr } = await supabase
         .from("quote_templates")
-        .update(updatePayload as any)
+        .update(updatePayload)
         .eq("id", id)
         .select("*");
 
@@ -225,7 +244,7 @@ export function useQuoteTemplates() {
 
       toast({ title: "Template atualizado", description: "Alterações salvas com sucesso" });
       await fetchTemplates();
-      return (result as any[])?.[0] || null;
+      return result?.[0] || null;
     } catch (err) {
       console.error("Error updating template:", err);
       toast({ title: "Erro", description: "Não foi possível atualizar o template", variant: "destructive" });
@@ -286,23 +305,25 @@ export function useQuoteTemplates() {
     }
 
     try {
+      const insertPayload: TablesInsert<"quote_templates"> = {
+        seller_id: targetSellerId,
+        name: `${template.name} (Clonado)`,
+        description: template.description || null,
+        is_default: false,
+        items_data: JSON.parse(JSON.stringify(template.items_data || [])),
+        template_data: JSON.parse(JSON.stringify(template.template_data || {})),
+        discount_percent: template.discount_percent || 0,
+        discount_amount: template.discount_amount || 0,
+        notes: template.notes || null,
+        internal_notes: template.internal_notes || null,
+        payment_terms: template.payment_terms || null,
+        delivery_time: template.delivery_time || null,
+        validity_days: template.validity_days || 30,
+      };
+
       const { data: inserted, error: insErr } = await supabase
         .from("quote_templates")
-        .insert({
-          seller_id: targetSellerId,
-          name: `${template.name} (Clonado)`,
-          description: template.description || null,
-          is_default: false,
-          items_data: JSON.parse(JSON.stringify(template.items_data || [])),
-          template_data: JSON.parse(JSON.stringify(template.template_data || {})),
-          discount_percent: template.discount_percent || 0,
-          discount_amount: template.discount_amount || 0,
-          notes: template.notes || null,
-          internal_notes: template.internal_notes || null,
-          payment_terms: template.payment_terms || null,
-          delivery_time: template.delivery_time || null,
-          validity_days: template.validity_days || 30,
-        } as any)
+        .insert(insertPayload)
         .select("*");
 
       if (insErr) throw new Error(insErr.message);
@@ -311,7 +332,7 @@ export function useQuoteTemplates() {
       toast({ title: "Template clonado", description: `Template "${template.name}" clonado para ${targetSeller?.full_name || 'vendedor'} com sucesso` });
 
       await fetchAllTemplates();
-      return (inserted as any[])?.[0] || null;
+      return inserted?.[0] || null;
     } catch (err) {
       console.error("Error cloning template:", err);
       toast({ title: "Erro", description: "Não foi possível clonar o template", variant: "destructive" });

@@ -239,9 +239,9 @@ export function CompanyContactSelector({
         name: getCompanyDisplayName(c),
         razao_social: c.razao_social,
         nome_fantasia: c.nome_fantasia,
-        ramo_atividade: (c as any).ramo_atividade || null,
+        ramo_atividade: c.ramo_atividade || null,
         cnpj: c.cnpj,
-        logo_url: (c as any).logo_url || null,
+        logo_url: c.logo_url || null,
       }));
     },
     staleTime: 15 * 60 * 1000,
@@ -327,9 +327,9 @@ export function CompanyContactSelector({
             name: getCompanyDisplayName(c),
             razao_social: c.razao_social,
             nome_fantasia: c.nome_fantasia,
-            ramo_atividade: (c as any).ramo_atividade || null,
+            ramo_atividade: c.ramo_atividade || null,
             cnpj: c.cnpj,
-            logo_url: (c as any).logo_url || null,
+            logo_url: c.logo_url || null,
           });
         }
       }
@@ -398,9 +398,9 @@ export function CompanyContactSelector({
         name: getCompanyDisplayName(c),
         razao_social: c.razao_social,
         nome_fantasia: c.nome_fantasia,
-        ramo_atividade: (c as any).ramo_atividade || null,
+        ramo_atividade: c.ramo_atividade || null,
         cnpj: c.cnpj,
-        logo_url: (c as any).logo_url || null,
+        logo_url: c.logo_url || null,
       };
     },
     enabled: !!companyId,
@@ -437,7 +437,7 @@ export function CompanyContactSelector({
     onContactChange?.("");
     onContactInfoChange?.(null);
     const found = filteredCompanies.find((c) => c.id === id) || companies?.find((c) => c.id === id);
-    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: (found as any).ramo_atividade || undefined } : null);
+    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: found.ramo_atividade || undefined } : null);
     setIsOpen(false);
     setSearchTerm("");
   };
