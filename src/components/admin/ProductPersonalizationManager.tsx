@@ -499,7 +499,7 @@ export function ProductPersonalizationManager() {
       max_height_cm?: number;
       max_area_cm2?: number;
     }) => {
-      const { error } = await supabase.from("product_component_locations" as any).insert(data);
+      const { error } = await untypedFrom("product_component_locations").insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -513,7 +513,7 @@ export function ProductPersonalizationManager() {
 
   const updateLocationMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; location_code?: string; location_name?: string; max_width_cm?: number | null; max_height_cm?: number | null; max_area_cm2?: number | null; area_image_url?: string | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_component_locations" as any).update(data).eq("id", id);
+      const { error } = await untypedFrom("product_component_locations").update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -525,7 +525,7 @@ export function ProductPersonalizationManager() {
 
   const deleteLocationMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_component_locations" as any).delete().eq("id", id);
+      const { error } = await untypedFrom("product_component_locations").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -542,7 +542,7 @@ export function ProductPersonalizationManager() {
       composed_code: string;
       max_colors?: number;
     }) => {
-      const { error } = await supabase.from("product_component_location_techniques" as any).insert(data);
+      const { error } = await untypedFrom("product_component_location_techniques").insert(data);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -557,7 +557,7 @@ export function ProductPersonalizationManager() {
 
   const updateTechniqueMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: string; is_default?: boolean; max_colors?: number | null; is_active?: boolean }) => {
-      const { error } = await supabase.from("product_component_location_techniques" as any).update(data).eq("id", id);
+      const { error } = await untypedFrom("product_component_location_techniques").update(data).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -569,7 +569,7 @@ export function ProductPersonalizationManager() {
 
   const deleteTechniqueMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("product_component_location_techniques" as any).delete().eq("id", id);
+      const { error } = await untypedFrom("product_component_location_techniques").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
