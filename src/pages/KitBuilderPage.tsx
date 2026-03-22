@@ -6,6 +6,9 @@
 import { useState } from 'react';
 import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { formatCurrency } from '@/lib/kit-builder';
 import { Card, CardContent } from '@/components/ui/card';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
@@ -24,6 +27,7 @@ export default function KitBuilderPage() {
   
   const {
     kitState,
+    setKitType,
     wizardState,
     kitQuantity,
     availableBoxes,
@@ -135,11 +139,37 @@ export default function KitBuilderPage() {
               <CardContent className="p-6">
                 {/* Step: Box Selection */}
                 {wizardState.currentStep === 'box' && (
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">1. Selecione a Embalagem</h2>
-                    <p className="text-muted-foreground">
-                      Escolha a caixa ou embalagem que será a base do seu kit
-                    </p>
+                  <div className="space-y-6">
+                    <div>
+                      <h2 className="text-xl font-semibold">1. Selecione a Embalagem</h2>
+                      <p className="text-muted-foreground">
+                        Escolha a caixa ou embalagem que será a base do seu kit
+                      </p>
+                    </div>
+
+                    {/* Kit Type Selector */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Tipo de Kit</Label>
+                      <RadioGroup
+                        value={kitState.kitType}
+                        onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="montado" id="kit-montado" />
+                          <Label htmlFor="kit-montado" className="cursor-pointer text-sm">Montado</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="original" id="kit-original" />
+                          <Label htmlFor="kit-original" className="cursor-pointer text-sm">Original</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="simples" id="kit-simples" />
+                          <Label htmlFor="kit-simples" className="cursor-pointer text-sm">Simples</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
                     <BoxSelector
                       boxes={availableBoxes}
                       selectedBox={kitState.box}
@@ -243,21 +273,21 @@ export default function KitBuilderPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Caixa</span>
-                    <span>R$ {kitState.boxPrice.toFixed(2)}</span>
+                    <span>{formatCurrency(kitState.boxPrice)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Itens</span>
-                    <span>R$ {kitState.itemsPrice.toFixed(2)}</span>
+                    <span>{formatCurrency(kitState.itemsPrice)}</span>
                   </div>
                   {kitState.personalizationPrice > 0 && (
                     <div className="flex justify-between text-primary">
                       <span>Personalização</span>
-                      <span>R$ {kitState.personalizationPrice.toFixed(2)}</span>
+                      <span>{formatCurrency(kitState.personalizationPrice)}</span>
                     </div>
                   )}
                   <div className="border-t pt-2 flex justify-between font-semibold">
                     <span>Total/kit</span>
-                    <span className="text-primary">R$ {kitState.totalPrice.toFixed(2)}</span>
+                    <span className="text-primary">{formatCurrency(kitState.totalPrice)}</span>
                   </div>
                   {kitState.totalWeight > 0 && (
                     <div className="flex justify-between text-xs text-muted-foreground pt-1">
