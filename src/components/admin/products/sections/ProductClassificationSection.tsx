@@ -7,7 +7,7 @@ import { ProductTagsSection } from '../ProductTagsSection';
 import { ProductRamosSection } from '../ProductRamosSection';
 import { ProductMarketingSection } from '../ProductMarketingSection';
 import { ProductTechniquesSection } from '../ProductTechniquesSection';
-import { ProductKitComponentsSection } from '../ProductKitComponentsSection';
+import { ProductKitComponentsSection } from '../kit-components';
 import { SectionCard } from '../ProductFormHelpers';
 import {
   Layers,
