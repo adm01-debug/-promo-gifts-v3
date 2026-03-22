@@ -1,4 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { AccessSecurityManager } from "@/components/admin/AccessSecurityManager";
 import { SecurityDashboard } from "@/components/security/SecurityDashboard";
 import { ShieldCheck, Shield, Lock } from "lucide-react";

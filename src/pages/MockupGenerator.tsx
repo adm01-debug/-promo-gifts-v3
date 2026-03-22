@@ -8,6 +8,7 @@
 
 import { useState, useCallback, useMemo, lazy, Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Image as ImageIcon, Wand2, History, Cloud, CloudOff, AlertCircle, CheckCircle2, Undo2, Redo2 } from "lucide-react";
