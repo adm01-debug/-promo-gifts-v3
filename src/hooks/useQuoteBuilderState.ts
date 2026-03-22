@@ -84,12 +84,7 @@ export function useQuoteBuilderState() {
     return clientId !== "" || items.length > 0 || notes !== "" || internalNotes !== "";
   }, [clientId, items.length, notes, internalNotes]);
 
-  useEffect(() => {
-    if (!hasUnsavedData) return;
-    const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [hasUnsavedData]);
+  // Note: beforeunload is now handled by useUnsavedChangesGuard in QuoteBuilderPage
 
   // ── Load existing quote ──
   useEffect(() => {
