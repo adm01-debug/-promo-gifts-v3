@@ -115,11 +115,30 @@ export function ItemSelector({
         )}
       </div>
 
+      {/* Category filter */}
+      {categories.length > 1 && (
+        <Select
+          value={filters.category || 'all'}
+          onValueChange={(v) => onFiltersChange({ ...filters, category: v === 'all' ? undefined : v })}
+        >
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas as categorias</SelectItem>
+            {categories.map(cat => (
+              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
       <SelectedItemsBadges
         items={selectedItems}
         onRemoveItem={onRemoveItem}
         onUpdateQuantity={onUpdateQuantity}
         onUpdateVariant={onUpdateVariant}
+        onReorder={onReorder}
       />
 
       <ScrollArea className="h-[350px] pr-4">
