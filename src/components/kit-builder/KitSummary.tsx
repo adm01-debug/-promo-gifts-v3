@@ -208,12 +208,24 @@ export function KitSummary({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      <span className="font-mono">{item.sku}</span>
-                      {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
-                      {item.material ? ` • ${item.material}` : ''}
-                      {item.isOptional && <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">Opcional</Badge>}
-                    </p>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-mono">{item.sku}</span>
+                        {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
+                        {item.material ? ` • ${item.material}` : ''}
+                        {item.isOptional && <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">Opcional</Badge>}
+                      </p>
+                      {stockByProduct.has(item.id) && (
+                        <Badge
+                          variant={stockByProduct.get(item.id)! >= item.quantity * kitQuantity ? 'secondary' : 'destructive'}
+                          className="text-[10px] px-1.5 py-0"
+                        >
+                          {stockByProduct.get(item.id)! >= item.quantity * kitQuantity
+                            ? `${stockByProduct.get(item.id)} em estoque`
+                            : `⚠ ${stockByProduct.get(item.id)} disponível`}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {/* Botão Gerar Mockup */}
