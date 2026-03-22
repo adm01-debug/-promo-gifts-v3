@@ -3,7 +3,7 @@
  * Seletor de itens para compor o kit (refatorado)
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, AlertTriangle, X, Package } from 'lucide-react';
 import { SelectedItemsBadges } from './SelectedItemsBadges';
 import { ItemCard } from './ItemCard';
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { KitItem, ItemFilters, CompatibilityResult } from '@/lib/kit-builder';
 import type { VariantSelectionData } from './VariantSelector';
 
