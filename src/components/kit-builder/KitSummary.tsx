@@ -3,13 +3,15 @@
  * Resumo final do kit com breakdown de preços
  */
 
-import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import {
   formatCurrency,
@@ -41,6 +43,7 @@ export function KitSummary({
   onExportPDF,
   isAddingToQuote,
 }: KitSummaryProps) {
+  const navigate = useNavigate();
   const { box, items, personalization } = kitState;
   
   const pricing = calculateTotalKitPrice(box, items, personalization, kitQuantity);
@@ -49,6 +52,13 @@ export function KitSummary({
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const personalizedCount = (personalization.box.enabled ? 1 : 0) +
     Object.values(personalization.items).filter(p => p.enabled).length;
+
+  const handleOpenMockup = (productId: string, techniqueName?: string) => {
+    const params = new URLSearchParams();
+    params.set('product_id', productId);
+    if (techniqueName) params.set('technique', techniqueName);
+    navigate(`/mockup-generator?${params.toString()}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -201,8 +211,31 @@ export function KitSummary({
                       {item.isOptional && <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">Opcional</Badge>}
                     </p>
                   </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
+                  <div className="flex items-center gap-2">
+                    {/* Botão Gerar Mockup */}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-primary"
+                            onClick={() => handleOpenMockup(
+                              item.id,
+                              itemPersonalization?.enabled ? itemPersonalization.techniqueName : undefined
+                            )}
+                          >
+                            <Image className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Gerar Mockup</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
+                    </div>
                   </div>
                 </div>
               );
