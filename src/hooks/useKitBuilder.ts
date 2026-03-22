@@ -156,7 +156,7 @@ export function useKitBuilder() {
           product_type: 'product',
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, box_width_cm, box_height_cm, box_length_cm, category_id',
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, weight_g, box_width_cm, box_height_cm, box_length_cm, category_id',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
       });
