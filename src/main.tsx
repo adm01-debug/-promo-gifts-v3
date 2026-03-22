@@ -25,11 +25,8 @@ createRoot(root).render(
 // Registrar Service Worker para PWA (apenas em produção para evitar cache issues no preview)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   registerServiceWorker()
-    .then(() => {
-      console.log('✅ Service Worker registrado com sucesso');
-    })
-    .catch((error) => {
-      console.error('❌ Erro ao registrar Service Worker:', error);
+    .catch(() => {
+      // SW registration failed silently
     });
 } else if ('serviceWorker' in navigator && import.meta.env.DEV) {
   // Em dev, desregistrar SWs antigos que possam estar cacheando

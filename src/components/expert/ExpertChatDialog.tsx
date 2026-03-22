@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -347,9 +347,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                   Oráculo
                   <Sparkles className="h-4 w-4 text-primary" />
                 </DialogTitle>
-                <p className="text-xs text-muted-foreground">
+                <DialogDescription className="text-xs text-muted-foreground">
                   Consultor de Produtos IA
-                </p>
+                </DialogDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
