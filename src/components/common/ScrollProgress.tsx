@@ -44,6 +44,10 @@ export function ScrollProgressIndicator({
         scaleX,
         height: `${height}px`,
       }}
+      role="progressbar"
+      aria-label="Progresso de rolagem da página"
+      aria-valuemin={0}
+      aria-valuemax={100}
     />
   );
 }

@@ -162,14 +162,14 @@ export default function Auth() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <main className="min-h-screen flex items-center justify-center bg-background" role="main" aria-label="Carregando autenticação">
         <Loader2 className="h-8 w-8 animate-spin text-orange" />
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <main className="min-h-screen flex bg-background" role="main" aria-label="Autenticação">
       <PageSEO title="Login" description="Acesse a plataforma Promo Brindes. Faça login para gerenciar seus orçamentos e catálogo." path="/login" />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-card via-card to-background relative overflow-hidden">
@@ -378,7 +378,8 @@ export default function Auth() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
+                          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -503,7 +504,8 @@ export default function Auth() {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
+                          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -575,6 +577,6 @@ export default function Auth() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
