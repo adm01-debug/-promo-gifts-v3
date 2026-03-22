@@ -13,6 +13,7 @@ export default function Index() {
 
   return (
     <MainLayout>
+      <PageSEO title="Catálogo de Produtos" description="Explore nosso catálogo com mais de 15.000 brindes promocionais. Filtre por categoria, cor e preço." path="/" />
       <div>
         <div className="flex-1 min-w-0">
           <div className="space-y-3 p-4 sm:p-6">

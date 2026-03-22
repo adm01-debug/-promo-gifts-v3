@@ -1,4 +1,5 @@
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { NoveltyStatsCards } from "@/components/novelties/NoveltyStatsCards";
 import { NoveltyProductGrid } from "@/components/novelties/NoveltyProductGrid";

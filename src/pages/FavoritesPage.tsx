@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";

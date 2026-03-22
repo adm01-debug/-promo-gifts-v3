@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
