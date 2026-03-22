@@ -101,28 +101,37 @@ export function useKitBuilderQueries() {
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: ['kit-builder', 'items', debouncedItemSearch],
     queryFn: async () => {
-      const filters: Record<string, unknown> = {
-        active: true,
-      };
-      if (debouncedItemSearch) {
-        filters._search = debouncedItemSearch;
+      try {
+        const filters: Record<string, unknown> = { active: true };
+        if (debouncedItemSearch) filters._search = debouncedItemSearch;
+
+        const result = await invokeExternalDb<ExternalProductForKit>({
+          table: 'products',
+          operation: 'select',
+          filters,
+          select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, colors, packing_classification',
+          limit: 200,
+          orderBy: { column: 'name', ascending: true },
+          countMode: 'none',
+        });
+
+        const items = result.records
+          .filter(p => p.packing_classification !== 'embalagem')
+          .map(p => transformToKitItem(p));
+
+        if (items.length === 0) {
+          console.info('[KitBuilder] No items from external DB, using mock data');
+          return filterItems(MOCK_ITEMS, debouncedItemSearch);
+        }
+
+        return items;
+      } catch (err) {
+        console.warn('[KitBuilder] External DB unavailable for items, using mock data', err);
+        return filterItems(MOCK_ITEMS, debouncedItemSearch);
       }
-
-      const result = await invokeExternalDb<ExternalProductForKit>({
-        table: 'products',
-        operation: 'select',
-        filters,
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, colors, packing_classification',
-        limit: 200,
-        orderBy: { column: 'name', ascending: true },
-        countMode: 'none',
-      });
-
-      return result.records
-        .filter(p => p.packing_classification !== 'embalagem')
-        .map(p => transformToKitItem(p));
     },
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   return {
