@@ -213,7 +213,7 @@ const App = () => {
 
                                         {/* Orders */}
                                         <Route path="/pedidos" element={<OrdersPage />} />
-                                        <Route path="/pedidos/:id" element={<OrdersPage />} />
+                                        <Route path="/pedidos/:id" element={<OrderDetailPage />} />
 
                                         {/* User Routes */}
                                         <Route path="/perfil" element={<ProfilePage />} />
