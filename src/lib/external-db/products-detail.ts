@@ -166,6 +166,32 @@ export async function fetchPromobrindProductById(
     logger.warn('Não foi possível buscar vídeos do produto:', productId, err);
   }
 
+  // Kit components
+  if (product.is_kit) {
+    try {
+      const kitResult = await invokeExternalDb<{
+        id: string; component_name: string | null; component_code: string | null;
+        component_product_id: string | null; component_sku: string | null;
+        quantity: number | null; display_order: number | null;
+        is_optional: boolean | null; is_packaging: boolean | null;
+        is_replaceable: boolean | null; allows_personalization: boolean | null;
+        material: string | null; primary_image_url: string | null;
+        height_mm: number | null; width_mm: number | null; length_mm: number | null;
+        weight_g: number | null; notes: string | null;
+      }>({
+        table: 'product_kit_components', operation: 'select',
+        select: 'id, component_name, component_code, component_product_id, component_sku, quantity, display_order, is_optional, is_packaging, is_replaceable, allows_personalization, material, primary_image_url, height_mm, width_mm, length_mm, weight_g, notes',
+        filters: { kit_product_id: productId, is_active: true },
+        orderBy: { column: 'display_order', ascending: true }, limit: 50,
+      });
+      if (kitResult.records.length > 0) {
+        product.kit_components = kitResult.records;
+      }
+    } catch (err) {
+      logger.warn('Não foi possível buscar componentes do kit:', productId, err);
+    }
+  }
+
   return product;
 }
 
