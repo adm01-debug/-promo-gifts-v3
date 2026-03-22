@@ -1,7 +1,7 @@
 /**
  * Media section — lazy-loaded since it imports ImageGallery + VideoGallery
  */
-import { ProductImageGallery } from '../ProductImageGallery';
+import { ProductImageGallery } from '../image-gallery';
 import { ProductVideoGallery } from '../ProductVideoGallery';
 import { SectionCard } from '../ProductFormHelpers';
 import { ImageIcon, Video } from 'lucide-react';
