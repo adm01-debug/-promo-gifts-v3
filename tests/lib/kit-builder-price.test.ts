@@ -72,10 +72,10 @@ describe("kit-builder price-calculator", () => {
       expect(calculatePersonalizationPrice(emptyPersonalization, mockItems, 5)).toBe(0);
     });
 
-    it("sums box and item personalization prices", () => {
-      // box: 3 * 5 = 15, item-1: 1.5 * item.quantity(2) = 3
-      // Total = 15 + 3 = 18
-      expect(calculatePersonalizationPrice(fullPersonalization, mockItems, 5)).toBe(18);
+    it("sums box and item personalization prices (multiplied by kitQuantity)", () => {
+      // box: 3 * 5 = 15, item-1: 1.5 * item.quantity(2) * kitQuantity(5) = 15
+      // Total = 15 + 15 = 30
+      expect(calculatePersonalizationPrice(fullPersonalization, mockItems, 5)).toBe(30);
     });
   });
 
