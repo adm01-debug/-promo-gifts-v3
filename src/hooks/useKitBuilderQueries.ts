@@ -14,6 +14,7 @@ import {
   type ItemFilters,
   type ExternalProductForKit,
 } from '@/lib/kit-builder';
+import { MOCK_BOXES, MOCK_ITEMS } from '@/lib/kit-builder/mock-data';
 
 // Import transformers from the main hook file
 import { transformToKitBox, transformToKitItem } from './useKitBuilderTransformers';
