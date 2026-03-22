@@ -250,17 +250,40 @@ export function SuppliersManager() {
 
     // Parse financial data from notes
     const notesStr = supplier.notes || '';
-    const finMatch = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
-    if (finMatch) {
-      const formas = finMatch[1] !== '-' ? finMatch[1].split(',').filter(Boolean) : [];
+    
+    // Try new multi-PIX format first
+    const finMatchNew = notesStr.match(/\[Financeiro: Forma: (.*?), PIX: (.*?), PIX Atualizado: (.*?)\]/);
+    // Fallback to legacy single-PIX format
+    const finMatchLegacy = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
+    
+    if (finMatchNew) {
+      const formas = finMatchNew[1] !== '-' ? finMatchNew[1].split(',').filter(Boolean) : [];
       setFormaPagamento(formas);
-      setPixTipo(finMatch[2] !== '-' ? finMatch[2] : '');
-      setPixNumero(finMatch[3] !== '-' ? finMatch[3] : '');
-      setPixFavorecido(finMatch[4] !== '-' ? finMatch[4] : '');
-      setPixDataCadastro(finMatch[5] !== '-' ? finMatch[5] : '');
+      const pixData = finMatchNew[2];
+      if (pixData && pixData !== '-') {
+        const keys = pixData.split(';;').map(entry => {
+          const [tipo, chave, favorecido, principal] = entry.split('|');
+          return { id: crypto.randomUUID(), tipo: tipo === '-' ? '' : tipo, chave, favorecido: favorecido === '-' ? '' : favorecido, principal: principal === '1' };
+        });
+        if (keys.length > 0 && !keys.some(k => k.principal)) keys[0].principal = true;
+        setPixKeys(keys.length > 0 ? keys : [createEmptyPixKey(true)]);
+      } else {
+        setPixKeys([createEmptyPixKey(true)]);
+      }
+    } else if (finMatchLegacy) {
+      const formas = finMatchLegacy[1] !== '-' ? finMatchLegacy[1].split(',').filter(Boolean) : [];
+      setFormaPagamento(formas);
+      const tipo = finMatchLegacy[2] !== '-' ? finMatchLegacy[2] : '';
+      const chave = finMatchLegacy[3] !== '-' ? finMatchLegacy[3] : '';
+      const favorecido = finMatchLegacy[4] !== '-' ? finMatchLegacy[4] : '';
+      if (chave) {
+        setPixKeys([{ id: crypto.randomUUID(), tipo, chave, favorecido, principal: true }]);
+      } else {
+        setPixKeys([createEmptyPixKey(true)]);
+      }
     } else {
       setFormaPagamento([]);
-      setPixTipo(''); setPixNumero(''); setPixFavorecido(''); setPixDataCadastro('');
+      setPixKeys([createEmptyPixKey(true)]);
     }
 
     // Parse landline phones from notes
