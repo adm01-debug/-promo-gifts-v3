@@ -103,7 +103,7 @@ export function useKitBuilderQueries() {
 
         if (boxes.length === 0) {
           console.info('[KitBuilder] No boxes from external DB, using mock data');
-          return filterBoxes(MOCK_BOXES, debouncedBoxSearch);
+          return filterBoxes(MOCK_BOXES, debouncedBoxSearch, boxDimFilters);
         }
 
         return filterBoxes(boxes, null);
