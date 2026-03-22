@@ -1,25 +1,12 @@
 import { SecuritySettings } from '@/components/security/SecuritySettings';
-import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 export default function SecurityPage() {
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <Sidebar />
-        <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">Segurança</h1>
-            </div>
-          </header>
-          <main className="flex-1 p-6">
-            <div className="mx-auto max-w-4xl">
-              <SecuritySettings />
-            </div>
-          </main>
-        </SidebarInset>
+    <MainLayout>
+      <div className="mx-auto max-w-4xl">
+        <SecuritySettings />
       </div>
-    </SidebarProvider>
+    </MainLayout>
   );
 }

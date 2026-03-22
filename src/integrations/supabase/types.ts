@@ -235,6 +235,39 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          failure_reason: string | null
+          id: string
+          ip_address: string
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       magic_up_generations: {
         Row: {
           client_name: string | null
@@ -354,6 +387,92 @@ export type Database = {
           unit_price?: number | null
         }
         Relationships: []
+      }
+      orders: {
+        Row: {
+          client_company: string | null
+          client_email: string | null
+          client_id: string | null
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          delivery_time: string | null
+          discount_amount: number | null
+          fulfillment_status: string
+          id: string
+          internal_notes: string | null
+          notes: string | null
+          order_number: string
+          payment_terms: string | null
+          quote_id: string | null
+          seller_id: string
+          shipping_cost: number | null
+          shipping_type: string | null
+          status: string
+          subtotal: number | null
+          total: number | null
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_company?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          delivery_time?: string | null
+          discount_amount?: number | null
+          fulfillment_status?: string
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          order_number?: string
+          payment_terms?: string | null
+          quote_id?: string | null
+          seller_id: string
+          shipping_cost?: number | null
+          shipping_type?: string | null
+          status?: string
+          subtotal?: number | null
+          total?: number | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_company?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          delivery_time?: string | null
+          discount_amount?: number | null
+          fulfillment_status?: string
+          id?: string
+          internal_notes?: string | null
+          notes?: string | null
+          order_number?: string
+          payment_terms?: string | null
+          quote_id?: string | null
+          seller_id?: string
+          shipping_cost?: number | null
+          shipping_type?: string | null
+          status?: string
+          subtotal?: number | null
+          total?: number | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organization_members: {
         Row: {
