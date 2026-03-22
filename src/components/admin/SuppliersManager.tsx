@@ -249,6 +249,15 @@ export function SuppliersManager() {
       setPixTipo(''); setPixNumero(''); setPixFavorecido(''); setPixDataCadastro('');
     }
 
+    // Parse landline phones from notes
+    const foneMatch = notesStr.match(/\[Fones Fixos: 01: (.*?), 02: (.*?)\]/);
+    if (foneMatch) {
+      setFoneFixo1(foneMatch[1] !== '-' ? foneMatch[1] : '');
+      setFoneFixo2(foneMatch[2] !== '-' ? foneMatch[2] : '');
+    } else {
+      setFoneFixo1(''); setFoneFixo2('');
+    }
+
     setIsNew(false);
   };
 
