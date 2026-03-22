@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { formatCurrency } from '@/lib/kit-builder';
 import { toast } from 'sonner';
+import { useKitShare } from '@/hooks/useKitShare';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
