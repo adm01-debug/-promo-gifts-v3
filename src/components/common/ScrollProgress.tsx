@@ -46,7 +46,7 @@ export function ScrollProgressIndicator({
       }}
     />
   );
-});
+}
 
 /**
  * ScrollToTop - Botão para voltar ao topo

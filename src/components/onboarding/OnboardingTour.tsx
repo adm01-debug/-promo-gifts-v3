@@ -254,4 +254,4 @@ export function OnboardingTour() {
       </div>
     </AnimatePresence>
   );
-});
+}

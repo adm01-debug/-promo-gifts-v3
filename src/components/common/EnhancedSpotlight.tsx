@@ -496,7 +496,7 @@ export function EnhancedSpotlight() {
       )}
     </AnimatePresence>
   );
-});
+}
 
 // Trigger button component
 export function EnhancedSpotlightTrigger({ className }: { className?: string }) {
