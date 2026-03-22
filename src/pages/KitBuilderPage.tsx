@@ -177,6 +177,7 @@ export default function KitBuilderPage() {
                   <PersonalizationConfig
                     box={kitState.box}
                     items={kitState.items}
+                    kitQuantity={kitQuantity}
                     boxPersonalization={kitState.personalization.box}
                     itemPersonalizations={kitState.personalization.items}
                     onBoxPersonalizationChange={setBoxPersonalization}
