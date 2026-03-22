@@ -437,7 +437,7 @@ export function CompanyContactSelector({
     onContactChange?.("");
     onContactInfoChange?.(null);
     const found = filteredCompanies.find((c) => c.id === id) || companies?.find((c) => c.id === id);
-    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: (found as any).ramo_atividade || undefined } : null);
+    onCompanyInfoChange?.(found ? { id: found.id, name: found.name, cnpj: found.cnpj, ramo_atividade: found.ramo_atividade || undefined } : null);
     setIsOpen(false);
     setSearchTerm("");
   };

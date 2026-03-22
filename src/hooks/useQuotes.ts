@@ -3,6 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+
+// ============================================
+// Types
+// ============================================
+
+type QuoteRow = Tables<"quotes">;
+type QuoteItemRow = Tables<"quote_items">;
+type QuoteItemPersonalizationRow = Tables<"quote_item_personalizations">;
 
 export interface QuoteItem {
   id?: string;
@@ -88,6 +97,10 @@ export interface PersonalizationTechnique {
   is_active?: boolean;
 }
 
+// ============================================
+// Hook
+// ============================================
+
 export function useQuotes() {
   const { user } = useAuth();
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -109,7 +122,7 @@ export function useQuotes() {
         .limit(500);
 
       if (qErr) throw new Error(qErr.message);
-      setQuotes((data as any[]) || []);
+      setQuotes((data || []) as Quote[]);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao buscar orçamentos";
       setError(message);
@@ -140,8 +153,8 @@ export function useQuotes() {
         .order("sort_order", { ascending: true });
 
       // Fetch personalizations for all items
-      const itemIds = (itemsData || []).map((i: any) => i.id);
-      let allPersonalizations: any[] = [];
+      const itemIds = (itemsData || []).map((i) => i.id);
+      let allPersonalizations: QuoteItemPersonalizationRow[] = [];
       if (itemIds.length > 0) {
         const { data: persData } = await supabase
           .from("quote_item_personalizations")
@@ -150,7 +163,7 @@ export function useQuotes() {
         allPersonalizations = persData || [];
       }
 
-      const items: QuoteItem[] = (itemsData || []).map((item: any) => ({
+      const items: QuoteItem[] = (itemsData || []).map((item) => ({
         ...item,
         personalizations: allPersonalizations.filter(p => p.quote_item_id === item.id),
       }));
@@ -186,37 +199,39 @@ export function useQuotes() {
         ? (quote.shipping_cost || 0) : 0;
       const total = subtotal - discountAmount + shippingCostValue;
 
+      const insertPayload: TablesInsert<"quotes"> = {
+        client_id: quote.client_id || null,
+        client_name: quote.client_name || null,
+        client_email: quote.client_email || null,
+        client_phone: quote.client_phone || null,
+        client_company: quote.client_company || null,
+        seller_id: user.id,
+        status: quote.status || "draft",
+        subtotal,
+        discount_percent: quote.discount_percent || 0,
+        discount_amount: discountAmount,
+        total,
+        payment_terms: quote.payment_terms || null,
+        delivery_time: quote.delivery_time || null,
+        shipping_type: quote.shipping_type || null,
+        shipping_cost: quote.shipping_cost || 0,
+        notes: quote.notes || null,
+        internal_notes: quote.internal_notes || null,
+        valid_until: quote.valid_until || null,
+      };
+
       const { data: inserted, error: insErr } = await supabase
         .from("quotes")
-        .insert({
-          client_id: quote.client_id || null,
-          client_name: quote.client_name || null,
-          client_email: quote.client_email || null,
-          client_phone: quote.client_phone || null,
-          client_company: quote.client_company || null,
-          seller_id: user.id,
-          status: quote.status || "draft",
-          subtotal,
-          discount_percent: quote.discount_percent || 0,
-          discount_amount: discountAmount,
-          total,
-          payment_terms: quote.payment_terms || null,
-          delivery_time: quote.delivery_time || null,
-          shipping_type: quote.shipping_type || null,
-          shipping_cost: quote.shipping_cost || 0,
-          notes: quote.notes || null,
-          internal_notes: quote.internal_notes || null,
-          valid_until: quote.valid_until || null,
-        } as any)
+        .insert(insertPayload)
         .select("*");
 
       if (insErr) throw new Error(insErr.message);
-      const newQuote = (inserted as any[])?.[0];
+      const newQuote = inserted?.[0];
       if (!newQuote) throw new Error("Falha ao inserir orçamento");
 
       // Insert items
       if (items.length > 0) {
-        const itemsToInsert = items.map((item, index) => ({
+        const itemsToInsert: TablesInsert<"quote_items">[] = items.map((item, index) => ({
           quote_id: newQuote.id,
           product_id: item.product_id,
           product_name: item.product_name,
@@ -234,7 +249,7 @@ export function useQuotes() {
 
         const { data: insertedItems, error: itemsErr } = await supabase
           .from("quote_items")
-          .insert(itemsToInsert as any)
+          .insert(itemsToInsert)
           .select("*");
 
         if (itemsErr) throw new Error(itemsErr.message);
@@ -242,9 +257,9 @@ export function useQuotes() {
         // Insert personalizations
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          const insertedItem = (insertedItems as any[])?.[i];
+          const insertedItem = insertedItems?.[i];
           if (item.personalizations?.length && insertedItem) {
-            const persToInsert = item.personalizations.map(p => ({
+            const persToInsert: TablesInsert<"quote_item_personalizations">[] = item.personalizations.map(p => ({
               quote_item_id: insertedItem.id,
               technique_id: p.technique_id || null,
               technique_name: p.technique_name || null,
@@ -256,7 +271,7 @@ export function useQuotes() {
               total_cost: p.total_cost || 0,
               notes: p.notes,
             }));
-            await supabase.from("quote_item_personalizations").insert(persToInsert as any);
+            await supabase.from("quote_item_personalizations").insert(persToInsert);
           }
         }
       }
@@ -268,7 +283,7 @@ export function useQuotes() {
       });
 
       await fetchQuotes();
-      return newQuote;
+      return newQuote as unknown as Quote;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao criar orçamento";
       toast.error("Erro ao criar orçamento", { description: message });
@@ -283,11 +298,11 @@ export function useQuotes() {
     quoteId: string,
     action: string,
     description: string,
-    options?: { fieldChanged?: string; oldValue?: string; newValue?: string; metadata?: Record<string, any> }
+    options?: { fieldChanged?: string; oldValue?: string; newValue?: string; metadata?: Record<string, unknown> }
   ) => {
     if (!user) return;
     try {
-      await supabase.from("quote_history").insert({
+      const historyPayload: TablesInsert<"quote_history"> = {
         quote_id: quoteId,
         user_id: user.id,
         action,
@@ -296,7 +311,8 @@ export function useQuotes() {
         old_value: options?.oldValue || null,
         new_value: options?.newValue || null,
         metadata: options?.metadata || {},
-      } as any);
+      };
+      await supabase.from("quote_history").insert(historyPayload);
     } catch (err) {
       console.error("Error logging history:", err);
     }
@@ -308,9 +324,10 @@ export function useQuotes() {
       const currentQuote = quotes.find(q => q.id === quoteId);
       const oldStatus = currentQuote?.status || "draft";
 
+      const updatePayload: TablesUpdate<"quotes"> = { status };
       const { error: updErr } = await supabase
         .from("quotes")
-        .update({ status } as any)
+        .update(updatePayload)
         .eq("id", quoteId);
 
       if (updErr) throw new Error(updErr.message);
@@ -372,40 +389,42 @@ export function useQuotes() {
         ? (quote.shipping_cost || 0) : 0;
       const total = subtotal - discountAmount + shippingCostValue;
 
+      const updatePayload: TablesUpdate<"quotes"> = {
+        client_id: quote.client_id || null,
+        client_name: quote.client_name || null,
+        client_email: quote.client_email || null,
+        client_phone: quote.client_phone || null,
+        client_company: quote.client_company || null,
+        status: quote.status,
+        subtotal,
+        discount_percent: quote.discount_percent || 0,
+        discount_amount: discountAmount,
+        total,
+        payment_terms: quote.payment_terms || null,
+        delivery_time: quote.delivery_time || null,
+        shipping_type: quote.shipping_type || null,
+        shipping_cost: quote.shipping_cost || 0,
+        notes: quote.notes || null,
+        internal_notes: quote.internal_notes || null,
+        valid_until: quote.valid_until || null,
+        updated_at: new Date().toISOString(),
+      };
+
       const { data: updated, error: updErr } = await supabase
         .from("quotes")
-        .update({
-          client_id: quote.client_id || null,
-          client_name: quote.client_name || null,
-          client_email: quote.client_email || null,
-          client_phone: quote.client_phone || null,
-          client_company: quote.client_company || null,
-          status: quote.status,
-          subtotal,
-          discount_percent: quote.discount_percent || 0,
-          discount_amount: discountAmount,
-          total,
-          payment_terms: quote.payment_terms || null,
-          delivery_time: quote.delivery_time || null,
-          shipping_type: quote.shipping_type || null,
-          shipping_cost: quote.shipping_cost || 0,
-          notes: quote.notes || null,
-          internal_notes: quote.internal_notes || null,
-          valid_until: quote.valid_until || null,
-          updated_at: new Date().toISOString(),
-        } as any)
+        .update(updatePayload)
         .eq("id", quoteId)
         .select("*");
 
       if (updErr) throw new Error(updErr.message);
-      const updatedQuote = (updated as any[])?.[0];
+      const updatedQuote = updated?.[0];
 
       // Delete existing items (cascade deletes personalizations)
       await supabase.from("quote_items").delete().eq("quote_id", quoteId);
 
       // Insert new items
       if (items.length > 0) {
-        const itemsToInsert = items.map((item, index) => ({
+        const itemsToInsert: TablesInsert<"quote_items">[] = items.map((item, index) => ({
           quote_id: quoteId,
           product_id: item.product_id,
           product_name: item.product_name,
@@ -421,16 +440,16 @@ export function useQuotes() {
 
         const { data: insertedItems, error: itemsErr } = await supabase
           .from("quote_items")
-          .insert(itemsToInsert as any)
+          .insert(itemsToInsert)
           .select("*");
 
         if (itemsErr) throw new Error(itemsErr.message);
 
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          const insertedItem = (insertedItems as any[])?.[i];
+          const insertedItem = insertedItems?.[i];
           if (item.personalizations?.length && insertedItem) {
-            const persToInsert = item.personalizations.map(p => ({
+            const persToInsert: TablesInsert<"quote_item_personalizations">[] = item.personalizations.map(p => ({
               quote_item_id: insertedItem.id,
               technique_id: p.technique_id || null,
               technique_name: p.technique_name || null,
@@ -442,7 +461,7 @@ export function useQuotes() {
               total_cost: p.total_cost || 0,
               notes: p.notes,
             }));
-            await supabase.from("quote_item_personalizations").insert(persToInsert as any);
+            await supabase.from("quote_item_personalizations").insert(persToInsert);
           }
         }
       }
@@ -453,7 +472,7 @@ export function useQuotes() {
 
       toast.success("Orçamento atualizado com sucesso!");
       await fetchQuotes();
-      return updatedQuote;
+      return updatedQuote as unknown as Quote;
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao atualizar orçamento";
       toast.error("Erro ao atualizar orçamento", { description: message });
@@ -578,7 +597,7 @@ export function useQuotes() {
   // Fetch personalization techniques from external catalog DB
   const fetchTechniques = async () => {
     try {
-      const result = await invokeExternalDb<any>({
+      const result = await invokeExternalDb<PersonalizationTechnique>({
         table: "personalization_techniques",
         operation: "select",
         filters: { is_active: true },
