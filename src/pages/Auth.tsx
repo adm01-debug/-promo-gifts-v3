@@ -123,6 +123,14 @@ export default function Auth() {
   };
 
   const handleSignup = async (data: SignupForm) => {
+    if (!isPasswordSafe) {
+      toast({
+        variant: "destructive",
+        title: "Senha insegura",
+        description: "Sua senha foi encontrada em vazamentos de dados. Escolha outra senha.",
+      });
+      return;
+    }
     setIsSubmitting(true);
     try {
       const { error } = await signUp(data.email, data.password, data.fullName);
