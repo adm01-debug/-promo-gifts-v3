@@ -3,7 +3,7 @@
  * Página principal do montador de kits
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { Button } from '@/components/ui/button';
