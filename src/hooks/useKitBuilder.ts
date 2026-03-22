@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { invokeExternalDb } from '@/lib/external-db';
+import { getProductImageUrl, getProductPrice, invokeExternalDb } from '@/lib/external-db';
 import {
   type KitBox,
   type KitItem,
@@ -43,8 +43,21 @@ const KIT_BUILDER_KEYS = {
 // TRANSFORMADORES
 // ============================================
 
+function resolveProductMaterial(product: ExternalProductForKit): string | undefined {
+  if (product.material) return product.material;
+  if (!Array.isArray(product.materials) || product.materials.length === 0) return undefined;
+
+  const firstMaterial = product.materials[0];
+  if (typeof firstMaterial === 'string') return firstMaterial;
+  if (firstMaterial && typeof firstMaterial === 'object') {
+    const candidate = (firstMaterial as { name?: string; material?: string }).name ?? (firstMaterial as { name?: string; material?: string }).material;
+    return typeof candidate === 'string' && candidate.trim() ? candidate : undefined;
+  }
+
+  return undefined;
+}
+
 function transformToKitBox(product: ExternalProductForKit): KitBox | null {
-  // Try mm dimensions first (from product_kit_components), then cm
   let dimensions: { width: number; height: number; depth: number } | null = null;
 
   const wMm = mmToCm(product.width_mm);
@@ -66,19 +79,18 @@ function transformToKitBox(product: ExternalProductForKit): KitBox | null {
     id: product.id,
     name: product.name,
     sku: product.sku,
-    imageUrl: product.primary_image_url || product.image_url || null,
-    price: product.sale_price ?? product.base_price ?? 0,
+    imageUrl: getProductImageUrl(product),
+    price: getProductPrice(product),
     internalWidth: dimensions.width,
     internalHeight: dimensions.height,
     internalDepth: dimensions.depth,
     internalVolume: volume,
-    material: product.material || undefined,
+    material: resolveProductMaterial(product),
     weight: product.weight_g ?? undefined,
   };
 }
 
 function transformToKitItem(product: ExternalProductForKit, category?: string): KitItem {
-  // Try mm dimensions first
   let dimensions: { width: number; height: number; depth: number } | null = null;
 
   const wMm = mmToCm(product.width_mm);
@@ -98,21 +110,19 @@ function transformToKitItem(product: ExternalProductForKit, category?: string): 
     id: product.id,
     name: product.name,
     sku: product.sku,
-    imageUrl: product.primary_image_url || product.image_url || null,
-    price: product.sale_price ?? product.base_price ?? 0,
+    imageUrl: getProductImageUrl(product),
+    price: getProductPrice(product),
     width: dimensions.width,
     height: dimensions.height,
     depth: dimensions.depth,
     volume,
     weight: product.weight_g ?? undefined,
-    material: product.material || undefined,
+    material: resolveProductMaterial(product),
     category,
     quantity: 1,
-    isOptional: product.is_optional ?? false,
-    isReplaceable: product.is_replaceable ?? false,
-    allowsPersonalization: product.allows_personalization ?? true,
-    personalizationNotes: product.personalization_notes || undefined,
-    allowedVariantIds: product.allowed_variant_ids || undefined,
+    isOptional: false,
+    isReplaceable: false,
+    allowsPersonalization: true,
   };
 }
 
@@ -155,7 +165,7 @@ export function useKitBuilder() {
           product_type: 'packaging',
           ...(boxFilters.search ? { name: boxFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, dimensions, product_type, category_id, weight_g, material, width_mm, height_mm, length_mm',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
@@ -187,7 +197,7 @@ export function useKitBuilder() {
           product_type: 'product',
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, dimensions, product_type, category_id, weight_g, material, width_mm, height_mm, length_mm, allows_personalization, personalization_notes, is_optional, is_replaceable',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
