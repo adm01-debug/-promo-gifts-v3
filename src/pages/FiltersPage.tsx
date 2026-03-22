@@ -570,7 +570,10 @@ export default function FiltersPage() {
       result = result.filter((product) => product.hasCommercialPackaging === true);
     }
 
-    // isKit e featured não existem no banco externo, ignorar por enquanto
+    // Filtro por Kit
+    if (filters.isKit) {
+      result = result.filter((product) => product.isKit === true);
+    }
 
     // Ordenação — pular ordenação por nome quando há busca ativa (preservar relevância)
     const skipSort = hasFuzzySearch && sortBy === 'name';
