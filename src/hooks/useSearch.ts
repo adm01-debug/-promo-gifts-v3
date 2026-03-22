@@ -112,6 +112,9 @@ export function useSearch(products: Product[] = []) {
       return results;
     }
 
+    // Search products - busca fuzzy com priorização por relevância
+    const searchLower = searchTerm.toLowerCase();
+
     // Priority 0: Exact SKU match (most precise)
     const exactSkuMatch = products.find(p => 
       p.sku?.toLowerCase() === searchLower || 
@@ -127,9 +130,6 @@ export function useSearch(products: Product[] = []) {
         data: exactSkuMatch,
       });
     }
-
-    // Search products - busca fuzzy com priorização por relevância
-    const searchLower = searchTerm.toLowerCase();
     
     // Separar por relevância: começa com > palavra exata > contém > fuzzy
     const startsWithProducts = products.filter(p => p.name.toLowerCase().startsWith(searchLower));
