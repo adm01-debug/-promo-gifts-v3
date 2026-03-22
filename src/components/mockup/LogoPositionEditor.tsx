@@ -234,9 +234,7 @@ export function LogoPositionEditor({
     const needsProcessing = isLaser || isSerigrafia;
 
     if (!needsProcessing || !logoPreview || !showPreviewMode) {
-      if (processedLogoUrl) {
-        setProcessedLogoUrl(null);
-      }
+      setProcessedLogoUrl(null);
       return;
     }
 
@@ -251,7 +249,6 @@ export function LogoPositionEditor({
     } else {
       // Serigrafia — use selected Pantone colors
       const selectedColors = techniqueColorConfig?.selectedColors || [];
-      // Fallback: if no colors resolved yet (e.g. no logo uploaded at config time), skip processing
       if (selectedColors.length === 0) {
         setIsProcessingLaser(false);
         setProcessedLogoUrl(null);
@@ -274,7 +271,6 @@ export function LogoPositionEditor({
     return () => {
       cancelled = true;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, techniqueColorConfig?.selectedColors, showPreviewMode]);
 
   // Logo scale is a single percentage slider — proportionality is inherent.
