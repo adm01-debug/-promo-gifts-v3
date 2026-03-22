@@ -23,11 +23,11 @@ import { useMaterialFilter } from "@/hooks/useMaterialFilter";
 import { useRamoAtividadeFilter } from "@/hooks/useRamoAtividadeFilter";
 import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
-import { PUBLICO_ALVO, ENDOMARKETING } from "@/data/mockData";
-import { toTitleCase } from "@/lib/textUtils";
 import { FilterSection } from "./FilterSection";
 import { FilterSectionMaterials } from "./sections/FilterSectionMaterials";
 import { FilterSectionRamos } from "./sections/FilterSectionRamos";
+import { FilterSectionPublicoAlvo } from "./sections/FilterSectionPublicoAlvo";
+import { FilterSectionEndomarketing } from "./sections/FilterSectionEndomarketing";
 
 interface AdvancedFilterPanelProps {
   filters: AdvancedFilterState;
