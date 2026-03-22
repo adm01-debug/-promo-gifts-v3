@@ -208,8 +208,7 @@ export async function exportToPDF(data: ExportData) {
       margin: { left: 14, right: 14 },
     });
 
-    // @ts-expect-error autoTable adds finalY to jsPDF doc instance
-    yPosition = doc.lastAutoTable.finalY + 15;
+    yPosition = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 15;
 
     // Add new page if needed
     if (yPosition > doc.internal.pageSize.getHeight() - 30) {
