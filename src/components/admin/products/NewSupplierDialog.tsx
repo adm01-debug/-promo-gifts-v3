@@ -131,7 +131,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
   const resetForm = () => {
     setName(''); setCode(''); setTradingName(''); setCnpj('');
-    setContacts([createEmptyContact()]); setWebsite('');
+    setContacts([createEmptyContact()]); setWebsite(''); setFoneFixo1(''); setFoneFixo2('');
     setInstagram(''); setFacebook(''); setLinkedin(''); setYoutube(''); setTiktok('');
     setTipoLogradouro(''); setLogradouro(''); setNumero(''); setComplemento(''); setBairro('');
     setCidade(''); setEstado(''); setCep(''); setPais('Brasil');
