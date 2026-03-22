@@ -86,7 +86,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
 
 const CATALOG_PAGE_SIZE = 500; // Products per server page
 const CATALOG_BATCH_PAGES = 4; // Fetch 4 pages per batch call (first load = 2000)
-const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity';
+const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit';
 
 interface CatalogPage {
   products: Product[];
