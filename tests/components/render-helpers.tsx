@@ -102,13 +102,15 @@ export function renderWithProviders(
 
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={[route]}>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
-        </MemoryRouter>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={[route]}>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </MemoryRouter>
+        </QueryClientProvider>
+      </HelmetProvider>
     );
   }
 
