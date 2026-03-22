@@ -7,6 +7,9 @@
 // TIPOS BASE
 // ============================================
 
+/** Tipo de kit suportado */
+export type KitType = 'montado' | 'original' | 'simples';
+
 export interface KitBox {
   id: string;
   name: string;
@@ -25,6 +28,8 @@ export interface KitBox {
   color?: string;
   // Material
   material?: string;
+  // Peso em gramas
+  weight?: number;
 }
 
 export interface KitItem {
@@ -33,7 +38,7 @@ export interface KitItem {
   sku: string;
   imageUrl: string | null;
   price: number;
-  // Dimensões do item em cm
+  // Dimensões do item em cm (convertidas de mm se necessário)
   width: number;
   height: number;
   depth: number;
@@ -43,6 +48,8 @@ export interface KitItem {
   weight?: number;
   // Categoria do item
   category?: string;
+  // Material do item
+  material?: string;
   // Cor selecionada
   selectedColor?: {
     name: string;
@@ -55,6 +62,10 @@ export interface KitItem {
   isReplaceable?: boolean;
   isPackaging?: boolean;
   allowsPersonalization?: boolean;
+  // Notas de personalização
+  personalizationNotes?: string;
+  // Variantes permitidas para troca
+  allowedVariantIds?: string[];
   // Personalização configurada
   personalization?: KitItemPersonalization;
 }
@@ -82,6 +93,7 @@ export interface KitPersonalization {
 
 export interface KitState {
   name: string;
+  kitType: KitType;
   box: KitBox | null;
   items: KitItem[];
   personalization: KitPersonalization;
@@ -89,6 +101,8 @@ export interface KitState {
   totalItemsVolume: number;
   availableVolume: number;
   volumeUsagePercent: number;
+  // Peso total em gramas
+  totalWeight: number;
   // Preços
   boxPrice: number;
   itemsPrice: number;
@@ -162,6 +176,12 @@ export interface ExternalProductForKit {
   product_type?: string | null;
   // Peso em gramas
   weight_g?: number | null;
+  // Material
+  material?: string | null;
+  // Dimensões em mm (do product_kit_components)
+  length_mm?: number | null;
+  width_mm?: number | null;
+  height_mm?: number | null;
   // Campos específicos para caixas
   box_length_cm?: number | null;
   box_width_cm?: number | null;
@@ -171,4 +191,19 @@ export interface ExternalProductForKit {
   internal_height_cm?: number | null;
   is_box?: boolean;
   is_kit?: boolean;
+  // Composição de kit
+  allows_personalization?: boolean;
+  personalization_notes?: string | null;
+  is_optional?: boolean;
+  is_replaceable?: boolean;
+  allowed_variant_ids?: string[] | null;
+}
+
+// ============================================
+// CONVERSÃO mm → cm
+// ============================================
+
+export function mmToCm(mm: number | null | undefined): number | null {
+  if (mm == null || mm <= 0) return null;
+  return mm / 10;
 }

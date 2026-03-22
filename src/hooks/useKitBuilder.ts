@@ -10,6 +10,7 @@ import {
   type KitBox,
   type KitItem,
   type KitState,
+  type KitType,
   type KitPersonalization,
   type KitItemPersonalization,
   type KitBuilderStep,
@@ -18,6 +19,7 @@ import {
   type ItemFilters,
   type ExternalProductForKit,
   type CompatibilityResult,
+  mmToCm,
   calculateVolume,
   calculateTotalItemsVolume,
   calculateVolumeUsagePercent,
@@ -42,9 +44,20 @@ const KIT_BUILDER_KEYS = {
 // ============================================
 
 function transformToKitBox(product: ExternalProductForKit): KitBox | null {
-  const dimensions = extractProductDimensions(product);
-  
-  // Se não tem dimensões, não pode ser usado como caixa
+  // Try mm dimensions first (from product_kit_components), then cm
+  let dimensions: { width: number; height: number; depth: number } | null = null;
+
+  const wMm = mmToCm(product.width_mm);
+  const hMm = mmToCm(product.height_mm);
+  const lMm = mmToCm(product.length_mm);
+  if (wMm && hMm && lMm) {
+    dimensions = { width: wMm, height: hMm, depth: lMm };
+  }
+
+  if (!dimensions) {
+    dimensions = extractProductDimensions(product);
+  }
+
   if (!dimensions) return null;
 
   const volume = calculateVolume(dimensions.width, dimensions.height, dimensions.depth);
@@ -54,16 +67,31 @@ function transformToKitBox(product: ExternalProductForKit): KitBox | null {
     name: product.name,
     sku: product.sku,
     imageUrl: product.primary_image_url || product.image_url || null,
-    price: product.sale_price || 0,
+    price: product.sale_price ?? product.base_price ?? 0,
     internalWidth: dimensions.width,
     internalHeight: dimensions.height,
     internalDepth: dimensions.depth,
     internalVolume: volume,
+    material: product.material || undefined,
+    weight: product.weight_g ?? undefined,
   };
 }
 
 function transformToKitItem(product: ExternalProductForKit, category?: string): KitItem {
-  const dimensions = extractProductDimensions(product) || estimateDefaultDimensions(category);
+  // Try mm dimensions first
+  let dimensions: { width: number; height: number; depth: number } | null = null;
+
+  const wMm = mmToCm(product.width_mm);
+  const hMm = mmToCm(product.height_mm);
+  const lMm = mmToCm(product.length_mm);
+  if (wMm && hMm && lMm) {
+    dimensions = { width: wMm, height: hMm, depth: lMm };
+  }
+
+  if (!dimensions) {
+    dimensions = extractProductDimensions(product) || estimateDefaultDimensions(category);
+  }
+
   const volume = calculateVolume(dimensions.width, dimensions.height, dimensions.depth);
 
   return {
@@ -71,15 +99,20 @@ function transformToKitItem(product: ExternalProductForKit, category?: string): 
     name: product.name,
     sku: product.sku,
     imageUrl: product.primary_image_url || product.image_url || null,
-    price: product.sale_price || 0,
+    price: product.sale_price ?? product.base_price ?? 0,
     width: dimensions.width,
     height: dimensions.height,
     depth: dimensions.depth,
     volume,
-    weight: undefined,
+    weight: product.weight_g ?? undefined,
+    material: product.material || undefined,
     category,
     quantity: 1,
-    allowsPersonalization: true,
+    isOptional: product.is_optional ?? false,
+    isReplaceable: product.is_replaceable ?? false,
+    allowsPersonalization: product.allows_personalization ?? true,
+    personalizationNotes: product.personalization_notes || undefined,
+    allowedVariantIds: product.allowed_variant_ids || undefined,
   };
 }
 
@@ -90,6 +123,7 @@ function transformToKitItem(product: ExternalProductForKit, category?: string): 
 export function useKitBuilder() {
   // Estado do kit
   const [kitName, setKitName] = useState('');
+  const [kitType, setKitType] = useState<KitType>('montado');
   const [selectedBox, setSelectedBox] = useState<KitBox | null>(null);
   const [selectedItems, setSelectedItems] = useState<KitItem[]>([]);
   const [personalization, setPersonalization] = useState<KitPersonalization>({
@@ -109,9 +143,7 @@ export function useKitBuilder() {
   // QUERIES
   // ============================================
 
-  // Busca caixas/embalagens disponíveis
-  // No banco externo, qualquer produto pode ser usado como embalagem.
-  // Busca todos com dimensões válidas e o usuário filtra por nome (ex: "caixa", "maleta")
+  // Busca caixas/embalagens — filtra por product_type='packaging' (G3)
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.boxes, boxFilters],
     queryFn: async () => {
@@ -120,20 +152,19 @@ export function useKitBuilder() {
         operation: 'select',
         filters: { 
           active: true,
+          product_type: 'packaging',
           ...(boxFilters.search ? { name: boxFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, dimensions, product_type, category_id',
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, dimensions, product_type, category_id, weight_g, material, width_mm, height_mm, length_mm',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
       });
 
-      // Transforma e filtra apenas produtos com dimensões válidas
       const boxes = result.records
         .map(p => transformToKitBox(p))
         .filter((box): box is KitBox => box !== null);
 
-      // Aplica filtros de dimensão mínima
       return boxes.filter(box => {
         if (boxFilters.minWidth && box.internalWidth < boxFilters.minWidth) return false;
         if (boxFilters.minHeight && box.internalHeight < boxFilters.minHeight) return false;
@@ -144,7 +175,7 @@ export function useKitBuilder() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Busca itens disponíveis para o kit
+  // Busca itens — filtra por product_type='product' (G3)
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.items, itemFilters],
     queryFn: async () => {
@@ -156,7 +187,7 @@ export function useKitBuilder() {
           product_type: 'product',
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, dimensions, product_type, category_id',
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, dimensions, product_type, category_id, weight_g, material, width_mm, height_mm, length_mm, allows_personalization, personalization_notes, is_optional, is_replaceable',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
@@ -178,6 +209,13 @@ export function useKitBuilder() {
     const availableVolume = Math.max(0, usableVolume - totalItemsVolume);
     const volumeUsagePercent = calculateVolumeUsagePercent(totalItemsVolume, boxVolume);
 
+    // Peso total (caixa + itens × quantidade)
+    const boxWeight = selectedBox?.weight || 0;
+    const itemsWeight = selectedItems.reduce(
+      (sum, item) => sum + ((item.weight || 0) * item.quantity), 0
+    );
+    const totalWeight = boxWeight + itemsWeight;
+
     const pricing = calculateTotalKitPrice(
       selectedBox,
       selectedItems,
@@ -198,12 +236,14 @@ export function useKitBuilder() {
 
     return {
       name: kitName,
+      kitType,
       box: selectedBox,
       items: selectedItems,
       personalization,
       totalItemsVolume,
       availableVolume,
       volumeUsagePercent,
+      totalWeight,
       boxPrice: pricing.boxPrice,
       itemsPrice: pricing.itemsPrice,
       personalizationPrice: pricing.personalizationPrice,
@@ -211,7 +251,7 @@ export function useKitBuilder() {
       isValid: validationErrors.length === 0,
       validationErrors,
     };
-  }, [kitName, selectedBox, selectedItems, personalization, kitQuantity]);
+  }, [kitName, kitType, selectedBox, selectedItems, personalization, kitQuantity]);
 
   const wizardState = useMemo((): KitBuilderWizardState => {
     const completedSteps: KitBuilderStep[] = [];
@@ -219,7 +259,6 @@ export function useKitBuilder() {
     if (selectedBox) completedSteps.push('box');
     if (selectedItems.length > 0) completedSteps.push('items');
     
-    // Personalização é opcional, considera completa se foi revisada
     const hasPersonalizationConfig = Object.keys(personalization.items).length > 0 || personalization.box.enabled;
     if (hasPersonalizationConfig || currentStep === 'summary') {
       completedSteps.push('personalization');
@@ -234,7 +273,7 @@ export function useKitBuilder() {
         canProceed = selectedItems.length > 0 && kitState.volumeUsagePercent <= 100;
         break;
       case 'personalization':
-        canProceed = true; // Sempre pode prosseguir (personalização é opcional)
+        canProceed = true;
         break;
       case 'summary':
         canProceed = kitState.isValid;
@@ -267,10 +306,8 @@ export function useKitBuilder() {
       return { fits: false, reason: 'Selecione uma caixa primeiro' };
     }
 
-    // Verifica se já existe
     const existingIndex = selectedItems.findIndex(i => i.id === item.id);
     if (existingIndex >= 0) {
-      // Incrementa quantidade
       const updatedItems = [...selectedItems];
       const newQuantity = updatedItems[existingIndex].quantity + 1;
       
@@ -292,7 +329,6 @@ export function useKitBuilder() {
       return result;
     }
 
-    // Novo item
     const result = checkItemFits(item, selectedBox, selectedItems, 1);
     
     if (result.fits) {
@@ -315,7 +351,6 @@ export function useKitBuilder() {
       removeItem(itemId);
       return;
     }
-
     setSelectedItems(prev =>
       prev.map(item =>
         item.id === itemId ? { ...item, quantity } : item
@@ -329,6 +364,17 @@ export function useKitBuilder() {
         item.id === itemId ? { ...item, selectedColor: color } : item
       )
     );
+  }, []);
+
+  /** Toggle optional item inclusion (G10) */
+  const toggleOptionalItem = useCallback((itemId: string) => {
+    setSelectedItems(prev => {
+      const exists = prev.find(i => i.id === itemId);
+      if (exists) {
+        return prev.filter(i => i.id !== itemId);
+      }
+      return prev;
+    });
   }, []);
 
   const setItemPersonalization = useCallback((itemId: string, config: KitItemPersonalization) => {
@@ -370,6 +416,7 @@ export function useKitBuilder() {
 
   const resetKit = useCallback(() => {
     setKitName('');
+    setKitType('montado');
     setSelectedBox(null);
     setSelectedItems([]);
     setPersonalization({ box: { enabled: false }, items: {} });
@@ -393,12 +440,10 @@ export function useKitBuilder() {
   const filteredItems = useMemo(() => {
     let items = itemsWithCompatibility;
 
-    // Filtra apenas itens que cabem
     if (itemFilters.onlyFitting) {
       items = items.filter(item => item.compatibility?.fits !== false);
     }
 
-    // Filtra por volume máximo
     if (itemFilters.maxVolume) {
       items = items.filter(item => item.volume <= (itemFilters.maxVolume || Infinity));
     }
@@ -428,8 +473,9 @@ export function useKitBuilder() {
     itemFilters,
     setItemFilters,
 
-    // Ações - Kit Name
+    // Ações - Kit
     setKitName,
+    setKitType,
 
     // Ações - Box
     selectBox,
@@ -440,6 +486,7 @@ export function useKitBuilder() {
     removeItem,
     updateItemQuantity,
     updateItemColor,
+    toggleOptionalItem,
 
     // Ações - Personalização
     setItemPersonalization,
