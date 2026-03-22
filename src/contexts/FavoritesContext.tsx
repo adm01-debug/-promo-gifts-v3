@@ -33,10 +33,23 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const fallbackContext: FavoritesContextType = {
+  favorites: [],
+  favoriteCount: 0,
+  addFavorite: () => {},
+  removeFavorite: () => {},
+  toggleFavorite: () => {},
+  isFavorite: () => false,
+  getFavoriteProducts: () => [],
+  clearFavorites: () => {},
+  isLoaded: false,
+};
+
 export function useFavoritesContext() {
   const context = useContext(FavoritesContext);
   if (context === undefined) {
-    throw new Error("useFavoritesContext must be used within a FavoritesProvider");
+    console.warn("useFavoritesContext called outside FavoritesProvider – using fallback");
+    return fallbackContext;
   }
   return context;
 }
