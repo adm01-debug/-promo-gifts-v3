@@ -109,9 +109,23 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
   // Financial
   const [formaPagamento, setFormaPagamento] = useState<string[]>([]);
-  const [pixTipo, setPixTipo] = useState('');
-  const [pixNumero, setPixNumero] = useState('');
-  const [pixFavorecido, setPixFavorecido] = useState('');
+
+  interface PixKey { id: string; tipo: string; chave: string; favorecido: string; principal: boolean; }
+  const createEmptyPixKey = (principal = false): PixKey => ({ id: crypto.randomUUID(), tipo: '', chave: '', favorecido: '', principal });
+  const [pixKeys, setPixKeys] = useState<PixKey[]>([createEmptyPixKey(true)]);
+
+  const updatePixKey = (id: string, field: keyof Omit<PixKey, 'id'>, value: string | boolean) => {
+    setPixKeys(prev => prev.map(k => {
+      if (k.id !== id) return field === 'principal' && value === true ? { ...k, principal: false } : k;
+      return { ...k, [field]: value };
+    }));
+  };
+  const addPixKey = () => setPixKeys(prev => [...prev, createEmptyPixKey(prev.length === 0)]);
+  const removePixKey = (id: string) => setPixKeys(prev => {
+    const next = prev.filter(k => k.id !== id);
+    if (next.length > 0 && !next.some(k => k.principal)) next[0].principal = true;
+    return next.length > 0 ? next : [createEmptyPixKey(true)];
+  });
 
   // Classification
   const [isProductSupplier, setIsProductSupplier] = useState(true);
