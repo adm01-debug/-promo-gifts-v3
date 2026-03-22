@@ -124,15 +124,22 @@ export default function KitBuilderPage() {
 
     setIsCreatingQuote(true);
     try {
-      // 1. Create the quote
       const kitLabel = kitState.name || 'Kit sem nome';
+      const kitGroupId = crypto.randomUUID();
+
+      // Calculate correct totals including personalization
+      const { total: kitTotal, personalizationPrice } = await import('@/lib/kit-builder').then(m =>
+        m.calculateTotalKitPrice(kitState.box, kitState.items, kitState.personalization, kitQuantity)
+      );
+
+      // 1. Create the quote with correct totals
       const { data: quote, error: quoteError } = await supabase
         .from('quotes')
         .insert({
           seller_id: user.id,
           status: 'draft',
-          subtotal: kitState.totalPrice * kitQuantity,
-          total: kitState.totalPrice * kitQuantity,
+          subtotal: kitTotal,
+          total: kitTotal,
           notes: `Kit "${kitLabel}" (${kitQuantity}x) — tipo: ${kitState.kitType}`,
           internal_notes: kitState.box
             ? `Caixa: ${kitState.box.name} | Volume: ${kitState.volumeUsagePercent.toFixed(0)}%`
@@ -143,7 +150,7 @@ export default function KitBuilderPage() {
 
       if (quoteError) throw quoteError;
 
-      // 2. Build quote_items from kit items (+ box as first item)
+      // 2. Build quote_items with kit_group_id and kit_name
       const quoteItems: Array<{
         quote_id: string;
         product_name: string;
@@ -156,6 +163,8 @@ export default function KitBuilderPage() {
         notes: string | null;
         color_name: string | null;
         color_hex: string | null;
+        kit_group_id: string | null;
+        kit_name: string | null;
       }> = [];
 
       // Add box as first item
@@ -169,9 +178,11 @@ export default function KitBuilderPage() {
           quantity: kitQuantity,
           unit_price: kitState.box.price,
           sort_order: 0,
-          notes: `Dimensões internas: ${kitState.box.internalWidth}×${kitState.box.internalHeight}×${kitState.box.internalDepth}mm`,
+          notes: `Dimensões internas: ${kitState.box.internalWidth}×${kitState.box.internalHeight}×${kitState.box.internalDepth}cm`,
           color_name: null,
           color_hex: null,
+          kit_group_id: kitGroupId,
+          kit_name: kitLabel,
         });
       }
 
@@ -189,18 +200,87 @@ export default function KitBuilderPage() {
           notes: item.isOptional ? 'Item opcional' : null,
           color_name: item.selectedColor?.name || null,
           color_hex: item.selectedColor?.hex || null,
+          kit_group_id: kitGroupId,
+          kit_name: kitLabel,
         });
       });
 
       if (quoteItems.length > 0) {
-        const { error: itemsError } = await supabase
+        const { data: insertedItems, error: itemsError } = await supabase
           .from('quote_items')
-          .insert(quoteItems);
+          .insert(quoteItems)
+          .select('id, product_id');
         if (itemsError) throw itemsError;
+
+        // 3. Create quote_item_personalizations for personalized items
+        if (insertedItems) {
+          const personalizations: Array<{
+            quote_item_id: string;
+            technique_name: string | null;
+            colors_count: number | null;
+            width_cm: number | null;
+            height_cm: number | null;
+            unit_cost: number | null;
+            total_cost: number | null;
+            setup_cost: number | null;
+            personalized_quantity: number | null;
+            notes: string | null;
+          }> = [];
+
+          // Box personalization
+          if (kitState.personalization.box.enabled && kitState.box) {
+            const boxQuoteItem = insertedItems.find(i => i.product_id === kitState.box!.id);
+            if (boxQuoteItem) {
+              const bp = kitState.personalization.box;
+              personalizations.push({
+                quote_item_id: boxQuoteItem.id,
+                technique_name: bp.techniqueName || null,
+                colors_count: bp.colors || null,
+                width_cm: bp.width || null,
+                height_cm: bp.height || null,
+                unit_cost: bp.estimatedPrice || null,
+                total_cost: bp.estimatedPrice ? bp.estimatedPrice * kitQuantity : null,
+                setup_cost: null,
+                personalized_quantity: kitQuantity,
+                notes: bp.position ? `Posição: ${bp.position}` : null,
+              });
+            }
+          }
+
+          // Item personalizations
+          kitState.items.forEach(item => {
+            const itemPersonalization = kitState.personalization.items[item.id];
+            if (itemPersonalization?.enabled) {
+              const itemQuoteItem = insertedItems.find(i => i.product_id === item.id);
+              if (itemQuoteItem) {
+                const totalQty = item.quantity * kitQuantity;
+                personalizations.push({
+                  quote_item_id: itemQuoteItem.id,
+                  technique_name: itemPersonalization.techniqueName || null,
+                  colors_count: itemPersonalization.colors || null,
+                  width_cm: itemPersonalization.width || null,
+                  height_cm: itemPersonalization.height || null,
+                  unit_cost: itemPersonalization.estimatedPrice || null,
+                  total_cost: itemPersonalization.estimatedPrice ? itemPersonalization.estimatedPrice * totalQty : null,
+                  setup_cost: null,
+                  personalized_quantity: totalQty,
+                  notes: itemPersonalization.position ? `Posição: ${itemPersonalization.position}` : null,
+                });
+              }
+            }
+          });
+
+          if (personalizations.length > 0) {
+            const { error: persError } = await supabase
+              .from('quote_item_personalizations')
+              .insert(personalizations);
+            if (persError) console.warn('Erro ao salvar personalizações:', persError);
+          }
+        }
       }
 
       toast.success(`Orçamento ${quote.quote_number} criado!`, {
-        description: `${quoteItems.length} itens adicionados ao rascunho.`,
+        description: `${quoteItems.length} itens adicionados ao kit "${kitLabel}".`,
         action: {
           label: 'Ver orçamento',
           onClick: () => navigate(`/orcamentos/${quote.id}`),
