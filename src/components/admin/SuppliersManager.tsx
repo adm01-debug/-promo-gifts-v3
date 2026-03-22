@@ -396,6 +396,10 @@ export function SuppliersManager() {
             const now_date = new Date().toISOString().split('T')[0];
             parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX Tipo: ${pixTipo || '-'}, PIX Número: ${pixNumero || '-'}, PIX Favorecido: ${pixFavorecido || '-'}, PIX Atualizado: ${now_date}]`);
           }
+          // Persist landline phones
+          if (foneFixo1.trim() || foneFixo2.trim()) {
+            parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
+          }
           return parts.join('\n') || null;
         })(),
         is_product_supplier: es.is_product_supplier ?? true,
