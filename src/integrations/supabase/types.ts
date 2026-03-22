@@ -74,6 +74,60 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_kits: {
+        Row: {
+          box_data: Json | null
+          box_price: number
+          created_at: string
+          id: string
+          items_data: Json
+          items_price: number
+          kit_quantity: number
+          name: string
+          personalization_data: Json
+          personalization_price: number
+          status: string
+          total_price: number
+          updated_at: string
+          user_id: string
+          volume_usage_percent: number
+        }
+        Insert: {
+          box_data?: Json | null
+          box_price?: number
+          created_at?: string
+          id?: string
+          items_data?: Json
+          items_price?: number
+          kit_quantity?: number
+          name?: string
+          personalization_data?: Json
+          personalization_price?: number
+          status?: string
+          total_price?: number
+          updated_at?: string
+          user_id: string
+          volume_usage_percent?: number
+        }
+        Update: {
+          box_data?: Json | null
+          box_price?: number
+          created_at?: string
+          id?: string
+          items_data?: Json
+          items_price?: number
+          kit_quantity?: number
+          name?: string
+          personalization_data?: Json
+          personalization_price?: number
+          status?: string
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+          volume_usage_percent?: number
+        }
+        Relationships: []
+      }
       expert_conversations: {
         Row: {
           client_id: string | null
