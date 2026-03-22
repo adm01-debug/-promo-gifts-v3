@@ -60,6 +60,7 @@ import { CompanyContactSelector, type SelectedCompanyInfo, type SelectedContactI
 import { QuoteAutoSave } from "@/components/quotes/QuoteAutoSave";
 import { DraggableQuoteItems } from "@/components/quotes/DraggableQuoteItems";
 import { QuoteProductColorSelector } from "@/components/quotes/QuoteProductColorSelector";
+import { QuoteBuilderStepper, type QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
 import { useAuth } from "@/contexts/AuthContext";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { findKnownHex } from "@/hooks/useProducts";
