@@ -550,7 +550,7 @@ export default function Auth() {
                       type="submit" 
                       variant="orange"
                       className="w-full h-11 text-base font-semibold" 
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !isPasswordSafe}
                     >
                       {isSubmitting ? (
                         <>
