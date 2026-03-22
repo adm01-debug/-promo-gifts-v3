@@ -175,15 +175,14 @@ export function useKitBuilder() {
   // QUERIES
   // ============================================
 
-  // Busca caixas/embalagens — filtra por product_type='packaging' (G3)
+  // Busca caixas/embalagens — filtra por packing_classification para encontrar embalagens
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.boxes, boxFilters],
     queryFn: async () => {
       const filters: Record<string, unknown> = {
         active: true,
-        product_type: 'packaging',
+        packing_classification: 'embalagem',
       };
-      // #8 FIX: Use _search for partial name matching
       if (boxFilters.search) {
         filters._search = boxFilters.search;
       }
@@ -192,7 +191,7 @@ export function useKitBuilder() {
         table: 'products',
         operation: 'select',
         filters,
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm, packing_type, packing_classification',
         limit: 100,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
@@ -212,15 +211,13 @@ export function useKitBuilder() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Busca itens — filtra por product_type='product' (G3)
+  // Busca itens — exclui embalagens (packing_classification != 'embalagem')
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.items, itemFilters],
     queryFn: async () => {
       const filters: Record<string, unknown> = {
         active: true,
-        product_type: 'product',
       };
-      // #8 FIX: Use _search for partial name matching
       if (itemFilters.search) {
         filters._search = itemFilters.search;
       }
@@ -229,13 +226,16 @@ export function useKitBuilder() {
         table: 'products',
         operation: 'select',
         filters,
-        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, product_type, category_id, weight_g, materials, width_cm, height_cm, length_cm, is_replaceable, allowed_variant_ids, allows_personalization',
+        select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, colors, packing_classification',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
         countMode: 'none',
       });
 
-      return result.records.map(p => transformToKitItem(p));
+      // Filter out packaging items on the client side
+      return result.records
+        .filter(p => p.packing_classification !== 'embalagem')
+        .map(p => transformToKitItem(p));
     },
     staleTime: 5 * 60 * 1000,
   });
