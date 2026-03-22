@@ -19,6 +19,8 @@ export interface QuoteItem {
   notes?: string;
   sort_order?: number;
   bitrix_product_id?: string | number | null;
+  kit_group_id?: string | null;
+  kit_name?: string | null;
   personalizations?: QuoteItemPersonalization[];
 }
 
