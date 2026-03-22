@@ -205,7 +205,7 @@ export function PromptGenerator({
         body: {
           productName,
           productColor,
-          productCategory: null, // TODO: pass from product data when available
+          productCategory: null, // Categoria não disponível nas props atuais — requer prop productCategory
           techniqueName: selectedTech?.nome || null,
           locationName: locationLabel || null,
           maxWidth: selectedArea?.max_width || null,

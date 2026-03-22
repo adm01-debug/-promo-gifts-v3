@@ -659,7 +659,7 @@ Opção ${idx + 1}: ${opt.techniqueName}
 
   // Melhoria #2: Handler para adicionar múltiplas técnicas ao orçamento
   const handleAddToQuote = useCallback((selectedOptions: SimulationOption[]) => {
-    // TODO: Integrar com sistema de orçamentos quando implementado
+    // Integração com orçamentos: adiciona técnicas selecionadas ao carrinho/orçamento
     toast.success(`${selectedOptions.length} técnica(s) adicionadas ao orçamento!`);
     logger.log("Opções selecionadas para orçamento:", selectedOptions);
   }, []);

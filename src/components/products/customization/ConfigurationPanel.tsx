@@ -7,7 +7,7 @@
  * Calcula preço somente quando todos os campos obrigatórios estão preenchidos.
  */
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Loader2, Palette, Clock, Ruler, AlertCircle, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -134,16 +134,21 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
     }
   }, [canCalculate, area.area_id, quantity, numCores, usaDimensao, larguraNum, alturaNum, onPriceCalculated]);
 
+  const calculatePriceRef = useRef(calculatePrice);
+  calculatePriceRef.current = calculatePrice;
+  const onPriceCalculatedRef = useRef(onPriceCalculated);
+  onPriceCalculatedRef.current = onPriceCalculated;
+
   // Auto-calculate when inputs change
   useEffect(() => {
     if (canCalculate) {
-      const timer = setTimeout(calculatePrice, 400);
+      const timer = setTimeout(() => calculatePriceRef.current(), 400);
       return () => clearTimeout(timer);
     } else {
       setPriceData(null);
-      onPriceCalculated(area.area_id, null);
+      onPriceCalculatedRef.current(area.area_id, null);
     }
-  }, [canCalculate, numCores, larguraNum, alturaNum, quantity]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [canCalculate, numCores, larguraNum, alturaNum, quantity, area.area_id]);
 
   if (checkingDimensao) {
     return (

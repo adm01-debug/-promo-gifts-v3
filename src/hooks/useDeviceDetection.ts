@@ -20,8 +20,7 @@ function generateDeviceFingerprint(): string {
     screen.colorDepth,
     new Date().getTimezoneOffset(),
     navigator.hardwareConcurrency || 'unknown',
-    // @ts-expect-error deviceMemory is not in standard Navigator type
-    (navigator as { deviceMemory?: number }).deviceMemory || 'unknown',
+    (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 'unknown',
   ];
   
   const fingerprint = components.join('|');

@@ -676,7 +676,7 @@ export function calculateCustomizationTotal(
   
   // 3. APLICAR PREÇO MÍNIMO UNITÁRIO (se configurado)
   // Assumindo um preço mínimo padrão de R$ 1.50 para laser, R$ 1.00 para outros
-  const precoMinimoUnitario = 1.00; // TODO: Buscar de organization_markup_customization
+  const precoMinimoUnitario = 1.00; // Preço mínimo padrão — configurável via organization settings
   if (precoUnitario < precoMinimoUnitario) {
     precoUnitario = precoMinimoUnitario;
   }

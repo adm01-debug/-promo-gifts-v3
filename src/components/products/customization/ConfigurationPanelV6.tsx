@@ -6,7 +6,7 @@
  * Briefing v6 (12/02/2026).
  */
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Loader2, Palette, Clock, Ruler, AlertCircle, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,11 +54,14 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
     technique.usa_dimensao,
   );
 
+  const onPriceCalculatedRef = useRef(onPriceCalculated);
+  onPriceCalculatedRef.current = onPriceCalculated;
+
   // Notify parent when price or dimensions change
   useEffect(() => {
     const dims = technique.usa_dimensao ? { width: larguraNum, height: alturaNum } : undefined;
-    onPriceCalculated(technique.technique_id, price, dims);
-  }, [price, technique.technique_id, larguraNum, alturaNum]); // eslint-disable-line react-hooks/exhaustive-deps
+    onPriceCalculatedRef.current(technique.technique_id, price, dims);
+  }, [price, technique.technique_id, technique.usa_dimensao, larguraNum, alturaNum]);
 
   return (
     <div className="space-y-4 p-4 rounded-lg bg-secondary/30 border border-border/50">
