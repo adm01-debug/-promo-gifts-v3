@@ -3,10 +3,12 @@
  * Página principal do montador de kits
  */
 
-import { Package, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
+import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
 import {
   WizardSteps,
   BoxSelector,
@@ -18,6 +20,8 @@ import {
 import { toast } from 'sonner';
 
 export default function KitBuilderPage() {
+  const [currentKitId, setCurrentKitId] = useState<string | undefined>();
+  
   const {
     kitState,
     wizardState,
@@ -45,12 +49,30 @@ export default function KitBuilderPage() {
     resetKit,
   } = useKitBuilder();
 
+  const { saveKit, isSaving } = useCustomKitPersistence();
+
+  const handleSaveKit = async () => {
+    try {
+      const result = await saveKit(kitState, kitQuantity, currentKitId);
+      if (result && 'id' in result) {
+        setCurrentKitId((result as { id: string }).id);
+      }
+    } catch {
+      // error handled by hook
+    }
+  };
+
   const handleAddToQuote = () => {
     toast.success('Kit adicionado ao orçamento!');
   };
 
   const handleExportPDF = () => {
     toast.info('Exportação em desenvolvimento');
+  };
+
+  const handleResetKit = () => {
+    resetKit();
+    setCurrentKitId(undefined);
   };
 
   return (
@@ -70,10 +92,24 @@ export default function KitBuilderPage() {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={resetKit}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Novo Kit
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="default"
+                onClick={handleSaveKit}
+                disabled={isSaving || (!kitState.box && kitState.items.length === 0)}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {currentKitId ? 'Atualizar' : 'Salvar'} Kit
+              </Button>
+              <Button variant="outline" onClick={handleResetKit}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Novo Kit
+              </Button>
+            </div>
           </div>
         </div>
       </div>
