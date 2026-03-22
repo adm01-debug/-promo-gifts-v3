@@ -92,10 +92,24 @@ export default function KitBuilderPage() {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={resetKit}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Novo Kit
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="default"
+                onClick={handleSaveKit}
+                disabled={isSaving || (!kitState.box && kitState.items.length === 0)}
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {currentKitId ? 'Atualizar' : 'Salvar'} Kit
+              </Button>
+              <Button variant="outline" onClick={handleResetKit}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Novo Kit
+              </Button>
+            </div>
           </div>
         </div>
       </div>
