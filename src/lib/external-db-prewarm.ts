@@ -1,7 +1,7 @@
 /**
  * Pre-warming do banco externo para evitar cold starts.
  * Faz requests leves (limit=1, select mínimo, countMode=none)
- * em fire-and-forget para aquecer as conexões.
+ * em sequência escalonada para evitar stampede de cold starts.
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
@@ -17,8 +17,13 @@ const PREWARM_TABLES = [
 
 let lastPrewarmAt = 0;
 const PREWARM_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos entre pre-warms
+const STAGGER_DELAY_MS = 800; // Espaçamento entre requests para evitar cold-start stampede
 
-export function prewarmExternalDb() {
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function prewarmExternalDb() {
   const now = Date.now();
   if (now - lastPrewarmAt < PREWARM_COOLDOWN_MS) {
     logger.log('[Prewarm] Skipped — cooldown active');
@@ -26,10 +31,16 @@ export function prewarmExternalDb() {
   }
   lastPrewarmAt = now;
 
-  logger.log('[Prewarm] Warming up external DB connections...');
+  logger.log('[Prewarm] Warming up external DB connections (staggered)...');
 
-  // Fire-and-forget: não bloqueia a UI
-  for (const table of PREWARM_TABLES) {
+  // Sequencial escalonado: primeiro aquece a conexão principal,
+  // depois as demais com delay para evitar sobrecarga
+  for (let i = 0; i < PREWARM_TABLES.length; i++) {
+    const table = PREWARM_TABLES[i];
+    
+    // Primeiro request sem delay, demais com stagger
+    if (i > 0) await sleep(STAGGER_DELAY_MS);
+
     supabase.functions
       .invoke('external-db-bridge', {
         body: {
