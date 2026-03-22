@@ -290,6 +290,34 @@ export function useMockupGenerator() {
     restoreDraft();
   }, [isLoadingData, techniques, loadDraft, hasDraftRestored, getProductById]);
 
+  // ─── URL param pre-selection (from Kit Builder) ─────────────────────
+  const urlParamsApplied = useRef(false);
+  useEffect(() => {
+    if (urlParamsApplied.current || isLoadingData || !hasDraftRestored) return;
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product_id');
+    const techniqueName = params.get('technique');
+    if (!productId) return;
+    urlParamsApplied.current = true;
+    
+    const product = getProductById(productId);
+    if (product) {
+      setProductSelection({
+        product,
+        variant: null,
+        imageUrl: product.images?.[0] || '/placeholder.svg',
+      });
+    }
+    if (techniqueName && techniques.length > 0) {
+      const technique = techniques.find(t => 
+        t.name.toLowerCase() === techniqueName.toLowerCase()
+      );
+      if (technique) setSelectedTechnique(technique);
+    }
+    // Clean URL params without reload
+    window.history.replaceState({}, '', window.location.pathname);
+  }, [isLoadingData, hasDraftRestored, techniques, getProductById]);
+
   // Auto-save
   useEffect(() => {
     if (!hasDraftRestored || isRestoringDraft.current) return;
