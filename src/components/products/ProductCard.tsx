@@ -254,6 +254,13 @@ export function ProductCard({
               <span className="sm:hidden">Novo</span>
             </Badge>
           )}
+          {product.isKit && (
+            <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-md">
+              <Package className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+              <span className="hidden sm:inline">Kit</span>
+              <span className="sm:hidden">Kit</span>
+            </Badge>
+          )}
           {product.onSale && (
             <Badge className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-md animate-pulse">
               <span className="hidden sm:inline">Promoção</span>
