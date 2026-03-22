@@ -123,5 +123,19 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     boxQuantity: p.box_quantity, boxVolumeCm3: p.box_volume_cm3,
     variations: variations.length > 0 ? variations : undefined,
     productVideos: p.product_videos?.length ? p.product_videos : undefined,
+    kitItems: p.kit_components?.map(c => ({
+      id: c.id,
+      productId: c.component_product_id || c.id,
+      productName: c.component_name || 'Componente',
+      quantity: c.quantity || 1,
+      sku: c.component_sku || c.component_code || '',
+      imageUrl: c.primary_image_url || null,
+      isOptional: c.is_optional || false,
+      isPackaging: c.is_packaging || false,
+      isReplaceable: c.is_replaceable || false,
+      allowsPersonalization: c.allows_personalization || false,
+      material: c.material || null,
+      weightG: c.weight_g || null,
+    })) || undefined,
   };
 }
