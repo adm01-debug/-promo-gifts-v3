@@ -9,6 +9,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from "@/components/seo/PageSEO";
 import { UpcomingDatesWidget } from '@/components/dashboard/UpcomingDatesWidget';
 import { QuickActionsPanel } from '@/components/dashboard/QuickActionsPanel';
+import { RecentKitsWidget } from '@/components/dashboard/RecentKitsWidget';
 
 interface DashboardWidget {
   id: string;
