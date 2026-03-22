@@ -66,6 +66,42 @@ export default function KitBuilderPage() {
 
   const { saveKit, isSaving } = useCustomKitPersistence();
 
+  // Load saved kit from query param
+  useEffect(() => {
+    if (!kitIdParam || hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+
+    const loadSavedKit = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('custom_kits')
+          .select('*')
+          .eq('id', kitIdParam)
+          .single();
+
+        if (error || !data) {
+          toast.error('Kit não encontrado');
+          return;
+        }
+
+        loadKit({
+          name: data.name || '',
+          kitType: (data.kit_type as any) || 'montado',
+          box: data.box_data as any,
+          items: (data.items_data as any[]) || [],
+          personalization: (data.personalization_data as any) || { box: { enabled: false }, items: {} },
+          kitQuantity: data.kit_quantity || 1,
+        });
+
+        toast.success('Kit carregado para edição');
+      } catch {
+        toast.error('Erro ao carregar kit');
+      }
+    };
+
+    loadSavedKit();
+  }, [kitIdParam, loadKit]);
+
   const handleSaveKit = async () => {
     try {
       const result = await saveKit(kitState, kitQuantity, currentKitId);
