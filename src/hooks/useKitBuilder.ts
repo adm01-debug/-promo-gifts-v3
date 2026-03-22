@@ -76,8 +76,10 @@ function transformToKitItem(product: ExternalProductForKit, category?: string): 
     height: dimensions.height,
     depth: dimensions.depth,
     volume,
+    weight: product.weight_g ?? undefined,
     category,
     quantity: 1,
+    allowsPersonalization: true,
   };
 }
 

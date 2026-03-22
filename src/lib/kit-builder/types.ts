@@ -160,6 +160,8 @@ export interface ExternalProductForKit {
   colors?: any[] | null;
   // Tipo do produto (product, packaging, etc.)
   product_type?: string | null;
+  // Peso em gramas
+  weight_g?: number | null;
   // Campos específicos para caixas
   box_length_cm?: number | null;
   box_width_cm?: number | null;
