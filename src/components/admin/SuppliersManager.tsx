@@ -129,10 +129,24 @@ export function SuppliersManager() {
   const [fetchingCnpj, setFetchingCnpj] = useState(false);
   const [contacts, setContacts] = useState<SupplierContact[]>([createEmptyContact()]);
   const [formaPagamento, setFormaPagamento] = useState<string[]>([]);
-  const [pixTipo, setPixTipo] = useState('');
-  const [pixNumero, setPixNumero] = useState('');
-  const [pixFavorecido, setPixFavorecido] = useState('');
-  const [pixDataCadastro, setPixDataCadastro] = useState('');
+
+  interface PixKey { id: string; tipo: string; chave: string; favorecido: string; principal: boolean; }
+  const createEmptyPixKey = (principal = false): PixKey => ({ id: crypto.randomUUID(), tipo: '', chave: '', favorecido: '', principal });
+  const [pixKeys, setPixKeys] = useState<PixKey[]>([createEmptyPixKey(true)]);
+
+  const updatePixKey = (id: string, field: keyof Omit<PixKey, 'id'>, value: string | boolean) => {
+    setPixKeys(prev => prev.map(k => {
+      if (k.id !== id) return field === 'principal' && value === true ? { ...k, principal: false } : k;
+      return { ...k, [field]: value };
+    }));
+  };
+  const addPixKey = () => setPixKeys(prev => [...prev, createEmptyPixKey(prev.length === 0)]);
+  const removePixKey = (id: string) => setPixKeys(prev => {
+    const next = prev.filter(k => k.id !== id);
+    if (next.length > 0 && !next.some(k => k.principal)) next[0].principal = true;
+    return next.length > 0 ? next : [createEmptyPixKey(true)];
+  });
+
   const [foneFixo1, setFoneFixo1] = useState('');
   const [foneFixo2, setFoneFixo2] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
