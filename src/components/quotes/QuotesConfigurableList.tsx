@@ -88,7 +88,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
 ];
 
-import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
+
 
 const statusConfig = Object.fromEntries(
   Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, className: v.badgeClassName }])

@@ -63,7 +63,7 @@ interface Client {
   name: string;
 }
 
-import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
+
 
 const statusConfig = Object.fromEntries(
   Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, color: v.color }])
