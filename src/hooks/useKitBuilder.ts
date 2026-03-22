@@ -144,7 +144,7 @@ export function useKitBuilder() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Busca itens disponíveis para o kit (todos os produtos, excluindo os que são caixas)
+  // Busca itens disponíveis para o kit
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
     queryKey: [...KIT_BUILDER_KEYS.items, itemFilters],
     queryFn: async () => {
@@ -153,20 +153,16 @@ export function useKitBuilder() {
         operation: 'select',
         filters: { 
           active: true,
+          product_type: 'product',
           ...(itemFilters.search ? { name: itemFilters.search } : {}),
         },
-        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, weight_g, box_width_cm, box_height_cm, box_length_cm, internal_width_cm, internal_height_cm, internal_length_cm, category_id',
+        select: 'id, name, sku, sale_price, base_price, image_url, primary_image_url, images, dimensions, product_type, weight_g, category_id',
         limit: 200,
         orderBy: { column: 'name', ascending: true },
+        countMode: 'none',
       });
 
-      // Exclui produtos que são embalagens (têm dimensões internas ou product_type packaging)
-      return result.records
-        .filter(p => 
-          p.product_type !== 'packaging' && 
-          !(p.internal_width_cm && p.internal_height_cm && p.internal_length_cm)
-        )
-        .map(p => transformToKitItem(p));
+      return result.records.map(p => transformToKitItem(p));
     },
     staleTime: 5 * 60 * 1000,
   });
