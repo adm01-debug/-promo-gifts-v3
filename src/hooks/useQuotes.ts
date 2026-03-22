@@ -228,6 +228,8 @@ export function useQuotes() {
           color_hex: item.color_hex,
           notes: item.notes,
           sort_order: index,
+          kit_group_id: item.kit_group_id || null,
+          kit_name: item.kit_name || null,
         }));
 
         const { data: insertedItems, error: itemsErr } = await supabase
