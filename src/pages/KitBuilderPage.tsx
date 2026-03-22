@@ -537,6 +537,7 @@ export default function KitBuilderPage() {
                       onRemoveItem={removeItem}
                       onUpdateQuantity={updateItemQuantity}
                       onUpdateVariant={(itemId, data) => updateItemVariant(itemId, data)}
+                      onReorder={reorderItems}
                       boxSelected={kitState.box !== null}
                     />
                   </div>
