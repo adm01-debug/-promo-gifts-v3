@@ -121,7 +121,25 @@ async function fetchCatalogPage(
     ...(i === 0 && isFirstLoad ? { countMode: 'planned' } : {}),
   }));
 
-  const batchResults = await invokeBatchBridge(batchQueries);
+  let batchResults;
+  try {
+    batchResults = await invokeBatchBridge(batchQueries);
+  } catch {
+    const fallbackProducts = await fetchPromobrindProductsLightweight({
+      search,
+      limit: CATALOG_PAGE_SIZE,
+      offset,
+      orderBy,
+      filters: { active: true },
+    });
+
+    return {
+      products: fallbackProducts.map(mapLightweightToProduct),
+      nextOffset: fallbackProducts.length === CATALOG_PAGE_SIZE ? offset + CATALOG_PAGE_SIZE : null,
+      totalEstimate: null,
+    };
+  }
+
   const products: Product[] = [];
   let totalEstimate: number | null = null;
   let lastPageSize = 0;
