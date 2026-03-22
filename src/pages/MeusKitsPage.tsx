@@ -73,6 +73,7 @@ export default function MeusKitsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
+  const { generateShareLink, isLoading: shareLoading } = useKitShare();
 
   const { data: kits = [], isLoading } = useQuery({
     queryKey: ['custom-kits', user?.id],
