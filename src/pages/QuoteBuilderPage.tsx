@@ -33,9 +33,14 @@ import { QuoteBuilderStepper } from "@/components/quotes/QuoteBuilderStepper";
 import { QuoteBuilderSummaryColumn } from "@/components/quotes/QuoteBuilderSummaryColumn";
 import { QuoteBuilderProductSearch } from "@/components/quotes/QuoteBuilderProductSearch";
 import { useQuoteBuilderState } from "@/hooks/useQuoteBuilderState";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
+import { UnsavedChangesDialog } from "@/components/common/UnsavedChangesDialog";
 
 export default function QuoteBuilderPage() {
   const s = useQuoteBuilderState();
+  const { showDialog, guardNavigation, confirmLeave, cancelLeave, message } = useUnsavedChangesGuard({
+    hasUnsavedChanges: s.hasUnsavedData,
+  });
 
   if (s.loadingQuote) {
     return (
@@ -71,7 +76,7 @@ export default function QuoteBuilderPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => s.navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={() => guardNavigation(() => s.navigate(-1))}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
@@ -357,6 +362,13 @@ export default function QuoteBuilderPage() {
         onProductClick={s.handleProductClick}
         onAddWithColor={s.addProductWithColor}
         formatCurrency={s.formatCurrency}
+      />
+
+      <UnsavedChangesDialog
+        open={showDialog}
+        onConfirm={confirmLeave}
+        onCancel={cancelLeave}
+        message={message}
       />
     </MainLayout>
   );
