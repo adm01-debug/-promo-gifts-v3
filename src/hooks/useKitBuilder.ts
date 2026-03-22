@@ -149,42 +149,60 @@ export function useKitBuilder() {
   // Estado do wizard
   const [currentStep, setCurrentStep] = useState<KitBuilderStep>('box');
 
-  // Estado de filtros
+  // Estado de filtros — input imediato, query debounced
+  const [boxSearchInput, setBoxSearchInput] = useState('');
+  const [itemSearchInput, setItemSearchInput] = useState('');
   const [boxFilters, setBoxFilters] = useState<BoxFilters>({});
   const [itemFilters, setItemFilters] = useState<ItemFilters>({});
 
-  // #1 FIX: Debounce refs for cleanup
-  const boxSearchTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const itemSearchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  // Debounced search values for query keys (primitives only)
+  const [debouncedBoxSearch, setDebouncedBoxSearch] = useState('');
+  const [debouncedItemSearch, setDebouncedItemSearch] = useState('');
+
+  // #1 FIX: Debounce with cleanup using useEffect
+  const boxTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const itemTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (boxTimerRef.current) clearTimeout(boxTimerRef.current);
+    boxTimerRef.current = setTimeout(() => {
+      setDebouncedBoxSearch(boxSearchInput);
+    }, 300);
+    return () => { if (boxTimerRef.current) clearTimeout(boxTimerRef.current); };
+  }, [boxSearchInput]);
+
+  useEffect(() => {
+    if (itemTimerRef.current) clearTimeout(itemTimerRef.current);
+    itemTimerRef.current = setTimeout(() => {
+      setDebouncedItemSearch(itemSearchInput);
+    }, 300);
+    return () => { if (itemTimerRef.current) clearTimeout(itemTimerRef.current); };
+  }, [itemSearchInput]);
 
   const setBoxFiltersDebounced = useCallback((filters: BoxFilters) => {
-    if (boxSearchTimerRef.current) clearTimeout(boxSearchTimerRef.current);
-    boxSearchTimerRef.current = setTimeout(() => {
-      setBoxFilters(filters);
-    }, 300);
+    setBoxSearchInput(filters.search || '');
+    setBoxFilters(prev => ({ ...prev, ...filters, search: filters.search }));
   }, []);
 
   const setItemFiltersDebounced = useCallback((filters: ItemFilters) => {
-    if (itemSearchTimerRef.current) clearTimeout(itemSearchTimerRef.current);
-    itemSearchTimerRef.current = setTimeout(() => {
-      setItemFilters(filters);
-    }, 300);
+    setItemSearchInput(filters.search || '');
+    setItemFilters(prev => ({ ...prev, ...filters, search: filters.search }));
   }, []);
 
   // ============================================
-  // QUERIES
+  // QUERIES — stable primitive query keys
   // ============================================
 
-  // Busca caixas/embalagens — filtra por packing_classification para encontrar embalagens
+  // Busca caixas/embalagens
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
-    queryKey: [...KIT_BUILDER_KEYS.boxes, boxFilters],
+    queryKey: ['kit-builder', 'boxes', debouncedBoxSearch, boxFilters.minWidth ?? '', boxFilters.minHeight ?? '', boxFilters.minDepth ?? ''],
     queryFn: async () => {
       const filters: Record<string, unknown> = {
         active: true,
         packing_classification: 'embalagem',
       };
-      if (boxFilters.search) {
-        filters._search = boxFilters.search;
+      if (debouncedBoxSearch) {
+        filters._search = debouncedBoxSearch;
       }
 
       const result = await invokeExternalDb<ExternalProductForKit>({
@@ -211,15 +229,15 @@ export function useKitBuilder() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Busca itens — exclui embalagens (packing_classification != 'embalagem')
+  // Busca itens — exclui embalagens
   const { data: availableItems = [], isLoading: isLoadingItems } = useQuery({
-    queryKey: [...KIT_BUILDER_KEYS.items, itemFilters],
+    queryKey: ['kit-builder', 'items', debouncedItemSearch],
     queryFn: async () => {
       const filters: Record<string, unknown> = {
         active: true,
       };
-      if (itemFilters.search) {
-        filters._search = itemFilters.search;
+      if (debouncedItemSearch) {
+        filters._search = debouncedItemSearch;
       }
 
       const result = await invokeExternalDb<ExternalProductForKit>({
