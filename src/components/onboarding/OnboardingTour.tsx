@@ -14,7 +14,7 @@ interface TooltipPosition {
   bottom?: number;
 }
 
-export const OnboardingTour = forwardRef<HTMLDivElement, Record<string, never>>(function OnboardingTour(_props, ref) {
+export function OnboardingTour() {
   const {
     showTour,
     currentStep,
