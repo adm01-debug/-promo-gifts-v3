@@ -789,6 +789,18 @@ export function SuppliersManager() {
                   </div>
                 </div>
 
+                {/* Fone Fixo 01 + Fone Fixo 02 */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs font-semibold">Fone Fixo 01</Label>
+                    <Input value={foneFixo1} onChange={e => setFoneFixo1(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} />
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold">Fone Fixo 02</Label>
+                    <Input value={foneFixo2} onChange={e => setFoneFixo2(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} />
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between rounded-lg border border-border p-3">
                   <Label className="text-sm">Ativo</Label>
                   <Switch checked={editingSupplier.active ?? true} onCheckedChange={v => updateField('active', v)} />
