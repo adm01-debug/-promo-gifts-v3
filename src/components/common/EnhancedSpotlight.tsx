@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef, forwardRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Fuse from "fuse.js";
