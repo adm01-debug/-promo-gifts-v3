@@ -213,6 +213,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
       toast.error(`Chave PIX duplicada: "${dupPix}". Remova a duplicata antes de salvar.`);
       return;
     }
+    const invalidPix = pixKeys.filter(k => k.chave.trim()).find(k => validatePixKey(k.chave, k.tipo));
+    if (invalidPix) {
+      toast.error(validatePixKey(invalidPix.chave, invalidPix.tipo)!);
+      return;
+    }
     const cnpjDigits = cnpj.replace(/\D/g, '');
     if (cnpjDigits.length > 0 && !validateCnpj(cnpjDigits)) {
       setCnpjError('CNPJ inválido');
