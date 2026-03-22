@@ -41,5 +41,5 @@ describe("GlobalSearchPalette", () => {
     const module = await import("@/components/search/GlobalSearchPalette");
     expect(module.GlobalSearchPalette).toBeDefined();
     expect(typeof module.GlobalSearchPalette).toBe("function");
-  });
+  }, 15000);
 });

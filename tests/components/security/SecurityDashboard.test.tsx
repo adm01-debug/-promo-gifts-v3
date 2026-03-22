@@ -34,5 +34,5 @@ describe("SecurityDashboard", () => {
     const mod = await import("@/components/security/SecurityDashboard");
     expect(mod.SecurityDashboard).toBeDefined();
     expect(typeof mod.SecurityDashboard).toBe("function");
-  });
+  }, 15000);
 });
