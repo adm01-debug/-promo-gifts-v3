@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { applyPixMask, pixPlaceholder } from '@/utils/pixMask';
 import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
