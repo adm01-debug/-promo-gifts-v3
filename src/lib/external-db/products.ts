@@ -72,14 +72,24 @@ export async function fetchPromobrindProducts(options?: {
     products = result.records;
     totalCount = result.count;
   } else {
-    const pageSize = 500;
+    const BASE_PAGE_SIZE = 500;
     let offset = 0;
     let loopCount: number | null = null;
     let consecutiveErrors = 0;
-    const MAX_CONSECUTIVE_ERRORS = 3;
+    const MAX_CONSECUTIVE_ERRORS = 2; // Reduced from 3 — fail faster
     const HARD_MAX = 200000;
+    const PAGINATION_START = Date.now();
+    const PAGINATION_TIMEOUT_MS = 30_000; // 30s total budget for full pagination
 
     while (offset < HARD_MAX) {
+      // Time-budget check: stop if we've been paginating too long
+      if (Date.now() - PAGINATION_START > PAGINATION_TIMEOUT_MS) {
+        logger.warn(`[external-db] Pagination time budget exceeded (${PAGINATION_TIMEOUT_MS}ms). Got ${products.length} products at offset=${offset}.`);
+        break;
+      }
+
+      // Reduce page size at high offsets where the DB struggles
+      const pageSize = offset >= 3000 ? 200 : BASE_PAGE_SIZE;
       const countMode: 'exact' | 'none' = shouldRequestCount && offset === 0 ? 'exact' : 'none';
       let page: InvokeResult<PromobrindProduct>;
       try {
