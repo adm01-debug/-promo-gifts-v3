@@ -28,6 +28,8 @@ import {
 import { formatCurrency } from '@/lib/kit-builder';
 import { toast } from 'sonner';
 import { useKitShare } from '@/hooks/useKitShare';
+import { KitComparisonDialog } from '@/components/kit-builder/KitComparisonDialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
