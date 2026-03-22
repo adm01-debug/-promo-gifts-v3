@@ -3,7 +3,7 @@
  * Resumo final do kit com breakdown de preços
  */
 
-import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check } from 'lucide-react';
+import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
