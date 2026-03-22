@@ -72,8 +72,8 @@ describe("kit-builder volume-calculator", () => {
       expect(calculateVolumeUsagePercent(100, 0)).toBe(0);
     });
 
-    it("caps at 100", () => {
-      expect(calculateVolumeUsagePercent(100000, 100)).toBe(100);
+    it("does NOT cap at 100 (allows overflow detection)", () => {
+      expect(calculateVolumeUsagePercent(100000, 100)).toBeGreaterThan(100);
     });
   });
 
