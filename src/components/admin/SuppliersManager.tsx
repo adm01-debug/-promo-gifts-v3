@@ -134,11 +134,29 @@ export function SuppliersManager() {
   const createEmptyPixKey = (principal = false): PixKey => ({ id: crypto.randomUUID(), tipo: '', chave: '', favorecido: '', principal });
   const [pixKeys, setPixKeys] = useState<PixKey[]>([createEmptyPixKey(true)]);
 
+  const hasPixDuplicate = (keys: PixKey[]): string | null => {
+    const filled = keys.filter(k => k.chave.trim());
+    const seen = new Set<string>();
+    for (const k of filled) {
+      const norm = k.chave.trim().toLowerCase();
+      if (seen.has(norm)) return norm;
+      seen.add(norm);
+    }
+    return null;
+  };
+
   const updatePixKey = (id: string, field: keyof Omit<PixKey, 'id'>, value: string | boolean) => {
-    setPixKeys(prev => prev.map(k => {
-      if (k.id !== id) return field === 'principal' && value === true ? { ...k, principal: false } : k;
-      return { ...k, [field]: value };
-    }));
+    setPixKeys(prev => {
+      const updated = prev.map(k => {
+        if (k.id !== id) return field === 'principal' && value === true ? { ...k, principal: false } : k;
+        return { ...k, [field]: value };
+      });
+      if (field === 'chave' && typeof value === 'string' && value.trim()) {
+        const dup = hasPixDuplicate(updated);
+        if (dup) toast.warning(`Chave PIX "${dup}" já existe neste fornecedor`);
+      }
+      return updated;
+    });
   };
   const addPixKey = () => setPixKeys(prev => [...prev, createEmptyPixKey(prev.length === 0)]);
   const removePixKey = (id: string) => setPixKeys(prev => {
@@ -301,6 +319,11 @@ export function SuppliersManager() {
   const handleSave = async () => {
     if (!editingSupplier?.name?.trim()) {
       toast.error('Nome é obrigatório');
+      return;
+    }
+    const dupPix = hasPixDuplicate(pixKeys);
+    if (dupPix) {
+      toast.error(`Chave PIX duplicada: "${dupPix}". Remova a duplicata antes de salvar.`);
       return;
     }
     const cnpjRaw = editingSupplier.cnpj?.replace(/\D/g, '') || '';
