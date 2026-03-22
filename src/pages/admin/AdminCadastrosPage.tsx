@@ -9,7 +9,7 @@ const ProductsManager = React.lazy(() =>
   import("@/components/admin/ProductsManager").then(m => ({ default: m.ProductsManager }))
 );
 const SuppliersManager = React.lazy(() =>
-  import("@/components/admin/SuppliersManager").then(m => ({ default: m.SuppliersManager }))
+  import("@/components/admin/suppliers-manager").then(m => ({ default: m.SuppliersManager }))
 );
 const EngravingRegistrationContent = React.lazy(() =>
   import("@/pages/EngravingRegistrationPage").then(m => ({ default: m.EngravingRegistrationContent }))
