@@ -360,6 +360,10 @@ export function useKitBuilder() {
       items = items.filter(item => item.volume <= (itemFilters.maxVolume || Infinity));
     }
 
+    if (itemFilters.category) {
+      items = items.filter(item => item.category?.toLowerCase().includes(itemFilters.category!.toLowerCase()));
+    }
+
     return items;
   }, [itemsWithCompatibility, itemFilters]);
 
