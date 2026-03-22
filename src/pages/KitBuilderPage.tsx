@@ -20,6 +20,8 @@ import {
 import { toast } from 'sonner';
 
 export default function KitBuilderPage() {
+  const [currentKitId, setCurrentKitId] = useState<string | undefined>();
+  
   const {
     kitState,
     wizardState,
@@ -47,12 +49,30 @@ export default function KitBuilderPage() {
     resetKit,
   } = useKitBuilder();
 
+  const { saveKit, isSaving } = useCustomKitPersistence();
+
+  const handleSaveKit = async () => {
+    try {
+      const result = await saveKit(kitState, kitQuantity, currentKitId);
+      if (result && 'id' in result) {
+        setCurrentKitId((result as { id: string }).id);
+      }
+    } catch {
+      // error handled by hook
+    }
+  };
+
   const handleAddToQuote = () => {
     toast.success('Kit adicionado ao orçamento!');
   };
 
   const handleExportPDF = () => {
     toast.info('Exportação em desenvolvimento');
+  };
+
+  const handleResetKit = () => {
+    resetKit();
+    setCurrentKitId(undefined);
   };
 
   return (
