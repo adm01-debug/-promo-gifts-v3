@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { 
   RefreshCw, Package, Truck, Layers, Tag, DollarSign, Clock,
-  Filter, Sparkles, Box, Paintbrush, Search, X, Calendar, Users, Briefcase
+  Filter, Sparkles, Box, Paintbrush, Search, X, Calendar
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,11 +23,11 @@ import { useMaterialFilter } from "@/hooks/useMaterialFilter";
 import { useRamoAtividadeFilter } from "@/hooks/useRamoAtividadeFilter";
 import { ColorGroupFilter, ColorFilterSelection } from "./ColorGroupFilter";
 import { CommemorativeDateFilter } from "./CommemorativeDateFilter";
-import { PUBLICO_ALVO, ENDOMARKETING } from "@/data/mockData";
-import { toTitleCase } from "@/lib/textUtils";
 import { FilterSection } from "./FilterSection";
 import { FilterSectionMaterials } from "./sections/FilterSectionMaterials";
 import { FilterSectionRamos } from "./sections/FilterSectionRamos";
+import { FilterSectionPublicoAlvo } from "./sections/FilterSectionPublicoAlvo";
+import { FilterSectionEndomarketing } from "./sections/FilterSectionEndomarketing";
 
 interface AdvancedFilterPanelProps {
   filters: AdvancedFilterState;
@@ -280,33 +280,21 @@ export function AdvancedFilterPanel({
           <CommemorativeDateFilter selectedDates={filters.datasComemorativas || []} onToggleDate={(slug) => toggleArrayFilter('datasComemorativas', slug)} onClearDates={() => onFilterChange({ ...filters, datasComemorativas: [] })} compact />
         </FilterSection>
 
-        {/* Público-Alvo */}
-        <FilterSection id="publico" title="Público-Alvo" icon={<Users className="h-4 w-4" />} badge={filters.publicoAlvo?.length || 0} isOpen={openSections.includes("publico")} onToggle={toggleSection}>
-          <ScrollArea className="h-40">
-            <div className="space-y-2 pr-3">
-              {[...PUBLICO_ALVO].sort((a, b) => a.localeCompare(b)).map((publico) => (
-                <div key={publico} className="flex items-center gap-2">
-                  <Checkbox id={`adv-pub-${publico}`} checked={(filters.publicoAlvo || []).includes(publico)} onCheckedChange={() => toggleArrayFilter('publicoAlvo', publico)} />
-                  <Label htmlFor={`adv-pub-${publico}`} className="text-sm cursor-pointer">{toTitleCase(publico)}</Label>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </FilterSection>
+        {/* Público-Alvo - Extracted */}
+        <FilterSectionPublicoAlvo
+          isOpen={openSections.includes("publico")}
+          onToggle={toggleSection}
+          selected={filters.publicoAlvo || []}
+          onToggleItem={(value) => toggleArrayFilter('publicoAlvo', value)}
+        />
 
-        {/* Endomarketing */}
-        <FilterSection id="endomarketing" title="Endomarketing" icon={<Briefcase className="h-4 w-4" />} badge={filters.endomarketing?.length || 0} isOpen={openSections.includes("endomarketing")} onToggle={toggleSection}>
-          <ScrollArea className="h-40">
-            <div className="space-y-2 pr-3">
-              {[...ENDOMARKETING].sort((a, b) => a.localeCompare(b)).map((endo) => (
-                <div key={endo} className="flex items-center gap-2">
-                  <Checkbox id={`adv-endo-${endo}`} checked={(filters.endomarketing || []).includes(endo)} onCheckedChange={() => toggleArrayFilter('endomarketing', endo)} />
-                  <Label htmlFor={`adv-endo-${endo}`} className="text-sm cursor-pointer">{toTitleCase(endo)}</Label>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </FilterSection>
+        {/* Endomarketing - Extracted */}
+        <FilterSectionEndomarketing
+          isOpen={openSections.includes("endomarketing")}
+          onToggle={toggleSection}
+          selected={filters.endomarketing || []}
+          onToggleItem={(value) => toggleArrayFilter('endomarketing', value)}
+        />
 
         {/* Ramos de Atividade - Extracted */}
         <FilterSectionRamos
