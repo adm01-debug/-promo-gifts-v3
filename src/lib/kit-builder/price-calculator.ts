@@ -45,7 +45,7 @@ export function calculatePersonalizationPrice(
   items.forEach(item => {
     const itemPersonalization = personalization.items[item.id];
     if (itemPersonalization?.enabled && itemPersonalization.estimatedPrice) {
-      total += itemPersonalization.estimatedPrice * item.quantity;
+      total += itemPersonalization.estimatedPrice * item.quantity * quantity;
     }
   });
 
