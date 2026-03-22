@@ -4,7 +4,7 @@
  */
 
 import { X } from 'lucide-react';
-import { VariantSelector } from './VariantSelector';
+import { VariantSelector, type VariantSelectionData } from './VariantSelector';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { KitItem } from '@/lib/kit-builder';
@@ -13,14 +13,14 @@ interface SelectedItemsBadgesProps {
   items: KitItem[];
   onRemoveItem: (itemId: string) => void;
   onUpdateQuantity: (itemId: string, quantity: number) => void;
-  onUpdateColor: (itemId: string, color: { name: string; hex?: string }) => void;
+  onUpdateVariant: (itemId: string, data: VariantSelectionData) => void;
 }
 
 export function SelectedItemsBadges({
   items,
   onRemoveItem,
   onUpdateQuantity,
-  onUpdateColor,
+  onUpdateVariant,
 }: SelectedItemsBadgesProps) {
   if (items.length === 0) return null;
 
@@ -44,7 +44,7 @@ export function SelectedItemsBadges({
                 itemName={item.name}
                 allowedVariantIds={item.allowedVariantIds}
                 selectedColor={item.selectedColor}
-                onSelectVariant={onUpdateColor}
+                onSelectVariant={onUpdateVariant}
               />
             )}
             <div className="flex items-center gap-1 ml-1">
