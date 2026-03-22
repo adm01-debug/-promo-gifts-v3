@@ -1,28 +1,22 @@
 import { useEffect } from "react";
 
 /**
- * Scroll-lock fix v8 — Performance-optimized.
+ * Scroll-lock fix v9 — Minimal observer, no layout thrashing.
  * 
- * Previous versions caused DOM thrashing via MutationObserver + setInterval
- * feedback loops. This version only cleans up scroll locks when overlays
- * actually close, using a single targeted MutationObserver on dialog state.
+ * Only listens for `data-state` attribute changes (not childList)
+ * to detect overlay close transitions. Avoids getComputedStyle to
+ * prevent forced reflows.
  */
 
 function hasActiveOverlay(): boolean {
   const selectors = [
     '[data-state="open"][role="dialog"]',
     '[data-state="open"][role="alertdialog"]',
-    '[data-radix-select-content-wrapper]',
     '[vaul-drawer][data-state="open"]',
-    '[data-state="open"][data-vaul-drawer]',
   ];
 
   for (const sel of selectors) {
-    const el = document.querySelector(sel);
-    if (el) {
-      const rect = (el as HTMLElement).getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) return true;
-    }
+    if (document.querySelector(sel)) return true;
   }
 
   return false;
@@ -51,36 +45,25 @@ function cleanupScrollLock() {
       document.body.classList.remove(cls);
     }
   });
-
-  if (getComputedStyle(document.body).pointerEvents === 'none') {
-    document.body.style.pointerEvents = 'auto';
-  }
 }
 
 export function useScrollLockFix() {
   useEffect(() => {
-    // Only observe the document body for dialog open/close transitions.
-    // Use a debounced approach to avoid feedback loops.
-    let cleanupScheduled = false;
+    let scheduled = false;
 
     const scheduleCleanup = () => {
-      if (cleanupScheduled) return;
-      cleanupScheduled = true;
+      if (scheduled) return;
+      scheduled = true;
       requestAnimationFrame(() => {
         cleanupScrollLock();
-        cleanupScheduled = false;
+        scheduled = false;
       });
     };
 
-    // Watch for dialog state changes (open→closed) in the DOM
+    // Only watch data-state attribute changes — no childList to reduce noise
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        // Only react to removed nodes (overlay closing) or attribute changes on dialogs
-        if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
-          scheduleCleanup();
-          break;
-        }
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-state') {
+        if (mutation.attributeName === 'data-state') {
           const target = mutation.target as HTMLElement;
           if (target.getAttribute('data-state') === 'closed') {
             scheduleCleanup();
@@ -91,7 +74,6 @@ export function useScrollLockFix() {
     });
 
     observer.observe(document.body, {
-      childList: true,
       subtree: true,
       attributes: true,
       attributeFilter: ['data-state'],
@@ -100,8 +82,6 @@ export function useScrollLockFix() {
     // One-time initial cleanup
     cleanupScrollLock();
 
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
 }
