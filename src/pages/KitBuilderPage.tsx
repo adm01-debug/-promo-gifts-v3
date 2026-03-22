@@ -3,18 +3,23 @@
  * Página principal do montador de kits
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, CloudOff, Cloud } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatCurrency } from '@/lib/kit-builder';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
+import { useKitAutoSave } from '@/hooks/useKitAutoSave';
+import { useKitUndoRedo } from '@/hooks/useKitUndoRedo';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { invokeExternalDb } from '@/lib/external-db';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   WizardSteps,
@@ -25,14 +30,18 @@ import {
   KitSummary,
 } from '@/components/kit-builder';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const kitIdParam = searchParams.get('kit');
+  const productIdParam = searchParams.get('product');
   const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
   const hasLoadedRef = useRef(false);
+  const hasLoadedProductRef = useRef(false);
   
   const {
     kitState,
@@ -66,7 +75,27 @@ export default function KitBuilderPage() {
 
   const { saveKit, isSaving } = useCustomKitPersistence();
 
-  // Load saved kit from query param
+  // Auto-save
+  const { lastSavedAt, isSaving: isAutoSaving, autoSavedKitId } = useKitAutoSave(
+    kitState, kitQuantity, currentKitId,
+    (id) => setCurrentKitId(id),
+  );
+
+  // Undo/Redo
+  const { pushSnapshot, undo, redo, canUndo, canRedo } = useKitUndoRedo();
+
+  // Track state changes for undo
+  useEffect(() => {
+    pushSnapshot({
+      boxId: kitState.box?.id || null,
+      items: kitState.items.map(i => ({ id: i.id, quantity: i.quantity, sku: i.sku })),
+      personalizationKeys: Object.keys(kitState.personalization.items),
+      name: kitState.name,
+      kitQuantity,
+    });
+  }, [kitState.box?.id, kitState.items.length, kitQuantity]);
+
+  // Load saved kit from ?kit= param
   useEffect(() => {
     if (!kitIdParam || hasLoadedRef.current) return;
     hasLoadedRef.current = true;
@@ -102,9 +131,44 @@ export default function KitBuilderPage() {
     loadSavedKit();
   }, [kitIdParam, loadKit]);
 
+  // P0 FIX: Load product from ?product= param
+  useEffect(() => {
+    if (!productIdParam || hasLoadedProductRef.current || kitIdParam) return;
+    hasLoadedProductRef.current = true;
+
+    const loadProduct = async () => {
+      try {
+        const result = await invokeExternalDb<any>({
+          table: 'products',
+          operation: 'select',
+          filters: { id: productIdParam },
+          select: 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, weight_g, width_mm, height_mm, length_mm, width_cm, height_cm, length_cm, materials, is_kit, category_id',
+          limit: 1,
+        });
+
+        if (result.records?.length > 0) {
+          const product = result.records[0];
+          const kitItem = transformToKitItem(product as any);
+          addItem(kitItem);
+          setKitName(product.name || '');
+          toast.success(`"${product.name}" adicionado ao kit!`, {
+            description: 'Selecione uma caixa e continue montando.',
+          });
+        } else {
+          toast.error('Produto não encontrado no catálogo');
+        }
+      } catch (err) {
+        console.warn('[kit-builder] Failed to load product:', err);
+        toast.error('Erro ao carregar produto');
+      }
+    };
+
+    loadProduct();
+  }, [productIdParam, kitIdParam, addItem, setKitName]);
+
   const handleSaveKit = async () => {
     try {
-      const result = await saveKit(kitState, kitQuantity, currentKitId);
+      const result = await saveKit(kitState, kitQuantity, currentKitId || autoSavedKitId || undefined);
       if (result && 'id' in result) {
         setCurrentKitId((result as { id: string }).id);
       }
@@ -313,6 +377,11 @@ export default function KitBuilderPage() {
     setCurrentKitId(undefined);
   };
 
+  // Weight warning
+  const itemsWeight = kitState.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
+  const weightExceeded = kitState.box?.maxWeight ? itemsWeight > kitState.box.maxWeight : false;
+  const weightPercent = kitState.box?.maxWeight ? (itemsWeight / kitState.box.maxWeight) * 100 : 0;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -325,12 +394,47 @@ export default function KitBuilderPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">Montador de Kits</h1>
-                <p className="text-muted-foreground">
-                  Monte kits personalizados com validação automática de volume
-                </p>
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <span>Monte kits personalizados com validação automática</span>
+                  {/* Auto-save indicator */}
+                  {lastSavedAt && (
+                    <Badge variant="outline" className="text-[10px] gap-1">
+                      <Cloud className="h-3 w-3 text-green-500" />
+                      Salvo {lastSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </Badge>
+                  )}
+                  {isAutoSaving && (
+                    <Badge variant="outline" className="text-[10px] gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Salvando...
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {/* Undo/Redo */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" disabled={!canUndo} onClick={() => undo()}>
+                      <Undo2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Desfazer (Ctrl+Z)</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" disabled={!canRedo} onClick={() => redo()}>
+                      <Redo2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Refazer (Ctrl+Y)</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               <Button
                 variant="default"
                 onClick={handleSaveKit}
@@ -341,7 +445,7 @@ export default function KitBuilderPage() {
                 ) : (
                   <Save className="h-4 w-4 mr-2" />
                 )}
-                {currentKitId ? 'Atualizar' : 'Salvar'} Kit
+                {currentKitId || autoSavedKitId ? 'Atualizar' : 'Salvar'} Kit
               </Button>
               <Button variant="outline" onClick={handleResetKit}>
                 <RotateCcw className="h-4 w-4 mr-2" />
@@ -498,6 +602,37 @@ export default function KitBuilderPage() {
                 totalVolume={kitState.box.internalVolume}
                 usagePercent={kitState.volumeUsagePercent}
               />
+            )}
+
+            {/* Weight Indicator */}
+            {kitState.box && kitState.box.maxWeight && (
+              <Card className={cn(weightExceeded && "border-destructive")}>
+                <CardContent className="p-4 space-y-2">
+                  <h3 className="font-semibold text-sm flex items-center justify-between">
+                    <span>⚖️ Peso</span>
+                    <span className={cn(
+                      "text-xs",
+                      weightExceeded ? "text-destructive" : "text-muted-foreground"
+                    )}>
+                      {(itemsWeight / 1000).toFixed(1)}kg / {(kitState.box.maxWeight / 1000).toFixed(1)}kg
+                    </span>
+                  </h3>
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div
+                      className={cn(
+                        "h-2 rounded-full transition-all",
+                        weightExceeded ? "bg-destructive" : weightPercent > 80 ? "bg-warning" : "bg-primary"
+                      )}
+                      style={{ width: `${Math.min(weightPercent, 100)}%` }}
+                    />
+                  </div>
+                  {weightExceeded && (
+                    <p className="text-xs text-destructive font-medium">
+                      ⚠ Peso excede o limite da caixa em {((itemsWeight - kitState.box.maxWeight) / 1000).toFixed(1)}kg
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             )}
 
             {/* Price Preview */}

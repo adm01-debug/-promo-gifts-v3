@@ -1,18 +1,20 @@
 /**
  * Meus Kits Page
  * Lista kits salvos com ações de editar, duplicar e excluir
+ * P1: Filtros avançados por status, tipo, preço
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Package, Plus, Copy, Trash2, Pencil, Search, Loader2, FileText, Calendar, Layers } from 'lucide-react';
+import { Package, Plus, Copy, Trash2, Pencil, Search, Loader2, FileText, Calendar, Layers, Filter, X, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +51,7 @@ interface CustomKit {
 const STATUS_MAP: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
   draft: { label: 'Rascunho', variant: 'secondary' },
   saved: { label: 'Salvo', variant: 'default' },
+  complete: { label: 'Completo', variant: 'default' },
   quoted: { label: 'Orçado', variant: 'outline' },
 };
 
@@ -58,12 +61,17 @@ const TYPE_MAP: Record<string, string> = {
   simples: 'Simples',
 };
 
+type SortOption = 'recent' | 'name' | 'price-asc' | 'price-desc';
+
 export default function MeusKitsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('recent');
 
   const { data: kits = [], isLoading } = useQuery({
     queryKey: ['custom-kits', user?.id],
@@ -111,9 +119,46 @@ export default function MeusKitsPage() {
     onError: () => toast.error('Erro ao duplicar kit'),
   });
 
-  const filtered = kits.filter((k) =>
-    k.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    let result = kits;
+
+    // Text search
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(k => k.name.toLowerCase().includes(q));
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(k => k.status === statusFilter);
+    }
+
+    // Type filter
+    if (typeFilter !== 'all') {
+      result = result.filter(k => k.kit_type === typeFilter);
+    }
+
+    // Sort
+    switch (sortBy) {
+      case 'name':
+        result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'price-asc':
+        result = [...result].sort((a, b) => Number(a.total_price) - Number(b.total_price));
+        break;
+      case 'price-desc':
+        result = [...result].sort((a, b) => Number(b.total_price) - Number(a.total_price));
+        break;
+      case 'recent':
+      default:
+        // Already sorted by updated_at desc from query
+        break;
+    }
+
+    return result;
+  }, [kits, search, statusFilter, typeFilter, sortBy]);
+
+  const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all';
 
   const getItemCount = (kit: CustomKit): number => {
     if (!Array.isArray(kit.items_data)) return 0;
@@ -124,6 +169,10 @@ export default function MeusKitsPage() {
     if (!kit.box_data) return 'Sem caixa';
     return (kit.box_data as any).name || 'Caixa';
   };
+
+  // Stats
+  const totalValue = kits.reduce((sum, k) => sum + Number(k.total_price), 0);
+  const draftCount = kits.filter(k => k.status === 'draft').length;
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl space-y-6">
@@ -136,6 +185,8 @@ export default function MeusKitsPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {kits.length} kit{kits.length !== 1 ? 's' : ''} salvo{kits.length !== 1 ? 's' : ''}
+            {draftCount > 0 && ` • ${draftCount} rascunho${draftCount > 1 ? 's' : ''}`}
+            {totalValue > 0 && ` • ${formatCurrency(totalValue)} total`}
           </p>
         </div>
         <Button onClick={() => navigate('/montar-kit')} className="gap-2">
@@ -144,15 +195,66 @@ export default function MeusKitsPage() {
         </Button>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar kits..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      {/* Filters Bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar kits..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="draft">Rascunho</SelectItem>
+            <SelectItem value="complete">Completo</SelectItem>
+            <SelectItem value="saved">Salvo</SelectItem>
+            <SelectItem value="quoted">Orçado</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os tipos</SelectItem>
+            <SelectItem value="montado">Montado</SelectItem>
+            <SelectItem value="original">Original</SelectItem>
+            <SelectItem value="simples">Simples</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Ordenar" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Mais recentes</SelectItem>
+            <SelectItem value="name">Nome A-Z</SelectItem>
+            <SelectItem value="price-asc">Preço ↑</SelectItem>
+            <SelectItem value="price-desc">Preço ↓</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setStatusFilter('all'); setTypeFilter('all'); }}
+            className="text-muted-foreground"
+          >
+            <X className="h-4 w-4 mr-1" />
+            Limpar
+          </Button>
+        )}
       </div>
 
       {/* List */}
@@ -165,14 +267,14 @@ export default function MeusKitsPage() {
           <CardContent className="py-16 text-center">
             <Package className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
             <h3 className="font-semibold text-lg mb-1">
-              {search ? 'Nenhum kit encontrado' : 'Nenhum kit salvo'}
+              {search || hasActiveFilters ? 'Nenhum kit encontrado' : 'Nenhum kit salvo'}
             </h3>
             <p className="text-sm text-muted-foreground mb-6">
-              {search
-                ? 'Tente um termo diferente.'
+              {search || hasActiveFilters
+                ? 'Ajuste os filtros para ver resultados.'
                 : 'Monte seu primeiro kit para vê-lo aqui.'}
             </p>
-            {!search && (
+            {!search && !hasActiveFilters && (
               <Button onClick={() => navigate('/montar-kit')} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Montar Kit

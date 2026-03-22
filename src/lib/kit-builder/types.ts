@@ -30,6 +30,8 @@ export interface KitBox {
   material?: string;
   // Peso em gramas
   weight?: number;
+  // Peso máximo suportado em gramas (para validação)
+  maxWeight?: number;
 }
 
 export interface KitItem {
