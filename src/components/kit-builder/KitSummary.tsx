@@ -84,7 +84,7 @@ export function KitSummary({
       </Card>
 
       {/* Resumo Visual */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Caixa */}
         <Card>
           <CardContent className="pt-6 text-center">
@@ -118,6 +118,19 @@ export function KitSummary({
             <p className="text-sm text-muted-foreground">
               {personalizedCount === 1 ? 'Personalização' : 'Personalizações'}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Peso Total */}
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <Package className="h-8 w-8 mx-auto text-primary mb-2" />
+            <p className="text-2xl font-bold">
+              {kitState.totalWeight >= 1000
+                ? `${(kitState.totalWeight / 1000).toFixed(1)}kg`
+                : `${kitState.totalWeight}g`}
+            </p>
+            <p className="text-sm text-muted-foreground">Peso estimado</p>
           </CardContent>
         </Card>
       </div>
@@ -179,7 +192,12 @@ export function KitSummary({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground font-mono">{item.sku}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-mono">{item.sku}</span>
+                      {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
+                      {item.material ? ` • ${item.material}` : ''}
+                      {item.isOptional && <Badge variant="secondary" className="ml-1 text-[10px] px-1 py-0">Opcional</Badge>}
+                    </p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
