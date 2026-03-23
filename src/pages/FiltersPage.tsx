@@ -8,7 +8,7 @@ import { VirtualizedProductGrid } from "@/components/products/VirtualizedProduct
 import { ProductList } from "@/components/products/ProductList";
 import { ColumnSelector, getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
-import { useProducts } from "@/hooks/useProducts";
+import { useProductsCatalog } from "@/hooks/useProductsLightweight";
 import { resolveColorImage, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
@@ -102,10 +102,32 @@ export default function FiltersPage() {
   // Combinar: prioridade para busca do FilterPanel, senão URL
   const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
 
-  // Buscar produtos reais do banco de dados com busca server-side
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
+  // Progressive loading: uses lightweight catalog (reuses prefetch cache, ~2s first paint)
+  const {
+    data: catalogData,
+    isLoading: isLoadingProducts,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useProductsCatalog(
     serverSearchTerm ? { search: serverSearchTerm } : undefined
   );
+
+  // Auto-fetch ALL remaining pages for complete filtering
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten infinite query pages into a single array
+  const realProducts = useMemo(() => {
+    if (!catalogData?.pages) return [];
+    return catalogData.pages.flatMap(page => page.products);
+  }, [catalogData]);
+
+  const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
+  const isFullyLoaded = !hasNextPage && !isFetchingNextPage;
 
   // #22 Deep linking: serialize filters to URL on change
   useEffect(() => {
@@ -724,11 +746,11 @@ export default function FiltersPage() {
                 }`}>
                   <Filter className="h-4 w-4" />
                   <span>
-                    {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                   {isLoadingProducts && realProducts.length === 0
                       ? 'Carregando catálogo...'
                       : activeFiltersCount > 0
                         ? `Ver ${filteredProducts.length.toLocaleString('pt-BR')} resultado${filteredProducts.length !== 1 ? 's' : ''}`
-                        : `${filteredProducts.length.toLocaleString('pt-BR')} produtos disponíveis`
+                        : `${filteredProducts.length.toLocaleString('pt-BR')}${!isFullyLoaded ? '+' : ''} produtos disponíveis`
                     }
                   </span>
                 </div>
@@ -743,9 +765,9 @@ export default function FiltersPage() {
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                   Super Filtro
                   <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
-                    · {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                    · {isLoadingProducts && realProducts.length === 0
                       ? 'carregando...'
-                      : `${filteredProducts.length.toLocaleString("pt-BR")} itens`}
+                      : `${filteredProducts.length.toLocaleString("pt-BR")}${!isFullyLoaded ? '+' : ''} itens`}
                   </span>
                 </h1>
               </div>
@@ -768,7 +790,7 @@ export default function FiltersPage() {
 
                 {(filters.search || searchQuery) && (
                   <Badge variant="secondary" className="shrink-0 whitespace-nowrap">
-                    {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                   {isLoadingProducts && realProducts.length === 0
                       ? 'Carregando...'
                       : `${filteredProducts.length.toLocaleString("pt-BR")} encontrado${filteredProducts.length !== 1 ? "s" : ""}`}
                   </Badge>
