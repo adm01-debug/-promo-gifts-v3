@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BackButton } from '@/components/common/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -199,6 +200,7 @@ export default function RolePermissionsPage() {
         <SidebarInset className="flex-1">
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
+            <BackButton fallbackPath="/admin" />
             <div className="flex-1 flex items-center justify-between">
               <div>
                 <h1 className="text-lg font-semibold">Gerenciamento de Permissões por Role</h1>
