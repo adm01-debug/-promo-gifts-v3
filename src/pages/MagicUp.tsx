@@ -90,6 +90,7 @@ export default function MagicUp() {
 
   // Product
   const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [colors, setColors] = useState<ProductColor[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
@@ -195,6 +196,7 @@ export default function MagicUp() {
 
   useEffect(() => {
     (async () => {
+      setLoadingProducts(true);
       try {
         const { fetchPromobrindProducts } = await import("@/lib/external-db");
         const data = await fetchPromobrindProducts();
@@ -208,6 +210,8 @@ export default function MagicUp() {
         })));
       } catch {
         toast.error("Erro ao carregar produtos");
+      } finally {
+        setLoadingProducts(false);
       }
     })();
   }, []);
@@ -612,7 +616,22 @@ CENÁRIO: ${effectivePrompt}`;
           })}
         </div>
 
+        {/* Loading State */}
+        {loadingProducts && (
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full border-4 border-muted animate-spin border-t-primary" />
+              <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary" />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-lg font-medium text-foreground">Carregando catálogo...</p>
+              <p className="text-sm text-muted-foreground">Preparando produtos para criação publicitária</p>
+            </div>
+          </div>
+        )}
+
         {/* Main Layout */}
+        {!loadingProducts && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left: Configuration */}
           <div className="space-y-4">
@@ -1084,6 +1103,7 @@ CENÁRIO: ${effectivePrompt}`;
             )}
           </div>
         </div>
+        )}
       </div>
     </MainLayout>
   );
