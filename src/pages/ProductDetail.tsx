@@ -48,9 +48,9 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { PopularityBadge, LowStockAlert, TrustBadgesRow } from "@/components/common/SocialProof";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
-import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
+import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
 // useProducts removed - using useRelatedProducts instead
 
 export default function ProductDetail() {
