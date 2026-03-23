@@ -448,8 +448,8 @@ describe('AdminTelemetriaPage - Top Offenders', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getAllByText('get_price').length).toBeGreaterThanOrEqual(1();
-      expect(screen.getAllByText('products').length).toBeGreaterThanOrEqual(1();
+      expect(screen.getAllByText('get_price').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('products').length).toBeGreaterThanOrEqual(1);
     });
   });
 
