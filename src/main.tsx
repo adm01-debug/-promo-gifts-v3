@@ -23,6 +23,9 @@ createRoot(root).render(
   </Fragment>
 );
 
+// Web Vitals tracking
+initWebVitals();
+
 // Registrar Service Worker para PWA (apenas em produção para evitar cache issues no preview)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   registerServiceWorker()
