@@ -790,7 +790,7 @@ export default function FiltersPage() {
 
                 {(filters.search || searchQuery) && (
                   <Badge variant="secondary" className="shrink-0 whitespace-nowrap">
-                    {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                   {isLoadingProducts && realProducts.length === 0
                       ? 'Carregando...'
                       : `${filteredProducts.length.toLocaleString("pt-BR")} encontrado${filteredProducts.length !== 1 ? "s" : ""}`}
                   </Badge>
