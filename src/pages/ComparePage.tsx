@@ -36,10 +36,11 @@ import { useComparisonHighlight, highlightClasses } from "@/components/compare/C
 
 export default function ComparePage() {
   const navigate = useNavigate();
-  const { getCompareProducts, removeFromCompare, clearCompare, compareCount } =
-    useComparisonContext();
+  const { compareIds, removeFromCompare, clearCompare, compareCount } =
+    useComparisonStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const products = getCompareProducts();
+  const products = useMemo(() => getProductsByIds(compareIds), [getProductsByIds, compareIds]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {

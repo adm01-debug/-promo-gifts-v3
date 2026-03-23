@@ -16,10 +16,14 @@ import { Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
-  const { getFavoriteProducts, clearFavorites, favoriteCount, toggleFavorite } =
-    useFavoritesContext();
+  const { favorites, clearFavorites, favoriteCount, toggleFavorite } =
+    useFavoritesStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const favoriteProducts = getFavoriteProducts();
+  const favoriteProducts = useMemo(
+    () => getProductsByIds(favorites.map((f) => f.productId)),
+    [getProductsByIds, favorites]
+  );
 
   const handleClearAll = () => {
     clearFavorites();

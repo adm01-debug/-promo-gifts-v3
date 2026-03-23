@@ -65,7 +65,7 @@ export default function ProductDetail() {
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
-  const { addToRecentlyViewed } = useRecentlyViewedContext();
+  const { addToRecentlyViewed } = useRecentlyViewedStore();
   const { registerProducts } = useProductsContext();
 
   // Buscar produto no banco (mesma fonte da vitrine)

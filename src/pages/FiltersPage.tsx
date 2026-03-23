@@ -48,8 +48,8 @@ import { toast } from "sonner";
 export default function FiltersPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { isFavorite, toggleFavorite } = useFavoritesContext();
-  const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const isInitialMount = useRef(true);
 
   // #22 Deep linking: deserialize filters from URL on mount

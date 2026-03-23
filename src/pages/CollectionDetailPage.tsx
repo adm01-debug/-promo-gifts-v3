@@ -18,8 +18,8 @@ export default function CollectionDetailPage() {
     getCollectionProducts,
     removeProductFromCollection,
   } = useCollectionsContext();
-  const { isFavorite, toggleFavorite } = useFavoritesContext();
-  const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
 
   const collection = useMemo(() => {
     return collections.find((c) => c.id === id);

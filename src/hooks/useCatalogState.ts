@@ -30,8 +30,8 @@ export function useCatalogState() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
-  const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesStore();
+  const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const { registerProducts } = useProductsContext();
 
   const searchQueryFromUrl = searchParams.get("search") || "";

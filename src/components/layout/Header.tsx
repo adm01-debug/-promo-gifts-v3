@@ -37,8 +37,8 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const { theme, actualTheme, setTheme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { favoriteCount } = useFavoritesContext();
-  const { compareCount } = useComparisonContext();
+  const favoriteCount = useFavoritesStore((s) => s.favoriteCount);
+  const compareCount = useComparisonStore((s) => s.compareCount);
   const { user, profile, role, isAdmin, signOut } = useAuth();
   
   // Hook para detectar scroll (AN-10)

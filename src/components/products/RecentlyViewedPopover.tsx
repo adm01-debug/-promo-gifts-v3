@@ -15,13 +15,17 @@ interface RecentlyViewedPopoverProps {
 export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopoverProps) {
   const navigate = useNavigate();
   const {
+    items,
     itemCount,
-    getRecentlyViewedProducts,
     removeFromRecentlyViewed,
     clearRecentlyViewed,
-  } = useRecentlyViewedContext();
+  } = useRecentlyViewedStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const products = getRecentlyViewedProducts().slice(0, maxVisible);
+  const products = useMemo(
+    () => getProductsByIds(items.map((i) => i.productId)).slice(0, maxVisible),
+    [getProductsByIds, items, maxVisible]
+  );
 
   return (
     <Popover>

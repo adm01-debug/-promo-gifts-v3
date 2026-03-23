@@ -15,13 +15,17 @@ interface RecentlyViewedBarProps {
 export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedBarProps) {
   const navigate = useNavigate();
   const { 
+    items, 
     itemCount, 
-    getRecentlyViewedProducts, 
     removeFromRecentlyViewed,
     clearRecentlyViewed 
-  } = useRecentlyViewedContext();
+  } = useRecentlyViewedStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const products = getRecentlyViewedProducts().slice(0, maxVisible);
+  const products = useMemo(
+    () => getProductsByIds(items.map((i) => i.productId)).slice(0, maxVisible),
+    [getProductsByIds, items, maxVisible]
+  );
 
   if (itemCount === 0) return null;
 
