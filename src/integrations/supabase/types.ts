@@ -1672,6 +1672,45 @@ export type Database = {
         }
         Relationships: []
       }
+      web_vitals: {
+        Row: {
+          created_at: string
+          delta: number | null
+          id: string
+          metric_name: string
+          metric_value: number
+          navigation_type: string | null
+          page_url: string | null
+          rating: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          delta?: number | null
+          id?: string
+          metric_name: string
+          metric_value: number
+          navigation_type?: string | null
+          page_url?: string | null
+          rating?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          delta?: number | null
+          id?: string
+          metric_name?: string
+          metric_value?: number
+          navigation_type?: string | null
+          page_url?: string | null
+          rating?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
