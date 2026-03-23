@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2 } from "lucide-react";
+import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TelemetryCharts } from "@/components/admin/telemetry/TelemetryCharts";
 import { toast } from "sonner";
@@ -129,6 +129,46 @@ export default function AdminTelemetriaPage() {
     }
   };
 
+  const handleExportCSV = () => {
+    if (!rows.length) {
+      toast.warning("Sem dados para exportar");
+      return;
+    }
+
+    const headers = [
+      "Data/Hora", "Operação", "Tabela/RPC", "Duração (ms)", "Severidade",
+      "Registros", "Limit", "Offset", "Count Mode", "Erro"
+    ];
+
+    const csvRows = rows.map(r => [
+      new Date(r.created_at).toLocaleString("pt-BR"),
+      r.operation,
+      r.table_name || r.rpc_name || "-",
+      r.duration_ms,
+      r.severity,
+      r.record_count ?? "-",
+      r.query_limit ?? "-",
+      r.query_offset ?? "-",
+      r.count_mode ?? "-",
+      (r.error_message || "").replace(/"/g, '""'),
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...csvRows.map(row => row.map(v => `"${v}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const now = new Date();
+    link.download = `telemetria_${now.toISOString().slice(0, 10)}_${timeFilter}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success(`${rows.length} registros exportados`);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6 p-6 max-w-7xl mx-auto">
@@ -142,6 +182,10 @@ export default function AdminTelemetriaPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!rows.length}>
+              <Download className="h-3.5 w-3.5 mr-1.5" />
+              Exportar CSV
+            </Button>
             <Button variant="outline" size="sm" onClick={handleCleanup}>
               <Trash2 className="h-3.5 w-3.5 mr-1.5" />
               Limpar +7d
