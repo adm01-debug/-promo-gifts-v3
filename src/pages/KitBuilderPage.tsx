@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, CloudOff, Cloud } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
+import { BackButton } from '@/components/common/BackButton';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
