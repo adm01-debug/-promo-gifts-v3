@@ -12,22 +12,42 @@ import {
   shouldFallbackSelect,
 } from './product-types';
 
+async function fetchProductWithRetry(
+  productId: string,
+  maxRetries = 2,
+): Promise<InvokeResult<PromobrindProduct>> {
+  const selectFields = [PRODUCT_SELECT_FIELDS_DETAIL, PRODUCT_SELECT_FIELDS_WITH_SALE, PRODUCT_SELECT_FIELDS_LEGACY];
+  let lastError: unknown;
+  for (let selectIdx = 0; selectIdx < selectFields.length; selectIdx++) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await invokeExternalDb<PromobrindProduct>({
+          table: 'products', operation: 'select',
+          filters: { id: productId }, select: selectFields[selectIdx], limit: 1,
+        });
+      } catch (err) {
+        lastError = err;
+        if (shouldFallbackSelect(err)) break; // try next select fields
+        if (isTransientError(err) && attempt < maxRetries) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        if (!isTransientError(err)) throw err;
+      }
+    }
+  }
+  throw lastError;
+}
+
+function isTransientError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /(timeout|statement timeout|canceling statement|schema cache|retrying|ECONNRESET|fetch failed)/i.test(msg);
+}
+
 export async function fetchPromobrindProductById(
   productId: string
 ): Promise<PromobrindProduct | null> {
-  let result: InvokeResult<PromobrindProduct>;
-  try {
-    result = await invokeExternalDb<PromobrindProduct>({
-      table: 'products', operation: 'select',
-      filters: { id: productId }, select: PRODUCT_SELECT_FIELDS_DETAIL, limit: 1,
-    });
-  } catch (err) {
-    if (!shouldFallbackSelect(err)) throw err;
-    result = await invokeExternalDb<PromobrindProduct>({
-      table: 'products', operation: 'select',
-      filters: { id: productId }, select: PRODUCT_SELECT_FIELDS_WITH_SALE, limit: 1,
-    });
-  }
+  const result = await fetchProductWithRetry(productId);
 
   const product = result.records[0] || null;
   if (!product) return null;
