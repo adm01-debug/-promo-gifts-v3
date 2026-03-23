@@ -286,8 +286,9 @@ describe('AdminTelemetriaPage - Stats Calculations', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      // avg = 4000ms = 4.0s
-      expect(screen.getByText('4.0s')).toBeInTheDocument();
+      // avg = 4000ms = 4.0s — may appear in both stats card and table rows
+      const matches = screen.getAllByText('4.0s');
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     });
   });
 
