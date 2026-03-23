@@ -167,8 +167,10 @@ describe('AdminTelemetriaPage - Rendering', () => {
   it('renders page title and description', async () => {
     setupSupabaseMock([]);
     render(<AdminTelemetriaPage />);
-    expect(screen.getByText('Telemetria de Queries')).toBeInTheDocument();
-    expect(screen.getByText('Monitoramento de performance do banco externo')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Telemetria de Queries')).toBeInTheDocument();
+      expect(screen.getByText('Monitoramento de performance do banco externo')).toBeInTheDocument();
+    });
   });
 
   it('renders inside MainLayout', async () => {
