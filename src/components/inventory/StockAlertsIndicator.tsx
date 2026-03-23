@@ -263,7 +263,7 @@ export function StockAlertsIndicator({
     if (isLoading || counts.total === 0) return null;
 
     return (
-      <div ref={ref}>
+      <div>
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
             <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} aria-label="Notificações" />
