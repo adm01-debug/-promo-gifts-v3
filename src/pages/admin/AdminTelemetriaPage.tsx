@@ -364,7 +364,7 @@ export default function AdminTelemetriaPage() {
             </SelectContent>
           </Select>
           <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as TimeFilter)}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-44">
               <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
@@ -372,8 +372,52 @@ export default function AdminTelemetriaPage() {
               <SelectItem value="6h">Últimas 6h</SelectItem>
               <SelectItem value="24h">Últimas 24h</SelectItem>
               <SelectItem value="7d">Últimos 7 dias</SelectItem>
+              <SelectItem value="custom">📅 Personalizado</SelectItem>
             </SelectContent>
           </Select>
+
+          {timeFilter === "custom" && (
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("w-[140px] justify-start text-left font-normal", !customDateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {customDateFrom ? format(customDateFrom, "dd/MM/yyyy") : "Data início"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customDateFrom}
+                    onSelect={setCustomDateFrom}
+                    disabled={(date) => date > new Date()}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">até</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("w-[140px] justify-start text-left font-normal", !customDateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {customDateTo ? format(customDateTo, "dd/MM/yyyy") : "Data fim"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customDateTo}
+                    onSelect={setCustomDateTo}
+                    disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
           <span className="text-xs text-muted-foreground ml-auto">
             {rows.length} registros · auto-refresh 30s
           </span>
