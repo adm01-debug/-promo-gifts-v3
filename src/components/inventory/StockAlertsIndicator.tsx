@@ -83,11 +83,10 @@ NotificationTrigger.displayName = "NotificationTrigger";
 
 // ─── Main component ─────────────────────────────────────────
 
-export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndicatorProps>(
-  function StockAlertsIndicator(
-    { lowStockThreshold = 50, criticalStockThreshold = 10 },
-    ref
-  ) {
+export function StockAlertsIndicator({
+  lowStockThreshold = 50,
+  criticalStockThreshold = 10,
+}: StockAlertsIndicatorProps) {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
