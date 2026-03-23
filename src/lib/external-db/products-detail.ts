@@ -114,7 +114,7 @@ export async function fetchPromobrindProductById(
       images: string[] | null; selected_thumbnail: string | null;
     }>({
       table: 'product_variants', operation: 'select',
-      select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
+      select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_thumbnail',
       filters: { product_id: productId, is_active: true }, limit: 100,
     });
 
