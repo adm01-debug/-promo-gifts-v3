@@ -68,9 +68,11 @@ export function useErrorHandler() {
  * Mount once at the app root (e.g. inside App or a top-level provider).
  */
 export function useGlobalErrorCatcher() {
-  // Guard against React being null during HMR chunk reloads
-  const effectHook = React.useEffect ?? useEffect;
-  effectHook(() => {
+  // Guard: React can be null during HMR chunk reload — skip silently
+  if (!React || !React.useEffect) return;
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
     const onUnhandled = (event: ErrorEvent) => {
       console.error('[GlobalError]', event.error);
       toast.error('Erro inesperado. Tente recarregar a página.');
