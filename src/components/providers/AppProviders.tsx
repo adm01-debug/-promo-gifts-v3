@@ -1,12 +1,12 @@
 /**
  * AppProviders — Consolidates all context providers to reduce nesting in App.tsx.
  * Providers are grouped by domain for clarity and maintainability.
+ * 
+ * NOTE: Comparison, Favorites, and RecentlyViewed have been migrated to Zustand stores
+ * and no longer need providers. Their context files export no-op providers for compat.
  */
 import { ReactNode } from "react";
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
-import { ComparisonProvider } from "@/contexts/ComparisonContext";
-import { FavoritesProvider } from "@/contexts/FavoritesContext";
-import { RecentlyViewedProvider } from "@/contexts/RecentlyViewedContext";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
 
@@ -24,13 +24,7 @@ export function AppProviders({ children }: AppProvidersProps) {
     <OrganizationProvider>
       <ProductsProvider>
         <CollectionsProvider>
-          <ComparisonProvider>
-            <FavoritesProvider>
-              <RecentlyViewedProvider>
-                {children}
-              </RecentlyViewedProvider>
-            </FavoritesProvider>
-          </ComparisonProvider>
+          {children}
         </CollectionsProvider>
       </ProductsProvider>
     </OrganizationProvider>
