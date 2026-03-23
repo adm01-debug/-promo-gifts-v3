@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { registerServiceWorker } from "@/lib/sw-register";
+import { initWebVitals } from "@/lib/web-vitals";
 import EnhancedErrorBoundary from "@/components/errors/EnhancedErrorBoundary";
 import App from "./App.tsx";
 import "./index.css";
@@ -21,6 +22,9 @@ createRoot(root).render(
     </HelmetProvider>
   </Fragment>
 );
+
+// Web Vitals tracking
+initWebVitals();
 
 // Registrar Service Worker para PWA (apenas em produção para evitar cache issues no preview)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

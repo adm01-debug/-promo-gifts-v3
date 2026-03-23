@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useMemo } from "react";
+import { useState, useEffect, forwardRef, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -83,11 +83,10 @@ NotificationTrigger.displayName = "NotificationTrigger";
 
 // ─── Main component ─────────────────────────────────────────
 
-export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndicatorProps>(
-  function StockAlertsIndicator(
-    { lowStockThreshold = 50, criticalStockThreshold = 10 },
-    ref
-  ) {
+export function StockAlertsIndicator({
+  lowStockThreshold = 50,
+  criticalStockThreshold = 10,
+}: StockAlertsIndicatorProps) {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -264,7 +263,7 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
     if (isLoading || counts.total === 0) return null;
 
     return (
-      <div ref={ref}>
+      <div>
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <PopoverTrigger asChild>
             <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} aria-label="Notificações" />
@@ -438,5 +437,4 @@ export const StockAlertsIndicator = forwardRef<HTMLDivElement, StockAlertsIndica
         </Popover>
       </div>
     );
-  }
-);
+}
