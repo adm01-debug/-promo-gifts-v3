@@ -235,7 +235,11 @@ export default function AdminTelemetriaPage() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!rows.length}>
               <Download className="h-3.5 w-3.5 mr-1.5" />
-              Exportar CSV
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={!rows.length}>
+              <FileText className="h-3.5 w-3.5 mr-1.5" />
+              PDF
             </Button>
             <Button variant="outline" size="sm" onClick={handleCleanup}>
               <Trash2 className="h-3.5 w-3.5 mr-1.5" />
