@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { supabase } from "@/integrations/supabase/client";
+
 import { cn } from "@/lib/utils";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -98,17 +98,10 @@ export function StockAlertsIndicator({
     useEffect(() => {
       fetchAllNotifications();
 
-      const channel = supabase
-        .channel("stock-alerts")
-        .on("postgres_changes", {
-          event: "UPDATE",
-          schema: "public",
-          table: "products",
-          filter: `stock=lt.${lowStockThreshold}`,
-        }, () => fetchAllNotifications())
-        .subscribe();
-
-      return () => { supabase.removeChannel(channel); };
+      // Products live in an external DB — no realtime channel available.
+      // Poll every 5 minutes instead.
+      const interval = setInterval(fetchAllNotifications, 5 * 60 * 1000);
+      return () => clearInterval(interval);
     }, [lowStockThreshold]);
 
     const fetchAllNotifications = async () => {
