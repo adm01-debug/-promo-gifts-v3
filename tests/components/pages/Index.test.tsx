@@ -97,6 +97,14 @@ vi.mock("@/components/common/EmptyState", () => ({
   EmptyState: () => <div data-testid="empty-state" />,
 }));
 
+vi.mock("@/components/catalog/CatalogActiveFilters", () => ({
+  CatalogActiveFilters: () => <div data-testid="catalog-active-filters" />,
+}));
+
+vi.mock("@/components/catalog/CatalogContent", () => ({
+  CatalogContent: () => <div data-testid="catalog-content" />,
+}));
+
 vi.mock("@/components/compare/FloatingCompareBar", () => ({
   FloatingCompareBar: () => null,
 }));
