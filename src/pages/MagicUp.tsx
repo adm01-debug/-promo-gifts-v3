@@ -90,6 +90,7 @@ export default function MagicUp() {
 
   // Product
   const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [colors, setColors] = useState<ProductColor[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
