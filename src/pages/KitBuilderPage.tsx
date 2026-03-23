@@ -143,7 +143,7 @@ export default function KitBuilderPage() {
           table: 'products',
           operation: 'select',
           filters: { id: productIdParam },
-          select: 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, weight_g, width_mm, height_mm, length_mm, width_cm, height_cm, length_cm, materials, is_kit, category_id',
+          select: 'id, name, sku, sale_price, cost_price, primary_image_url, weight_g, width_mm, height_mm, length_mm, width_cm, height_cm, length_cm, materials, is_kit, category_id',
           limit: 1,
         });
 
