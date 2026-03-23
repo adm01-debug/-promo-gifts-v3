@@ -94,7 +94,7 @@ export function getProductStock(product: PromobrindProduct): number {
 
 // Select field constants
 export const PRODUCT_SELECT_FIELDS_WITH_SALE =
-  'id, name, sku, sale_price, cost_price, image_url, images, primary_image_url, ' +
+  'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity, created_at, updated_at, ' +
