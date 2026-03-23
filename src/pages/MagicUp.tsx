@@ -616,16 +616,54 @@ CENÁRIO: ${effectivePrompt}`;
           })}
         </div>
 
-        {/* Loading State */}
+        {/* Loading Skeleton State */}
         {loadingProducts && (
-          <div className="flex flex-col items-center justify-center py-20 space-y-4">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-4 border-muted animate-spin border-t-primary" />
-              <Sparkles className="absolute inset-0 m-auto h-6 w-6 text-primary" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left column skeleton */}
+            <div className="space-y-4">
+              {/* Client card skeleton */}
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                  <div className="h-4 w-20 rounded bg-muted animate-pulse" />
+                </div>
+                <div className="h-3 w-48 rounded bg-muted animate-pulse" />
+                <div className="h-10 w-full rounded-md bg-muted animate-pulse" />
+              </div>
+              {/* Product card skeleton */}
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                  <div className="h-4 w-28 rounded bg-muted animate-pulse" />
+                </div>
+                <div className="h-10 w-full rounded-md bg-muted animate-pulse" />
+                <div className="flex gap-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-16 w-16 rounded-lg bg-muted animate-pulse" style={{ animationDelay: `${i * 120}ms` }} />
+                  ))}
+                </div>
+              </div>
+              {/* Prompt card skeleton */}
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                  <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+                </div>
+                <div className="h-24 w-full rounded-md bg-muted animate-pulse" />
+                <div className="h-10 w-full rounded-md bg-muted animate-pulse" />
+              </div>
             </div>
-            <div className="text-center space-y-1">
-              <p className="text-lg font-medium text-foreground">Carregando catálogo...</p>
-              <p className="text-sm text-muted-foreground">Preparando produtos para criação publicitária</p>
+            {/* Right column skeleton */}
+            <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 rounded bg-muted animate-pulse" />
+                <div className="h-4 w-24 rounded bg-muted animate-pulse" />
+              </div>
+              <div className="aspect-square w-full rounded-lg bg-muted animate-pulse" />
+              <div className="flex gap-2">
+                <div className="h-9 flex-1 rounded-md bg-muted animate-pulse" />
+                <div className="h-9 flex-1 rounded-md bg-muted animate-pulse" />
+              </div>
             </div>
           </div>
         )}
