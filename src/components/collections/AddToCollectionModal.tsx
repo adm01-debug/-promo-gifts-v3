@@ -195,5 +195,4 @@ export const AddToCollectionModal = ({
       </DialogContent>
     </Dialog>
   );
-});
-AddToCollectionModal.displayName = "AddToCollectionModal";
+};
