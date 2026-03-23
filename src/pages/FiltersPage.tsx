@@ -572,7 +572,7 @@ export default function FiltersPage() {
     }
 
     return result;
-  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
+  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, hasColorFilter, colorFilteredProductIds, isLoadingColorFilter]);
 
   // Toast indicando quantos produtos foram encontrados após busca
   const prevSearchRef = useRef<string>('');
