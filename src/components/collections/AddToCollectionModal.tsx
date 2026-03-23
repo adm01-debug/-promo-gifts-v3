@@ -1,4 +1,4 @@
-import { useState, forwardRef } from "react";
+import { useState } from "react";
 import { Plus, Check, FolderPlus } from "lucide-react";
 import {
   Dialog,
