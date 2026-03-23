@@ -35,8 +35,8 @@ import {
 } from "lucide-react";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { SmartSearchInput } from "@/components/search";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
