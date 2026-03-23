@@ -102,10 +102,32 @@ export default function FiltersPage() {
   // Combinar: prioridade para busca do FilterPanel, senão URL
   const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
 
-  // Buscar produtos reais do banco de dados com busca server-side
-  const { data: realProducts = [], isLoading: isLoadingProducts } = useProducts(
+  // Progressive loading: uses lightweight catalog (reuses prefetch cache, ~2s first paint)
+  const {
+    data: catalogData,
+    isLoading: isLoadingProducts,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useProductsCatalog(
     serverSearchTerm ? { search: serverSearchTerm } : undefined
   );
+
+  // Auto-fetch ALL remaining pages for complete filtering
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Flatten infinite query pages into a single array
+  const realProducts = useMemo(() => {
+    if (!catalogData?.pages) return [];
+    return catalogData.pages.flatMap(page => page.products);
+  }, [catalogData]);
+
+  const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
+  const isFullyLoaded = !hasNextPage && !isFetchingNextPage;
 
   // #22 Deep linking: serialize filters to URL on change
   useEffect(() => {
