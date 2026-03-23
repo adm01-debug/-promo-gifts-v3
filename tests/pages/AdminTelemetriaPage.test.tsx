@@ -436,7 +436,7 @@ describe('AdminTelemetriaPage - Top Offenders', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getAllByText('max 12.0s').length).toBeGreaterThanOrEqual(1();
+      expect(screen.getAllByText('max 12.0s').length).toBeGreaterThanOrEqual(1);
     });
   });
 
