@@ -84,10 +84,10 @@ const RolesPage = lazyWithRetry(() => import("./pages/RolesPage"));
 const RolePermissionsPage = lazyWithRetry(() => import("./pages/RolePermissionsPage"));
 
 // Dashboard
-const CustomizableDashboard = lazy(() => import("./pages/CustomizableDashboard"));
+const CustomizableDashboard = lazyWithRetry(() => import("./pages/CustomizableDashboard"));
 
 // Auth Callbacks
-const SSOCallbackPage = lazy(() => import("./pages/SSOCallbackPage"));
+const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
 
