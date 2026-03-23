@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Key, Plus, Edit, Trash2 } from 'lucide-react';
+import { BackButton } from '@/components/common/BackButton';
 
 interface Permission {
   id: string;

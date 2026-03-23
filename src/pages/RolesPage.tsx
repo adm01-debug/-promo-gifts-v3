@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Plus, Edit, Trash2, Users } from 'lucide-react';
+import { BackButton } from '@/components/common/BackButton';
 
 interface Role {
   id: string;
