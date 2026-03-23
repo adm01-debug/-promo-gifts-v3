@@ -61,7 +61,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </Suspense>
       </div>
       
-      <div className="flex" role="presentation">
+      <div className="flex">
         <div className="print:hidden">
           <Suspense fallback={<div className="w-64" />}>
             <SidebarReorganized 
