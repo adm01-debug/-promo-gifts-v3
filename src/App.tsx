@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -84,10 +84,10 @@ const RolesPage = lazyWithRetry(() => import("./pages/RolesPage"));
 const RolePermissionsPage = lazyWithRetry(() => import("./pages/RolePermissionsPage"));
 
 // Dashboard
-const CustomizableDashboard = lazy(() => import("./pages/CustomizableDashboard"));
+const CustomizableDashboard = lazyWithRetry(() => import("./pages/CustomizableDashboard"));
 
 // Auth Callbacks
-const SSOCallbackPage = lazy(() => import("./pages/SSOCallbackPage"));
+const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
 
@@ -139,7 +139,7 @@ const App = () => {
                           <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
                           {/* Protected Layout Route */}
-                          <Route element={<ProtectedRoute />}>
+                          <Route element={<ProtectedRoute />} errorElement={<RouteErrorBoundary />}>
                             {/* Home */}
                             <Route path="/" element={<Index />} />
                             <Route path="/dashboard" element={<CustomizableDashboard />} />
@@ -169,7 +169,7 @@ const App = () => {
                             <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
                             {/* Admin Layout Route */}
-                            <Route element={<AdminRoute />}>
+                            <Route element={<AdminRoute />} errorElement={<RouteErrorBoundary />}>
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                               <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
