@@ -32,20 +32,31 @@ interface TelemetryRow {
 }
 
 type SeverityFilter = "all" | "slow" | "very_slow" | "error";
-type TimeFilter = "1h" | "6h" | "24h" | "7d";
+type TimeFilter = "1h" | "6h" | "24h" | "7d" | "custom";
 
 export default function AdminTelemetriaPage() {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("24h");
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined);
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined);
 
-  const getTimeThreshold = () => {
+  const getTimeThreshold = (): { from: string; to: string } => {
     const now = new Date();
-    switch (timeFilter) {
-      case "1h": return new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-      case "6h": return new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString();
-      case "24h": return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-      case "7d": return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    if (timeFilter === "custom" && customDateFrom) {
+      const from = new Date(customDateFrom);
+      from.setHours(0, 0, 0, 0);
+      const to = customDateTo ? new Date(customDateTo) : new Date();
+      to.setHours(23, 59, 59, 999);
+      return { from: from.toISOString(), to: to.toISOString() };
     }
+    let ms = 24 * 60 * 60 * 1000;
+    switch (timeFilter) {
+      case "1h": ms = 60 * 60 * 1000; break;
+      case "6h": ms = 6 * 60 * 60 * 1000; break;
+      case "24h": ms = 24 * 60 * 60 * 1000; break;
+      case "7d": ms = 7 * 24 * 60 * 60 * 1000; break;
+    }
+    return { from: new Date(now.getTime() - ms).toISOString(), to: now.toISOString() };
   };
 
   const { data: rows = [], isLoading, refetch, isRefetching } = useQuery<TelemetryRow[]>({
