@@ -138,91 +138,84 @@ const App = () => {
                           <Route path="/kit/:token" element={<PublicKitView />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
-                          {/* Protected Routes */}
-                          <Route
-                            path="/*"
-                            element={
-                              <ProtectedRoute>
-                                <Routes>
-                                  {/* Home */}
-                                  <Route path="/" element={<Index />} />
-                                  <Route path="/dashboard" element={<CustomizableDashboard />} />
+                          {/* Protected Layout Route */}
+                          <Route element={<ProtectedRoute />}>
+                            {/* Home */}
+                            <Route path="/" element={<Index />} />
+                            <Route path="/dashboard" element={<CustomizableDashboard />} />
 
-                                  {/* Products */}
-                                  <Route path="/produtos" element={<FiltersPage />} />
-                                  <Route path="/produto" element={<Navigate to="/produtos" replace />} />
-                                  <Route path="/produto/:id" element={<ProductDetail />} />
-                                  <Route path="/filtros" element={<FiltersPage />} />
-                                  <Route path="/novidades" element={<NoveltiesPage />} />
-                                  <Route path="/favoritos" element={<FavoritesPage />} />
-                                  <Route path="/carrinhos" element={<SellerCartsPage />} />
-                                  <Route path="/carrinhos/novo" element={<SellerCartsPage />} />
-                                  <Route path="/carrinhos/:cartId" element={<SellerCartsPage />} />
-                                  <Route path="/comparar" element={<ComparePage />} />
-                                  <Route path="/colecoes" element={<CollectionsPage />} />
-                                  <Route path="/colecoes/:id" element={<CollectionDetailPage />} />
+                            {/* Products */}
+                            <Route path="/produtos" element={<FiltersPage />} />
+                            <Route path="/produto" element={<Navigate to="/produtos" replace />} />
+                            <Route path="/produto/:id" element={<ProductDetail />} />
+                            <Route path="/filtros" element={<FiltersPage />} />
+                            <Route path="/novidades" element={<NoveltiesPage />} />
+                            <Route path="/favoritos" element={<FavoritesPage />} />
+                            <Route path="/carrinhos" element={<SellerCartsPage />} />
+                            <Route path="/carrinhos/novo" element={<SellerCartsPage />} />
+                            <Route path="/carrinhos/:cartId" element={<SellerCartsPage />} />
+                            <Route path="/comparar" element={<ComparePage />} />
+                            <Route path="/colecoes" element={<CollectionsPage />} />
+                            <Route path="/colecoes/:id" element={<CollectionDetailPage />} />
 
-                                  {/* Quotes */}
-                                  <Route path="/orcamentos" element={<QuotesListPage />} />
-                                  <Route path="/orcamentos/dashboard" element={<QuotesDashboardPage />} />
-                                  <Route path="/orcamentos/lista" element={<QuotesListPage />} />
-                                  <Route path="/orcamentos/kanban" element={<QuotesKanbanPage />} />
-                                  <Route path="/orcamentos/templates" element={<QuoteTemplatesPage />} />
-                                  <Route path="/orcamentos/novo" element={<QuoteBuilderPage />} />
-                                  <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
-                                  <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
+                            {/* Quotes */}
+                            <Route path="/orcamentos" element={<QuotesListPage />} />
+                            <Route path="/orcamentos/dashboard" element={<QuotesDashboardPage />} />
+                            <Route path="/orcamentos/lista" element={<QuotesListPage />} />
+                            <Route path="/orcamentos/kanban" element={<QuotesKanbanPage />} />
+                            <Route path="/orcamentos/templates" element={<QuoteTemplatesPage />} />
+                            <Route path="/orcamentos/novo" element={<QuoteBuilderPage />} />
+                            <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
+                            <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
-                                  {/* Admin */}
-                                  <Route path="/configuracoes" element={<Navigate to="/admin/usuarios" replace />} />
-                                  <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
-                                  <Route path="/admin/usuarios" element={<AdminRoute><AdminUsuariosPage /></AdminRoute>} />
-                                  <Route path="/admin/seguranca" element={<AdminRoute><AdminSegurancaPage /></AdminRoute>} />
-                                  <Route path="/admin/cadastros" element={<AdminRoute><AdminCadastrosPage /></AdminRoute>} />
-                                  <Route path="/admin/cadastros/produto/:id" element={<AdminRoute><AdminProductFormPage /></AdminRoute>} />
-                                  <Route path="/admin/prompts-ia" element={<AdminRoute><AdminPromptsIAPage /></AdminRoute>} />
-                                  <Route path="/admin/telemetria" element={<AdminRoute><AdminTelemetriaPage /></AdminRoute>} />
-                                  <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
-                                  <Route path="/cadastro-produtos" element={<Navigate to="/admin/cadastros" replace />} />
-                                  <Route path="/cadastro-gravacao" element={<Navigate to="/admin/cadastros" replace />} />
-                                  <Route path="/admin/permissoes" element={<AdminRoute><PermissionsPage /></AdminRoute>} />
-                                  <Route path="/admin/roles" element={<AdminRoute><RolesPage /></AdminRoute>} />
-                                  <Route path="/admin/role-permissoes" element={<AdminRoute><RolePermissionsPage /></AdminRoute>} />
-                                  <Route path="/admin/rate-limit" element={<AdminRoute><RateLimitDashboard /></AdminRoute>} />
+                            {/* Admin Layout Route */}
+                            <Route element={<AdminRoute />}>
+                              <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
+                              <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
+                              <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
+                              <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
+                              <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
+                              <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
+                              <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
+                              <Route path="/admin/permissoes" element={<PermissionsPage />} />
+                              <Route path="/admin/roles" element={<RolesPage />} />
+                              <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
+                              <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
+                              <Route path="/bi" element={<BIDashboard />} />
+                              <Route path="/tendencias" element={<TrendsPage />} />
+                              <Route path="/status" element={<SystemStatusPage />} />
+                              <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
+                            </Route>
 
-                                  {/* Tools */}
-                                  <Route path="/simulador" element={<SimuladorWizard />} />
-                                  <Route path="/simulador-precos" element={<PriceSimulatorPage />} />
-                                  <Route path="/estoque" element={<StockDashboardPage />} />
-                                  <Route path="/busca-preco" element={<AdvancedPriceSearchPage />} />
-                                  <Route path="/montar-kit" element={<KitBuilderPage />} />
-                                  <Route path="/kit-builder" element={<Navigate to="/montar-kit" replace />} />
-                                  <Route path="/meus-kits" element={<MeusKitsPage />} />
-                                  <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
-                                  <Route path="/mockup-generator" element={<MockupGenerator />} />
-                                  <Route path="/magic-up" element={<MagicUp />} />
+                            {/* Redirects */}
+                            <Route path="/configuracoes" element={<Navigate to="/admin/usuarios" replace />} />
+                            <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
+                            <Route path="/cadastro-produtos" element={<Navigate to="/admin/cadastros" replace />} />
+                            <Route path="/cadastro-gravacao" element={<Navigate to="/admin/cadastros" replace />} />
 
-                                  {/* Orders */}
-                                  <Route path="/pedidos" element={<OrdersPage />} />
-                                  <Route path="/pedidos/:id" element={<OrderDetailPage />} />
+                            {/* Tools */}
+                            <Route path="/simulador" element={<SimuladorWizard />} />
+                            <Route path="/simulador-precos" element={<PriceSimulatorPage />} />
+                            <Route path="/estoque" element={<StockDashboardPage />} />
+                            <Route path="/busca-preco" element={<AdvancedPriceSearchPage />} />
+                            <Route path="/montar-kit" element={<KitBuilderPage />} />
+                            <Route path="/kit-builder" element={<Navigate to="/montar-kit" replace />} />
+                            <Route path="/meus-kits" element={<MeusKitsPage />} />
+                            <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
+                            <Route path="/mockup-generator" element={<MockupGenerator />} />
+                            <Route path="/magic-up" element={<MagicUp />} />
 
-                                  {/* User */}
-                                  <Route path="/perfil" element={<ProfilePage />} />
-                                  <Route path="/seguranca" element={<Navigate to="/perfil" replace />} />
+                            {/* Orders */}
+                            <Route path="/pedidos" element={<OrdersPage />} />
+                            <Route path="/pedidos/:id" element={<OrderDetailPage />} />
 
-                                  {/* Analytics */}
-                                  <Route path="/bi" element={<AdminRoute><BIDashboard /></AdminRoute>} />
-                                  <Route path="/tendencias" element={<AdminRoute><TrendsPage /></AdminRoute>} />
+                            {/* User */}
+                            <Route path="/perfil" element={<ProfilePage />} />
+                            <Route path="/seguranca" element={<Navigate to="/perfil" replace />} />
 
-                                  {/* System */}
-                                  <Route path="/status" element={<AdminRoute><SystemStatusPage /></AdminRoute>} />
-                                  <Route path="/external-db-test" element={<AdminRoute><ExternalDatabaseTest /></AdminRoute>} />
-
-                                  {/* Fallback */}
-                                  <Route path="*" element={<NotFound />} />
-                                </Routes>
-                              </ProtectedRoute>
-                            }
-                          />
+                            {/* Fallback */}
+                            <Route path="*" element={<NotFound />} />
+                          </Route>
                         </Routes>
                       </Suspense>
                     </AppProviders>
