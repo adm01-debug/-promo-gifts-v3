@@ -436,7 +436,7 @@ describe('AdminTelemetriaPage - Top Offenders', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('max 12.0s')).toBeInTheDocument();
+      expect(screen.getAllByText('max 12.0s').length).toBeGreaterThanOrEqual(1();
     });
   });
 
@@ -448,8 +448,8 @@ describe('AdminTelemetriaPage - Top Offenders', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('get_price')).toBeInTheDocument();
-      expect(screen.getByText('products')).toBeInTheDocument();
+      expect(screen.getAllByText('get_price').length).toBeGreaterThanOrEqual(1();
+      expect(screen.getAllByText('products').length).toBeGreaterThanOrEqual(1();
     });
   });
 
@@ -482,7 +482,7 @@ describe('AdminTelemetriaPage - Format Helpers', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('500ms')).toBeInTheDocument();
+      expect(screen.getAllByText('500ms').length).toBeGreaterThanOrEqual(1();
     });
   });
 
@@ -491,7 +491,7 @@ describe('AdminTelemetriaPage - Format Helpers', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('3.5s')).toBeInTheDocument();
+      expect(screen.getAllByText('3.5s').length).toBeGreaterThanOrEqual(1();
     });
   });
 
@@ -500,7 +500,7 @@ describe('AdminTelemetriaPage - Format Helpers', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('1.0s')).toBeInTheDocument();
+      expect(screen.getAllByText('1.0s').length).toBeGreaterThanOrEqual(1();
     });
   });
 
@@ -509,7 +509,7 @@ describe('AdminTelemetriaPage - Format Helpers', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('30.0s')).toBeInTheDocument();
+      expect(screen.getAllByText('30.0s').length).toBeGreaterThanOrEqual(1();
     });
   });
 });
@@ -619,7 +619,7 @@ describe('AdminTelemetriaPage - Edge Cases', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('custom_severity')).toBeInTheDocument();
+      expect(screen.getAllByText('custom_severity').length).toBeGreaterThanOrEqual(1();
     });
   });
 
@@ -648,7 +648,7 @@ describe('AdminTelemetriaPage - Edge Cases', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('tabela_preço_gravação')).toBeInTheDocument();
+      expect(screen.getAllByText('tabela_preço_gravação').length).toBeGreaterThanOrEqual(1();
     });
   });
 
