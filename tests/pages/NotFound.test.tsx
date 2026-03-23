@@ -10,14 +10,14 @@ describe('NotFound Page', () => {
     expect(screen.getByText('404')).toBeInTheDocument();
   });
 
-  it('renders description text', () => {
+  it('renders description text in Portuguese', () => {
     renderWithProviders(<NotFound />);
-    expect(screen.getByText(/page not found/i)).toBeInTheDocument();
+    expect(screen.getByText(/página não encontrada/i)).toBeInTheDocument();
   });
 
   it('renders return to home link', () => {
     renderWithProviders(<NotFound />);
-    const link = screen.getByText(/return to home/i);
+    const link = screen.getByText(/ir para o início/i);
     expect(link).toBeInTheDocument();
     expect(link.closest('a')).toHaveAttribute('href', '/');
   });
