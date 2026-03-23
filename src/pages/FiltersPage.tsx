@@ -429,7 +429,6 @@ export default function FiltersPage() {
     } else if (hasColorFilter && colorFilteredProductIds.size === 0 && !isLoadingColorFilter) {
       result = [];
     }
-    }
 
 
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
