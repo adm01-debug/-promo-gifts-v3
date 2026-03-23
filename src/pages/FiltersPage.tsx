@@ -35,8 +35,8 @@ import {
 } from "lucide-react";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { SmartSearchInput } from "@/components/search";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
@@ -48,8 +48,8 @@ import { toast } from "sonner";
 export default function FiltersPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { isFavorite, toggleFavorite } = useFavoritesContext();
-  const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const isInitialMount = useRef(true);
 
   // #22 Deep linking: deserialize filters from URL on mount

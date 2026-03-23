@@ -132,7 +132,7 @@ export function useComparison(options?: UseComparisonOptions) {
     removeFromCompare,
     toggleCompare,
     isInCompare,
-    /** @deprecated Use getCompareProducts from ComparisonContext instead */
+    /** @deprecated Use getProductsByIds from ProductsContext with compareIds from useComparisonStore instead */
     getCompareProductsFromMap,
     clearCompare,
     canAddMore,

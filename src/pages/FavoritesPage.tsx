@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +17,14 @@ import { Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
-  const { getFavoriteProducts, clearFavorites, favoriteCount, toggleFavorite } =
-    useFavoritesContext();
+  const { favorites, clearFavorites, favoriteCount, toggleFavorite } =
+    useFavoritesStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const favoriteProducts = getFavoriteProducts();
+  const favoriteProducts = useMemo(
+    () => getProductsByIds(favorites.map((f) => f.productId)),
+    [getProductsByIds, favorites]
+  );
 
   const handleClearAll = () => {
     clearFavorites();

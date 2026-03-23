@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -35,10 +37,11 @@ import { useComparisonHighlight, highlightClasses } from "@/components/compare/C
 
 export default function ComparePage() {
   const navigate = useNavigate();
-  const { getCompareProducts, removeFromCompare, clearCompare, compareCount } =
-    useComparisonContext();
+  const { compareIds, removeFromCompare, clearCompare, compareCount } =
+    useComparisonStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const products = getCompareProducts();
+  const products = useMemo(() => getProductsByIds(compareIds), [getProductsByIds, compareIds]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {

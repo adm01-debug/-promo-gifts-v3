@@ -12,8 +12,8 @@ import { useProductsCatalog } from "@/hooks/useProductsLightweight";
 import type { Product } from "@/hooks/useProducts";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useSearch } from "@/hooks/useSearch";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
@@ -30,8 +30,8 @@ export function useCatalogState() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesContext();
-  const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesStore();
+  const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const { registerProducts } = useProductsContext();
 
   const searchQueryFromUrl = searchParams.get("search") || "";

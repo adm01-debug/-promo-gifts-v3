@@ -1,19 +1,21 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { GitCompare, X, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
 
 export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
   function FloatingCompareBar(_props, ref) {
   const navigate = useNavigate();
-  const { getCompareProducts, removeFromCompare, clearCompare, compareCount } =
-    useComparisonContext();
+  const { compareIds, removeFromCompare, clearCompare, compareCount } =
+    useComparisonStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const compareProducts = getCompareProducts();
+  const compareProducts = useMemo(() => getProductsByIds(compareIds), [getProductsByIds, compareIds]);
 
   if (compareCount === 0) return null;
 

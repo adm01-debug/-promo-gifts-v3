@@ -1,9 +1,11 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
+import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,13 +16,17 @@ interface RecentlyViewedPopoverProps {
 export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopoverProps) {
   const navigate = useNavigate();
   const {
+    items,
     itemCount,
-    getRecentlyViewedProducts,
     removeFromRecentlyViewed,
     clearRecentlyViewed,
-  } = useRecentlyViewedContext();
+  } = useRecentlyViewedStore();
+  const { getProductsByIds } = useProductsContext();
 
-  const products = getRecentlyViewedProducts().slice(0, maxVisible);
+  const products = useMemo(
+    () => getProductsByIds(items.map((i) => i.productId)).slice(0, maxVisible),
+    [getProductsByIds, items, maxVisible]
+  );
 
   return (
     <Popover>

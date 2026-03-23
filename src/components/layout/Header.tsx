@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
@@ -37,8 +37,8 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const { theme, actualTheme, setTheme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { favoriteCount } = useFavoritesContext();
-  const { compareCount } = useComparisonContext();
+  const favoriteCount = useFavoritesStore((s) => s.favoriteCount);
+  const compareCount = useComparisonStore((s) => s.compareCount);
   const { user, profile, role, isAdmin, signOut } = useAuth();
   
   // Hook para detectar scroll (AN-10)

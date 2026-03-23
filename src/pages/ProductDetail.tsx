@@ -48,9 +48,9 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { PopularityBadge, LowStockAlert, TrustBadgesRow } from "@/components/common/SocialProof";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
-import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
+import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
 // useProducts removed - using useRelatedProducts instead
 
 export default function ProductDetail() {
@@ -59,13 +59,13 @@ export default function ProductDetail() {
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
-  const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesContext();
+  const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
-  const { addToRecentlyViewed } = useRecentlyViewedContext();
+  const { addToRecentlyViewed } = useRecentlyViewedStore();
   const { registerProducts } = useProductsContext();
 
   // Buscar produto no banco (mesma fonte da vitrine)

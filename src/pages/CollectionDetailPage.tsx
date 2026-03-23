@@ -6,8 +6,8 @@ import { ProductGrid } from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { toast } from "sonner";
 
 export default function CollectionDetailPage() {
@@ -18,8 +18,8 @@ export default function CollectionDetailPage() {
     getCollectionProducts,
     removeProductFromCollection,
   } = useCollectionsContext();
-  const { isFavorite, toggleFavorite } = useFavoritesContext();
-  const { isInCompare, toggleCompare, canAddMore } = useComparisonContext();
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
 
   const collection = useMemo(() => {
     return collections.find((c) => c.id === id);
