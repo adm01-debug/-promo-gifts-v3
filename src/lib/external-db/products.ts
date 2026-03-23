@@ -304,7 +304,7 @@ async function enrichProducts(
     const allById = byVariantId.length === 0
       ? productImgs.filter(img => img.variantId === variant.id).sort((a, b) => a.order - b.order).map(img => img.url)
       : [];
-    const legacy = variant.selected_images?.length ? variant.selected_images : variant.images?.length ? variant.images : [];
+    const legacy = variant.images?.length ? variant.images : [];
     const finalImages = byVariantId.length > 0 ? byVariantId : byCode.length > 0 ? byCode : allById.length > 0 ? allById : legacy;
     const thumbnailImage = finalImages[0] || variant.selected_thumbnail || null;
 

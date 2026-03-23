@@ -124,7 +124,7 @@ export async function fetchPromobrindProductById(
         const byCode = variant.color_code
           ? allProductImages.filter(img => img.supplier_code === variant.color_code).sort((a, b) => a.display_order - b.display_order).map(img => img.url_cdn)
           : [];
-        const legacy = variant.selected_images?.length ? variant.selected_images : variant.images?.length ? variant.images : [];
+        const legacy = variant.images?.length ? variant.images : [];
         const finalImages = byCode.length > 0 ? byCode : legacy;
         const thumb = finalImages[0] || variant.selected_thumbnail || product.primary_image_url || product.image_url || null;
         uniqueColors.push({
