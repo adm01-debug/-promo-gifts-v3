@@ -765,9 +765,9 @@ export default function FiltersPage() {
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                   Super Filtro
                   <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
-                    · {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                    · {isLoadingProducts && realProducts.length === 0
                       ? 'carregando...'
-                      : `${filteredProducts.length.toLocaleString("pt-BR")} itens`}
+                      : `${filteredProducts.length.toLocaleString("pt-BR")}${!isFullyLoaded ? '+' : ''} itens`}
                   </span>
                 </h1>
               </div>
