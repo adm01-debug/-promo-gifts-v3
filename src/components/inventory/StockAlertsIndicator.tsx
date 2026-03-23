@@ -437,5 +437,4 @@ export function StockAlertsIndicator({
         </Popover>
       </div>
     );
-  }
-);
+}
