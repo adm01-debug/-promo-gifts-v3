@@ -41,7 +41,6 @@ export function useExternalVariantStock(productId: string | undefined) {
           stock_quantity: number | null;
           selected_thumbnail: string | null;
           images: string[] | null;
-          selected_images: string[] | null;
           bitrix_product_id: string | number | null;
         }>({
           table: 'product_variants',
