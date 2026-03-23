@@ -70,8 +70,6 @@ export default function AdminTelemetriaPage() {
         .lte("created_at", to)
         .order("created_at", { ascending: false })
         .limit(500);
-        .order("created_at", { ascending: false })
-        .limit(200);
 
       if (severityFilter !== "all") {
         query = query.eq("severity", severityFilter);
