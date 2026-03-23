@@ -1103,6 +1103,7 @@ CENÁRIO: ${effectivePrompt}`;
             )}
           </div>
         </div>
+        )}
       </div>
     </MainLayout>
   );
