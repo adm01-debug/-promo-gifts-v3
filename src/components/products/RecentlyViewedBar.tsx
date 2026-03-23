@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Clock, ChevronRight, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
+import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
 
 interface RecentlyViewedBarProps {
