@@ -1,0 +1,78 @@
+import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claims, error: authError } = await supabase.auth.getClaims(token);
+    if (authError || !claims?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const userId = claims.claims.sub as string;
+    const body = await req.json();
+
+    // Accept single metric or array of metrics
+    const metrics = Array.isArray(body) ? body : [body];
+
+    const rows = metrics.map((m: Record<string, unknown>) => ({
+      user_id: userId,
+      metric_name: String(m.name || ""),
+      metric_value: Number(m.value) || 0,
+      rating: m.rating ? String(m.rating) : null,
+      delta: m.delta != null ? Number(m.delta) : null,
+      navigation_type: m.navigationType ? String(m.navigationType) : null,
+      page_url: m.url ? String(m.url) : null,
+      user_agent: req.headers.get("User-Agent"),
+    }));
+
+    const { error: insertError } = await supabase
+      .from("web_vitals")
+      .insert(rows);
+
+    if (insertError) {
+      console.error("[store-web-vitals] Insert error:", insertError);
+      return new Response(JSON.stringify({ error: insertError.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ ok: true, count: rows.length }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("[store-web-vitals] Error:", err);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
