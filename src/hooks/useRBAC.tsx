@@ -1,4 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 export type RoleName = 'admin' | 'manager' | 'seller';
 
@@ -13,108 +16,99 @@ export interface Permission {
   resource: string;
 }
 
-// Define permissions for each role
-const rolePermissions: Record<RoleName, Permission[]> = {
-  admin: [
-    { action: '*', resource: '*' }, // Full access
-  ],
-  manager: [
-    { action: 'read', resource: '*' },
-    { action: 'create', resource: 'quotes' },
-    { action: 'update', resource: 'quotes' },
-    { action: 'delete', resource: 'quotes' },
-    { action: 'approve', resource: 'quotes' },
-    { action: 'create', resource: 'orders' },
-    { action: 'update', resource: 'orders' },
-    { action: 'read', resource: 'reports' },
-    { action: 'manage', resource: 'team' },
-    // Permissões de cadastro de produtos
-    { action: 'create', resource: 'products' },
-    { action: 'update', resource: 'products' },
-    { action: 'delete', resource: 'products' },
-    { action: 'import', resource: 'products' },
-    { action: 'manage', resource: 'suppliers' },
-    { action: 'manage', resource: 'categories' },
-  ],
-  seller: [
-    { action: 'read', resource: 'products' },
-    { action: 'read', resource: 'clients' },
-    { action: 'create', resource: 'quotes' },
-    { action: 'update', resource: 'quotes' },
-    { action: 'read', resource: 'quotes' },
-    { action: 'create', resource: 'orders' },
-    { action: 'read', resource: 'orders' },
-    { action: 'read', resource: 'mockups' },
-    { action: 'create', resource: 'mockups' },
-  ],
-};
+/**
+ * Mapeia permission_code do banco para o formato action/resource
+ * Ex: "create_quotes" → { action: "create", resource: "quotes" }
+ */
+function parsePermissionCode(code: string): Permission {
+  const idx = code.indexOf('_');
+  if (idx === -1) return { action: code, resource: '*' };
+  return {
+    action: code.substring(0, idx),
+    resource: code.substring(idx + 1),
+  };
+}
 
 /**
- * Hook de RBAC que usa role do AuthContext (fonte: tabela user_roles)
- * SEGURO: não usa profile.role (coluna editável pelo usuário)
+ * Hook de RBAC dinâmico — busca permissões da tabela role_permissions no banco.
+ * Fallback hardcoded para admin (wildcard) garante acesso mesmo se a query falhar.
  */
 export function useRBAC() {
-  const { role: authRole, isLoading: authLoading, profile } = useAuth();
-  
-  // Mapear role do user_roles (via AuthContext) para RoleName
+  const { role: authRole, isLoading: authLoading, profile, user } = useAuth();
+
   const getRoleName = (): RoleName => {
     const roleStr = authRole || 'seller';
-    // Suporte para "vendedor" (valor do enum no banco) → "seller" (valor interno do RBAC)
     if (roleStr === 'vendedor') return 'seller';
-    if (['admin', 'manager', 'seller'].includes(roleStr)) {
-      return roleStr as RoleName;
-    }
-    return 'seller'; // Default
+    if (['admin', 'manager', 'seller'].includes(roleStr)) return roleStr as RoleName;
+    return 'seller';
   };
 
   const roleName = getRoleName();
-  
+
+  // Map RoleName back to the DB enum for querying
+  const dbRole = roleName === 'seller' ? 'vendedor' : roleName;
+
+  const { data: dbPermissions, isLoading: permissionsLoading } = useQuery({
+    queryKey: ['role-permissions', dbRole],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('role_permissions')
+        .select('permission_code')
+        .eq('role', dbRole);
+
+      if (error) {
+        console.warn('Failed to fetch role permissions, using fallback:', error.message);
+        return null;
+      }
+      return data.map((row: { permission_code: string }) => row.permission_code);
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 min cache
+    gcTime: 10 * 60 * 1000,
+  });
+
+  const permissions = useMemo<Permission[]>(() => {
+    // Admin always has wildcard access
+    if (roleName === 'admin') {
+      return [{ action: '*', resource: '*' }];
+    }
+
+    if (!dbPermissions) return [];
+
+    return dbPermissions.map(parsePermissionCode);
+  }, [roleName, dbPermissions]);
+
   const role: Role = {
     id: profile?.id || '',
     name: roleName,
     description: getDescriptionForRole(roleName),
   };
 
-  /**
-   * Check if user has permission to perform an action on a resource
-   */
   const hasPermission = (action: string, resource: string): boolean => {
-    const permissions = rolePermissions[roleName] || [];
-    
-    return permissions.some(p => 
-      (p.action === '*' || p.action === action) &&
-      (p.resource === '*' || p.resource === resource)
+    return permissions.some(
+      (p) =>
+        (p.action === '*' || p.action === action) &&
+        (p.resource === '*' || p.resource === resource)
     );
   };
 
-  /**
-   * Check if user has any of the specified roles
-   */
-  const hasRole = (...roles: RoleName[]): boolean => {
-    return roles.includes(roleName);
+  const hasPermissionByCode = (code: string): boolean => {
+    if (roleName === 'admin') return true;
+    return dbPermissions?.includes(code) ?? false;
   };
 
-  /**
-   * Check if user is admin
-   */
-  const isAdmin = roleName === 'admin';
+  const hasRole = (...roles: RoleName[]): boolean => roles.includes(roleName);
 
-  /**
-   * Check if user is manager or above
-   */
+  const isAdmin = roleName === 'admin';
   const isManagerOrAbove = roleName === 'admin' || roleName === 'manager';
 
-  /**
-   * Get all permissions for current role
-   */
-  const getPermissions = (): Permission[] => {
-    return rolePermissions[roleName] || [];
-  };
+  const getPermissions = (): Permission[] => permissions;
 
   return {
     role,
-    isLoading: authLoading,
+    isLoading: authLoading || permissionsLoading,
     hasPermission,
+    hasPermissionByCode,
     hasRole,
     isAdmin,
     isManagerOrAbove,
