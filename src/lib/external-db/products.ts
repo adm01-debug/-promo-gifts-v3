@@ -185,7 +185,7 @@ async function enrichProducts(
       queryMap.variants.push(batchQueries.length);
       batchQueries.push({
         table: 'product_variants',
-        select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_images, selected_thumbnail',
+        select: 'product_id, color_name, color_hex, color_code, color_id, sku, stock_quantity, images, selected_thumbnail',
         filters: { is_active: true, product_id: chunk },
         limit: 1000, offset: 0,
       });
