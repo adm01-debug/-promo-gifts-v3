@@ -423,66 +423,12 @@ export default function FiltersPage() {
       );
     }
 
-    // Filtro por cores - sistema hierárquico (colorGroups / colorVariations / colorNuances)
-    // Lógica: variações são mais específicas que grupos; nuances se aplicam sobre qualquer cor
-    const hasGroupFilter = filters.colorGroups.length > 0;
-    const hasVariationFilter = filters.colorVariations.length > 0;
-    const hasNuanceFilter = filters.colorNuances.length > 0;
-    const hasLegacyColors = filters.colors.length > 0;
-    const hasColorFilter = hasGroupFilter || hasVariationFilter || hasNuanceFilter || hasLegacyColors;
-
-    if (hasColorFilter) {
-      result = result.filter((product) => {
-        if (!product.colors?.length) return false;
-        return product.colors.some((color: any) => {
-          const colorName = (color.name || '').toLowerCase();
-          const colorGroup = (color.group || '').toLowerCase();
-          const colorGroupSlug = color.groupSlug || '';
-          const colorVariationSlug = color.variationSlug || '';
-          const colorNuance = (color.nuance || color.finish || '').toLowerCase();
-
-          // Se há variações selecionadas, elas têm prioridade sobre grupos
-          if (hasVariationFilter) {
-            const matchesVariation = filters.colorVariations.some(slug =>
-              colorVariationSlug === slug ||
-              colorName.includes(slug.toLowerCase().replace(/-/g, ' '))
-            );
-            if (matchesVariation) {
-              if (hasNuanceFilter) {
-                return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
-              }
-              return true;
-            }
-            if (hasGroupFilter) return false;
-          }
-
-          // Filtro por grupo — usa groupSlug do banco com fallback keyword
-          if (hasGroupFilter) {
-            const matchesGroup = filters.colorGroups.some(slug =>
-              colorGroupSlug === slug ||
-              colorGroup.includes(slug.toLowerCase()) ||
-              colorName.includes(slug.toLowerCase())
-            );
-            if (matchesGroup) {
-              if (hasNuanceFilter) {
-                return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
-              }
-              return true;
-            }
-          }
-
-          // Apenas nuance selecionada (sem grupo nem variação)
-          if (hasNuanceFilter && !hasGroupFilter && !hasVariationFilter) {
-            return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
-          }
-
-          // Fallback legado
-          if (hasLegacyColors) {
-            return filters.colors.includes(color.name);
-          }
-          return false;
-        });
-      });
+    // Filtro por cores — server-side via useProductsByColor
+    if (hasColorFilter && colorFilteredProductIds.size > 0) {
+      result = result.filter((p) => colorFilteredProductIds.has(p.id));
+    } else if (hasColorFilter && colorFilteredProductIds.size === 0 && !isLoadingColorFilter) {
+      result = [];
+    }
     }
 
 
