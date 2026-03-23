@@ -1,44 +1,27 @@
-import React, { createContext, useContext, ReactNode, useCallback } from "react";
-import { useComparison } from "@/hooks/useComparison";
+/**
+ * @deprecated Use `useComparisonStore` from `@/stores/useComparisonStore` directly.
+ * This file is kept for backward compatibility.
+ */
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product } from "@/hooks/useProducts";
+import { useCallback } from "react";
 
-interface ComparisonContextType {
-  compareIds: string[];
-  compareCount: number;
-  maxItems: number;
-  addToCompare: (productId: string) => boolean;
-  removeFromCompare: (productId: string) => void;
-  toggleCompare: (productId: string) => { added: boolean; isFull: boolean };
-  isInCompare: (productId: string) => boolean;
-  getCompareProducts: () => Product[];
-  clearCompare: () => void;
-  canAddMore: boolean;
-  isLoaded: boolean;
-}
-
-const ComparisonContext = createContext<ComparisonContextType | undefined>(undefined);
-
-export function ComparisonProvider({ children }: { children: ReactNode }) {
-  const comparisonHook = useComparison();
+export function useComparisonContext() {
+  const store = useComparisonStore();
   const { getProductsByIds } = useProductsContext();
 
   const getCompareProducts = useCallback(
-    (): Product[] => getProductsByIds(comparisonHook.compareIds),
-    [getProductsByIds, comparisonHook.compareIds]
+    (): Product[] => getProductsByIds(store.compareIds),
+    [getProductsByIds, store.compareIds]
   );
 
-  return (
-    <ComparisonContext.Provider value={{ ...comparisonHook, getCompareProducts }}>
-      {children}
-    </ComparisonContext.Provider>
-  );
+  return { ...store, getCompareProducts };
 }
 
-export function useComparisonContext() {
-  const context = useContext(ComparisonContext);
-  if (context === undefined) {
-    throw new Error("useComparisonContext must be used within a ComparisonProvider");
-  }
-  return context;
+// No-op provider for backward compat — Zustand doesn't need providers
+export function ComparisonProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
+
+import React from "react";

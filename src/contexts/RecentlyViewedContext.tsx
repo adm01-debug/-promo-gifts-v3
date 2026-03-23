@@ -1,47 +1,28 @@
-import React, { createContext, useContext, ReactNode, useCallback } from "react";
-import { useRecentlyViewed, RecentlyViewedItem } from "@/hooks/useRecentlyViewed";
+/**
+ * @deprecated Use `useRecentlyViewedStore` from `@/stores/useRecentlyViewedStore` directly.
+ * This file is kept for backward compatibility.
+ */
+import React from "react";
+import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { Product } from "@/hooks/useProducts";
+import { useCallback } from "react";
 
-interface RecentlyViewedContextType {
-  items: RecentlyViewedItem[];
-  itemCount: number;
-  addToRecentlyViewed: (productId: string) => void;
-  removeFromRecentlyViewed: (productId: string) => void;
-  clearRecentlyViewed: () => void;
-  getRecentlyViewedProducts: () => Product[];
-  isLoaded: boolean;
-}
+export type { RecentlyViewedItem } from "@/stores/useRecentlyViewedStore";
 
-const RecentlyViewedContext = createContext<RecentlyViewedContextType | undefined>(
-  undefined
-);
-
-export function RecentlyViewedProvider({ children }: { children: ReactNode }) {
-  const recentlyViewedHook = useRecentlyViewed();
+export function useRecentlyViewedContext() {
+  const store = useRecentlyViewedStore();
   const { getProductsByIds } = useProductsContext();
 
   const getRecentlyViewedProducts = useCallback(
-    (): Product[] =>
-      getProductsByIds(recentlyViewedHook.items.map((i) => i.productId)),
-    [getProductsByIds, recentlyViewedHook.items]
+    (): Product[] => getProductsByIds(store.items.map((i) => i.productId)),
+    [getProductsByIds, store.items]
   );
 
-  return (
-    <RecentlyViewedContext.Provider
-      value={{ ...recentlyViewedHook, getRecentlyViewedProducts }}
-    >
-      {children}
-    </RecentlyViewedContext.Provider>
-  );
+  return { ...store, getRecentlyViewedProducts };
 }
 
-export function useRecentlyViewedContext() {
-  const context = useContext(RecentlyViewedContext);
-  if (context === undefined) {
-    throw new Error(
-      "useRecentlyViewedContext must be used within a RecentlyViewedProvider"
-    );
-  }
-  return context;
+// No-op provider for backward compat — Zustand doesn't need providers
+export function RecentlyViewedProvider({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }
