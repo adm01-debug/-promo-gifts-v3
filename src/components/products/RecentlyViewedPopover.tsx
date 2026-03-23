@@ -3,7 +3,8 @@ import { Clock, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
+import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
