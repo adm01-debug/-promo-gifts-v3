@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { getPrefetchHandlers } from "@/lib/routePrefetch";
 import { 
   Home, 
   Package, 
