@@ -1,14 +1,15 @@
 import { ReactNode } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AdminRouteProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 /**
  * Wrapper para rotas administrativas.
+ * Suporta Layout Routes (Outlet) e children diretos.
  * Redireciona para / se o usuário não for admin ou manager.
  */
 export function AdminRoute({ children }: AdminRouteProps) {
@@ -30,5 +31,5 @@ export function AdminRoute({ children }: AdminRouteProps) {
     return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
+  return children ? <>{children}</> : <Outlet />;
 }
