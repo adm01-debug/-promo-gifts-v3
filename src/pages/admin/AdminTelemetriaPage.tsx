@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format } from "date-fns";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download, FileText } from "lucide-react";
+import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download, FileText, CalendarIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { TelemetryCharts } from "@/components/admin/telemetry/TelemetryCharts";
 import { toast } from "sonner";
 
@@ -28,29 +32,44 @@ interface TelemetryRow {
 }
 
 type SeverityFilter = "all" | "slow" | "very_slow" | "error";
-type TimeFilter = "1h" | "6h" | "24h" | "7d";
+type TimeFilter = "1h" | "6h" | "24h" | "7d" | "custom";
 
 export default function AdminTelemetriaPage() {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("24h");
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>(undefined);
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>(undefined);
 
-  const getTimeThreshold = () => {
+  const getTimeThreshold = (): { from: string; to: string } => {
     const now = new Date();
-    switch (timeFilter) {
-      case "1h": return new Date(now.getTime() - 60 * 60 * 1000).toISOString();
-      case "6h": return new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString();
-      case "24h": return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
-      case "7d": return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    if (timeFilter === "custom" && customDateFrom) {
+      const from = new Date(customDateFrom);
+      from.setHours(0, 0, 0, 0);
+      const to = customDateTo ? new Date(customDateTo) : new Date();
+      to.setHours(23, 59, 59, 999);
+      return { from: from.toISOString(), to: to.toISOString() };
     }
+    let ms = 24 * 60 * 60 * 1000;
+    switch (timeFilter) {
+      case "1h": ms = 60 * 60 * 1000; break;
+      case "6h": ms = 6 * 60 * 60 * 1000; break;
+      case "24h": ms = 24 * 60 * 60 * 1000; break;
+      case "7d": ms = 7 * 24 * 60 * 60 * 1000; break;
+    }
+    return { from: new Date(now.getTime() - ms).toISOString(), to: now.toISOString() };
   };
 
   const { data: rows = [], isLoading, refetch, isRefetching } = useQuery<TelemetryRow[]>({
-    queryKey: ["query-telemetry", severityFilter, timeFilter],
+    queryKey: ["query-telemetry", severityFilter, timeFilter, customDateFrom?.toISOString(), customDateTo?.toISOString()],
     queryFn: async () => {
+      const { from, to } = getTimeThreshold();
       let query = supabase
         .from("query_telemetry")
         .select("*")
-        .gte("created_at", getTimeThreshold())
+        .gte("created_at", from)
+        .lte("created_at", to)
+        .order("created_at", { ascending: false })
+        .limit(500);
         .order("created_at", { ascending: false })
         .limit(200);
 
@@ -185,7 +204,10 @@ export default function AdminTelemetriaPage() {
     doc.text("Telemetria de Queries", 14, 15);
     doc.setFontSize(9);
     doc.setTextColor(100);
-    doc.text(`Exportado em ${now.toLocaleString("pt-BR")} · Período: ${timeFilter} · ${rows.length} registros`, 14, 22);
+    const periodLabel = timeFilter === "custom" && customDateFrom
+      ? `${format(customDateFrom, "dd/MM/yyyy")} a ${customDateTo ? format(customDateTo, "dd/MM/yyyy") : "hoje"}`
+      : timeFilter;
+    doc.text(`Exportado em ${now.toLocaleString("pt-BR")} · Período: ${periodLabel} · ${rows.length} registros`, 14, 22);
 
     const headers = ["Data/Hora", "Operação", "Tabela/RPC", "Duração", "Sev.", "Regs", "Limit", "Erro"];
     const body = rows.map(r => [
@@ -345,7 +367,7 @@ export default function AdminTelemetriaPage() {
             </SelectContent>
           </Select>
           <Select value={timeFilter} onValueChange={(v) => setTimeFilter(v as TimeFilter)}>
-            <SelectTrigger className="w-36">
+            <SelectTrigger className="w-44">
               <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
@@ -353,8 +375,52 @@ export default function AdminTelemetriaPage() {
               <SelectItem value="6h">Últimas 6h</SelectItem>
               <SelectItem value="24h">Últimas 24h</SelectItem>
               <SelectItem value="7d">Últimos 7 dias</SelectItem>
+              <SelectItem value="custom">📅 Personalizado</SelectItem>
             </SelectContent>
           </Select>
+
+          {timeFilter === "custom" && (
+            <div className="flex items-center gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("w-[140px] justify-start text-left font-normal", !customDateFrom && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {customDateFrom ? format(customDateFrom, "dd/MM/yyyy") : "Data início"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customDateFrom}
+                    onSelect={setCustomDateFrom}
+                    disabled={(date) => date > new Date()}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <span className="text-xs text-muted-foreground">até</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className={cn("w-[140px] justify-start text-left font-normal", !customDateTo && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {customDateTo ? format(customDateTo, "dd/MM/yyyy") : "Data fim"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customDateTo}
+                    onSelect={setCustomDateTo}
+                    disabled={(date) => date > new Date() || (customDateFrom ? date < customDateFrom : false)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
           <span className="text-xs text-muted-foreground ml-auto">
             {rows.length} registros · auto-refresh 30s
           </span>
