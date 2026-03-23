@@ -96,23 +96,24 @@ export default function ProductDetail() {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-muted-foreground">Carregando produto…</div>
-        </div>
+        <ProductDetailSkeleton />
       </MainLayout>
     );
   }
 
-  if (!product) {
+  if (isError || !product) {
     return (
       <MainLayout>
         <EmptyState
           variant="products"
-          title="Produto não encontrado"
-          description="O produto que você está procurando não existe ou foi removido do catálogo."
+          title={isError ? "Erro ao carregar produto" : "Produto não encontrado"}
+          description={isError 
+            ? "Não foi possível carregar os dados do produto. Tente novamente em alguns instantes."
+            : "O produto que você está procurando não existe ou foi removido do catálogo."
+          }
           action={{
-            label: "Voltar para Vitrine",
-            onClick: () => navigate("/"),
+            label: isError ? "Tentar novamente" : "Voltar para Vitrine",
+            onClick: () => isError ? window.location.reload() : navigate("/"),
           }}
         />
       </MainLayout>

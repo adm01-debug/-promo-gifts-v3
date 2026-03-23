@@ -72,6 +72,10 @@ export function useProduct(id: string) {
       return product ? mapPromobrindToProduct(product) : null;
     },
     staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10000),
     enabled: !!id,
   });
 }
