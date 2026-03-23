@@ -111,7 +111,7 @@ export async function fetchPromobrindProductById(
     const variantsResult = await invokeExternalDb<{
       id: string; product_id: string; color_name: string | null; color_hex: string | null;
       color_code: string | null; sku: string | null; stock_quantity: number | null;
-      images: string[] | null; selected_images: string[] | null; selected_thumbnail: string | null;
+      images: string[] | null; selected_thumbnail: string | null;
     }>({
       table: 'product_variants', operation: 'select',
       select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
