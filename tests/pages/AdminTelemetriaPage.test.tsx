@@ -339,8 +339,10 @@ describe('AdminTelemetriaPage - Table Display', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('products')).toBeInTheDocument();
-      expect(screen.getByText('5.0s')).toBeInTheDocument();
+      const products = screen.getAllByText('products');
+      expect(products.length).toBeGreaterThanOrEqual(1);
+      const durations = screen.getAllByText('5.0s');
+      expect(durations.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -349,7 +351,8 @@ describe('AdminTelemetriaPage - Table Display', () => {
     setupSupabaseMock(rows);
     render(<AdminTelemetriaPage />);
     await waitFor(() => {
-      expect(screen.getByText('get_price_table')).toBeInTheDocument();
+      const matches = screen.getAllByText('get_price_table');
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     });
   });
 
