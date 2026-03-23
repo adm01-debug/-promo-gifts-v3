@@ -387,12 +387,13 @@ export default function KitBuilderPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="container py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Package className="h-6 w-6 text-primary" />
-              </div>
+         <div className="container py-6">
+           <BackButton fallbackPath="/meus-kits" className="mb-3" />
+           <div className="flex items-center justify-between">
+             <div className="flex items-center gap-3">
+               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                 <Package className="h-6 w-6 text-primary" />
+               </div>
               <div>
                 <h1 className="text-2xl font-bold">Montador de Kits</h1>
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
