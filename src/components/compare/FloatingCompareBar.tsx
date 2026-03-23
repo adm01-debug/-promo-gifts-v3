@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { GitCompare, X, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useComparisonContext } from "@/contexts/ComparisonContext";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import { useProductsContext } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
 
 export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
