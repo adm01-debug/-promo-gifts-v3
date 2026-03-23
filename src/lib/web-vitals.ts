@@ -1,9 +1,34 @@
 /**
- * Web Vitals tracking — monitors LCP, CLS, INP, FCP, TTFB in production.
+ * Web Vitals tracking — monitors LCP, CLS, INP, FCP, TTFB.
+ * In dev: logs to console. In prod: sends to store-web-vitals edge function.
  */
 import type { Metric } from 'web-vitals';
+import { supabase } from '@/integrations/supabase/client';
 
-const VITALS_ENDPOINT = '/api/vitals'; // placeholder
+/** Buffer metrics and flush periodically to reduce requests */
+let metricsBuffer: Record<string, unknown>[] = [];
+let flushTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function flushMetrics() {
+  if (metricsBuffer.length === 0) return;
+
+  const batch = [...metricsBuffer];
+  metricsBuffer = [];
+
+  supabase.functions
+    .invoke('store-web-vitals', { body: batch })
+    .catch(() => {
+      // Non-critical — silently fail
+    });
+}
+
+function scheduleFlush() {
+  if (flushTimeout) return;
+  flushTimeout = setTimeout(() => {
+    flushTimeout = null;
+    flushMetrics();
+  }, 5000); // Flush every 5s
+}
 
 function sendToAnalytics(metric: Metric) {
   // Log to console in development for debugging
@@ -15,24 +40,17 @@ function sendToAnalytics(metric: Metric) {
     return;
   }
 
-  // In production, use sendBeacon for reliable delivery
-  try {
-    const body = JSON.stringify({
-      name: metric.name,
-      value: metric.value,
-      rating: metric.rating,
-      delta: metric.delta,
-      id: metric.id,
-      navigationType: metric.navigationType,
-      timestamp: Date.now(),
-    });
+  // In production, buffer and send to edge function
+  metricsBuffer.push({
+    name: metric.name,
+    value: metric.value,
+    rating: metric.rating,
+    delta: metric.delta,
+    navigationType: metric.navigationType,
+    url: window.location.pathname,
+  });
 
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(VITALS_ENDPOINT, body);
-    }
-  } catch {
-    // Silently fail — vitals are non-critical
-  }
+  scheduleFlush();
 }
 
 export async function initWebVitals() {
@@ -43,6 +61,15 @@ export async function initWebVitals() {
     onLCP(sendToAnalytics);
     onFCP(sendToAnalytics);
     onTTFB(sendToAnalytics);
+
+    // Flush remaining metrics before page unload
+    if (typeof window !== 'undefined') {
+      window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          flushMetrics();
+        }
+      });
+    }
   } catch {
     // web-vitals not available
   }
