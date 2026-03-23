@@ -746,11 +746,11 @@ export default function FiltersPage() {
                 }`}>
                   <Filter className="h-4 w-4" />
                   <span>
-                    {(isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter) && realProducts.length === 0
+                   {isLoadingProducts && realProducts.length === 0
                       ? 'Carregando catálogo...'
                       : activeFiltersCount > 0
                         ? `Ver ${filteredProducts.length.toLocaleString('pt-BR')} resultado${filteredProducts.length !== 1 ? 's' : ''}`
-                        : `${filteredProducts.length.toLocaleString('pt-BR')} produtos disponíveis`
+                        : `${filteredProducts.length.toLocaleString('pt-BR')}${!isFullyLoaded ? '+' : ''} produtos disponíveis`
                     }
                   </span>
                 </div>
