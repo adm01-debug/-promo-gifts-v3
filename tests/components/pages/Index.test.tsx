@@ -97,6 +97,14 @@ vi.mock("@/components/common/EmptyState", () => ({
   EmptyState: () => <div data-testid="empty-state" />,
 }));
 
+vi.mock("@/components/catalog/CatalogActiveFilters", () => ({
+  CatalogActiveFilters: () => <div data-testid="catalog-active-filters" />,
+}));
+
+vi.mock("@/components/catalog/CatalogContent", () => ({
+  CatalogContent: () => <div data-testid="catalog-content" />,
+}));
+
 vi.mock("@/components/compare/FloatingCompareBar", () => ({
   FloatingCompareBar: () => null,
 }));
@@ -112,6 +120,41 @@ vi.mock("@/components/common/ContextualTooltips", () => ({
 vi.mock("@/data/mockData", () => ({
   CATEGORIES: [],
   SUPPLIERS: [],
+}));
+
+vi.mock("@/hooks/useCatalogState", () => ({
+  useCatalogState: vi.fn().mockReturnValue({
+    products: [],
+    filteredProducts: [],
+    loading: false,
+    error: null,
+    filters: {},
+    setFilters: vi.fn(),
+    resetFilters: vi.fn(),
+    sortBy: "name",
+    setSortBy: vi.fn(),
+    searchTerm: "",
+    setSearchTerm: vi.fn(),
+    layout: "grid",
+    setLayout: vi.fn(),
+    columns: 4,
+    setColumns: vi.fn(),
+    totalProducts: 0,
+    favoriteCount: 0,
+    isFavorite: vi.fn().mockReturnValue(false),
+    toggleFavorite: vi.fn(),
+    isInCompare: vi.fn().mockReturnValue(false),
+    toggleCompare: vi.fn().mockReturnValue({ added: false, isFull: false }),
+    canAddMore: true,
+    compareCount: 0,
+    currentPage: 1,
+    setCurrentPage: vi.fn(),
+    totalPages: 1,
+    paginatedProducts: [],
+    activeFilterCount: 0,
+    hasActiveFilters: false,
+    stats: { total: 0, filtered: 0, categories: 0, suppliers: 0 },
+  }),
 }));
 
 describe("Index Page", () => {
