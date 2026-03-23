@@ -8,7 +8,7 @@ import { VirtualizedProductGrid } from "@/components/products/VirtualizedProduct
 import { ProductList } from "@/components/products/ProductList";
 import { ColumnSelector, getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
-import { useProducts } from "@/hooks/useProducts";
+import { useProductsCatalog } from "@/hooks/useProductsLightweight";
 import { resolveColorImage, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
