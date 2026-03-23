@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRBAC } from "@/hooks/useRBAC";
+import { getPrefetchHandlers } from "@/lib/routePrefetch";
 
 export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
