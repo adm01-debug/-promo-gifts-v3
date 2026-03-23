@@ -115,7 +115,7 @@ export const PRODUCT_SELECT_FIELDS_LEGACY =
 
 export const PRODUCT_SELECT_FIELDS_DETAIL =
   'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
-  'category_id, main_category_id, supplier_id, supplier_reference, supplier_name, description, ' +
+  'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity, created_at, updated_at, ' +
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, category_name, tags, ' +
