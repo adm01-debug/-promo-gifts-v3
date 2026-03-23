@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRBAC } from "@/hooks/useRBAC";
+import { getPrefetchHandlers } from "@/lib/routePrefetch";
 
 export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -66,6 +67,8 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
     const Icon = item.icon;
     const isCta = item.isCta || item.href.includes("/novo");
 
+    const prefetch = getPrefetchHandlers(item.href);
+
     const linkContent = (
       <NavLink
         to={item.href}
@@ -79,6 +82,8 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
             : !isCta && "text-sidebar-foreground/60 hover:text-sidebar-foreground"
         )}
         onClick={() => isMobileSidebarOpen && onMobileClose()}
+        onMouseEnter={prefetch.onMouseEnter}
+        onTouchStart={prefetch.onTouchStart}
       >
         <Icon
           className={cn(
