@@ -196,6 +196,7 @@ export default function MagicUp() {
 
   useEffect(() => {
     (async () => {
+      setLoadingProducts(true);
       try {
         const { fetchPromobrindProducts } = await import("@/lib/external-db");
         const data = await fetchPromobrindProducts();
@@ -209,6 +210,8 @@ export default function MagicUp() {
         })));
       } catch {
         toast.error("Erro ao carregar produtos");
+      } finally {
+        setLoadingProducts(false);
       }
     })();
   }, []);
