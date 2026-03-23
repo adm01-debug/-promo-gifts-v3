@@ -37,6 +37,7 @@ import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
 import { useProduct, useRelatedProducts, type Product } from "@/hooks/useProducts";
 import { sortVariationsByColor } from "@/utils/colorSorting";
+import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
 
 type ProductVariation = any;
 import type { KitComponent } from "@/types/product-catalog";
