@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface ErrorHandlerOptions {
@@ -68,10 +68,6 @@ export function useErrorHandler() {
  * Mount once at the app root (e.g. inside App or a top-level provider).
  */
 export function useGlobalErrorCatcher() {
-  // Guard: React can be null during HMR chunk reload — skip silently
-  if (!React || !React.useEffect) return;
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     const onUnhandled = (event: ErrorEvent) => {
       console.error('[GlobalError]', event.error);
