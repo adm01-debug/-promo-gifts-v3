@@ -59,7 +59,7 @@ export default function ProductDetail() {
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
-  const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesContext();
+  const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
