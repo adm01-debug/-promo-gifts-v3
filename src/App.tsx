@@ -169,7 +169,7 @@ const App = () => {
                             <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
                             {/* Admin Layout Route */}
-                            <Route element={<AdminRoute />}>
+                            <Route element={<AdminRoute />} errorElement={<RouteErrorBoundary />}>
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                               <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
