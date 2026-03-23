@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, X, Clock } from "lucide-react";
+import { Search, X, Clock, Gift } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -257,7 +257,7 @@ export function QuickOptionsFilter({
           className="border-warning/50 data-[state=checked]:bg-warning data-[state=checked]:border-warning"
         />
         <Label htmlFor="has-commercial-packaging" className="text-sm cursor-pointer flex items-center gap-1.5">
-          <span className="h-3.5 w-3.5 text-warning">🎁</span>
+          <Gift className="h-3.5 w-3.5 text-warning" />
           Com Embalagem Nativa
         </Label>
       </div>
