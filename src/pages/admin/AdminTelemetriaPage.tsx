@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download } from "lucide-react";
+import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TelemetryCharts } from "@/components/admin/telemetry/TelemetryCharts";
 import { toast } from "sonner";
@@ -169,6 +169,57 @@ export default function AdminTelemetriaPage() {
     toast.success(`${rows.length} registros exportados`);
   };
 
+  const handleExportPDF = async () => {
+    if (!rows.length) {
+      toast.warning("Sem dados para exportar");
+      return;
+    }
+
+    const { default: jsPDF } = await import("jspdf");
+    const { default: autoTable } = await import("jspdf-autotable");
+
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const now = new Date();
+
+    doc.setFontSize(16);
+    doc.text("Telemetria de Queries", 14, 15);
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text(`Exportado em ${now.toLocaleString("pt-BR")} · Período: ${timeFilter} · ${rows.length} registros`, 14, 22);
+
+    const headers = ["Data/Hora", "Operação", "Tabela/RPC", "Duração", "Sev.", "Regs", "Limit", "Erro"];
+    const body = rows.map(r => [
+      new Date(r.created_at).toLocaleString("pt-BR"),
+      r.operation,
+      r.table_name || r.rpc_name || "-",
+      `${r.duration_ms}ms`,
+      r.severity,
+      r.record_count != null ? String(r.record_count) : "-",
+      r.query_limit != null ? String(r.query_limit) : "-",
+      (r.error_message || "-").slice(0, 60),
+    ]);
+
+    autoTable(doc, {
+      head: [headers],
+      body,
+      startY: 28,
+      styles: { fontSize: 7, cellPadding: 1.5 },
+      headStyles: { fillColor: [41, 37, 36], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 245, 244] },
+      columnStyles: {
+        0: { cellWidth: 35 },
+        3: { halign: "right", cellWidth: 18 },
+        4: { cellWidth: 14 },
+        5: { halign: "right", cellWidth: 14 },
+        6: { halign: "right", cellWidth: 14 },
+        7: { cellWidth: 60 },
+      },
+    });
+
+    doc.save(`telemetria_${now.toISOString().slice(0, 10)}_${timeFilter}.pdf`);
+    toast.success(`${rows.length} registros exportados em PDF`);
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6 p-6 max-w-7xl mx-auto">
@@ -184,7 +235,11 @@ export default function AdminTelemetriaPage() {
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!rows.length}>
               <Download className="h-3.5 w-3.5 mr-1.5" />
-              Exportar CSV
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={!rows.length}>
+              <FileText className="h-3.5 w-3.5 mr-1.5" />
+              PDF
             </Button>
             <Button variant="outline" size="sm" onClick={handleCleanup}>
               <Trash2 className="h-3.5 w-3.5 mr-1.5" />
