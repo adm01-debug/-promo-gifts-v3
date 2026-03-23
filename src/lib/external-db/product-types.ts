@@ -104,7 +104,7 @@ export const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 export const PRODUCT_SELECT_FIELDS_LEGACY =
-  'id, name, sku, cost_price, image_url, images, primary_image_url, ' +
+  'id, name, sku, cost_price, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity, created_at, updated_at, ' +

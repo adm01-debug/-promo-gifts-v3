@@ -128,7 +128,7 @@ export function useKitBuilderQueries() {
           table: 'products',
           operation: 'select',
           filters,
-          select: 'id, name, sku, sale_price, image_url, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, colors, packing_classification',
+          select: 'id, name, sku, sale_price, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, colors, packing_classification',
           limit: 200,
           orderBy: { column: 'name', ascending: true },
           countMode: 'none',

@@ -23,7 +23,7 @@ export function useCatalogPrefetch() {
         const batchQueries = Array.from({ length: 4 }, (_, i) => ({
           table: 'products',
           operation: 'select' as const,
-          select: 'id, name, sku, sale_price, cost_price, image_url, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity',
+          select: 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity',
           filters: { active: true },
           orderBy: { column: 'name', ascending: true },
           limit: 500,
