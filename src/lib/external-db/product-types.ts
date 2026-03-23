@@ -121,8 +121,7 @@ export const PRODUCT_SELECT_FIELDS_DETAIL =
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, tags, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3, ' +
-  'product_videos';
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 export function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
