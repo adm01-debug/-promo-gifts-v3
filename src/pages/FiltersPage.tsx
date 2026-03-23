@@ -178,8 +178,16 @@ export default function FiltersPage() {
 
   // Hook para buscar produtos por categorias (usa tabela product_category_assignments)
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
-    categoryIds: filters.categories, // Já são UUIDs (strings)
+    categoryIds: filters.categories,
     includeDescendants: true,
+  });
+
+  // Hook para buscar produtos por cores (server-side via product_variants)
+  const { productIds: colorFilteredProductIds, hasFilter: hasColorFilter, isLoading: isLoadingColorFilter } = useProductsByColor({
+    colorGroups: filters.colorGroups || [],
+    colorVariations: filters.colorVariations || [],
+    colorNuances: filters.colorNuances || [],
+    colors: filters.colors,
   });
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
