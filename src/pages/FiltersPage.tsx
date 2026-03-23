@@ -41,6 +41,7 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
+import { useProductsByColor } from "@/hooks/useProductsByColor";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { toast } from "sonner";
 
