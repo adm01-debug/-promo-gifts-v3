@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BackButton } from '@/components/common/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
