@@ -204,7 +204,10 @@ export default function AdminTelemetriaPage() {
     doc.text("Telemetria de Queries", 14, 15);
     doc.setFontSize(9);
     doc.setTextColor(100);
-    doc.text(`Exportado em ${now.toLocaleString("pt-BR")} · Período: ${timeFilter} · ${rows.length} registros`, 14, 22);
+    const periodLabel = timeFilter === "custom" && customDateFrom
+      ? `${format(customDateFrom, "dd/MM/yyyy")} a ${customDateTo ? format(customDateTo, "dd/MM/yyyy") : "hoje"}`
+      : timeFilter;
+    doc.text(`Exportado em ${now.toLocaleString("pt-BR")} · Período: ${periodLabel} · ${rows.length} registros`, 14, 22);
 
     const headers = ["Data/Hora", "Operação", "Tabela/RPC", "Duração", "Sev.", "Regs", "Limit", "Erro"];
     const body = rows.map(r => [
