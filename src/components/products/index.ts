@@ -35,6 +35,7 @@ export { InlinePriceCalculator } from "./InlinePriceCalculator";
 // Skeletons
 export { ProductCardSkeleton, ProductGridSkeleton } from "./ProductCardSkeleton";
 export { ProductListItemSkeleton, ProductListSkeleton } from "./ProductListItemSkeleton";
+export { ProductDetailSkeleton } from "./ProductDetailSkeleton";
 
 // Recently Viewed
 export { RecentlyViewedBar } from "./RecentlyViewedBar";
