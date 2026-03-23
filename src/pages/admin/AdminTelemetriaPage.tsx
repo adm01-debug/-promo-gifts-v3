@@ -60,12 +60,16 @@ export default function AdminTelemetriaPage() {
   };
 
   const { data: rows = [], isLoading, refetch, isRefetching } = useQuery<TelemetryRow[]>({
-    queryKey: ["query-telemetry", severityFilter, timeFilter],
+    queryKey: ["query-telemetry", severityFilter, timeFilter, customDateFrom?.toISOString(), customDateTo?.toISOString()],
     queryFn: async () => {
+      const { from, to } = getTimeThreshold();
       let query = supabase
         .from("query_telemetry")
         .select("*")
-        .gte("created_at", getTimeThreshold())
+        .gte("created_at", from)
+        .lte("created_at", to)
+        .order("created_at", { ascending: false })
+        .limit(500);
         .order("created_at", { ascending: false })
         .limit(200);
 
