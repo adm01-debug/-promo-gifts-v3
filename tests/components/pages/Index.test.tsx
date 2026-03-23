@@ -23,15 +23,16 @@ vi.mock("@/contexts/ProductsContext", () => ({
   useProductsContext: vi.fn().mockReturnValue({ products: [], loading: false }),
 }));
 
-vi.mock("@/contexts/FavoritesContext", () => ({
-  useFavoritesContext: vi.fn().mockReturnValue({
-    favorites: [], isFavorite: vi.fn().mockReturnValue(false), toggleFavorite: vi.fn(),
+vi.mock("@/stores/useFavoritesStore", () => ({
+  useFavoritesStore: vi.fn().mockReturnValue({
+    favorites: [], isFavorite: vi.fn().mockReturnValue(false), toggleFavorite: vi.fn(), favoriteCount: 0,
   }),
 }));
 
-vi.mock("@/contexts/ComparisonContext", () => ({
-  useComparisonContext: vi.fn().mockReturnValue({
-    items: [], addItem: vi.fn(), removeItem: vi.fn(), isInComparison: vi.fn().mockReturnValue(false),
+vi.mock("@/stores/useComparisonStore", () => ({
+  useComparisonStore: vi.fn().mockReturnValue({
+    compareIds: [], addToCompare: vi.fn(), removeFromCompare: vi.fn(), isInCompare: vi.fn().mockReturnValue(false),
+    toggleCompare: vi.fn(), canAddMore: true, compareCount: 0,
   }),
 }));
 
