@@ -136,13 +136,15 @@ export function useIPValidation() {
     try {
       const currentIP = await fetchCurrentIP();
       
-      await supabase.from('login_attempts').insert({
-        email,
-        user_id: userId,
-        ip_address: currentIP || 'unknown',
-        success,
-        failure_reason: failureReason || null,
-        user_agent: navigator.userAgent
+      await supabase.functions.invoke('log-login-attempt', {
+        body: {
+          email,
+          user_id: userId,
+          ip_address: currentIP || 'unknown',
+          success,
+          failure_reason: failureReason || null,
+          user_agent: navigator.userAgent,
+        },
       });
     } catch (error) {
       console.error('Error logging login attempt:', error);
