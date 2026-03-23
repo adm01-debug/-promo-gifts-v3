@@ -202,6 +202,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
               );
             }
 
+            const prefetch = getPrefetchHandlers(item.href);
             return (
               <NavLink
                 key={item.href}
@@ -217,6 +218,8 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                 )}
                 aria-label={item.ariaLabel || item.label}
                 aria-current={active ? "page" : undefined}
+                onMouseEnter={prefetch.onMouseEnter}
+                onTouchStart={prefetch.onTouchStart}
               >
                 <Icon className={cn("h-5 w-5 sm:mb-1", active && "text-primary")} aria-hidden="true" />
                 <span className="text-[9px] sm:text-[10px] font-medium leading-tight truncate max-w-[56px]">
