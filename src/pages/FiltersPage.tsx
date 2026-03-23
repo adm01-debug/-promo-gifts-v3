@@ -41,6 +41,7 @@ import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommands } from "@/hooks/useVoiceCommands";
 import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
+import { useProductsByColor } from "@/hooks/useProductsByColor";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { toast } from "sonner";
 
@@ -177,8 +178,16 @@ export default function FiltersPage() {
 
   // Hook para buscar produtos por categorias (usa tabela product_category_assignments)
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
-    categoryIds: filters.categories, // Já são UUIDs (strings)
+    categoryIds: filters.categories,
     includeDescendants: true,
+  });
+
+  // Hook para buscar produtos por cores (server-side via product_variants)
+  const { productIds: colorFilteredProductIds, hasFilter: hasColorFilter, isLoading: isLoadingColorFilter } = useProductsByColor({
+    colorGroups: filters.colorGroups || [],
+    colorVariations: filters.colorVariations || [],
+    colorNuances: filters.colorNuances || [],
+    colors: filters.colors,
   });
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -414,66 +423,12 @@ export default function FiltersPage() {
       );
     }
 
-    // Filtro por cores - sistema hierárquico (colorGroups / colorVariations / colorNuances)
-    // Lógica: variações são mais específicas que grupos; nuances se aplicam sobre qualquer cor
-    const hasGroupFilter = filters.colorGroups.length > 0;
-    const hasVariationFilter = filters.colorVariations.length > 0;
-    const hasNuanceFilter = filters.colorNuances.length > 0;
-    const hasLegacyColors = filters.colors.length > 0;
-    const hasColorFilter = hasGroupFilter || hasVariationFilter || hasNuanceFilter || hasLegacyColors;
-
-    if (hasColorFilter) {
-      result = result.filter((product) => {
-        if (!product.colors?.length) return false;
-        return product.colors.some((color: any) => {
-          const colorName = (color.name || '').toLowerCase();
-          const colorGroup = (color.group || '').toLowerCase();
-          const colorGroupSlug = color.groupSlug || '';
-          const colorVariationSlug = color.variationSlug || '';
-          const colorNuance = (color.nuance || color.finish || '').toLowerCase();
-
-          // Se há variações selecionadas, elas têm prioridade sobre grupos
-          if (hasVariationFilter) {
-            const matchesVariation = filters.colorVariations.some(slug =>
-              colorVariationSlug === slug ||
-              colorName.includes(slug.toLowerCase().replace(/-/g, ' '))
-            );
-            if (matchesVariation) {
-              if (hasNuanceFilter) {
-                return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
-              }
-              return true;
-            }
-            if (hasGroupFilter) return false;
-          }
-
-          // Filtro por grupo — usa groupSlug do banco com fallback keyword
-          if (hasGroupFilter) {
-            const matchesGroup = filters.colorGroups.some(slug =>
-              colorGroupSlug === slug ||
-              colorGroup.includes(slug.toLowerCase()) ||
-              colorName.includes(slug.toLowerCase())
-            );
-            if (matchesGroup) {
-              if (hasNuanceFilter) {
-                return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
-              }
-              return true;
-            }
-          }
-
-          // Apenas nuance selecionada (sem grupo nem variação)
-          if (hasNuanceFilter && !hasGroupFilter && !hasVariationFilter) {
-            return filters.colorNuances.some(n => colorNuance.includes(n.toLowerCase()));
-          }
-
-          // Fallback legado
-          if (hasLegacyColors) {
-            return filters.colors.includes(color.name);
-          }
-          return false;
-        });
-      });
+    // Filtro por cores — server-side via useProductsByColor
+    if (hasColorFilter && colorFilteredProductIds.size > 0) {
+      result = result.filter((p) => colorFilteredProductIds.has(p.id));
+    } else if (hasColorFilter && colorFilteredProductIds.size === 0 && !isLoadingColorFilter) {
+      result = [];
+    }
     }
 
 
@@ -617,7 +572,7 @@ export default function FiltersPage() {
     }
 
     return result;
-  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
+  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, hasColorFilter, colorFilteredProductIds, isLoadingColorFilter]);
 
   // Toast indicando quantos produtos foram encontrados após busca
   const prevSearchRef = useRef<string>('');
