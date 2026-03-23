@@ -70,7 +70,7 @@ export default function ProductDetail() {
   const { registerProducts } = useProductsContext();
 
   // Buscar produto no banco (mesma fonte da vitrine)
-  const { data: product, isLoading } = useProduct(id || "");
+  const { data: product, isLoading, isError } = useProduct(id || "");
   
   // Fetch related products (same supplier or category) — lightweight, limited query
   const { data: relatedProductsList = [] } = useRelatedProducts(product, 20);
