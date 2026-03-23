@@ -139,7 +139,7 @@ const App = () => {
                           <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
                           {/* Protected Layout Route */}
-                          <Route element={<ProtectedRoute />}>
+                          <Route element={<ProtectedRoute />} errorElement={<RouteErrorBoundary />}>
                             {/* Home */}
                             <Route path="/" element={<Index />} />
                             <Route path="/dashboard" element={<CustomizableDashboard />} />
