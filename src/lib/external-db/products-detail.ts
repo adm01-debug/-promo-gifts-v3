@@ -111,10 +111,10 @@ export async function fetchPromobrindProductById(
     const variantsResult = await invokeExternalDb<{
       id: string; product_id: string; color_name: string | null; color_hex: string | null;
       color_code: string | null; sku: string | null; stock_quantity: number | null;
-      images: string[] | null; selected_images: string[] | null; selected_thumbnail: string | null;
+      images: string[] | null; selected_thumbnail: string | null;
     }>({
       table: 'product_variants', operation: 'select',
-      select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_images, selected_thumbnail',
+      select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_thumbnail',
       filters: { product_id: productId, is_active: true }, limit: 100,
     });
 
@@ -124,7 +124,7 @@ export async function fetchPromobrindProductById(
         const byCode = variant.color_code
           ? allProductImages.filter(img => img.supplier_code === variant.color_code).sort((a, b) => a.display_order - b.display_order).map(img => img.url_cdn)
           : [];
-        const legacy = variant.selected_images?.length ? variant.selected_images : variant.images?.length ? variant.images : [];
+        const legacy = variant.images?.length ? variant.images : [];
         const finalImages = byCode.length > 0 ? byCode : legacy;
         const thumb = finalImages[0] || variant.selected_thumbnail || product.primary_image_url || product.image_url || null;
         uniqueColors.push({

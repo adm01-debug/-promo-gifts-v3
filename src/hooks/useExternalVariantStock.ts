@@ -41,12 +41,11 @@ export function useExternalVariantStock(productId: string | undefined) {
           stock_quantity: number | null;
           selected_thumbnail: string | null;
           images: string[] | null;
-          selected_images: string[] | null;
           bitrix_product_id: string | number | null;
         }>({
           table: 'product_variants',
           operation: 'select',
-          select: 'id, product_id, sku, supplier_sku, color_code, color_name, color_hex, stock_quantity, selected_thumbnail, images, selected_images, bitrix_product_id',
+          select: 'id, product_id, sku, supplier_sku, color_code, color_name, color_hex, stock_quantity, selected_thumbnail, images, bitrix_product_id',
           filters: { product_id: productId, is_active: true },
           limit: 100,
         }),
@@ -112,7 +111,7 @@ export function useExternalVariantStock(productId: string | undefined) {
         
         // Prioridade: variantImage > colorImage > selected_thumbnail válido > null
         const thumbnail = variantImage || colorImage || validSelectedThumb || null;
-        const imgs = v.selected_images?.length ? v.selected_images : v.images;
+        const imgs = v.images;
 
         return {
           ...v,
