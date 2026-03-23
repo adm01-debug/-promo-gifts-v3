@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download } from "lucide-react";
+import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TelemetryCharts } from "@/components/admin/telemetry/TelemetryCharts";
 import { toast } from "sonner";
