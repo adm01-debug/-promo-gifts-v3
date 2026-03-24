@@ -291,7 +291,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
             <div className="flex items-center justify-between">
               <h3 className="font-medium flex items-center gap-2">
                 <Palette className="w-4 h-4 text-primary" />
-                2. Selecione a Cor do Produto
+                2. {hasSizes ? 'Selecione Cor e Tamanho' : 'Selecione a Cor do Produto'}
               </h3>
             </div>
             <ProductVariantSelector
