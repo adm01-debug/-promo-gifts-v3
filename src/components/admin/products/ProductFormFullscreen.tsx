@@ -615,7 +615,7 @@ export function ProductFormFullscreen({
               </div>
               <div>
                 <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Valor de referência (não editável).">Preço Sugerido (R$)</FieldLabel>
-                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9 bg-muted/50 cursor-not-allowed" readOnly tabIndex={-1} />
+                <Input id="suggested_price" type="text" value={(watch('suggested_price') ?? 0).toFixed(2)} className="h-9 bg-muted/50 cursor-not-allowed" readOnly tabIndex={-1} />
               </div>
               <div>
                 <FieldLabel htmlFor="sale_price" required hint="Inicia com o valor sugerido pelo markup, mas pode ser editado livremente.">Preço Venda (R$)</FieldLabel>
