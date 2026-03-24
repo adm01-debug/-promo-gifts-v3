@@ -2,6 +2,7 @@
  * Classification section — lazy-loaded since it imports 6+ heavy sub-components
  */
 import { ProductVariantsSection } from '../ProductVariantsSection';
+import { ProductVariationAxesConfig } from '../ProductVariationAxesConfig';
 import { ProductMaterialsSection } from '../ProductMaterialsSection';
 import { ProductTagsSection } from '../ProductTagsSection';
 import { ProductRamosSection } from '../ProductRamosSection';
@@ -17,6 +18,7 @@ import {
   Megaphone,
   Paintbrush,
   Info,
+  Settings2,
 } from 'lucide-react';
 
 interface Props {
@@ -44,6 +46,15 @@ export default function ProductClassificationSection({
     <SectionCard id="classification" title="Classificação e Vínculos" icon={Layers} subtitle="Cores, materiais, tags, ramos e técnicas">
       {isEdit && productId && (
         <>
+          {/* Eixos de Variação */}
+          <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Settings2 className="h-4 w-4 text-primary" />
+              <h4 className="text-xs font-semibold">Eixos de Variação</h4>
+            </div>
+            <ProductVariationAxesConfig productId={productId} />
+          </div>
+
           <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
             <div className="flex items-center gap-2 mb-3">
               <Palette className="h-4 w-4 text-primary" />
