@@ -373,13 +373,16 @@ export function ProductFormFullscreen({
   }, [formValues]);
 
   // Step readiness
+  // stepReady must match STEPS length (8 entries)
   const stepReady = useMemo(() => [
-    Boolean(formValues.supplier_id && formValues.sku && formValues.name),
-    Boolean((formValues.sale_price ?? 0) >= 0),
-    Boolean(formValues.packing_type || formValues.ncm_code || formValues.ean),
-    Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
-    isEdit && !!productId, // engraving — ready if editing
-    images.length > 0 || Boolean(formValues.video_url),
+    /* essentials */      Boolean(formValues.supplier_id && formValues.sku && formValues.name),
+    /* commercial */      Boolean((formValues.sale_price ?? 0) > 0),
+    /* packaging */       Boolean(formValues.packing_type),
+    /* fiscal */          Boolean(formValues.ncm_code || formValues.ean),
+    /* engraving */       isEdit && !!productId,
+    /* classification */  true, // optional section, always "ready"
+    /* media */           images.length > 0 || Boolean(formValues.video_url),
+    /* content (SEO) */   Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
   ], [formValues, images.length, isEdit, productId]);
 
   const stepErrors = useMemo(() => {
