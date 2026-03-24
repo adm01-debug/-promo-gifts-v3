@@ -533,19 +533,21 @@ export function ProductFormFullscreen({
   return (
     <form onSubmit={handleSubmitWithValidation} className="flex flex-col gap-4">
       {/* ===== STEPPER BAR ===== */}
-      <Card className="border-border/50 bg-card/80 px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
-          <HorizontalStepper
-            steps={STEPS}
-            activeIndex={stepIndex}
-            stepReady={stepReady}
-            stepErrors={stepErrors}
-            onStepClick={goStep}
-            missingFields={missingFields}
-            showValidation={showValidation}
-          />
+      <Card className="border-border/50 bg-card/80 px-6 py-4">
+        <div className="flex items-end justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <HorizontalStepper
+              steps={STEPS}
+              activeIndex={stepIndex}
+              stepReady={stepReady}
+              stepErrors={stepErrors}
+              onStepClick={goStep}
+              missingFields={missingFields}
+              showValidation={showValidation}
+            />
+          </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 pb-1">
             {Object.keys(errors).length > 0 && (
               <span className="flex items-center gap-1 text-destructive text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
