@@ -108,11 +108,11 @@ describe('Phase 2.2 — Size Filter', () => {
     expect(sorted).toEqual(['36', '38', '40', '42', '44']);
   });
 
-  it('volume sizes are treated as unknown and keep stable order', () => {
+  it('volume sizes parsed numerically by parseFloat', () => {
     const sizes = ['500ml', '200ml', '1L', '100ml', '350ml'];
     const sorted = [...sizes].sort((a, b) => getSizeOrder(a) - getSizeOrder(b));
-    // All volumes map to getSizeOrder=2000 (unknown), so sort is stable/alphabetical fallback
-    sorted.forEach(s => expect(getSizeOrder(s)).toBe(2000));
+    // parseFloat('100ml')=100, parseFloat('1L')=1, so 1L sorts first numerically
+    expect(sorted).toEqual(['1L', '100ml', '200ml', '350ml', '500ml']);
   });
 
   it('mixed clothing and numeric sizes', () => {
