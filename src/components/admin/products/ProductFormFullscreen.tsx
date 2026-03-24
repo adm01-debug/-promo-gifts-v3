@@ -565,6 +565,16 @@ export function ProductFormFullscreen({
                 </div>
               </div>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
+                <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
+                <Input id="supply_mode" {...register('supply_mode')} placeholder="Ex: pronta_entrega_liso" className="h-9" />
+              </div>
+            </div>
           </SectionCard>
 
           {/* === PREÇO E ESTOQUE === */}
