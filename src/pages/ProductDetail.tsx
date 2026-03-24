@@ -384,6 +384,15 @@ export default function ProductDetail() {
               </p>
             </div>
 
+            {/* Size Selector */}
+            {product.variations && product.variations.length > 0 && (
+              <ProductSizeSelector
+                variations={product.variations}
+                selectedSize={selectedSize}
+                onSelectSize={setSelectedSize}
+              />
+            )}
+
             {/* Materials */}
             {product.materials && product.materials.length > 0 && (
               <div className="space-y-3">
