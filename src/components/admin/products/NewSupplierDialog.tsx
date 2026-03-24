@@ -89,11 +89,12 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
     setSearchingCarriers(true);
     try {
-      const companies = await selectCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
+      const companies = await searchCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
         'carriers',
+        'razao_social',
+        term,
         {
           select: 'id,nome_fantasia,razao_social',
-          filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
           limit: 15,
         }
       ).catch(() => []);
