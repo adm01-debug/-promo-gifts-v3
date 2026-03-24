@@ -105,7 +105,6 @@ interface Product {
   diameter_cm: number | null;
   weight_g: number | null;
   capacity_ml: number | null;
-  circumference_cm: number | null;
   internal_height_cm: number | null;
   internal_width_cm: number | null;
   internal_length_cm: number | null;
