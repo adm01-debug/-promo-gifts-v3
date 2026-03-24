@@ -87,8 +87,47 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
 
   const MAX_ENGRAVINGS = 5;
 
-  // Converter cores do produto para variantes
+  // Fetch real variants from external DB (with size_code support)
+  const { data: dbVariants } = useQuery({
+    queryKey: ['simulator-variants', selectedProduct?.id],
+    queryFn: async () => {
+      if (!selectedProduct) return [];
+      const result = await invokeExternalDb<{
+        id: string;
+        color_name: string | null;
+        color_hex: string | null;
+        color_code: string | null;
+        size_code: string | null;
+        stock_quantity: number | null;
+        sale_price: number | null;
+        sku: string | null;
+      }>({
+        table: 'product_variants',
+        operation: 'select',
+        select: 'id, color_name, color_hex, color_code, size_code, stock_quantity, sale_price, sku',
+        filters: { product_id: selectedProduct.id, is_active: true },
+        limit: 200,
+        orderBy: { column: 'color_name', ascending: true },
+      });
+      return result.records.filter(v => v.color_name);
+    },
+    enabled: !!selectedProduct?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Build ProductVariant[] from DB variants (preferred) or fallback to product colors
   const productVariants: ProductVariant[] = useMemo(() => {
+    if (dbVariants && dbVariants.length > 0) {
+      return dbVariants.map(v => ({
+        code: v.id,
+        name: v.color_name || 'Padrão',
+        hex: v.color_hex || undefined,
+        stock: v.stock_quantity ?? undefined,
+        size_code: v.size_code,
+        sale_price: v.sale_price,
+      }));
+    }
+    // Fallback to product colors
     if (!selectedProduct?.colors) return [];
     return (selectedProduct.colors as ProductColor[]).map((c) => ({
       code: c.code,
@@ -96,8 +135,9 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
       hex: c.hex,
       stock: c.stock,
     }));
-  }, [selectedProduct]);
+  }, [dbVariants, selectedProduct]);
 
+  const hasSizes = useMemo(() => productVariants.some(v => v.size_code), [productVariants]);
   const hasVariants = productVariants.length > 0;
   const needsVariantSelection = hasVariants && !selectedVariant;
 
