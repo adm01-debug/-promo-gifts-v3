@@ -358,13 +358,15 @@ export function ProductFormFullscreen({
     prevSupplierRef.current = supplierRefValue;
   }, [supplierRefValue, skuManuallyEdited, isEdit, setValue]);
 
-  // Auto-calcular Preço Sugerido e Preço Venda com base no Preço Custo × Markup do Fornecedor
+  // Auto-calcular Preço Sugerido (sempre) e Preço Venda (até edição manual) com base no Preço Custo × Markup
   React.useEffect(() => {
-    if (priceManuallyEdited || !supplierMarkup || !costPriceValue || costPriceValue <= 0) return;
+    if (!supplierMarkup || !costPriceValue || costPriceValue <= 0) return;
     const markupMultiplier = 1 + (supplierMarkup / 100);
     const calculatedPrice = Math.round(costPriceValue * markupMultiplier * 100) / 100;
     setValue('suggested_price', calculatedPrice);
-    setValue('sale_price', calculatedPrice);
+    if (!priceManuallyEdited) {
+      setValue('sale_price', calculatedPrice);
+    }
   }, [costPriceValue, supplierMarkup, priceManuallyEdited, setValue]);
 
   const onFormSubmit = handleSubmit(async (data) => {
