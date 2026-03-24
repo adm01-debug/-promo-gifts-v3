@@ -65,9 +65,9 @@ export const ImageWithFallback = forwardRef<HTMLImageElement, ImageWithFallbackP
 
     return (
       <div className={cn('relative overflow-hidden', className)}>
-        {/* Shimmer loader */}
-        {showShimmer && !loaded && (
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer z-10" />
+      {/* Background while loading */}
+        {!loaded && (
+          <div className="absolute inset-0 bg-muted/30" />
         )}
         <img
           ref={ref}
