@@ -989,10 +989,225 @@ Deno.serve(async (req) => {
       db: { schema: 'public' },
       global: { headers: { 'x-connection-timeout': '15000' } },
     });
+
+    const isVirtualProductPrintAreasTable = table === 'product_print_areas';
+
+    const normalizeTechniqueIds = (value: unknown): string[] => {
+      if (!Array.isArray(value)) return [];
+      return value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+    };
+
+    const normalizePersonalizationArea = (value: unknown): Record<string, unknown> => {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+      return { ...(value as Record<string, unknown>) };
+    };
+
+    const getPersonalizationAreas = (value: unknown): Record<string, unknown>[] => {
+      if (!Array.isArray(value)) return [];
+      return value.map(normalizePersonalizationArea);
+    };
+
+    const getPersonalizationAreaId = (area: Record<string, unknown>, index: number): string => {
+      const rawId = area.id;
+      return typeof rawId === 'string' && rawId.trim().length > 0 ? rawId : `area-${index}`;
+    };
+
+    const buildVirtualProductPrintAreaRecords = (productId: string, personalizationAreas: unknown): Record<string, unknown>[] => {
+      const areas = getPersonalizationAreas(personalizationAreas);
+
+      return areas.flatMap((area, index) => {
+        const areaId = getPersonalizationAreaId(area, index);
+        const techniqueIds = normalizeTechniqueIds(area.allowed_technique_ids ?? area.technique_ids);
+
+        return techniqueIds.map((techniqueId) => ({
+          ...area,
+          id: `${productId}::${areaId}::${techniqueId}`,
+          product_id: productId,
+          area_id: areaId,
+          area_name: typeof area.area_name === 'string'
+            ? area.area_name
+            : typeof area.name === 'string'
+              ? area.name
+              : `Área ${index + 1}`,
+          technique_id: techniqueId,
+          allowed_technique_ids: techniqueIds,
+          is_active: area.is_active !== false,
+          display_order: typeof area.display_order === 'number' ? area.display_order : index,
+          component_name: typeof area.component_name === 'string' ? area.component_name : null,
+          location_name: typeof area.location_name === 'string' ? area.location_name : null,
+          _virtual: true,
+        }));
+      });
+    };
+
+    const parseVirtualProductPrintAreaId = (virtualId: string) => {
+      const parts = virtualId.split('::');
+      if (parts.length !== 3 || parts.some((part) => !part)) return null;
+
+      const [productId, areaId, techniqueId] = parts;
+      return { productId, areaId, techniqueId };
+    };
+
+    const fetchProductForVirtualPrintAreas = async (productId: string) => {
+      const { data: product, error } = await externalSupabase
+        .from('products')
+        .select('id, personalization_areas')
+        .eq('id', productId)
+        .maybeSingle();
+
+      return { product, error };
+    };
+
+    const addTechniqueToPersonalizationAreas = (
+      personalizationAreas: unknown,
+      techniqueId: string,
+      areaName = 'Área Principal'
+    ) => {
+      const areas = getPersonalizationAreas(personalizationAreas);
+
+      if (areas.length === 0) {
+        const areaId = crypto.randomUUID();
+        return {
+          updatedAreas: [{
+            id: areaId,
+            area_name: areaName,
+            allowed_technique_ids: [techniqueId],
+            is_active: true,
+            is_primary: true,
+            display_order: 0,
+            unit: 'cm',
+            shape: 'rectangle',
+            max_width: 0,
+            max_height: 0,
+          }],
+          areaId,
+          alreadyLinked: false,
+        };
+      }
+
+      const targetIndex = areas.findIndex((area) => area.is_primary === true);
+      const resolvedIndex = targetIndex >= 0 ? targetIndex : 0;
+      const targetArea = normalizePersonalizationArea(areas[resolvedIndex]);
+      const areaId = getPersonalizationAreaId(targetArea, resolvedIndex);
+      const existingTechniqueIds = normalizeTechniqueIds(targetArea.allowed_technique_ids ?? targetArea.technique_ids);
+      const alreadyLinked = existingTechniqueIds.includes(techniqueId);
+      const nextTechniqueIds = alreadyLinked ? existingTechniqueIds : [...existingTechniqueIds, techniqueId];
+
+      targetArea.id = areaId;
+      targetArea.allowed_technique_ids = nextTechniqueIds;
+      if ('technique_ids' in targetArea) {
+        targetArea.technique_ids = nextTechniqueIds;
+      }
+      if (typeof targetArea.area_name !== 'string' && typeof targetArea.name !== 'string') {
+        targetArea.area_name = areaName;
+      }
+
+      areas[resolvedIndex] = targetArea;
+
+      return {
+        updatedAreas: areas,
+        areaId,
+        alreadyLinked,
+      };
+    };
+
+    const removeTechniqueFromPersonalizationAreas = (
+      personalizationAreas: unknown,
+      areaId: string,
+      techniqueId: string
+    ) => {
+      const areas = getPersonalizationAreas(personalizationAreas);
+      let removed = false;
+
+      const updatedAreas = areas.map((area, index) => {
+        const nextArea = normalizePersonalizationArea(area);
+        const nextAreaId = getPersonalizationAreaId(nextArea, index);
+
+        if (nextAreaId !== areaId) {
+          return nextArea;
+        }
+
+        const currentTechniqueIds = normalizeTechniqueIds(nextArea.allowed_technique_ids ?? nextArea.technique_ids);
+        const nextTechniqueIds = currentTechniqueIds.filter((existingId) => existingId !== techniqueId);
+        removed = removed || nextTechniqueIds.length !== currentTechniqueIds.length;
+
+        nextArea.id = nextAreaId;
+        nextArea.allowed_technique_ids = nextTechniqueIds;
+        if ('technique_ids' in nextArea) {
+          nextArea.technique_ids = nextTechniqueIds;
+        }
+
+        return nextArea;
+      });
+
+      return { updatedAreas, removed };
+    };
+
     let result;
 
     switch (operation) {
       case 'select': {
+        if (isVirtualProductPrintAreasTable) {
+          const selectStart = performance.now();
+          const productIdFromId = typeof id === 'string' ? parseVirtualProductPrintAreaId(id)?.productId : null;
+          const virtualProductId = productIdFromId
+            ?? (typeof filters?.product_id === 'string' ? filters.product_id : null);
+
+          if (!virtualProductId) {
+            const selectDuration = Math.round(performance.now() - selectStart);
+            emitTelemetry({ operation: 'select', table, durationMs: selectDuration, status: 'error', error: 'Filtro product_id é obrigatório para product_print_areas' });
+            return new Response(
+              JSON.stringify({ error: 'Filtro product_id é obrigatório para product_print_areas' }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const { product, error: productError } = await fetchProductForVirtualPrintAreas(virtualProductId);
+          const selectDuration = Math.round(performance.now() - selectStart);
+
+          if (productError) {
+            emitTelemetry({ operation: 'select', table, durationMs: selectDuration, status: 'error', error: productError.message });
+            return new Response(
+              JSON.stringify({ error: productError.message }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const requestedLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 200;
+          const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
+          const allRecords = buildVirtualProductPrintAreaRecords(virtualProductId, product?.personalization_areas);
+
+          let filteredRecords = allRecords;
+
+          if (id) {
+            filteredRecords = filteredRecords.filter((record) => record.id === id);
+          }
+
+          if (filters) {
+            filteredRecords = filteredRecords.filter((record) => {
+              return Object.entries(filters).every(([key, value]) => {
+                if (value === undefined || value === null || value === '') return true;
+                if (key === 'product_id') return true;
+
+                const recordValue = record[key];
+                if (Array.isArray(value)) {
+                  return value.includes(recordValue as never);
+                }
+
+                return recordValue === value;
+              });
+            });
+          }
+
+          const paginatedRecords = filteredRecords.slice(safeOffset, safeOffset + requestedLimit);
+          const selectStatus = selectDuration >= VERY_SLOW_QUERY_THRESHOLD_MS ? 'very_slow' : selectDuration >= SLOW_QUERY_THRESHOLD_MS ? 'slow' : 'ok';
+          emitTelemetry({ operation: 'select', table, limit: requestedLimit, offset: safeOffset, countMode: 'virtual', durationMs: selectDuration, status: selectStatus, recordCount: paginatedRecords.length });
+
+          result = { records: paginatedRecords, count: filteredRecords.length };
+          console.log(`Selected ${paginatedRecords.length} of ${filteredRecords.length} virtual records from ${table} (offset=${safeOffset}, limit=${requestedLimit})`);
+          break;
+        }
+
         // ============================================
         // FILTRO POR CATEGORIA COM DESCENDENTES
         // Usa função get_category_descendants() do BD para incluir subcategorias
@@ -1020,8 +1235,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        const safeLimitForCount = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
-        const safeOffsetForCount = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
         const isHeavyTable = ['products', 'product_images', 'product_variants', 'color_variations', 'product_categories', 'product_category_assignments'].includes(table);
         const hasSearchFilter = filters && '_search' in filters;
 
@@ -1151,6 +1364,79 @@ Deno.serve(async (req) => {
           );
         }
 
+        if (isVirtualProductPrintAreasTable) {
+          const productId = typeof data.product_id === 'string' ? data.product_id : '';
+          const techniqueId = typeof data.technique_id === 'string' ? data.technique_id : '';
+
+          if (!productId || !techniqueId) {
+            return new Response(
+              JSON.stringify({ error: 'product_id e technique_id são obrigatórios para product_print_areas' }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const { product, error: productError } = await fetchProductForVirtualPrintAreas(productId);
+          if (productError) {
+            return new Response(
+              JSON.stringify({ error: productError.message }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          if (!product) {
+            return new Response(
+              JSON.stringify({ error: `Produto '${productId}' não encontrado` }),
+              { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const { updatedAreas, areaId, alreadyLinked } = addTechniqueToPersonalizationAreas(
+            product.personalization_areas,
+            techniqueId,
+            typeof data.area_name === 'string' ? data.area_name : 'Área Principal'
+          );
+
+          const nextPersonalizationAreas = alreadyLinked ? product.personalization_areas : updatedAreas;
+
+          if (!alreadyLinked) {
+            const { data: updatedProduct, error: updateError } = await externalSupabase
+              .from('products')
+              .update({
+                personalization_areas: updatedAreas,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', productId)
+              .select('id, personalization_areas')
+              .maybeSingle();
+
+            if (updateError) {
+              return new Response(
+                JSON.stringify({ error: updateError.message, details: updateError.details, hint: updateError.hint }),
+                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+
+            if (!updatedProduct) {
+              return new Response(
+                JSON.stringify({ error: `Produto '${productId}' não encontrado para atualização` }),
+                { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              );
+            }
+          }
+
+          const virtualRecord = buildVirtualProductPrintAreaRecords(productId, nextPersonalizationAreas)
+            .find((record) => record.area_id === areaId && record.technique_id === techniqueId);
+
+          result = virtualRecord || {
+            id: `${productId}::${areaId}::${techniqueId}`,
+            product_id: productId,
+            area_id: areaId,
+            technique_id: techniqueId,
+          };
+          console.log(`${alreadyLinked ? 'Technique already linked in' : 'Inserted virtual record in'} ${table}:`, (result as Record<string, unknown>).id);
+          break;
+        }
+
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
         const insertData: Record<string, unknown> = {
           ...data,
@@ -1183,6 +1469,13 @@ Deno.serve(async (req) => {
       }
 
       case 'update': {
+        if (isVirtualProductPrintAreasTable) {
+          return new Response(
+            JSON.stringify({ error: 'Atualização direta de product_print_areas não é suportada; atualize products.personalization_areas' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         if (!id) {
           return new Response(
             JSON.stringify({ error: 'ID obrigatório para atualização' }),
@@ -1238,6 +1531,72 @@ Deno.serve(async (req) => {
             JSON.stringify({ error: 'ID obrigatório para exclusão' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
+        }
+
+        if (isVirtualProductPrintAreasTable) {
+          const parsedId = parseVirtualProductPrintAreaId(id);
+          if (!parsedId) {
+            return new Response(
+              JSON.stringify({ error: `ID virtual inválido para product_print_areas: '${id}'` }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const { product, error: productError } = await fetchProductForVirtualPrintAreas(parsedId.productId);
+          if (productError) {
+            return new Response(
+              JSON.stringify({ error: productError.message }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          if (!product) {
+            return new Response(
+              JSON.stringify({ error: `Produto '${parsedId.productId}' não encontrado` }),
+              { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const { updatedAreas, removed } = removeTechniqueFromPersonalizationAreas(
+            product.personalization_areas,
+            parsedId.areaId,
+            parsedId.techniqueId
+          );
+
+          if (!removed) {
+            return new Response(
+              JSON.stringify({ error: `Registro não encontrado para exclusão em '${table}' com id='${id}'` }),
+              { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          const { data: updatedProduct, error: updateError } = await externalSupabase
+            .from('products')
+            .update({
+              personalization_areas: updatedAreas,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', parsedId.productId)
+            .select('id')
+            .maybeSingle();
+
+          if (updateError) {
+            return new Response(
+              JSON.stringify({ error: updateError.message, details: updateError.details, hint: updateError.hint }),
+              { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          if (!updatedProduct) {
+            return new Response(
+              JSON.stringify({ error: `Produto '${parsedId.productId}' não encontrado para atualização` }),
+              { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+
+          result = { success: true, deleted_id: id };
+          console.log(`Deleted virtual record from ${table}:`, id);
+          break;
         }
 
         const { data: deleteResult, error: deleteError } = await externalSupabase
