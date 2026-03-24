@@ -112,6 +112,7 @@ const SECTIONS: SectionDef[] = [
   { id: 'dimensions', label: 'Dimensões', icon: Ruler, group: 'Detalhes' },
   { id: 'packaging', label: 'Embalagem', icon: Package, group: 'Detalhes' },
   { id: 'fiscal', label: 'Fiscal', icon: FileText, group: 'Detalhes' },
+  { id: 'logistics', label: 'Logística', icon: Truck, group: 'Detalhes' },
   { id: 'seo', label: 'SEO', icon: Globe, group: 'Marketing' },
   { id: 'marketing', label: 'Textos', icon: Megaphone, group: 'Marketing' },
   { id: 'classification', label: 'Classificação', icon: Layers, group: 'Vínculos' },
