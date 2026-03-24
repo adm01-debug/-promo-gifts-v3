@@ -355,7 +355,6 @@ function buildNotesPayload(
     ?.replace(/\[Fones Fixos:.*?\]/g, '')
     ?.replace(/\[Fiscal:.*?\]/g, '')
     ?.trim();
-    ?.trim();
   if (userNotes) parts.push(userNotes);
   const c0 = contacts[0];
   if (c0?.signature?.trim() || c0?.nickname?.trim()) {
