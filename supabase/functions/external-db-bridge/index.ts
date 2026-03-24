@@ -278,6 +278,11 @@ const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
   'canonical_url',
   'key_benefits',
   'use_cases',
+  // Dimensões internas da embalagem (campos locais)
+  'box_internal_height_cm',
+  'box_internal_width_cm',
+  'box_internal_length_cm',
+  'box_inner_quantity',
 ]);
 
 function sanitizeExternalWriteData(table: string, data: Record<string, unknown>) {
