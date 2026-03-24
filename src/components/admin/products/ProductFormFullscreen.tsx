@@ -360,6 +360,19 @@ export function ProductFormFullscreen({
     prevSupplierRef.current = supplierRefValue;
   }, [supplierRefValue, skuManuallyEdited, isEdit, setValue]);
 
+  // Sincronizar display states com valores carregados do formulário (edição)
+  React.useEffect(() => {
+    if (costPriceValue && costPriceValue > 0 && !costPriceDisplay) {
+      setCostPriceDisplay(costPriceValue.toFixed(2));
+    }
+  }, [costPriceValue]);
+
+  React.useEffect(() => {
+    if (salePriceValue && salePriceValue > 0 && !salePriceDisplay) {
+      setSalePriceDisplay(salePriceValue.toFixed(2));
+    }
+  }, [salePriceValue]);
+
   // Auto-calcular Preço Sugerido (sempre) e Preço Venda (até edição manual) com base no Preço Custo × Markup
   React.useEffect(() => {
     if (!supplierMarkup || !costPriceValue || costPriceValue <= 0) return;
