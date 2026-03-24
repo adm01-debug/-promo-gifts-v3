@@ -71,6 +71,7 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
           image: c.image || null,
           images: c.images || [],
           videos: [],
+          size_code: c.size_code || null,
         });
       }
     });
