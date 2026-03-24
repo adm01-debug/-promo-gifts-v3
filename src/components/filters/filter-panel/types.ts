@@ -35,6 +35,7 @@ export interface FilterState {
   isNew: boolean;
   hasPersonalization: boolean;
   hasCommercialPackaging: boolean;
+  gender: string[];
   sortBy: string;
 }
 
