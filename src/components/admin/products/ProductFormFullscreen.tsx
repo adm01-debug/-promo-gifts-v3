@@ -490,7 +490,19 @@ export function ProductFormFullscreen({
 
           {/* === INFORMAÇÕES BÁSICAS === */}
           <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
+            {/* 1 - Nome do Produto */}
+            <div>
+              <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>Nome do Produto</FieldLabel>
+              <Input id="name" {...register('name')} placeholder="Nome do produto" className={cn('h-9', errors.name && 'border-destructive')} />
+              {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
+            </div>
+
+            {/* 2 - SKU Fornecedor | 3 - SKU Interno */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>SKU do Fornecedor</FieldLabel>
+                <Input id="supplier_reference" {...register('supplier_reference')} placeholder="Ex: FORN-12345" className="font-mono h-9" />
+              </div>
               <div>
                 <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>SKU Interno</FieldLabel>
                 <div className="relative">
@@ -519,16 +531,6 @@ export function ProductFormFullscreen({
                 {errors.sku && <p className="text-[10px] text-destructive mt-1">{errors.sku.message}</p>}
                 {skuStatus === 'duplicate' && <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>}
               </div>
-              <div>
-                <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>SKU do Fornecedor</FieldLabel>
-                <Input id="supplier_reference" {...register('supplier_reference')} placeholder="Ex: FORN-12345" className="font-mono h-9" />
-              </div>
-            </div>
-
-            <div>
-              <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>Nome do Produto</FieldLabel>
-              <Input id="name" {...register('name')} placeholder="Nome do produto" className={cn('h-9', errors.name && 'border-destructive')} />
-              {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
             </div>
 
             <div>
