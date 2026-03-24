@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, Package } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { ProductVariation, ProductColor } from "@/data/mockData";
+import type { ProductVariation, ProductColor } from "@/types/product";
 
 interface ProductVariationsProps {
   variations: ProductVariation[];
