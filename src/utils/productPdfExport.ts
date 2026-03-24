@@ -156,7 +156,7 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
   addTable([
     ['Altura', formatDimension(formData.height_cm, 'cm')],
     ['Largura', formatDimension(formData.width_cm, 'cm')],
-    ['Comprimento', formatDimension(formData.length_cm, 'cm')],
+    ['Profundidade', formatDimension(formData.length_cm, 'cm')],
     ['Diâmetro', formatDimension(formData.diameter_cm, 'cm')],
     ['Peso', formatDimension(formData.weight_g, 'g')],
     ['Capacidade', formatDimension(formData.capacity_ml, 'ml')],
