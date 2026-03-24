@@ -716,15 +716,6 @@ export function ProductFormFullscreen({
                 </div>
               ))}
             </div>
-            <div className="border-t border-border/30 pt-4 mt-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">Internas</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div>
-                  <FieldLabel htmlFor="internal_height_cm">Altura Int. (cm)</FieldLabel>
-                  <Input id="internal_height_cm" {...numericProps('internal_height_cm')} min="0" step="0.1" className="h-9" />
-                </div>
-              </div>
-            </div>
           </SectionCard>
 
           {/* === EMBALAGEM === */}
