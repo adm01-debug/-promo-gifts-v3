@@ -189,6 +189,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   // Classification
   const [isProductSupplier, setIsProductSupplier] = useState(true);
   const [isEngravingSupplier, setIsEngravingSupplier] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
     setContacts(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
@@ -213,7 +214,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]);
-    setIsProductSupplier(true); setIsEngravingSupplier(false);
+    setIsProductSupplier(true); setIsEngravingSupplier(false); setIsActive(true);
     setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento('');
     setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch(''); setCarrierResults([]); setShowCarrierDropdown(false);
     setLogoUrl('');
@@ -374,7 +375,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         code: generatedCode,
         trading_name: tradingName.trim() || null,
         cnpj: cnpj.trim() || null,
-        active: true,
+        active: isActive,
         organization_id: ORGANIZATION_ID,
         contact_name: contacts[0]?.name?.trim() || null,
         contact_person: contacts[0]?.role?.trim() || null,
@@ -694,7 +695,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <Label className="text-sm">Ativo</Label>
-              <Switch checked={sup.active ?? true} onCheckedChange={v => setSup(p => ({ ...p, active: v }))} />
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
             </div>
 
           </TabsContent>
