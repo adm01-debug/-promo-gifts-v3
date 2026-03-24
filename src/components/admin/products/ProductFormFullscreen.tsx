@@ -705,7 +705,7 @@ export function ProductFormFullscreen({
               {[
                 { id: 'height_cm', label: 'Altura (cm)' },
                 { id: 'width_cm', label: 'Largura (cm)' },
-                { id: 'length_cm', label: 'Comprimento (cm)' },
+                { id: 'length_cm', label: 'Profundidade (cm)' },
                 { id: 'diameter_cm', label: 'Diâmetro (cm)' },
                 { id: 'weight_g', label: 'Peso (g)' },
                 { id: 'capacity_ml', label: 'Capacidade (ml)' },
@@ -719,17 +719,10 @@ export function ProductFormFullscreen({
             <div className="border-t border-border/30 pt-4 mt-2">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">Internas</p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {[
-                  { id: 'internal_height_cm', label: 'Altura Int. (cm)' },
-                  { id: 'internal_width_cm', label: 'Largura Int. (cm)' },
-                  { id: 'internal_length_cm', label: 'Comprim. Int. (cm)' },
-                  { id: 'internal_diameter_cm', label: 'Diâmetro Int. (cm)' },
-                ].map(({ id: fId, label }) => (
-                  <div key={fId}>
-                    <FieldLabel htmlFor={fId}>{label}</FieldLabel>
-                    <Input id={fId} {...numericProps(fId as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
-                  </div>
-                ))}
+                <div>
+                  <FieldLabel htmlFor="internal_height_cm">Altura Int. (cm)</FieldLabel>
+                  <Input id="internal_height_cm" {...numericProps('internal_height_cm')} min="0" step="0.1" className="h-9" />
+                </div>
               </div>
             </div>
           </SectionCard>
