@@ -516,11 +516,11 @@ export function ProductForm({
                   <Input id="stock_unit" {...register('stock_unit')} placeholder="un" className="h-9" />
                 </div>
                 <div>
-                  <FieldLabel htmlFor="min_quantity">Qtd. Mínima</FieldLabel>
+                  <FieldLabel htmlFor="min_quantity">Qtd. Mín. Venda</FieldLabel>
                   <Input id="min_quantity" {...numericProps('min_quantity')} min="1" className="h-9" />
                 </div>
                 <div>
-                  <FieldLabel htmlFor="min_order_quantity">Qtd. Mín. Pedido</FieldLabel>
+                  <FieldLabel htmlFor="min_order_quantity">Qtd. Mín. Compra</FieldLabel>
                   <Input id="min_order_quantity" {...numericProps('min_order_quantity')} min="0" className="h-9" />
                 </div>
               </div>
