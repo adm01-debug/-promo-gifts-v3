@@ -611,10 +611,6 @@ export function ProductFormFullscreen({
                 <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
                 <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
               </div>
-              <div>
-                <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>
-                <Input id="product_type" {...register('product_type')} placeholder="product" className="h-9" />
-              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
