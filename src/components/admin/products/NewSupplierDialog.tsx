@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { invokeExternalDb } from '@/lib/external-db';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
