@@ -107,7 +107,7 @@ interface SectionDef {
 const SECTIONS: SectionDef[] = [
   { id: 'info', label: 'Informações', icon: Info, group: 'Básico' },
   { id: 'price', label: 'Preço e Estoque', icon: Tag, group: 'Básico' },
-  { id: 'commercial', label: 'Comercial', icon: Truck, group: 'Básico' },
+  { id: 'flags', label: 'Status', icon: ShieldCheck, group: 'Básico' },
   { id: 'flags', label: 'Status', icon: ShieldCheck, group: 'Básico' },
   { id: 'dimensions', label: 'Dimensões', icon: Ruler, group: 'Detalhes' },
   { id: 'packaging', label: 'Embalagem', icon: Package, group: 'Detalhes' },
