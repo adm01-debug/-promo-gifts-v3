@@ -375,7 +375,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
         code: generatedCode,
         trading_name: tradingName.trim() || null,
         cnpj: cnpj.trim() || null,
-        active: true,
+        active: isActive,
         organization_id: ORGANIZATION_ID,
         contact_name: contacts[0]?.name?.trim() || null,
         contact_person: contacts[0]?.role?.trim() || null,
