@@ -297,6 +297,8 @@ export function ProductFormFullscreen({
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
+  const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(isEdit);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [showPreview, setShowPreview] = useState(() => {
@@ -341,6 +343,7 @@ export function ProductFormFullscreen({
   const metaTitleValue = watch('meta_title') || '';
   const metaKeywordsValue = watch('meta_keywords') || '';
   const salePriceValue = watch('sale_price') ?? 0;
+  const costPriceValue = watch('cost_price') ?? 0;
   const stockQuantityValue = watch('stock_quantity') ?? 0;
   const brandValue = watch('brand') || '';
 
@@ -354,6 +357,15 @@ export function ProductFormFullscreen({
     }
     prevSupplierRef.current = supplierRefValue;
   }, [supplierRefValue, skuManuallyEdited, isEdit, setValue]);
+
+  // Auto-calcular Preço Sugerido e Preço Venda com base no Preço Custo × Markup do Fornecedor
+  React.useEffect(() => {
+    if (priceManuallyEdited || !supplierMarkup || !costPriceValue || costPriceValue <= 0) return;
+    const markupMultiplier = 1 + (supplierMarkup / 100);
+    const calculatedPrice = Math.round(costPriceValue * markupMultiplier * 100) / 100;
+    setValue('suggested_price', calculatedPrice);
+    setValue('sale_price', calculatedPrice);
+  }, [costPriceValue, supplierMarkup, priceManuallyEdited, setValue]);
 
   const onFormSubmit = handleSubmit(async (data) => {
     if (skuStatus === 'duplicate') return;
@@ -492,7 +504,7 @@ export function ProductFormFullscreen({
               </div>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
-                  <SupplierSelect value={supplierId || ''} onChange={(id, name) => { setValue('supplier_id', id); if (name) setValue('brand', name); }} error={errors.supplier_id?.message} />
+                  <SupplierSelect value={supplierId || ''} onChange={(id, name, markupPercent) => { setValue('supplier_id', id); if (name) setValue('brand', name); setSupplierMarkup(markupPercent ?? null); setPriceManuallyEdited(false); }} error={errors.supplier_id?.message} />
                 </div>
                 <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
               </div>
@@ -593,19 +605,19 @@ export function ProductFormFullscreen({
           </SectionCard>
 
           {/* === PREÇO E ESTOQUE === */}
-          <SectionCard id="price" title="Preço e Estoque" icon={Tag} subtitle={`Preço atual: R$ ${(watch('sale_price') ?? 0).toFixed(2)}`}>
+          <SectionCard id="price" title="Preço e Estoque" icon={Tag} subtitle={`Preço atual: R$ ${(watch('sale_price') ?? 0).toFixed(2)}${supplierMarkup ? ` · Markup ${supplierMarkup}%` : ''}`}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <FieldLabel htmlFor="cost_price">Preço Custo (R$)</FieldLabel>
+                <FieldLabel htmlFor="cost_price" hint={supplierMarkup ? `Markup do fornecedor: ${supplierMarkup}%. Preço sugerido e venda serão calculados automaticamente.` : 'Informe o preço de custo do produto'}>Preço Custo (R$)</FieldLabel>
                 <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="suggested_price">Preço Sugerido (R$)</FieldLabel>
-                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" />
+                <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Pode ser editado manualmente.">Preço Sugerido (R$)</FieldLabel>
+                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" onChange={(e) => { register('suggested_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
               </div>
               <div>
-                <FieldLabel htmlFor="sale_price" required>Preço Venda (R$)</FieldLabel>
-                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} />
+                <FieldLabel htmlFor="sale_price" required hint="Calculado automaticamente pelo markup do fornecedor. Pode ser editado manualmente.">Preço Venda (R$)</FieldLabel>
+                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
                 {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
               </div>
             </div>

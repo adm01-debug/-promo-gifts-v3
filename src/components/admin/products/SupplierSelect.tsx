@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 interface SupplierSelectProps {
   value: string;
-  onChange: (id: string, name?: string) => void;
+  onChange: (id: string, name?: string, markupPercent?: number | null) => void;
   error?: string;
 }
 
@@ -52,7 +52,7 @@ export function SupplierSelect({ value, onChange, error }: SupplierSelectProps) 
                 className="h-4 w-4 shrink-0 opacity-50 hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onChange('', '');
+                  onChange('', '', null);
                 }}
               />
             ) : (
@@ -86,7 +86,7 @@ export function SupplierSelect({ value, onChange, error }: SupplierSelectProps) 
                       value === s.id && 'bg-accent'
                     )}
                     onClick={() => {
-                      onChange(s.id, s.name);
+                      onChange(s.id, s.name, s.defaultMarkupPercent);
                       setOpen(false);
                       setSearch('');
                     }}

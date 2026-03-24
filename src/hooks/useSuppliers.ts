@@ -7,6 +7,7 @@ export interface SupplierOption {
   code?: string;
   leadTimeDays?: number;
   isActive?: boolean;
+  defaultMarkupPercent?: number | null;
 }
 
 /**
@@ -34,6 +35,7 @@ export function useSuppliers() {
       code: supplier.code,
       leadTimeDays: supplier.lead_time_days,
       isActive: supplier.is_active ?? true,
+      defaultMarkupPercent: supplier.default_markup_percent ?? null,
     }));
   }, [data]);
 

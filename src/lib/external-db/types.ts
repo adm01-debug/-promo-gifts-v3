@@ -176,6 +176,7 @@ export interface ExternalSupplier {
   website?: string;
   lead_time_days?: number;
   is_active?: boolean;
+  default_markup_percent?: number | null;
   created_at?: string;
   updated_at?: string;
 }
