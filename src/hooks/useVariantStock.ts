@@ -138,7 +138,7 @@ export function useVariantStock() {
       // 1) Produtos - sem limite fixo, busca todos
       const allProducts = await fetchPaginatedFromBridge<ExternalProductWithVariants>(
         'products',
-        'id,name,sku,min_quantity,min_stock,stock_quantity,updated_at',
+        'id,name,sku,min_quantity,stock_quantity,updated_at',
         1000,
         100000,
         { active: true }
