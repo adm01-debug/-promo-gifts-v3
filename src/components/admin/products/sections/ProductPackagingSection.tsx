@@ -22,6 +22,7 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
 
   return (
     <SectionCard id="packaging" title="Embalagem (Caixa)" icon={Package} subtitle="Dimensões e especificações da embalagem">
+      {/* Tipo + Material + Cor + Acabamento */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div>
           <FieldLabel htmlFor="packing_type" hint="Formato físico da embalagem que acompanha o produto">Tipo de Embalagem</FieldLabel>
@@ -76,6 +77,8 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
           </Select>
         </div>
       </div>
+
+      {/* Dimensões Externas */}
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Externas</p>
       <div className="grid grid-cols-3 gap-3">
         <div>
@@ -91,6 +94,8 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
           <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" step="0.1" className="h-9" />
         </div>
       </div>
+
+      {/* Dimensões Internas */}
       <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1 mt-3">Internas</p>
       <div className="grid grid-cols-3 gap-3">
         <div>
@@ -106,7 +111,9 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
           <Input id="box_internal_length_cm" {...numericProps('box_internal_length_cm' as any)} min="0" step="0.1" className="h-9" />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3 mt-1">
+
+      {/* Peso, Volume, Quantidades */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-1">
         <div>
           <FieldLabel htmlFor="box_weight_kg" hint="Peso da embalagem vazia (sem o produto)">Peso (kg)</FieldLabel>
           <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
@@ -114,6 +121,14 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
         <div>
           <FieldLabel htmlFor="box_volume_cm3" hint="Volume cúbico total da embalagem (A × L × P)">Volume (cm³)</FieldLabel>
           <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" className="h-9" />
+        </div>
+        <div>
+          <FieldLabel htmlFor="box_quantity" hint="Quantidade de unidades do produto por caixa master/embarque">Qtd. por Caixa</FieldLabel>
+          <Input id="box_quantity" {...numericProps('box_quantity')} min="0" className="h-9" />
+        </div>
+        <div>
+          <FieldLabel htmlFor="box_inner_quantity" hint="Quantidade por caixa interna/inner pack dentro da caixa master">Qtd. Inner Pack</FieldLabel>
+          <Input id="box_inner_quantity" {...numericProps('box_inner_quantity')} min="0" className="h-9" />
         </div>
       </div>
     </SectionCard>

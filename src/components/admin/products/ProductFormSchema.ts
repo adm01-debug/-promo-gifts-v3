@@ -6,7 +6,6 @@ export const productFormSchema = z.object({
   name: z.string().trim().min(1, 'Nome é obrigatório').max(300, 'Nome muito longo'),
   description: z.string().max(5000, 'Descrição muito longa').optional().default(''),
   short_description: z.string().max(500, 'Descrição curta muito longa').optional().default(''),
-  meta_description: z.string().max(500, 'Meta descrição muito longa').optional().default(''),
   brand: z.string().max(100).optional().default(''),
 
   // Categoria e fornecedor (IDs reais do BD externo)
@@ -86,7 +85,7 @@ export const productFormSchema = z.object({
   tax_regime: z.string().max(50).optional().default(''),
   cest: z.string().max(10).optional().default(''),
 
-  // Logística / Frete (campos internos — não enviados ao BD externo, stripped pelo sanitizador)
+  // Logística (campos internos — armazenados mas sem UI dedicada)
   freight_class: z.string().max(50).optional().default(''),
   default_carrier: z.string().max(100).optional().default(''),
   shipping_weight_kg: z.coerce.number().min(0).optional().nullable(),
@@ -106,6 +105,7 @@ export const productFormSchema = z.object({
 
   // SEO
   meta_title: z.string().max(200).optional().default(''),
+  meta_description: z.string().max(500, 'Meta descrição muito longa').optional().default(''),
   meta_keywords: z.string().max(500).optional().default(''), // comma-separated
   slug: z.string().max(300).optional().default(''),
   canonical_url: z.string().max(500).optional().default(''),
@@ -125,7 +125,6 @@ export const defaultFormValues: ProductFormData = {
   name: '',
   description: '',
   short_description: '',
-  meta_description: '',
   brand: '',
   category_id: '',
   supplier_id: '',
@@ -201,6 +200,7 @@ export const defaultFormValues: ProductFormData = {
   warranty_months: null,
   gender: '',
   meta_title: '',
+  meta_description: '',
   meta_keywords: '',
   slug: '',
   canonical_url: '',
