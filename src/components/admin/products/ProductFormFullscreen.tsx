@@ -389,12 +389,9 @@ export function ProductFormFullscreen({
           </>
         );
       case 'packaging':
-        return (
-          <>
-            <ProductPackagingSection {...formProps} />
-            <ProductFiscalSection {...formProps} />
-          </>
-        );
+        return <ProductPackagingSection {...formProps} />;
+      case 'fiscal':
+        return <ProductFiscalSection {...formProps} />;
       case 'content':
         return (
           <>
