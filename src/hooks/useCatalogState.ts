@@ -120,6 +120,7 @@ export function useCatalogState() {
     if (filters.inStock) count += 1;
     if (filters.isKit) count += 1;
     if (filters.featured) count += 1;
+    if ((filters as any).gender?.length) count += (filters as any).gender.length;
     return count;
   }, [filters]);
 
