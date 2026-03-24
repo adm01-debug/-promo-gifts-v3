@@ -414,6 +414,17 @@ function ProductRow({ item }: { item: ProposalItem }) {
         {!gravacao && item.color && (
           <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "4px" }}>
             Cor: {item.color}
+            {item.size && ` | Tam: ${item.size}`}
+          </span>
+        )}
+        {!item.color && item.size && (
+          <span style={{ display: "block", fontSize: "13px", color: "#555", marginTop: "4px" }}>
+            Tam: {item.size}
+          </span>
+        )}
+        {item.gender && (
+          <span style={{ display: "block", fontSize: "11px", color: "#888", marginTop: "2px" }}>
+            Gênero: {item.gender}
           </span>
         )}
       </td>
