@@ -95,31 +95,34 @@ export default function ProductClassificationSection({
   internalDimensions,
   genderField,
 }: Props) {
-  if (!isEdit) {
-    return (
-      <Card className="border-border/40 bg-card/60">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Layers className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-foreground">Classificação & Vínculos</h3>
-              <p className="text-xs text-muted-foreground">Gênero, variações, materiais, tags e ramos</p>
-            </div>
+  const showFullContent = isEdit && productId;
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Layers className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-foreground">Classificação & Vínculos</h3>
+          <p className="text-xs text-muted-foreground">Configure gênero, variações, materiais, tags e vínculos comerciais</p>
+        </div>
+      </div>
+
+      {/* Gênero — sempre visível */}
+      <Card className="border-border/40 bg-card/60 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
+            <Users className="h-4 w-4" />
           </div>
-
-          {/* Gênero always available */}
-          <div className="mb-4">{genderField}</div>
-
-          <div className="flex items-center gap-2 p-4 rounded-lg bg-muted/30 text-xs text-muted-foreground border border-border/30">
-            <Info className="h-4 w-4 shrink-0 text-primary" />
-            <span>Salve o produto primeiro para gerenciar variações, materiais, tags e demais classificações.</span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Gênero do Produto</p>
+            <p className="text-xs text-muted-foreground">Público-alvo primário</p>
           </div>
         </div>
+        {genderField}
       </Card>
-    );
-  }
 
   return (
     <div className="space-y-4">
