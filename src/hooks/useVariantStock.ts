@@ -331,7 +331,7 @@ export function useVariantStock() {
             // Produto sem variantes na tabela product_variants
             // Criar variação padrão com estoque 0
             const currentStock = toNumber(product.stock_quantity, 0);
-            const minStock = product.min_stock || product.min_quantity || 10;
+            const minStock = product.min_quantity || 10;
             const reservedStock = 0;
             const inTransitStock = 0;
             const availableStock = calculateAvailableStock(currentStock, reservedStock);
