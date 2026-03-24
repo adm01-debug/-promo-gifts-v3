@@ -1516,10 +1516,10 @@ Deno.serve(async (req) => {
         }
 
         // Adicionar metadados de atualização (sem updated_by — nem todas as tabelas têm essa coluna)
-        const updateData = {
+        const updateData = sanitizeExternalWriteData(table, {
           ...data,
           updated_at: new Date().toISOString(),
-        };
+        });
 
         console.log(`Updating ${table} id=${id}:`, JSON.stringify(updateData).substring(0, 500));
 
