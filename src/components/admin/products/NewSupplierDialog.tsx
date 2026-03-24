@@ -221,6 +221,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]);
     setIsProductSupplier(true); setIsEngravingSupplier(false);
     setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento('');
+    setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch(''); setCarrierResults([]); setShowCarrierDropdown(false);
     setLogoUrl('');
   };
 
