@@ -120,6 +120,39 @@ export function SupplierFormDialog({
               <div><Label className="text-xs font-semibold">Fone Fixo 01</Label><Input value={foneFixo1} onChange={e => setFoneFixo1(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} /></div>
               <div><Label className="text-xs font-semibold">Fone Fixo 02</Label><Input value={foneFixo2} onChange={e => setFoneFixo2(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} /></div>
             </div>
+            {/* INSCRIÇÃO ESTADUAL + REGIME TRIBUTÁRIO */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Inscrição Estadual</Label>
+                <Input value={inscricaoEstadual} onChange={e => setInscricaoEstadual(e.target.value)} placeholder="Ex: 123.456.789.000" className={fieldClass} />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Regime Tributário</Label>
+                <Select value={regimeTributario} onValueChange={setRegimeTributario}>
+                  <SelectTrigger className={fieldClass}><SelectValue placeholder="Selecione o regime" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MEI">MEI</SelectItem>
+                    <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
+                    <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                    <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {/* ESTADO DE FATURAMENTO */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Estado de Faturamento</Label>
+                <Select value={estadoFaturamento} onValueChange={setEstadoFaturamento}>
+                  <SelectTrigger className={fieldClass}><SelectValue placeholder="Selecione o estado" /></SelectTrigger>
+                  <SelectContent>
+                    {ESTADOS_BR.map((uf) => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-3"><Label className="text-sm">Ativo</Label><Switch checked={editingSupplier.active ?? true} onCheckedChange={v => updateField('active', v)} /></div>
           </TabsContent>
 
