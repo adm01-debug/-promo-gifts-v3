@@ -181,6 +181,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]);
     setIsProductSupplier(true); setIsEngravingSupplier(false);
+    setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento('');
     setLogoUrl('');
   };
 
