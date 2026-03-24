@@ -232,6 +232,7 @@ export function useKitBuilder() {
 
   const updateItemVariant = useCallback((itemId: string, variantData: {
     color: { name: string; hex?: string };
+    size?: string;
     sku?: string;
     imageUrl?: string | null;
     price?: number;
@@ -242,6 +243,7 @@ export function useKitBuilder() {
         return {
           ...item,
           selectedColor: variantData.color,
+          selectedSize: variantData.size || undefined,
           ...(variantData.sku && { sku: variantData.sku }),
           ...(variantData.imageUrl !== undefined && { imageUrl: variantData.imageUrl }),
           ...(variantData.price !== undefined && { price: variantData.price }),
