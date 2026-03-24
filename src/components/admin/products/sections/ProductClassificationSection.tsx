@@ -32,6 +32,7 @@ interface Props {
     width_cm: number | null;
     length_cm: number | null;
   };
+  genderField?: React.ReactNode;
 }
 
 export default function ProductClassificationSection({
@@ -41,9 +42,11 @@ export default function ProductClassificationSection({
   productName,
   productSku,
   internalDimensions,
+  genderField,
 }: Props) {
   return (
-    <SectionCard id="classification" title="Classificação e Vínculos" icon={Layers} subtitle="Cores, materiais, tags, ramos e técnicas">
+    <SectionCard id="classification" title="Classificação e Vínculos" icon={Layers} subtitle="Gênero, cores, materiais, tags, ramos e técnicas">
+      {genderField}
       {isEdit && productId && (
         <>
           {/* Eixos de Variação */}
