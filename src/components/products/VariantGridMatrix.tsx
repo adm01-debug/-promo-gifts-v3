@@ -283,6 +283,11 @@ export function VariantGridMatrix({
                           <div className="space-y-0.5">
                             <p className="font-semibold">{color.name} — {size}</p>
                             {variant.sku && <p className="font-mono text-muted-foreground">{variant.sku}</p>}
+                            {variant.price != null && (
+                              <p className="text-primary font-medium">
+                                R$ {variant.price.toFixed(2)}
+                              </p>
+                            )}
                             <p className={stockColor(stock)}>
                               {stock > 0 ? `${stock.toLocaleString("pt-BR")} un. disponíveis` : "Sem estoque"}
                             </p>
