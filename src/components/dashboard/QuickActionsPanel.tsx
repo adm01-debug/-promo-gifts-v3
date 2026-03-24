@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import {
   FilePlus,
@@ -152,7 +153,9 @@ export function QuickActionsPanel() {
                   <metric.icon className={`h-4 w-4 ${metric.color}`} />
                   <span className="text-xs text-muted-foreground truncate">{metric.label}</span>
                 </div>
-                <span className="text-lg font-bold text-foreground">{isLoading ? "..." : metric.value}</span>
+                <span className="text-lg font-bold text-foreground">
+                  {isLoading ? <Skeleton className="h-6 w-16 mt-0.5" /> : metric.value}
+                </span>
               </CardContent>
             </Card>
           ))}
