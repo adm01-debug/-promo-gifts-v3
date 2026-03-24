@@ -94,6 +94,7 @@ export const SECTION_CONFIG: Record<string, { title: string; icon: React.ReactNo
   materiais: { title: "Materiais", icon: React.createElement(Gem, { className: "h-4 w-4" }) },
   "ramos-atividade": { title: "Nichos/Segmentos", icon: React.createElement(Building2, { className: "h-4 w-4" }) },
   tecnicas: { title: "Técnicas de Gravação", icon: React.createElement(Paintbrush, { className: "h-4 w-4" }) },
+  genero: { title: "Gênero", icon: React.createElement(Users, { className: "h-4 w-4" }) },
   tags: { title: "Tags", icon: React.createElement(Tag, { className: "h-4 w-4" }) },
   "opcoes-rapidas": { title: "Opções Rápidas", icon: React.createElement(Sparkles, { className: "h-4 w-4" }) },
   ordenacao: { title: "Ordenar por", icon: React.createElement(Filter, { className: "h-4 w-4" }) },
