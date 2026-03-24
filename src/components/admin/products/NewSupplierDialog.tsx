@@ -380,6 +380,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
           if (foneFixo1.trim() || foneFixo2.trim()) {
             parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
           }
+          // Persist fiscal data
+          if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
+            parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
+          }
           return parts.join('\n') || null;
         })(),
         is_product_supplier: isProductSupplier,
