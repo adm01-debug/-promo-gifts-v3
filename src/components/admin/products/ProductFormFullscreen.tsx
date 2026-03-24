@@ -64,7 +64,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StepId = 'essentials' | 'commercial' | 'packaging' | 'content' | 'relations';
+type StepId = 'essentials' | 'commercial' | 'packaging' | 'content' | 'engraving' | 'relations';
 
 interface StepDef {
   id: StepId;
@@ -79,6 +79,7 @@ const STEPS: StepDef[] = [
   { id: 'commercial', label: 'Comercial', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
   { id: 'packaging', label: 'Embalagem & Fiscal', icon: Package, requiredFields: [], fieldLabels: {} },
   { id: 'content', label: 'SEO & Textos', icon: Megaphone, requiredFields: [], fieldLabels: {} },
+  { id: 'engraving', label: 'Gravação', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
   { id: 'relations', label: 'Vínculos & Mídia', icon: Layers, requiredFields: [], fieldLabels: {} },
 ];
 
