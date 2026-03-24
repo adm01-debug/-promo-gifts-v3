@@ -1080,7 +1080,8 @@ Deno.serve(async (req) => {
         .eq('id', productId)
         .maybeSingle();
 
-      return { product, error };
+      const missingPersonalizationAreasColumn = !!error?.message?.includes("personalization_areas");
+      return { product, error, missingPersonalizationAreasColumn };
     };
 
     const addTechniqueToPersonalizationAreas = (
