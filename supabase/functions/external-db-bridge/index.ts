@@ -97,6 +97,7 @@ const PRODUCT_TABLES = [
   // category_area_techniques: vínculos área×técnica com variantes
   // ============================================
   'category_area_techniques',              // Vínculos área-técnica com variante_id
+  'tabela_preco_fornecedores_gravacao',    // Tabela real mapeada via alias customization_price_tables
 ] as const;
 
 // Views e Materialized Views (somente leitura)
