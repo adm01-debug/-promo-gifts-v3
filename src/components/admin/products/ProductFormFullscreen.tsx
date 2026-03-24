@@ -299,6 +299,8 @@ export function ProductFormFullscreen({
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
   const [priceManuallyEdited, setPriceManuallyEdited] = useState(isEdit);
+  const [costPriceDisplay, setCostPriceDisplay] = useState('');
+  const [salePriceDisplay, setSalePriceDisplay] = useState('');
   const [activeSection, setActiveSection] = useState<SectionId>('info');
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [showPreview, setShowPreview] = useState(() => {
@@ -366,6 +368,7 @@ export function ProductFormFullscreen({
     setValue('suggested_price', calculatedPrice);
     if (!priceManuallyEdited) {
       setValue('sale_price', calculatedPrice);
+      setSalePriceDisplay(calculatedPrice.toFixed(2));
     }
   }, [costPriceValue, supplierMarkup, priceManuallyEdited, setValue]);
 
@@ -611,7 +614,7 @@ export function ProductFormFullscreen({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <FieldLabel htmlFor="cost_price" hint={supplierMarkup ? `Markup do fornecedor: ${supplierMarkup}%. Preço sugerido e venda serão calculados automaticamente.` : 'Informe o preço de custo do produto'}>Preço Custo (R$)</FieldLabel>
-                <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" onBlur={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) e.target.value = v.toFixed(2); }} />
+                <Input id="cost_price" type="text" inputMode="decimal" value={costPriceDisplay} onChange={(e) => { const raw = e.target.value.replace(/[^0-9.,]/g, ''); setCostPriceDisplay(raw); const num = parseFloat(raw.replace(',', '.')); if (!isNaN(num)) setValue('cost_price', num); }} onBlur={(e) => { const num = parseFloat(e.target.value.replace(',', '.')); if (!isNaN(num)) setCostPriceDisplay(num.toFixed(2)); }} className="h-9" />
               </div>
               <div>
                 <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Valor de referência (não editável).">Preço Sugerido (R$)</FieldLabel>
@@ -619,7 +622,7 @@ export function ProductFormFullscreen({
               </div>
               <div>
                 <FieldLabel htmlFor="sale_price" required hint="Inicia com o valor sugerido pelo markup, mas pode ser editado livremente.">Preço Venda (R$)</FieldLabel>
-                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} onBlur={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) e.target.value = v.toFixed(2); }} />
+                <Input id="sale_price" type="text" inputMode="decimal" value={salePriceDisplay} onChange={(e) => { const raw = e.target.value.replace(/[^0-9.,]/g, ''); setSalePriceDisplay(raw); const num = parseFloat(raw.replace(',', '.')); if (!isNaN(num)) setValue('sale_price', num); setPriceManuallyEdited(true); }} onBlur={(e) => { const num = parseFloat(e.target.value.replace(',', '.')); if (!isNaN(num)) setSalePriceDisplay(num.toFixed(2)); }} className={cn('h-9', errors.sale_price && 'border-destructive')} />
                 {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
               </div>
             </div>
