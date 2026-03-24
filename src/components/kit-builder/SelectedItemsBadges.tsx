@@ -73,6 +73,7 @@ function SortableItemBadge({
           itemName={item.name}
           allowedVariantIds={item.allowedVariantIds}
           selectedColor={item.selectedColor}
+          selectedSize={item.selectedSize}
           onSelectVariant={onUpdateVariant}
         />
       )}

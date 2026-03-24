@@ -1,18 +1,19 @@
 /**
  * Variant Selector for replaceable kit items (G9)
  * Fetches allowed variants and lets the user swap color/variant for an item.
- * Now passes full variant data (SKU, image, price, color) back to the parent.
+ * Shows size_code when available, grouping by color with size sub-options.
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { RefreshCw, Check, Loader2, Palette } from 'lucide-react';
+import { RefreshCw, Check, Loader2, Palette, Ruler } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { invokeExternalDb } from '@/lib/external-db';
 
@@ -29,6 +30,7 @@ interface VariantOption {
 
 export interface VariantSelectionData {
   color: { name: string; hex?: string };
+  size?: string;
   sku?: string;
   imageUrl?: string | null;
   price?: number;
@@ -39,7 +41,19 @@ interface VariantSelectorProps {
   itemName: string;
   allowedVariantIds: string[];
   selectedColor?: { name: string; hex?: string };
+  selectedSize?: string;
   onSelectVariant: (itemId: string, data: VariantSelectionData) => void;
+}
+
+// Smart size ordering
+const SIZE_ORDER = ['PP', 'P', 'M', 'G', 'GG', 'XG', '2XG', '3XG', 'EG', 'EGG'];
+function sizeSort(a: string, b: string): number {
+  const ia = SIZE_ORDER.indexOf(a.toUpperCase());
+  const ib = SIZE_ORDER.indexOf(b.toUpperCase());
+  if (ia !== -1 && ib !== -1) return ia - ib;
+  if (ia !== -1) return -1;
+  if (ib !== -1) return 1;
+  return a.localeCompare(b, 'pt-BR');
 }
 
 export function VariantSelector({
@@ -47,6 +61,7 @@ export function VariantSelector({
   itemName,
   allowedVariantIds,
   selectedColor,
+  selectedSize,
   onSelectVariant,
 }: VariantSelectorProps) {
   const [open, setOpen] = useState(false);
@@ -70,7 +85,67 @@ export function VariantSelector({
     staleTime: 10 * 60 * 1000,
   });
 
+  // Detect if any variant has size_code
+  const hasSizes = useMemo(() => variants.some(v => v.size_code), [variants]);
+
+  // Group by color when sizes exist
+  const grouped = useMemo(() => {
+    if (!hasSizes) return null;
+    const map = new Map<string, VariantOption[]>();
+    for (const v of variants) {
+      const key = v.color_name || 'Padrão';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(v);
+    }
+    // Sort sizes within each group
+    for (const [, group] of map) {
+      group.sort((a, b) => sizeSort(a.size_code || '', b.size_code || ''));
+    }
+    return map;
+  }, [variants, hasSizes]);
+
   if (!allowedVariantIds.length) return null;
+
+  const triggerLabel = () => {
+    if (selectedColor) {
+      return (
+        <>
+          {selectedColor.hex && (
+            <span
+              className="w-3 h-3 rounded-full border border-border inline-block"
+              style={{ backgroundColor: selectedColor.hex }}
+            />
+          )}
+          <span className="truncate">{selectedColor.name}</span>
+          {selectedSize && (
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 font-medium">
+              {selectedSize}
+            </Badge>
+          )}
+        </>
+      );
+    }
+    return (
+      <>
+        <RefreshCw className="h-3 w-3" />
+        Trocar
+      </>
+    );
+  };
+
+  const handleSelect = (variant: VariantOption) => {
+    onSelectVariant(itemId, {
+      color: {
+        name: variant.color_name || 'Padrão',
+        hex: variant.color_hex || undefined,
+      },
+      size: variant.size_code || undefined,
+      sku: variant.sku || undefined,
+      imageUrl: variant.selected_thumbnail || undefined,
+      price: variant.sale_price ?? undefined,
+    });
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -78,29 +153,14 @@ export function VariantSelector({
         <Button
           variant="outline"
           size="sm"
-          className="h-6 px-2 text-xs gap-1"
+          className="h-6 px-2 text-xs gap-1 max-w-[180px]"
         >
-          {selectedColor ? (
-            <>
-              {selectedColor.hex && (
-                <span
-                  className="w-3 h-3 rounded-full border border-border inline-block"
-                  style={{ backgroundColor: selectedColor.hex }}
-                />
-              )}
-              {selectedColor.name}
-            </>
-          ) : (
-            <>
-              <RefreshCw className="h-3 w-3" />
-              Trocar
-            </>
-          )}
+          {triggerLabel()}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-2" align="start">
+      <PopoverContent className="w-64 p-2" align="start">
         <p className="text-xs font-medium text-muted-foreground mb-2 px-1">
-          Variantes disponíveis
+          {hasSizes ? 'Cor e Tamanho' : 'Variantes disponíveis'}
         </p>
 
         {isLoading ? (
@@ -111,7 +171,58 @@ export function VariantSelector({
           <p className="text-xs text-muted-foreground text-center py-3">
             Nenhuma variante encontrada
           </p>
+        ) : hasSizes && grouped ? (
+          /* ── Grouped view: Color → Sizes ── */
+          <div className="space-y-2 max-h-56 overflow-y-auto">
+            {Array.from(grouped.entries()).map(([colorName, group]) => {
+              const hex = group[0]?.color_hex;
+              return (
+                <div key={colorName} className="space-y-1">
+                  {/* Color header */}
+                  <div className="flex items-center gap-2 px-1">
+                    {hex ? (
+                      <span
+                        className="w-3.5 h-3.5 rounded-full border border-border flex-shrink-0"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ) : (
+                      <Palette className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className="text-xs font-medium">{colorName}</span>
+                  </div>
+                  {/* Size chips */}
+                  <div className="flex flex-wrap gap-1 pl-6">
+                    {group.map(variant => {
+                      const isActive =
+                        selectedColor?.name === variant.color_name &&
+                        selectedSize === variant.size_code;
+                      return (
+                        <button
+                          key={variant.id}
+                          className={cn(
+                            'px-2 py-1 rounded-md text-xs border transition-colors',
+                            'hover:bg-accent hover:border-primary/40',
+                            isActive
+                              ? 'bg-primary/10 border-primary/40 text-primary font-medium'
+                              : 'border-border text-foreground',
+                          )}
+                          onClick={() => handleSelect(variant)}
+                        >
+                          <span className="flex items-center gap-1">
+                            <Ruler className="h-3 w-3" />
+                            {variant.size_code || '—'}
+                            {isActive && <Check className="h-3 w-3" />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
+          /* ── Flat list (no sizes) ── */
           <div className="space-y-0.5 max-h-48 overflow-y-auto">
             {variants.map(variant => {
               const isActive = selectedColor?.name === variant.color_name;
@@ -123,18 +234,7 @@ export function VariantSelector({
                     'hover:bg-accent',
                     isActive && 'bg-primary/10 text-primary'
                   )}
-                  onClick={() => {
-                    onSelectVariant(itemId, {
-                      color: {
-                        name: variant.color_name || 'Padrão',
-                        hex: variant.color_hex || undefined,
-                      },
-                      sku: variant.sku || undefined,
-                      imageUrl: variant.selected_thumbnail || undefined,
-                      price: variant.sale_price ?? undefined,
-                    });
-                    setOpen(false);
-                  }}
+                  onClick={() => handleSelect(variant)}
                 >
                   {variant.color_hex ? (
                     <span
@@ -146,7 +246,6 @@ export function VariantSelector({
                   )}
                   <span className="truncate flex-1">
                     {variant.color_name || 'Padrão'}
-                    {variant.size_code && <span className="text-muted-foreground ml-1">({variant.size_code})</span>}
                   </span>
                   {variant.sku && (
                     <span className="text-[10px] text-muted-foreground font-mono flex-shrink-0">

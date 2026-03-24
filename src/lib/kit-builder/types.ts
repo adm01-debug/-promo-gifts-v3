@@ -57,6 +57,8 @@ export interface KitItem {
     name: string;
     hex?: string;
   };
+  // Tamanho selecionado
+  selectedSize?: string;
   // Quantidade no kit
   quantity: number;
   // Flags de composição (do product_kit_components)
