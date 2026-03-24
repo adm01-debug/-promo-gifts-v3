@@ -368,6 +368,7 @@ export function ProductFormFullscreen({
     setValue('suggested_price', calculatedPrice);
     if (!priceManuallyEdited) {
       setValue('sale_price', calculatedPrice);
+      setSalePriceDisplay(calculatedPrice.toFixed(2));
     }
   }, [costPriceValue, supplierMarkup, priceManuallyEdited, setValue]);
 
