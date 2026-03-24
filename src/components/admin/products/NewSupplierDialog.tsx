@@ -214,7 +214,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setDefaultMarkup(''); setMinOrderValue(''); setDeliveryTimeDays('');
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]);
-    setIsProductSupplier(true); setIsEngravingSupplier(false);
+    setIsProductSupplier(true); setIsEngravingSupplier(false); setIsActive(true);
     setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento('');
     setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch(''); setCarrierResults([]); setShowCarrierDropdown(false);
     setLogoUrl('');
