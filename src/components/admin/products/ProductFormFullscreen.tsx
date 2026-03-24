@@ -69,19 +69,20 @@ type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'content' |
 interface StepDef {
   id: StepId;
   label: string;
+  description: string;
   icon: React.ElementType;
   requiredFields: (keyof ProductFormData)[];
   fieldLabels: Record<string, string>;
 }
 
 const STEPS: StepDef[] = [
-  { id: 'essentials', label: 'Identificação', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
-  { id: 'commercial', label: 'Comercial', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
-  { id: 'packaging', label: 'Embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
-  { id: 'fiscal', label: 'Fiscal', icon: FileText, requiredFields: [], fieldLabels: {} },
-  { id: 'content', label: 'SEO & Textos', icon: Megaphone, requiredFields: [], fieldLabels: {} },
-  { id: 'engraving', label: 'Gravação', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
-  { id: 'relations', label: 'Vínculos & Mídia', icon: Layers, requiredFields: [], fieldLabels: {} },
+  { id: 'essentials', label: 'Identificação', description: 'Fornecedor, SKU e nome', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
+  { id: 'commercial', label: 'Comercial', description: 'Preços e dimensões', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
+  { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
+  { id: 'fiscal', label: 'Fiscal', description: 'NCM, ICMS e tributos', icon: FileText, requiredFields: [], fieldLabels: {} },
+  { id: 'content', label: 'SEO & Textos', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
+  { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
+  { id: 'relations', label: 'Vínculos & Mídia', description: 'Categorias e imagens', icon: Layers, requiredFields: [], fieldLabels: {} },
 ];
 
 // ============================================
@@ -106,81 +107,152 @@ function HorizontalStepper({
   showValidation: boolean;
 }) {
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
+  const completedSteps = stepReady.filter(Boolean).length;
+  const progressPercent = (completedSteps / steps.length) * 100;
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto overflow-y-visible pb-1" style={{ paddingBottom: 120, marginBottom: -120 }}>
-      {steps.map((step, i) => {
-        const Icon = step.icon;
-        const isActive = i === activeIndex;
-        const isDone = stepReady[i];
-        const hasError = stepErrors[i] > 0;
-        const hasMissing = showValidation && missingFields[i].length > 0;
+    <div className="w-full">
+      {/* Desktop Stepper */}
+      <div className="hidden md:block">
+        <div className="relative flex items-start justify-between">
+          {/* Progress line background */}
+          <div className="absolute top-5 left-[5%] right-[5%] h-0.5 bg-muted" />
+          
+          {/* Progress line filled */}
+          <div
+            className="absolute top-5 left-[5%] h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent * 0.9}%` }}
+          />
 
-        return (
-          <React.Fragment key={step.id}>
-            {i > 0 && (
-              <div className={cn(
-                'hidden sm:block h-px flex-1 min-w-[16px] max-w-[48px] transition-colors',
-                isDone || i <= activeIndex ? 'bg-primary/40' : 'bg-border/40',
-              )} />
-            )}
-            <button
-              type="button"
-              onClick={() => onStepClick(i)}
-              onMouseEnter={() => setHoveredStep(i)}
-              onMouseLeave={() => setHoveredStep(null)}
-              className={cn(
-                'group relative flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-200 whitespace-nowrap shrink-0',
-                isActive
-                  ? 'bg-primary/15 text-primary ring-1 ring-primary/25 shadow-sm'
-                  : isDone
-                    ? 'bg-primary/5 text-primary/80 hover:bg-primary/10'
-                    : hasMissing
-                      ? 'text-destructive/80 ring-1 ring-destructive/20 bg-destructive/5 hover:bg-destructive/10'
-                      : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
-              )}
-            >
-              <div className={cn(
-                'flex h-7 w-7 items-center justify-center rounded-lg transition-colors',
-                isActive ? 'bg-primary text-primary-foreground' :
-                isDone ? 'bg-primary/20 text-primary' :
-                'bg-muted/60 text-muted-foreground',
-              )}>
-                {isDone && !isActive ? (
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                ) : (
-                  <Icon className="h-3.5 w-3.5" />
+          {steps.map((step, i) => {
+            const Icon = step.icon;
+            const isActive = i === activeIndex;
+            const isDone = stepReady[i];
+            const hasError = stepErrors[i] > 0;
+            const hasMissing = showValidation && missingFields[i].length > 0;
+            const isClickable = true;
+
+            return (
+              <div
+                key={step.id}
+                className={cn(
+                  "relative z-10 flex flex-col items-center",
+                  "flex-1 first:flex-initial last:flex-initial",
+                  isClickable && "cursor-pointer group/step"
+                )}
+                onClick={() => onStepClick(i)}
+                onMouseEnter={() => setHoveredStep(i)}
+                onMouseLeave={() => setHoveredStep(null)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && onStepClick(i)}
+              >
+                {/* Step Circle */}
+                <div
+                  className={cn(
+                    "relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300",
+                    "font-semibold text-sm",
+                    isDone && !isActive && "bg-primary/20 border-primary text-primary shadow-md shadow-primary/15",
+                    isActive && "bg-primary border-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg shadow-primary/25 scale-110",
+                    !isActive && !isDone && "bg-muted border-muted-foreground/30 text-muted-foreground",
+                    hasMissing && !isActive && "border-amber-500 ring-2 ring-amber-500/20",
+                    hasError && !isActive && "border-destructive ring-2 ring-destructive/20",
+                    "group-hover/step:scale-110 group-hover/step:shadow-lg transition-transform"
+                  )}
+                >
+                  {isDone && !isActive ? (
+                    <CheckCircle2 className="h-5 w-5" />
+                  ) : (
+                    <Icon className="h-4 w-4" />
+                  )}
+
+                  {/* Error/Missing badge */}
+                  {hasError && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                      {stepErrors[i]}
+                    </span>
+                  )}
+                  {hasMissing && !hasError && (
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white">
+                      {missingFields[i].length}
+                    </span>
+                  )}
+                </div>
+
+                {/* Label + Description */}
+                <div className="mt-2 text-center max-w-[100px]">
+                  <p
+                    className={cn(
+                      "text-xs font-medium transition-colors",
+                      isActive && "text-primary",
+                      isDone && !isActive && "text-foreground",
+                      !isActive && !isDone && "text-muted-foreground",
+                      "group-hover/step:text-primary"
+                    )}
+                  >
+                    {step.label}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
+                    {step.description}
+                  </p>
+                </div>
+
+                {/* Tooltip com campos faltantes */}
+                {hoveredStep === i && hasMissing && (
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-max max-w-[220px] rounded-lg border border-border bg-popover p-2.5 shadow-lg animate-fade-in">
+                    <p className="text-[10px] font-semibold text-amber-500 mb-1.5">Campos obrigatórios:</p>
+                    <ul className="space-y-0.5">
+                      {missingFields[i].map((label) => (
+                        <li key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
+                          {label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
-              <span className="hidden sm:inline">{step.label}</span>
-              {hasError && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                  {stepErrors[i]}
-                </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile Stepper - Progress Bar */}
+      <div className="md:hidden space-y-3">
+        <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+          <div
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+              {React.createElement(steps[activeIndex]?.icon || Info, { className: "h-4 w-4" })}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">{steps[activeIndex]?.label}</p>
+              <p className="text-xs text-muted-foreground">{steps[activeIndex]?.description}</p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Passo {activeIndex + 1} de {steps.length}
+          </p>
+        </div>
+        <div className="flex items-center justify-center gap-1.5">
+          {steps.map((step, i) => (
+            <div
+              key={step.id}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                i === activeIndex ? "w-6 bg-primary" : "w-1.5",
+                stepReady[i] && i !== activeIndex && "bg-primary",
+                !stepReady[i] && i !== activeIndex && "bg-muted"
               )}
-              {hasMissing && !hasError && (
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white">
-                  {missingFields[i].length}
-                </span>
-              )}
-              {/* Tooltip com campos faltantes */}
-              {hoveredStep === i && hasMissing && (
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-max max-w-[220px] rounded-lg border border-border bg-popover p-2.5 shadow-lg animate-fade-in">
-                  <p className="text-[10px] font-semibold text-amber-500 mb-1.5">Campos obrigatórios:</p>
-                  <ul className="space-y-0.5">
-                    {missingFields[i].map((label) => (
-                      <li key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                        <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
-                        {label}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </button>
-          </React.Fragment>
-        );
-      })}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -461,19 +533,21 @@ export function ProductFormFullscreen({
   return (
     <form onSubmit={handleSubmitWithValidation} className="flex flex-col gap-4">
       {/* ===== STEPPER BAR ===== */}
-      <Card className="border-border/50 bg-card/80 px-4 py-3">
-        <div className="flex items-center justify-between gap-4">
-          <HorizontalStepper
-            steps={STEPS}
-            activeIndex={stepIndex}
-            stepReady={stepReady}
-            stepErrors={stepErrors}
-            onStepClick={goStep}
-            missingFields={missingFields}
-            showValidation={showValidation}
-          />
+      <Card className="border-border/50 bg-card/80 px-6 py-4">
+        <div className="flex items-end justify-between gap-6">
+          <div className="flex-1 min-w-0">
+            <HorizontalStepper
+              steps={STEPS}
+              activeIndex={stepIndex}
+              stepReady={stepReady}
+              stepErrors={stepErrors}
+              onStepClick={goStep}
+              missingFields={missingFields}
+              showValidation={showValidation}
+            />
+          </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 pb-1">
             {Object.keys(errors).length > 0 && (
               <span className="flex items-center gap-1 text-destructive text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
