@@ -131,7 +131,7 @@ export const defaultFormValues: ProductFormData = {
   sale_price: 0,
   cost_price: 0,
   suggested_price: null,
-  stock_quantity: 0,
+  stock_quantity: 10000,
   min_quantity: 1,
   min_order_quantity: null,
   stock_unit: 'un',
