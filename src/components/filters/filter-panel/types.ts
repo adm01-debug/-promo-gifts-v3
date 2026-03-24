@@ -78,6 +78,7 @@ export const defaultFilters: FilterState = {
   isNew: false,
   hasPersonalization: false,
   hasCommercialPackaging: false,
+  gender: [],
   sortBy: 'name',
 };
 

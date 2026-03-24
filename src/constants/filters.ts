@@ -24,6 +24,7 @@ export const defaultAdvancedFilters: AdvancedFilterState = {
   isFeatured: false,
   isNew: false,
   hasPersonalization: false,
+  gender: [],
   maxLeadTimeDays: null,
   sortBy: 'name',
 };
