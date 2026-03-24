@@ -304,8 +304,9 @@ export function ProductFormFullscreen({
     Boolean((formValues.sale_price ?? 0) >= 0),
     Boolean(formValues.packing_type || formValues.ncm_code || formValues.ean),
     Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
+    isEdit && !!productId, // engraving — ready if editing
     images.length > 0 || Boolean(formValues.video_url),
-  ], [formValues, images.length]);
+  ], [formValues, images.length, isEdit, productId]);
 
   const stepErrors = useMemo(() => {
     const errs = Object.keys(errors);
