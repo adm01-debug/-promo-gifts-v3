@@ -2,6 +2,7 @@
  * Basic info section — Name, SKU, description, brand, category, lead time, supply mode
  */
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { CategorySelect } from '../CategorySelect';
 import { NewCategoryDialog } from '../NewCategoryDialog';
