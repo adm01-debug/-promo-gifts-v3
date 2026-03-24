@@ -90,7 +90,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setSearchingCarriers(true);
     try {
       const companies = await searchCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
-        'carriers',
+        'companies',
         'razao_social',
         term,
         {
