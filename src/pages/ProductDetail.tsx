@@ -402,6 +402,7 @@ export default function ProductDetail() {
                     stock: Math.max(0, v.stock ?? 0),
                     sku: v.sku,
                     image: v.image,
+                    price: v.price ?? null,
                   }))}
                   selectedId={selectedVariation?.id}
                   onSelect={(item) => {
