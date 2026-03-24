@@ -20,6 +20,7 @@ import {
   ChevronLeft, ChevronRight, Truck, Info, Ruler,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
