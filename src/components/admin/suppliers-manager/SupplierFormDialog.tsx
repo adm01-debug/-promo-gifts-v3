@@ -28,6 +28,12 @@ interface SupplierFormDialogProps {
   setFoneFixo1: (v: string) => void;
   foneFixo2: string;
   setFoneFixo2: (v: string) => void;
+  inscricaoEstadual: string;
+  setInscricaoEstadual: (v: string) => void;
+  regimeTributario: string;
+  setRegimeTributario: (v: string) => void;
+  estadoFaturamento: string;
+  setEstadoFaturamento: (v: string) => void;
   logoInputRef: React.RefObject<HTMLInputElement>;
   updateField: (field: string, value: unknown) => void;
   handleSave: () => void;
