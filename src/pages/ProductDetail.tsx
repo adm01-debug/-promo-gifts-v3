@@ -26,6 +26,7 @@ import { SupplierComparisonModal } from "@/components/compare/SupplierComparison
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductInfoBar } from "@/components/products/ProductInfoBar";
 import { ProductSizeSelector } from "@/components/products/ProductSizeSelector";
+import { VariantGridMatrix } from "@/components/products/VariantGridMatrix";
 import { FutureStockModal } from "@/components/products/FutureStockModal";
 import { PackagingBadge } from "@/components/products/PackagingBadge";
 import { PackagingModal } from "@/components/products/PackagingModal";
