@@ -789,21 +789,37 @@ export function ProductFormFullscreen({
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Externas</p>
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <FieldLabel htmlFor="box_width_mm">Largura (mm)</FieldLabel>
-                <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" className="h-9" />
+                <FieldLabel htmlFor="box_height_mm">Altura (cm)</FieldLabel>
+                <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" step="0.1" className="h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="box_height_mm">Altura (mm)</FieldLabel>
-                <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" className="h-9" />
+                <FieldLabel htmlFor="box_width_mm">Largura (cm)</FieldLabel>
+                <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" step="0.1" className="h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="box_length_mm">Profundidade (mm)</FieldLabel>
-                <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" className="h-9" />
+                <FieldLabel htmlFor="box_length_mm">Profundidade (cm)</FieldLabel>
+                <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" step="0.1" className="h-9" />
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1 mt-3">Internas</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <FieldLabel htmlFor="box_internal_height_cm">Altura (cm)</FieldLabel>
+                <Input id="box_internal_height_cm" {...numericProps('box_internal_height_cm' as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="box_internal_width_cm">Largura (cm)</FieldLabel>
+                <Input id="box_internal_width_cm" {...numericProps('box_internal_width_cm' as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="box_internal_length_cm">Profundidade (cm)</FieldLabel>
+                <Input id="box_internal_length_cm" {...numericProps('box_internal_length_cm' as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-1">
               <div>
                 <FieldLabel htmlFor="box_weight_kg">Peso (kg)</FieldLabel>
                 <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
