@@ -15,6 +15,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
+import { GenderBadge } from "@/components/products/GenderBadge";
 import { ShareActions } from "@/components/products/ShareActions";
 import { RelatedProducts, RecommendedProducts } from "@/components/products/RelatedProducts";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
