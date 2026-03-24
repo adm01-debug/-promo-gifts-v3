@@ -51,7 +51,9 @@ interface SupplierFormDialogProps {
 export function SupplierFormDialog({
   editingSupplier, setEditingSupplier, isNew, saving, uploadingLogo, fetchingCnpj,
   contacts, formaPagamento, setFormaPagamento, pixKeys,
-  foneFixo1, setFoneFixo1, foneFixo2, setFoneFixo2, logoInputRef,
+  foneFixo1, setFoneFixo1, foneFixo2, setFoneFixo2,
+  inscricaoEstadual, setInscricaoEstadual, regimeTributario, setRegimeTributario,
+  estadoFaturamento, setEstadoFaturamento, logoInputRef,
   updateField, handleSave, handleLogoUpload, handleCnpjLookup, handleCepLookup,
   updateContact, addContact, removeContact, updatePixKey, addPixKey, removePixKey,
 }: SupplierFormDialogProps) {
