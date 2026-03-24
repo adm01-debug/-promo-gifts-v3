@@ -72,6 +72,9 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [website, setWebsite] = useState('');
   const [foneFixo1, setFoneFixo1] = useState('');
   const [foneFixo2, setFoneFixo2] = useState('');
+  const [inscricaoEstadual, setInscricaoEstadual] = useState('');
+  const [regimeTributario, setRegimeTributario] = useState('');
+  const [estadoFaturamento, setEstadoFaturamento] = useState('');
 
   // Social Media
   const [instagram, setInstagram] = useState('');
