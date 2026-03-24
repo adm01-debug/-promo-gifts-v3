@@ -695,7 +695,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
             <div className="flex items-center justify-between rounded-lg border border-border p-3">
               <Label className="text-sm">Ativo</Label>
-              <Switch checked={sup.active ?? true} onCheckedChange={v => setSup(p => ({ ...p, active: v }))} />
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
             </div>
 
           </TabsContent>
