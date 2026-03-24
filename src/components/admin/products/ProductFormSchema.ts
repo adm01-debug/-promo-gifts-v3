@@ -18,7 +18,7 @@ export const productFormSchema = z.object({
   sale_price: z.coerce.number().min(0, 'Preço não pode ser negativo').default(0),
   cost_price: z.coerce.number().min(0).optional().default(0),
   suggested_price: z.coerce.number().min(0).optional().nullable(),
-  stock_quantity: z.coerce.number().int().min(0).default(0),
+  stock_quantity: z.coerce.number().int().min(0).default(10000),
   min_quantity: z.coerce.number().int().min(1).default(1),
   min_order_quantity: z.coerce.number().int().min(0).optional().nullable(),
   stock_unit: z.string().max(20).optional().default('un'),
