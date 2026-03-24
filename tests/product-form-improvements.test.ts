@@ -178,7 +178,7 @@ describe('Default Values — Integrity', () => {
     const stringFields = [
       'sku', 'name', 'description', 'short_description', 'brand',
       'category_id', 'supplier_id', 'supplier_reference',
-      'stock_unit', 'packing_type', 'packaging_material', 'packaging_color', 'packaging_finish',
+      'packing_type', 'packaging_material', 'packaging_color', 'packaging_finish',
       'ncm_code', 'ean', 'gtin', 'country_of_origin', 'cfop', 'csosn', 'tax_regime', 'cest',
       'freight_class', 'default_carrier', 'shipping_notes',
       'supply_mode', 'gender',
