@@ -59,7 +59,7 @@ export function VariantSelector({
       const result = await invokeExternalDb<VariantOption>({
         table: 'product_variants',
         operation: 'select',
-        select: 'id, color_name, color_hex, color_code, sku, selected_thumbnail, sale_price',
+        select: 'id, color_name, color_hex, color_code, sku, selected_thumbnail, sale_price, size_code',
         filters: { id: allowedVariantIds, is_active: true },
         limit: 50,
       });
