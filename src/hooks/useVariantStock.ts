@@ -291,7 +291,7 @@ export function useVariantStock() {
             const sumVariantStock = variants.reduce((sum, v) => sum + toNumber(v.currentStock, 0), 0);
 
             if (sumVariantStock === 0 && productLevelStock > 0) {
-              const minStock = product.min_stock || product.min_quantity || 10;
+              const minStock = product.min_quantity || 10;
 
               if (variants.length === 1) {
                 // Se só existe uma variação, atribuímos o estoque do produto a ela.
