@@ -309,11 +309,7 @@ export function ZoomableGallery({
                     : "border-transparent hover:border-primary/50"
                 )}
               >
-                <img
-                  src={image}
-                  alt={`Thumbnail ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                <BlurThumb src={image} alt={`Thumbnail ${index + 1}`} />
               </button>
             ))}
           </div>
