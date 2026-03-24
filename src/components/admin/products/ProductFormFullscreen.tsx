@@ -114,10 +114,10 @@ function HorizontalStepper({
   const progressPercent = (completedSteps / steps.length) * 100;
 
   return (
-    <div className="w-full">
+    <div className="w-full" role="navigation" aria-label="Etapas do cadastro de produto">
       {/* Desktop Stepper */}
       <div className="hidden md:block">
-        <div className="relative flex items-start justify-between">
+        <div className="relative flex items-start justify-between" role="tablist" aria-label="Etapas">
           {/* Progress line background */}
           <div className="absolute top-5 left-[5%] right-[5%] h-0.5 bg-muted" />
           
