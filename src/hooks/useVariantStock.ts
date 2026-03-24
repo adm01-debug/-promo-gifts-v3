@@ -24,7 +24,7 @@ interface ExternalProductWithVariants {
   name: string;
   sku?: string;
   min_quantity?: number;
-  min_stock?: number;
+  
   stock_quantity?: number;
   updated_at?: string;
 }
@@ -138,7 +138,7 @@ export function useVariantStock() {
       // 1) Produtos - sem limite fixo, busca todos
       const allProducts = await fetchPaginatedFromBridge<ExternalProductWithVariants>(
         'products',
-        'id,name,sku,min_quantity,min_stock,stock_quantity,updated_at',
+        'id,name,sku,min_quantity,stock_quantity,updated_at',
         1000,
         100000,
         { active: true }
@@ -206,7 +206,7 @@ export function useVariantStock() {
                 ? toNumber(supplierSource.quantity, toNumber(pv.stock_quantity, 0))
                 : toNumber(pv.stock_quantity, 0);
               
-              const minStock = product.min_stock || product.min_quantity || 10;
+              const minStock = product.min_quantity || 10;
               const reservedStock = supplierSource ? toNumber(supplierSource.reserved_quantity, 0) : 0;
               
               // Calcular estoque em trânsito (soma das previsões futuras)
@@ -291,7 +291,7 @@ export function useVariantStock() {
             const sumVariantStock = variants.reduce((sum, v) => sum + toNumber(v.currentStock, 0), 0);
 
             if (sumVariantStock === 0 && productLevelStock > 0) {
-              const minStock = product.min_stock || product.min_quantity || 10;
+              const minStock = product.min_quantity || 10;
 
               if (variants.length === 1) {
                 // Se só existe uma variação, atribuímos o estoque do produto a ela.
@@ -331,7 +331,7 @@ export function useVariantStock() {
             // Produto sem variantes na tabela product_variants
             // Criar variação padrão com estoque 0
             const currentStock = toNumber(product.stock_quantity, 0);
-            const minStock = product.min_stock || product.min_quantity || 10;
+            const minStock = product.min_quantity || 10;
             const reservedStock = 0;
             const inTransitStock = 0;
             const availableStock = calculateAvailableStock(currentStock, reservedStock);
