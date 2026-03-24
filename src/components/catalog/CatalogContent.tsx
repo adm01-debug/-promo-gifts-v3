@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Loader2, ArrowUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductList } from "@/components/products/ProductList";
