@@ -82,6 +82,9 @@ export interface AdvancedFilterState {
   isNew: boolean;
   hasPersonalization: boolean;
   
+  // Gênero
+  gender: string[];
+  
   // Prazo de entrega
   maxLeadTimeDays: number | null;
   

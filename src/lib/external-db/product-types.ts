@@ -66,6 +66,7 @@ export interface PromobrindProduct {
   is_new?: boolean | null;
   is_on_sale?: boolean | null;
   is_kit?: boolean | null;
+  gender?: string | null;
   category_name?: string | null;
   tags?: Record<string, unknown> | null;
   kit_components?: Array<{
@@ -98,7 +99,7 @@ export const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
   'materials, dimensions, min_quantity, created_at, updated_at, ' +
-  'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
+  'is_featured, is_bestseller, is_new, is_on_sale, is_kit, gender, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
   'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
@@ -125,5 +126,5 @@ export const PRODUCT_SELECT_FIELDS_DETAIL =
 
 export function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
-  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|does not exist|não existe|undefined column|column .+ does not exist)/i.test(msg);
+  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|gender|does not exist|não existe|undefined column|column .+ does not exist)/i.test(msg);
 }

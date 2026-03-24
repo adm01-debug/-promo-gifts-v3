@@ -64,6 +64,7 @@ export interface Product {
   newArrival: boolean;
   onSale: boolean;
   isKit: boolean;
+  gender?: string | null;
   category: { id: number; name: string };
   supplier: { id: string; name: string };
   tags: {

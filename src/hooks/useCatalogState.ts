@@ -120,6 +120,7 @@ export function useCatalogState() {
     if (filters.inStock) count += 1;
     if (filters.isKit) count += 1;
     if (filters.featured) count += 1;
+    if ((filters as any).gender?.length) count += (filters as any).gender.length;
     return count;
   }, [filters]);
 
@@ -196,6 +197,16 @@ export function useCatalogState() {
 
     if (filters.inStock) {
       result = result.filter((p) => (p.stock || 0) > 0);
+    }
+
+    // Gender filter
+    if ((filters as any).gender?.length) {
+      const genderFilter = (filters as any).gender as string[];
+      result = result.filter((p) => {
+        const productGender = ((p as any).gender || '').toLowerCase().trim();
+        if (!productGender) return false;
+        return genderFilter.some(g => productGender === g.toLowerCase());
+      });
     }
 
     if (hasMaterialFilter && materialFilteredProductIds.size > 0) {

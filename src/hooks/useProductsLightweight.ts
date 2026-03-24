@@ -61,6 +61,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
     newArrival: false,
     onSale: false,
     isKit: p.is_kit ?? false,
+    gender: (p as any).gender || null,
     category: {
       id: parseInt(p.category_id || p.main_category_id || "0") || 0,
       name: "Sem categoria",
@@ -86,7 +87,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
 
 const CATALOG_PAGE_SIZE = 100; // Products per server page — smaller for faster progressive loading
 const CATALOG_BATCH_PAGES = 2; // Fetch 2 lightweight pages on first load (200 products)
-const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit';
+const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit, gender';
 
 interface CatalogPage {
   products: Product[];

@@ -218,6 +218,7 @@ export function useAdvancedFilters() {
     if (filters.isNew) count++;
     if (filters.hasPersonalization) count++;
     if (filters.maxLeadTimeDays !== null) count++;
+    if (filters.gender?.length) count += filters.gender.length;
     return count;
   }, [filters]);
 
