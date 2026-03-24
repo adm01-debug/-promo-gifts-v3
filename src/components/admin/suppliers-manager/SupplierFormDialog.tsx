@@ -100,6 +100,7 @@ export function SupplierFormDialog({
 
           {/* BASIC */}
           <TabsContent value="basic" className="space-y-4 pt-3">
+            {/* LOGO + NOME FANTASIA + CÓDIGO */}
             <div className="flex items-center gap-4">
               <div className="relative shrink-0">
                 {editingSupplier.logo_url ? (
@@ -118,8 +119,13 @@ export function SupplierFormDialog({
                 <Label className="text-xs font-semibold">Nome Fantasia</Label>
                 <Input value={editingSupplier.trading_name || ''} onChange={e => updateField('trading_name', e.target.value)} className={fieldClass} />
               </div>
+              <div className="w-40 shrink-0">
+                <Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label>
+                <Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} />
+              </div>
             </div>
             <div><Label className="text-xs font-semibold">Razão Social <span className="text-destructive">*</span></Label><Input value={editingSupplier.name || ''} onChange={e => updateField('name', e.target.value)} className={fieldClass} /></div>
+            {/* CNPJ + INSCRIÇÃO ESTADUAL */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-semibold">CNPJ</Label>
@@ -130,18 +136,17 @@ export function SupplierFormDialog({
                   </Button>
                 </div>
               </div>
-              <div><Label className="text-xs font-semibold">Código <span className="text-destructive">*</span></Label><Input value={editingSupplier.code || ''} onChange={e => updateField('code', e.target.value)} className={`${fieldClass} font-mono uppercase`} /></div>
+              <div>
+                <Label className="text-xs font-semibold">Inscrição Estadual</Label>
+                <Input value={inscricaoEstadual} onChange={e => setInscricaoEstadual(e.target.value)} placeholder="Ex: 123.456.789.000" className={fieldClass} />
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div><Label className="text-xs font-semibold">Fone Fixo 01</Label><Input value={foneFixo1} onChange={e => setFoneFixo1(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} /></div>
               <div><Label className="text-xs font-semibold">Fone Fixo 02</Label><Input value={foneFixo2} onChange={e => setFoneFixo2(maskPhone(e.target.value))} placeholder="(00) 0000-0000" className={fieldClass} maxLength={15} /></div>
             </div>
-            {/* INSCRIÇÃO ESTADUAL + REGIME TRIBUTÁRIO */}
+            {/* REGIME TRIBUTÁRIO + ESTADO DE FATURAMENTO */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs font-semibold">Inscrição Estadual</Label>
-                <Input value={inscricaoEstadual} onChange={e => setInscricaoEstadual(e.target.value)} placeholder="Ex: 123.456.789.000" className={fieldClass} />
-              </div>
               <div>
                 <Label className="text-xs font-semibold">Regime Tributário</Label>
                 <Select value={regimeTributario} onValueChange={setRegimeTributario}>
@@ -154,9 +159,6 @@ export function SupplierFormDialog({
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            {/* ESTADO DE FATURAMENTO */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-semibold">Estado de Faturamento</Label>
                 <Select value={estadoFaturamento} onValueChange={setEstadoFaturamento}>
