@@ -1,8 +1,6 @@
 /**
- * ProductFormFullscreen — Nova ferramenta guiada de cadastro
- *
- * Substitui a navegação longa por um fluxo em etapas, mantendo
- * os mesmos campos, validações e integrações existentes.
+ * ProductFormFullscreen — Ferramenta de cadastro com stepper horizontal compacto
+ * Conteúdo ocupa a tela inteira, sem duplicações.
  */
 
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
@@ -14,31 +12,12 @@ import { ProductPreviewPanel } from './ProductPreviewPanel';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Loader2,
-  Sparkles,
-  Package,
-  Tag,
-  ImageIcon,
-  Layers,
-  Megaphone,
-  AlertCircle,
-  Globe,
-  FileText,
-  ShieldCheck,
-  Save,
-  X,
-  PanelRightClose,
-  PanelRightOpen,
-  CheckCircle2,
-  Circle,
-  ChevronLeft,
-  ChevronRight,
-  Truck,
-  Info,
-  Ruler,
+  Loader2, Package, Tag, ImageIcon, Layers, Megaphone,
+  AlertCircle, Globe, FileText, ShieldCheck, Save, X,
+  PanelRightClose, PanelRightOpen, CheckCircle2,
+  ChevronLeft, ChevronRight, Truck, Info, Ruler,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
@@ -69,6 +48,10 @@ function SectionSkeleton() {
   );
 }
 
+// ============================================
+// TYPES
+// ============================================
+
 interface ProductFormFullscreenProps {
   initialData?: Partial<ProductFormData>;
   productImages?: string[];
@@ -79,203 +62,97 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StageId = 'essentials' | 'commercial' | 'packaging' | 'content' | 'relations';
+type StepId = 'essentials' | 'commercial' | 'packaging' | 'content' | 'relations';
 
-interface StageDef {
-  id: StageId;
-  title: string;
-  description: string;
+interface StepDef {
+  id: StepId;
+  label: string;
   icon: React.ElementType;
-  highlights: string[];
-  fields: (keyof ProductFormData)[];
+  requiredFields: (keyof ProductFormData)[];
 }
 
-const STAGES: StageDef[] = [
-  {
-    id: 'essentials',
-    title: 'Base do produto',
-    description: 'Fornecedor, identificação e atributos centrais para o cadastro começar certo.',
-    icon: Info,
-    highlights: ['Fornecedor', 'SKU', 'Nome', 'Categoria e marca'],
-    fields: ['supplier_id', 'sku', 'name', 'brand', 'category_id', 'supplier_reference'],
-  },
-  {
-    id: 'commercial',
-    title: 'Comercial e operação',
-    description: 'Preço, estoque, dimensões e status comercial em uma única visão operacional.',
-    icon: Tag,
-    highlights: ['Preço', 'Estoque', 'Dimensões', 'Flags do produto'],
-    fields: ['sale_price', 'cost_price', 'stock_quantity', 'min_quantity', 'width_cm', 'height_cm', 'length_cm', 'is_active'],
-  },
-  {
-    id: 'packaging',
-    title: 'Embalagem e fiscal',
-    description: 'Consolida dados de caixa, materiais e códigos fiscais sem espalhar o preenchimento.',
-    icon: Package,
-    highlights: ['Tipo de embalagem', 'Caixa master', 'NCM / EAN / GTIN', 'Origem'],
-    fields: ['packing_type', 'packaging_material', 'ncm_code', 'ean', 'gtin', 'country_of_origin'],
-  },
-  {
-    id: 'content',
-    title: 'Conteúdo e descoberta',
-    description: 'Ajusta SEO e textos comerciais para catálogo, busca e venda consultiva.',
-    icon: Megaphone,
-    highlights: ['SEO', 'Textos de apoio', 'Benefícios', 'Casos de uso'],
-    fields: ['meta_title', 'meta_description', 'slug', 'key_benefits', 'use_cases'],
-  },
-  {
-    id: 'relations',
-    title: 'Vínculos e mídia',
-    description: 'Fecha o cadastro ligando classificação, mockup operacional e galeria do produto.',
-    icon: Layers,
-    highlights: ['Classificação', 'Tags', 'Técnicas', 'Imagens e vídeo'],
-    fields: ['video_url'],
-  },
+const STEPS: StepDef[] = [
+  { id: 'essentials', label: 'Identificação', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'] },
+  { id: 'commercial', label: 'Comercial', icon: Tag, requiredFields: ['sale_price'] },
+  { id: 'packaging', label: 'Embalagem & Fiscal', icon: Package, requiredFields: [] },
+  { id: 'content', label: 'SEO & Textos', icon: Megaphone, requiredFields: [] },
+  { id: 'relations', label: 'Vínculos & Mídia', icon: Layers, requiredFields: [] },
 ];
 
-function StageRailButton({
-  stage,
-  isActive,
-  isReady,
-  errorCount,
-  onClick,
+// ============================================
+// STEPPER
+// ============================================
+
+function HorizontalStepper({
+  steps,
+  activeIndex,
+  stepReady,
+  stepErrors,
+  onStepClick,
 }: {
-  stage: StageDef;
-  isActive: boolean;
-  isReady: boolean;
-  errorCount: number;
-  onClick: () => void;
+  steps: StepDef[];
+  activeIndex: number;
+  stepReady: boolean[];
+  stepErrors: number[];
+  onStepClick: (i: number) => void;
 }) {
-  const Icon = stage.icon;
-
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={isActive ? 'step' : undefined}
-      className={cn(
-        'w-full rounded-2xl border px-4 py-3 text-left transition-all duration-200',
-        isActive
-          ? 'border-primary/30 bg-primary/10 shadow-sm'
-          : 'border-border/50 bg-card/70 hover:border-border hover:bg-accent/30',
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <div className={cn(
-          'mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border',
-          isActive ? 'border-primary/20 bg-primary/15 text-primary' : 'border-border/50 bg-muted/40 text-muted-foreground',
-        )}>
-          <Icon className="h-4 w-4" />
-        </div>
+    <div className="flex items-center gap-1 overflow-x-auto pb-1">
+      {steps.map((step, i) => {
+        const Icon = step.icon;
+        const isActive = i === activeIndex;
+        const isDone = stepReady[i];
+        const hasError = stepErrors[i] > 0;
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className={cn('text-sm font-semibold', isActive ? 'text-foreground' : 'text-foreground/90')}>
-              {stage.title}
-            </p>
-            {isReady ? (
-              <CheckCircle2 className="h-4 w-4 text-primary" />
-            ) : (
-              <Circle className="h-4 w-4 text-muted-foreground/50" />
+        return (
+          <React.Fragment key={step.id}>
+            {i > 0 && (
+              <div className={cn(
+                'hidden sm:block h-px flex-1 min-w-[16px] max-w-[48px] transition-colors',
+                isDone || i <= activeIndex ? 'bg-primary/40' : 'bg-border/40',
+              )} />
             )}
-          </div>
-          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-            {stage.description}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {errorCount > 0 ? (
-              <Badge variant="destructive" className="rounded-full px-2 py-0.5 text-[10px]">
-                {errorCount} erro(s)
-              </Badge>
-            ) : (
-              <Badge variant="secondary" className="rounded-full px-2 py-0.5 text-[10px]">
-                {isReady ? 'Pronto' : 'Em andamento'}
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function ToolHeader({
-  stage,
-  progressValue,
-  completedCount,
-  totalCount,
-  errorCount,
-}: {
-  stage: StageDef;
-  progressValue: number;
-  completedCount: number;
-  totalCount: number;
-  errorCount: number;
-}) {
-  const Icon = stage.icon;
-
-  return (
-    <Card className="border-border/50 bg-card/80 overflow-hidden">
-      <div className="border-b border-border/40 bg-muted/20 p-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[10px] uppercase tracking-[0.18em]">
-                Nova ferramenta
-              </Badge>
-              <span className="text-xs text-muted-foreground">
-                Fluxo guiado para cadastro completo
-              </span>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
-                <Icon className="h-5 w-5" />
+            <button
+              type="button"
+              onClick={() => onStepClick(i)}
+              className={cn(
+                'group relative flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-200 whitespace-nowrap shrink-0',
+                isActive
+                  ? 'bg-primary/15 text-primary ring-1 ring-primary/25 shadow-sm'
+                  : isDone
+                    ? 'bg-primary/5 text-primary/80 hover:bg-primary/10'
+                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+              )}
+            >
+              <div className={cn(
+                'flex h-7 w-7 items-center justify-center rounded-lg transition-colors',
+                isActive ? 'bg-primary text-primary-foreground' :
+                isDone ? 'bg-primary/20 text-primary' :
+                'bg-muted/60 text-muted-foreground',
+              )}>
+                {isDone && !isActive ? (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                ) : (
+                  <Icon className="h-3.5 w-3.5" />
+                )}
               </div>
-              <div>
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">
-                  {stage.title}
-                </h2>
-                <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                  {stage.description}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="min-w-[260px] space-y-2 rounded-2xl border border-border/50 bg-background/70 p-4">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Progresso geral</span>
-              <span>{completedCount}/{totalCount} etapas prontas</span>
-            </div>
-            <Progress value={progressValue} className="h-2" />
-            <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-1 text-muted-foreground">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                Ferramenta orientada por contexto
-              </span>
-              {errorCount > 0 && (
-                <span className="flex items-center gap-1 font-medium text-destructive">
-                  <AlertCircle className="h-3.5 w-3.5" />
-                  {errorCount} erro(s)
+              <span className="hidden sm:inline">{step.label}</span>
+              {hasError && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                  {stepErrors[i]}
                 </span>
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-5">
-        <div className="flex flex-wrap gap-2">
-          {stage.highlights.map((item) => (
-            <Badge key={item} variant="outline" className="rounded-full px-3 py-1 text-[11px]">
-              {item}
-            </Badge>
-          ))}
-        </div>
-      </div>
-    </Card>
+            </button>
+          </React.Fragment>
+        );
+      })}
+    </div>
   );
 }
+
+// ============================================
+// MAIN
+// ============================================
 
 export function ProductFormFullscreen({
   initialData,
@@ -292,17 +169,14 @@ export function ProductFormFullscreen({
   const [priceManuallyEdited, setPriceManuallyEdited] = useState(isEdit);
   const [costPriceDisplay, setCostPriceDisplay] = useState('');
   const [salePriceDisplay, setSalePriceDisplay] = useState('');
-  const [activeStage, setActiveStage] = useState<StageId>('essentials');
+  const [stepIndex, setStepIndex] = useState(0);
   const [showPreview, setShowPreview] = useState(() => {
     const stored = localStorage.getItem('product-form-show-preview');
     return stored !== null ? stored === 'true' : true;
   });
 
   const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
+    register, handleSubmit, setValue, watch,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -340,6 +214,7 @@ export function ProductFormFullscreen({
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
+  // Effects (same as before)
   useEffect(() => {
     if (!skuManuallyEdited && !isEdit && supplierRefValue) {
       setValue('sku', supplierRefValue, { shouldValidate: true });
@@ -347,26 +222,22 @@ export function ProductFormFullscreen({
   }, [supplierRefValue, skuManuallyEdited, isEdit, setValue]);
 
   useEffect(() => {
-    if (costPriceValue && costPriceValue > 0 && !costPriceDisplay) {
+    if (costPriceValue && costPriceValue > 0 && !costPriceDisplay)
       setCostPriceDisplay(costPriceValue.toFixed(2));
-    }
   }, [costPriceValue, costPriceDisplay]);
 
   useEffect(() => {
-    if (salePriceValue && salePriceValue > 0 && !salePriceDisplay) {
+    if (salePriceValue && salePriceValue > 0 && !salePriceDisplay)
       setSalePriceDisplay(salePriceValue.toFixed(2));
-    }
   }, [salePriceValue, salePriceDisplay]);
 
   useEffect(() => {
     if (!supplierMarkup || !costPriceValue || costPriceValue <= 0) return;
-    const markupMultiplier = 1 + supplierMarkup / 100;
-    const calculatedPrice = Math.round(costPriceValue * markupMultiplier * 100) / 100;
-    setValue('suggested_price', calculatedPrice);
-
+    const calc = Math.round(costPriceValue * (1 + supplierMarkup / 100) * 100) / 100;
+    setValue('suggested_price', calc);
     if (!priceManuallyEdited) {
-      setValue('sale_price', calculatedPrice);
-      setSalePriceDisplay(calculatedPrice.toFixed(2));
+      setValue('sale_price', calc);
+      setSalePriceDisplay(calc.toFixed(2));
     }
   }, [costPriceValue, supplierMarkup, priceManuallyEdited, setValue]);
 
@@ -377,40 +248,26 @@ export function ProductFormFullscreen({
   });
 
   const formProps = { register, setValue, watch, errors, numericProps };
-  const totalErrorCount = Object.keys(errors).length;
-  const stageIndex = STAGES.findIndex((stage) => stage.id === activeStage);
-  const currentStage = STAGES[stageIndex] ?? STAGES[0];
 
-  const stageStates = useMemo(() => {
-    const hasBasics = Boolean(formValues.supplier_id && formValues.sku && formValues.name);
-    const hasCommercialCore = Boolean((formValues.sale_price ?? 0) >= 0 && (formValues.stock_quantity ?? 0) >= 0 && formValues.is_active !== undefined);
-    const hasPackagingCore = Boolean(formValues.packing_type || formValues.ncm_code || formValues.ean || formValues.gtin || formValues.country_of_origin);
-    const hasContentCore = Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits || formValues.use_cases);
-    const hasRelationsCore = images.length > 0 || Boolean(formValues.video_url);
+  // Step readiness
+  const stepReady = useMemo(() => [
+    Boolean(formValues.supplier_id && formValues.sku && formValues.name),
+    Boolean((formValues.sale_price ?? 0) >= 0),
+    Boolean(formValues.packing_type || formValues.ncm_code || formValues.ean),
+    Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
+    images.length > 0 || Boolean(formValues.video_url),
+  ], [formValues, images.length]);
 
-    const readiness: Record<StageId, boolean> = {
-      essentials: hasBasics,
-      commercial: hasCommercialCore,
-      packaging: hasPackagingCore,
-      content: hasContentCore,
-      relations: hasRelationsCore,
-    };
+  const stepErrors = useMemo(() => {
+    const errs = Object.keys(errors);
+    return STEPS.map(step =>
+      step.requiredFields.reduce((c, f) => c + (errs.includes(f) ? 1 : 0), 0)
+    );
+  }, [errors]);
 
-    return STAGES.map((stage) => ({
-      ...stage,
-      isReady: readiness[stage.id],
-      errorCount: stage.fields.reduce((count, field) => count + ((errors as Record<string, unknown>)[field] ? 1 : 0), 0),
-    }));
-  }, [errors, formValues, images.length]);
-
-  const completedCount = stageStates.filter((stage) => stage.isReady).length;
-  const progressValue = (completedCount / STAGES.length) * 100;
-
-  const goToStage = (stageId: StageId) => {
-    setActiveStage(stageId);
-    requestAnimationFrame(() => {
-      document.getElementById('product-form-tool-top')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+  const goStep = (i: number) => {
+    setStepIndex(i);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const onFormSubmit = handleSubmit(async (data) => {
@@ -418,11 +275,13 @@ export function ProductFormFullscreen({
     await onSubmit(data, images);
   });
 
-  const renderStageContent = () => {
-    switch (activeStage) {
+  const currentStep = STEPS[stepIndex];
+
+  const renderContent = () => {
+    switch (currentStep.id) {
       case 'essentials':
         return (
-          <div className="space-y-5">
+          <>
             <ProductSupplierSection
               supplierId={supplierId}
               onSupplierChange={(id, name, markupPercent) => {
@@ -434,7 +293,6 @@ export function ProductFormFullscreen({
               setValue={setValue}
               errors={errors}
             />
-
             <ProductInfoSection
               {...formProps}
               skuStatus={skuStatus}
@@ -442,14 +300,12 @@ export function ProductFormFullscreen({
               skuManuallyEdited={skuManuallyEdited}
               onSkuManualEdit={() => setSkuManuallyEdited(true)}
             />
-          </div>
+          </>
         );
-
       case 'commercial':
         return (
-          <div className="space-y-5">
+          <>
             <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
-
             <ProductPriceSection
               {...formProps}
               supplierMarkup={supplierMarkup}
@@ -459,51 +315,26 @@ export function ProductFormFullscreen({
               onSalePriceDisplayChange={setSalePriceDisplay}
               onSalePriceManualEdit={() => setPriceManuallyEdited(true)}
             />
-
             <ProductFlagsSection setValue={setValue} flags={flags} />
-          </div>
+          </>
         );
-
       case 'packaging':
         return (
-          <div className="space-y-5">
+          <>
             <ProductPackagingSection {...formProps} />
             <ProductFiscalSection {...formProps} />
-          </div>
+          </>
         );
-
       case 'content':
         return (
-          <div className="space-y-5">
+          <>
             <ProductSeoSection {...formProps} />
             <ProductMarketingTextsSection register={register} />
-          </div>
+          </>
         );
-
       case 'relations':
         return (
-          <div className="space-y-5">
-            <Card className="border-border/50 bg-card/70 p-5">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Fechamento do cadastro</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Aqui você conecta o produto aos vínculos operacionais e sobe a mídia que abastece catálogo, mockups e orçamento.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="rounded-full px-3 py-1 text-[11px]">
-                    <Truck className="mr-1 h-3.5 w-3.5" />
-                    Operação pronta para vínculo
-                  </Badge>
-                  <Badge variant="outline" className="rounded-full px-3 py-1 text-[11px]">
-                    <ImageIcon className="mr-1 h-3.5 w-3.5" />
-                    {images.length} mídia(s)
-                  </Badge>
-                </div>
-              </div>
-            </Card>
-
+          <>
             <Suspense fallback={<SectionSkeleton />}>
               <ProductClassificationSection
                 productId={productId}
@@ -536,7 +367,6 @@ export function ProductFormFullscreen({
                 }
               />
             </Suspense>
-
             <Suspense fallback={<SectionSkeleton />}>
               <ProductMediaSection
                 images={images}
@@ -544,79 +374,122 @@ export function ProductFormFullscreen({
                 productId={productId}
               />
             </Suspense>
-          </div>
+          </>
         );
-
       default:
         return null;
     }
   };
 
-  const previousStage = stageIndex > 0 ? STAGES[stageIndex - 1] : null;
-  const nextStage = stageIndex < STAGES.length - 1 ? STAGES[stageIndex + 1] : null;
+  const hasPrev = stepIndex > 0;
+  const hasNext = stepIndex < STEPS.length - 1;
+  const isLast = stepIndex === STEPS.length - 1;
 
   return (
-    <form onSubmit={onFormSubmit} className="flex flex-col" id="product-form-tool-top">
-      <div className="flex flex-col gap-6 2xl:flex-row">
-        <aside className="2xl:w-[330px] 2xl:shrink-0">
-          <div className="space-y-4 2xl:sticky 2xl:top-24">
-            <Card className="border-border/50 bg-card/80 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                    Ferramenta de cadastro
-                  </p>
-                  <p className="mt-1 text-sm text-foreground">
-                    Fluxo novo, mais guiado e sem espalhar o preenchimento.
-                  </p>
-                </div>
-                <Badge variant="secondary" className="rounded-full px-2.5 py-1 text-[10px]">
-                  {stageIndex + 1}/{STAGES.length}
-                </Badge>
-              </div>
+    <form onSubmit={onFormSubmit} className="flex flex-col gap-4">
+      {/* ===== STEPPER BAR ===== */}
+      <Card className="border-border/50 bg-card/80 px-4 py-3">
+        <div className="flex items-center justify-between gap-4">
+          <HorizontalStepper
+            steps={STEPS}
+            activeIndex={stepIndex}
+            stepReady={stepReady}
+            stepErrors={stepErrors}
+            onStepClick={goStep}
+          />
 
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Etapas concluídas</span>
-                  <span>{completedCount}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            {Object.keys(errors).length > 0 && (
+              <span className="flex items-center gap-1 text-destructive text-xs font-medium">
+                <AlertCircle className="h-3.5 w-3.5" />
+                {Object.keys(errors).length}
+              </span>
+            )}
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSaving || skuStatus === 'duplicate'}
+              className="gap-2 font-semibold shadow-sm"
+            >
+              {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              {isEdit ? 'Salvar' : 'Criar'}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {/* ===== CONTENT + PREVIEW ===== */}
+      <div className="flex gap-6">
+        {/* Main content */}
+        <div className="flex-1 min-w-0 space-y-5">
+          {skuStatus === 'duplicate' && (
+            <Card className="border-destructive/20 bg-destructive/5 p-4">
+              <div className="flex items-start gap-3 text-destructive">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold">SKU duplicado</p>
+                  <p className="mt-1 text-sm">
+                    Este SKU já está em uso{duplicateName ? ` no produto "${duplicateName}"` : ''}. Ajuste antes de salvar.
+                  </p>
                 </div>
-                <Progress value={progressValue} className="h-2" />
               </div>
             </Card>
+          )}
 
-            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-1">
-              {stageStates.map((stage) => (
-                <StageRailButton
-                  key={stage.id}
-                  stage={stage}
-                  isActive={activeStage === stage.id}
-                  isReady={stage.isReady}
-                  errorCount={stage.errorCount}
-                  onClick={() => goToStage(stage.id)}
-                />
-              ))}
+          {renderContent()}
+
+          {/* Navigation footer */}
+          <div className="flex items-center justify-between pt-2 pb-20 lg:pb-4">
+            <div>
+              {hasPrev && (
+                <Button type="button" variant="outline" size="sm" onClick={() => goStep(stepIndex - 1)} className="gap-2">
+                  <ChevronLeft className="h-4 w-4" />
+                  {STEPS[stepIndex - 1].label}
+                </Button>
+              )}
             </div>
 
-            <Card className="hidden border-border/50 bg-card/80 p-4 2xl:block">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-foreground">Preview lateral</p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
-                  onClick={() => setShowPreview((value) => {
-                    const next = !value;
-                    localStorage.setItem('product-form-show-preview', String(next));
-                    return next;
-                  })}
-                >
-                  {showPreview ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
-                  {showPreview ? 'Ocultar' : 'Mostrar'}
+            <div className="flex items-center gap-2">
+              {hasNext && (
+                <Button type="button" size="sm" onClick={() => goStep(stepIndex + 1)} className="gap-2">
+                  {STEPS[stepIndex + 1].label}
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
-              </div>
+              )}
+              {isLast && (
+                <Button type="submit" size="sm" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2 font-semibold shadow-sm">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isEdit ? 'Salvar produto' : 'Criar produto'}
+                </Button>
+              )}
+              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </div>
 
-              {showPreview ? (
+        {/* Preview sidebar */}
+        <div className="hidden xl:flex flex-col shrink-0">
+          <div className="sticky top-24">
+            <div className="flex items-center justify-end mb-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+                onClick={() => setShowPreview(v => {
+                  const next = !v;
+                  localStorage.setItem('product-form-show-preview', String(next));
+                  return next;
+                })}
+              >
+                {showPreview ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
+                {showPreview ? 'Ocultar' : 'Preview'}
+              </Button>
+            </div>
+            {showPreview && (
+              <div className="w-64 animate-in slide-in-from-right-4 duration-200">
                 <ProductPreviewPanel
                   name={nameValue}
                   sku={skuValue}
@@ -630,108 +503,36 @@ export function ProductFormFullscreen({
                   isKit={isKit}
                   isActive={flags.is_active}
                 />
-              ) : (
-                <div className="rounded-2xl border border-dashed border-border/60 bg-muted/20 px-4 py-8 text-center text-sm text-muted-foreground">
-                  Preview recolhido para dar mais foco ao preenchimento.
-                </div>
-              )}
-            </Card>
+              </div>
+            )}
           </div>
-        </aside>
-
-        <div className="min-w-0 flex-1 space-y-5 pb-28">
-          <ToolHeader
-            stage={currentStage}
-            progressValue={progressValue}
-            completedCount={completedCount}
-            totalCount={STAGES.length}
-            errorCount={totalErrorCount}
-          />
-
-          {skuStatus === 'duplicate' && (
-            <Card className="border-destructive/20 bg-destructive/5 p-4">
-              <div className="flex items-start gap-3 text-destructive">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold">SKU duplicado</p>
-                  <p className="mt-1 text-sm">
-                    Este SKU já está em uso{duplicateName ? ` no produto “${duplicateName}”` : ''}. Ajuste o código antes de salvar.
-                  </p>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {renderStageContent()}
-
-          <Card className="border-border/50 bg-card/80 p-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-foreground">Controle da ferramenta</p>
-                <p className="text-sm text-muted-foreground">
-                  Avance por etapas ou salve agora — sem perder nenhum dos campos já existentes.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {previousStage && (
-                  <Button type="button" variant="outline" onClick={() => goToStage(previousStage.id)} className="gap-2">
-                    <ChevronLeft className="h-4 w-4" />
-                    Etapa anterior
-                  </Button>
-                )}
-
-                {nextStage ? (
-                  <Button type="button" onClick={() => goToStage(nextStage.id)} className="gap-2">
-                    Próxima etapa
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button type="submit" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2 font-semibold shadow-sm">
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    {isEdit ? 'Salvar produto' : 'Criar produto'}
-                  </Button>
-                )}
-
-                <Button type="button" variant="ghost" onClick={onCancel}>
-                  Cancelar
-                </Button>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-border/50 bg-background/95 p-3 backdrop-blur-sm 2xl:hidden z-40">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-foreground">
-              {currentStage.title}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Etapa {stageIndex + 1} de {STAGES.length}
-            </p>
-          </div>
-
+      {/* Mobile bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-sm border-t border-border/50 p-3 z-40">
+        <div className="flex items-center justify-between gap-3 max-w-3xl mx-auto">
           <div className="flex items-center gap-2">
-            {previousStage && (
-              <Button type="button" variant="outline" size="sm" onClick={() => goToStage(previousStage.id)}>
+            {hasPrev && (
+              <Button type="button" variant="outline" size="sm" onClick={() => goStep(stepIndex - 1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             )}
-
-            {nextStage ? (
-              <Button type="button" size="sm" onClick={() => goToStage(nextStage.id)} className="gap-2">
-                Próxima
-                <ChevronRight className="h-4 w-4" />
+            <span className="text-xs font-medium text-muted-foreground">
+              {stepIndex + 1}/{STEPS.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {hasNext ? (
+              <Button type="button" size="sm" onClick={() => goStep(stepIndex + 1)} className="gap-2">
+                Próxima <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
               <Button type="submit" size="sm" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2">
-                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                 {isEdit ? 'Salvar' : 'Criar'}
               </Button>
             )}
-
             <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
               <X className="h-4 w-4" />
             </Button>
