@@ -49,13 +49,26 @@ interface ClassificationCardProps {
   iconColor: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  disabled?: boolean;
 }
 
-function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, defaultOpen = false }: ClassificationCardProps) {
+function DisabledPlaceholder() {
+  return (
+    <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground/60 italic">
+      <Info className="h-3.5 w-3.5 shrink-0" />
+      Disponível após salvar o produto
+    </div>
+  );
+}
+
+function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, defaultOpen = false, disabled = false }: ClassificationCardProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <Card className="border-border/40 bg-card/60 overflow-hidden transition-all duration-200 hover:border-border/60">
+    <Card className={cn(
+      "border-border/40 bg-card/60 overflow-hidden transition-all duration-200",
+      disabled ? "opacity-60" : "hover:border-border/60"
+    )}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -71,6 +84,9 @@ function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, 
           <p className="text-sm font-semibold text-foreground">{title}</p>
           <p className="text-xs text-muted-foreground">{subtitle}</p>
         </div>
+        {disabled && (
+          <Badge variant="outline" className="text-[10px] shrink-0 opacity-60">Salvar primeiro</Badge>
+        )}
         {isOpen ? (
           <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
         ) : (
