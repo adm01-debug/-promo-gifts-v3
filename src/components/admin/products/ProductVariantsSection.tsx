@@ -633,6 +633,8 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
           onSelect={(item) => { setEditingId(item.id); setIsCreating(false); }}
           mode="admin"
           compact
+          onBulkAction={handleBulkAction}
+          isBulkLoading={isBulkLoading}
         />
       )}
 
