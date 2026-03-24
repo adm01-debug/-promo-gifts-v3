@@ -504,7 +504,7 @@ export function ProductFormFullscreen({
               </div>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
-                  <SupplierSelect value={supplierId || ''} onChange={(id, name) => { setValue('supplier_id', id); if (name) setValue('brand', name); }} error={errors.supplier_id?.message} />
+                  <SupplierSelect value={supplierId || ''} onChange={(id, name, markupPercent) => { setValue('supplier_id', id); if (name) setValue('brand', name); setSupplierMarkup(markupPercent ?? null); setPriceManuallyEdited(false); }} error={errors.supplier_id?.message} />
                 </div>
                 <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
               </div>
