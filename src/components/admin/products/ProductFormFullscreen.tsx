@@ -705,7 +705,7 @@ export function ProductFormFullscreen({
               {[
                 { id: 'height_cm', label: 'Altura (cm)' },
                 { id: 'width_cm', label: 'Largura (cm)' },
-                { id: 'length_cm', label: 'Comprimento (cm)' },
+                { id: 'length_cm', label: 'Profundidade (cm)' },
                 { id: 'diameter_cm', label: 'Diâmetro (cm)' },
                 { id: 'weight_g', label: 'Peso (g)' },
                 { id: 'capacity_ml', label: 'Capacidade (ml)' },
