@@ -46,6 +46,9 @@ export const productFormSchema = z.object({
   box_quantity: z.coerce.number().int().min(0).optional().nullable(),
   box_inner_quantity: z.coerce.number().int().min(0).optional().nullable(),
   box_volume_cm3: z.coerce.number().min(0).optional().nullable(),
+  box_internal_height_cm: z.coerce.number().min(0).optional().nullable(),
+  box_internal_width_cm: z.coerce.number().min(0).optional().nullable(),
+  box_internal_length_cm: z.coerce.number().min(0).optional().nullable(),
 
   // Embalagem detalhes
   packaging_material: z.string().max(100).optional().default(''),
