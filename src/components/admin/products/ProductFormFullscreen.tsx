@@ -401,6 +401,12 @@ export function ProductFormFullscreen({
             <ProductMarketingTextsSection register={register} />
           </>
         );
+      case 'engraving':
+        return (
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductEngravingSection productId={productId} isEdit={isEdit} />
+          </Suspense>
+        );
       case 'relations':
         return (
           <>
