@@ -63,6 +63,7 @@ export default function ProductDetail() {
 
   const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
