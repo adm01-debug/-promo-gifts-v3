@@ -380,6 +380,7 @@ function buildNotesPayload(
   formaPagamento: string[], pixKeys: PixKey[],
   foneFixo1: string, foneFixo2: string,
   inscricaoEstadual: string, regimeTributario: string, estadoFaturamento: string,
+  transportadoraPadrao: string, transportadoraId: string,
 ): string | null {
   const parts: string[] = [];
   const userNotes = es.notes?.trim()
