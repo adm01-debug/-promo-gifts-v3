@@ -458,6 +458,32 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
     }
   };
 
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
+
+  const handleBulkAction = useCallback(async (action: BulkAction) => {
+    setIsBulkLoading(true);
+    try {
+      const promises = action.variantIds.map(id => {
+        if (action.type === 'toggle_active') {
+          return updateVariant(id, { is_active: action.value as boolean });
+        } else if (action.type === 'update_stock') {
+          return updateVariant(id, { stock_quantity: action.value as number });
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(promises);
+      const label = action.type === 'toggle_active'
+        ? (action.value ? 'ativadas' : 'desativadas')
+        : 'atualizadas';
+      toast.success(`${action.variantIds.length} variações ${label}`);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro na operação em lote');
+    } finally {
+      setIsBulkLoading(false);
+    }
+  }, [invalidate]);
+
   // ── Loading / Error / Empty states ──
 
   if (isLoading) {
