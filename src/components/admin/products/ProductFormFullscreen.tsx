@@ -14,7 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Loader2, Package, Tag, ImageIcon, Layers, Megaphone,
+  Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
   AlertCircle, Globe, FileText, ShieldCheck, Save, X,
   PanelRightClose, PanelRightOpen, CheckCircle2,
   ChevronLeft, ChevronRight, Truck, Info, Ruler,
