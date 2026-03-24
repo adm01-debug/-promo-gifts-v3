@@ -9,6 +9,7 @@ export interface ExternalVariantStock {
   color_code: string | null;
   color_name: string | null;
   color_hex: string | null;
+  size_code: string | null;
   stock_quantity: number | null;
   next_entry_date: string | null;
   next_entry_quantity: number | null;
