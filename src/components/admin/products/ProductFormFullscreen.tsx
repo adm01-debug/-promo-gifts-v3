@@ -611,7 +611,7 @@ export function ProductFormFullscreen({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <FieldLabel htmlFor="cost_price" hint={supplierMarkup ? `Markup do fornecedor: ${supplierMarkup}%. Preço sugerido e venda serão calculados automaticamente.` : 'Informe o preço de custo do produto'}>Preço Custo (R$)</FieldLabel>
-                <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
+                <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" onBlur={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) e.target.value = v.toFixed(2); }} />
               </div>
               <div>
                 <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Valor de referência (não editável).">Preço Sugerido (R$)</FieldLabel>
