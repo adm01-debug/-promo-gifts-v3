@@ -222,7 +222,7 @@ export function useSuppliersManager() {
         payment_terms: es.payment_terms?.trim() || null,
         shipping_terms: es.shipping_terms?.trim() || null,
         priority: es.priority ?? 50,
-        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, foneFixo1, foneFixo2),
+        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, foneFixo1, foneFixo2, inscricaoEstadual, regimeTributario, estadoFaturamento),
         is_product_supplier: es.is_product_supplier ?? true,
         is_engraving_supplier: es.is_engraving_supplier ?? false,
         updated_at: now,
