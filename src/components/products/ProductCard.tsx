@@ -179,14 +179,8 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container" style={{ zIndex: 0 }}>
-        {/* Skeleton shimmer placeholder until image loads */}
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-muted/50 shimmer rounded-none" />
-        )}
-        
-        {/* Briefing v3: usar og_image_url (MAIN, cor individual) para cards com variante /card */}
-        {/* Color filter: quando filtro de cor ativo, mostrar imagem da variante correspondente */}
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30" style={{ zIndex: 0 }}>
+        {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}
         <>
           <img
             src={cardImageUrl}
@@ -196,9 +190,11 @@ export function ProductCard({
             title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
             className={cn(
               "w-full h-full object-contain transition-all duration-700 ease-out",
-              imageLoaded ? "opacity-100" : "opacity-0"
+              imageLoaded
+                ? "opacity-100 blur-0 scale-100"
+                : "opacity-40 blur-md scale-105"
             )}
-            style={{ transform: `scale(${computedImageScale})` }}
+            style={imageLoaded ? { transform: `scale(${computedImageScale})` } : undefined}
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
