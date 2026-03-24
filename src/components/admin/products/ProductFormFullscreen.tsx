@@ -105,7 +105,7 @@ function HorizontalStepper({
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto pb-1">
+    <div className="flex items-center gap-1 overflow-x-auto overflow-y-visible pb-1" style={{ paddingBottom: '8rem' , marginBottom: '-8rem' }}>
       {steps.map((step, i) => {
         const Icon = step.icon;
         const isActive = i === activeIndex;
