@@ -464,11 +464,31 @@ export function ProductFormFullscreen({
 
   const [direction, setDirection] = useState(0);
 
-  const goStep = (i: number) => {
+  const goStep = useCallback((i: number) => {
     setDirection(i > stepIndex ? 1 : -1);
     setStepIndex(i);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, [stepIndex]);
+
+  // Keyboard shortcuts: Ctrl+S save, Ctrl+←/→ navigate steps
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 's') {
+          e.preventDefault();
+          document.querySelector<HTMLFormElement>('form')?.requestSubmit();
+        } else if (e.key === 'ArrowRight' && stepIndex < STEPS.length - 1) {
+          e.preventDefault();
+          goStep(stepIndex + 1);
+        } else if (e.key === 'ArrowLeft' && stepIndex > 0) {
+          e.preventDefault();
+          goStep(stepIndex - 1);
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [stepIndex, goStep]);
 
   const onFormSubmit = handleSubmit(async (data) => {
     if (skuStatus === 'duplicate') return;
