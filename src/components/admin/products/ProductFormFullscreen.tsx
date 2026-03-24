@@ -614,11 +614,11 @@ export function ProductFormFullscreen({
                 <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Pode ser editado manualmente.">Preço Sugerido (R$)</FieldLabel>
-                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" onChange={(e) => { register('suggested_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
+                <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Valor de referência (não editável).">Preço Sugerido (R$)</FieldLabel>
+                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9 bg-muted/50 cursor-not-allowed" readOnly tabIndex={-1} />
               </div>
               <div>
-                <FieldLabel htmlFor="sale_price" required hint="Calculado automaticamente pelo markup do fornecedor. Pode ser editado manualmente.">Preço Venda (R$)</FieldLabel>
+                <FieldLabel htmlFor="sale_price" required hint="Inicia com o valor sugerido pelo markup, mas pode ser editado livremente.">Preço Venda (R$)</FieldLabel>
                 <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
                 {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
               </div>
