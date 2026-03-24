@@ -146,9 +146,15 @@ function HorizontalStepper({
                 onClick={() => onStepClick(i)}
                 onMouseEnter={() => setHoveredStep(i)}
                 onMouseLeave={() => setHoveredStep(null)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && onStepClick(i)}
+                role="tab"
+                aria-selected={isActive}
+                aria-label={`${step.label}: ${isDone ? 'completo' : hasMissing ? 'campos pendentes' : 'incompleto'}`}
+                tabIndex={isActive ? 0 : -1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStepClick(i); }
+                  if (e.key === 'ArrowRight' && i < steps.length - 1) { e.preventDefault(); onStepClick(i + 1); }
+                  if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); onStepClick(i - 1); }
+                }}
               >
                 {/* Step Circle */}
                 <div
