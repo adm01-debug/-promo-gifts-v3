@@ -36,6 +36,7 @@ export interface FilterState {
   hasPersonalization: boolean;
   hasCommercialPackaging: boolean;
   gender: string[];
+  sizes: string[];
   sortBy: string;
 }
 
