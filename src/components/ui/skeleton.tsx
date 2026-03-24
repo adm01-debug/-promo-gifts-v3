@@ -6,7 +6,13 @@ const Skeleton = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
     return (
       <div
         ref={ref}
-        className={cn("animate-pulse rounded-md bg-muted", className)}
+        className={cn(
+          "relative overflow-hidden rounded-md bg-muted",
+          "after:absolute after:inset-0",
+          "after:bg-gradient-to-r after:from-transparent after:via-white/[0.06] after:to-transparent",
+          "after:animate-[shimmer_1.8s_ease-in-out_infinite]",
+          className
+        )}
         {...props}
       />
     );
