@@ -89,8 +89,8 @@ export function PackagingModal({
                     src={boxImage}
                     alt={packingType || "Embalagem especial"}
                     className={cn(
-                      "w-full h-full object-contain transition-opacity duration-300",
-                      imageLoaded ? "opacity-100" : "opacity-0"
+                      "w-full h-full object-contain transition-all duration-700 ease-out",
+                      imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105"
                     )}
                     onLoad={() => setImageLoaded(true)}
                     onError={() => setImageError(true)}
