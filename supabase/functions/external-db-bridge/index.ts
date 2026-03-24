@@ -1188,8 +1188,15 @@ Deno.serve(async (req) => {
             );
           }
 
-          const { product, error: productError } = await fetchProductForVirtualPrintAreas(virtualProductId);
+          const { product, error: productError, missingPersonalizationAreasColumn } = await fetchProductForVirtualPrintAreas(virtualProductId);
           const selectDuration = Math.round(performance.now() - selectStart);
+
+          if (missingPersonalizationAreasColumn) {
+            emitTelemetry({ operation: 'select', table, durationMs: selectDuration, status: 'ok', recordCount: 0 });
+            result = { records: [], count: 0 };
+            console.warn(`Virtual table ${table} unavailable: products.personalization_areas does not exist in external schema`);
+            break;
+          }
 
           if (productError) {
             emitTelemetry({ operation: 'select', table, durationMs: selectDuration, status: 'error', error: productError.message });
