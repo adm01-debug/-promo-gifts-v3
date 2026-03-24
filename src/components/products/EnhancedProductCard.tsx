@@ -139,17 +139,16 @@ export function EnhancedProductCard({
 
       {/* Image Container */}
       <div className="relative aspect-[4/5] overflow-hidden product-img-container">
-        {/* Skeleton */}
         {!imageLoaded && (
-          <div className="absolute inset-0 animate-shimmer" />
+          <div className="absolute inset-0 bg-muted/30" />
         )}
 
         <motion.img
           src={product.images[0]}
           alt={product.name}
           className={cn(
-            "w-full h-full object-contain transition-all duration-700",
-            imageLoaded ? "opacity-100" : "opacity-0"
+            "w-full h-full object-contain transition-all duration-700 ease-out",
+            imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105"
           )}
           animate={{
             scale: isHovered ? 1.05 : 1,

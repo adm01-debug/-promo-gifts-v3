@@ -42,14 +42,14 @@ export function ProductHoverPreview({
         {/* Image */}
         <div className="relative aspect-[16/10] bg-muted overflow-hidden">
           {!imageLoaded && (
-            <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-muted via-muted-foreground/10 to-muted" />
+            <div className="absolute inset-0 bg-muted/30" />
           )}
           <img
             src={product.images[0]}
             alt={product.name}
             className={cn(
-              "w-full h-full object-cover transition-opacity duration-300",
-              imageLoaded ? "opacity-100" : "opacity-0"
+              "w-full h-full object-cover transition-all duration-700 ease-out",
+              imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105"
             )}
             onLoad={() => setImageLoaded(true)}
           />
