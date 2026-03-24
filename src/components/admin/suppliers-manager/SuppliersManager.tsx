@@ -33,6 +33,9 @@ export function SuppliersManager() {
         formaPagamento={m.formaPagamento} setFormaPagamento={m.setFormaPagamento}
         pixKeys={m.pixKeys} foneFixo1={m.foneFixo1} setFoneFixo1={m.setFoneFixo1}
         foneFixo2={m.foneFixo2} setFoneFixo2={m.setFoneFixo2}
+        inscricaoEstadual={m.inscricaoEstadual} setInscricaoEstadual={m.setInscricaoEstadual}
+        regimeTributario={m.regimeTributario} setRegimeTributario={m.setRegimeTributario}
+        estadoFaturamento={m.estadoFaturamento} setEstadoFaturamento={m.setEstadoFaturamento}
         logoInputRef={m.logoInputRef}
         updateField={m.updateField} handleSave={m.handleSave}
         handleLogoUpload={m.handleLogoUpload} handleCnpjLookup={m.handleCnpjLookup}
