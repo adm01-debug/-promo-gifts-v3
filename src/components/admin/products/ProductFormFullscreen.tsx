@@ -70,14 +70,15 @@ interface StepDef {
   label: string;
   icon: React.ElementType;
   requiredFields: (keyof ProductFormData)[];
+  fieldLabels: Record<string, string>;
 }
 
 const STEPS: StepDef[] = [
-  { id: 'essentials', label: 'Identificação', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'] },
-  { id: 'commercial', label: 'Comercial', icon: Tag, requiredFields: ['sale_price'] },
-  { id: 'packaging', label: 'Embalagem & Fiscal', icon: Package, requiredFields: [] },
-  { id: 'content', label: 'SEO & Textos', icon: Megaphone, requiredFields: [] },
-  { id: 'relations', label: 'Vínculos & Mídia', icon: Layers, requiredFields: [] },
+  { id: 'essentials', label: 'Identificação', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
+  { id: 'commercial', label: 'Comercial', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
+  { id: 'packaging', label: 'Embalagem & Fiscal', icon: Package, requiredFields: [], fieldLabels: {} },
+  { id: 'content', label: 'SEO & Textos', icon: Megaphone, requiredFields: [], fieldLabels: {} },
+  { id: 'relations', label: 'Vínculos & Mídia', icon: Layers, requiredFields: [], fieldLabels: {} },
 ];
 
 // ============================================
@@ -90,13 +91,19 @@ function HorizontalStepper({
   stepReady,
   stepErrors,
   onStepClick,
+  missingFields,
+  showValidation,
 }: {
   steps: StepDef[];
   activeIndex: number;
   stepReady: boolean[];
   stepErrors: number[];
   onStepClick: (i: number) => void;
+  missingFields: string[][];
+  showValidation: boolean;
 }) {
+  const [hoveredStep, setHoveredStep] = useState<number | null>(null);
+
   return (
     <div className="flex items-center gap-1 overflow-x-auto pb-1">
       {steps.map((step, i) => {
@@ -104,6 +111,7 @@ function HorizontalStepper({
         const isActive = i === activeIndex;
         const isDone = stepReady[i];
         const hasError = stepErrors[i] > 0;
+        const hasMissing = showValidation && missingFields[i].length > 0;
 
         return (
           <React.Fragment key={step.id}>
@@ -116,13 +124,17 @@ function HorizontalStepper({
             <button
               type="button"
               onClick={() => onStepClick(i)}
+              onMouseEnter={() => setHoveredStep(i)}
+              onMouseLeave={() => setHoveredStep(null)}
               className={cn(
                 'group relative flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-200 whitespace-nowrap shrink-0',
                 isActive
                   ? 'bg-primary/15 text-primary ring-1 ring-primary/25 shadow-sm'
                   : isDone
                     ? 'bg-primary/5 text-primary/80 hover:bg-primary/10'
-                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                    : hasMissing
+                      ? 'text-destructive/80 ring-1 ring-destructive/20 bg-destructive/5 hover:bg-destructive/10'
+                      : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
               )}
             >
               <div className={cn(
@@ -142,6 +154,25 @@ function HorizontalStepper({
                 <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
                   {stepErrors[i]}
                 </span>
+              )}
+              {hasMissing && !hasError && (
+                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white">
+                  {missingFields[i].length}
+                </span>
+              )}
+              {/* Tooltip com campos faltantes */}
+              {hoveredStep === i && hasMissing && (
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-max max-w-[220px] rounded-lg border border-border bg-popover p-2.5 shadow-lg animate-fade-in">
+                  <p className="text-[10px] font-semibold text-amber-500 mb-1.5">Campos obrigatórios:</p>
+                  <ul className="space-y-0.5">
+                    {missingFields[i].map((label) => (
+                      <li key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
+                        {label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </button>
           </React.Fragment>
@@ -250,6 +281,21 @@ export function ProductFormFullscreen({
 
   const formProps = { register, setValue, watch, errors, numericProps };
 
+  const [showValidation, setShowValidation] = useState(false);
+
+  // Missing fields per step (human-readable labels)
+  const missingFields = useMemo(() => {
+    return STEPS.map(step => {
+      return step.requiredFields
+        .filter(f => {
+          const val = formValues[f];
+          if (typeof val === 'number') return val <= 0 || val === undefined || val === null;
+          return !val;
+        })
+        .map(f => step.fieldLabels[f] || f);
+    });
+  }, [formValues]);
+
   // Step readiness
   const stepReady = useMemo(() => [
     Boolean(formValues.supplier_id && formValues.sku && formValues.name),
@@ -278,6 +324,22 @@ export function ProductFormFullscreen({
     if (skuStatus === 'duplicate') return;
     await onSubmit(data, images);
   });
+
+  // Intercept submit to show validation
+  const handleSubmitWithValidation = (e: React.FormEvent) => {
+    const totalMissing = missingFields.reduce((sum, arr) => sum + arr.length, 0);
+    if (totalMissing > 0) {
+      e.preventDefault();
+      setShowValidation(true);
+      // Navigate to first step with missing fields
+      const firstBadStep = missingFields.findIndex(arr => arr.length > 0);
+      if (firstBadStep >= 0 && firstBadStep !== stepIndex) {
+        goStep(firstBadStep);
+      }
+      return;
+    }
+    onFormSubmit(e);
+  };
 
   const currentStep = STEPS[stepIndex];
 
@@ -390,7 +452,7 @@ export function ProductFormFullscreen({
   const isLast = stepIndex === STEPS.length - 1;
 
   return (
-    <form onSubmit={onFormSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmitWithValidation} className="flex flex-col gap-4">
       {/* ===== STEPPER BAR ===== */}
       <Card className="border-border/50 bg-card/80 px-4 py-3">
         <div className="flex items-center justify-between gap-4">
@@ -400,6 +462,8 @@ export function ProductFormFullscreen({
             stepReady={stepReady}
             stepErrors={stepErrors}
             onStepClick={goStep}
+            missingFields={missingFields}
+            showValidation={showValidation}
           />
 
           <div className="flex items-center gap-2 shrink-0">
@@ -452,6 +516,32 @@ export function ProductFormFullscreen({
               {renderContent()}
             </motion.div>
           </AnimatePresence>
+
+          {/* Validation summary for current step */}
+          {showValidation && missingFields[stepIndex].length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3"
+            >
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-500">
+                    {missingFields[stepIndex].length} campo{missingFields[stepIndex].length > 1 ? 's' : ''} obrigatório{missingFields[stepIndex].length > 1 ? 's' : ''} nesta etapa
+                  </p>
+                  <ul className="mt-1.5 space-y-0.5">
+                    {missingFields[stepIndex].map(label => (
+                      <li key={label} className="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <span className="h-1 w-1 rounded-full bg-amber-500" />
+                        {label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Navigation footer */}
           <div className="flex items-center justify-between pt-2 pb-20 lg:pb-4">
