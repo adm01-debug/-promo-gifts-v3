@@ -20,6 +20,7 @@ import {
   ChevronLeft, ChevronRight, Truck, Info, Ruler,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -113,10 +114,10 @@ function HorizontalStepper({
   const progressPercent = (completedSteps / steps.length) * 100;
 
   return (
-    <div className="w-full">
+    <div className="w-full" role="navigation" aria-label="Etapas do cadastro de produto">
       {/* Desktop Stepper */}
       <div className="hidden md:block">
-        <div className="relative flex items-start justify-between">
+        <div className="relative flex items-start justify-between" role="tablist" aria-label="Etapas">
           {/* Progress line background */}
           <div className="absolute top-5 left-[5%] right-[5%] h-0.5 bg-muted" />
           
@@ -145,9 +146,15 @@ function HorizontalStepper({
                 onClick={() => onStepClick(i)}
                 onMouseEnter={() => setHoveredStep(i)}
                 onMouseLeave={() => setHoveredStep(null)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && onStepClick(i)}
+                role="tab"
+                aria-selected={isActive}
+                aria-label={`${step.label}: ${isDone ? 'completo' : hasMissing ? 'campos pendentes' : 'incompleto'}`}
+                tabIndex={isActive ? 0 : -1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStepClick(i); }
+                  if (e.key === 'ArrowRight' && i < steps.length - 1) { e.preventDefault(); onStepClick(i + 1); }
+                  if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); onStepClick(i - 1); }
+                }}
               >
                 {/* Step Circle */}
                 <div
@@ -463,11 +470,31 @@ export function ProductFormFullscreen({
 
   const [direction, setDirection] = useState(0);
 
-  const goStep = (i: number) => {
+  const goStep = useCallback((i: number) => {
     setDirection(i > stepIndex ? 1 : -1);
     setStepIndex(i);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, [stepIndex]);
+
+  // Keyboard shortcuts: Ctrl+S save, Ctrl+←/→ navigate steps
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 's') {
+          e.preventDefault();
+          document.querySelector<HTMLFormElement>('form')?.requestSubmit();
+        } else if (e.key === 'ArrowRight' && stepIndex < STEPS.length - 1) {
+          e.preventDefault();
+          goStep(stepIndex + 1);
+        } else if (e.key === 'ArrowLeft' && stepIndex > 0) {
+          e.preventDefault();
+          goStep(stepIndex - 1);
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [stepIndex, goStep]);
 
   const onFormSubmit = handleSubmit(async (data) => {
     if (skuStatus === 'duplicate') return;
@@ -569,36 +596,36 @@ export function ProductFormFullscreen({
       case 'classification':
         return (
           <Suspense fallback={<SectionSkeleton />}>
-            <ProductClassificationSection
-              productId={productId}
-              isEdit={isEdit}
-              isKit={isKit}
-              productName={formValues.name}
-              productSku={formValues.sku}
-              internalDimensions={{
-                height_cm: formValues.internal_height_cm ?? null,
-                width_cm: formValues.internal_width_cm ?? null,
-                length_cm: formValues.internal_length_cm ?? null,
-              }}
-              genderField={
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <FieldLabel htmlFor="gender">Gênero</FieldLabel>
-                    <select
-                      id="gender"
-                      {...register('gender')}
-                      className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    >
-                      <option value="">Selecione...</option>
-                      <option value="unissex">Unissex</option>
-                      <option value="masculino">Masculino</option>
-                      <option value="feminino">Feminino</option>
-                      <option value="infantil">Infantil</option>
-                    </select>
+              <ProductClassificationSection
+                productId={productId}
+                isEdit={isEdit}
+                isKit={isKit}
+                productName={formValues.name}
+                productSku={formValues.sku}
+                internalDimensions={{
+                  height_cm: formValues.internal_height_cm ?? null,
+                  width_cm: formValues.internal_width_cm ?? null,
+                  length_cm: formValues.internal_length_cm ?? null,
+                }}
+                genderField={
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <FieldLabel htmlFor="gender" hint="Gênero do público-alvo do produto">Gênero</FieldLabel>
+                      <Select value={formValues.gender || ''} onValueChange={(v) => setValue('gender', v)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unissex">Unissex</SelectItem>
+                          <SelectItem value="masculino">Masculino</SelectItem>
+                          <SelectItem value="feminino">Feminino</SelectItem>
+                          <SelectItem value="infantil">Infantil</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-              }
-            />
+                }
+              />
           </Suspense>
         );
       case 'media':
@@ -717,13 +744,16 @@ export function ProductFormFullscreen({
 
           {/* Navigation footer */}
           <div className="flex items-center justify-between pt-2 pb-20 lg:pb-4">
-            <div>
+            <div className="flex items-center gap-3">
               {hasPrev && (
                 <Button type="button" variant="outline" size="sm" onClick={() => goStep(stepIndex - 1)} className="gap-2">
                   <ChevronLeft className="h-4 w-4" />
                   {STEPS[stepIndex - 1].label}
                 </Button>
               )}
+              <span className="hidden lg:inline text-[10px] text-muted-foreground/50">
+                Ctrl+←/→ navegar · Ctrl+S salvar
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
