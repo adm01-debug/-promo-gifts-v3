@@ -3,7 +3,7 @@
  * Hierarquia: Componente → Local → Técnica
  * Funciona tanto em modo criação quanto edição
  */
-import { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { SectionCard } from '../ProductFormHelpers';
