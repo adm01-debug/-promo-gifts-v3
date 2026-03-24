@@ -701,9 +701,8 @@ export function ProductFormFullscreen({
           </SectionCard>
 
           {/* === DIMENSÕES === */}
-          <SectionCard id="dimensions" title="Dimensões" icon={Ruler} subtitle="Dimensões externas e internas do produto">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Externas</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <SectionCard id="dimensions" title="Dimensões" icon={Ruler} subtitle="Dimensões do produto">
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
               {[
                 { id: 'height_cm', label: 'Altura (cm)' },
                 { id: 'width_cm', label: 'Largura (cm)' },
