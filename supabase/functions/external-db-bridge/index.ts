@@ -239,6 +239,30 @@ function isCustomizationPriceTablesAlias(table: string) {
   return table === 'customization_price_tables' || table === 'customization_price_tiers';
 }
 
+const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
+  'cest',
+  'freight_class',
+  'default_carrier',
+  'shipping_weight_kg',
+  'shipping_width_cm',
+  'shipping_height_cm',
+  'shipping_length_cm',
+  'cubic_weight',
+  'requires_special_shipping',
+  'shipping_notes',
+  'product_type',
+  'supply_mode',
+  'warranty_months',
+]);
+
+function sanitizeExternalWriteData(table: string, data: Record<string, unknown>) {
+  if (table !== 'products') return data;
+
+  return Object.fromEntries(
+    Object.entries(data).filter(([key]) => !PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA.has(key))
+  );
+}
+
 function mapPriceTableFiltersToExternal(filters: Record<string, unknown> | undefined) {
   if (!filters) return undefined;
   const out: Record<string, unknown> = { ...filters };
