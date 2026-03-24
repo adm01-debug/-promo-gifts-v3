@@ -76,6 +76,44 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [inscricaoEstadual, setInscricaoEstadual] = useState('');
   const [regimeTributario, setRegimeTributario] = useState('');
   const [estadoFaturamento, setEstadoFaturamento] = useState('');
+  const [transportadoraPadrao, setTransportadoraPadrao] = useState('');
+  const [transportadoraId, setTransportadoraId] = useState('');
+  const [carrierSearch, setCarrierSearch] = useState('');
+  const [carrierResults, setCarrierResults] = useState<Array<{ id: string; nome_fantasia: string; razao_social: string }>>([]);
+  const [searchingCarriers, setSearchingCarriers] = useState(false);
+  const [showCarrierDropdown, setShowCarrierDropdown] = useState(false);
+  const carrierSearchTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  const searchCarriers = useCallback(async (term: string) => {
+    if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
+    setSearchingCarriers(true);
+    try {
+      const results = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
+        table: 'carriers',
+        operation: 'select',
+        select: 'id,company:companies(id,nome_fantasia,razao_social)',
+        filters: {},
+        limit: 50,
+      }).catch(() => null);
+      
+      // Fallback: search companies directly with a filter
+      const companies = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
+        table: 'companies',
+        operation: 'select',
+        select: 'id,nome_fantasia,razao_social',
+        filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
+        limit: 15,
+      }).catch(() => []);
+      
+      const list = (companies || []).filter(c => c.nome_fantasia || c.razao_social);
+      setCarrierResults(list);
+      setShowCarrierDropdown(list.length > 0);
+    } catch {
+      setCarrierResults([]);
+    } finally {
+      setSearchingCarriers(false);
+    }
+  }, []);
 
   // Social Media
   const [instagram, setInstagram] = useState('');
