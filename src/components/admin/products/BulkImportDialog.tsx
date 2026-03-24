@@ -58,7 +58,7 @@ const TARGET_FIELDS = [
   { key: 'supplier_reference', label: 'Ref. Fornecedor', required: false },
   { key: 'cost_price', label: 'Preço Custo', required: false },
   { key: 'stock_quantity', label: 'Estoque', required: false },
-  { key: 'min_quantity', label: 'Qtd. Mínima', required: false },
+  { key: 'min_quantity', label: 'Qtd. Mín. Venda', required: false },
   { key: 'height_cm', label: 'Altura (cm)', required: false },
   { key: 'width_cm', label: 'Largura (cm)', required: false },
   { key: 'length_cm', label: 'Comprimento (cm)', required: false },
