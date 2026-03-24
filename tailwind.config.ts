@@ -214,8 +214,8 @@ export default {
           to: { transform: "scale(1)", opacity: "1" },
         },
         shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
