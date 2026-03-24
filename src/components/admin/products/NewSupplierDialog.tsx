@@ -72,6 +72,9 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [website, setWebsite] = useState('');
   const [foneFixo1, setFoneFixo1] = useState('');
   const [foneFixo2, setFoneFixo2] = useState('');
+  const [inscricaoEstadual, setInscricaoEstadual] = useState('');
+  const [regimeTributario, setRegimeTributario] = useState('');
+  const [estadoFaturamento, setEstadoFaturamento] = useState('');
 
   // Social Media
   const [instagram, setInstagram] = useState('');
@@ -178,6 +181,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setPaymentTerms(''); setShippingTerms(''); setPriority('50'); setNotes('');
     setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]);
     setIsProductSupplier(true); setIsEngravingSupplier(false);
+    setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento('');
     setLogoUrl('');
   };
 
@@ -376,6 +380,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
           // Persist landline phones
           if (foneFixo1.trim() || foneFixo2.trim()) {
             parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
+          }
+          // Persist fiscal data
+          if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
+            parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
           }
           return parts.join('\n') || null;
         })(),
@@ -604,6 +612,50 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   className={fieldClass}
                   maxLength={15}
                 />
+              </div>
+            </div>
+
+            {/* INSCRIÇÃO ESTADUAL + REGIME TRIBUTÁRIO */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Inscrição Estadual</Label>
+                <Input
+                  value={inscricaoEstadual}
+                  onChange={(e) => setInscricaoEstadual(e.target.value)}
+                  placeholder="Ex: 123.456.789.000"
+                  className={fieldClass}
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold">Regime Tributário</Label>
+                <Select value={regimeTributario} onValueChange={setRegimeTributario}>
+                  <SelectTrigger className={fieldClass}>
+                    <SelectValue placeholder="Selecione o regime" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MEI">MEI</SelectItem>
+                    <SelectItem value="Simples Nacional">Simples Nacional</SelectItem>
+                    <SelectItem value="Lucro Real">Lucro Real</SelectItem>
+                    <SelectItem value="Lucro Presumido">Lucro Presumido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* ESTADO DE FATURAMENTO */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold">Estado de Faturamento</Label>
+                <Select value={estadoFaturamento} onValueChange={setEstadoFaturamento}>
+                  <SelectTrigger className={fieldClass}>
+                    <SelectValue placeholder="Selecione o estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ESTADOS_BR.map((uf) => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </TabsContent>
