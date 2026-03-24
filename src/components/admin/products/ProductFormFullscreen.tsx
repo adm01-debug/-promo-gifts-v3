@@ -619,7 +619,7 @@ export function ProductFormFullscreen({
               </div>
               <div>
                 <FieldLabel htmlFor="sale_price" required hint="Inicia com o valor sugerido pelo markup, mas pode ser editado livremente.">Preço Venda (R$)</FieldLabel>
-                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
+                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} onBlur={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) e.target.value = v.toFixed(2); }} />
                 {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
               </div>
             </div>
