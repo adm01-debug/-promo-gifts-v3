@@ -189,6 +189,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   // Classification
   const [isProductSupplier, setIsProductSupplier] = useState(true);
   const [isEngravingSupplier, setIsEngravingSupplier] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   const updateContact = (id: string, field: keyof SupplierContact, value: string) => {
     setContacts(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
