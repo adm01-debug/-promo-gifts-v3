@@ -22,6 +22,7 @@ import {
 import { cn } from '@/lib/utils';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 import { ProductSupplierSection } from './sections/ProductSupplierSection';
 import { ProductInfoSection } from './sections/ProductInfoSection';
