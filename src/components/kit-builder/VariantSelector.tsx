@@ -29,6 +29,7 @@ interface VariantOption {
 
 export interface VariantSelectionData {
   color: { name: string; hex?: string };
+  size?: string;
   sku?: string;
   imageUrl?: string | null;
   price?: number;
