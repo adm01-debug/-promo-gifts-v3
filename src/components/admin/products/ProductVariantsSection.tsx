@@ -540,30 +540,37 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
               return (
                 <Tooltip key={v.id}>
                   <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      onClick={() => { setEditingId(v.id); setIsCreating(false); }}
-                      className={cn(
-                        'w-9 h-9 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
-                        'hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2',
-                        editingId === v.id
-                          ? 'ring-2 ring-offset-1'
-                          : 'border-border hover:border-muted-foreground/50',
-                        isTransparent && 'bg-gradient-to-br from-gray-100 to-gray-200',
-                        !stock && 'opacity-40'
+                    <div className="flex flex-col items-center gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => { setEditingId(v.id); setIsCreating(false); }}
+                        className={cn(
+                          'w-9 h-9 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
+                          'hover:scale-110 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2',
+                          editingId === v.id
+                            ? 'ring-2 ring-offset-1'
+                            : 'border-border hover:border-muted-foreground/50',
+                          isTransparent && 'bg-gradient-to-br from-muted to-muted/60',
+                          !stock && 'opacity-40'
+                        )}
+                        style={{
+                          backgroundColor: isTransparent ? undefined : (hex || 'hsl(var(--muted))'),
+                          ...(editingId === v.id ? {
+                            borderColor: hex || 'hsl(var(--muted))',
+                            ['--tw-ring-color' as string]: hex || 'hsl(var(--primary))',
+                          } : {}),
+                        }}
+                      >
+                        {editingId === v.id && (
+                          <Check className={cn('w-4 h-4', light ? 'text-foreground' : 'text-white')} />
+                        )}
+                      </button>
+                      {v.size_code && (
+                        <span className="text-[9px] font-medium text-muted-foreground leading-none">
+                          {v.size_code}
+                        </span>
                       )}
-                      style={{
-                        backgroundColor: isTransparent ? undefined : (hex || '#ccc'),
-                        ...(editingId === v.id ? {
-                          borderColor: hex || '#ccc',
-                          ['--tw-ring-color' as string]: hex || '#ccc',
-                        } : {}),
-                      }}
-                    >
-                      {editingId === v.id && (
-                        <Check className={cn('w-4 h-4', light ? 'text-gray-800' : 'text-white')} />
-                      )}
-                    </button>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="text-xs">
                     <div className="flex flex-col gap-0.5">
