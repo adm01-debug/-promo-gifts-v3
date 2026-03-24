@@ -69,6 +69,7 @@ type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'content' |
 interface StepDef {
   id: StepId;
   label: string;
+  description: string;
   icon: React.ElementType;
   requiredFields: (keyof ProductFormData)[];
   fieldLabels: Record<string, string>;
