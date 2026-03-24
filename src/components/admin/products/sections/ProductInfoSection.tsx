@@ -46,7 +46,7 @@ export function ProductInfoSection({
           <Input id="supplier_reference" {...register('supplier_reference')} placeholder="Ex: FORN-12345" className="font-mono h-9" />
         </div>
         <div>
-          <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>SKU Interno</FieldLabel>
+          <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50} hint="Código interno único para identificar o produto no sistema. Gerado automaticamente a partir do nome.">SKU Interno</FieldLabel>
           <div className="relative">
             <Input
               id="sku"
