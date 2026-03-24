@@ -277,6 +277,21 @@ export function ProductForm({
 
   return (
     <form onSubmit={onFormSubmit} className="flex flex-col">
+      {/* Quick action: Gerenciar Variações (edit mode only) */}
+      {isEdit && productId && (
+        <div className="flex items-center justify-end mb-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs border-primary/30 text-primary hover:bg-primary/5"
+            onClick={() => setFormTab('classification')}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            Gerenciar Variações
+          </Button>
+        </div>
+      )}
       <div className="max-h-[65vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
         <Tabs value={formTab} onValueChange={setFormTab} className="w-full">
           <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm pb-3 -mx-1 px-1">
