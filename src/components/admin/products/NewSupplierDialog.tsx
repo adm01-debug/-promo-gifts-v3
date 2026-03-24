@@ -698,6 +698,68 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 </Select>
               </div>
             </div>
+
+            {/* TRANSPORTADORA PADRÃO */}
+            <div className="relative">
+              <Label className="text-xs font-semibold flex items-center gap-1.5">
+                <Truck className="h-3.5 w-3.5" />
+                Transportadora Padrão
+              </Label>
+              {transportadoraPadrao ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`${fieldClass} flex-1 flex items-center px-3 text-sm`}>
+                    {transportadoraPadrao}
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                    setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch('');
+                  }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative mt-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    value={carrierSearch}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCarrierSearch(val);
+                      clearTimeout(carrierSearchTimeout.current);
+                      carrierSearchTimeout.current = setTimeout(() => searchCarriers(val), 400);
+                    }}
+                    onFocus={() => { if (carrierResults.length > 0) setShowCarrierDropdown(true); }}
+                    onBlur={() => setTimeout(() => setShowCarrierDropdown(false), 200)}
+                    placeholder="Buscar transportadora..."
+                    className={`${fieldClass} pl-9`}
+                  />
+                  {searchingCarriers && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                  {showCarrierDropdown && carrierResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover shadow-lg">
+                      {carrierResults.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-accent/50 transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            const displayName = c.nome_fantasia || c.razao_social;
+                            setTransportadoraPadrao(displayName);
+                            setTransportadoraId(c.id);
+                            setCarrierSearch('');
+                            setShowCarrierDropdown(false);
+                          }}
+                        >
+                          <span className="font-medium">{c.nome_fantasia || c.razao_social}</span>
+                          {c.nome_fantasia && c.razao_social && (
+                            <span className="text-xs text-muted-foreground ml-2">({c.razao_social})</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* CONTATOS */}
