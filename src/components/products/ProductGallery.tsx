@@ -192,9 +192,9 @@ export function ProductGallery({
       onMouseLeave={handleMouseUp}
       onWheel={handleWheel}
     >
-      {/* Loading shimmer */}
-      {isImageLoading && !isVideo(selectedIndex) && (
-        <div className="absolute inset-0 animate-shimmer z-10" />
+      {/* Background while loading */}
+      {!isVideo(selectedIndex) && (
+        <div className="absolute inset-0 bg-muted/30" />
       )}
 
       {isVideo(selectedIndex) ? (
