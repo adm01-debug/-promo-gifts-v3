@@ -513,12 +513,8 @@ export function ProductFormFullscreen({
 
     if (!isValid || totalMissing > 0) {
       setShowValidation(true);
-      // Navigate to first step with Zod errors or missing fields
-      const errorKeys = Object.keys(errors);
-      const firstBadStep = STEPS.findIndex((step, i) =>
-        missingFields[i].length > 0 ||
-        step.requiredFields.some(f => errorKeys.includes(f))
-      );
+      // Navigate to first step with missing fields (missingFields is always up-to-date)
+      const firstBadStep = missingFields.findIndex(arr => arr.length > 0);
       if (firstBadStep >= 0 && firstBadStep !== stepIndex) {
         goStep(firstBadStep);
       }
