@@ -506,7 +506,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
           {/* DADOS BÁSICOS */}
           <TabsContent value="basic" className="space-y-4 pt-3">
-            {/* 1 - LOGO + 2 - NOME FANTASIA (lado a lado) */}
+            {/* 1 - LOGO + NOME FANTASIA + CÓDIGO (lado a lado) */}
             <div className="flex items-center gap-4">
               <div className="relative shrink-0">
                 {logoUrl ? (
@@ -549,9 +549,20 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   autoFocus
                 />
               </div>
+              <div className="w-40 shrink-0">
+                <Label className="text-xs font-semibold">
+                  Código <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="Auto-gerado"
+                  className={`${fieldClass} font-mono uppercase`}
+                />
+              </div>
             </div>
 
-            {/* 3 - RAZÃO SOCIAL (linha inteira) */}
+            {/* RAZÃO SOCIAL (linha inteira) */}
             <div>
               <Label className="text-xs font-semibold">
                 Razão Social <span className="text-destructive">*</span>
@@ -564,7 +575,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
               />
             </div>
 
-            {/* 4 - CNPJ + 5 - CÓDIGO */}
+            {/* CNPJ + INSCRIÇÃO ESTADUAL */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-semibold">CNPJ</Label>
@@ -615,16 +626,13 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 {cnpjError && <p className="text-[10px] text-destructive mt-0.5">{cnpjError}</p>}
               </div>
               <div>
-                <Label className="text-xs font-semibold">
-                  Código <span className="text-destructive">*</span>
-                </Label>
+                <Label className="text-xs font-semibold">Inscrição Estadual</Label>
                 <Input
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Auto-gerado do nome"
-                  className={`${fieldClass} font-mono uppercase`}
+                  value={inscricaoEstadual}
+                  onChange={(e) => setInscricaoEstadual(e.target.value)}
+                  placeholder="Ex: 123.456.789.000"
+                  className={fieldClass}
                 />
-                <p className="text-[10px] text-muted-foreground mt-0.5">Deixe vazio para gerar automaticamente</p>
               </div>
             </div>
 
@@ -652,17 +660,8 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
               </div>
             </div>
 
-            {/* INSCRIÇÃO ESTADUAL + REGIME TRIBUTÁRIO */}
+            {/* REGIME TRIBUTÁRIO + ESTADO DE FATURAMENTO */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs font-semibold">Inscrição Estadual</Label>
-                <Input
-                  value={inscricaoEstadual}
-                  onChange={(e) => setInscricaoEstadual(e.target.value)}
-                  placeholder="Ex: 123.456.789.000"
-                  className={fieldClass}
-                />
-              </div>
               <div>
                 <Label className="text-xs font-semibold">Regime Tributário</Label>
                 <Select value={regimeTributario} onValueChange={setRegimeTributario}>
@@ -677,10 +676,6 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            {/* ESTADO DE FATURAMENTO */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs font-semibold">Estado de Faturamento</Label>
                 <Select value={estadoFaturamento} onValueChange={setEstadoFaturamento}>
