@@ -498,7 +498,8 @@ export function ProductFormFullscreen({
       return;
     }
 
-    // 3) All good — submit
+    // 3) All good — clear draft and submit
+    clearDraft();
     handleSubmit(async (data) => {
       if (skuStatus === 'duplicate') return;
       await onSubmit(data, images);
