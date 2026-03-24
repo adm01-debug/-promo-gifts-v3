@@ -317,9 +317,14 @@ export function CatalogContent({
               Mostrando {paginatedProducts.length} de {totalEstimate ? `~${totalEstimate.toLocaleString("pt-BR")}` : filteredProducts.length.toLocaleString("pt-BR")} produtos
             </p>
             {isLoadingMore && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="text-sm">Carregando mais produtos...</span>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full mt-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="aspect-square w-full rounded-xl" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
               </div>
             )}
           </div>
