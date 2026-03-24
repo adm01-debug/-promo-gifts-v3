@@ -86,7 +86,7 @@ export function SupplierSelect({ value, onChange, error }: SupplierSelectProps) 
                       value === s.id && 'bg-accent'
                     )}
                     onClick={() => {
-                      onChange(s.id);
+                      onChange(s.id, s.name);
                       setOpen(false);
                       setSearch('');
                     }}
