@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { VariantGridMatrix, type VariantGridItem } from '@/components/products/VariantGridMatrix';
+import { VariantGridMatrix, type VariantGridItem, type BulkAction } from '@/components/products/VariantGridMatrix';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
@@ -458,6 +458,32 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
     }
   };
 
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
+
+  const handleBulkAction = useCallback(async (action: BulkAction) => {
+    setIsBulkLoading(true);
+    try {
+      const promises = action.variantIds.map(id => {
+        if (action.type === 'toggle_active') {
+          return updateVariant(id, { is_active: action.value as boolean });
+        } else if (action.type === 'update_stock') {
+          return updateVariant(id, { stock_quantity: action.value as number });
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(promises);
+      const label = action.type === 'toggle_active'
+        ? (action.value ? 'ativadas' : 'desativadas')
+        : 'atualizadas';
+      toast.success(`${action.variantIds.length} variações ${label}`);
+      invalidate();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro na operação em lote');
+    } finally {
+      setIsBulkLoading(false);
+    }
+  }, [invalidate]);
+
   // ── Loading / Error / Empty states ──
 
   if (isLoading) {
@@ -607,6 +633,8 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
           onSelect={(item) => { setEditingId(item.id); setIsCreating(false); }}
           mode="admin"
           compact
+          onBulkAction={handleBulkAction}
+          isBulkLoading={isBulkLoading}
         />
       )}
 

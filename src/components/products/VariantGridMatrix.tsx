@@ -8,13 +8,22 @@
  * 
  * Se o produto só tiver cores (sem tamanho), mostra layout simplificado.
  * Reutilizável no admin e na visualização do detalhe.
+ * 
+ * Admin mode: suporta seleção em lote e bulk actions.
  */
 
-import { useMemo } from "react";
-import { Check, Package, Ruler } from "lucide-react";
+import { useMemo, useState, useCallback } from "react";
+import { Check, Package, Ruler, CheckSquare, Square, ToggleLeft, ToggleRight, Boxes, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // ── Types ──
 
@@ -29,13 +38,23 @@ export interface VariantGridItem {
   price?: number | null;
 }
 
+export interface BulkAction {
+  type: "toggle_active" | "update_stock";
+  variantIds: string[];
+  value?: boolean | number;
+}
+
 interface VariantGridMatrixProps {
   variants: VariantGridItem[];
   selectedId?: string | null;
   onSelect?: (variant: VariantGridItem) => void;
-  /** Admin mode: shows edit button indicator */
+  /** Admin mode: shows checkboxes and bulk actions */
   mode?: "view" | "admin";
   compact?: boolean;
+  /** Callback for bulk operations (admin mode only) */
+  onBulkAction?: (action: BulkAction) => Promise<void>;
+  /** Loading state for bulk operations */
+  isBulkLoading?: boolean;
 }
 
 // ── Size ordering ──
@@ -77,6 +96,139 @@ function stockColor(stock: number): string {
   return "text-success";
 }
 
+// ── Bulk Action Toolbar ──
+
+function BulkToolbar({
+  selectedCount,
+  totalCount,
+  onSelectAll,
+  onDeselectAll,
+  onToggleActive,
+  onUpdateStock,
+  isLoading,
+}: {
+  selectedCount: number;
+  totalCount: number;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
+  onToggleActive: (active: boolean) => void;
+  onUpdateStock: (stock: number) => void;
+  isLoading: boolean;
+}) {
+  const [stockValue, setStockValue] = useState<string>("");
+  const [stockPopoverOpen, setStockPopoverOpen] = useState(false);
+
+  const handleStockSubmit = () => {
+    const num = parseInt(stockValue, 10);
+    if (isNaN(num) || num < 0) return;
+    onUpdateStock(num);
+    setStockValue("");
+    setStockPopoverOpen(false);
+  };
+
+  return (
+    <div className="flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-lg px-3 py-2 animate-in slide-in-from-top-2 duration-200">
+      <div className="flex items-center gap-2 mr-2">
+        <Badge variant="secondary" className="text-xs font-semibold">
+          {selectedCount}/{totalCount} selecionados
+        </Badge>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs px-2"
+          onClick={selectedCount === totalCount ? onDeselectAll : onSelectAll}
+        >
+          {selectedCount === totalCount ? (
+            <>
+              <Minus className="h-3 w-3 mr-1" />
+              Limpar
+            </>
+          ) : (
+            <>
+              <CheckSquare className="h-3 w-3 mr-1" />
+              Selecionar tudo
+            </>
+          )}
+        </Button>
+      </div>
+
+      <div className="h-5 w-px bg-border" />
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs gap-1"
+        onClick={() => onToggleActive(true)}
+        disabled={isLoading}
+      >
+        <ToggleRight className="h-3.5 w-3.5 text-success" />
+        Ativar
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-7 text-xs gap-1"
+        onClick={() => onToggleActive(false)}
+        disabled={isLoading}
+      >
+        <ToggleLeft className="h-3.5 w-3.5 text-destructive" />
+        Desativar
+      </Button>
+
+      <div className="h-5 w-px bg-border" />
+
+      <Popover open={stockPopoverOpen} onOpenChange={setStockPopoverOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs gap-1"
+            disabled={isLoading}
+          >
+            <Boxes className="h-3.5 w-3.5 text-primary" />
+            Estoque em lote
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-3" align="start">
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">
+              Definir estoque para {selectedCount} variações
+            </p>
+            <Input
+              type="number"
+              min={0}
+              placeholder="Quantidade"
+              value={stockValue}
+              onChange={(e) => setStockValue(e.target.value)}
+              className="h-8 text-sm"
+              onKeyDown={(e) => e.key === "Enter" && handleStockSubmit()}
+              autoFocus
+            />
+            <Button
+              size="sm"
+              className="w-full h-7 text-xs"
+              onClick={handleStockSubmit}
+              disabled={!stockValue || isNaN(parseInt(stockValue, 10)) || parseInt(stockValue, 10) < 0}
+            >
+              Aplicar
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-7 text-xs text-muted-foreground ml-auto"
+        onClick={onDeselectAll}
+      >
+        Cancelar
+      </Button>
+    </div>
+  );
+}
+
 // ── Component ──
 
 export function VariantGridMatrix({
@@ -85,24 +237,29 @@ export function VariantGridMatrix({
   onSelect,
   mode = "view",
   compact = false,
+  onBulkAction,
+  isBulkLoading = false,
 }: VariantGridMatrixProps) {
-  const { colors, sizes, matrix, hasSizes } = useMemo(() => {
-    // Extract unique colors maintaining order
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const isAdmin = mode === "admin" && !!onBulkAction;
+
+  const { colors, sizes, matrix, hasSizes, allVariantIds } = useMemo(() => {
     const colorMap = new Map<string, { name: string; hex: string }>();
     const sizeSet = new Set<string>();
+    const allIds: string[] = [];
 
     for (const v of variants) {
       if (!colorMap.has(v.color_name)) {
         colorMap.set(v.color_name, { name: v.color_name, hex: v.color_hex });
       }
       if (v.size_code) sizeSet.add(v.size_code);
+      allIds.push(v.id);
     }
 
     const colors = Array.from(colorMap.values());
     const sizes = Array.from(sizeSet).sort((a, b) => getSizeOrder(a) - getSizeOrder(b));
     const hasSizes = sizes.length > 0;
 
-    // Build matrix: color_name -> size_code -> variant
     const matrix = new Map<string, Map<string, VariantGridItem>>();
     for (const v of variants) {
       const sizeKey = v.size_code || "__none__";
@@ -112,15 +269,80 @@ export function VariantGridMatrix({
       matrix.get(v.color_name)!.set(sizeKey, v);
     }
 
-    return { colors, sizes, matrix, hasSizes };
+    return { colors, sizes, matrix, hasSizes, allVariantIds: allIds };
   }, [variants]);
 
+  const toggleSelection = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedIds(new Set(allVariantIds));
+  }, [allVariantIds]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  // Select all variants for a color row
+  const toggleRowSelection = useCallback((colorName: string) => {
+    const rowIds = variants.filter(v => v.color_name === colorName).map(v => v.id);
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      const allSelected = rowIds.every(id => next.has(id));
+      if (allSelected) {
+        rowIds.forEach(id => next.delete(id));
+      } else {
+        rowIds.forEach(id => next.add(id));
+      }
+      return next;
+    });
+  }, [variants]);
+
+  const handleBulkToggle = useCallback(async (active: boolean) => {
+    if (!onBulkAction || selectedIds.size === 0) return;
+    await onBulkAction({
+      type: "toggle_active",
+      variantIds: Array.from(selectedIds),
+      value: active,
+    });
+    setSelectedIds(new Set());
+  }, [onBulkAction, selectedIds]);
+
+  const handleBulkStock = useCallback(async (stock: number) => {
+    if (!onBulkAction || selectedIds.size === 0) return;
+    await onBulkAction({
+      type: "update_stock",
+      variantIds: Array.from(selectedIds),
+      value: stock,
+    });
+    setSelectedIds(new Set());
+  }, [onBulkAction, selectedIds]);
+
   if (variants.length === 0) return null;
+
+  const showBulkBar = isAdmin && selectedIds.size > 0;
 
   // ── Single-axis (only colors, no sizes) ──
   if (!hasSizes) {
     return (
       <div className="space-y-3">
+        {showBulkBar && (
+          <BulkToolbar
+            selectedCount={selectedIds.size}
+            totalCount={allVariantIds.length}
+            onSelectAll={selectAll}
+            onDeselectAll={deselectAll}
+            onToggleActive={handleBulkToggle}
+            onUpdateStock={handleBulkStock}
+            isLoading={isBulkLoading}
+          />
+        )}
         <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
           <Package className="h-4 w-4 text-primary" />
           Variações de Cor ({colors.length})
@@ -130,21 +352,29 @@ export function VariantGridMatrix({
             const variant = matrix.get(color.name)?.get("__none__");
             if (!variant) return null;
             const isSelected = selectedId === variant.id;
+            const isBulkSelected = selectedIds.has(variant.id);
             const stock = Math.max(0, variant.stock);
 
             return (
               <Tooltip key={variant.id}>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => onSelect?.(variant)}
+                    onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)}
                     className={cn(
                       "flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all text-sm",
-                      isSelected
-                        ? "border-primary bg-primary/10 ring-1 ring-primary/20"
-                        : "border-border bg-card hover:border-primary/40",
+                      isBulkSelected
+                        ? "border-primary bg-primary/15 ring-2 ring-primary/30"
+                        : isSelected
+                          ? "border-primary bg-primary/10 ring-1 ring-primary/20"
+                          : "border-border bg-card hover:border-primary/40",
                       stock === 0 && "opacity-40"
                     )}
                   >
+                    {isAdmin && (
+                      isBulkSelected
+                        ? <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0" />
+                        : <Square className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    )}
                     <div
                       className="w-4 h-4 rounded-full border border-border shrink-0"
                       style={{ backgroundColor: color.hex || "hsl(var(--muted))" }}
@@ -158,6 +388,7 @@ export function VariantGridMatrix({
                 <TooltipContent>
                   {variant.sku && <p className="font-mono text-xs">{variant.sku}</p>}
                   <p>{stock} un. em estoque</p>
+                  {isAdmin && <p className="text-xs text-muted-foreground">Clique para selecionar</p>}
                 </TooltipContent>
               </Tooltip>
             );
@@ -170,20 +401,56 @@ export function VariantGridMatrix({
   // ── Multi-axis grid (Color × Size) ──
   return (
     <div className="space-y-3">
+      {showBulkBar && (
+        <BulkToolbar
+          selectedCount={selectedIds.size}
+          totalCount={allVariantIds.length}
+          onSelectAll={selectAll}
+          onDeselectAll={deselectAll}
+          onToggleActive={handleBulkToggle}
+          onUpdateStock={handleBulkStock}
+          isLoading={isBulkLoading}
+        />
+      )}
+
       <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
         <Ruler className="h-4 w-4 text-primary" />
         Grade Cor × Tamanho
         <Badge variant="secondary" className="text-[10px] px-1.5">
           {colors.length} cores × {sizes.length} tamanhos
         </Badge>
+        {isAdmin && selectedIds.size === 0 && (
+          <span className="text-[10px] text-muted-foreground ml-auto font-normal">
+            Clique nas células para selecionar
+          </span>
+        )}
       </h4>
 
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-xs">
           <thead>
             <tr className="bg-muted/50">
+              {isAdmin && (
+                <th className={cn(
+                  "sticky left-0 z-20 bg-muted/80 backdrop-blur-sm text-center border-b border-r border-border w-8",
+                  compact ? "px-1 py-1.5" : "px-2 py-2"
+                )}>
+                  <button
+                    onClick={selectedIds.size === allVariantIds.length ? deselectAll : selectAll}
+                    className="hover:text-primary transition-colors"
+                  >
+                    {selectedIds.size === allVariantIds.length
+                      ? <CheckSquare className="h-3.5 w-3.5 text-primary mx-auto" />
+                      : selectedIds.size > 0
+                        ? <Minus className="h-3.5 w-3.5 text-primary mx-auto" />
+                        : <Square className="h-3.5 w-3.5 text-muted-foreground mx-auto" />
+                    }
+                  </button>
+                </th>
+              )}
               <th className={cn(
-                "sticky left-0 z-10 bg-muted/80 backdrop-blur-sm text-left font-semibold text-muted-foreground border-b border-r border-border",
+                "sticky bg-muted/80 backdrop-blur-sm text-left font-semibold text-muted-foreground border-b border-r border-border",
+                isAdmin ? "left-8 z-10" : "left-0 z-10",
                 compact ? "px-2 py-1.5" : "px-3 py-2"
               )}>
                 Cor
@@ -202,110 +469,155 @@ export function VariantGridMatrix({
             </tr>
           </thead>
           <tbody>
-            {colors.map((color, rowIdx) => (
-              <tr
-                key={color.name}
-                className={cn(
-                  "transition-colors hover:bg-accent/30",
-                  rowIdx % 2 === 0 ? "bg-card" : "bg-muted/20"
-                )}
-              >
-                {/* Color label cell */}
-                <td className={cn(
-                  "sticky left-0 z-10 border-r border-border font-medium whitespace-nowrap",
-                  compact ? "px-2 py-1.5" : "px-3 py-2.5",
-                  rowIdx % 2 === 0 ? "bg-card" : "bg-muted/20"
-                )}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-4 h-4 rounded-full border border-border shrink-0"
-                      style={{
-                        backgroundColor: color.hex || "hsl(var(--muted))",
-                        border: isLightColor(color.hex)
-                          ? "1px solid hsl(var(--border))"
-                          : undefined,
-                      }}
-                    />
-                    <span className="truncate max-w-[100px]">{color.name}</span>
-                  </div>
-                </td>
+            {colors.map((color, rowIdx) => {
+              const rowVariantIds = variants
+                .filter(v => v.color_name === color.name)
+                .map(v => v.id);
+              const allRowSelected = rowVariantIds.length > 0 && rowVariantIds.every(id => selectedIds.has(id));
+              const someRowSelected = rowVariantIds.some(id => selectedIds.has(id));
 
-                {/* Stock cells per size */}
-                {sizes.map((size) => {
-                  const variant = matrix.get(color.name)?.get(size);
+              return (
+                <tr
+                  key={color.name}
+                  className={cn(
+                    "transition-colors hover:bg-accent/30",
+                    rowIdx % 2 === 0 ? "bg-card" : "bg-muted/20",
+                    someRowSelected && "bg-primary/5"
+                  )}
+                >
+                  {/* Row checkbox */}
+                  {isAdmin && (
+                    <td className={cn(
+                      "sticky left-0 z-10 text-center border-r border-border w-8",
+                      compact ? "px-1 py-1.5" : "px-2 py-2.5",
+                      rowIdx % 2 === 0 ? "bg-card" : "bg-muted/20",
+                      someRowSelected && "bg-primary/5"
+                    )}>
+                      <button
+                        onClick={() => toggleRowSelection(color.name)}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {allRowSelected
+                          ? <CheckSquare className="h-3.5 w-3.5 text-primary mx-auto" />
+                          : someRowSelected
+                            ? <Minus className="h-3.5 w-3.5 text-primary mx-auto" />
+                            : <Square className="h-3.5 w-3.5 text-muted-foreground mx-auto" />
+                        }
+                      </button>
+                    </td>
+                  )}
+                  {/* Color label cell */}
+                  <td className={cn(
+                    "sticky border-r border-border font-medium whitespace-nowrap",
+                    isAdmin ? "left-8 z-10" : "left-0 z-10",
+                    compact ? "px-2 py-1.5" : "px-3 py-2.5",
+                    rowIdx % 2 === 0 ? "bg-card" : "bg-muted/20",
+                    someRowSelected && "bg-primary/5"
+                  )}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-4 h-4 rounded-full border border-border shrink-0"
+                        style={{
+                          backgroundColor: color.hex || "hsl(var(--muted))",
+                          border: isLightColor(color.hex)
+                            ? "1px solid hsl(var(--border))"
+                            : undefined,
+                        }}
+                      />
+                      <span className="truncate max-w-[100px]">{color.name}</span>
+                    </div>
+                  </td>
 
-                  if (!variant) {
+                  {/* Stock cells per size */}
+                  {sizes.map((size) => {
+                    const variant = matrix.get(color.name)?.get(size);
+
+                    if (!variant) {
+                      return (
+                        <td
+                          key={size}
+                          className={cn(
+                            "text-center border-border",
+                            compact ? "px-2 py-1.5" : "px-3 py-2.5"
+                          )}
+                        >
+                          <span className="text-muted-foreground/30">—</span>
+                        </td>
+                      );
+                    }
+
+                    const stock = Math.max(0, variant.stock);
+                    const isItemSelected = selectedId === variant.id;
+                    const isBulkSelected = selectedIds.has(variant.id);
+
                     return (
                       <td
                         key={size}
                         className={cn(
                           "text-center border-border",
-                          compact ? "px-2 py-1.5" : "px-3 py-2.5"
+                          compact ? "px-1 py-1" : "px-2 py-2"
                         )}
                       >
-                        <span className="text-muted-foreground/30">—</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)}
+                              className={cn(
+                                "w-full min-w-[3rem] py-1.5 px-2 rounded-md transition-all text-xs font-medium",
+                                isBulkSelected
+                                  ? "bg-primary/20 text-primary ring-2 ring-primary/40 shadow-sm"
+                                  : isItemSelected
+                                    ? "bg-primary text-primary-foreground ring-2 ring-primary/30 shadow-sm"
+                                    : stock > 0
+                                      ? "bg-secondary/60 hover:bg-secondary text-foreground hover:shadow-sm"
+                                      : "bg-destructive/5 text-destructive/60",
+                                (stock > 0 || isAdmin) && !isItemSelected && "hover:scale-105"
+                              )}
+                            >
+                              {isBulkSelected && (
+                                <Check className="inline-block h-3 w-3 mr-0.5 -mt-0.5 text-primary" />
+                              )}
+                              {isItemSelected && !isBulkSelected && (
+                                <Check className="inline-block h-3 w-3 mr-0.5 -mt-0.5" />
+                              )}
+                              {formatStock(stock)}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="text-xs">
+                            <div className="space-y-0.5">
+                              <p className="font-semibold">{color.name} — {size}</p>
+                              {variant.sku && <p className="font-mono text-muted-foreground">{variant.sku}</p>}
+                              {variant.price != null && (
+                                <p className="text-primary font-medium">
+                                  R$ {variant.price.toFixed(2)}
+                                </p>
+                              )}
+                              <p className={stockColor(stock)}>
+                                {stock > 0 ? `${stock.toLocaleString("pt-BR")} un. disponíveis` : "Sem estoque"}
+                              </p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </td>
                     );
-                  }
-
-                  const stock = Math.max(0, variant.stock);
-                  const isSelected = selectedId === variant.id;
-
-                  return (
-                    <td
-                      key={size}
-                      className={cn(
-                        "text-center border-border",
-                        compact ? "px-1 py-1" : "px-2 py-2"
-                      )}
-                    >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => onSelect?.(variant)}
-                            className={cn(
-                              "w-full min-w-[3rem] py-1.5 px-2 rounded-md transition-all text-xs font-medium",
-                              isSelected
-                                ? "bg-primary text-primary-foreground ring-2 ring-primary/30 shadow-sm"
-                                : stock > 0
-                                  ? "bg-secondary/60 hover:bg-secondary text-foreground hover:shadow-sm"
-                                  : "bg-destructive/5 text-destructive/60 cursor-default",
-                              stock > 0 && !isSelected && "hover:scale-105"
-                            )}
-                          >
-                            {isSelected && (
-                              <Check className="inline-block h-3 w-3 mr-0.5 -mt-0.5" />
-                            )}
-                            {formatStock(stock)}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">
-                          <div className="space-y-0.5">
-                            <p className="font-semibold">{color.name} — {size}</p>
-                            {variant.sku && <p className="font-mono text-muted-foreground">{variant.sku}</p>}
-                            {variant.price != null && (
-                              <p className="text-primary font-medium">
-                                R$ {variant.price.toFixed(2)}
-                              </p>
-                            )}
-                            <p className={stockColor(stock)}>
-                              {stock > 0 ? `${stock.toLocaleString("pt-BR")} un. disponíveis` : "Sem estoque"}
-                            </p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
 
           {/* Footer with totals per size */}
           <tfoot>
             <tr className="bg-muted/60 font-semibold">
+              {isAdmin && (
+                <td className={cn(
+                  "sticky left-0 z-10 bg-muted/60 border-t border-r border-border",
+                  compact ? "px-1 py-1.5" : "px-2 py-2"
+                )} />
+              )}
               <td className={cn(
-                "sticky left-0 z-10 bg-muted/60 border-t border-r border-border text-muted-foreground",
+                "sticky bg-muted/60 border-t border-r border-border text-muted-foreground",
+                isAdmin ? "left-8 z-10" : "left-0 z-10",
                 compact ? "px-2 py-1.5" : "px-3 py-2"
               )}>
                 Total
