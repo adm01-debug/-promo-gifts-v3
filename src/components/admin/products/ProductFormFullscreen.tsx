@@ -517,6 +517,7 @@ export function ProductFormFullscreen({
             <motion.div
               key={currentStep.id}
               custom={direction}
+              className="space-y-5"
               initial={{ opacity: 0, x: direction > 0 ? 60 : -60 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: direction > 0 ? -60 : 60 }}
