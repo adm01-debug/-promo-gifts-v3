@@ -27,6 +27,9 @@ export function useSuppliersManager() {
   const [pixKeys, setPixKeys] = useState<PixKey[]>([createEmptyPixKey(true)]);
   const [foneFixo1, setFoneFixo1] = useState('');
   const [foneFixo2, setFoneFixo2] = useState('');
+  const [inscricaoEstadual, setInscricaoEstadual] = useState('');
+  const [regimeTributario, setRegimeTributario] = useState('');
+  const [estadoFaturamento, setEstadoFaturamento] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const hasPixDuplicate = (keys: PixKey[]): string | null => {
