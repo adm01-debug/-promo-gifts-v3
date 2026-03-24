@@ -3,7 +3,7 @@
  * Substitui o Dialog modal por uma experiência imersiva com sidebar de navegação
  */
 
-import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from '@/lib/external-db';
@@ -13,10 +13,11 @@ import { type ProductFormData, defaultFormValues } from '@/components/admin/prod
 import { Loader2, ArrowLeft, History, Pencil, Copy, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 
 // Lazy load heavy sub-components
-const ProductFormFullscreen = lazy(() => import('@/components/admin/products/ProductFormFullscreen').then(m => ({ default: m.ProductFormFullscreen })));
-const AuditHistory = lazy(() => import('@/components/audit/AuditHistory').then(m => ({ default: m.AuditHistory })));
+const ProductFormFullscreen = lazyWithRetry(() => import('@/components/admin/products/ProductFormFullscreen').then(m => ({ default: m.ProductFormFullscreen })));
+const AuditHistory = lazyWithRetry(() => import('@/components/audit/AuditHistory').then(m => ({ default: m.AuditHistory })));
 
 export default function AdminProductFormPage() {
   const { id } = useParams<{ id: string }>();

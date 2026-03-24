@@ -5,7 +5,7 @@
  * Heavy sections (Classification, Media) are lazy-loaded to reduce initial bundle.
  */
 
-import React, { useState, useEffect, useRef, useMemo, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
@@ -57,10 +57,11 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 
 // Lazy-loaded heavy sections
-const ProductClassificationSection = lazy(() => import('./sections/ProductClassificationSection'));
-const ProductMediaSection = lazy(() => import('./sections/ProductMediaSection'));
+const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
+const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
 
 // Section loading fallback
 function SectionSkeleton() {

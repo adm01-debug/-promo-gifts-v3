@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense } from "react";
 import { Filter, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,9 @@ import { LayoutPopover } from "@/components/products/LayoutPopover";
 import type { ColumnCount } from "@/components/products/ColumnSelector";
 import type { ViewMode, SortOption } from "@/hooks/useCatalogState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
-const LazyFilterPanel = lazy(() =>
+const LazyFilterPanel = lazyWithRetry(() =>
   import("@/components/filters/FilterPanel").then((m) => ({ default: m.FilterPanel }))
 );
 

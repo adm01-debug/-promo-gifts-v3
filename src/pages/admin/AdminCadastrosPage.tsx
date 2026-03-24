@@ -4,14 +4,15 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Palette, FolderOpen, Truck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
-const ProductsManager = React.lazy(() =>
+const ProductsManager = lazyWithRetry(() =>
   import("@/components/admin/ProductsManager").then(m => ({ default: m.ProductsManager }))
 );
-const SuppliersManager = React.lazy(() =>
+const SuppliersManager = lazyWithRetry(() =>
   import("@/components/admin/suppliers-manager").then(m => ({ default: m.SuppliersManager }))
 );
-const EngravingRegistrationContent = React.lazy(() =>
+const EngravingRegistrationContent = lazyWithRetry(() =>
   import("@/pages/EngravingRegistrationPage").then(m => ({ default: m.EngravingRegistrationContent }))
 );
 
