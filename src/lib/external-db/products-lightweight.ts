@@ -29,6 +29,7 @@ export interface LightweightProduct {
   stock_quantity?: number | null;
   min_quantity?: number | null;
   is_kit?: boolean | null;
+  gender?: string | null;
 }
 
 function isTimeoutError(error: unknown): boolean {
