@@ -1408,7 +1408,13 @@ Deno.serve(async (req) => {
             );
           }
 
-          const { product, error: productError } = await fetchProductForVirtualPrintAreas(productId);
+          const { product, error: productError, missingPersonalizationAreasColumn } = await fetchProductForVirtualPrintAreas(productId);
+          if (missingPersonalizationAreasColumn) {
+            return new Response(
+              JSON.stringify({ error: 'Áreas de personalização não estão disponíveis neste catálogo externo' }),
+              { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
           if (productError) {
             return new Response(
               JSON.stringify({ error: productError.message }),
