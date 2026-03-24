@@ -30,7 +30,6 @@ export const productFormSchema = z.object({
   diameter_cm: z.coerce.number().min(0).optional().nullable(),
   weight_g: z.coerce.number().min(0).optional().nullable(),
   capacity_ml: z.coerce.number().min(0).optional().nullable(),
-  circumference_cm: z.coerce.number().min(0).optional().nullable(),
 
   // Dimensões internas
   internal_height_cm: z.coerce.number().min(0).optional().nullable(),
