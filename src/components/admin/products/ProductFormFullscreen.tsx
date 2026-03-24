@@ -615,18 +615,8 @@ export function ProductFormFullscreen({
           </SectionCard>
 
           {/* === COMERCIAL === */}
-          <SectionCard id="commercial" title="Comercial" icon={Truck} subtitle="Prazo de entrega, tipo de produto">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
-                <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
-              </div>
-            </div>
+          <SectionCard id="commercial" title="Comercial" icon={Truck} subtitle="Gênero e classificação comercial">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
-                <Input id="supply_mode" {...register('supply_mode')} placeholder="Ex: pronta_entrega_liso" className="h-9" />
-              </div>
               <div>
                 <FieldLabel htmlFor="gender">Gênero</FieldLabel>
                 <select
