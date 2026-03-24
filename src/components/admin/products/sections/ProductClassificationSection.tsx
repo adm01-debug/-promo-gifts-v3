@@ -49,13 +49,26 @@ interface ClassificationCardProps {
   iconColor: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  disabled?: boolean;
 }
 
-function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, defaultOpen = false }: ClassificationCardProps) {
+function DisabledPlaceholder() {
+  return (
+    <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground/60 italic">
+      <Info className="h-3.5 w-3.5 shrink-0" />
+      Disponível após salvar o produto
+    </div>
+  );
+}
+
+function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, defaultOpen = false, disabled = false }: ClassificationCardProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <Card className="border-border/40 bg-card/60 overflow-hidden transition-all duration-200 hover:border-border/60">
+    <Card className={cn(
+      "border-border/40 bg-card/60 overflow-hidden transition-all duration-200",
+      disabled ? "opacity-60" : "hover:border-border/60"
+    )}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -71,6 +84,9 @@ function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, 
           <p className="text-sm font-semibold text-foreground">{title}</p>
           <p className="text-xs text-muted-foreground">{subtitle}</p>
         </div>
+        {disabled && (
+          <Badge variant="outline" className="text-[10px] shrink-0 opacity-60">Salvar primeiro</Badge>
+        )}
         {isOpen ? (
           <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
         ) : (
@@ -95,31 +111,34 @@ export default function ProductClassificationSection({
   internalDimensions,
   genderField,
 }: Props) {
-  if (!isEdit) {
-    return (
-      <Card className="border-border/40 bg-card/60">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Layers className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-base font-bold text-foreground">Classificação & Vínculos</h3>
-              <p className="text-xs text-muted-foreground">Gênero, variações, materiais, tags e ramos</p>
-            </div>
+  const showFullContent = isEdit && productId;
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Layers className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="text-base font-bold text-foreground">Classificação & Vínculos</h3>
+          <p className="text-xs text-muted-foreground">Configure gênero, variações, materiais, tags e vínculos comerciais</p>
+        </div>
+      </div>
+
+      {/* Gênero — sempre visível */}
+      <Card className="border-border/40 bg-card/60 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
+            <Users className="h-4 w-4" />
           </div>
-
-          {/* Gênero always available */}
-          <div className="mb-4">{genderField}</div>
-
-          <div className="flex items-center gap-2 p-4 rounded-lg bg-muted/30 text-xs text-muted-foreground border border-border/30">
-            <Info className="h-4 w-4 shrink-0 text-primary" />
-            <span>Salve o produto primeiro para gerenciar variações, materiais, tags e demais classificações.</span>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Gênero do Produto</p>
+            <p className="text-xs text-muted-foreground">Público-alvo primário</p>
           </div>
         </div>
+        {genderField}
       </Card>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -148,86 +167,126 @@ export default function ProductClassificationSection({
         {genderField}
       </Card>
 
-      {/* Grid de classificações — 2 colunas no desktop */}
-      {productId && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {/* Eixos de Variação */}
-          <ClassificationCard
-            title="Eixos de Variação"
-            subtitle="Configure cor, tamanho e capacidade"
-            icon={Settings2}
-            iconColor="bg-purple-500/10 text-purple-500"
-            defaultOpen
-          >
-            <ProductVariationAxesConfig productId={productId} />
-          </ClassificationCard>
+      {/* Grid de classificações */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* Eixos de Variação */}
+        <ClassificationCard
+          title="Eixos de Variação"
+          subtitle="Configure cor, tamanho e capacidade"
+          icon={Settings2}
+          iconColor="bg-purple-500/10 text-purple-500"
+          defaultOpen={showFullContent}
+          disabled={!showFullContent}
+        >
+          {showFullContent ? (
+            <ProductVariationAxesConfig productId={productId!} />
+          ) : (
+            <DisabledPlaceholder />
+          )}
+        </ClassificationCard>
 
-          {/* Variações de Cor */}
-          <ClassificationCard
-            title="Variações de Cor"
-            subtitle="Paleta de cores disponíveis"
-            icon={Palette}
-            iconColor="bg-pink-500/10 text-pink-500"
-            defaultOpen
-          >
-            <ProductVariantsSection productId={productId} productName={productName} productSku={productSku} />
-          </ClassificationCard>
+        {/* Variações de Cor */}
+        <ClassificationCard
+          title="Variações de Cor"
+          subtitle="Paleta de cores disponíveis"
+          icon={Palette}
+          iconColor="bg-pink-500/10 text-pink-500"
+          defaultOpen={showFullContent}
+          disabled={!showFullContent}
+        >
+          {showFullContent ? (
+            <ProductVariantsSection productId={productId!} productName={productName} productSku={productSku} />
+          ) : (
+            <DisabledPlaceholder />
+          )}
+        </ClassificationCard>
 
-          {/* Kit Components */}
-          {isKit && (
-            <ClassificationCard
-              title="Componentes do Kit"
-              subtitle="Itens que compõem o kit"
-              icon={Boxes}
-              iconColor="bg-amber-500/10 text-amber-500"
-              defaultOpen
-            >
+        {/* Kit Components */}
+        {isKit && (
+          <ClassificationCard
+            title="Componentes do Kit"
+            subtitle="Itens que compõem o kit"
+            icon={Boxes}
+            iconColor="bg-amber-500/10 text-amber-500"
+            defaultOpen={showFullContent}
+            disabled={!showFullContent}
+          >
+            {showFullContent ? (
               <ProductKitComponentsSection
-                productId={productId}
+                productId={productId!}
                 boxInternalDimensions={internalDimensions}
               />
-            </ClassificationCard>
+            ) : (
+              <DisabledPlaceholder />
+            )}
+          </ClassificationCard>
+        )}
+
+        {/* Materiais */}
+        <ClassificationCard
+          title="Materiais"
+          subtitle="Composição e acabamento"
+          icon={Sparkles}
+          iconColor="bg-emerald-500/10 text-emerald-500"
+          disabled={!showFullContent}
+        >
+          {showFullContent ? (
+            <ProductMaterialsSection productId={productId!} />
+          ) : (
+            <DisabledPlaceholder />
           )}
+        </ClassificationCard>
 
-          {/* Materiais */}
-          <ClassificationCard
-            title="Materiais"
-            subtitle="Composição e acabamento"
-            icon={Sparkles}
-            iconColor="bg-emerald-500/10 text-emerald-500"
-          >
-            <ProductMaterialsSection productId={productId} />
-          </ClassificationCard>
+        {/* Tags */}
+        <ClassificationCard
+          title="Tags"
+          subtitle="Etiquetas de busca e filtro"
+          icon={Tag}
+          iconColor="bg-orange-500/10 text-orange-500"
+          disabled={!showFullContent}
+        >
+          {showFullContent ? (
+            <ProductTagsSection productId={productId!} />
+          ) : (
+            <DisabledPlaceholder />
+          )}
+        </ClassificationCard>
 
-          {/* Tags */}
-          <ClassificationCard
-            title="Tags"
-            subtitle="Etiquetas de busca e filtro"
-            icon={Tag}
-            iconColor="bg-orange-500/10 text-orange-500"
-          >
-            <ProductTagsSection productId={productId} />
-          </ClassificationCard>
+        {/* Ramos de Atividade */}
+        <ClassificationCard
+          title="Ramos de Atividade"
+          subtitle="Segmentos de mercado"
+          icon={Building2}
+          iconColor="bg-cyan-500/10 text-cyan-500"
+          disabled={!showFullContent}
+        >
+          {showFullContent ? (
+            <ProductRamosSection productId={productId!} />
+          ) : (
+            <DisabledPlaceholder />
+          )}
+        </ClassificationCard>
 
-          {/* Ramos de Atividade */}
-          <ClassificationCard
-            title="Ramos de Atividade"
-            subtitle="Segmentos de mercado"
-            icon={Building2}
-            iconColor="bg-cyan-500/10 text-cyan-500"
-          >
-            <ProductRamosSection productId={productId} />
-          </ClassificationCard>
+        {/* Marketing */}
+        <ClassificationCard
+          title="Marketing"
+          subtitle="Público-alvo e endomarketing"
+          icon={Megaphone}
+          iconColor="bg-rose-500/10 text-rose-500"
+          disabled={!showFullContent}
+        >
+          {showFullContent ? (
+            <ProductMarketingSection productId={productId!} />
+          ) : (
+            <DisabledPlaceholder />
+          )}
+        </ClassificationCard>
+      </div>
 
-          {/* Marketing */}
-          <ClassificationCard
-            title="Marketing"
-            subtitle="Público-alvo e endomarketing"
-            icon={Megaphone}
-            iconColor="bg-rose-500/10 text-rose-500"
-          >
-            <ProductMarketingSection productId={productId} />
-          </ClassificationCard>
+      {!showFullContent && (
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 text-xs text-muted-foreground border border-border/30">
+          <Info className="h-4 w-4 shrink-0 text-primary" />
+          <span>Salve o produto primeiro para editar as classificações acima.</span>
         </div>
       )}
     </div>
