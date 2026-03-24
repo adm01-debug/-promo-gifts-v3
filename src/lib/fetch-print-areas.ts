@@ -43,7 +43,7 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
       body: {
         table: 'products',
         operation: 'select',
-        select: 'id,personalization_areas',
+        select: 'id',
         filters: { id: productId },
         limit: 1,
       },
