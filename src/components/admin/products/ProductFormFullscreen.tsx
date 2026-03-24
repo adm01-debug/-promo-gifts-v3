@@ -296,6 +296,7 @@ export function ProductFormFullscreen({
   isEdit,
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
+  const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [showPreview, setShowPreview] = useState(() => {
@@ -344,6 +345,15 @@ export function ProductFormFullscreen({
   const brandValue = watch('brand') || '';
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
+
+  // Auto-copiar SKU do Fornecedor para SKU Interno (apenas em criação, até edição manual)
+  const prevSupplierRef = React.useRef(supplierRefValue);
+  React.useEffect(() => {
+    if (!skuManuallyEdited && !isEdit && supplierRefValue) {
+      setValue('sku', supplierRefValue, { shouldValidate: true });
+    }
+    prevSupplierRef.current = supplierRefValue;
+  }, [supplierRefValue, skuManuallyEdited, isEdit, setValue]);
 
   const onFormSubmit = handleSubmit(async (data) => {
     if (skuStatus === 'duplicate') return;
@@ -509,7 +519,9 @@ export function ProductFormFullscreen({
                 <div className="relative">
                   <Input
                     id="sku"
-                    {...register('sku')}
+                    {...register('sku', {
+                      onChange: () => { if (!skuManuallyEdited) setSkuManuallyEdited(true); },
+                    })}
                     placeholder="Ex: GS-001"
                     className={cn(
                       'font-mono pr-8 h-9',
