@@ -25,6 +25,7 @@ import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductInfoBar } from "@/components/products/ProductInfoBar";
+import { ProductSizeSelector } from "@/components/products/ProductSizeSelector";
 import { FutureStockModal } from "@/components/products/FutureStockModal";
 import { PackagingBadge } from "@/components/products/PackagingBadge";
 import { PackagingModal } from "@/components/products/PackagingModal";
