@@ -135,7 +135,7 @@ const App = () => {
                     <AppProviders>
                       <Toaster />
                       <Sonner />
-                      <Suspense fallback={<LoadingScreen />}>
+                      <RouteSuspense>
                         <Routes>
                           {/* Public Routes */}
                           <Route path="/login" element={<Auth />} errorElement={<RouteErrorBoundary />} />
