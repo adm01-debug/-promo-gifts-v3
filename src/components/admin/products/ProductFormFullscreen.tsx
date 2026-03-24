@@ -646,7 +646,7 @@ export function ProductFormFullscreen({
                 { key: 'has_optional_packaging' as const, label: 'Embalagem Opcional', value: hasOptionalPackaging },
                 { key: 'has_commercial_packaging' as const, label: 'Embalagem Nativa', value: hasCommercialPackaging },
               ].map(({ key, label, value, activeClass }) => (
-                <div
+              <div
                   key={key}
                   className={cn(
                     'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
@@ -655,7 +655,7 @@ export function ProductFormFullscreen({
                   onClick={() => setValue(key, !value)}
                 >
                   <Label className="cursor-pointer text-xs font-medium">{label}</Label>
-                  <Switch checked={value} onCheckedChange={(v) => setValue(key, v)} onClick={(e) => e.stopPropagation()} />
+                  <Switch checked={value} onCheckedChange={() => {}} onClick={(e) => e.stopPropagation()} />
                 </div>
               ))}
             </div>
