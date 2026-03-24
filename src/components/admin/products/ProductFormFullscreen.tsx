@@ -569,36 +569,36 @@ export function ProductFormFullscreen({
       case 'classification':
         return (
           <Suspense fallback={<SectionSkeleton />}>
-            <ProductClassificationSection
-              productId={productId}
-              isEdit={isEdit}
-              isKit={isKit}
-              productName={formValues.name}
-              productSku={formValues.sku}
-              internalDimensions={{
-                height_cm: formValues.internal_height_cm ?? null,
-                width_cm: formValues.internal_width_cm ?? null,
-                length_cm: formValues.internal_length_cm ?? null,
-              }}
-              genderField={
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <FieldLabel htmlFor="gender">Gênero</FieldLabel>
-                    <select
-                      id="gender"
-                      {...register('gender')}
-                      className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    >
-                      <option value="">Selecione...</option>
-                      <option value="unissex">Unissex</option>
-                      <option value="masculino">Masculino</option>
-                      <option value="feminino">Feminino</option>
-                      <option value="infantil">Infantil</option>
-                    </select>
+              <ProductClassificationSection
+                productId={productId}
+                isEdit={isEdit}
+                isKit={isKit}
+                productName={formValues.name}
+                productSku={formValues.sku}
+                internalDimensions={{
+                  height_cm: formValues.internal_height_cm ?? null,
+                  width_cm: formValues.internal_width_cm ?? null,
+                  length_cm: formValues.internal_length_cm ?? null,
+                }}
+                genderField={
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <FieldLabel htmlFor="gender" hint="Gênero do público-alvo do produto">Gênero</FieldLabel>
+                      <Select value={formValues.gender || ''} onValueChange={(v) => setValue('gender', v)}>
+                        <SelectTrigger className="h-9">
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unissex">Unissex</SelectItem>
+                          <SelectItem value="masculino">Masculino</SelectItem>
+                          <SelectItem value="feminino">Feminino</SelectItem>
+                          <SelectItem value="infantil">Infantil</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-              }
-            />
+                }
+              />
           </Suspense>
         );
       case 'media':
