@@ -182,7 +182,9 @@ export function ProductCard({
       <div className="relative aspect-[4/5] overflow-hidden product-img-container" style={{ zIndex: 0 }}>
         {/* Skeleton loader with shimmer */}
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
+          <div className="absolute inset-0 bg-muted/60 overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_25%,hsl(var(--muted-foreground)/0.08)_50%,transparent_75%)] bg-[length:250%_100%] animate-shimmer" />
+          </div>
         )}
         
         {/* Briefing v3: usar og_image_url (MAIN, cor individual) para cards com variante /card */}
