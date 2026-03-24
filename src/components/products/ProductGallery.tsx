@@ -40,6 +40,23 @@ interface ProductGalleryProps {
   selectedColorIndex?: number;
 }
 
+/** Thumbnail with blur-to-sharp loading for color variation cards */
+function ColorThumb({ src, alt, title }: { src: string; alt: string; title: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <img
+      src={src}
+      alt={alt}
+      title={title}
+      className={cn(
+        "w-full h-full object-cover transition-all duration-700 ease-out group-hover/color:scale-110",
+        loaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-sm scale-105"
+      )}
+      onLoad={() => setLoaded(true)}
+    />
+  );
+}
+
 export function ProductGallery({ 
   images, 
   video,
