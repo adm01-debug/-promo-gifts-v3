@@ -373,5 +373,8 @@ function buildNotesPayload(
   if (foneFixo1.trim() || foneFixo2.trim()) {
     parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
   }
+  if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
+    parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
+  }
   return parts.join('\n') || null;
 }
