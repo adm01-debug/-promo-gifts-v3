@@ -239,6 +239,30 @@ function isCustomizationPriceTablesAlias(table: string) {
   return table === 'customization_price_tables' || table === 'customization_price_tiers';
 }
 
+const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
+  'cest',
+  'freight_class',
+  'default_carrier',
+  'shipping_weight_kg',
+  'shipping_width_cm',
+  'shipping_height_cm',
+  'shipping_length_cm',
+  'cubic_weight',
+  'requires_special_shipping',
+  'shipping_notes',
+  'product_type',
+  'supply_mode',
+  'warranty_months',
+]);
+
+function sanitizeExternalWriteData(table: string, data: Record<string, unknown>) {
+  if (table !== 'products') return data;
+
+  return Object.fromEntries(
+    Object.entries(data).filter(([key]) => !PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA.has(key))
+  );
+}
+
 function mapPriceTableFiltersToExternal(filters: Record<string, unknown> | undefined) {
   if (!filters) return undefined;
   const out: Record<string, unknown> = { ...filters };
@@ -1439,10 +1463,10 @@ Deno.serve(async (req) => {
         }
 
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
-        const insertData: Record<string, unknown> = {
+        const insertData: Record<string, unknown> = sanitizeExternalWriteData(table, {
           ...data,
           updated_at: new Date().toISOString(),
-        };
+        });
         // Só adicionar created_at se não veio no payload
         if (!insertData.created_at) {
           insertData.created_at = new Date().toISOString();
@@ -1492,10 +1516,10 @@ Deno.serve(async (req) => {
         }
 
         // Adicionar metadados de atualização (sem updated_by — nem todas as tabelas têm essa coluna)
-        const updateData = {
+        const updateData = sanitizeExternalWriteData(table, {
           ...data,
           updated_at: new Date().toISOString(),
-        };
+        });
 
         console.log(`Updating ${table} id=${id}:`, JSON.stringify(updateData).substring(0, 500));
 
