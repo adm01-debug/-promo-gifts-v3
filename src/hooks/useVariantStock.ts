@@ -206,7 +206,7 @@ export function useVariantStock() {
                 ? toNumber(supplierSource.quantity, toNumber(pv.stock_quantity, 0))
                 : toNumber(pv.stock_quantity, 0);
               
-              const minStock = product.min_stock || product.min_quantity || 10;
+              const minStock = product.min_quantity || 10;
               const reservedStock = supplierSource ? toNumber(supplierSource.reserved_quantity, 0) : 0;
               
               // Calcular estoque em trânsito (soma das previsões futuras)
