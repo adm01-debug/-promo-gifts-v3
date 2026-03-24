@@ -30,6 +30,8 @@ export interface QuoteItem {
   bitrix_product_id?: string | number | null;
   kit_group_id?: string | null;
   kit_name?: string | null;
+  size_code?: string | null;
+  gender?: string | null;
   personalizations?: QuoteItemPersonalization[];
 }
 
@@ -241,6 +243,8 @@ export function useQuotes() {
           unit_price: item.unit_price,
           color_name: item.color_name,
           color_hex: item.color_hex,
+          size_code: item.size_code || null,
+          gender: item.gender || null,
           notes: item.notes,
           sort_order: index,
           kit_group_id: item.kit_group_id || null,
@@ -434,6 +438,8 @@ export function useQuotes() {
           unit_price: item.unit_price,
           color_name: item.color_name,
           color_hex: item.color_hex,
+          size_code: item.size_code || null,
+          gender: item.gender || null,
           notes: item.notes,
           sort_order: index,
         }));
