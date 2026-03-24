@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
+import { selectCrm } from '@/lib/crm-db';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { maskCnpj, maskPhone, validateCnpj, maskCep } from '@/utils/masks';
