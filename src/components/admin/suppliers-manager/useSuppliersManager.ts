@@ -27,6 +27,9 @@ export function useSuppliersManager() {
   const [pixKeys, setPixKeys] = useState<PixKey[]>([createEmptyPixKey(true)]);
   const [foneFixo1, setFoneFixo1] = useState('');
   const [foneFixo2, setFoneFixo2] = useState('');
+  const [inscricaoEstadual, setInscricaoEstadual] = useState('');
+  const [regimeTributario, setRegimeTributario] = useState('');
+  const [estadoFaturamento, setEstadoFaturamento] = useState('');
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const hasPixDuplicate = (keys: PixKey[]): string | null => {
@@ -147,6 +150,14 @@ export function useSuppliersManager() {
     const foneMatch = notesStr.match(/\[Fones Fixos: 01: (.*?), 02: (.*?)\]/);
     if (foneMatch) { setFoneFixo1(foneMatch[1] !== '-' ? foneMatch[1] : ''); setFoneFixo2(foneMatch[2] !== '-' ? foneMatch[2] : ''); }
     else { setFoneFixo1(''); setFoneFixo2(''); }
+
+    const fiscalMatch = notesStr.match(/\[Fiscal: IE: (.*?), Regime: (.*?), UF Faturamento: (.*?)\]/);
+    if (fiscalMatch) {
+      setInscricaoEstadual(fiscalMatch[1] !== '-' ? fiscalMatch[1] : '');
+      setRegimeTributario(fiscalMatch[2] !== '-' ? fiscalMatch[2] : '');
+      setEstadoFaturamento(fiscalMatch[3] !== '-' ? fiscalMatch[3] : '');
+    } else { setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento(''); }
+
     setIsNew(false);
   };
 
@@ -211,7 +222,7 @@ export function useSuppliersManager() {
         payment_terms: es.payment_terms?.trim() || null,
         shipping_terms: es.shipping_terms?.trim() || null,
         priority: es.priority ?? 50,
-        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, foneFixo1, foneFixo2),
+        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, foneFixo1, foneFixo2, inscricaoEstadual, regimeTributario, estadoFaturamento),
         is_product_supplier: es.is_product_supplier ?? true,
         is_engraving_supplier: es.is_engraving_supplier ?? false,
         updated_at: now,
@@ -320,7 +331,9 @@ export function useSuppliersManager() {
     editingSupplier, setEditingSupplier, isNew, saving, deleting,
     uploadingLogo, fetchingCnpj, contacts, setContacts,
     formaPagamento, setFormaPagamento, pixKeys, setPixKeys,
-    foneFixo1, setFoneFixo1, foneFixo2, setFoneFixo2, logoInputRef,
+    foneFixo1, setFoneFixo1, foneFixo2, setFoneFixo2,
+    inscricaoEstadual, setInscricaoEstadual, regimeTributario, setRegimeTributario,
+    estadoFaturamento, setEstadoFaturamento, logoInputRef,
     filtered, handleNew, handleEdit, handleSave, handleDelete, updateField,
     handleLogoUpload, handleCnpjLookup, handleCepLookup, fetchSuppliers,
     updatePixKey, addPixKey, removePixKey, updateContact, addContact, removeContact,
@@ -331,6 +344,7 @@ function buildNotesPayload(
   es: Partial<Supplier>, contacts: SupplierContact[],
   formaPagamento: string[], pixKeys: PixKey[],
   foneFixo1: string, foneFixo2: string,
+  inscricaoEstadual: string, regimeTributario: string, estadoFaturamento: string,
 ): string | null {
   const parts: string[] = [];
   const userNotes = es.notes?.trim()
@@ -339,6 +353,8 @@ function buildNotesPayload(
     ?.replace(/\[Redes Sociais:.*?\]/g, '')
     ?.replace(/\[Financeiro:.*?\]/g, '')
     ?.replace(/\[Fones Fixos:.*?\]/g, '')
+    ?.replace(/\[Fiscal:.*?\]/g, '')
+    ?.trim();
     ?.trim();
   if (userNotes) parts.push(userNotes);
   const c0 = contacts[0];
@@ -356,6 +372,9 @@ function buildNotesPayload(
   }
   if (foneFixo1.trim() || foneFixo2.trim()) {
     parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
+  }
+  if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
+    parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
   }
   return parts.join('\n') || null;
 }
