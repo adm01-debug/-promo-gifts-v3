@@ -8,6 +8,7 @@ import { ProductTagsSection } from '../ProductTagsSection';
 import { ProductRamosSection } from '../ProductRamosSection';
 import { ProductMarketingSection } from '../ProductMarketingSection';
 import { ProductTechniquesSection } from '../ProductTechniquesSection';
+import { ProductPersonalizationAreasSection } from '../ProductPersonalizationAreasSection';
 import { ProductKitComponentsSection } from '../kit-components';
 import { SectionCard } from '../ProductFormHelpers';
 import {
@@ -17,6 +18,7 @@ import {
   Building2,
   Megaphone,
   Paintbrush,
+  MapPin,
   Info,
   Settings2,
 } from 'lucide-react';
@@ -85,6 +87,7 @@ export default function ProductClassificationSection({
             { title: 'Ramos de Atividade', icon: Building2, content: <ProductRamosSection productId={productId} /> },
             { title: 'Marketing', icon: Megaphone, content: <ProductMarketingSection productId={productId} /> },
             { title: 'Técnicas de Personalização', icon: Paintbrush, content: <ProductTechniquesSection productId={productId} /> },
+            { title: 'Locais e Áreas de Personalização', icon: MapPin, content: <ProductPersonalizationAreasSection productId={productId} /> },
           ].map(({ title, icon: SIcon, content }) => (
             <div key={title} className="rounded-lg border border-border/40 bg-muted/20 p-4">
               <div className="flex items-center gap-2 mb-3">
