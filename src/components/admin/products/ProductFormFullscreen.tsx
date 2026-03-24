@@ -64,7 +64,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StepId = 'essentials' | 'commercial' | 'packaging' | 'content' | 'engraving' | 'relations';
+type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'content' | 'engraving' | 'relations';
 
 interface StepDef {
   id: StepId;
