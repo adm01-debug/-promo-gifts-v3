@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { invokeExternalDb } from '@/lib/external-db';
+import { selectCrm } from '@/lib/crm-db';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -88,22 +89,14 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
     setSearchingCarriers(true);
     try {
-      const results = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
-        table: 'carriers',
-        operation: 'select',
-        select: 'id,company:companies(id,nome_fantasia,razao_social)',
-        filters: {},
-        limit: 50,
-      }).catch(() => null);
-      
-      // Fallback: search companies directly with a filter
-      const companies = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
-        table: 'companies',
-        operation: 'select',
-        select: 'id,nome_fantasia,razao_social',
-        filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
-        limit: 15,
-      }).catch(() => []);
+      const companies = await selectCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
+        'bitrix_clients',
+        {
+          select: 'id,nome_fantasia,razao_social',
+          filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
+          limit: 15,
+        }
+      ).catch(() => []);
       
       const list = (companies || []).filter(c => c.nome_fantasia || c.razao_social);
       setCarrierResults(list);

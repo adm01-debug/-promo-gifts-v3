@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
+import { selectCrm } from '@/lib/crm-db';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { maskCnpj, maskPhone, validateCnpj, maskCep } from '@/utils/masks';
@@ -43,13 +44,14 @@ export function useSuppliersManager() {
     if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
     setSearchingCarriers(true);
     try {
-      const companies = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
-        table: 'companies',
-        operation: 'select',
-        select: 'id,nome_fantasia,razao_social',
-        filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
-        limit: 15,
-      }).catch(() => []);
+      const companies = await selectCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
+        'bitrix_clients',
+        {
+          select: 'id,nome_fantasia,razao_social',
+          filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
+          limit: 15,
+        }
+      ).catch(() => []);
       const list = (companies || []).filter(c => c.nome_fantasia || c.razao_social);
       setCarrierResults(list);
       setShowCarrierDropdown(list.length > 0);
