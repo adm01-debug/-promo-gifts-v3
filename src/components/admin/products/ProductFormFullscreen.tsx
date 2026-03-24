@@ -519,7 +519,9 @@ export function ProductFormFullscreen({
                 <div className="relative">
                   <Input
                     id="sku"
-                    {...register('sku')}
+                    {...register('sku', {
+                      onChange: () => { if (!skuManuallyEdited) setSkuManuallyEdited(true); },
+                    })}
                     placeholder="Ex: GS-001"
                     className={cn(
                       'font-mono pr-8 h-9',
