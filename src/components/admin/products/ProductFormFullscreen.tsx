@@ -570,17 +570,17 @@ export function ProductFormFullscreen({
           <SectionCard id="price" title="Preço e Estoque" icon={Tag} subtitle={`Preço atual: R$ ${(watch('sale_price') ?? 0).toFixed(2)}`}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <FieldLabel htmlFor="sale_price" required>Preço Venda (R$)</FieldLabel>
-                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} />
-                {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
-              </div>
-              <div>
                 <FieldLabel htmlFor="cost_price">Preço Custo (R$)</FieldLabel>
                 <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
               </div>
               <div>
                 <FieldLabel htmlFor="suggested_price">Preço Sugerido (R$)</FieldLabel>
                 <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="sale_price" required>Preço Venda (R$)</FieldLabel>
+                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} />
+                {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
