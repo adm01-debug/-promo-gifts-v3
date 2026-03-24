@@ -231,8 +231,9 @@ export function useQuoteBuilderState() {
   const addProductWithColor = useCallback((product: Product, variant: ExternalVariantStock | null) => {
     const colorName = variant?.color_name || undefined;
     const colorHex = variant?.color_hex || undefined;
+    const sizeCode = variant?.size_code || undefined;
     const imageUrl = variant?.selected_thumbnail || (variant?.images?.length ? variant.images[0] : undefined) || (Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : undefined);
-    const existingIndex = items.findIndex(i => i.product_id === product.id && i.color_name === colorName);
+    const existingIndex = items.findIndex(i => i.product_id === product.id && i.color_name === colorName && i.size_code === sizeCode);
     if (existingIndex >= 0) {
       setItems(prev => prev.map((item, idx) => idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item));
       setActiveItemIndex(existingIndex);
@@ -241,7 +242,7 @@ export function useQuoteBuilderState() {
         const newItems = [...prev, {
           product_id: product.id, product_name: product.name, product_sku: product.sku,
           product_image_url: imageUrl, quantity: 1, unit_price: product.price,
-          color_name: colorName, color_hex: colorHex,
+          color_name: colorName, color_hex: colorHex, size_code: sizeCode,
           bitrix_product_id: variant?.bitrix_product_id ?? null, personalizations: [],
         }];
         setActiveItemIndex(newItems.length - 1);

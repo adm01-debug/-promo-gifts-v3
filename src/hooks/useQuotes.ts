@@ -438,6 +438,8 @@ export function useQuotes() {
           unit_price: item.unit_price,
           color_name: item.color_name,
           color_hex: item.color_hex,
+          size_code: item.size_code || null,
+          gender: item.gender || null,
           notes: item.notes,
           sort_order: index,
         }));

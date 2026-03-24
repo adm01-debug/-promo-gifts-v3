@@ -140,8 +140,8 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">
                   {variant.color_name || 'Sem nome'}
-                  {(variant as any).size_code && (
-                    <span className="text-muted-foreground ml-1">— {(variant as any).size_code}</span>
+                  {variant.size_code && (
+                    <span className="text-muted-foreground ml-1">— {variant.size_code}</span>
                   )}
                 </p>
                 <div className="flex items-center gap-1 mt-0.5">
