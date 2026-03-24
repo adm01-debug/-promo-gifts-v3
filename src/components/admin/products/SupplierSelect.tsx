@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 
 interface SupplierSelectProps {
   value: string;
-  onChange: (id: string, name?: string) => void;
+  onChange: (id: string, name?: string, markupPercent?: number | null) => void;
   error?: string;
 }
 
