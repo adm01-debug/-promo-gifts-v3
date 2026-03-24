@@ -1,6 +1,7 @@
 /**
  * QuoteProductColorSelector — Seletor de cor/variante com estoque
  * para o fluxo de adicionar produto ao orçamento.
+ * Inclui suporte a size_code quando disponível.
  */
 
 import { useMemo } from 'react';
