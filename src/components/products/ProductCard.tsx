@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { GenderBadge } from "./GenderBadge";
 import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X } from "lucide-react";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Button } from "@/components/ui/button";
@@ -494,18 +495,22 @@ export function ProductCard({
           />
         )}
         
-        {/* SKU & Supplier */}
+        {/* SKU & Supplier & Gender */}
         <div className="flex items-center justify-between gap-2">
           {/* SKU/Código do produto */}
           <span className="text-[10px] sm:text-xs text-muted-foreground font-mono truncate">
             {product.sku}
           </span>
           
-          {/* Nome do fornecedor - badge neutro */}
-          <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium shrink-0 truncate max-w-[120px] flex items-center gap-1">
-            <Building2 className={cn("h-3 w-3 shrink-0", getSupplierColors(product.supplier.name).text)} />
-            {product.supplier.name}
-          </span>
+          <div className="flex items-center gap-1 shrink-0">
+            {/* Gender badge */}
+            <GenderBadge gender={product.gender} size="sm" />
+            {/* Nome do fornecedor - badge neutro */}
+            <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium truncate max-w-[120px] flex items-center gap-1">
+              <Building2 className={cn("h-3 w-3 shrink-0", getSupplierColors(product.supplier.name).text)} />
+              {product.supplier.name}
+            </span>
+          </div>
         </div>
 
         {/* Name */}

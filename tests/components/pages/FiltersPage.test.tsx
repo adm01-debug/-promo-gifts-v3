@@ -29,7 +29,7 @@ vi.mock("@/components/filters/FilterPanel", () => ({
     materiais: [], techniques: [], tags: [],
     priceRange: [0, 9999], minStock: 0, inStock: false,
     isKit: false, featured: false, isNew: false,
-    hasPersonalization: false, hasCommercialPackaging: false, sortBy: "name",
+    hasPersonalization: false, hasCommercialPackaging: false, gender: [], sizes: [], sortBy: "name",
   },
 }));
 

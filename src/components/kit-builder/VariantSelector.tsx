@@ -24,6 +24,7 @@ interface VariantOption {
   sku: string | null;
   selected_thumbnail: string | null;
   sale_price?: number | null;
+  size_code?: string | null;
 }
 
 export interface VariantSelectionData {
@@ -58,7 +59,7 @@ export function VariantSelector({
       const result = await invokeExternalDb<VariantOption>({
         table: 'product_variants',
         operation: 'select',
-        select: 'id, color_name, color_hex, color_code, sku, selected_thumbnail, sale_price',
+        select: 'id, color_name, color_hex, color_code, sku, selected_thumbnail, sale_price, size_code',
         filters: { id: allowedVariantIds, is_active: true },
         limit: 50,
       });
@@ -145,6 +146,7 @@ export function VariantSelector({
                   )}
                   <span className="truncate flex-1">
                     {variant.color_name || 'Padrão'}
+                    {variant.size_code && <span className="text-muted-foreground ml-1">({variant.size_code})</span>}
                   </span>
                   {variant.sku && (
                     <span className="text-[10px] text-muted-foreground font-mono flex-shrink-0">

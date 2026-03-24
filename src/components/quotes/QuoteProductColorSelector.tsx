@@ -1,6 +1,7 @@
 /**
  * QuoteProductColorSelector — Seletor de cor/variante com estoque
  * para o fluxo de adicionar produto ao orçamento.
+ * Inclui suporte a size_code quando disponível.
  */
 
 import { useMemo } from 'react';
@@ -139,6 +140,9 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">
                   {variant.color_name || 'Sem nome'}
+                  {(variant as any).size_code && (
+                    <span className="text-muted-foreground ml-1">— {(variant as any).size_code}</span>
+                  )}
                 </p>
                 <div className="flex items-center gap-1 mt-0.5">
                   {isOutOfStock ? (

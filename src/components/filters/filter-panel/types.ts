@@ -36,6 +36,7 @@ export interface FilterState {
   hasPersonalization: boolean;
   hasCommercialPackaging: boolean;
   gender: string[];
+  sizes: string[];
   sortBy: string;
 }
 
@@ -79,6 +80,7 @@ export const defaultFilters: FilterState = {
   hasPersonalization: false,
   hasCommercialPackaging: false,
   gender: [],
+  sizes: [],
   sortBy: 'name',
 };
 
@@ -95,13 +97,14 @@ export const SECTION_CONFIG: Record<string, { title: string; icon: React.ReactNo
   "ramos-atividade": { title: "Nichos/Segmentos", icon: React.createElement(Building2, { className: "h-4 w-4" }) },
   tecnicas: { title: "Técnicas de Gravação", icon: React.createElement(Paintbrush, { className: "h-4 w-4" }) },
   genero: { title: "Gênero", icon: React.createElement(Users, { className: "h-4 w-4" }) },
+  tamanhos: { title: "Tamanhos", icon: React.createElement(Package, { className: "h-4 w-4" }) },
   tags: { title: "Tags", icon: React.createElement(Tag, { className: "h-4 w-4" }) },
   "opcoes-rapidas": { title: "Opções Rápidas", icon: React.createElement(Sparkles, { className: "h-4 w-4" }) },
   ordenacao: { title: "Ordenar por", icon: React.createElement(Filter, { className: "h-4 w-4" }) },
 };
 
 export const SECTION_GROUPS = [
-  { label: "PRODUTO", sections: ["cores", "categorias", "estoque", "preco", "materiais", "genero"], icon: Package },
+  { label: "PRODUTO", sections: ["cores", "categorias", "estoque", "preco", "materiais", "genero", "tamanhos"], icon: Package },
   { label: "COMERCIAL", sections: ["fornecedores", "tecnicas"], icon: TrendingUp },
   { label: "MARKETING", sections: ["publico", "datas-comemorativas", "endomarketing", "ramos-atividade"], icon: Target },
   { label: "ATALHOS", sections: ["tags", "opcoes-rapidas", "ordenacao"], icon: Zap },

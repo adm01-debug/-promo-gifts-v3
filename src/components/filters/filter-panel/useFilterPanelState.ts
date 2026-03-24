@@ -175,6 +175,8 @@ export function useFilterPanelState(
       "ramos-atividade": ramoCount,
       tecnicas: (filters.techniques || []).length,
       tags: (filters.tags || []).length,
+      genero: (filters.gender || []).length,
+      tamanhos: (filters.sizes || []).length,
       "opcoes-rapidas": quickCount,
       ordenacao: filters.sortBy !== 'name' ? 1 : 0,
     } as Record<string, number>;

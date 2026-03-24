@@ -9,6 +9,7 @@ export interface ProductVariant {
   name: string;
   hex?: string;
   stock?: number;
+  size_code?: string | null;
 }
 
 interface ProductVariantSelectorProps {
@@ -92,7 +93,10 @@ export function ProductVariantSelector({
                 )}
               </div>
 
-              <span className="text-sm font-medium">{variant.name}</span>
+              <span className="text-sm font-medium">
+                {variant.name}
+                {variant.size_code && <span className="text-muted-foreground ml-1">({variant.size_code})</span>}
+              </span>
 
               {isOutOfStock && (
                 <Badge variant="secondary" className="text-xs px-1.5 py-0">

@@ -1164,6 +1164,7 @@ export type Database = {
           color_name: string | null
           created_at: string
           display_order: number | null
+          gender: string | null
           id: string
           kit_group_id: string | null
           kit_name: string | null
@@ -1174,6 +1175,7 @@ export type Database = {
           product_sku: string | null
           quantity: number
           quote_id: string
+          size_code: string | null
           sort_order: number | null
           subtotal: number | null
           unit_price: number
@@ -1184,6 +1186,7 @@ export type Database = {
           color_name?: string | null
           created_at?: string
           display_order?: number | null
+          gender?: string | null
           id?: string
           kit_group_id?: string | null
           kit_name?: string | null
@@ -1194,6 +1197,7 @@ export type Database = {
           product_sku?: string | null
           quantity?: number
           quote_id: string
+          size_code?: string | null
           sort_order?: number | null
           subtotal?: number | null
           unit_price?: number
@@ -1204,6 +1208,7 @@ export type Database = {
           color_name?: string | null
           created_at?: string
           display_order?: number | null
+          gender?: string | null
           id?: string
           kit_group_id?: string | null
           kit_name?: string | null
@@ -1214,6 +1219,7 @@ export type Database = {
           product_sku?: string | null
           quantity?: number
           quote_id?: string
+          size_code?: string | null
           sort_order?: number | null
           subtotal?: number | null
           unit_price?: number
