@@ -296,6 +296,7 @@ export function ProductFormFullscreen({
   isEdit,
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
+  const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [showPreview, setShowPreview] = useState(() => {
