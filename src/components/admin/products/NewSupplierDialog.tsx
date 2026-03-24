@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { invokeExternalDb } from '@/lib/external-db';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin, Globe, Trash2, UserPlus, Landmark } from 'lucide-react';
+import { Plus, Loader2, Building2, Phone, DollarSign, Settings2, ImagePlus, X, Search, MapPin, Globe, Trash2, UserPlus, Landmark, Truck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SupplierContact {
@@ -75,6 +76,44 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
   const [inscricaoEstadual, setInscricaoEstadual] = useState('');
   const [regimeTributario, setRegimeTributario] = useState('');
   const [estadoFaturamento, setEstadoFaturamento] = useState('');
+  const [transportadoraPadrao, setTransportadoraPadrao] = useState('');
+  const [transportadoraId, setTransportadoraId] = useState('');
+  const [carrierSearch, setCarrierSearch] = useState('');
+  const [carrierResults, setCarrierResults] = useState<Array<{ id: string; nome_fantasia: string; razao_social: string }>>([]);
+  const [searchingCarriers, setSearchingCarriers] = useState(false);
+  const [showCarrierDropdown, setShowCarrierDropdown] = useState(false);
+  const carrierSearchTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  const searchCarriers = useCallback(async (term: string) => {
+    if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
+    setSearchingCarriers(true);
+    try {
+      const results = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
+        table: 'carriers',
+        operation: 'select',
+        select: 'id,company:companies(id,nome_fantasia,razao_social)',
+        filters: {},
+        limit: 50,
+      }).catch(() => null);
+      
+      // Fallback: search companies directly with a filter
+      const companies = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
+        table: 'companies',
+        operation: 'select',
+        select: 'id,nome_fantasia,razao_social',
+        filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
+        limit: 15,
+      }).catch(() => []);
+      
+      const list = (companies || []).filter(c => c.nome_fantasia || c.razao_social);
+      setCarrierResults(list);
+      setShowCarrierDropdown(list.length > 0);
+    } catch {
+      setCarrierResults([]);
+    } finally {
+      setSearchingCarriers(false);
+    }
+  }, []);
 
   // Social Media
   const [instagram, setInstagram] = useState('');
@@ -182,6 +221,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]);
     setIsProductSupplier(true); setIsEngravingSupplier(false);
     setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento('');
+    setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch(''); setCarrierResults([]); setShowCarrierDropdown(false);
     setLogoUrl('');
   };
 
@@ -384,6 +424,10 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
           // Persist fiscal data
           if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
             parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
+          }
+          // Persist carrier
+          if (transportadoraPadrao.trim()) {
+            parts.push(`[Transportadora: ${transportadoraPadrao.trim()}, ID: ${transportadoraId || '-'}]`);
           }
           return parts.join('\n') || null;
         })(),
@@ -657,6 +701,68 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+
+            {/* TRANSPORTADORA PADRÃO */}
+            <div className="relative">
+              <Label className="text-xs font-semibold flex items-center gap-1.5">
+                <Truck className="h-3.5 w-3.5" />
+                Transportadora Padrão
+              </Label>
+              {transportadoraPadrao ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`${fieldClass} flex-1 flex items-center px-3 text-sm`}>
+                    {transportadoraPadrao}
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                    setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch('');
+                  }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative mt-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    value={carrierSearch}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCarrierSearch(val);
+                      clearTimeout(carrierSearchTimeout.current);
+                      carrierSearchTimeout.current = setTimeout(() => searchCarriers(val), 400);
+                    }}
+                    onFocus={() => { if (carrierResults.length > 0) setShowCarrierDropdown(true); }}
+                    onBlur={() => setTimeout(() => setShowCarrierDropdown(false), 200)}
+                    placeholder="Buscar transportadora..."
+                    className={`${fieldClass} pl-9`}
+                  />
+                  {searchingCarriers && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                  {showCarrierDropdown && carrierResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover shadow-lg">
+                      {carrierResults.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-accent/50 transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            const displayName = c.nome_fantasia || c.razao_social;
+                            setTransportadoraPadrao(displayName);
+                            setTransportadoraId(c.id);
+                            setCarrierSearch('');
+                            setShowCarrierDropdown(false);
+                          }}
+                        >
+                          <span className="font-medium">{c.nome_fantasia || c.razao_social}</span>
+                          {c.nome_fantasia && c.razao_social && (
+                            <span className="text-xs text-muted-foreground ml-2">({c.razao_social})</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </TabsContent>
 
