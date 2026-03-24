@@ -297,6 +297,8 @@ export function ProductFormFullscreen({
 }: ProductFormFullscreenProps) {
   const [images, setImages] = useState<string[]>(initialImages);
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
+  const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
+  const [priceManuallyEdited, setPriceManuallyEdited] = useState(isEdit);
   const [activeSection, setActiveSection] = useState<SectionId>('info');
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [showPreview, setShowPreview] = useState(() => {
