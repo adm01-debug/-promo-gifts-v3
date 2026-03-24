@@ -385,13 +385,32 @@ export default function ProductDetail() {
               </p>
             </div>
 
-            {/* Size Selector */}
+            {/* Variant Grid: Cor × Tamanho (se multi-eixo) ou Size Selector (se só tamanhos) */}
             {product.variations && product.variations.length > 0 && (
-              <ProductSizeSelector
-                variations={product.variations}
-                selectedSize={selectedSize}
-                onSelectSize={setSelectedSize}
-              />
+              product.variations.some((v: any) => v.size_code) ? (
+                <VariantGridMatrix
+                  variants={product.variations.map((v: any) => ({
+                    id: v.id,
+                    color_name: v.color?.name || v.name || 'Padrão',
+                    color_hex: v.color?.hex || '#888',
+                    size_code: v.size_code || null,
+                    stock: Math.max(0, v.stock ?? 0),
+                    sku: v.sku,
+                    image: v.image,
+                  }))}
+                  selectedId={selectedVariation?.id}
+                  onSelect={(item) => {
+                    const found = product.variations?.find((v: any) => v.id === item.id);
+                    if (found) setSelectedVariation(found);
+                  }}
+                />
+              ) : (
+                <ProductSizeSelector
+                  variations={product.variations}
+                  selectedSize={selectedSize}
+                  onSelectSize={setSelectedSize}
+                />
+              )
             )}
 
             {/* Materials */}
