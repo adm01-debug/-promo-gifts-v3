@@ -645,19 +645,24 @@ export function ProductFormFullscreen({
                 { key: 'has_gift_box' as const, label: 'Caixa Presente', value: hasGiftBox },
                 { key: 'has_optional_packaging' as const, label: 'Embalagem Opcional', value: hasOptionalPackaging },
                 { key: 'has_commercial_packaging' as const, label: 'Embalagem Nativa', value: hasCommercialPackaging },
-              ].map(({ key, label, value, activeClass }) => (
-              <div
-                  key={key}
-                  className={cn(
-                    'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
-                    value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
-                  )}
-                  onClick={() => setValue(key, !value)}
-                >
-                  <Label className="cursor-pointer text-xs font-medium">{label}</Label>
-                  <Switch checked={value} onCheckedChange={() => {}} onClick={(e) => e.stopPropagation()} />
-                </div>
-              ))}
+              ].map(({ key, label, value, activeClass }) => {
+                const toggle = () => setValue(key, !value);
+                return (
+                  <div
+                    key={key}
+                    className={cn(
+                      'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                      value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
+                    )}
+                    onClick={toggle}
+                  >
+                    <Label className="cursor-pointer text-xs font-medium">{label}</Label>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Switch checked={value} onCheckedChange={toggle} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </SectionCard>
 
