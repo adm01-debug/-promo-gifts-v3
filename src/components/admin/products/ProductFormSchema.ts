@@ -85,6 +85,17 @@ export const productFormSchema = z.object({
   tax_regime: z.string().max(50).optional().default(''),
   cest: z.string().max(10).optional().default(''),
 
+  // Logística (campos internos — armazenados mas sem UI dedicada)
+  freight_class: z.string().max(50).optional().default(''),
+  default_carrier: z.string().max(100).optional().default(''),
+  shipping_weight_kg: z.coerce.number().min(0).optional().nullable(),
+  shipping_width_cm: z.coerce.number().min(0).optional().nullable(),
+  shipping_height_cm: z.coerce.number().min(0).optional().nullable(),
+  shipping_length_cm: z.coerce.number().min(0).optional().nullable(),
+  cubic_weight: z.coerce.number().min(0).optional().nullable(),
+  requires_special_shipping: z.boolean().default(false),
+  shipping_notes: z.string().max(500).optional().default(''),
+
   // Comercial
   lead_time_days: z.coerce.number().int().min(0).optional().nullable(),
   product_type: z.string().max(50).optional().default('product'),
