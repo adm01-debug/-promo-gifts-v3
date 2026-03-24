@@ -327,8 +327,33 @@ export function ProductForm({
                 <h4 className="text-sm font-semibold text-foreground">Informações Básicas</h4>
               </div>
 
-              {/* SKU row */}
+              {/* 1 - Nome do Produto */}
+              <div>
+                <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
+                  Nome do Produto
+                </FieldLabel>
+                <Input
+                  id="name"
+                  {...register('name')}
+                  placeholder="Nome do produto"
+                  className={cn('h-9', errors.name && 'border-destructive')}
+                />
+                {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
+              </div>
+
+              {/* 2 - SKU Fornecedor | 3 - SKU Interno */}
               <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>
+                    SKU do Fornecedor
+                  </FieldLabel>
+                  <Input
+                    id="supplier_reference"
+                    {...register('supplier_reference')}
+                    placeholder="Ex: FORN-12345"
+                    className="font-mono h-9"
+                  />
+                </div>
                 <div>
                   <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>
                     SKU Interno (Nosso)
@@ -365,31 +390,6 @@ export function ProductForm({
                     <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>
                   )}
                 </div>
-                <div>
-                  <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>
-                    SKU do Fornecedor
-                  </FieldLabel>
-                  <Input
-                    id="supplier_reference"
-                    {...register('supplier_reference')}
-                    placeholder="Ex: FORN-12345"
-                    className="font-mono h-9"
-                  />
-                </div>
-              </div>
-
-              {/* Nome */}
-              <div>
-                <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>
-                  Nome do Produto
-                </FieldLabel>
-                <Input
-                  id="name"
-                  {...register('name')}
-                  placeholder="Nome do produto"
-                  className={cn('h-9', errors.name && 'border-destructive')}
-                />
-                {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
               </div>
 
               {/* Descrição */}
