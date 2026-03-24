@@ -182,6 +182,13 @@ export function useSuppliersManager() {
       setEstadoFaturamento(fiscalMatch[3] !== '-' ? fiscalMatch[3] : '');
     } else { setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento(''); }
 
+    const carrierMatch = notesStr.match(/\[Transportadora: (.*?), ID: (.*?)\]/);
+    if (carrierMatch) {
+      setTransportadoraPadrao(carrierMatch[1] !== '-' ? carrierMatch[1] : '');
+      setTransportadoraId(carrierMatch[2] !== '-' ? carrierMatch[2] : '');
+    } else { setTransportadoraPadrao(''); setTransportadoraId(''); }
+    setCarrierSearch(''); setCarrierResults([]); setShowCarrierDropdown(false);
+
     setIsNew(false);
   };
 
