@@ -289,6 +289,14 @@ export function AdvancedFilterPanel({
           onToggleItem={(value) => toggleArrayFilter('publicoAlvo', value)}
         />
 
+        {/* Gênero */}
+        <FilterSectionGender
+          isOpen={openSections.includes("genero")}
+          onToggle={toggleSection}
+          selected={filters.gender || []}
+          onToggleItem={(value) => toggleArrayFilter('gender', value)}
+        />
+
         {/* Endomarketing - Extracted */}
         <FilterSectionEndomarketing
           isOpen={openSections.includes("endomarketing")}
