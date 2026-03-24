@@ -736,17 +736,60 @@ export function ProductFormFullscreen({
 
 
           <SectionCard id="packaging" title="Embalagem (Caixa)" icon={Package} subtitle="Dimensões e especificações da embalagem">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
                 <FieldLabel htmlFor="packing_type">Tipo de Embalagem</FieldLabel>
-                <Input id="packing_type" {...register('packing_type')} placeholder="Ex: Caixa, Bolsa, Estojo" className="h-9" />
+                <select id="packing_type" {...register('packing_type')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                  <option value="">Selecione...</option>
+                  <option value="Caixa">Caixa</option>
+                  <option value="Bolsa">Bolsa</option>
+                  <option value="Estojo">Estojo</option>
+                  <option value="Sacola">Sacola</option>
+                  <option value="Envelope">Envelope</option>
+                  <option value="Lata">Lata</option>
+                  <option value="Tubo">Tubo</option>
+                  <option value="Sem embalagem">Sem embalagem</option>
+                </select>
               </div>
               <div>
-                <FieldLabel htmlFor="packaging_material">Material Embalagem</FieldLabel>
-                <Input id="packaging_material" {...register('packaging_material')} placeholder="Ex: Papelão, Plástico" className="h-9" />
+                <FieldLabel htmlFor="packaging_material">Material</FieldLabel>
+                <select id="packaging_material" {...register('packaging_material')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                  <option value="">Selecione...</option>
+                  <option value="Papelão">Papelão</option>
+                  <option value="Papel Kraft">Papel Kraft</option>
+                  <option value="Plástico">Plástico</option>
+                  <option value="TNT">TNT</option>
+                  <option value="Veludo">Veludo</option>
+                  <option value="Metal">Metal</option>
+                  <option value="Madeira">Madeira</option>
+                  <option value="Acrílico">Acrílico</option>
+                </select>
+              </div>
+              <div>
+                <FieldLabel htmlFor="packaging_color">Cor</FieldLabel>
+                <select id="packaging_color" {...register('packaging_color')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                  <option value="">Selecione...</option>
+                  <option value="Kraft">Kraft</option>
+                  <option value="Branco">Branco</option>
+                  <option value="Preto">Preto</option>
+                  <option value="Transparente">Transparente</option>
+                  <option value="Prata">Prata</option>
+                  <option value="Dourado">Dourado</option>
+                </select>
+              </div>
+              <div>
+                <FieldLabel htmlFor="packaging_finish">Acabamento</FieldLabel>
+                <select id="packaging_finish" {...register('packaging_finish')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                  <option value="">Selecione...</option>
+                  <option value="Fosco">Fosco</option>
+                  <option value="Brilhante">Brilhante</option>
+                  <option value="Acetinado">Acetinado</option>
+                  <option value="Texturizado">Texturizado</option>
+                  <option value="Laminado">Laminado</option>
+                </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-3 gap-3">
               <div>
                 <FieldLabel htmlFor="box_width_mm">Largura (mm)</FieldLabel>
                 <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" className="h-9" />
@@ -760,7 +803,7 @@ export function ProductFormFullscreen({
                 <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" className="h-9" />
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
                 <FieldLabel htmlFor="box_weight_kg">Peso (kg)</FieldLabel>
                 <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
@@ -776,16 +819,6 @@ export function ProductFormFullscreen({
               <div>
                 <FieldLabel htmlFor="box_volume_cm3">Volume (cm³)</FieldLabel>
                 <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" className="h-9" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="packaging_color">Cor Embalagem</FieldLabel>
-                <Input id="packaging_color" {...register('packaging_color')} placeholder="Ex: Kraft, Branco" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="packaging_finish">Acabamento Embalagem</FieldLabel>
-                <Input id="packaging_finish" {...register('packaging_finish')} placeholder="Ex: Fosco, Brilhante" className="h-9" />
               </div>
             </div>
           </SectionCard>
