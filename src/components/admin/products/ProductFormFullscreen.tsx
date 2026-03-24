@@ -707,7 +707,6 @@ export function ProductFormFullscreen({
                 { id: 'width_cm', label: 'Largura (cm)' },
                 { id: 'length_cm', label: 'Comprimento (cm)' },
                 { id: 'diameter_cm', label: 'Diâmetro (cm)' },
-                { id: 'circumference_cm', label: 'Circunferência (cm)' },
                 { id: 'weight_g', label: 'Peso (g)' },
                 { id: 'capacity_ml', label: 'Capacidade (ml)' },
               ].map(({ id: fId, label }) => (
