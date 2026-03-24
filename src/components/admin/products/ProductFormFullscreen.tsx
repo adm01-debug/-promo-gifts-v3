@@ -903,7 +903,7 @@ export function ProductFormFullscreen({
                 <Input id="shipping_height_cm" {...numericProps('shipping_height_cm')} min="0" step="0.1" className="h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="shipping_length_cm">Comprimento (cm)</FieldLabel>
+                <FieldLabel htmlFor="shipping_length_cm">Profundidade (cm)</FieldLabel>
                 <Input id="shipping_length_cm" {...numericProps('shipping_length_cm')} min="0" step="0.1" className="h-9" />
               </div>
             </div>

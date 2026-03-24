@@ -61,7 +61,7 @@ const TARGET_FIELDS = [
   { key: 'min_quantity', label: 'Qtd. Mín. Venda', required: false },
   { key: 'height_cm', label: 'Altura (cm)', required: false },
   { key: 'width_cm', label: 'Largura (cm)', required: false },
-  { key: 'length_cm', label: 'Comprimento (cm)', required: false },
+  { key: 'length_cm', label: 'Profundidade (cm)', required: false },
   { key: 'weight_g', label: 'Peso (g)', required: false },
   { key: 'packing_type', label: 'Tipo Embalagem', required: false },
   { key: 'image_url', label: 'URL Imagem', required: false },
