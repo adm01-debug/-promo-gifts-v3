@@ -26,6 +26,7 @@ export interface VariantGridItem {
   stock: number;
   sku?: string;
   image?: string | null;
+  price?: number | null;
 }
 
 interface VariantGridMatrixProps {
