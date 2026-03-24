@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { VariantGridMatrix, type VariantGridItem } from '@/components/products/VariantGridMatrix';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
@@ -588,6 +589,25 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
             })}
           </div>
         </TooltipProvider>
+      )}
+
+      {/* Grade Cor × Tamanho (se houver size_code) */}
+      {variants.some(v => v.size_code) && (
+        <VariantGridMatrix
+          variants={variants.map(v => ({
+            id: v.id,
+            color_name: v.color_name || v.name,
+            color_hex: v.color_hex || '#888',
+            size_code: v.size_code,
+            stock: v.stock_quantity ?? 0,
+            sku: v.sku,
+            image: v.selected_thumbnail,
+          }))}
+          selectedId={editingId}
+          onSelect={(item) => { setEditingId(item.id); setIsCreating(false); }}
+          mode="admin"
+          compact
+        />
       )}
 
       {/* Create form */}
