@@ -16,6 +16,7 @@ import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
 import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
+import { getFallback } from "@/components/layout/SkeletonLoaders";
 import "./App.css";
 
 // Auth Pages
