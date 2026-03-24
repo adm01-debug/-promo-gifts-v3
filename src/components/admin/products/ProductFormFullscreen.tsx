@@ -64,7 +64,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'engraving' | 'relations' | 'content';
+type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'engraving' | 'classification' | 'media' | 'content';
 
 interface StepDef {
   id: StepId;
@@ -81,7 +81,8 @@ const STEPS: StepDef[] = [
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
   { id: 'fiscal', label: 'Fiscal', description: 'NCM, ICMS e tributos', icon: FileText, requiredFields: [], fieldLabels: {} },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
-  { id: 'relations', label: 'Vínculos & Mídia', description: 'Categorias e imagens', icon: Layers, requiredFields: [], fieldLabels: {} },
+  { id: 'classification', label: 'Classificação', description: 'Gênero, cores e vínculos', icon: Layers, requiredFields: [], fieldLabels: {} },
+  { id: 'media', label: 'Mídia', description: 'Imagens e vídeos', icon: ImageIcon, requiredFields: [], fieldLabels: {} },
   { id: 'content', label: 'SEO & Textos', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
 ];
 
@@ -477,49 +478,50 @@ export function ProductFormFullscreen({
             <ProductEngravingSection productId={productId} isEdit={isEdit} />
           </Suspense>
         );
-      case 'relations':
+      case 'classification':
         return (
-          <>
-            <Suspense fallback={<SectionSkeleton />}>
-              <ProductClassificationSection
-                productId={productId}
-                isEdit={isEdit}
-                isKit={isKit}
-                productName={formValues.name}
-                productSku={formValues.sku}
-                internalDimensions={{
-                  height_cm: formValues.internal_height_cm ?? null,
-                  width_cm: formValues.internal_width_cm ?? null,
-                  length_cm: formValues.internal_length_cm ?? null,
-                }}
-                genderField={
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <FieldLabel htmlFor="gender">Gênero</FieldLabel>
-                      <select
-                        id="gender"
-                        {...register('gender')}
-                        className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <option value="">Selecione...</option>
-                        <option value="unissex">Unissex</option>
-                        <option value="masculino">Masculino</option>
-                        <option value="feminino">Feminino</option>
-                        <option value="infantil">Infantil</option>
-                      </select>
-                    </div>
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductClassificationSection
+              productId={productId}
+              isEdit={isEdit}
+              isKit={isKit}
+              productName={formValues.name}
+              productSku={formValues.sku}
+              internalDimensions={{
+                height_cm: formValues.internal_height_cm ?? null,
+                width_cm: formValues.internal_width_cm ?? null,
+                length_cm: formValues.internal_length_cm ?? null,
+              }}
+              genderField={
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <FieldLabel htmlFor="gender">Gênero</FieldLabel>
+                    <select
+                      id="gender"
+                      {...register('gender')}
+                      className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="unissex">Unissex</option>
+                      <option value="masculino">Masculino</option>
+                      <option value="feminino">Feminino</option>
+                      <option value="infantil">Infantil</option>
+                    </select>
                   </div>
-                }
-              />
-            </Suspense>
-            <Suspense fallback={<SectionSkeleton />}>
-              <ProductMediaSection
-                images={images}
-                onImagesChange={setImages}
-                productId={productId}
-              />
-            </Suspense>
-          </>
+                </div>
+              }
+            />
+          </Suspense>
+        );
+      case 'media':
+        return (
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductMediaSection
+              images={images}
+              onImagesChange={setImages}
+              productId={productId}
+            />
+          </Suspense>
         );
       default:
         return null;
