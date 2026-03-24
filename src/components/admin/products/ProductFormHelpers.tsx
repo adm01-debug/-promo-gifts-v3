@@ -82,7 +82,7 @@ export function FieldLabel({ htmlFor, children, required, charCount, charMax, hi
             <TooltipTrigger asChild>
               <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="text-xs max-w-[200px]">{hint}</TooltipContent>
+            <TooltipContent className="text-xs max-w-[260px]">{hint}</TooltipContent>
           </Tooltip>
         )}
       </div>

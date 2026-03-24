@@ -2,6 +2,7 @@
  * Basic info section — Name, SKU, description, brand, category, lead time, supply mode
  */
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { CategorySelect } from '../CategorySelect';
 import { NewCategoryDialog } from '../NewCategoryDialog';
@@ -33,7 +34,7 @@ export function ProductInfoSection({
     <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
       {/* Nome */}
       <div>
-        <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>Nome do Produto</FieldLabel>
+        <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300} hint="Nome comercial do produto que será exibido no catálogo e orçamentos">Nome do Produto</FieldLabel>
         <Input id="name" {...register('name')} placeholder="Nome do produto" className={cn('h-9', errors.name && 'border-destructive')} />
         {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
       </div>
@@ -41,11 +42,11 @@ export function ProductInfoSection({
       {/* SKU Fornecedor | SKU Interno */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>SKU do Fornecedor</FieldLabel>
+          <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100} hint="Código de referência usado pelo fornecedor para identificar o produto">SKU do Fornecedor</FieldLabel>
           <Input id="supplier_reference" {...register('supplier_reference')} placeholder="Ex: FORN-12345" className="font-mono h-9" />
         </div>
         <div>
-          <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>SKU Interno</FieldLabel>
+          <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50} hint="Código interno único para identificar o produto no sistema. Gerado automaticamente a partir do nome.">SKU Interno</FieldLabel>
           <div className="relative">
             <Input
               id="sku"
@@ -108,21 +109,21 @@ export function ProductInfoSection({
       {/* Prazo + Modo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
+          <FieldLabel htmlFor="lead_time_days" hint="Tempo médio em dias úteis para produção/entrega pelo fornecedor">Prazo Entrega (dias)</FieldLabel>
           <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
         </div>
         <div>
-          <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
-          <select
-            id="supply_mode"
-            {...register('supply_mode')}
-            className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="">Selecione...</option>
-            <option value="pronta_entrega_liso">Pronta Entrega Liso</option>
-            <option value="fabricado_personalizado">Fabricado Personalizado</option>
-            <option value="fabricado_liso">Fabricado Liso</option>
-          </select>
+          <FieldLabel htmlFor="supply_mode" hint="Define se o produto é mantido em estoque ou fabricado sob demanda">Modo de Fornecimento</FieldLabel>
+          <Select value={watch?.('supply_mode') || ''} onValueChange={(v) => setValue?.('supply_mode', v)}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pronta_entrega_liso">Pronta Entrega Liso</SelectItem>
+              <SelectItem value="fabricado_personalizado">Fabricado Personalizado</SelectItem>
+              <SelectItem value="fabricado_liso">Fabricado Liso</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </SectionCard>

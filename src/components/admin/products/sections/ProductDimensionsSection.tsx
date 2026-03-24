@@ -15,15 +15,15 @@ export function ProductDimensionsSection({ register, numericProps, isBoxProduct 
     <SectionCard id="dimensions" title="Dimensões" icon={Ruler} subtitle="Dimensões do produto">
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         {[
-          { id: 'height_cm', label: 'Altura (cm)' },
-          { id: 'width_cm', label: 'Largura (cm)' },
-          { id: 'length_cm', label: 'Profundidade (cm)' },
-          { id: 'diameter_cm', label: 'Diâmetro (cm)' },
-          { id: 'weight_g', label: 'Peso (g)' },
-          { id: 'capacity_ml', label: 'Capacidade (ml)' },
-        ].map(({ id: fId, label }) => (
+          { id: 'height_cm', label: 'Altura (cm)', hint: 'Altura do produto sem embalagem' },
+          { id: 'width_cm', label: 'Largura (cm)', hint: 'Largura do produto sem embalagem' },
+          { id: 'length_cm', label: 'Profundidade (cm)', hint: 'Profundidade do produto sem embalagem' },
+          { id: 'diameter_cm', label: 'Diâmetro (cm)', hint: 'Diâmetro para produtos cilíndricos/redondos' },
+          { id: 'weight_g', label: 'Peso (g)', hint: 'Peso líquido do produto em gramas' },
+          { id: 'capacity_ml', label: 'Capacidade (ml)', hint: 'Volume útil para copos, garrafas, etc.' },
+        ].map(({ id: fId, label, hint }) => (
           <div key={fId}>
-            <FieldLabel htmlFor={fId}>{label}</FieldLabel>
+            <FieldLabel htmlFor={fId} hint={hint}>{label}</FieldLabel>
             <Input id={fId} {...numericProps(fId as any)} min="0" step="0.1" className="h-9" />
           </div>
         ))}
@@ -33,12 +33,12 @@ export function ProductDimensionsSection({ register, numericProps, isBoxProduct 
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">Internas (para montagem de kits)</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[
-              { id: 'internal_height_cm', label: 'Altura Int. (cm)' },
-              { id: 'internal_width_cm', label: 'Largura Int. (cm)' },
-              { id: 'internal_length_cm', label: 'Profundidade Int. (cm)' },
-            ].map(({ id: fId, label }) => (
+              { id: 'internal_height_cm', label: 'Altura Int. (cm)', hint: 'Espaço interno útil de altura' },
+              { id: 'internal_width_cm', label: 'Largura Int. (cm)', hint: 'Espaço interno útil de largura' },
+              { id: 'internal_length_cm', label: 'Profundidade Int. (cm)', hint: 'Espaço interno útil de profundidade' },
+            ].map(({ id: fId, label, hint }) => (
               <div key={fId}>
-                <FieldLabel htmlFor={fId}>{label}</FieldLabel>
+                <FieldLabel htmlFor={fId} hint={hint}>{label}</FieldLabel>
                 <Input id={fId} {...numericProps(fId as any)} min="0" step="0.1" className="h-9" />
               </div>
             ))}
