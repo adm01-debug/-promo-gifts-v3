@@ -214,7 +214,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
 
   const steps = [
     { number: 1, label: 'Produto', icon: Package },
-    { number: 2, label: 'Cor', icon: Palette },
+    { number: 2, label: hasSizes ? 'Cor/Tam' : 'Cor', icon: Palette },
     { number: 3, label: 'Gravação', icon: Paintbrush },
     { number: 4, label: 'Opções', icon: Palette },
     { number: 5, label: 'Resultado', icon: Calculator },
