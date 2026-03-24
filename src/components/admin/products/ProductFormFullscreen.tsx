@@ -95,7 +95,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type SectionId = 'info' | 'price' | 'commercial' | 'flags' | 'dimensions' | 'packaging' | 'fiscal' | 'seo' | 'marketing' | 'classification' | 'media';
+type SectionId = 'info' | 'price' | 'commercial' | 'flags' | 'dimensions' | 'packaging' | 'fiscal' | 'logistics' | 'seo' | 'marketing' | 'classification' | 'media';
 
 interface SectionDef {
   id: SectionId;
