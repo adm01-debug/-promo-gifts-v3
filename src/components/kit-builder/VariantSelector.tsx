@@ -146,6 +146,7 @@ export function VariantSelector({
                   )}
                   <span className="truncate flex-1">
                     {variant.color_name || 'Padrão'}
+                    {variant.size_code && <span className="text-muted-foreground ml-1">({variant.size_code})</span>}
                   </span>
                   {variant.sku && (
                     <span className="text-[10px] text-muted-foreground font-mono flex-shrink-0">
