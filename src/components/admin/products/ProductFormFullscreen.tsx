@@ -405,20 +405,35 @@ export function ProductFormFullscreen({
     await onSubmit(data, images);
   });
 
-  // Intercept submit to show validation
-  const handleSubmitWithValidation = (e: React.FormEvent) => {
+  // Intercept submit: run full Zod validation via trigger(), then check missing fields
+  const handleSubmitWithValidation = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // 1) Run full Zod validation via react-hook-form
+    const isValid = await trigger();
+
+    // 2) Also check custom missing-fields logic
     const totalMissing = missingFields.reduce((sum, arr) => sum + arr.length, 0);
-    if (totalMissing > 0) {
-      e.preventDefault();
+
+    if (!isValid || totalMissing > 0) {
       setShowValidation(true);
-      // Navigate to first step with missing fields
-      const firstBadStep = missingFields.findIndex(arr => arr.length > 0);
+      // Navigate to first step with Zod errors or missing fields
+      const errorKeys = Object.keys(errors);
+      const firstBadStep = STEPS.findIndex((step, i) =>
+        missingFields[i].length > 0 ||
+        step.requiredFields.some(f => errorKeys.includes(f))
+      );
       if (firstBadStep >= 0 && firstBadStep !== stepIndex) {
         goStep(firstBadStep);
       }
       return;
     }
-    onFormSubmit(e);
+
+    // 3) All good — submit
+    handleSubmit(async (data) => {
+      if (skuStatus === 'duplicate') return;
+      await onSubmit(data, images);
+    })(e);
   };
 
   const currentStep = STEPS[stepIndex];
