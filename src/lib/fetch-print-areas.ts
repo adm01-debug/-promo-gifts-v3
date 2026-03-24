@@ -43,7 +43,7 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
       body: {
         table: 'products',
         operation: 'select',
-        select: 'id,personalization_areas',
+        select: 'id',
         filters: { id: productId },
         limit: 1,
       },
@@ -57,8 +57,9 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
     const product = data.data?.records?.[0];
     if (!product) return [];
 
+    // personalization_areas column may not exist in external DB
     const areas = product.personalization_areas;
-    if (!Array.isArray(areas) || areas.length === 0) return [];
+    if (!areas || !Array.isArray(areas) || areas.length === 0) return [];
 
     return areas.map((area: any, idx: number) => ({
       id: area.id || `${productId}-area-${idx}`,
