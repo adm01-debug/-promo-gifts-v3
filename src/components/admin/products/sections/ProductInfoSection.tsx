@@ -109,21 +109,21 @@ export function ProductInfoSection({
       {/* Prazo + Modo */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
+          <FieldLabel htmlFor="lead_time_days" hint="Tempo médio em dias úteis para produção/entrega pelo fornecedor">Prazo Entrega (dias)</FieldLabel>
           <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
         </div>
         <div>
-          <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
-          <select
-            id="supply_mode"
-            {...register('supply_mode')}
-            className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="">Selecione...</option>
-            <option value="pronta_entrega_liso">Pronta Entrega Liso</option>
-            <option value="fabricado_personalizado">Fabricado Personalizado</option>
-            <option value="fabricado_liso">Fabricado Liso</option>
-          </select>
+          <FieldLabel htmlFor="supply_mode" hint="Define se o produto é mantido em estoque ou fabricado sob demanda">Modo de Fornecimento</FieldLabel>
+          <Select value={watch?.('supply_mode') || ''} onValueChange={(v) => setValue?.('supply_mode', v)}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pronta_entrega_liso">Pronta Entrega Liso</SelectItem>
+              <SelectItem value="fabricado_personalizado">Fabricado Personalizado</SelectItem>
+              <SelectItem value="fabricado_liso">Fabricado Liso</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </SectionCard>
