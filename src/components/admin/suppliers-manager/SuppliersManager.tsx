@@ -36,6 +36,12 @@ export function SuppliersManager() {
         inscricaoEstadual={m.inscricaoEstadual} setInscricaoEstadual={m.setInscricaoEstadual}
         regimeTributario={m.regimeTributario} setRegimeTributario={m.setRegimeTributario}
         estadoFaturamento={m.estadoFaturamento} setEstadoFaturamento={m.setEstadoFaturamento}
+        transportadoraPadrao={m.transportadoraPadrao} setTransportadoraPadrao={m.setTransportadoraPadrao}
+        transportadoraId={m.transportadoraId} setTransportadoraId={m.setTransportadoraId}
+        carrierSearch={m.carrierSearch} setCarrierSearch={m.setCarrierSearch}
+        carrierResults={m.carrierResults} searchingCarriers={m.searchingCarriers}
+        showCarrierDropdown={m.showCarrierDropdown} setShowCarrierDropdown={m.setShowCarrierDropdown}
+        searchCarriers={m.searchCarriers} carrierSearchTimeout={m.carrierSearchTimeout}
         logoInputRef={m.logoInputRef}
         updateField={m.updateField} handleSave={m.handleSave}
         handleLogoUpload={m.handleLogoUpload} handleCnpjLookup={m.handleCnpjLookup}

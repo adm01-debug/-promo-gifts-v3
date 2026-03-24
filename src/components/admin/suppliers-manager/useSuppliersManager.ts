@@ -30,7 +30,31 @@ export function useSuppliersManager() {
   const [inscricaoEstadual, setInscricaoEstadual] = useState('');
   const [regimeTributario, setRegimeTributario] = useState('');
   const [estadoFaturamento, setEstadoFaturamento] = useState('');
+  const [transportadoraPadrao, setTransportadoraPadrao] = useState('');
+  const [transportadoraId, setTransportadoraId] = useState('');
+  const [carrierSearch, setCarrierSearch] = useState('');
+  const [carrierResults, setCarrierResults] = useState<Array<{ id: string; nome_fantasia: string; razao_social: string }>>([]);
+  const [searchingCarriers, setSearchingCarriers] = useState(false);
+  const [showCarrierDropdown, setShowCarrierDropdown] = useState(false);
+  const carrierSearchTimeout = useRef<ReturnType<typeof setTimeout>>();
   const logoInputRef = useRef<HTMLInputElement>(null);
+
+  const searchCarriers = useCallback(async (term: string) => {
+    if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
+    setSearchingCarriers(true);
+    try {
+      const companies = await invokeExternalDb<Array<{ id: string; nome_fantasia: string; razao_social: string }>>({
+        table: 'companies',
+        operation: 'select',
+        select: 'id,nome_fantasia,razao_social',
+        filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
+        limit: 15,
+      }).catch(() => []);
+      const list = (companies || []).filter(c => c.nome_fantasia || c.razao_social);
+      setCarrierResults(list);
+      setShowCarrierDropdown(list.length > 0);
+    } catch { setCarrierResults([]); } finally { setSearchingCarriers(false); }
+  }, []);
 
   const hasPixDuplicate = (keys: PixKey[]): string | null => {
     const filled = keys.filter(k => k.chave.trim());
@@ -158,6 +182,13 @@ export function useSuppliersManager() {
       setEstadoFaturamento(fiscalMatch[3] !== '-' ? fiscalMatch[3] : '');
     } else { setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento(''); }
 
+    const carrierMatch = notesStr.match(/\[Transportadora: (.*?), ID: (.*?)\]/);
+    if (carrierMatch) {
+      setTransportadoraPadrao(carrierMatch[1] !== '-' ? carrierMatch[1] : '');
+      setTransportadoraId(carrierMatch[2] !== '-' ? carrierMatch[2] : '');
+    } else { setTransportadoraPadrao(''); setTransportadoraId(''); }
+    setCarrierSearch(''); setCarrierResults([]); setShowCarrierDropdown(false);
+
     setIsNew(false);
   };
 
@@ -222,7 +253,7 @@ export function useSuppliersManager() {
         payment_terms: es.payment_terms?.trim() || null,
         shipping_terms: es.shipping_terms?.trim() || null,
         priority: es.priority ?? 50,
-        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, foneFixo1, foneFixo2, inscricaoEstadual, regimeTributario, estadoFaturamento),
+        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, foneFixo1, foneFixo2, inscricaoEstadual, regimeTributario, estadoFaturamento, transportadoraPadrao, transportadoraId),
         is_product_supplier: es.is_product_supplier ?? true,
         is_engraving_supplier: es.is_engraving_supplier ?? false,
         updated_at: now,
@@ -333,7 +364,11 @@ export function useSuppliersManager() {
     formaPagamento, setFormaPagamento, pixKeys, setPixKeys,
     foneFixo1, setFoneFixo1, foneFixo2, setFoneFixo2,
     inscricaoEstadual, setInscricaoEstadual, regimeTributario, setRegimeTributario,
-    estadoFaturamento, setEstadoFaturamento, logoInputRef,
+    estadoFaturamento, setEstadoFaturamento,
+    transportadoraPadrao, setTransportadoraPadrao, transportadoraId, setTransportadoraId,
+    carrierSearch, setCarrierSearch, carrierResults, searchingCarriers, showCarrierDropdown, setShowCarrierDropdown,
+    searchCarriers, carrierSearchTimeout,
+    logoInputRef,
     filtered, handleNew, handleEdit, handleSave, handleDelete, updateField,
     handleLogoUpload, handleCnpjLookup, handleCepLookup, fetchSuppliers,
     updatePixKey, addPixKey, removePixKey, updateContact, addContact, removeContact,
@@ -345,6 +380,7 @@ function buildNotesPayload(
   formaPagamento: string[], pixKeys: PixKey[],
   foneFixo1: string, foneFixo2: string,
   inscricaoEstadual: string, regimeTributario: string, estadoFaturamento: string,
+  transportadoraPadrao: string, transportadoraId: string,
 ): string | null {
   const parts: string[] = [];
   const userNotes = es.notes?.trim()
@@ -354,6 +390,7 @@ function buildNotesPayload(
     ?.replace(/\[Financeiro:.*?\]/g, '')
     ?.replace(/\[Fones Fixos:.*?\]/g, '')
     ?.replace(/\[Fiscal:.*?\]/g, '')
+    ?.replace(/\[Transportadora:.*?\]/g, '')
     ?.trim();
   if (userNotes) parts.push(userNotes);
   const c0 = contacts[0];
@@ -374,6 +411,9 @@ function buildNotesPayload(
   }
   if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
     parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
+  }
+  if (transportadoraPadrao.trim()) {
+    parts.push(`[Transportadora: ${transportadoraPadrao.trim()}, ID: ${transportadoraId || '-'}]`);
   }
   return parts.join('\n') || null;
 }

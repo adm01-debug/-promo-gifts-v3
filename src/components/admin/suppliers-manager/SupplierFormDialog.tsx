@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Phone, DollarSign, Settings2, MapPin, Globe, UserPlus, Landmark, Loader2, Plus, Trash2, ImagePlus, X, Search } from 'lucide-react';
+import { Building2, Phone, DollarSign, Settings2, MapPin, Globe, UserPlus, Landmark, Loader2, Plus, Trash2, ImagePlus, X, Search, Truck } from 'lucide-react';
 import { maskCnpj, maskPhone, maskCep, ESTADOS_BR } from '@/utils/masks';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import type { Supplier, SupplierContact, PixKey } from './types';
@@ -34,6 +34,18 @@ interface SupplierFormDialogProps {
   setRegimeTributario: (v: string) => void;
   estadoFaturamento: string;
   setEstadoFaturamento: (v: string) => void;
+  transportadoraPadrao: string;
+  setTransportadoraPadrao: (v: string) => void;
+  transportadoraId: string;
+  setTransportadoraId: (v: string) => void;
+  carrierSearch: string;
+  setCarrierSearch: (v: string) => void;
+  carrierResults: Array<{ id: string; nome_fantasia: string; razao_social: string }>;
+  searchingCarriers: boolean;
+  showCarrierDropdown: boolean;
+  setShowCarrierDropdown: (v: boolean) => void;
+  searchCarriers: (term: string) => void;
+  carrierSearchTimeout: React.MutableRefObject<ReturnType<typeof setTimeout> | undefined>;
   logoInputRef: React.RefObject<HTMLInputElement>;
   updateField: (field: string, value: unknown) => void;
   handleSave: () => void;
@@ -53,7 +65,11 @@ export function SupplierFormDialog({
   contacts, formaPagamento, setFormaPagamento, pixKeys,
   foneFixo1, setFoneFixo1, foneFixo2, setFoneFixo2,
   inscricaoEstadual, setInscricaoEstadual, regimeTributario, setRegimeTributario,
-  estadoFaturamento, setEstadoFaturamento, logoInputRef,
+  estadoFaturamento, setEstadoFaturamento,
+  transportadoraPadrao, setTransportadoraPadrao, transportadoraId, setTransportadoraId,
+  carrierSearch, setCarrierSearch, carrierResults, searchingCarriers, showCarrierDropdown, setShowCarrierDropdown,
+  searchCarriers, carrierSearchTimeout,
+  logoInputRef,
   updateField, handleSave, handleLogoUpload, handleCnpjLookup, handleCepLookup,
   updateContact, addContact, removeContact, updatePixKey, addPixKey, removePixKey,
 }: SupplierFormDialogProps) {
@@ -223,6 +239,67 @@ export function SupplierFormDialog({
               <div><Label className="text-xs font-semibold">Google Place ID</Label><Input value={editingSupplier.google_place_id || ''} onChange={e => updateField('google_place_id', e.target.value)} className={fieldClass} /></div>
             </div>
             <div><Label className="text-xs font-semibold">Horário de Funcionamento</Label><Input value={editingSupplier.horario_funcionamento || ''} onChange={e => updateField('horario_funcionamento', e.target.value)} className={fieldClass} /></div>
+            {/* TRANSPORTADORA PADRÃO */}
+            <div className="relative">
+              <Label className="text-xs font-semibold flex items-center gap-1.5">
+                <Truck className="h-3.5 w-3.5" />
+                Transportadora Padrão
+              </Label>
+              {transportadoraPadrao ? (
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`${fieldClass} flex-1 flex items-center px-3 text-sm`}>
+                    {transportadoraPadrao}
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                    setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch('');
+                  }}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative mt-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                  <Input
+                    value={carrierSearch}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCarrierSearch(val);
+                      clearTimeout(carrierSearchTimeout.current);
+                      carrierSearchTimeout.current = setTimeout(() => searchCarriers(val), 400);
+                    }}
+                    onFocus={() => { if (carrierResults.length > 0) setShowCarrierDropdown(true); }}
+                    onBlur={() => setTimeout(() => setShowCarrierDropdown(false), 200)}
+                    placeholder="Buscar transportadora..."
+                    className={`${fieldClass} pl-9`}
+                  />
+                  {searchingCarriers && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+                  {showCarrierDropdown && carrierResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover shadow-lg">
+                      {carrierResults.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-accent/50 transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            const displayName = c.nome_fantasia || c.razao_social;
+                            setTransportadoraPadrao(displayName);
+                            setTransportadoraId(c.id);
+                            setCarrierSearch('');
+                            setShowCarrierDropdown(false);
+                          }}
+                        >
+                          <span className="font-medium">{c.nome_fantasia || c.razao_social}</span>
+                          {c.nome_fantasia && c.razao_social && (
+                            <span className="text-xs text-muted-foreground ml-2">({c.razao_social})</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <div><Label className="text-xs font-semibold">Instruções de Entrega</Label><Textarea value={editingSupplier.instrucoes_entrega || ''} onChange={e => updateField('instrucoes_entrega', e.target.value)} className="mt-1.5 min-h-[60px]" /></div>
           </TabsContent>
 
