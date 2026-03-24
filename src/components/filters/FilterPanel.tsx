@@ -194,6 +194,36 @@ export function FilterPanel({
         </SelectContent>
       </Select>
     ),
+    genero: () => {
+      const GENDER_OPTIONS = ["Unissex", "Masculino", "Feminino", "Infantil"];
+      return (
+        <div className="flex flex-wrap gap-1.5 px-1">
+          {GENDER_OPTIONS.map((g) => {
+            const isSelected = (filters.gender || []).includes(g);
+            return (
+              <button
+                key={g}
+                onClick={() => state.toggleArrayFilter("gender", g)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-all ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-card border-border text-foreground hover:border-primary/40 hover:bg-accent"
+                }`}
+              >
+                {g}
+              </button>
+            );
+          })}
+        </div>
+      );
+    },
+    tamanhos: () => (
+      <SizeFilter
+        selectedSizes={filters.sizes || []}
+        onToggleSize={(size) => state.toggleArrayFilter("sizes", size)}
+        products={products as any}
+      />
+    ),
   };
 
   return (
