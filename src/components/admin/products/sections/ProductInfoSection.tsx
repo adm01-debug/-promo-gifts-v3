@@ -34,7 +34,7 @@ export function ProductInfoSection({
     <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
       {/* Nome */}
       <div>
-        <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>Nome do Produto</FieldLabel>
+        <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300} hint="Nome comercial do produto que será exibido no catálogo e orçamentos">Nome do Produto</FieldLabel>
         <Input id="name" {...register('name')} placeholder="Nome do produto" className={cn('h-9', errors.name && 'border-destructive')} />
         {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
       </div>
