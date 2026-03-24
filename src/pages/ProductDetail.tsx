@@ -255,6 +255,10 @@ export default function ProductDetail() {
                     KIT
                   </Badge>
                 )}
+                {/* Gender Badge */}
+                {product.gender && (
+                  <GenderBadge gender={product.gender} size="md" />
+                )}
                 
                 {/* Badge de Embalagem Especial */}
                 <PackagingBadge
