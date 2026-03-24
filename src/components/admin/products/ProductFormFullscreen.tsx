@@ -605,19 +605,19 @@ export function ProductFormFullscreen({
           </SectionCard>
 
           {/* === PREÇO E ESTOQUE === */}
-          <SectionCard id="price" title="Preço e Estoque" icon={Tag} subtitle={`Preço atual: R$ ${(watch('sale_price') ?? 0).toFixed(2)}`}>
+          <SectionCard id="price" title="Preço e Estoque" icon={Tag} subtitle={`Preço atual: R$ ${(watch('sale_price') ?? 0).toFixed(2)}${supplierMarkup ? ` · Markup ${supplierMarkup}%` : ''}`}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <FieldLabel htmlFor="cost_price">Preço Custo (R$)</FieldLabel>
+                <FieldLabel htmlFor="cost_price" hint={supplierMarkup ? `Markup do fornecedor: ${supplierMarkup}%. Preço sugerido e venda serão calculados automaticamente.` : 'Informe o preço de custo do produto'}>Preço Custo (R$)</FieldLabel>
                 <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="suggested_price">Preço Sugerido (R$)</FieldLabel>
-                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" />
+                <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Pode ser editado manualmente.">Preço Sugerido (R$)</FieldLabel>
+                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9" onChange={(e) => { register('suggested_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
               </div>
               <div>
-                <FieldLabel htmlFor="sale_price" required>Preço Venda (R$)</FieldLabel>
-                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} />
+                <FieldLabel htmlFor="sale_price" required hint="Calculado automaticamente pelo markup do fornecedor. Pode ser editado manualmente.">Preço Venda (R$)</FieldLabel>
+                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
                 {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
               </div>
             </div>
