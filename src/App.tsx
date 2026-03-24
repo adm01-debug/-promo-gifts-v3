@@ -100,6 +100,12 @@ function AppWithAuth({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/** Location-aware Suspense that renders route-specific skeletons */
+function RouteSuspense({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  return <Suspense fallback={getFallback(pathname)}>{children}</Suspense>;
+}
+
 const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   useGlobalErrorCatcher();
