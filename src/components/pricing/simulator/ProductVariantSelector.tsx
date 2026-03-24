@@ -9,6 +9,7 @@ export interface ProductVariant {
   name: string;
   hex?: string;
   stock?: number;
+  size_code?: string | null;
 }
 
 interface ProductVariantSelectorProps {
