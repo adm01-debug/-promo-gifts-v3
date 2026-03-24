@@ -36,6 +36,7 @@ import { useSkuValidation } from './hooks/useSkuValidation';
 
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
 const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
+const ProductEngravingSection = lazyWithRetry(() => import('./sections/ProductEngravingSection'));
 
 function SectionSkeleton() {
   return (
