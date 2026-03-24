@@ -7,6 +7,7 @@ export interface SupplierOption {
   code?: string;
   leadTimeDays?: number;
   isActive?: boolean;
+  defaultMarkupPercent?: number | null;
 }
 
 /**
