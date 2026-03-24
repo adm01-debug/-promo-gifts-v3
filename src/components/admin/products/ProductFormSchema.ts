@@ -76,6 +76,24 @@ export const productFormSchema = z.object({
   gtin: z.string().max(20).optional().default(''),
   ipi_rate: z.coerce.number().min(0).optional().nullable(),
   country_of_origin: z.string().max(100).optional().default(''),
+  cfop: z.string().max(10).optional().default(''),
+  csosn: z.string().max(10).optional().default(''),
+  icms_rate: z.coerce.number().min(0).optional().nullable(),
+  pis_rate: z.coerce.number().min(0).optional().nullable(),
+  cofins_rate: z.coerce.number().min(0).optional().nullable(),
+  tax_regime: z.string().max(50).optional().default(''),
+  cest: z.string().max(10).optional().default(''),
+
+  // Logística / Frete
+  freight_class: z.string().max(50).optional().default(''),
+  default_carrier: z.string().max(100).optional().default(''),
+  shipping_weight_kg: z.coerce.number().min(0).optional().nullable(),
+  shipping_width_cm: z.coerce.number().min(0).optional().nullable(),
+  shipping_height_cm: z.coerce.number().min(0).optional().nullable(),
+  shipping_length_cm: z.coerce.number().min(0).optional().nullable(),
+  cubic_weight: z.coerce.number().min(0).optional().nullable(),
+  requires_special_shipping: z.boolean().default(false),
+  shipping_notes: z.string().max(500).optional().default(''),
 
   // Comercial
   lead_time_days: z.coerce.number().int().min(0).optional().nullable(),
