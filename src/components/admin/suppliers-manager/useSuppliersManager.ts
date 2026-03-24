@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
-import { selectCrm } from '@/lib/crm-db';
+import { selectCrm, searchCrm } from '@/lib/crm-db';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { maskCnpj, maskPhone, validateCnpj, maskCep } from '@/utils/masks';
@@ -44,11 +44,12 @@ export function useSuppliersManager() {
     if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
     setSearchingCarriers(true);
     try {
-      const companies = await selectCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
-        'bitrix_clients',
+      const companies = await searchCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
+        'companies',
+        'razao_social',
+        term,
         {
           select: 'id,nome_fantasia,razao_social',
-          filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
           limit: 15,
         }
       ).catch(() => []);

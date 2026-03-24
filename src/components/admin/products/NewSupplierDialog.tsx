@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { invokeExternalDb } from '@/lib/external-db';
-import { selectCrm } from '@/lib/crm-db';
+import { selectCrm, searchCrm } from '@/lib/crm-db';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -89,11 +89,12 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
     if (term.length < 2) { setCarrierResults([]); setShowCarrierDropdown(false); return; }
     setSearchingCarriers(true);
     try {
-      const companies = await selectCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
-        'bitrix_clients',
+      const companies = await searchCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
+        'companies',
+        'razao_social',
+        term,
         {
           select: 'id,nome_fantasia,razao_social',
-          filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
           limit: 15,
         }
       ).catch(() => []);
