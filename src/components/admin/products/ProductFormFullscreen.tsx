@@ -346,6 +346,15 @@ export function ProductFormFullscreen({
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
+  // Auto-copiar SKU do Fornecedor para SKU Interno (apenas em criação, até edição manual)
+  const prevSupplierRef = React.useRef(supplierRefValue);
+  React.useEffect(() => {
+    if (!skuManuallyEdited && !isEdit && supplierRefValue) {
+      setValue('sku', supplierRefValue, { shouldValidate: true });
+    }
+    prevSupplierRef.current = supplierRefValue;
+  }, [supplierRefValue, skuManuallyEdited, isEdit, setValue]);
+
   const onFormSubmit = handleSubmit(async (data) => {
     if (skuStatus === 'duplicate') return;
     await onSubmit(data, images);
