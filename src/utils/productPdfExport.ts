@@ -169,7 +169,7 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
     addTable([
       ['Altura Interna', formatDimension(formData.internal_height_cm, 'cm')],
       ['Largura Interna', formatDimension(formData.internal_width_cm, 'cm')],
-      ['Comprimento Interno', formatDimension(formData.internal_length_cm, 'cm')],
+      ['Profundidade Interna', formatDimension(formData.internal_length_cm, 'cm')],
       ['Diâmetro Interno', formatDimension(formData.internal_diameter_cm, 'cm')],
     ]);
   }
