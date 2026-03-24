@@ -604,15 +604,11 @@ export function ProductFormFullscreen({
           </SectionCard>
 
           {/* === COMERCIAL === */}
-          <SectionCard id="commercial" title="Comercial" icon={Truck} subtitle="Prazo de entrega, garantia, tipo de produto">
+          <SectionCard id="commercial" title="Comercial" icon={Truck} subtitle="Prazo de entrega, tipo de produto">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
                 <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="warranty_months">Garantia (meses)</FieldLabel>
-                <Input id="warranty_months" {...numericProps('warranty_months')} min="0" className="h-9" />
               </div>
               <div>
                 <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>

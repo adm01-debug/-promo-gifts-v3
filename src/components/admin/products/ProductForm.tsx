@@ -535,10 +535,6 @@ export function ProductForm({
                     <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
                   </div>
                   <div>
-                    <FieldLabel htmlFor="warranty_months">Garantia (meses)</FieldLabel>
-                    <Input id="warranty_months" {...numericProps('warranty_months')} min="0" className="h-9" />
-                  </div>
-                  <div>
                     <FieldLabel htmlFor="product_type">Tipo de Produto</FieldLabel>
                     <Input id="product_type" {...register('product_type')} placeholder="product" className="h-9" />
                   </div>
