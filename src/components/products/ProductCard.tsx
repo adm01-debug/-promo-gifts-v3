@@ -180,9 +180,9 @@ export function ProductCard({
     >
       {/* Image container with gradient overlay - isolated stacking context */}
       <div className="relative aspect-[4/5] overflow-hidden product-img-container" style={{ zIndex: 0 }}>
-        {/* Skeleton loader with shimmer */}
+        {/* Skeleton shimmer placeholder until image loads */}
         {!imageLoaded && (
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
+          <div className="absolute inset-0 bg-muted/50 shimmer rounded-none" />
         )}
         
         {/* Briefing v3: usar og_image_url (MAIN, cor individual) para cards com variante /card */}
