@@ -803,18 +803,10 @@ export function ProductFormFullscreen({
                 <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" className="h-9" />
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
               <div>
                 <FieldLabel htmlFor="box_weight_kg">Peso (kg)</FieldLabel>
                 <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="box_quantity">Qtd por caixa</FieldLabel>
-                <Input id="box_quantity" {...numericProps('box_quantity')} min="0" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="box_inner_quantity">Qtd Interna</FieldLabel>
-                <Input id="box_inner_quantity" {...numericProps('box_inner_quantity')} min="0" className="h-9" />
               </div>
               <div>
                 <FieldLabel htmlFor="box_volume_cm3">Volume (cm³)</FieldLabel>
