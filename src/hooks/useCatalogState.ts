@@ -198,6 +198,16 @@ export function useCatalogState() {
       result = result.filter((p) => (p.stock || 0) > 0);
     }
 
+    // Gender filter
+    if ((filters as any).gender?.length) {
+      const genderFilter = (filters as any).gender as string[];
+      result = result.filter((p) => {
+        const productGender = ((p as any).gender || '').toLowerCase().trim();
+        if (!productGender) return false;
+        return genderFilter.some(g => productGender === g.toLowerCase());
+      });
+    }
+
     if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
       result = result.filter((p) => materialFilteredProductIds.has(p.id));
     } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
