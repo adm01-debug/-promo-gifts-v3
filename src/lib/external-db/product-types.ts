@@ -66,6 +66,7 @@ export interface PromobrindProduct {
   is_new?: boolean | null;
   is_on_sale?: boolean | null;
   is_kit?: boolean | null;
+  gender?: string | null;
   category_name?: string | null;
   tags?: Record<string, unknown> | null;
   kit_components?: Array<{
