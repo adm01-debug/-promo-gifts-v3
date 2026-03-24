@@ -353,6 +353,8 @@ function buildNotesPayload(
     ?.replace(/\[Redes Sociais:.*?\]/g, '')
     ?.replace(/\[Financeiro:.*?\]/g, '')
     ?.replace(/\[Fones Fixos:.*?\]/g, '')
+    ?.replace(/\[Fiscal:.*?\]/g, '')
+    ?.trim();
     ?.trim();
   if (userNotes) parts.push(userNotes);
   const c0 = contacts[0];
