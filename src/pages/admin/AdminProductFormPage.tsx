@@ -216,7 +216,6 @@ export default function AdminProductFormPage() {
         diameter_cm: data.diameter_cm ?? null,
         weight_g: data.weight_g ?? null,
         capacity_ml: data.capacity_ml ?? null,
-        circumference_cm: data.circumference_cm ?? null,
         internal_height_cm: data.internal_height_cm ?? null,
         internal_width_cm: data.internal_width_cm ?? null,
         internal_length_cm: data.internal_length_cm ?? null,

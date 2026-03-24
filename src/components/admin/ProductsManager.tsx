@@ -249,7 +249,6 @@ export function ProductsManager() {
           diameter_cm: p.diameter_cm ?? null,
           weight_g: p.weight_g ?? null,
           capacity_ml: p.capacity_ml ?? null,
-          circumference_cm: p.circumference_cm ?? null,
           internal_height_cm: p.internal_height_cm ?? null,
           internal_width_cm: p.internal_width_cm ?? null,
           internal_length_cm: p.internal_length_cm ?? null,

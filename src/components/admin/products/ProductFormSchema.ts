@@ -140,7 +140,6 @@ export const defaultFormValues: ProductFormData = {
   diameter_cm: null,
   weight_g: null,
   capacity_ml: null,
-  circumference_cm: null,
   internal_height_cm: null,
   internal_width_cm: null,
   internal_length_cm: null,

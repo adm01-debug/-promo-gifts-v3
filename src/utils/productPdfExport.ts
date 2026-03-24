@@ -160,7 +160,6 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
     ['Diâmetro', formatDimension(formData.diameter_cm, 'cm')],
     ['Peso', formatDimension(formData.weight_g, 'g')],
     ['Capacidade', formatDimension(formData.capacity_ml, 'ml')],
-    ['Circunferência', formatDimension(formData.circumference_cm, 'cm')],
   ]);
 
   // Dimensões internas (only if any are set)
