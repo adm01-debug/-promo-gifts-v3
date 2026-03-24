@@ -551,15 +551,9 @@ export function ProductFormFullscreen({
               <Textarea id="description" {...register('description')} placeholder="Descrição detalhada do produto" rows={4} className="text-sm resize-y min-h-[80px]" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="short_description" charCount={shortDescValue.length} charMax={500}>Descrição Curta</FieldLabel>
-                <Input id="short_description" {...register('short_description')} placeholder="Resumo em uma linha" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>Meta Descrição (SEO)</FieldLabel>
-                <Input id="meta_description" {...register('meta_description')} placeholder="Descrição para buscadores" className="h-9" />
-              </div>
+            <div>
+              <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>Meta Descrição (SEO)</FieldLabel>
+              <Input id="meta_description" {...register('meta_description')} placeholder="Descrição para buscadores" className="h-9" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
