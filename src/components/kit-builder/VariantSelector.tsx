@@ -24,6 +24,7 @@ interface VariantOption {
   sku: string | null;
   selected_thumbnail: string | null;
   sale_price?: number | null;
+  size_code?: string | null;
 }
 
 export interface VariantSelectionData {
