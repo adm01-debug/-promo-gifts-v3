@@ -383,7 +383,6 @@ export function ProductFormFullscreen({
   // Show draft restored notification
   useEffect(() => {
     if (!hasDraft) return;
-    const { toast } = require('sonner');
     toast.info('Rascunho restaurado', {
       description: 'Seus dados não salvos foram recuperados automaticamente.',
       action: {
