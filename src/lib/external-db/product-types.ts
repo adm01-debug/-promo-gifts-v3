@@ -125,5 +125,5 @@ export const PRODUCT_SELECT_FIELDS_DETAIL =
 
 export function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
-  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|does not exist|não existe|undefined column|column .+ does not exist)/i.test(msg);
+  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|gender|does not exist|não existe|undefined column|column .+ does not exist)/i.test(msg);
 }
