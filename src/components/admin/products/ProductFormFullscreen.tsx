@@ -3,7 +3,7 @@
  * Conteúdo ocupa a tela inteira, sem duplicações.
  */
 
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
