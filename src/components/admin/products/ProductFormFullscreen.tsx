@@ -80,9 +80,9 @@ const STEPS: StepDef[] = [
   { id: 'commercial', label: 'Comercial', description: 'Preços e dimensões', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
   { id: 'fiscal', label: 'Fiscal', description: 'NCM, ICMS e tributos', icon: FileText, requiredFields: [], fieldLabels: {} },
-  { id: 'content', label: 'SEO & Textos', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
   { id: 'relations', label: 'Vínculos & Mídia', description: 'Categorias e imagens', icon: Layers, requiredFields: [], fieldLabels: {} },
+  { id: 'content', label: 'SEO & Textos', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
 ];
 
 // ============================================
