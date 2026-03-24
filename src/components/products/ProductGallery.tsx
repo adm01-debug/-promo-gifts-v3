@@ -392,11 +392,10 @@ export function ProductGallery({
                   {/* Imagem da variação */}
                   <div className="relative aspect-square overflow-hidden">
                     {color.image || color.images?.[0] ? (
-                      <img 
+                      <ColorThumb 
                         src={getCdnUrl(color.images?.[0] || color.image || '', 'thumbnail')} 
                         alt={color.name}
                         title={color.name}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover/color:scale-110"
                       />
                     ) : (
                       <div 

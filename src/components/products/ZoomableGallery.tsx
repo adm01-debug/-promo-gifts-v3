@@ -431,7 +431,7 @@ export function ZoomableGallery({
                   className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background/80 to-transparent"
                 >
                   <div className="flex gap-2 justify-center overflow-x-auto">
-                    {images.map((image, index) => (
+                  {images.map((image, index) => (
                       <button
                         key={image || index}
                         onClick={() => setCurrentIndex(index)}
@@ -442,11 +442,7 @@ export function ZoomableGallery({
                             : "border-transparent hover:border-primary/50 opacity-60 hover:opacity-100"
                         )}
                       >
-                        <img
-                          src={image}
-                          alt={`Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
+                        <BlurThumb src={image} alt={`Thumbnail ${index + 1}`} />
                       </button>
                     ))}
                   </div>
