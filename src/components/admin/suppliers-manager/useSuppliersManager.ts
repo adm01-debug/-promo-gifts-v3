@@ -45,7 +45,7 @@ export function useSuppliersManager() {
     setSearchingCarriers(true);
     try {
       const companies = await selectCrm<{ id: string; nome_fantasia: string; razao_social: string }>(
-        'bitrix_clients',
+        'carriers',
         {
           select: 'id,nome_fantasia,razao_social',
           filters: { or: `nome_fantasia.ilike.%${term}%,razao_social.ilike.%${term}%` },
