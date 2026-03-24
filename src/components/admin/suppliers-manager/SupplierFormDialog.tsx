@@ -34,6 +34,18 @@ interface SupplierFormDialogProps {
   setRegimeTributario: (v: string) => void;
   estadoFaturamento: string;
   setEstadoFaturamento: (v: string) => void;
+  transportadoraPadrao: string;
+  setTransportadoraPadrao: (v: string) => void;
+  transportadoraId: string;
+  setTransportadoraId: (v: string) => void;
+  carrierSearch: string;
+  setCarrierSearch: (v: string) => void;
+  carrierResults: Array<{ id: string; nome_fantasia: string; razao_social: string }>;
+  searchingCarriers: boolean;
+  showCarrierDropdown: boolean;
+  setShowCarrierDropdown: (v: boolean) => void;
+  searchCarriers: (term: string) => void;
+  carrierSearchTimeout: React.MutableRefObject<ReturnType<typeof setTimeout> | undefined>;
   logoInputRef: React.RefObject<HTMLInputElement>;
   updateField: (field: string, value: unknown) => void;
   handleSave: () => void;
