@@ -125,6 +125,22 @@ interface Product {
   gtin: string | null;
   ipi_rate: number | null;
   country_of_origin: string | null;
+  cfop: string | null;
+  csosn: string | null;
+  icms_rate: number | null;
+  pis_rate: number | null;
+  cofins_rate: number | null;
+  tax_regime: string | null;
+  cest: string | null;
+  freight_class: string | null;
+  default_carrier: string | null;
+  shipping_weight_kg: number | null;
+  shipping_width_cm: number | null;
+  shipping_height_cm: number | null;
+  shipping_length_cm: number | null;
+  cubic_weight: number | null;
+  requires_special_shipping: boolean | null;
+  shipping_notes: string | null;
   lead_time_days: number | null;
   product_type: string | null;
   supply_mode: string | null;
@@ -257,6 +273,22 @@ export function ProductsManager() {
           gtin: p.gtin ?? null,
           ipi_rate: p.ipi_rate ?? null,
           country_of_origin: p.country_of_origin ?? null,
+          cfop: p.cfop ?? null,
+          csosn: p.csosn ?? null,
+          icms_rate: p.icms_rate ?? null,
+          pis_rate: p.pis_rate ?? null,
+          cofins_rate: p.cofins_rate ?? null,
+          tax_regime: p.tax_regime ?? null,
+          cest: p.cest ?? null,
+          freight_class: p.freight_class ?? null,
+          default_carrier: p.default_carrier ?? null,
+          shipping_weight_kg: p.shipping_weight_kg ?? null,
+          shipping_width_cm: p.shipping_width_cm ?? null,
+          shipping_height_cm: p.shipping_height_cm ?? null,
+          shipping_length_cm: p.shipping_length_cm ?? null,
+          cubic_weight: p.cubic_weight ?? null,
+          requires_special_shipping: p.requires_special_shipping ?? null,
+          shipping_notes: p.shipping_notes ?? null,
           lead_time_days: p.lead_time_days ?? null,
           product_type: p.product_type ?? null,
           supply_mode: p.supply_mode ?? null,

@@ -95,7 +95,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type SectionId = 'info' | 'price' | 'commercial' | 'flags' | 'dimensions' | 'packaging' | 'fiscal' | 'seo' | 'marketing' | 'classification' | 'media';
+type SectionId = 'info' | 'price' | 'commercial' | 'flags' | 'dimensions' | 'packaging' | 'fiscal' | 'logistics' | 'seo' | 'marketing' | 'classification' | 'media';
 
 interface SectionDef {
   id: SectionId;
@@ -112,6 +112,7 @@ const SECTIONS: SectionDef[] = [
   { id: 'dimensions', label: 'Dimensões', icon: Ruler, group: 'Detalhes' },
   { id: 'packaging', label: 'Embalagem', icon: Package, group: 'Detalhes' },
   { id: 'fiscal', label: 'Fiscal', icon: FileText, group: 'Detalhes' },
+  { id: 'logistics', label: 'Logística', icon: Truck, group: 'Detalhes' },
   { id: 'seo', label: 'SEO', icon: Globe, group: 'Marketing' },
   { id: 'marketing', label: 'Textos', icon: Megaphone, group: 'Marketing' },
   { id: 'classification', label: 'Classificação', icon: Layers, group: 'Vínculos' },
@@ -769,30 +770,136 @@ export function ProductFormFullscreen({
           </SectionCard>
 
           {/* === FISCAL === */}
-          <SectionCard id="fiscal" title="Dados Fiscais" icon={FileText} subtitle="NCM, EAN, GTIN, IPI e origem">
+          <SectionCard id="fiscal" title="Dados Fiscais" icon={FileText} subtitle="NCM, EAN, GTIN, IPI, ICMS, PIS/COFINS e origem">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FieldLabel htmlFor="ncm_code">Código NCM</FieldLabel>
+                <FieldLabel htmlFor="ncm_code" hint="Nomenclatura Comum do Mercosul — código de 8 dígitos usado na classificação fiscal">Código NCM</FieldLabel>
                 <Input id="ncm_code" {...register('ncm_code')} placeholder="Ex: 96081000" className="font-mono h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="ipi_rate">Alíquota IPI (%)</FieldLabel>
-                <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" className="h-9" />
+                <FieldLabel htmlFor="cest" hint="Código Especificador da Substituição Tributária">CEST</FieldLabel>
+                <Input id="cest" {...register('cest')} placeholder="Ex: 2000100" className="font-mono h-9" />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FieldLabel htmlFor="ean">Código EAN</FieldLabel>
+                <FieldLabel htmlFor="ean" hint="Código de barras padrão europeu (13 dígitos)">Código EAN</FieldLabel>
                 <Input id="ean" {...register('ean')} placeholder="Código de barras EAN" className="font-mono h-9" />
               </div>
               <div>
-                <FieldLabel htmlFor="gtin">GTIN</FieldLabel>
+                <FieldLabel htmlFor="gtin" hint="Global Trade Item Number — identificação global do produto">GTIN</FieldLabel>
                 <Input id="gtin" {...register('gtin')} placeholder="Global Trade Item Number" className="font-mono h-9" />
               </div>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="cfop" hint="Código Fiscal de Operações e Prestações — ex: 5102 (venda dentro do estado)">CFOP</FieldLabel>
+                <Input id="cfop" {...register('cfop')} placeholder="Ex: 5102" className="font-mono h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="csosn" hint="Código de Situação da Operação no Simples Nacional">CSOSN</FieldLabel>
+                <Input id="csosn" {...register('csosn')} placeholder="Ex: 102" className="font-mono h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <FieldLabel htmlFor="ipi_rate" hint="Imposto sobre Produtos Industrializados">Alíquota IPI (%)</FieldLabel>
+                <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="icms_rate" hint="Imposto sobre Circulação de Mercadorias e Serviços">Alíquota ICMS (%)</FieldLabel>
+                <Input id="icms_rate" {...numericProps('icms_rate')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="pis_rate" hint="Programa de Integração Social">Alíquota PIS (%)</FieldLabel>
+                <Input id="pis_rate" {...numericProps('pis_rate')} min="0" step="0.01" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <FieldLabel htmlFor="cofins_rate" hint="Contribuição para o Financiamento da Seguridade Social">Alíquota COFINS (%)</FieldLabel>
+                <Input id="cofins_rate" {...numericProps('cofins_rate')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="tax_regime" hint="Regime tributário aplicável ao produto">Regime Tributário</FieldLabel>
+                <select
+                  id="tax_regime"
+                  {...register('tax_regime')}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="simples_nacional">Simples Nacional</option>
+                  <option value="lucro_presumido">Lucro Presumido</option>
+                  <option value="lucro_real">Lucro Real</option>
+                  <option value="mei">MEI</option>
+                </select>
+              </div>
+              <div>
+                <FieldLabel htmlFor="country_of_origin">País de Origem</FieldLabel>
+                <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* === LOGÍSTICA === */}
+          <SectionCard id="logistics" title="Logística e Frete" icon={Truck} subtitle="Classe de frete, cubagem e transportadora">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="freight_class" hint="Classe de frete para cálculo — ex: Normal, Pesado, Frágil">Classe de Frete</FieldLabel>
+                <select
+                  id="freight_class"
+                  {...register('freight_class')}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Selecione...</option>
+                  <option value="normal">Normal</option>
+                  <option value="pesado">Pesado</option>
+                  <option value="fragil">Frágil</option>
+                  <option value="perigoso">Perigoso</option>
+                  <option value="refrigerado">Refrigerado</option>
+                </select>
+              </div>
+              <div>
+                <FieldLabel htmlFor="default_carrier" hint="Transportadora padrão para envio desse produto">Transportadora Padrão</FieldLabel>
+                <Input id="default_carrier" {...register('default_carrier')} placeholder="Ex: Correios, Jadlog" className="h-9" />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider pt-2">Dimensões de Envio</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <FieldLabel htmlFor="shipping_weight_kg" hint="Peso real do produto embalado para envio">Peso (kg)</FieldLabel>
+                <Input id="shipping_weight_kg" {...numericProps('shipping_weight_kg')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="shipping_width_cm">Largura (cm)</FieldLabel>
+                <Input id="shipping_width_cm" {...numericProps('shipping_width_cm')} min="0" step="0.1" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="shipping_height_cm">Altura (cm)</FieldLabel>
+                <Input id="shipping_height_cm" {...numericProps('shipping_height_cm')} min="0" step="0.1" className="h-9" />
+              </div>
+              <div>
+                <FieldLabel htmlFor="shipping_length_cm">Comprimento (cm)</FieldLabel>
+                <Input id="shipping_length_cm" {...numericProps('shipping_length_cm')} min="0" step="0.1" className="h-9" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <FieldLabel htmlFor="cubic_weight" hint="Peso cubado = (L × A × C) / 6000 — usado pelas transportadoras para cálculo de frete">Peso Cubado (kg)</FieldLabel>
+                <Input id="cubic_weight" {...numericProps('cubic_weight')} min="0" step="0.01" className="h-9" />
+              </div>
+              <div className="flex items-end gap-3 pb-1">
+                <Switch
+                  id="requires_special_shipping"
+                  checked={watch('requires_special_shipping')}
+                  onCheckedChange={(v) => setValue('requires_special_shipping', v)}
+                />
+                <Label htmlFor="requires_special_shipping" className="text-sm cursor-pointer">Requer frete especial</Label>
+              </div>
+            </div>
             <div>
-              <FieldLabel htmlFor="country_of_origin">País de Origem</FieldLabel>
-              <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
+              <FieldLabel htmlFor="shipping_notes" hint="Observações sobre transporte, cuidados ou restrições de envio">Observações de Envio</FieldLabel>
+              <Textarea id="shipping_notes" {...register('shipping_notes')} placeholder="Instruções especiais para envio..." rows={2} className="text-sm resize-y" />
             </div>
           </SectionCard>
 
