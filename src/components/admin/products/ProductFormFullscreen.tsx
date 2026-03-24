@@ -335,6 +335,8 @@ export function ProductFormFullscreen({
   const allowsPersonalization = watch('allows_personalization');
   const hasGiftBox = watch('has_gift_box');
   const hasOptionalPackaging = watch('has_optional_packaging');
+  const packingType = watch('packing_type') || '';
+  const isBoxProduct = packingType.toLowerCase().includes('caixa');
 
   const skuValue = watch('sku') || '';
   const nameValue = watch('name') || '';
