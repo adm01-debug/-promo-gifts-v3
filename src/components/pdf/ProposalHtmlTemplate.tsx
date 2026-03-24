@@ -23,6 +23,8 @@ export interface ProposalItem {
   unitPrice: number;
   discount?: number;
   color?: string;
+  size?: string;
+  gender?: string;
   imageUrl?: string;
   material?: string;
   personalizations?: ProposalItemPersonalization[];
