@@ -6,7 +6,6 @@ export const productFormSchema = z.object({
   name: z.string().trim().min(1, 'Nome é obrigatório').max(300, 'Nome muito longo'),
   description: z.string().max(5000, 'Descrição muito longa').optional().default(''),
   short_description: z.string().max(500, 'Descrição curta muito longa').optional().default(''),
-  meta_description: z.string().max(500, 'Meta descrição muito longa').optional().default(''),
   brand: z.string().max(100).optional().default(''),
 
   // Categoria e fornecedor (IDs reais do BD externo)
@@ -86,17 +85,6 @@ export const productFormSchema = z.object({
   tax_regime: z.string().max(50).optional().default(''),
   cest: z.string().max(10).optional().default(''),
 
-  // Logística / Frete (campos internos — não enviados ao BD externo, stripped pelo sanitizador)
-  freight_class: z.string().max(50).optional().default(''),
-  default_carrier: z.string().max(100).optional().default(''),
-  shipping_weight_kg: z.coerce.number().min(0).optional().nullable(),
-  shipping_width_cm: z.coerce.number().min(0).optional().nullable(),
-  shipping_height_cm: z.coerce.number().min(0).optional().nullable(),
-  shipping_length_cm: z.coerce.number().min(0).optional().nullable(),
-  cubic_weight: z.coerce.number().min(0).optional().nullable(),
-  requires_special_shipping: z.boolean().default(false),
-  shipping_notes: z.string().max(500).optional().default(''),
-
   // Comercial
   lead_time_days: z.coerce.number().int().min(0).optional().nullable(),
   product_type: z.string().max(50).optional().default('product'),
@@ -106,6 +94,7 @@ export const productFormSchema = z.object({
 
   // SEO
   meta_title: z.string().max(200).optional().default(''),
+  meta_description: z.string().max(500, 'Meta descrição muito longa').optional().default(''),
   meta_keywords: z.string().max(500).optional().default(''), // comma-separated
   slug: z.string().max(300).optional().default(''),
   canonical_url: z.string().max(500).optional().default(''),
@@ -125,7 +114,6 @@ export const defaultFormValues: ProductFormData = {
   name: '',
   description: '',
   short_description: '',
-  meta_description: '',
   brand: '',
   category_id: '',
   supplier_id: '',
@@ -186,21 +174,13 @@ export const defaultFormValues: ProductFormData = {
   cofins_rate: null,
   tax_regime: '',
   cest: '',
-  freight_class: '',
-  default_carrier: '',
-  shipping_weight_kg: null,
-  shipping_width_cm: null,
-  shipping_height_cm: null,
-  shipping_length_cm: null,
-  cubic_weight: null,
-  requires_special_shipping: false,
-  shipping_notes: '',
   lead_time_days: null,
   product_type: 'product',
   supply_mode: '',
   warranty_months: null,
   gender: '',
   meta_title: '',
+  meta_description: '',
   meta_keywords: '',
   slug: '',
   canonical_url: '',

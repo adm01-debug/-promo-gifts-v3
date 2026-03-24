@@ -27,7 +27,7 @@ export function ProductInfoSection({
   const skuValue = watch('sku') || '';
   const supplierRefValue = watch('supplier_reference') || '';
   const descValue = watch('description') || '';
-  const metaDescValue = watch('meta_description') || '';
+  const shortDescValue = watch('short_description') || '';
   const categoryId = watch('category_id');
 
   return (
@@ -77,26 +77,26 @@ export function ProductInfoSection({
         </div>
       </div>
 
-      {/* Descrição */}
+      {/* Descrição Completa */}
       <div>
-        <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000}>Descrição Completa</FieldLabel>
+        <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000} hint="Descrição detalhada do produto com especificações técnicas, materiais e diferenciais">Descrição Completa</FieldLabel>
         <Textarea id="description" {...register('description')} placeholder="Descrição detalhada do produto" rows={4} className="text-sm resize-y min-h-[80px]" />
       </div>
 
-      {/* Meta Descrição */}
+      {/* Descrição Curta */}
       <div>
-        <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>Meta Descrição (SEO)</FieldLabel>
-        <Input id="meta_description" {...register('meta_description')} placeholder="Descrição para buscadores" className="h-9" />
+        <FieldLabel htmlFor="short_description" charCount={shortDescValue.length} charMax={500} hint="Texto resumido para cards, listagens e visualizações rápidas do produto">Descrição Curta</FieldLabel>
+        <Input id="short_description" {...register('short_description')} placeholder="Resumo curto do produto" className="h-9" />
       </div>
 
       {/* Marca + Categoria */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <FieldLabel htmlFor="brand">Marca</FieldLabel>
+          <FieldLabel htmlFor="brand" hint="Fabricante ou marca comercial do produto">Marca</FieldLabel>
           <Input id="brand" {...register('brand')} placeholder="Ex: Tramontina" className="h-9" />
         </div>
         <div>
-          <FieldLabel>Categoria</FieldLabel>
+          <FieldLabel hint="Categoria principal do produto no catálogo. Usada para filtros e organização.">Categoria</FieldLabel>
           <div className="flex items-start gap-2">
             <div className="flex-1">
               <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
@@ -106,8 +106,8 @@ export function ProductInfoSection({
         </div>
       </div>
 
-      {/* Prazo + Modo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Prazo + Modo + Garantia + Tipo */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div>
           <FieldLabel htmlFor="lead_time_days" hint="Tempo médio em dias úteis para produção/entrega pelo fornecedor">Prazo Entrega (dias)</FieldLabel>
           <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
@@ -122,6 +122,24 @@ export function ProductInfoSection({
               <SelectItem value="pronta_entrega_liso">Pronta Entrega Liso</SelectItem>
               <SelectItem value="fabricado_personalizado">Fabricado Personalizado</SelectItem>
               <SelectItem value="fabricado_liso">Fabricado Liso</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <FieldLabel htmlFor="warranty_months" hint="Período de garantia em meses oferecido pelo fabricante">Garantia (meses)</FieldLabel>
+          <Input id="warranty_months" {...numericProps('warranty_months')} min="0" className="h-9" />
+        </div>
+        <div>
+          <FieldLabel htmlFor="product_type" hint="Classificação do tipo: produto físico, serviço ou kit montado">Tipo do Produto</FieldLabel>
+          <Select value={watch?.('product_type') || 'product'} onValueChange={(v) => setValue?.('product_type', v)}>
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Selecione..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="product">Produto</SelectItem>
+              <SelectItem value="service">Serviço</SelectItem>
+              <SelectItem value="kit">Kit</SelectItem>
+              <SelectItem value="digital">Digital</SelectItem>
             </SelectContent>
           </Select>
         </div>

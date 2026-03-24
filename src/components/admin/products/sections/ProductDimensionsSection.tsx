@@ -31,11 +31,12 @@ export function ProductDimensionsSection({ register, numericProps, isBoxProduct 
       {isBoxProduct && (
         <div className="border-t border-border/30 pt-4 mt-2">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">Internas (para montagem de kits)</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
               { id: 'internal_height_cm', label: 'Altura Int. (cm)', hint: 'Espaço interno útil de altura' },
               { id: 'internal_width_cm', label: 'Largura Int. (cm)', hint: 'Espaço interno útil de largura' },
               { id: 'internal_length_cm', label: 'Profundidade Int. (cm)', hint: 'Espaço interno útil de profundidade' },
+              { id: 'internal_diameter_cm', label: 'Diâmetro Int. (cm)', hint: 'Diâmetro interno para embalagens cilíndricas' },
             ].map(({ id: fId, label, hint }) => (
               <div key={fId}>
                 <FieldLabel htmlFor={fId} hint={hint}>{label}</FieldLabel>
