@@ -478,49 +478,50 @@ export function ProductFormFullscreen({
             <ProductEngravingSection productId={productId} isEdit={isEdit} />
           </Suspense>
         );
-      case 'relations':
+      case 'classification':
         return (
-          <>
-            <Suspense fallback={<SectionSkeleton />}>
-              <ProductClassificationSection
-                productId={productId}
-                isEdit={isEdit}
-                isKit={isKit}
-                productName={formValues.name}
-                productSku={formValues.sku}
-                internalDimensions={{
-                  height_cm: formValues.internal_height_cm ?? null,
-                  width_cm: formValues.internal_width_cm ?? null,
-                  length_cm: formValues.internal_length_cm ?? null,
-                }}
-                genderField={
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <FieldLabel htmlFor="gender">Gênero</FieldLabel>
-                      <select
-                        id="gender"
-                        {...register('gender')}
-                        className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                      >
-                        <option value="">Selecione...</option>
-                        <option value="unissex">Unissex</option>
-                        <option value="masculino">Masculino</option>
-                        <option value="feminino">Feminino</option>
-                        <option value="infantil">Infantil</option>
-                      </select>
-                    </div>
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductClassificationSection
+              productId={productId}
+              isEdit={isEdit}
+              isKit={isKit}
+              productName={formValues.name}
+              productSku={formValues.sku}
+              internalDimensions={{
+                height_cm: formValues.internal_height_cm ?? null,
+                width_cm: formValues.internal_width_cm ?? null,
+                length_cm: formValues.internal_length_cm ?? null,
+              }}
+              genderField={
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <FieldLabel htmlFor="gender">Gênero</FieldLabel>
+                    <select
+                      id="gender"
+                      {...register('gender')}
+                      className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="unissex">Unissex</option>
+                      <option value="masculino">Masculino</option>
+                      <option value="feminino">Feminino</option>
+                      <option value="infantil">Infantil</option>
+                    </select>
                   </div>
-                }
-              />
-            </Suspense>
-            <Suspense fallback={<SectionSkeleton />}>
-              <ProductMediaSection
-                images={images}
-                onImagesChange={setImages}
-                productId={productId}
-              />
-            </Suspense>
-          </>
+                </div>
+              }
+            />
+          </Suspense>
+        );
+      case 'media':
+        return (
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductMediaSection
+              images={images}
+              onImagesChange={setImages}
+              productId={productId}
+            />
+          </Suspense>
         );
       default:
         return null;
