@@ -569,6 +569,8 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium">{v.color_name || v.name}</span>
                       <span className="text-muted-foreground font-mono">{v.sku}</span>
+                      {v.size_code && <span className="text-muted-foreground">Tam: <strong>{v.size_code}</strong></span>}
+                      {v.capacity_ml && <span className="text-muted-foreground">{v.capacity_ml}ml</span>}
                       {v.supplier_sku && <span className="text-muted-foreground font-mono text-[10px]">Forn: {v.supplier_sku}</span>}
                       {v.ean && <span className="text-muted-foreground font-mono text-[10px]">EAN: {v.ean}</span>}
                       <span>{stockLabel} un</span>

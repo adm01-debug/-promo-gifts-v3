@@ -84,11 +84,15 @@ export function ProductVariations({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {variations.map((variation) => {
           const isSelected = selectAll || selectedVariation?.id === variation.id;
-          const stockStatus = getStockStatus(variation.stock);
+          const variationStock = variation.stock ?? 0;
+          const stockStatus = getStockStatus(variationStock);
+          const colorName = variation.color?.name ?? variation.name;
+          const colorHex = variation.color?.hex;
+          const variationImage = variation.image ?? variation.images?.[0];
 
           return (
             <button
-              key={variation.id}
+              key={variation.id ?? variation.name}
               onClick={() => {
                 if (selectAll) {
                   setSelectAll(false);
@@ -110,38 +114,44 @@ export function ProductVariations({
               )}
 
               {/* Image */}
-              <div className="aspect-square rounded-lg overflow-hidden bg-secondary/30 mb-2">
-                <img
-                  src={variation.image}
-                  alt={variation.color.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              {variationImage && (
+                <div className="aspect-square rounded-lg overflow-hidden bg-secondary/30 mb-2">
+                  <img
+                    src={variationImage}
+                    alt={colorName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
 
               {/* Color indicator */}
               <div className="flex items-center gap-2 mb-1">
-                <div
-                  className="w-4 h-4 rounded-full border border-border"
-                  style={{
-                    backgroundColor: variation.color.hex,
-                    border: variation.color.hex === "#FFFFFF" ? "1px solid hsl(var(--border))" : undefined,
-                  }}
-                />
+                {colorHex && (
+                  <div
+                    className="w-4 h-4 rounded-full border border-border"
+                    style={{
+                      backgroundColor: colorHex,
+                      border: colorHex === "#FFFFFF" ? "1px solid hsl(var(--border))" : undefined,
+                    }}
+                  />
+                )}
                 <span className="text-sm font-medium text-foreground truncate">
-                  {variation.color.name}
+                  {colorName}
                 </span>
               </div>
 
               {/* SKU */}
-              <p className="text-xs text-muted-foreground font-mono mb-1">
-                {variation.sku}
-              </p>
+              {variation.sku && (
+                <p className="text-xs text-muted-foreground font-mono mb-1">
+                  {variation.sku}
+                </p>
+              )}
 
               {/* Stock */}
               <div className="flex items-center gap-1">
                 <Package className="h-3 w-3 text-muted-foreground" />
                 <span className={cn("text-xs font-medium", stockStatus.color)}>
-                  {Math.max(0, variation.stock).toLocaleString("pt-BR")} un.
+                  {Math.max(0, variationStock).toLocaleString("pt-BR")} un.
                 </span>
               </div>
             </button>
