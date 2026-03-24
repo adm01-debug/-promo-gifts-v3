@@ -611,15 +611,15 @@ export function ProductFormFullscreen({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <FieldLabel htmlFor="cost_price" hint={supplierMarkup ? `Markup do fornecedor: ${supplierMarkup}%. Preço sugerido e venda serão calculados automaticamente.` : 'Informe o preço de custo do produto'}>Preço Custo (R$)</FieldLabel>
-                <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" />
+                <Input id="cost_price" {...numericProps('cost_price')} min="0" step="0.01" className="h-9" onBlur={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) e.target.value = v.toFixed(2); }} />
               </div>
               <div>
                 <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Valor de referência (não editável).">Preço Sugerido (R$)</FieldLabel>
-                <Input id="suggested_price" {...numericProps('suggested_price')} min="0" step="0.01" className="h-9 bg-muted/50 cursor-not-allowed" readOnly tabIndex={-1} />
+                <Input id="suggested_price" type="text" value={(watch('suggested_price') ?? 0).toFixed(2)} className="h-9 bg-muted/50 cursor-not-allowed" readOnly tabIndex={-1} />
               </div>
               <div>
                 <FieldLabel htmlFor="sale_price" required hint="Inicia com o valor sugerido pelo markup, mas pode ser editado livremente.">Preço Venda (R$)</FieldLabel>
-                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} />
+                <Input id="sale_price" {...numericProps('sale_price')} min="0" step="0.01" className={cn('h-9', errors.sale_price && 'border-destructive')} onChange={(e) => { register('sale_price', { valueAsNumber: true }).onChange(e); setPriceManuallyEdited(true); }} onBlur={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) e.target.value = v.toFixed(2); }} />
                 {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
               </div>
             </div>
