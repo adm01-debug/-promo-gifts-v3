@@ -107,7 +107,6 @@ export default function AdminProductFormPage() {
       box_length_mm: p.box_length_mm ?? null,
       box_weight_kg: p.box_weight_kg ?? null,
       box_quantity: p.box_quantity ?? null,
-      box_inner_quantity: p.box_inner_quantity ?? null,
       box_volume_cm3: p.box_volume_cm3 ?? null,
       packaging_material: p.packaging_material ?? '',
       packaging_color: p.packaging_color ?? '',
