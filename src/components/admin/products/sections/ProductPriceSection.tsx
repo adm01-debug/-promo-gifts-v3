@@ -81,11 +81,11 @@ export function ProductPriceSection({
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div>
-          <FieldLabel htmlFor="stock_quantity">Estoque</FieldLabel>
+          <FieldLabel htmlFor="stock_quantity" hint="Quantidade atual em estoque. Atualizado automaticamente por sincronizações.">Estoque</FieldLabel>
           <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" className="h-9" />
         </div>
         <div>
-          <FieldLabel htmlFor="stock_unit">Unidade</FieldLabel>
+          <FieldLabel htmlFor="stock_unit" hint="Unidade de medida do estoque (ex: un, cx, par, kg)">Unidade</FieldLabel>
           <Input id="stock_unit" {...register('stock_unit')} placeholder="un" className="h-9" />
         </div>
         <div>
