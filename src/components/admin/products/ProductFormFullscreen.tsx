@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { ProductSupplierSection } from './sections/ProductSupplierSection';
 import { ProductInfoSection } from './sections/ProductInfoSection';
@@ -265,7 +266,10 @@ export function ProductFormFullscreen({
     );
   }, [errors]);
 
+  const [direction, setDirection] = useState(0);
+
   const goStep = (i: number) => {
+    setDirection(i > stepIndex ? 1 : -1);
     setStepIndex(i);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -436,7 +440,18 @@ export function ProductFormFullscreen({
             </Card>
           )}
 
-          {renderContent()}
+          <AnimatePresence mode="wait" initial={false} custom={direction}>
+            <motion.div
+              key={currentStep.id}
+              custom={direction}
+              initial={{ opacity: 0, x: direction > 0 ? 60 : -60 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: direction > 0 ? -60 : 60 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Navigation footer */}
           <div className="flex items-center justify-between pt-2 pb-20 lg:pb-4">
