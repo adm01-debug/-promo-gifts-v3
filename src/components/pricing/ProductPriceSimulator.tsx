@@ -19,6 +19,7 @@ import {
 } from './simulator';
 import { EngravingList } from './simulator/EngravingList';
 import { MultiEngravingResult } from './simulator/MultiEngravingResult';
+import { invokeExternalDb } from '@/lib/external-db';
 
 interface ProductPriceSimulatorProps {
   className?: string;
