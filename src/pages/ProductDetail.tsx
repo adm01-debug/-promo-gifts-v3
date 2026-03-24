@@ -25,6 +25,7 @@ import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductInfoBar } from "@/components/products/ProductInfoBar";
+import { ProductSizeSelector } from "@/components/products/ProductSizeSelector";
 import { FutureStockModal } from "@/components/products/FutureStockModal";
 import { PackagingBadge } from "@/components/products/PackagingBadge";
 import { PackagingModal } from "@/components/products/PackagingModal";
@@ -62,6 +63,7 @@ export default function ProductDetail() {
 
   const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
@@ -381,6 +383,15 @@ export default function ProductDetail() {
                 {product.description}
               </p>
             </div>
+
+            {/* Size Selector */}
+            {product.variations && product.variations.length > 0 && (
+              <ProductSizeSelector
+                variations={product.variations}
+                selectedSize={selectedSize}
+                onSelectSize={setSelectedSize}
+              />
+            )}
 
             {/* Materials */}
             {product.materials && product.materials.length > 0 && (
