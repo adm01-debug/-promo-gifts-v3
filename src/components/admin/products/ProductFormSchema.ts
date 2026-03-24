@@ -86,7 +86,7 @@ export const productFormSchema = z.object({
   tax_regime: z.string().max(50).optional().default(''),
   cest: z.string().max(10).optional().default(''),
 
-  // Logística / Frete
+  // Logística / Frete (campos internos — não enviados ao BD externo, stripped pelo sanitizador)
   freight_class: z.string().max(50).optional().default(''),
   default_carrier: z.string().max(100).optional().default(''),
   shipping_weight_kg: z.coerce.number().min(0).optional().nullable(),
