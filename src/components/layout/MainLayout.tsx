@@ -1,29 +1,30 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { SkipToContent } from "@/components/common/SkipToContent";
 import { BackButton } from "@/components/common/BackButton";
 import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 // Lazy load heavy layout components to reduce MainLayout chunk size
-const Header = lazy(() => import("./Header").then(m => ({ default: m.Header })));
-const SidebarReorganized = lazy(() => import("./SidebarReorganized").then(m => ({ default: m.SidebarReorganized })));
-const PageTransition = lazy(() => import("@/components/effects/PageTransition").then(m => ({ default: m.PageTransition })));
+const Header = lazyWithRetry(() => import("./Header").then(m => ({ default: m.Header })));
+const SidebarReorganized = lazyWithRetry(() => import("./SidebarReorganized").then(m => ({ default: m.SidebarReorganized })));
+const PageTransition = lazyWithRetry(() => import("@/components/effects/PageTransition").then(m => ({ default: m.PageTransition })));
 
 // Context providers must be imported synchronously (consumers render inside them)
 import { SellerCartProvider } from "@/contexts/SellerCartContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 
 // Lazy-loaded non-critical UI components
-const OnboardingTour = lazy(() => import("@/components/onboarding/OnboardingTour").then(m => ({ default: m.OnboardingTour })));
-const ExpertChatButton = lazy(() => import("@/components/expert/ExpertChatButton").then(m => ({ default: m.ExpertChatButton })));
-const EnhancedSpotlight = lazy(() => import("@/components/common/EnhancedSpotlight").then(m => ({ default: m.EnhancedSpotlight })));
-const SmartMobileNav = lazy(() => import("@/components/mobile/SmartMobileNav").then(m => ({ default: m.SmartMobileNav })));
-const QuickQuoteFAB = lazy(() => import("@/components/quote/QuickQuoteFAB").then(m => ({ default: m.QuickQuoteFAB })));
-const FloatingCompareBar = lazy(() => import("@/components/compare/FloatingCompareBar").then(m => ({ default: m.FloatingCompareBar })));
-const GlobalCommandBar = lazy(() => import("@/components/command/GlobalCommandBar").then(m => ({ default: m.GlobalCommandBar })));
-const ScrollToTopButton = lazy(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollToTopButton })));
-const ScrollProgressIndicator = lazy(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollProgressIndicator })));
+const OnboardingTour = lazyWithRetry(() => import("@/components/onboarding/OnboardingTour").then(m => ({ default: m.OnboardingTour })));
+const ExpertChatButton = lazyWithRetry(() => import("@/components/expert/ExpertChatButton").then(m => ({ default: m.ExpertChatButton })));
+const EnhancedSpotlight = lazyWithRetry(() => import("@/components/common/EnhancedSpotlight").then(m => ({ default: m.EnhancedSpotlight })));
+const SmartMobileNav = lazyWithRetry(() => import("@/components/mobile/SmartMobileNav").then(m => ({ default: m.SmartMobileNav })));
+const QuickQuoteFAB = lazyWithRetry(() => import("@/components/quote/QuickQuoteFAB").then(m => ({ default: m.QuickQuoteFAB })));
+const FloatingCompareBar = lazyWithRetry(() => import("@/components/compare/FloatingCompareBar").then(m => ({ default: m.FloatingCompareBar })));
+const GlobalCommandBar = lazyWithRetry(() => import("@/components/command/GlobalCommandBar").then(m => ({ default: m.GlobalCommandBar })));
+const ScrollToTopButton = lazyWithRetry(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollToTopButton })));
+const ScrollProgressIndicator = lazyWithRetry(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollProgressIndicator })));
 
 interface MainLayoutProps {
   children: React.ReactNode;

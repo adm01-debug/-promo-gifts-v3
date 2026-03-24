@@ -7,7 +7,7 @@ import { MockupTechnique } from "@/types/external-db";
  * Heavy sub-components are lazy-loaded for optimal bundle splitting.
  */
 
-import { useState, useCallback, useMemo, lazy, Suspense } from "react";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,17 +35,18 @@ import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import type { MockupApprovalData } from "@/types/mockup-approval";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 // Lazy load heavy sub-components
-const LogoPositionEditor = lazy(() => import("@/components/mockup/LogoPositionEditor").then(m => ({ default: m.LogoPositionEditor })));
-const MockupWizard = lazy(() => import("@/components/mockup/MockupWizard").then(m => ({ default: m.MockupWizard })));
-const MockupResultCard = lazy(() => import("@/components/mockup/MockupResultCard").then(m => ({ default: m.MockupResultCard })));
-const MockupConfigPanel = lazy(() => import("@/components/mockup/MockupConfigPanel").then(m => ({ default: m.MockupConfigPanel })));
-const MockupHistoryPanel = lazy(() => import("@/components/mockup/MockupHistoryPanel").then(m => ({ default: m.MockupHistoryPanel })));
-const MockupLayoutButtons = lazy(() => import("@/components/mockup/approval/MockupLayoutButtons").then(m => ({ default: m.MockupLayoutButtons })));
-const OffscreenLayoutCapture = lazy(() => import("@/components/mockup/approval/OffscreenLayoutCapture").then(m => ({ default: m.OffscreenLayoutCapture })));
-const TechniqueColorConfigDialog = lazy(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
-const AIMockupAssistant = lazy(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
+const LogoPositionEditor = lazyWithRetry(() => import("@/components/mockup/LogoPositionEditor").then(m => ({ default: m.LogoPositionEditor })));
+const MockupWizard = lazyWithRetry(() => import("@/components/mockup/MockupWizard").then(m => ({ default: m.MockupWizard })));
+const MockupResultCard = lazyWithRetry(() => import("@/components/mockup/MockupResultCard").then(m => ({ default: m.MockupResultCard })));
+const MockupConfigPanel = lazyWithRetry(() => import("@/components/mockup/MockupConfigPanel").then(m => ({ default: m.MockupConfigPanel })));
+const MockupHistoryPanel = lazyWithRetry(() => import("@/components/mockup/MockupHistoryPanel").then(m => ({ default: m.MockupHistoryPanel })));
+const MockupLayoutButtons = lazyWithRetry(() => import("@/components/mockup/approval/MockupLayoutButtons").then(m => ({ default: m.MockupLayoutButtons })));
+const OffscreenLayoutCapture = lazyWithRetry(() => import("@/components/mockup/approval/OffscreenLayoutCapture").then(m => ({ default: m.OffscreenLayoutCapture })));
+const TechniqueColorConfigDialog = lazyWithRetry(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
+const AIMockupAssistant = lazyWithRetry(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
 
 // These small utility functions are extracted to avoid pulling the full TechniqueColorConfigDialog into this chunk
 // They're re-exported from the dialog module but are tiny — we import them statically since they're used in callbacks
