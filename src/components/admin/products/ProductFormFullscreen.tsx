@@ -492,7 +492,7 @@ export function ProductFormFullscreen({
               </div>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
-                  <SupplierSelect value={supplierId || ''} onChange={(id) => setValue('supplier_id', id)} error={errors.supplier_id?.message} />
+                  <SupplierSelect value={supplierId || ''} onChange={(id, name) => { setValue('supplier_id', id); if (name) setValue('brand', name); }} error={errors.supplier_id?.message} />
                 </div>
                 <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
               </div>
