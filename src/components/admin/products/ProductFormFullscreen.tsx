@@ -1,38 +1,21 @@
 /**
- * ProductFormFullscreen — Formulário full-screen com sidebar de navegação vertical
- * Layout de 3 colunas: sidebar de seções à esquerda + conteúdo no centro + preview à direita
- *
- * Heavy sections (Classification, Media) are lazy-loaded to reduce initial bundle.
+ * ProductFormFullscreen — Orchestrator component
+ * 
+ * Slim orchestrator that composes modular section components.
+ * Heavy sections (Classification, Media) are lazy-loaded.
+ * All inline sections extracted to src/components/admin/products/sections/
  */
 
-import React, { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
-import { CategorySelect } from './CategorySelect';
-import { SupplierSelect } from './SupplierSelect';
-import { NewSupplierDialog } from './NewSupplierDialog';
+import { FieldLabel } from './ProductFormHelpers';
 import { ProductPreviewPanel } from './ProductPreviewPanel';
-import { FieldLabel, SectionCard } from './ProductFormHelpers';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   Loader2,
   Info,
@@ -41,23 +24,31 @@ import {
   Tag,
   ImageIcon,
   Layers,
-  Truck,
   Megaphone,
   AlertCircle,
-  CheckCircle2,
   Globe,
   Search,
   FileText,
   ShieldCheck,
   Save,
   X,
-  Plus,
   PanelRightClose,
   PanelRightOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
+
+// Extracted section components
+import { ProductSupplierSection } from './sections/ProductSupplierSection';
+import { ProductInfoSection } from './sections/ProductInfoSection';
+import { ProductDimensionsSection } from './sections/ProductDimensionsSection';
+import { ProductPriceSection } from './sections/ProductPriceSection';
+import { ProductFlagsSection } from './sections/ProductFlagsSection';
+import { ProductPackagingSection } from './sections/ProductPackagingSection';
+import { ProductFiscalSection } from './sections/ProductFiscalSection';
+import { ProductSeoSection } from './sections/ProductSeoSection';
+import { ProductMarketingTextsSection } from './sections/ProductMarketingTextsSection';
+import { useSkuValidation } from './hooks/useSkuValidation';
 
 // Lazy-loaded heavy sections
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
@@ -111,175 +102,11 @@ const SECTIONS: SectionDef[] = [
   { id: 'flags', label: 'Status', icon: ShieldCheck, group: 'Básico' },
   { id: 'packaging', label: 'Embalagem', icon: Package, group: 'Detalhes' },
   { id: 'fiscal', label: 'Fiscal', icon: FileText, group: 'Detalhes' },
-  
   { id: 'seo', label: 'SEO', icon: Globe, group: 'Marketing' },
   { id: 'marketing', label: 'Textos', icon: Megaphone, group: 'Marketing' },
   { id: 'classification', label: 'Classificação', icon: Layers, group: 'Vínculos' },
   { id: 'media', label: 'Mídia', icon: ImageIcon, group: 'Vínculos' },
 ];
-
-// ============================================
-// SKU VALIDATION HOOK
-// ============================================
-
-function useSkuValidation(currentSku: string, isEdit: boolean, originalSku?: string) {
-  const [status, setStatus] = useState<'idle' | 'checking' | 'valid' | 'duplicate'>('idle');
-  const [duplicateName, setDuplicateName] = useState('');
-
-  useEffect(() => {
-    if (!currentSku || currentSku.length < 2) { setStatus('idle'); return; }
-    if (isEdit && currentSku === originalSku) { setStatus('valid'); return; }
-
-    setStatus('checking');
-    const timer = setTimeout(async () => {
-      try {
-        const { fetchPromobrindProducts } = await import('@/lib/external-db');
-        const existing = await fetchPromobrindProducts({ search: currentSku, limit: 5 });
-        const products = Array.isArray(existing) ? existing : (existing as Record<string, unknown>).products || [];
-        const dup = products.find((p: any) => p.sku?.toLowerCase() === currentSku.toLowerCase());
-        if (dup) { setStatus('duplicate'); setDuplicateName(dup.name || ''); }
-        else { setStatus('valid'); setDuplicateName(''); }
-      } catch { setStatus('idle'); }
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [currentSku, isEdit, originalSku]);
-
-  return { status, duplicateName };
-}
-
-// ============================================
-// NEW CATEGORY DIALOG
-// ============================================
-
-function NewCategoryDialog({ onCreated }: { onCreated: (id: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [parentId, setParentId] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [categories, setCategories] = useState<Array<{ id: string; name: string; parent_id: string | null }>>([]);
-  const [loadingCats, setLoadingCats] = useState(false);
-
-  const loadCategories = async () => {
-    if (categories.length > 0) return;
-    setLoadingCats(true);
-    try {
-      const { invokeExternalDb } = await import('@/lib/external-db');
-      const result = await invokeExternalDb<{ id: string; name: string; parent_id: string | null }>({
-        table: 'categories',
-        operation: 'select',
-        filters: { is_active: true },
-        orderBy: 'name',
-      });
-      setCategories(result || []);
-    } catch {
-      // silent
-    } finally {
-      setLoadingCats(false);
-    }
-  };
-
-  const categoryOptions = useMemo(() => {
-    const map = new Map(categories.map(c => [c.id, c]));
-    const getPath = (id: string): string => {
-      const parts: string[] = [];
-      let current = map.get(id);
-      while (current) {
-        parts.unshift(current.name);
-        current = current.parent_id ? map.get(current.parent_id) : undefined;
-      }
-      return parts.join(' › ');
-    };
-    return categories
-      .map(c => ({ id: c.id, label: getPath(c.id) }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [categories]);
-
-  const handleCreate = async () => {
-    if (!name.trim()) return;
-    setSaving(true);
-    try {
-      const { invokeExternalDbSingle } = await import('@/lib/external-db');
-      const result = await invokeExternalDbSingle<{ id: string }>({
-        table: 'categories',
-        operation: 'insert',
-        data: {
-          name: name.trim(),
-          slug: name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-          is_active: true,
-          parent_id: parentId,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      });
-      if (result?.id) {
-        onCreated(result.id);
-        toast.success(`Categoria "${name.trim()}" criada com sucesso`);
-        setOpen(false);
-        setName('');
-        setParentId(null);
-        setCategories([]);
-      }
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao criar categoria');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) loadCategories(); }}>
-      <DialogTrigger asChild>
-        <Button type="button" variant="outline" size="sm" className="gap-1.5 shrink-0 h-9">
-          <Plus className="h-3.5 w-3.5" />
-          Novo
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Cadastrar Categoria</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 pt-2">
-          <div>
-            <Label htmlFor="new-category-parent" className="text-xs font-semibold">Categoria Pai</Label>
-            <select
-              id="new-category-parent"
-              value={parentId || ''}
-              onChange={(e) => setParentId(e.target.value || null)}
-              className="mt-1.5 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              disabled={loadingCats}
-            >
-              <option value="">Nenhuma (raiz)</option>
-              {categoryOptions.map(opt => (
-                <option key={opt.id} value={opt.id}>{opt.label}</option>
-              ))}
-            </select>
-            <p className="text-[11px] text-muted-foreground mt-1">Deixe vazio para criar na raiz</p>
-          </div>
-          <div>
-            <Label htmlFor="new-category-name" className="text-xs font-semibold">
-              Nome da Categoria <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="new-category-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Canecas Térmicas"
-              className="mt-1.5 h-9"
-              autoFocus
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="button" size="sm" disabled={!name.trim() || saving} onClick={handleCreate} className="gap-1.5">
-              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-              Criar Categoria
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 // ============================================
 // MAIN COMPONENT
@@ -294,6 +121,7 @@ export function ProductFormFullscreen({
   isSaving,
   isEdit,
 }: ProductFormFullscreenProps) {
+  // --- State ---
   const [images, setImages] = useState<string[]>(initialImages);
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
@@ -307,6 +135,7 @@ export function ProductFormFullscreen({
     return stored !== null ? stored === 'true' : true;
   });
 
+  // --- Form ---
   const {
     register,
     handleSubmit,
@@ -318,41 +147,41 @@ export function ProductFormFullscreen({
     defaultValues: { ...defaultFormValues, ...initialData },
   });
 
-  // Watch values
-  const categoryId = watch('category_id');
+  // --- Watched values ---
   const supplierId = watch('supplier_id');
-  const isActive = watch('is_active');
-  const isFeatured = watch('is_featured');
-  const isBestseller = watch('is_bestseller');
-  const isNew = watch('is_new');
-  const isOnSale = watch('is_on_sale');
   const isKit = watch('is_kit');
-  const hasCommercialPackaging = watch('has_commercial_packaging');
-  const isImported = watch('is_imported');
-  const isTextil = watch('is_textil');
-  const isThermal = watch('is_thermal');
-  const allowsPersonalization = watch('allows_personalization');
-  const hasGiftBox = watch('has_gift_box');
-  const hasOptionalPackaging = watch('has_optional_packaging');
   const packingType = watch('packing_type') || '';
   const isBoxProduct = packingType.toLowerCase().includes('caixa');
-
   const skuValue = watch('sku') || '';
   const nameValue = watch('name') || '';
-  const descValue = watch('description') || '';
-  const shortDescValue = watch('short_description') || '';
-  const metaDescValue = watch('meta_description') || '';
-  const supplierRefValue = watch('supplier_reference') || '';
-  const metaTitleValue = watch('meta_title') || '';
-  const metaKeywordsValue = watch('meta_keywords') || '';
   const salePriceValue = watch('sale_price') ?? 0;
   const costPriceValue = watch('cost_price') ?? 0;
   const stockQuantityValue = watch('stock_quantity') ?? 0;
   const brandValue = watch('brand') || '';
+  const supplierRefValue = watch('supplier_reference') || '';
+
+  // Flags
+  const flags: Record<string, boolean> = {
+    is_active: watch('is_active'),
+    is_featured: watch('is_featured'),
+    is_bestseller: watch('is_bestseller'),
+    is_new: watch('is_new'),
+    is_on_sale: watch('is_on_sale'),
+    is_kit: isKit,
+    is_imported: watch('is_imported'),
+    is_textil: watch('is_textil'),
+    is_thermal: watch('is_thermal'),
+    allows_personalization: watch('allows_personalization'),
+    has_gift_box: watch('has_gift_box'),
+    has_optional_packaging: watch('has_optional_packaging'),
+    has_commercial_packaging: watch('has_commercial_packaging'),
+  };
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
-  // Auto-copiar SKU do Fornecedor para SKU Interno (apenas em criação, até edição manual)
+  // --- Effects ---
+
+  // Auto-copy supplier ref to SKU
   const prevSupplierRef = React.useRef(supplierRefValue);
   React.useEffect(() => {
     if (!skuManuallyEdited && !isEdit && supplierRefValue) {
@@ -361,7 +190,7 @@ export function ProductFormFullscreen({
     prevSupplierRef.current = supplierRefValue;
   }, [supplierRefValue, skuManuallyEdited, isEdit, setValue]);
 
-  // Sincronizar display states com valores carregados do formulário (edição)
+  // Sync display states on load
   React.useEffect(() => {
     if (costPriceValue && costPriceValue > 0 && !costPriceDisplay) {
       setCostPriceDisplay(costPriceValue.toFixed(2));
@@ -374,7 +203,7 @@ export function ProductFormFullscreen({
     }
   }, [salePriceValue]);
 
-  // Auto-calcular Preço Sugerido (sempre) e Preço Venda (até edição manual) com base no Preço Custo × Markup
+  // Auto-calculate suggested/sale price from markup
   React.useEffect(() => {
     if (!supplierMarkup || !costPriceValue || costPriceValue <= 0) return;
     const markupMultiplier = 1 + (supplierMarkup / 100);
@@ -386,27 +215,7 @@ export function ProductFormFullscreen({
     }
   }, [costPriceValue, supplierMarkup, priceManuallyEdited, setValue]);
 
-  const onFormSubmit = handleSubmit(async (data) => {
-    if (skuStatus === 'duplicate') return;
-    await onSubmit(data, images);
-  });
-
-  const numericProps = (name: keyof ProductFormData) => ({
-    ...register(name, { valueAsNumber: true }),
-    type: 'number' as const,
-    step: name.includes('price') ? '0.01' : '1',
-  });
-
-  const flagCount = [isActive, isFeatured, isBestseller, isNew, isOnSale, isKit, hasCommercialPackaging, isImported, isTextil, isThermal, allowsPersonalization, hasGiftBox, hasOptionalPackaging].filter(Boolean).length;
-
-  // Scroll to section
-  const scrollToSection = (sectionId: SectionId) => {
-    setActiveSection(sectionId);
-    const el = document.getElementById(`section-${sectionId}`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  // Track active section on scroll
+  // Scroll tracking
   useEffect(() => {
     const handleScroll = () => {
       const scrollContainer = document.getElementById('product-form-content');
@@ -429,6 +238,24 @@ export function ProductFormFullscreen({
     }
   }, []);
 
+  // --- Handlers ---
+  const onFormSubmit = handleSubmit(async (data) => {
+    if (skuStatus === 'duplicate') return;
+    await onSubmit(data, images);
+  });
+
+  const numericProps = (name: keyof ProductFormData) => ({
+    ...register(name, { valueAsNumber: true }),
+    type: 'number' as const,
+    step: name.includes('price') ? '0.01' : '1',
+  });
+
+  const scrollToSection = (sectionId: SectionId) => {
+    setActiveSection(sectionId);
+    const el = document.getElementById(`section-${sectionId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const errorCount = Object.keys(errors).length;
 
   const groups = SECTIONS.reduce<Record<string, SectionDef[]>>((acc, s) => {
@@ -436,6 +263,9 @@ export function ProductFormFullscreen({
     acc[s.group].push(s);
     return acc;
   }, {});
+
+  // Shared props for form sections
+  const formProps = { register, setValue, watch, errors, numericProps };
 
   return (
     <form onSubmit={onFormSubmit} className="flex flex-col">
@@ -508,437 +338,49 @@ export function ProductFormFullscreen({
 
         {/* ====== MAIN CONTENT ====== */}
         <div id="product-form-content" className="flex-1 min-w-0 space-y-5 pb-24">
+          <ProductSupplierSection
+            supplierId={supplierId || ''}
+            onSupplierChange={(id, name, markupPercent) => {
+              setValue('supplier_id', id);
+              if (name) setValue('brand', name);
+              setSupplierMarkup(markupPercent ?? null);
+              setPriceManuallyEdited(false);
+            }}
+            setValue={setValue}
+            errors={errors}
+          />
 
-          {/* === FORNECEDOR === */}
-          <Card className="border-primary/20 bg-primary/5 backdrop-blur-sm overflow-hidden">
-            <div className="p-4">
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Truck className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Fornecedor</h3>
-                  <p className="text-[11px] text-muted-foreground">Selecione ou cadastre o fornecedor do produto</p>
-                </div>
-              </div>
-              <div className="flex items-end gap-3">
-                <div className="flex-1">
-                  <SupplierSelect value={supplierId || ''} onChange={(id, name, markupPercent) => { setValue('supplier_id', id); if (name) setValue('brand', name); setSupplierMarkup(markupPercent ?? null); setPriceManuallyEdited(false); }} error={errors.supplier_id?.message} />
-                </div>
-                <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
-              </div>
-            </div>
-          </Card>
+          <ProductInfoSection
+            {...formProps}
+            skuStatus={skuStatus}
+            duplicateName={duplicateName}
+            skuManuallyEdited={skuManuallyEdited}
+            onSkuManualEdit={() => setSkuManuallyEdited(true)}
+          />
 
-          {/* === INFORMAÇÕES BÁSICAS === */}
-          <SectionCard id="info" title="Informações Básicas" icon={Info} subtitle="SKU, nome, descrição, marca e categoria">
-            {/* 1 - Nome do Produto */}
-            <div>
-              <FieldLabel htmlFor="name" required charCount={nameValue.length} charMax={300}>Nome do Produto</FieldLabel>
-              <Input id="name" {...register('name')} placeholder="Nome do produto" className={cn('h-9', errors.name && 'border-destructive')} />
-              {errors.name && <p className="text-[10px] text-destructive mt-1">{errors.name.message}</p>}
-            </div>
+          <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
 
-            {/* 2 - SKU Fornecedor | 3 - SKU Interno */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="supplier_reference" charCount={supplierRefValue.length} charMax={100}>SKU do Fornecedor</FieldLabel>
-                <Input id="supplier_reference" {...register('supplier_reference')} placeholder="Ex: FORN-12345" className="font-mono h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="sku" required charCount={skuValue.length} charMax={50}>SKU Interno</FieldLabel>
-                <div className="relative">
-                  <Input
-                    id="sku"
-                    {...register('sku', {
-                      onChange: () => { if (!skuManuallyEdited) setSkuManuallyEdited(true); },
-                    })}
-                    placeholder="Ex: GS-001"
-                    className={cn(
-                      'font-mono pr-8 h-9',
-                      errors.sku && 'border-destructive',
-                      skuStatus === 'valid' && 'border-success/50',
-                      skuStatus === 'duplicate' && 'border-destructive',
-                    )}
-                  />
-                  <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                    {skuStatus === 'checking' && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
-                    {skuStatus === 'valid' && <CheckCircle2 className="h-3.5 w-3.5 text-success" />}
-                    {skuStatus === 'duplicate' && (
-                      <Tooltip>
-                        <TooltipTrigger asChild><AlertCircle className="h-3.5 w-3.5 text-destructive" /></TooltipTrigger>
-                        <TooltipContent className="text-xs">SKU já usado em "{duplicateName}"</TooltipContent>
-                      </Tooltip>
-                    )}
-                  </div>
-                </div>
-                {errors.sku && <p className="text-[10px] text-destructive mt-1">{errors.sku.message}</p>}
-                {skuStatus === 'duplicate' && <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>}
-              </div>
-            </div>
+          <ProductPriceSection
+            {...formProps}
+            supplierMarkup={supplierMarkup}
+            costPriceDisplay={costPriceDisplay}
+            salePriceDisplay={salePriceDisplay}
+            onCostPriceDisplayChange={setCostPriceDisplay}
+            onSalePriceDisplayChange={setSalePriceDisplay}
+            onSalePriceManualEdit={() => setPriceManuallyEdited(true)}
+          />
 
-            <div>
-              <FieldLabel htmlFor="description" charCount={descValue.length} charMax={5000}>Descrição Completa</FieldLabel>
-              <Textarea id="description" {...register('description')} placeholder="Descrição detalhada do produto" rows={4} className="text-sm resize-y min-h-[80px]" />
-            </div>
+          <ProductFlagsSection setValue={setValue} flags={flags} />
 
-            <div>
-              <FieldLabel htmlFor="meta_description" charCount={metaDescValue.length} charMax={500}>Meta Descrição (SEO)</FieldLabel>
-              <Input id="meta_description" {...register('meta_description')} placeholder="Descrição para buscadores" className="h-9" />
-            </div>
+          <ProductPackagingSection {...formProps} />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="brand">Marca</FieldLabel>
-                <Input id="brand" {...register('brand')} placeholder="Ex: Tramontina" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel>Categoria</FieldLabel>
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
-                  </div>
-                  <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="lead_time_days">Prazo Entrega (dias)</FieldLabel>
-                <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="supply_mode">Modo de Fornecimento</FieldLabel>
-                <select
-                  id="supply_mode"
-                  {...register('supply_mode')}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">Selecione...</option>
-                  <option value="pronta_entrega_liso">Pronta Entrega Liso</option>
-                  <option value="fabricado_personalizado">Fabricado Personalizado</option>
-                  <option value="fabricado_liso">Fabricado Liso</option>
-                </select>
-              </div>
-            </div>
-          </SectionCard>
+          <ProductFiscalSection {...formProps} />
 
-          {/* === DIMENSÕES === */}
-          <SectionCard id="dimensions" title="Dimensões" icon={Ruler} subtitle="Dimensões do produto">
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-              {[
-                { id: 'height_cm', label: 'Altura (cm)' },
-                { id: 'width_cm', label: 'Largura (cm)' },
-                { id: 'length_cm', label: 'Profundidade (cm)' },
-                { id: 'diameter_cm', label: 'Diâmetro (cm)' },
-                { id: 'weight_g', label: 'Peso (g)' },
-                { id: 'capacity_ml', label: 'Capacidade (ml)' },
-              ].map(({ id: fId, label }) => (
-                <div key={fId}>
-                  <FieldLabel htmlFor={fId}>{label}</FieldLabel>
-                  <Input id={fId} {...numericProps(fId as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
-                </div>
-              ))}
-            </div>
-            {isBoxProduct && (
-              <div className="border-t border-border/30 pt-4 mt-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-3">Internas (para montagem de kits)</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {[
-                    { id: 'internal_height_cm', label: 'Altura Int. (cm)' },
-                    { id: 'internal_width_cm', label: 'Largura Int. (cm)' },
-                    { id: 'internal_length_cm', label: 'Profundidade Int. (cm)' },
-                  ].map(({ id: fId, label }) => (
-                    <div key={fId}>
-                      <FieldLabel htmlFor={fId}>{label}</FieldLabel>
-                      <Input id={fId} {...numericProps(fId as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </SectionCard>
+          <ProductSeoSection {...formProps} />
 
-          <SectionCard id="price" title="Preço e Estoque" icon={Tag} subtitle={`Preço atual: R$ ${(watch('sale_price') ?? 0).toFixed(2)}${supplierMarkup ? ` · Markup ${supplierMarkup}%` : ''}`}>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <FieldLabel htmlFor="cost_price" hint={supplierMarkup ? `Markup do fornecedor: ${supplierMarkup}%. Preço sugerido e venda serão calculados automaticamente.` : 'Informe o preço de custo do produto'}>Preço Custo (R$)</FieldLabel>
-                <Input id="cost_price" type="text" inputMode="decimal" value={costPriceDisplay} onChange={(e) => { const raw = e.target.value.replace(/[^0-9.,]/g, ''); setCostPriceDisplay(raw); const num = parseFloat(raw.replace(',', '.')); if (!isNaN(num)) setValue('cost_price', num); }} onBlur={(e) => { const num = parseFloat(e.target.value.replace(',', '.')); if (!isNaN(num)) setCostPriceDisplay(num.toFixed(2)); }} className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="suggested_price" hint="Calculado automaticamente pelo markup do fornecedor. Valor de referência (não editável).">Preço Sugerido (R$)</FieldLabel>
-                <Input id="suggested_price" type="text" value={(watch('suggested_price') ?? 0).toFixed(2)} className="h-9 bg-muted/50 cursor-not-allowed" readOnly tabIndex={-1} />
-              </div>
-              <div>
-                <FieldLabel htmlFor="sale_price" required hint="Inicia com o valor sugerido pelo markup, mas pode ser editado livremente.">Preço Venda (R$)</FieldLabel>
-                <Input id="sale_price" type="text" inputMode="decimal" value={salePriceDisplay} onChange={(e) => { const raw = e.target.value.replace(/[^0-9.,]/g, ''); setSalePriceDisplay(raw); const num = parseFloat(raw.replace(',', '.')); if (!isNaN(num)) setValue('sale_price', num); setPriceManuallyEdited(true); }} onBlur={(e) => { const num = parseFloat(e.target.value.replace(',', '.')); if (!isNaN(num)) setSalePriceDisplay(num.toFixed(2)); }} className={cn('h-9', errors.sale_price && 'border-destructive')} />
-                {errors.sale_price && <p className="text-[10px] text-destructive mt-1">{errors.sale_price.message}</p>}
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div>
-                <FieldLabel htmlFor="stock_quantity">Estoque</FieldLabel>
-                <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="stock_unit">Unidade</FieldLabel>
-                <Input id="stock_unit" {...register('stock_unit')} placeholder="un" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="min_quantity" hint="Quantidade mínima que o cliente precisa comprar desse produto no pedido">Qtd. Mín. Venda</FieldLabel>
-                <Input id="min_quantity" {...numericProps('min_quantity')} min="1" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="min_order_quantity" hint="Quantidade mínima exigida pelo fornecedor para compra/reposição">Qtd. Mín. Compra</FieldLabel>
-                <Input id="min_order_quantity" {...numericProps('min_order_quantity')} min="0" className="h-9" />
-              </div>
-            </div>
-          </SectionCard>
+          <ProductMarketingTextsSection register={register} />
 
-
-          {/* === STATUS E DESTAQUES === */}
-          <SectionCard id="flags" title="Status e Destaques" icon={ShieldCheck} subtitle={`${flagCount} ativos`}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {[
-                { key: 'is_active' as const, label: 'Produto Ativo', value: isActive, activeClass: 'bg-success/8 border-success/30' },
-                { key: 'is_featured' as const, label: 'Destaque', value: isFeatured },
-                { key: 'is_bestseller' as const, label: 'Mais Vendido', value: isBestseller },
-                { key: 'is_new' as const, label: 'Lançamento', value: isNew },
-                { key: 'is_on_sale' as const, label: 'Em Promoção', value: isOnSale },
-                { key: 'is_kit' as const, label: 'É Kit', value: isKit },
-                { key: 'is_imported' as const, label: 'Importado', value: isImported },
-                { key: 'is_textil' as const, label: 'Têxtil', value: isTextil },
-                { key: 'is_thermal' as const, label: 'Térmico', value: isThermal },
-                { key: 'allows_personalization' as const, label: 'Permite Personalização', value: allowsPersonalization },
-                { key: 'has_gift_box' as const, label: 'Caixa Presente', value: hasGiftBox },
-                { key: 'has_optional_packaging' as const, label: 'Embalagem Opcional', value: hasOptionalPackaging },
-                { key: 'has_commercial_packaging' as const, label: 'Embalagem Nativa', value: hasCommercialPackaging },
-              ].map(({ key, label, value, activeClass }) => {
-                const toggle = () => setValue(key, !value);
-                return (
-                  <div
-                    key={key}
-                    className={cn(
-                      'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
-                      value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
-                    )}
-                    onClick={toggle}
-                  >
-                    <Label className="cursor-pointer text-xs font-medium">{label}</Label>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <Switch checked={value} onCheckedChange={toggle} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </SectionCard>
-
-
-          <SectionCard id="packaging" title="Embalagem (Caixa)" icon={Package} subtitle="Dimensões e especificações da embalagem">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div>
-                <FieldLabel htmlFor="packing_type">Tipo de Embalagem</FieldLabel>
-                <select id="packing_type" {...register('packing_type')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  <option value="">Selecione...</option>
-                  <option value="Caixa">Caixa</option>
-                  <option value="Bolsa">Bolsa</option>
-                  <option value="Estojo">Estojo</option>
-                  <option value="Sacola">Sacola</option>
-                  <option value="Envelope">Envelope</option>
-                  <option value="Lata">Lata</option>
-                  <option value="Tubo">Tubo</option>
-                  <option value="Sem embalagem">Sem embalagem</option>
-                </select>
-              </div>
-              <div>
-                <FieldLabel htmlFor="packaging_material">Material</FieldLabel>
-                <select id="packaging_material" {...register('packaging_material')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  <option value="">Selecione...</option>
-                  <option value="Papelão">Papelão</option>
-                  <option value="Papel Kraft">Papel Kraft</option>
-                  <option value="Plástico">Plástico</option>
-                  <option value="TNT">TNT</option>
-                  <option value="Veludo">Veludo</option>
-                  <option value="Metal">Metal</option>
-                  <option value="Madeira">Madeira</option>
-                  <option value="Acrílico">Acrílico</option>
-                </select>
-              </div>
-              <div>
-                <FieldLabel htmlFor="packaging_color">Cor</FieldLabel>
-                <select id="packaging_color" {...register('packaging_color')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  <option value="">Selecione...</option>
-                  <option value="Kraft">Kraft</option>
-                  <option value="Branco">Branco</option>
-                  <option value="Preto">Preto</option>
-                  <option value="Transparente">Transparente</option>
-                  <option value="Prata">Prata</option>
-                  <option value="Dourado">Dourado</option>
-                </select>
-              </div>
-              <div>
-                <FieldLabel htmlFor="packaging_finish">Acabamento</FieldLabel>
-                <select id="packaging_finish" {...register('packaging_finish')} className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                  <option value="">Selecione...</option>
-                  <option value="Fosco">Fosco</option>
-                  <option value="Brilhante">Brilhante</option>
-                  <option value="Acetinado">Acetinado</option>
-                  <option value="Texturizado">Texturizado</option>
-                  <option value="Laminado">Laminado</option>
-                </select>
-              </div>
-            </div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1">Externas</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <FieldLabel htmlFor="box_height_mm">Altura (cm)</FieldLabel>
-                <Input id="box_height_mm" {...numericProps('box_height_mm')} min="0" step="0.1" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="box_width_mm">Largura (cm)</FieldLabel>
-                <Input id="box_width_mm" {...numericProps('box_width_mm')} min="0" step="0.1" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="box_length_mm">Profundidade (cm)</FieldLabel>
-                <Input id="box_length_mm" {...numericProps('box_length_mm')} min="0" step="0.1" className="h-9" />
-              </div>
-            </div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1 mt-3">Internas</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <FieldLabel htmlFor="box_internal_height_cm">Altura (cm)</FieldLabel>
-                <Input id="box_internal_height_cm" {...numericProps('box_internal_height_cm' as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="box_internal_width_cm">Largura (cm)</FieldLabel>
-                <Input id="box_internal_width_cm" {...numericProps('box_internal_width_cm' as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="box_internal_length_cm">Profundidade (cm)</FieldLabel>
-                <Input id="box_internal_length_cm" {...numericProps('box_internal_length_cm' as keyof ProductFormData)} min="0" step="0.1" className="h-9" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mt-1">
-              <div>
-                <FieldLabel htmlFor="box_weight_kg">Peso (kg)</FieldLabel>
-                <Input id="box_weight_kg" {...numericProps('box_weight_kg')} min="0" step="0.01" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="box_volume_cm3">Volume (cm³)</FieldLabel>
-                <Input id="box_volume_cm3" {...numericProps('box_volume_cm3')} min="0" className="h-9" />
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* === FISCAL === */}
-          <SectionCard id="fiscal" title="Dados Fiscais" icon={FileText} subtitle="NCM, EAN, GTIN, IPI, ICMS, PIS/COFINS e origem">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="ncm_code" hint="Nomenclatura Comum do Mercosul — código de 8 dígitos usado na classificação fiscal">Código NCM</FieldLabel>
-                <Input id="ncm_code" {...register('ncm_code')} placeholder="Ex: 96081000" className="font-mono h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="cest" hint="Código Especificador da Substituição Tributária">CEST</FieldLabel>
-                <Input id="cest" {...register('cest')} placeholder="Ex: 2000100" className="font-mono h-9" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="ean" hint="Código de barras padrão europeu (13 dígitos)">Código EAN</FieldLabel>
-                <Input id="ean" {...register('ean')} placeholder="Código de barras EAN" className="font-mono h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="gtin" hint="Global Trade Item Number — identificação global do produto">GTIN</FieldLabel>
-                <Input id="gtin" {...register('gtin')} placeholder="Global Trade Item Number" className="font-mono h-9" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="cfop" hint="Código Fiscal de Operações e Prestações — ex: 5102 (venda dentro do estado)">CFOP</FieldLabel>
-                <Input id="cfop" {...register('cfop')} placeholder="Ex: 5102" className="font-mono h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="csosn" hint="Código de Situação da Operação no Simples Nacional">CSOSN</FieldLabel>
-                <Input id="csosn" {...register('csosn')} placeholder="Ex: 102" className="font-mono h-9" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <FieldLabel htmlFor="ipi_rate" hint="Imposto sobre Produtos Industrializados">Alíquota IPI (%)</FieldLabel>
-                <Input id="ipi_rate" {...numericProps('ipi_rate')} min="0" step="0.01" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="icms_rate" hint="Imposto sobre Circulação de Mercadorias e Serviços">Alíquota ICMS (%)</FieldLabel>
-                <Input id="icms_rate" {...numericProps('icms_rate')} min="0" step="0.01" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="pis_rate" hint="Programa de Integração Social">Alíquota PIS (%)</FieldLabel>
-                <Input id="pis_rate" {...numericProps('pis_rate')} min="0" step="0.01" className="h-9" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <FieldLabel htmlFor="cofins_rate" hint="Contribuição para o Financiamento da Seguridade Social">Alíquota COFINS (%)</FieldLabel>
-                <Input id="cofins_rate" {...numericProps('cofins_rate')} min="0" step="0.01" className="h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="tax_regime" hint="Regime tributário aplicável ao produto">Regime Tributário</FieldLabel>
-                <select
-                  id="tax_regime"
-                  {...register('tax_regime')}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                >
-                  <option value="">Selecione...</option>
-                  <option value="simples_nacional">Simples Nacional</option>
-                  <option value="lucro_presumido">Lucro Presumido</option>
-                  <option value="lucro_real">Lucro Real</option>
-                  <option value="mei">MEI</option>
-                </select>
-              </div>
-              <div>
-                <FieldLabel htmlFor="country_of_origin">País de Origem</FieldLabel>
-                <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
-              </div>
-            </div>
-          </SectionCard>
-
-
-          {/* === SEO === */}
-          <SectionCard id="seo" title="SEO e Metadados" icon={Globe} subtitle="Otimize o produto para buscadores">
-            <div>
-              <FieldLabel htmlFor="meta_title" charCount={metaTitleValue.length} charMax={200}>Meta Título</FieldLabel>
-              <Input id="meta_title" {...register('meta_title')} placeholder="Título para buscadores (Google)" className="h-9" />
-            </div>
-            <div>
-              <FieldLabel htmlFor="meta_keywords" charCount={metaKeywordsValue.length} charMax={500}>Palavras-chave (separadas por vírgula)</FieldLabel>
-              <Input id="meta_keywords" {...register('meta_keywords')} placeholder="caneta, brinde, personalizado" className="h-9" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <FieldLabel htmlFor="slug">Slug (URL)</FieldLabel>
-                <Input id="slug" {...register('slug')} placeholder="caneta-plastica-001" className="font-mono h-9" />
-              </div>
-              <div>
-                <FieldLabel htmlFor="canonical_url">URL Canônica</FieldLabel>
-                <Input id="canonical_url" {...register('canonical_url')} placeholder="/produto/caneta-001" className="font-mono h-9" />
-              </div>
-            </div>
-          </SectionCard>
-
-          {/* === MARKETING TEXTS === */}
-          <SectionCard id="marketing" title="Textos de Marketing" icon={Megaphone} subtitle="Benefícios e casos de uso">
-            <div>
-              <FieldLabel htmlFor="key_benefits">Benefícios Principais</FieldLabel>
-              <Textarea id="key_benefits" {...register('key_benefits')} placeholder="Liste os benefícios do produto" rows={3} className="text-sm resize-y" />
-            </div>
-            <div>
-              <FieldLabel htmlFor="use_cases">Casos de Uso</FieldLabel>
-              <Textarea id="use_cases" {...register('use_cases')} placeholder="Cenários e ocasiões de uso" rows={3} className="text-sm resize-y" />
-            </div>
-          </SectionCard>
-
-          {/* === CLASSIFICAÇÃO (LAZY) === */}
+          {/* Lazy sections */}
           <Suspense fallback={<SectionSkeleton />}>
             <ProductClassificationSection
               productId={productId}
@@ -972,7 +414,6 @@ export function ProductFormFullscreen({
             />
           </Suspense>
 
-          {/* === MÍDIA (LAZY) === */}
           <Suspense fallback={<SectionSkeleton />}>
             <ProductMediaSection
               images={images}
@@ -1010,11 +451,11 @@ export function ProductFormFullscreen({
                   stockQuantity={stockQuantityValue}
                   images={images}
                   brand={brandValue}
-                  isFeatured={isFeatured}
-                  isNew={isNew}
-                  isOnSale={isOnSale}
+                  isFeatured={flags.is_featured}
+                  isNew={flags.is_new}
+                  isOnSale={flags.is_on_sale}
                   isKit={isKit}
-                  isActive={isActive}
+                  isActive={flags.is_active}
                 />
               </div>
             )}
