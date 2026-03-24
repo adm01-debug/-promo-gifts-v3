@@ -24,7 +24,7 @@ interface ExternalProductWithVariants {
   name: string;
   sku?: string;
   min_quantity?: number;
-  min_stock?: number;
+  
   stock_quantity?: number;
   updated_at?: string;
 }
