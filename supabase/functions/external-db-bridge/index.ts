@@ -1080,7 +1080,8 @@ Deno.serve(async (req) => {
         .eq('id', productId)
         .maybeSingle();
 
-      return { product, error };
+      const missingPersonalizationAreasColumn = !!error?.message?.includes("personalization_areas");
+      return { product, error, missingPersonalizationAreasColumn };
     };
 
     const addTechniqueToPersonalizationAreas = (
@@ -1187,8 +1188,15 @@ Deno.serve(async (req) => {
             );
           }
 
-          const { product, error: productError } = await fetchProductForVirtualPrintAreas(virtualProductId);
+          const { product, error: productError, missingPersonalizationAreasColumn } = await fetchProductForVirtualPrintAreas(virtualProductId);
           const selectDuration = Math.round(performance.now() - selectStart);
+
+          if (missingPersonalizationAreasColumn) {
+            emitTelemetry({ operation: 'select', table, durationMs: selectDuration, status: 'ok', recordCount: 0 });
+            result = { records: [], count: 0 };
+            console.warn(`Virtual table ${table} unavailable: products.personalization_areas does not exist in external schema`);
+            break;
+          }
 
           if (productError) {
             emitTelemetry({ operation: 'select', table, durationMs: selectDuration, status: 'error', error: productError.message });
@@ -1400,7 +1408,13 @@ Deno.serve(async (req) => {
             );
           }
 
-          const { product, error: productError } = await fetchProductForVirtualPrintAreas(productId);
+          const { product, error: productError, missingPersonalizationAreasColumn } = await fetchProductForVirtualPrintAreas(productId);
+          if (missingPersonalizationAreasColumn) {
+            return new Response(
+              JSON.stringify({ error: 'Áreas de personalização não estão disponíveis neste catálogo externo' }),
+              { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
           if (productError) {
             return new Response(
               JSON.stringify({ error: productError.message }),
@@ -1567,7 +1581,13 @@ Deno.serve(async (req) => {
             );
           }
 
-          const { product, error: productError } = await fetchProductForVirtualPrintAreas(parsedId.productId);
+          const { product, error: productError, missingPersonalizationAreasColumn } = await fetchProductForVirtualPrintAreas(parsedId.productId);
+          if (missingPersonalizationAreasColumn) {
+            return new Response(
+              JSON.stringify({ error: 'Áreas de personalização não estão disponíveis neste catálogo externo' }),
+              { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
           if (productError) {
             return new Response(
               JSON.stringify({ error: productError.message }),
