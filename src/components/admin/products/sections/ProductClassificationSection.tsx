@@ -7,8 +7,6 @@ import { ProductMaterialsSection } from '../ProductMaterialsSection';
 import { ProductTagsSection } from '../ProductTagsSection';
 import { ProductRamosSection } from '../ProductRamosSection';
 import { ProductMarketingSection } from '../ProductMarketingSection';
-import { ProductTechniquesSection } from '../ProductTechniquesSection';
-import { ProductPersonalizationAreasSection } from '../ProductPersonalizationAreasSection';
 import { ProductKitComponentsSection } from '../kit-components';
 import { SectionCard } from '../ProductFormHelpers';
 import {
@@ -17,8 +15,6 @@ import {
   Tag,
   Building2,
   Megaphone,
-  Paintbrush,
-  MapPin,
   Info,
   Settings2,
 } from 'lucide-react';
@@ -47,11 +43,10 @@ export default function ProductClassificationSection({
   genderField,
 }: Props) {
   return (
-    <SectionCard id="classification" title="Classificação e Vínculos" icon={Layers} subtitle="Gênero, cores, materiais, tags, ramos e técnicas">
+    <SectionCard id="classification" title="Classificação e Vínculos" icon={Layers} subtitle="Gênero, cores, materiais, tags e ramos">
       {genderField}
       {isEdit && productId && (
         <>
-          {/* Eixos de Variação */}
           <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
             <div className="flex items-center gap-2 mb-3">
               <Settings2 className="h-4 w-4 text-primary" />
@@ -86,8 +81,6 @@ export default function ProductClassificationSection({
             { title: 'Tags', icon: Tag, content: <ProductTagsSection productId={productId} /> },
             { title: 'Ramos de Atividade', icon: Building2, content: <ProductRamosSection productId={productId} /> },
             { title: 'Marketing', icon: Megaphone, content: <ProductMarketingSection productId={productId} /> },
-            { title: 'Técnicas de Personalização', icon: Paintbrush, content: <ProductTechniquesSection productId={productId} /> },
-            { title: 'Locais e Áreas de Personalização', icon: MapPin, content: <ProductPersonalizationAreasSection productId={productId} /> },
           ].map(({ title, icon: SIcon, content }) => (
             <div key={title} className="rounded-lg border border-border/40 bg-muted/20 p-4">
               <div className="flex items-center gap-2 mb-3">

@@ -14,7 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Loader2, Package, Tag, ImageIcon, Layers, Megaphone,
+  Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
   AlertCircle, Globe, FileText, ShieldCheck, Save, X,
   PanelRightClose, PanelRightOpen, CheckCircle2,
   ChevronLeft, ChevronRight, Truck, Info, Ruler,
@@ -36,6 +36,7 @@ import { useSkuValidation } from './hooks/useSkuValidation';
 
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
 const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
+const ProductEngravingSection = lazyWithRetry(() => import('./sections/ProductEngravingSection'));
 
 function SectionSkeleton() {
   return (
@@ -63,7 +64,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StepId = 'essentials' | 'commercial' | 'packaging' | 'content' | 'relations';
+type StepId = 'essentials' | 'commercial' | 'packaging' | 'content' | 'engraving' | 'relations';
 
 interface StepDef {
   id: StepId;
@@ -78,6 +79,7 @@ const STEPS: StepDef[] = [
   { id: 'commercial', label: 'Comercial', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
   { id: 'packaging', label: 'Embalagem & Fiscal', icon: Package, requiredFields: [], fieldLabels: {} },
   { id: 'content', label: 'SEO & Textos', icon: Megaphone, requiredFields: [], fieldLabels: {} },
+  { id: 'engraving', label: 'Gravação', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
   { id: 'relations', label: 'Vínculos & Mídia', icon: Layers, requiredFields: [], fieldLabels: {} },
 ];
 
@@ -302,8 +304,9 @@ export function ProductFormFullscreen({
     Boolean((formValues.sale_price ?? 0) >= 0),
     Boolean(formValues.packing_type || formValues.ncm_code || formValues.ean),
     Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
+    isEdit && !!productId, // engraving — ready if editing
     images.length > 0 || Boolean(formValues.video_url),
-  ], [formValues, images.length]);
+  ], [formValues, images.length, isEdit, productId]);
 
   const stepErrors = useMemo(() => {
     const errs = Object.keys(errors);
@@ -397,6 +400,12 @@ export function ProductFormFullscreen({
             <ProductSeoSection {...formProps} />
             <ProductMarketingTextsSection register={register} />
           </>
+        );
+      case 'engraving':
+        return (
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductEngravingSection productId={productId} isEdit={isEdit} />
+          </Suspense>
         );
       case 'relations':
         return (
