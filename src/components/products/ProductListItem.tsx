@@ -95,8 +95,8 @@ export function ProductListItem({
               src={imgUrl}
               alt={product.name}
               className={cn(
-                "w-full h-full object-cover transition-all duration-500",
-                imageLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105",
+                "w-full h-full object-cover transition-all duration-700 ease-out",
+                imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105",
                 isHovered && "scale-110"
               )}
               onLoad={() => setImageLoaded(true)}
