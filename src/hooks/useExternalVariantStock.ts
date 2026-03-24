@@ -39,6 +39,7 @@ export function useExternalVariantStock(productId: string | undefined) {
           color_code: string | null;
           color_name: string | null;
           color_hex: string | null;
+          size_code: string | null;
           stock_quantity: number | null;
           selected_thumbnail: string | null;
           images: string[] | null;
