@@ -224,7 +224,7 @@ const App = () => {
                             <Route path="*" element={<NotFound />} />
                           </Route>
                         </Routes>
-                      </Suspense>
+                      </RouteSuspense>
                     </AppProviders>
                   </AppWithAuth>
                 </AuthProvider>
