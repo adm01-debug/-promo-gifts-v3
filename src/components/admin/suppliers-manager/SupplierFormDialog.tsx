@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Phone, DollarSign, Settings2, MapPin, Globe, UserPlus, Landmark, Loader2, Plus, Trash2, ImagePlus, X, Search } from 'lucide-react';
+import { Building2, Phone, DollarSign, Settings2, MapPin, Globe, UserPlus, Landmark, Loader2, Plus, Trash2, ImagePlus, X, Search, Truck } from 'lucide-react';
 import { maskCnpj, maskPhone, maskCep, ESTADOS_BR } from '@/utils/masks';
 import { applyPixMask, pixPlaceholder, validatePixKey } from '@/utils/pixMask';
 import type { Supplier, SupplierContact, PixKey } from './types';
