@@ -111,7 +111,7 @@ async function invokeExternalDb<T>(
 // ============================================
 
 // Select fields que existem no schema Promobrind (campos legados mantidos para fallback)
-const PRODUCT_SELECT = 'id, name, sku, sale_price, image_url, images, primary_image_url, category_id, main_category_id, supplier_reference, description, brand, is_active, active, stock_quantity';
+const PRODUCT_SELECT = 'id, name, sku, sale_price, primary_image_url, category_id, main_category_id, supplier_reference, description, brand, is_active, active, stock_quantity';
 
 /**
  * Busca produtos do banco externo Promobrind com imagens da nova tabela product_images
