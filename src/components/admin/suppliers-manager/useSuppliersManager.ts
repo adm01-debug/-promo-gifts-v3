@@ -344,6 +344,7 @@ function buildNotesPayload(
   es: Partial<Supplier>, contacts: SupplierContact[],
   formaPagamento: string[], pixKeys: PixKey[],
   foneFixo1: string, foneFixo2: string,
+  inscricaoEstadual: string, regimeTributario: string, estadoFaturamento: string,
 ): string | null {
   const parts: string[] = [];
   const userNotes = es.notes?.trim()
