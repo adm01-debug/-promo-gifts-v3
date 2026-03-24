@@ -240,6 +240,7 @@ function isCustomizationPriceTablesAlias(table: string) {
 }
 
 const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
+  // Logística
   'cest',
   'freight_class',
   'default_carrier',
@@ -253,6 +254,30 @@ const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
   'product_type',
   'supply_mode',
   'warranty_months',
+  // Fiscais
+  'cfop',
+  'csosn',
+  'icms_rate',
+  'pis_rate',
+  'cofins_rate',
+  'tax_regime',
+  'ipi_rate',
+  'country_of_origin',
+  // Campos locais do formulário
+  'stock_unit',
+  'suggested_price',
+  'has_commercial_packaging',
+  'has_gift_box',
+  'has_optional_packaging',
+  'packaging_material',
+  'packaging_color',
+  'packaging_finish',
+  'lead_time_days',
+  'meta_title',
+  'slug',
+  'canonical_url',
+  'key_benefits',
+  'use_cases',
 ]);
 
 function sanitizeExternalWriteData(table: string, data: Record<string, unknown>) {

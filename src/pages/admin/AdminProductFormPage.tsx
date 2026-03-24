@@ -235,14 +235,8 @@ export default function AdminProductFormPage() {
         ncm_code: data.ncm_code || null,
         ean: data.ean || null,
         gtin: data.gtin || null,
-        ipi_rate: data.ipi_rate ?? null,
-        country_of_origin: data.country_of_origin || null,
-        cfop: data.cfop || null,
-        csosn: data.csosn || null,
-        icms_rate: data.icms_rate ?? null,
-        pis_rate: data.pis_rate ?? null,
-        cofins_rate: data.cofins_rate ?? null,
-        tax_regime: data.tax_regime || null,
+        // Campos fiscais que NÃO existem no banco externo — mantidos apenas no formulário local
+        // cfop, csosn, icms_rate, pis_rate, cofins_rate, tax_regime, ipi_rate
         // Campos abaixo não existem no banco externo, mantidos apenas no formulário local
         // cest, freight_class, default_carrier, shipping_weight_kg, shipping_width_cm,
         // shipping_height_cm, shipping_length_cm, cubic_weight, requires_special_shipping,
