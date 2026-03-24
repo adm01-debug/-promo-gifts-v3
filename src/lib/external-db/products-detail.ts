@@ -201,7 +201,7 @@ export async function fetchPromobrindProductById(
       }>({
         table: 'product_kit_components', operation: 'select',
         select: 'id, component_name, component_code, component_product_id, component_sku, quantity, display_order, is_optional, is_packaging, is_replaceable, allows_personalization, material, primary_image_url, height_mm, width_mm, length_mm, weight_g, notes',
-        filters: { kit_product_id: productId, is_active: true },
+        filters: { kit_product_id: productId },
         orderBy: { column: 'display_order', ascending: true }, limit: 50,
       });
       if (kitResult.records.length > 0) {
