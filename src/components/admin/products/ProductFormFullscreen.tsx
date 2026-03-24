@@ -744,13 +744,16 @@ export function ProductFormFullscreen({
 
           {/* Navigation footer */}
           <div className="flex items-center justify-between pt-2 pb-20 lg:pb-4">
-            <div>
+            <div className="flex items-center gap-3">
               {hasPrev && (
                 <Button type="button" variant="outline" size="sm" onClick={() => goStep(stepIndex - 1)} className="gap-2">
                   <ChevronLeft className="h-4 w-4" />
                   {STEPS[stepIndex - 1].label}
                 </Button>
               )}
+              <span className="hidden lg:inline text-[10px] text-muted-foreground/50">
+                Ctrl+←/→ navegar · Ctrl+S salvar
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
