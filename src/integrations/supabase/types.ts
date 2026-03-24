@@ -789,6 +789,74 @@ export type Database = {
         }
         Relationships: []
       }
+      product_personalization_areas: {
+        Row: {
+          area_name: string
+          component_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          location_name: string | null
+          max_colors: number | null
+          max_height_cm: number | null
+          max_width_cm: number | null
+          notes: string | null
+          product_id: string
+          setup_cost: number | null
+          sort_order: number | null
+          technique_code: string | null
+          technique_name: string
+          unit_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          area_name: string
+          component_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location_name?: string | null
+          max_colors?: number | null
+          max_height_cm?: number | null
+          max_width_cm?: number | null
+          notes?: string | null
+          product_id: string
+          setup_cost?: number | null
+          sort_order?: number | null
+          technique_code?: string | null
+          technique_name: string
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          area_name?: string
+          component_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          location_name?: string | null
+          max_colors?: number | null
+          max_height_cm?: number | null
+          max_width_cm?: number | null
+          notes?: string | null
+          product_id?: string
+          setup_cost?: number | null
+          sort_order?: number | null
+          technique_code?: string | null
+          technique_name?: string
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_personalization_areas_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "product_components"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_price_history: {
         Row: {
           created_at: string
