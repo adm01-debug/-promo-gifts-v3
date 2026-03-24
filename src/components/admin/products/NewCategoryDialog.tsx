@@ -110,18 +110,17 @@ export function NewCategoryDialog({ onCreated }: NewCategoryDialogProps) {
         <div className="space-y-4 pt-2">
           <div>
             <Label htmlFor="new-category-parent" className="text-xs font-semibold">Categoria Pai</Label>
-            <select
-              id="new-category-parent"
-              value={parentId || ''}
-              onChange={(e) => setParentId(e.target.value || null)}
-              className="mt-1.5 flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              disabled={loadingCats}
-            >
-              <option value="">Nenhuma (raiz)</option>
-              {categoryOptions.map(opt => (
-                <option key={opt.id} value={opt.id}>{opt.label}</option>
-              ))}
-            </select>
+            <Select value={parentId || '__none__'} onValueChange={(v) => setParentId(v === '__none__' ? null : v)} disabled={loadingCats}>
+              <SelectTrigger className="mt-1.5 h-9">
+                <SelectValue placeholder="Nenhuma (raiz)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Nenhuma (raiz)</SelectItem>
+                {categoryOptions.map(opt => (
+                  <SelectItem key={opt.id} value={opt.id}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <p className="text-[11px] text-muted-foreground mt-1">Deixe vazio para criar na raiz</p>
           </div>
           <div>
