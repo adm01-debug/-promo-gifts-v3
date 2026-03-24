@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { GenderBadge } from "./GenderBadge";
 import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X } from "lucide-react";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Button } from "@/components/ui/button";
