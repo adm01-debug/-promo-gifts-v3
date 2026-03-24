@@ -1463,10 +1463,10 @@ Deno.serve(async (req) => {
         }
 
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
-        const insertData: Record<string, unknown> = {
+        const insertData: Record<string, unknown> = sanitizeExternalWriteData(table, {
           ...data,
           updated_at: new Date().toISOString(),
-        };
+        });
         // Só adicionar created_at se não veio no payload
         if (!insertData.created_at) {
           insertData.created_at = new Date().toISOString();
