@@ -210,11 +210,11 @@ export function ProductGallery({
           alt={`${productName} - Imagem ${selectedIndex + 1}`}
           title={productName}
           className={cn(
-            "w-full h-full object-contain transition-all duration-500 ease-out",
+            "w-full h-full object-contain transition-all duration-700 ease-out",
             zoom > 1 && "cursor-grab",
             isPanning && "cursor-grabbing",
             isAnimating && "scale-95 opacity-80",
-            isImageLoading ? "opacity-0" : "opacity-100"
+            isImageLoading ? "opacity-40 blur-md scale-105" : "opacity-100 blur-0 scale-100"
           )}
           style={{
             transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,

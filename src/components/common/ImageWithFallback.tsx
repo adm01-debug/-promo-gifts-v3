@@ -80,8 +80,8 @@ export const ImageWithFallback = forwardRef<HTMLImageElement, ImageWithFallbackP
           onError={handleError}
           onLoad={handleLoad}
           className={cn(
-            'w-full h-full object-cover transition-opacity duration-300',
-            loaded ? 'opacity-100' : 'opacity-0'
+            'w-full h-full object-cover transition-all duration-700 ease-out',
+            loaded ? 'opacity-100 blur-0 scale-100' : 'opacity-40 blur-md scale-105'
           )}
           draggable={false}
           {...props}
