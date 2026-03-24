@@ -65,7 +65,11 @@ export function SupplierFormDialog({
   contacts, formaPagamento, setFormaPagamento, pixKeys,
   foneFixo1, setFoneFixo1, foneFixo2, setFoneFixo2,
   inscricaoEstadual, setInscricaoEstadual, regimeTributario, setRegimeTributario,
-  estadoFaturamento, setEstadoFaturamento, logoInputRef,
+  estadoFaturamento, setEstadoFaturamento,
+  transportadoraPadrao, setTransportadoraPadrao, transportadoraId, setTransportadoraId,
+  carrierSearch, setCarrierSearch, carrierResults, searchingCarriers, showCarrierDropdown, setShowCarrierDropdown,
+  searchCarriers, carrierSearchTimeout,
+  logoInputRef,
   updateField, handleSave, handleLogoUpload, handleCnpjLookup, handleCepLookup,
   updateContact, addContact, removeContact, updatePixKey, addPixKey, removePixKey,
 }: SupplierFormDialogProps) {

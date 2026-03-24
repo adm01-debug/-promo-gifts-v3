@@ -412,5 +412,8 @@ function buildNotesPayload(
   if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
     parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
   }
+  if (transportadoraPadrao.trim()) {
+    parts.push(`[Transportadora: ${transportadoraPadrao.trim()}, ID: ${transportadoraId || '-'}]`);
+  }
   return parts.join('\n') || null;
 }
