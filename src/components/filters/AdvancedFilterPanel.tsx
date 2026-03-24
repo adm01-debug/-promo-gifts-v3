@@ -28,6 +28,7 @@ import { FilterSectionMaterials } from "./sections/FilterSectionMaterials";
 import { FilterSectionRamos } from "./sections/FilterSectionRamos";
 import { FilterSectionPublicoAlvo } from "./sections/FilterSectionPublicoAlvo";
 import { FilterSectionEndomarketing } from "./sections/FilterSectionEndomarketing";
+import { FilterSectionGender } from "./sections/FilterSectionGender";
 
 interface AdvancedFilterPanelProps {
   filters: AdvancedFilterState;
