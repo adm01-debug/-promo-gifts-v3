@@ -67,8 +67,8 @@ const BRANCH_SELECT = 'id, branch_name, cnpj, state_uf, tax_regime, icms_interna
 function buildFromBranch(branch: BranchRecord): SupplierFiscalData {
   return {
     cst: branch.default_cst || null,
-    cfop: branch.default_cfop || null,
-    icms_rate: branch.default_icms_rate ?? branch.icms_internal_rate ?? null,
+    cfop: branch.default_cfop_internal || null,
+    icms_rate: branch.icms_internal_rate ?? null,
     pis_rate: branch.default_pis_rate ?? null,
     cofins_rate: branch.default_cofins_rate ?? null,
     cest: branch.default_cest || null,
