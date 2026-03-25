@@ -166,7 +166,7 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
     }
   }, [revertToInherited]);
 
-
+  const updateField = useCallback((field: keyof FiscalOverrideInput, value: string) => {
     setForm(prev => ({
       ...prev,
       [field]: value === '' ? null : (['icms_rate', 'pis_rate', 'cofins_rate'].includes(field) ? parseFloat(value) || null : value),
