@@ -15,6 +15,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
   AlertCircle, Globe, FileText, ShieldCheck, Save, X,
