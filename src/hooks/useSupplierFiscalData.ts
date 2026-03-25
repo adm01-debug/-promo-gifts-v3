@@ -50,8 +50,8 @@ interface BranchRecord {
   icms_internal_rate: number | null;
   icms_interstate_rate: number | null;
   default_cst: string | null;
-  default_cfop: string | null;
-  default_icms_rate: number | null;
+  default_cfop_internal: string | null;
+  default_cfop_interstate: string | null;
   default_pis_rate: number | null;
   default_cofins_rate: number | null;
   default_cest: string | null;
@@ -59,7 +59,7 @@ interface BranchRecord {
   default_operation_nature: string | null;
 }
 
-const BRANCH_SELECT = 'id, branch_name, cnpj, state_uf, tax_regime, icms_internal_rate, icms_interstate_rate, default_cst, default_cfop, default_icms_rate, default_pis_rate, default_cofins_rate, default_cest, default_csosn, default_operation_nature';
+const BRANCH_SELECT = 'id, branch_name, cnpj, state_uf, tax_regime, icms_internal_rate, icms_interstate_rate, default_cst, default_cfop_internal, default_cfop_interstate, default_pis_rate, default_cofins_rate, default_cest, default_csosn, default_operation_nature';
 
 /**
  * Builds SupplierFiscalData from branch defaults (inheritance mode).
@@ -67,8 +67,8 @@ const BRANCH_SELECT = 'id, branch_name, cnpj, state_uf, tax_regime, icms_interna
 function buildFromBranch(branch: BranchRecord): SupplierFiscalData {
   return {
     cst: branch.default_cst || null,
-    cfop: branch.default_cfop || null,
-    icms_rate: branch.default_icms_rate ?? branch.icms_internal_rate ?? null,
+    cfop: branch.default_cfop_internal || null,
+    icms_rate: branch.icms_internal_rate ?? null,
     pis_rate: branch.default_pis_rate ?? null,
     cofins_rate: branch.default_cofins_rate ?? null,
     cest: branch.default_cest || null,
