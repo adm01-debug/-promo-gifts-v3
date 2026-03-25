@@ -52,6 +52,7 @@ const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadast
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
 const AdminProductFormPage = lazyWithRetry(() => import("./pages/admin/AdminProductFormPage"));
 const AdminTelemetriaPage = lazyWithRetry(() => import("./pages/admin/AdminTelemetriaPage"));
+const AdminTemasPage = lazyWithRetry(() => import("./pages/admin/AdminTemasPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
@@ -93,6 +94,7 @@ const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 const queryClient = createQueryClient();
 
 import { useCatalogPrefetch } from '@/hooks/useCatalogPrefetch';
+import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-presets';
 
 /** Componente interno que roda hooks que dependem de AuthProvider */
 function AppWithAuth({ children }: { children: React.ReactNode }) {
@@ -110,7 +112,16 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   useGlobalErrorCatcher();
 
+  // Apply saved theme on boot
   useEffect(() => {
+    const cfg = loadThemeConfig();
+    if (cfg.presetId !== 'default' || cfg.radius !== 12) {
+      const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      applyThemePreset(cfg.presetId, mode);
+      applyRadius(cfg.radius);
+    }
+  }, []);
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -188,6 +199,7 @@ const App = () => {
                               <Route path="/admin/roles" element={<RolesPage />} />
                               <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
                               <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
+                              <Route path="/admin/temas" element={<AdminTemasPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
