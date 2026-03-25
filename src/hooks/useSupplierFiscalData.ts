@@ -316,5 +316,41 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
     }
   }, [productId, supplierId, query.data, queryClient, queryKey]);
 
-  return { ...query, saveFiscalOverride };
+  /**
+   * Revert to inherited: deletes the VSS record so data falls back to branch defaults.
+   */
+  const revertToInherited = useCallback(async (): Promise<boolean> => {
+    if (!productId || !supplierId) return false;
+    const currentData = query.data;
+    if (!currentData || currentData.isInherited) return false;
+
+    try {
+      const variantId = currentData._variantId;
+      if (!variantId) return false;
+
+      const vssResult = await invokeExternalDb<{ id: string }>({
+        table: 'variant_supplier_sources',
+        operation: 'select',
+        select: 'id',
+        filters: { supplier_id: supplierId, variant_id: variantId },
+        limit: 1,
+      });
+
+      if (vssResult.records.length) {
+        await invokeExternalDb({
+          table: 'variant_supplier_sources',
+          operation: 'delete',
+          id: vssResult.records[0].id,
+        });
+      }
+
+      await queryClient.invalidateQueries({ queryKey });
+      return true;
+    } catch (err) {
+      console.error('[revertToInherited] Failed:', err);
+      return false;
+    }
+  }, [productId, supplierId, query.data, queryClient, queryKey]);
+
+  return { ...query, saveFiscalOverride, revertToInherited };
 }

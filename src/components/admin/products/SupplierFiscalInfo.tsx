@@ -9,7 +9,8 @@ import { useState, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Building2, FileText, Loader2, ArrowDownFromLine, Pencil, Save, X } from 'lucide-react';
+import { Building2, FileText, Loader2, ArrowDownFromLine, Pencil, Save, X, RotateCcw } from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useSupplierFiscalData, type FiscalOverrideInput } from '@/hooks/useSupplierFiscalData';
 import { toast } from 'sonner';
 
