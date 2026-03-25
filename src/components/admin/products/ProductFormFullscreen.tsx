@@ -449,6 +449,7 @@ export function ProductFormFullscreen({
   });
 
   const formProps = { register, setValue, watch, errors, numericProps };
+  const { generate: generateSeoAI, isGenerating: isSeoGenerating } = useProductSeoAI(watch as any, setValue);
 
   const [showValidation, setShowValidation] = useState(false);
 
