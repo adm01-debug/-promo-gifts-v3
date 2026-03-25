@@ -69,7 +69,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StepId = 'category' | 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'engraving' | 'classification' | 'media' | 'content';
+type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'engraving' | 'classification' | 'media' | 'content';
 
 interface StepDef {
   id: StepId;
@@ -81,8 +81,7 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
-  { id: 'category', label: 'Categoria', description: 'Classificação do produto', icon: Layers, requiredFields: [], fieldLabels: {} },
-  { id: 'essentials', label: 'Identificação', description: 'Fornecedor, SKU e nome', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
+  { id: 'essentials', label: 'Identificação', description: 'Categoria, fornecedor e nome', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
   { id: 'commercial', label: 'Comercial', description: 'Dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
   { id: 'fiscal', label: 'Financeiro e Fiscal', description: 'Preços, estoque e tributos', icon: FileText, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
