@@ -240,7 +240,7 @@ function isCustomizationPriceTablesAlias(table: string) {
 }
 
 const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
-  // Logística
+  // Logística (sem coluna correspondente no externo)
   'cest',
   'freight_class',
   'default_carrier',
@@ -251,48 +251,45 @@ const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
   'cubic_weight',
   'requires_special_shipping',
   'shipping_notes',
-  'product_type',
-  'supply_mode',
-  'warranty_months',
-  // Fiscais
+  // Fiscais (sem coluna correspondente no externo)
   'cfop',
   'csosn',
   'icms_rate',
   'pis_rate',
   'cofins_rate',
   'tax_regime',
-  'ipi_rate',
-  'country_of_origin',
-  // Campos locais do formulário
+  // Campos locais do formulário (sem coluna no externo)
   'stock_unit',
-  'suggested_price',
   'has_commercial_packaging',
-  'has_gift_box',
-  'has_optional_packaging',
-  'packaging_material',
-  'packaging_color',
-  'packaging_finish',
-  'lead_time_days',
-  'meta_title',
-  'slug',
-  'canonical_url',
-  'key_benefits',
-  'use_cases',
   // Dimensões internas da embalagem (campos locais)
   'box_internal_height_cm',
   'box_internal_width_cm',
   'box_internal_length_cm',
-  'box_inner_quantity',
+  // Campo que precisa de rename (tratado no mapeamento abaixo)
+  'country_of_origin',
   // Campo virtual (não existe na tabela products)
   'image_url',
 ]);
 
+// Mapeamento de nomes diferentes entre formulário e banco externo
+const PRODUCT_FIELD_RENAME_MAP: Record<string, string> = {
+  'country_of_origin': 'origin_country',
+};
+
 function sanitizeExternalWriteData(table: string, data: Record<string, unknown>) {
   if (table !== 'products') return data;
 
-  return Object.fromEntries(
-    Object.entries(data).filter(([key]) => !PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA.has(key))
-  );
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA.has(key)) {
+      // Se tem rename, mapeia; senão descarta
+      const renamed = PRODUCT_FIELD_RENAME_MAP[key];
+      if (renamed) result[renamed] = value;
+      continue;
+    }
+    result[key] = value;
+  }
+  return result;
 }
 
 function mapPriceTableFiltersToExternal(filters: Record<string, unknown> | undefined) {
