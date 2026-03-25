@@ -53,6 +53,11 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   const { hasPermission } = useRBAC();
 
   const isItemActive = (href: string, exact?: boolean) => {
+    // Handle hrefs with query params (e.g. /admin/cadastros?tab=products)
+    if (href.includes('?')) {
+      const [path, search] = href.split('?');
+      return location.pathname === path && location.search === `?${search}`;
+    }
     if (href === "/" || exact) return location.pathname === href;
     return location.pathname.startsWith(href);
   };
