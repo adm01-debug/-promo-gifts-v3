@@ -29,14 +29,8 @@ import {
 interface Props {
   productId?: string;
   isEdit: boolean;
-  isKit: boolean;
   productName: string;
   productSku: string;
-  internalDimensions: {
-    height_cm: number | null;
-    width_cm: number | null;
-    length_cm: number | null;
-  };
   gender?: string;
   onGenderChange?: (value: string) => void;
 }
