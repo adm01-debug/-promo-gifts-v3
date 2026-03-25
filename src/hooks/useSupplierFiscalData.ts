@@ -214,7 +214,6 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
           const branch = branchesResult.records[0];
           const result = buildFromBranch(branch);
           result._variantId = matchedVariantId || undefined;
-          result._organizationId = branch.organization_id || undefined;
           return result;
         }
       } catch (err) {
