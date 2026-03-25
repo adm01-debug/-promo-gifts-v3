@@ -1365,9 +1365,11 @@ Deno.serve(async (req) => {
           ? requestedLimit
           : hasSearchFilter
             ? Math.min(requestedLimit, 120)
-            : safeOffset >= 1000
-              ? Math.min(requestedLimit, 125)
-              : Math.min(requestedLimit, 200);
+            : isVeryHeavyTable
+              ? Math.min(requestedLimit, 100)
+              : safeOffset >= 1000
+                ? Math.min(requestedLimit, 125)
+                : Math.min(requestedLimit, 200);
         query = query.range(safeOffset, safeOffset + safeLimit - 1);
         
         const selectStart = performance.now();
