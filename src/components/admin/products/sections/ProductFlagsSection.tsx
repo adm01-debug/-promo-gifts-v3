@@ -23,10 +23,6 @@ const FLAG_CONFIG: { key: keyof ProductFormData; label: string; hint: string; ac
   { key: 'is_new', label: 'Lançamento', hint: 'Indica que o produto é um lançamento recente no catálogo' },
   { key: 'is_on_sale', label: 'Em Promoção', hint: 'Sinaliza o produto com badge de promoção' },
   { key: 'is_kit', label: 'É Kit', hint: 'Define como kit composto por múltiplos componentes — habilita seção de componentes na Classificação' },
-  { key: 'is_imported', label: 'Importado', hint: 'Produto de origem estrangeira — pode impactar prazos e tributação' },
-  { key: 'is_textil', label: 'Têxtil', hint: 'Produto têxtil — habilita variações por tamanho e cor' },
-  { key: 'is_thermal', label: 'Térmico', hint: 'Produto com propriedades de isolamento térmico' },
-  { key: 'allows_personalization', label: 'Permite Personalização', hint: 'Habilita opções de gravação e personalização no orçamento' },
   { key: 'has_gift_box', label: 'Caixa Presente', hint: 'Possui opção de embalagem para presente' },
   { key: 'has_optional_packaging', label: 'Embalagem Opcional', hint: 'A embalagem pode ser removida ou trocada pelo cliente' },
   { key: 'has_commercial_packaging', label: 'Embalagem Nativa', hint: 'O produto já vem com embalagem comercial do fabricante' },
@@ -36,7 +32,7 @@ export function ProductFlagsSection({ setValue, flags }: Props) {
   const flagCount = Object.values(flags).filter(Boolean).length;
 
   return (
-    <SectionCard id="flags" title="Status e Destaques" icon={ShieldCheck} subtitle={`${flagCount} ativos`}>
+    <SectionCard id="flags" title="Status" icon={ShieldCheck} subtitle={`${flagCount} ativos`}>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {FLAG_CONFIG.map(({ key, label, hint, activeClass }) => {
           const value = !!flags[key];
