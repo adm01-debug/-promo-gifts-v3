@@ -4,7 +4,7 @@
  */
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
@@ -19,7 +19,7 @@ import {
   Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
   AlertCircle, Globe, FileText, ShieldCheck, Save, X,
   PanelRightClose, PanelRightOpen, CheckCircle2,
-  ChevronLeft, ChevronRight, Truck, Info, Ruler,
+  ChevronLeft, ChevronRight, Truck, Info, Ruler, Boxes,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -42,6 +42,7 @@ import { useSkuValidation } from './hooks/useSkuValidation';
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
 const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
 const ProductEngravingSection = lazyWithRetry(() => import('./sections/ProductEngravingSection'));
+const ProductKitComponentsSection = lazyWithRetry(() => import('../products/kit-components/ProductKitComponentsSection').then(m => ({ default: m.ProductKitComponentsSection })));
 
 function SectionSkeleton() {
   return (
@@ -87,6 +88,7 @@ const STEPS: StepDef[] = [
   { id: 'fiscal', label: 'Financeiro e Fiscal', description: 'Preços, estoque e tributos', icon: FileText, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
   { id: 'classification', label: 'Classificação', description: 'Gênero, cores e vínculos', icon: Layers, requiredFields: [], fieldLabels: {} },
+  { id: 'kits', label: 'Kits', description: 'Gestão de kits nativos', icon: Boxes, requiredFields: [], fieldLabels: {} },
   { id: 'media', label: 'Mídia', description: 'Imagens e vídeos', icon: ImageIcon, requiredFields: [], fieldLabels: {} },
   { id: 'content', label: 'SEO & Textos', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
 ];
@@ -282,7 +284,7 @@ export function ProductFormFullscreen({
   isSaving,
   isEdit,
 }: ProductFormFullscreenProps) {
-  const navigate = useNavigate();
+  
   const [images, setImages] = useState<string[]>(initialImages);
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
@@ -642,6 +644,19 @@ export function ProductFormFullscreen({
               />
           </Suspense>
         );
+      case 'kits':
+        return (
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductKitComponentsSection
+              productId={productId || ''}
+              boxInternalDimensions={{
+                height_cm: formValues.internal_height_cm ?? null,
+                width_cm: formValues.internal_width_cm ?? null,
+                length_cm: formValues.internal_length_cm ?? null,
+              }}
+            />
+          </Suspense>
+        );
       case 'media':
         return (
           <Suspense fallback={<SectionSkeleton />}>
@@ -679,16 +694,6 @@ export function ProductFormFullscreen({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 pb-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
-              onClick={() => navigate('/montar-kit')}
-            >
-              <Package className="h-3.5 w-3.5" />
-              Gestão de Kits
-            </Button>
             {Object.keys(errors).length > 0 && (
               <span className="flex items-center gap-1 text-destructive text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
