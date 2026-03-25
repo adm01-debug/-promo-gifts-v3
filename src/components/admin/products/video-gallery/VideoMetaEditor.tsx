@@ -30,7 +30,7 @@ export function VideoMetaEditor({ video, onSave, onCancel }: Props) {
         <SelectContent>
           {VIDEO_TYPES.map(t => (
             <SelectItem key={t.value} value={t.value} className="text-xs">
-              <span className="flex items-center gap-1.5"><t.icon className="h-3 w-3 text-muted-foreground" />{t.label}</span>
+              <span className="flex items-center gap-1.5"><t.icon className={`h-3 w-3 ${t.color}`} />{t.label}</span>
             </SelectItem>
           ))}
         </SelectContent>
