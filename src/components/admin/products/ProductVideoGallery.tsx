@@ -152,13 +152,6 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         isAddingYoutube={g.isAddingYoutube}
       />
 
-      {/* Empty state */}
-      {g.filteredVideos.length === 0 && !g.isLoading && (
-        <div className="text-center py-4 text-sm text-muted-foreground">
-          <Film className="h-5 w-5 mx-auto mb-2 opacity-40" />
-          {g.hasFilters ? 'Nenhum vídeo encontrado com os filtros selecionados' : 'Nenhum vídeo cadastrado'}
-        </div>
-      )}
 
       {/* Preview dialog */}
       <Dialog open={!!g.previewVideo} onOpenChange={() => g.setPreviewVideo(null)}>
