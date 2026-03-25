@@ -93,12 +93,13 @@ export function FieldLabel({ htmlFor, children, required, charCount, charMax, hi
   );
 }
 
-export function SectionCard({ id, title, icon: Icon, children, subtitle }: {
+export function SectionCard({ id, title, icon: Icon, children, subtitle, required }: {
   id: string;
   title: string;
   icon: React.ElementType;
   children: React.ReactNode;
   subtitle?: string;
+  required?: boolean;
 }) {
   return (
     <Card id={`section-${id}`} className="border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden scroll-mt-4">
@@ -108,7 +109,10 @@ export function SectionCard({ id, title, icon: Icon, children, subtitle }: {
             <Icon className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              {title}
+              {required && <span className="text-destructive ml-1">*</span>}
+            </h3>
             {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
           </div>
         </div>
