@@ -21,6 +21,7 @@ import {
 export default function AdminTemasPage() {
   const { actualTheme, setTheme: setAppTheme } = useTheme();
   const [config, setConfig] = useState<ThemeConfig>(loadThemeConfig);
+  const navigate = useNavigate();
 
   // Apply on mount + changes
   const applyAll = useCallback((cfg: ThemeConfig, mode: 'light' | 'dark') => {
