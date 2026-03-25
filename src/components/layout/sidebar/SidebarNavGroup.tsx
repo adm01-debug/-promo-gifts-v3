@@ -60,9 +60,77 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   const hasActiveItem = group.items.some((item) => isItemActive(item.href, item.exact));
   const GroupIcon = group.icon;
 
-  const renderNavLink = (item: NavItem) => {
+  const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
+
+  const toggleSubMenu = (label: string) => {
+    setOpenSubMenus(prev => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  // Auto-open sub-menus that contain active items
+  React.useEffect(() => {
+    group.items.forEach(item => {
+      if (item.children?.some(child => isItemActive(child.href, child.exact))) {
+        setOpenSubMenus(prev => ({ ...prev, [item.label]: true }));
+      }
+    });
+  }, [location.pathname]);
+
+  const renderNavLink = (item: NavItem, depth = 0): React.ReactNode => {
     if (item.adminOnly && !isAdmin) return null;
     if (item.requiredPermission && !hasPermission(item.requiredPermission.action, item.requiredPermission.resource)) return null;
+
+    // If item has children, render as expandable sub-menu
+    if (item.children && item.children.length > 0) {
+      const hasActiveChild = item.children.some(child => isItemActive(child.href, child.exact));
+      const isSubOpen = openSubMenus[item.label] ?? hasActiveChild;
+      const Icon = item.icon;
+
+      return (
+        <div key={item.label}>
+          <button
+            onClick={() => toggleSubMenu(item.label)}
+            className={cn(
+              "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200 group",
+              "hover:bg-sidebar-accent/50",
+              hasActiveChild
+                ? "text-orange font-medium"
+                : "text-sidebar-foreground/60 hover:text-sidebar-foreground"
+            )}
+          >
+            <Icon
+              className={cn(
+                "h-4 w-4 shrink-0 transition-colors",
+                hasActiveChild ? "text-orange" : "group-hover:text-orange/70"
+              )}
+            />
+            {!isCollapsed && (
+              <>
+                <span className="truncate text-sm flex-1 text-left">{item.label}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-3 w-3 transition-transform duration-200 text-sidebar-foreground/30",
+                    isSubOpen && "rotate-180"
+                  )}
+                />
+              </>
+            )}
+          </button>
+          {isSubOpen && !isCollapsed && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="pl-4 mt-0.5 space-y-0.5">
+                {item.children.map(child => renderNavLink(child, depth + 1))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      );
+    }
 
     const isActive = isItemActive(item.href, item.exact);
     const Icon = item.icon;

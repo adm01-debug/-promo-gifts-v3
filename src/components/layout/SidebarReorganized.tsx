@@ -105,7 +105,11 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Users, label: "Usuários", href: "/admin/usuarios", adminOnly: true },
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", adminOnly: true },
-      { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true },
+      { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true, children: [
+        { icon: Package, label: "Produtos", href: "/admin/cadastros?tab=products" },
+        { icon: Truck, label: "Fornecedores", href: "/admin/cadastros?tab=suppliers" },
+        { icon: Palette, label: "Gravação", href: "/admin/cadastros?tab=personalizacao" },
+      ]},
       { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
       { icon: Activity, label: "Telemetria", href: "/admin/telemetria", adminOnly: true },
     ],
