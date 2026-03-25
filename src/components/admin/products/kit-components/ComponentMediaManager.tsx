@@ -46,28 +46,6 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
     queryClient.invalidateQueries({ queryKey: ['component-media', componentId] });
   }, [queryClient, componentId]);
 
-  const handleAddUrl = async () => {
-    if (!externalUrl.trim()) return;
-
-    try {
-      await createComponentMedia({
-        kit_component_id: componentId,
-        product_id: productId,
-        media_type: urlMediaType,
-        url: externalUrl.trim(),
-        title: null,
-        sort_order: media.length,
-        is_cover: false,
-      });
-      toast.success('Mídia adicionada');
-      setExternalUrl('');
-      setShowUrlInput(false);
-      invalidate();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao adicionar');
-    }
-  };
-
   const handleDelete = async (item: ComponentMedia) => {
     try {
       await deleteComponentMedia(item.id);
