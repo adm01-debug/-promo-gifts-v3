@@ -68,7 +68,7 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'engraving' | 'classification' | 'media' | 'content';
+type StepId = 'category' | 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'engraving' | 'classification' | 'media' | 'content';
 
 interface StepDef {
   id: StepId;
@@ -80,6 +80,7 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
+  { id: 'category', label: 'Categoria', description: 'Classificação do produto', icon: Layers, requiredFields: [], fieldLabels: {} },
   { id: 'essentials', label: 'Identificação', description: 'Fornecedor, SKU e nome', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
   { id: 'commercial', label: 'Comercial', description: 'Dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
@@ -535,17 +536,20 @@ export function ProductFormFullscreen({
 
   const renderContent = () => {
     switch (currentStep.id) {
+      case 'category':
+        return (
+          <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <CategorySelect value={formValues.category_id || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
+              </div>
+              <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
+            </div>
+          </SectionCard>
+        );
       case 'essentials':
         return (
           <>
-            <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
-              <div className="flex items-start gap-2">
-                <div className="flex-1">
-                  <CategorySelect value={formValues.category_id || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
-                </div>
-                <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
-              </div>
-            </SectionCard>
             <ProductSupplierSection
               supplierId={supplierId}
               onSupplierChange={(id, name, markupPercent) => {
