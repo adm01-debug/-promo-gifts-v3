@@ -536,17 +536,20 @@ export function ProductFormFullscreen({
 
   const renderContent = () => {
     switch (currentStep.id) {
+      case 'category':
+        return (
+          <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <CategorySelect value={formValues.category_id || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
+              </div>
+              <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
+            </div>
+          </SectionCard>
+        );
       case 'essentials':
         return (
           <>
-            <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
-              <div className="flex items-start gap-2">
-                <div className="flex-1">
-                  <CategorySelect value={formValues.category_id || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
-                </div>
-                <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
-              </div>
-            </SectionCard>
             <ProductSupplierSection
               supplierId={supplierId}
               onSupplierChange={(id, name, markupPercent) => {
