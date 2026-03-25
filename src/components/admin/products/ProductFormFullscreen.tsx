@@ -19,7 +19,7 @@ import {
   Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
   AlertCircle, Globe, FileText, ShieldCheck, Save, X,
   PanelRightClose, PanelRightOpen, CheckCircle2,
-  ChevronLeft, ChevronRight, Truck, Info, Ruler,
+  ChevronLeft, ChevronRight, Truck, Info, Ruler, Boxes,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
