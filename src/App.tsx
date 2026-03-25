@@ -52,6 +52,7 @@ const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadast
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
 const AdminProductFormPage = lazyWithRetry(() => import("./pages/admin/AdminProductFormPage"));
 const AdminTelemetriaPage = lazyWithRetry(() => import("./pages/admin/AdminTelemetriaPage"));
+const AdminTemasPage = lazyWithRetry(() => import("./pages/admin/AdminTemasPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
