@@ -15,58 +15,49 @@ Deno.serve(async (req) => {
     const externalKey = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
 
     if (!externalUrl || !externalKey) {
-      throw new Error("Missing EXTERNAL_SUPABASE_URL or EXTERNAL_SUPABASE_SERVICE_KEY");
+      throw new Error("Missing env vars");
     }
 
-    const supabase = createClient(externalUrl, externalKey);
-
-    // Use RPC to execute SQL - create a helper function first via RPC
-    // Actually, let's try executing raw SQL via the supabase-js client's internal postgres connection
-    // The cleanest way: use rpc to call a function that runs DDL
-    
-    // Approach: Create a temporary function, run it, then drop it
     const sql = `
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'is_featured_expires_at') THEN
-          ALTER TABLE products ADD COLUMN is_featured_expires_at timestamptz DEFAULT NULL;
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'is_bestseller_expires_at') THEN
-          ALTER TABLE products ADD COLUMN is_bestseller_expires_at timestamptz DEFAULT NULL;
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'is_on_sale_expires_at') THEN
-          ALTER TABLE products ADD COLUMN is_on_sale_expires_at timestamptz DEFAULT NULL;
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'products' AND column_name = 'is_new_expires_at') THEN
-          ALTER TABLE products ADD COLUMN is_new_expires_at timestamptz DEFAULT NULL;
-        END IF;
-      END $$;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS is_featured_expires_at timestamptz DEFAULT NULL;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS is_bestseller_expires_at timestamptz DEFAULT NULL;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS is_on_sale_expires_at timestamptz DEFAULT NULL;
+      ALTER TABLE products ADD COLUMN IF NOT EXISTS is_new_expires_at timestamptz DEFAULT NULL;
     `;
 
-    // Try multiple SQL execution methods
     const attempts: any[] = [];
 
-    // Method 1: Direct SQL via REST API /sql endpoint (Supabase pg-meta)
-    const projectRef = new URL(externalUrl).hostname.split('.')[0];
-    
-    // Method 2: Try the /rest/v1/rpc/exec_sql if it exists
-    const { data: rpcData, error: rpcError } = await supabase.rpc('exec_sql', { sql_text: sql });
-    attempts.push({ method: 'rpc_exec_sql', data: rpcData, error: rpcError?.message });
+    // Try various pg-meta paths
+    const paths = [
+      '/pg-meta/default/query',
+      '/pg/query',
+      '/rest/v1/rpc/exec_sql',
+    ];
 
-    // Method 3: Try via management API
-    const mgmtUrl = `https://api.supabase.com/v1/projects/${projectRef}/database/query`;
-    const mgmtResponse = await fetch(mgmtUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${externalKey}`,
-      },
-      body: JSON.stringify({ query: sql }),
-    });
-    const mgmtText = await mgmtResponse.text();
-    attempts.push({ method: 'management_api', status: mgmtResponse.status, response: mgmtText.substring(0, 500) });
+    for (const path of paths) {
+      try {
+        const url = `${externalUrl}${path}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${externalKey}`,
+            'apikey': externalKey,
+            'x-connection-encrypted': 'false',
+          },
+          body: JSON.stringify({ query: sql }),
+        });
+        const text = await response.text();
+        attempts.push({ path, status: response.status, body: text.substring(0, 300) });
+        
+        if (response.ok) break;
+      } catch (e: any) {
+        attempts.push({ path, error: e.message });
+      }
+    }
 
     // Verify
+    const supabase = createClient(externalUrl, externalKey);
     const { data: verify, error: verifyError } = await supabase
       .from("products")
       .select("id, is_featured_expires_at, is_bestseller_expires_at, is_on_sale_expires_at, is_new_expires_at")
@@ -75,7 +66,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: !verifyError,
       attempts,
-      verification: verifyError ? { error: verifyError.message } : { columns_exist: true, sample: verify },
+      verification: verifyError ? { error: verifyError.message } : { ok: true, sample: verify },
     }), { 
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
