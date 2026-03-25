@@ -50,33 +50,68 @@ export function ProductSupplierSection({
   productId, isEdit, primarySupplierName,
 }: Props) {
   const { sources, isLoading, addSource, removeSource, setPreferred } = useProductSupplierSources(productId);
+  const [pendingSources, setPendingSources] = useState<Array<SupplierSourceInput & { _localId: string }>>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // Combine persisted + pending sources for display
+  const allSources = [
+    ...sources.map(s => ({ ...s, _localId: s.id, _persisted: true as const })),
+    ...pendingSources.map(s => ({ ...s, id: s._localId, created_at: '', updated_at: '', _persisted: false as const })),
+  ];
+
   const handleAdd = async () => {
-    if (!form.supplier_id || !productId) return;
-    setSaving(true);
-    const input: SupplierSourceInput = {
-      product_id: productId,
-      supplier_id: form.supplier_id,
-      supplier_name: form.supplier_name,
-      supplier_sku: form.supplier_sku || null,
-      cost_price: form.cost_price,
-      sale_price: form.sale_price,
-      lead_time_days: form.lead_time_days,
-      stock_quantity: form.stock_quantity,
-      min_order_quantity: form.min_order_quantity,
-      is_preferred: sources.length === 0,
-      is_active: true,
-      notes: form.notes || null,
-    };
-    const ok = await addSource(input);
-    setSaving(false);
-    if (ok) {
+    if (!form.supplier_id) return;
+
+    if (productId) {
+      // Persisted mode
+      setSaving(true);
+      const input: SupplierSourceInput = {
+        product_id: productId,
+        supplier_id: form.supplier_id,
+        supplier_name: form.supplier_name,
+        supplier_sku: form.supplier_sku || null,
+        cost_price: form.cost_price,
+        sale_price: form.sale_price,
+        lead_time_days: form.lead_time_days,
+        stock_quantity: form.stock_quantity,
+        min_order_quantity: form.min_order_quantity,
+        is_preferred: sources.length === 0,
+        is_active: true,
+        notes: form.notes || null,
+      };
+      const ok = await addSource(input);
+      setSaving(false);
+      if (ok) {
+        setForm(emptyForm);
+        setDialogOpen(false);
+      }
+    } else {
+      // Local-only mode (product not yet saved)
+      const localEntry: SupplierSourceInput & { _localId: string } = {
+        _localId: crypto.randomUUID(),
+        product_id: '',
+        supplier_id: form.supplier_id,
+        supplier_name: form.supplier_name,
+        supplier_sku: form.supplier_sku || null,
+        cost_price: form.cost_price,
+        sale_price: form.sale_price,
+        lead_time_days: form.lead_time_days,
+        stock_quantity: form.stock_quantity,
+        min_order_quantity: form.min_order_quantity,
+        is_preferred: pendingSources.length === 0 && sources.length === 0,
+        is_active: true,
+        notes: form.notes || null,
+      };
+      setPendingSources(prev => [...prev, localEntry]);
       setForm(emptyForm);
       setDialogOpen(false);
     }
+  };
+
+  const removePending = (localId: string) => {
+    setPendingSources(prev => prev.filter(s => s._localId !== localId));
   };
 
   const formatCurrency = (v: number | null) =>
@@ -121,29 +156,22 @@ export function ProductSupplierSection({
               <h3 className="text-sm font-semibold text-foreground">Fornecedores Secundários</h3>
               <p className="text-[11px] text-muted-foreground">Fontes alternativas com preços e prazos distintos</p>
             </div>
-            {isEdit && productId && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
-                {sources.length} fonte{sources.length !== 1 ? 's' : ''}
-              </Badge>
-            )}
+            <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
+              {allSources.length} fonte{allSources.length !== 1 ? 's' : ''}
+            </Badge>
           </div>
 
-          {!isEdit || !productId ? (
-            <div className="text-center py-4 rounded-lg border border-dashed border-border/50 bg-muted/20">
-              <PackageCheck className="h-8 w-8 text-muted-foreground/30 mx-auto mb-1.5" />
-              <p className="text-xs text-muted-foreground">
-                Salve o produto para adicionar fornecedores alternativos.
-              </p>
-            </div>
-          ) : isLoading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-4">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : (
             <>
-              {sources.length > 0 && (
+              {allSources.length > 0 && (
                 <div className="space-y-2 mb-3">
-                  {sources.map((src) => (
+                  {allSources.map((src) => {
+                    const isPersisted = '_persisted' in src && src._persisted;
+                    return (
                     <Card
                       key={src.id}
                       className={cn(
@@ -159,6 +187,9 @@ export function ProductSupplierSection({
                               <Badge className="text-[10px] bg-primary/20 text-primary border-0">
                                 <Star className="h-3 w-3 mr-0.5 fill-current" /> Preferencial
                               </Badge>
+                            )}
+                            {!isPersisted && (
+                              <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/30">Pendente</Badge>
                             )}
                             {!src.is_active && (
                               <Badge variant="outline" className="text-[10px] text-muted-foreground">Inativo</Badge>
@@ -181,7 +212,7 @@ export function ProductSupplierSection({
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          {!src.is_preferred && (
+                          {isPersisted && !src.is_preferred && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreferred(src.id)}>
@@ -191,29 +222,40 @@ export function ProductSupplierSection({
                               <TooltipContent className="text-xs">Definir como preferencial</TooltipContent>
                             </Tooltip>
                           )}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive">
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Remover fonte?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  O fornecedor "{src.supplier_name}" será desvinculado deste produto.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => removeSource(src.id)}>Remover</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          {isPersisted ? (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Remover fonte?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    O fornecedor "{src.supplier_name}" será desvinculado deste produto.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => removeSource(src.id)}>Remover</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <Button
+                              variant="ghost" size="icon"
+                              className="h-7 w-7 text-destructive/70 hover:text-destructive"
+                              onClick={() => removePending(src.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
