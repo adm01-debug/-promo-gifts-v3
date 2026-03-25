@@ -32,7 +32,6 @@ export interface SupplierFiscalData {
   isInherited: boolean;
   // Internal: variant ID used for VSS (needed for save)
   _variantId?: string;
-  _organizationId?: string;
 }
 
 export interface FiscalOverrideInput {
