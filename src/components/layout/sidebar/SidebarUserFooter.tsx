@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { Settings, LogOut, ChevronUp } from "lucide-react";
+import { Settings, LogOut, ChevronUp, Palette } from "lucide-react";
 import { RestartTourButton } from "@/components/onboarding/RestartTourButton";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
