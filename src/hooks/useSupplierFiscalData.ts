@@ -198,6 +198,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
           branch_icms_interstate: branchData.icms_interstate_rate ?? null,
           isInherited: false,
           _variantId: matchedVariantId || undefined,
+          _organizationId: branchData.organization_id || undefined,
         };
       }
 
