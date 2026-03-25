@@ -25,7 +25,7 @@ interface Props {
   setPreviewUrl: (url: string | null) => void;
   setEditingIndex: (index: number | null) => void;
   handleSetPrimary: (url: string) => void;
-  handleRemove: (url: string) => void;
+  requestRemove: (url: string) => void;
   updateExternalImageMeta: (url: string, data: { alt_text: string; image_type: string; caption: string }) => void;
 }
 
@@ -33,7 +33,7 @@ export function ImageGrid({
   filteredImages, images, extImageMap, variantMap, bulkMode, selectedUrls,
   editingIndex, dragIndex, dragOverIndex, toggleSelect,
   handleDragStart, handleDragOver, handleDrop, handleDragEnd,
-  setPreviewUrl, setEditingIndex, handleSetPrimary, handleRemove, updateExternalImageMeta,
+  setPreviewUrl, setEditingIndex, handleSetPrimary, requestRemove, updateExternalImageMeta,
 }: Props) {
   return (
     <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
@@ -121,7 +121,7 @@ export function ImageGrid({
                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setPreviewUrl(img)}><ZoomIn className="h-3.5 w-3.5" /></Button>
                 {ext && <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setEditingIndex(globalIndex)} title="Editar metadados"><Type className="h-3.5 w-3.5" /></Button>}
                 {!isFirst && <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-amber-400 hover:bg-white/20" onClick={() => handleSetPrimary(img)} title="Definir como principal"><Star className="h-3.5 w-3.5" /></Button>}
-                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-white/20" onClick={() => handleRemove(img)}><X className="h-3.5 w-3.5" /></Button>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-white/20" onClick={() => requestRemove(img)}><X className="h-3.5 w-3.5" /></Button>
               </div>
             )}
           </div>

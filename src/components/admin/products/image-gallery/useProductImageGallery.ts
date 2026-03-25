@@ -1,5 +1,7 @@
 /**
  * Hook: All state and handlers for ProductImageGallery.
+ * P0 fixes: handleRemove now soft-deletes + cleans storage. handleSetPrimary persists.
+ * P1 improvements: isDragOver, upload progress tracking.
  */
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -20,6 +22,7 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadCount, setUploadCount] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0); // current file index
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -32,6 +35,10 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [bulkMode, setBulkMode] = useState(false);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [isDragOverZone, setIsDragOverZone] = useState(false);
+
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; url?: string } | null>(null);
 
   // Fetch external images
   const { data: externalImages = [], isLoading: isLoadingExt } = useQuery<ExternalImage[]>({
@@ -98,6 +105,16 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
     return map;
   }, [variants]);
 
+  // Count images per variant for upload selector
+  const variantImageCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    externalImages.forEach(img => {
+      const key = img.supplier_code || img.variant_id;
+      if (key) counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return counts;
+  }, [externalImages]);
+
   const filteredImages = useMemo(() => {
     let filtered = [...images];
     if (typeFilter !== 'all' || filterMode !== 'all') {
@@ -138,6 +155,19 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
   const uploadFile = useCallback(async (file: File): Promise<string | null> => {
     if (!file.type.startsWith('image/')) { toast.error(`"${file.name}" não é uma imagem válida`); return null; }
     if (file.size > 5 * 1024 * 1024) { toast.error(`"${file.name}" excede 5MB`); return null; }
+
+    // Validate minimum dimensions
+    const minDim = await new Promise<boolean>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(img.src);
+        resolve(img.width >= 200 && img.height >= 200);
+      };
+      img.onerror = () => { URL.revokeObjectURL(img.src); resolve(true); }; // allow if can't check
+      img.src = URL.createObjectURL(file);
+    });
+    if (!minDim) { toast.error(`"${file.name}" tem resolução muito baixa (mínimo 200×200px)`); return null; }
+
     const fileExt = file.name.split('.').pop();
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
     const { data, error } = await supabase.storage.from('personalization-images').upload(fileName, file, { cacheControl: '3600', upsert: false });
@@ -174,9 +204,14 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
     if (files.length === 0) return;
     setIsUploading(true);
     setUploadCount(files.length);
+    setUploadProgress(0);
     try {
-      const uploadResults = await Promise.all(files.map(uploadFile));
-      const uploadedUrls = uploadResults.filter(Boolean) as string[];
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        setUploadProgress(i + 1);
+        const url = await uploadFile(files[i]);
+        if (url) uploadedUrls.push(url);
+      }
       if (uploadedUrls.length === 0) return;
       const variantLabel = uploadVariant !== 'none' ? variantMap.get(uploadVariant)?.color_name || variantMap.get(uploadVariant)?.name || uploadVariant : null;
       const typeLabel = IMAGE_TYPES.find(t => t.value === uploadImageType)?.label || uploadImageType;
@@ -193,6 +228,7 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
     } finally {
       setIsUploading(false);
       setUploadCount(0);
+      setUploadProgress(0);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   }, [images, onChange, productId, uploadVariant, uploadImageType, variantMap, createExternalImageRecord, externalImages, queryClient, removeStorageFileByUrl, uploadFile]);
@@ -201,17 +237,61 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
     await processUploadBatch(Array.from(e.target.files || []));
   };
 
-  const handleRemove = (url: string) => onChange(images.filter(i => i !== url));
+  // P0 FIX: handleRemove now soft-deletes in external DB + cleans storage
+  const handleRemove = useCallback(async (url: string) => {
+    // Remove from local array
+    onChange(images.filter(i => i !== url));
 
-  const handleSetPrimary = (url: string) => {
+    // Soft-delete in external DB
+    const ext = extImageMap.get(url);
+    if (ext?.id && productId) {
+      try {
+        await supabase.functions.invoke('external-db-bridge', {
+          body: { table: 'product_images', operation: 'update', id: ext.id, data: { is_active: false } },
+        });
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      } catch (err) {
+        logger.warn('Erro ao desativar imagem no BD externo:', err);
+      }
+    }
+
+    // Clean storage
+    await removeStorageFileByUrl(url);
+    toast.success('Imagem removida');
+  }, [images, onChange, extImageMap, productId, queryClient, removeStorageFileByUrl]);
+
+  // P0 FIX: handleSetPrimary now persists is_primary in external DB
+  const handleSetPrimary = useCallback(async (url: string) => {
     const idx = images.indexOf(url);
     if (idx <= 0) return;
     const newImages = [...images];
     const [moved] = newImages.splice(idx, 1);
     newImages.unshift(moved);
     onChange(newImages);
+
+    if (productId) {
+      try {
+        // Clear is_primary from all images for this product
+        const currentPrimary = externalImages.find(img => img.is_primary);
+        if (currentPrimary?.id) {
+          await supabase.functions.invoke('external-db-bridge', {
+            body: { table: 'product_images', operation: 'update', id: currentPrimary.id, data: { is_primary: false } },
+          });
+        }
+        // Set new primary
+        const newPrimaryExt = extImageMap.get(url);
+        if (newPrimaryExt?.id) {
+          await supabase.functions.invoke('external-db-bridge', {
+            body: { table: 'product_images', operation: 'update', id: newPrimaryExt.id, data: { is_primary: true, display_order: 0 } },
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      } catch (err) {
+        logger.warn('Erro ao persistir imagem principal:', err);
+      }
+    }
     toast.success('Imagem principal definida');
-  };
+  }, [images, onChange, productId, externalImages, extImageMap, queryClient]);
 
   const persistDisplayOrder = useCallback(async (reorderedUrls: string[]) => {
     if (!productId) return;
@@ -310,23 +390,60 @@ export function useProductImageGallery({ images, onChange, folder, productId }: 
   const handleDropZone = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragOverZone(false);
     await processUploadBatch(Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
   }, [processUploadBatch]);
 
+  const handleDropZoneDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverZone(true);
+  }, []);
+
+  const handleDropZoneDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverZone(false);
+  }, []);
+
+  // Bulk update alt_text with template
+  const bulkUpdateAltText = useCallback(async (template: string) => {
+    if (selectedUrls.size === 0 || !productId) return;
+    setIsBulkUpdating(true);
+    try {
+      const selectedList = Array.from(selectedUrls);
+      const updates = selectedList.map(url => extImageMap.get(url)).filter((ext): ext is ExternalImage => !!ext?.id);
+      await Promise.all(updates.map((ext, i) => {
+        const typeLabel = IMAGE_TYPES.find(t => t.value === ext.image_type)?.label || ext.image_type || 'Imagem';
+        const variantLabel = (ext.supplier_code || ext.variant_id) ? variantMap.get(ext.supplier_code || ext.variant_id || '')?.color_name || '' : '';
+        const altText = template
+          .replace('{tipo}', typeLabel)
+          .replace('{cor}', variantLabel)
+          .replace('{n}', String(i + 1));
+        return supabase.functions.invoke('external-db-bridge', {
+          body: { table: 'product_images', operation: 'update', id: ext.id, data: { alt_text: altText.trim() || null } },
+        });
+      }));
+      queryClient.invalidateQueries({ queryKey: ['product-images-ext', productId] });
+      toast.success(`Alt text atualizado em ${updates.length} imagem(ns)`);
+      clearSelection();
+    } catch { toast.error('Erro ao atualizar alt text em lote'); } finally { setIsBulkUpdating(false); }
+  }, [selectedUrls, productId, extImageMap, variantMap, queryClient, clearSelection]);
+
   return {
     // State
-    isUploading, uploadCount, dragIndex, dragOverIndex, previewUrl, editingIndex,
+    isUploading, uploadCount, uploadProgress, dragIndex, dragOverIndex, previewUrl, editingIndex,
     filterMode, typeFilter, uploadVariant, uploadImageType, fileInputRef,
-    selectedUrls, bulkMode, isBulkUpdating, isLoadingExt,
+    selectedUrls, bulkMode, isBulkUpdating, isLoadingExt, isDragOverZone,
+    deleteConfirm, setDeleteConfirm,
     // Data
-    externalImages, variants, extImageMap, stats, variantMap, filteredImages, activeTypes,
+    externalImages, variants, extImageMap, stats, variantMap, variantImageCounts, filteredImages, activeTypes,
     // Setters
     setPreviewUrl, setEditingIndex, setFilterMode, setTypeFilter,
     setUploadVariant, setUploadImageType, setBulkMode, setSelectedUrls,
     // Handlers
     updateExternalImageMeta, handleFilesChange, handleRemove, handleSetPrimary,
-    handleDragStart, handleDragOver, handleDrop, handleDragEnd, handleDropZone,
+    handleDragStart, handleDragOver, handleDrop, handleDragEnd,
+    handleDropZone, handleDropZoneDragOver, handleDropZoneDragLeave,
     toggleSelect, selectAll, clearSelection,
-    bulkUpdateType, bulkUpdateVariant, bulkDelete,
+    bulkUpdateType, bulkUpdateVariant, bulkDelete, bulkUpdateAltText,
   };
 }
