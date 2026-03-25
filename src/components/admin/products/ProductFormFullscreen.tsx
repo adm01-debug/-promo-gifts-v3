@@ -37,6 +37,7 @@ import { ProductFiscalSection } from './sections/ProductFiscalSection';
 import { ProductSeoSection } from './sections/ProductSeoSection';
 import { ProductMarketingTextsSection } from './sections/ProductMarketingTextsSection';
 import { useSkuValidation } from './hooks/useSkuValidation';
+import { ProductSupplierSourcesSection } from './sections/ProductSupplierSourcesSection';
 
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
 const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
@@ -569,6 +570,12 @@ export function ProductFormFullscreen({
               onSkuManualEdit={() => setSkuManuallyEdited(true)}
             />
             <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
+            <ProductSupplierSourcesSection
+              productId={productId}
+              isEdit={isEdit}
+              primarySupplierId={supplierId}
+              primarySupplierName={formValues.brand || ''}
+            />
           </>
         );
       case 'commercial':
