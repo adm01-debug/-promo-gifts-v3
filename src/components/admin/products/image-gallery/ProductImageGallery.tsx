@@ -36,18 +36,6 @@ export function ProductImageGallery({ images, onChange, folder = 'products', pro
         </div>
       )}
 
-      {/* Empty state for new product */}
-      {!productId && images.length === 0 && (
-        <div className="text-center py-6 border rounded-lg bg-muted/10">
-          <Info className="h-5 w-5 mx-auto mb-2 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">
-            Salve o produto primeiro para habilitar classificação por tipo, vinculação a variações e metadados SEO.
-          </p>
-          <p className="text-xs text-muted-foreground/60 mt-1">
-            Você já pode fazer upload — as imagens serão vinculadas automaticamente após salvar.
-          </p>
-        </div>
-      )}
 
       {/* Filter bar — show when there are images (not just external) */}
       {(g.externalImages.length > 0 || images.length > 3) && (
