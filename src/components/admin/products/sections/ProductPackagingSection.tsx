@@ -1,10 +1,14 @@
 /**
- * Packaging section — box/packaging dimensions and specs
+ * Packaging section — box/packaging dimensions, specs and packaging flags
  */
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { FieldLabel, SectionCard } from '../ProductFormHelpers';
-import { Package } from 'lucide-react';
+import { Package, Info } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { FormSectionProps } from '../ProductFormHelpers';
 
 type Props = FormSectionProps;
@@ -14,6 +18,11 @@ const MATERIALS = ['Papelão', 'Papel Kraft', 'Plástico', 'TNT', 'Veludo', 'Met
 const COLORS = ['Kraft', 'Branco', 'Preto', 'Transparente', 'Prata', 'Dourado'];
 const FINISHES = ['Fosco', 'Brilhante', 'Acetinado', 'Texturizado', 'Laminado'];
 
+const PACKAGING_FLAGS = [
+  { key: 'has_optional_packaging' as const, label: 'Embalagem Opcional', hint: 'A embalagem pode ser removida ou trocada pelo cliente' },
+  { key: 'has_commercial_packaging' as const, label: 'Embalagem Nativa', hint: 'O produto já vem com embalagem comercial do fabricante' },
+];
+
 export function ProductPackagingSection({ register, numericProps, watch, setValue }: Props) {
   const packingType = watch?.('packing_type') || '';
   const packagingMaterial = watch?.('packaging_material') || '';
@@ -22,6 +31,41 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
 
   return (
     <SectionCard id="packaging" title="Embalagem (Caixa)" icon={Package} subtitle="Dimensões e especificações da embalagem">
+      {/* Packaging Flags */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
+        {PACKAGING_FLAGS.map(({ key, label, hint }) => {
+          const value = !!watch?.(key);
+          const toggle = () => setValue?.(key, !value);
+          return (
+            <div
+              key={key}
+              className={cn(
+                'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                value ? 'bg-primary/5 border-primary/20' : 'border-border/50',
+              )}
+              onClick={toggle}
+              role="switch"
+              aria-checked={value}
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
+            >
+              <div className="flex items-center gap-1.5">
+                <Label className="cursor-pointer text-xs font-medium">{label}</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground/40 cursor-help shrink-0" />
+                  </TooltipTrigger>
+                  <TooltipContent className="text-xs max-w-[220px]">{hint}</TooltipContent>
+                </Tooltip>
+              </div>
+              <div onClick={(e) => e.stopPropagation()}>
+                <Switch checked={value} onCheckedChange={toggle} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Tipo + Material + Cor + Acabamento */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div>
