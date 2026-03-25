@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Palette, Sun, Moon, RotateCcw, Check, Save } from 'lucide-react';
+import { Palette, Sun, Moon, RotateCcw, Check, Save, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
