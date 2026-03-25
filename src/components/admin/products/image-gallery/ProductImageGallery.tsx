@@ -3,7 +3,7 @@
  * All logic extracted to useProductImageGallery hook.
  * All UI sections extracted to sub-components.
  */
-import { Filter } from 'lucide-react';
+import { Filter, Loader2, ImageIcon, Info } from 'lucide-react';
 import { useProductImageGallery } from './useProductImageGallery';
 import { ImageFilterBar } from './ImageFilterBar';
 import { ImageBulkToolbar } from './ImageBulkToolbar';
@@ -11,6 +11,7 @@ import { ImageGrid } from './ImageGrid';
 import { ImageUploadArea } from './ImageUploadArea';
 import { ImagePreviewDialog } from './ImagePreviewDialog';
 import { ImageStatsBar } from './ImageStatsBar';
+import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 
 interface ProductImageGalleryProps {
   images: string[];
@@ -22,11 +23,34 @@ interface ProductImageGalleryProps {
 export function ProductImageGallery({ images, onChange, folder = 'products', productId }: ProductImageGalleryProps) {
   const g = useProductImageGallery({ images, onChange, folder, productId });
   const hasVariants = g.stats.byVariant.size > 0;
+  const hasPrimary = g.externalImages.some(img => img.is_primary);
+  const hasOgImage = g.externalImages.some(img => img.is_og_image);
 
   return (
     <div className="space-y-3">
-      {/* Filter bar */}
-      {g.externalImages.length > 0 && (
+      {/* Loading state */}
+      {g.isLoadingExt && productId && (
+        <div className="flex items-center justify-center py-4 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <span className="text-sm">Carregando imagens...</span>
+        </div>
+      )}
+
+      {/* Empty state for new product */}
+      {!productId && images.length === 0 && (
+        <div className="text-center py-6 border rounded-lg bg-muted/10">
+          <Info className="h-5 w-5 mx-auto mb-2 text-muted-foreground/50" />
+          <p className="text-sm text-muted-foreground">
+            Salve o produto primeiro para habilitar classificação por tipo, vinculação a variações e metadados SEO.
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-1">
+            Você já pode fazer upload — as imagens serão vinculadas automaticamente após salvar.
+          </p>
+        </div>
+      )}
+
+      {/* Filter bar — show when there are images (not just external) */}
+      {(g.externalImages.length > 0 || images.length > 3) && (
         <ImageFilterBar
           filterMode={g.filterMode} setFilterMode={g.setFilterMode}
           typeFilter={g.typeFilter} setTypeFilter={g.setTypeFilter}
@@ -43,7 +67,9 @@ export function ProductImageGallery({ images, onChange, folder = 'products', pro
           filteredImagesCount={g.filteredImages.length}
           selectedUrls={g.selectedUrls} setSelectedUrls={g.setSelectedUrls}
           bulkUpdateType={g.bulkUpdateType} bulkUpdateVariant={g.bulkUpdateVariant}
-          bulkDelete={g.bulkDelete} isBulkUpdating={g.isBulkUpdating}
+          bulkUpdateAltText={g.bulkUpdateAltText}
+          requestBulkDelete={() => g.setDeleteConfirm({ type: 'bulk' })}
+          isBulkUpdating={g.isBulkUpdating}
           variants={g.variants}
         />
       )}
@@ -59,7 +85,8 @@ export function ProductImageGallery({ images, onChange, folder = 'products', pro
           handleDragStart={g.handleDragStart} handleDragOver={g.handleDragOver}
           handleDrop={g.handleDrop} handleDragEnd={g.handleDragEnd}
           setPreviewUrl={g.setPreviewUrl} setEditingIndex={g.setEditingIndex}
-          handleSetPrimary={g.handleSetPrimary} handleRemove={g.handleRemove}
+          handleSetPrimary={g.handleSetPrimary}
+          requestRemove={(url) => g.setDeleteConfirm({ type: 'single', url })}
           updateExternalImageMeta={g.updateExternalImageMeta}
         />
       )}
@@ -72,23 +99,45 @@ export function ProductImageGallery({ images, onChange, folder = 'products', pro
         </div>
       )}
 
-      {/* Stats bar */}
-      {g.externalImages.length > 0 && <ImageStatsBar stats={g.stats} />}
+      {/* Stats bar with SEO indicator */}
+      {g.externalImages.length > 0 && (
+        <ImageStatsBar stats={g.stats} hasPrimary={hasPrimary} hasOgImage={hasOgImage} />
+      )}
 
       {/* Upload area */}
       <ImageUploadArea
         productId={productId} variants={g.variants} variantMap={g.variantMap}
+        variantImageCounts={g.variantImageCounts}
         uploadVariant={g.uploadVariant} setUploadVariant={g.setUploadVariant}
         uploadImageType={g.uploadImageType} setUploadImageType={g.setUploadImageType}
-        isUploading={g.isUploading} uploadCount={g.uploadCount}
+        isUploading={g.isUploading} uploadCount={g.uploadCount} uploadProgress={g.uploadProgress}
+        isDragOverZone={g.isDragOverZone}
         fileInputRef={g.fileInputRef} handleFilesChange={g.handleFilesChange}
         handleDropZone={g.handleDropZone}
+        handleDropZoneDragOver={g.handleDropZoneDragOver}
+        handleDropZoneDragLeave={g.handleDropZoneDragLeave}
       />
 
       {/* Preview dialog */}
       <ImagePreviewDialog
         previewUrl={g.previewUrl} onClose={() => g.setPreviewUrl(null)}
         extImageMap={g.extImageMap} variantMap={g.variantMap}
+      />
+
+      {/* Confirm delete dialog */}
+      <ConfirmDeleteDialog
+        open={!!g.deleteConfirm}
+        onCancel={() => g.setDeleteConfirm(null)}
+        onConfirm={() => {
+          if (g.deleteConfirm?.type === 'single' && g.deleteConfirm.url) {
+            g.handleRemove(g.deleteConfirm.url);
+          } else if (g.deleteConfirm?.type === 'bulk') {
+            g.bulkDelete();
+          }
+          g.setDeleteConfirm(null);
+        }}
+        title={g.deleteConfirm?.type === 'bulk' ? 'Remover imagens selecionadas' : 'Remover imagem'}
+        count={g.deleteConfirm?.type === 'bulk' ? g.selectedUrls.size : 1}
       />
     </div>
   );
