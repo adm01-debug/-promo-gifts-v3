@@ -132,7 +132,7 @@ export default function AdminProductFormPage() {
       ean: p.ean ?? '',
       gtin: p.gtin ?? '',
       ipi_rate: p.ipi_rate ?? null,
-      country_of_origin: p.country_of_origin ?? '',
+      country_of_origin: p.country_of_origin ?? p.origin_country ?? '',
       cfop: p.cfop ?? '',
       csosn: p.csosn ?? '',
       icms_rate: p.icms_rate ?? null,
