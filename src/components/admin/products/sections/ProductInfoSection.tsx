@@ -73,6 +73,10 @@ export function ProductInfoSection({
           {errors.sku && <p className="text-[10px] text-destructive mt-1">{errors.sku.message}</p>}
           {skuStatus === 'duplicate' && <p className="text-[10px] text-destructive mt-1">SKU duplicado: "{duplicateName}"</p>}
         </div>
+        <div>
+          <FieldLabel htmlFor="supplier_product_url" hint="Link do produto no site do fornecedor para referência rápida">Link Fornecedor</FieldLabel>
+          <Input id="supplier_product_url" {...register('supplier_product_url')} placeholder="https://fornecedor.com/produto" className="h-9" />
+        </div>
       </div>
 
       {/* Descrição Completa */}
