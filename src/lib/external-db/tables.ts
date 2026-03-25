@@ -20,6 +20,7 @@ export const PRODUCT_TABLES = [
   'product_suppliers',
   'product_print_areas',
   'product_kit_components',
+  'kit_component_media',
   'product_attributes',
   // Cores
   'color_groups',
