@@ -53,7 +53,7 @@ export function VideoUploadArea({
           <SelectContent>
             {VIDEO_TYPES.map(t => (
               <SelectItem key={t.value} value={t.value} className="text-xs">
-                <span className="flex items-center gap-1.5"><t.icon className="h-3.5 w-3.5 text-muted-foreground" />{t.label}</span>
+                <span className="flex items-center gap-1.5"><t.icon className={`h-3.5 w-3.5 ${t.color}`} />{t.label}</span>
               </SelectItem>
             ))}
           </SelectContent>
