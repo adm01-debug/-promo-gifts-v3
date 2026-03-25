@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 import { ComponentForm } from './ComponentForm';
+import { ComponentMediaManager } from './ComponentMediaManager';
 import { PrintAreasManager } from './PrintAreasManager';
 import { VolumeValidation } from './VolumeValidation';
 import { fetchKitComponents, fetchPrintAreas, createComponent, updateComponent, deleteComponent } from './api';
@@ -237,6 +238,11 @@ export function ProductKitComponentsSection({ productId, boxInternalDimensions }
                 {comp.allows_personalization && (
                   <PrintAreasManager componentId={comp.id} componentName={comp.component_name || ''} />
                 )}
+                <ComponentMediaManager
+                  componentId={comp.id}
+                  productId={productId}
+                  componentName={comp.component_name || ''}
+                />
               </div>
             );
           })}

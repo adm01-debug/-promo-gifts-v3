@@ -74,6 +74,45 @@ export type Database = {
         }
         Relationships: []
       }
+      component_media: {
+        Row: {
+          component_id: string
+          created_at: string
+          id: string
+          is_cover: boolean | null
+          media_type: string
+          product_id: string
+          sort_order: number | null
+          title: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          component_id: string
+          created_at?: string
+          id?: string
+          is_cover?: boolean | null
+          media_type?: string
+          product_id: string
+          sort_order?: number | null
+          title?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          component_id?: string
+          created_at?: string
+          id?: string
+          is_cover?: boolean | null
+          media_type?: string
+          product_id?: string
+          sort_order?: number | null
+          title?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       custom_kits: {
         Row: {
           box_data: Json | null
