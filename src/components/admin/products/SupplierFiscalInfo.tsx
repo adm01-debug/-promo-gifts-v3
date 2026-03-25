@@ -210,10 +210,18 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
         )}
         <div className="ml-auto flex items-center gap-1">
           {!isEditing ? (
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={startEditing}>
-              <Pencil className="h-3 w-3" />
-              {data.isInherited ? 'Sobrescrever' : 'Editar'}
-            </Button>
+            <div className="flex items-center gap-1">
+              {!data.isInherited && (
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1 text-destructive hover:text-destructive" onClick={() => setShowRevertDialog(true)}>
+                  <RotateCcw className="h-3 w-3" />
+                  Reverter
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={startEditing}>
+                <Pencil className="h-3 w-3" />
+                {data.isInherited ? 'Sobrescrever' : 'Editar'}
+              </Button>
+            </div>
           ) : (
             <>
               <Button
