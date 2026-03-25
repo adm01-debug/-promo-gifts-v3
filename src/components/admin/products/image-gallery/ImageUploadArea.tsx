@@ -1,6 +1,7 @@
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { Upload, Loader2, ImageIcon, Palette, FileImage } from 'lucide-react';
+import { Upload, Loader2, ImageIcon, Palette, FileImage, Plus } from 'lucide-react';
 import type { VariantInfo } from './types';
 import { IMAGE_TYPES } from './types';
 
@@ -100,7 +101,7 @@ export function ImageUploadArea({
         onDragLeave={handleDropZoneDragLeave}
         onDrop={handleDropZone}
         className={cn(
-          'py-5 px-4 text-center transition-all duration-200 cursor-pointer',
+          'py-6 px-4 flex flex-col items-center justify-center gap-3 transition-all duration-200 cursor-pointer',
           isDragOverZone ? 'bg-primary/8' : 'bg-background/30 hover:bg-muted/20',
           isUploading && 'bg-muted/20 pointer-events-none'
         )}
@@ -121,18 +122,23 @@ export function ImageUploadArea({
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-2 text-sm">
-              {isDragOverZone ? (
-                <><FileImage className="h-5 w-5 text-primary" /><span className="text-primary font-medium">Solte as imagens aqui</span></>
-              ) : (
-                <><Upload className="h-4 w-4 text-muted-foreground/60" /><span className="text-muted-foreground">Arraste imagens aqui ou clique para enviar</span></>
-              )}
+          <>
+            <div className={cn(
+              "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+              isDragOverZone ? "bg-primary/15" : "bg-muted/30"
+            )}>
+              {isDragOverZone ? <FileImage className="h-5 w-5 text-primary" /> : <Upload className="h-5 w-5 text-muted-foreground/50" />}
             </div>
-            <p className="text-[11px] text-muted-foreground/50">
-              PNG, JPG até 5MB • Mín. 200×200px • Múltiplas imagens
-            </p>
-          </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                {isDragOverZone ? <span className="text-primary font-medium">Solte as imagens aqui</span> : 'Arraste imagens aqui ou clique para enviar'}
+              </p>
+              <p className="text-[11px] text-muted-foreground/50 mt-0.5">PNG, JPG até 5MB • Mín. 200×200px • Múltiplas imagens</p>
+            </div>
+            <Button type="button" variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border/40">
+              <Plus className="h-3.5 w-3.5" /> Selecionar imagens
+            </Button>
+          </>
         )}
       </div>
     </div>
