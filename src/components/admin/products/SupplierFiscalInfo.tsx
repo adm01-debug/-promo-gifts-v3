@@ -312,6 +312,20 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
           Dados herdados da filial padrão. Clique em "Sobrescrever" para definir valores específicos para este produto.
         </p>
       )}
+
+      {/* Revert confirmation dialog */}
+      <DeleteConfirmDialog
+        open={showRevertDialog}
+        onOpenChange={setShowRevertDialog}
+        entityName="sobrescrita fiscal"
+        itemName="dados fiscais específicos"
+        onConfirm={handleRevert}
+        loading={isReverting}
+        affectedItems={[
+          'Os dados fiscais específicos deste produto serão removidos',
+          'O sistema voltará a usar os dados herdados da filial',
+        ]}
+      />
     </div>
   );
 }
