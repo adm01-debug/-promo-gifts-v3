@@ -1300,11 +1300,13 @@ Deno.serve(async (req) => {
         }
 
         const isHeavyTable = ['products', 'product_images', 'product_variants', 'color_variations', 'product_categories', 'product_category_assignments'].includes(table);
+        const isVeryHeavyTable = ['products', 'product_images'].includes(table);
         const hasSearchFilter = filters && '_search' in filters;
 
         // Heavy tables or search queries: avoid exact count to prevent timeouts
+        // Very heavy tables (products, product_images) default to 'none' to prevent statement timeouts
         const countMode = requestCountMode
-          ?? (hasSearchFilter ? 'none' : (isHeavyTable ? 'planned' : 'exact'));
+          ?? (hasSearchFilter ? 'none' : (isVeryHeavyTable ? 'none' : (isHeavyTable ? 'planned' : 'exact')));
 
         const queryCountMode = countMode === 'none' ? undefined : countMode;
 
