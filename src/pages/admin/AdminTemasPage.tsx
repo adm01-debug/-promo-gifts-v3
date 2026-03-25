@@ -15,8 +15,6 @@ import {
   applyRadius,
   clearThemeOverrides,
   getDefaultConfig,
-  exportThemeConfig,
-  importThemeConfig,
 } from '@/lib/theme-presets';
 
 export default function AdminTemasPage() {
