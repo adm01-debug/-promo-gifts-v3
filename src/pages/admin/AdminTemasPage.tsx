@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Palette, Sun, Moon, Upload, Download, RotateCcw, Check } from 'lucide-react';
+import { Palette, Sun, Moon, RotateCcw, Check, Save } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -15,8 +15,6 @@ import {
   applyRadius,
   clearThemeOverrides,
   getDefaultConfig,
-  exportThemeConfig,
-  importThemeConfig,
 } from '@/lib/theme-presets';
 
 export default function AdminTemasPage() {
@@ -53,26 +51,9 @@ export default function AdminTemasPage() {
     toast.success('Tema restaurado ao padrão');
   };
 
-  const handleExport = () => {
-    const json = exportThemeConfig(config);
-    navigator.clipboard.writeText(json);
-    toast.success('Configuração copiada para a área de transferência');
-  };
-
-  const handleImport = () => {
-    const json = prompt('Cole a configuração JSON do tema:');
-    if (!json) return;
-    const imported = importThemeConfig(json);
-    if (imported) {
-      setConfig(imported);
-      saveThemeConfig(imported);
-      if (imported.mode === 'light' || imported.mode === 'dark') {
-        setAppTheme(imported.mode);
-      }
-      toast.success('Tema importado com sucesso');
-    } else {
-      toast.error('JSON inválido');
-    }
+  const handleSave = () => {
+    saveThemeConfig(config);
+    toast.success('Tema salvo com sucesso');
   };
 
   return (
@@ -89,19 +70,14 @@ export default function AdminTemasPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleImport}>
-            <Upload className="h-4 w-4 mr-1.5" /> Importar
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1.5" /> Exportar
-          </Button>
           <Button variant="outline" size="sm" onClick={handleReset}>
             <RotateCcw className="h-4 w-4 mr-1.5" /> Reset
           </Button>
+          <Button size="sm" onClick={handleSave}>
+            <Save className="h-4 w-4 mr-1.5" /> Salvar
+          </Button>
         </div>
       </div>
-
-      {/* Color Mode */}
       <Card>
         <CardContent className="pt-6">
           <h2 className="text-sm font-semibold text-foreground mb-3">Modo de Cor</h2>
