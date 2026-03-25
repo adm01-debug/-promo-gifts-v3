@@ -1,4 +1,5 @@
 import React, { Suspense } from "react";
+import { useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,7 +26,17 @@ function TabFallback() {
   );
 }
 
+const VALID_TABS = ["products", "suppliers", "personalizacao"] as const;
+
 export default function AdminCadastrosPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const activeTab = VALID_TABS.includes(tabParam as any) ? tabParam! : "products";
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value }, { replace: true });
+  };
+
   return (
     <MainLayout>
       <PageSEO title="Cadastros" description="Gerencie produtos, fornecedores e técnicas de personalização." path="/admin/cadastros" noIndex />
@@ -40,7 +51,7 @@ export default function AdminCadastrosPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="products" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList>
             <TabsTrigger value="products" className="gap-2">
               <Package className="h-4 w-4" />
