@@ -55,11 +55,11 @@ function formatRemaining(expiresAt: string | null): string | null {
 type ExpiryKey = 'is_featured_expires_at' | 'is_bestseller_expires_at' | 'is_new_expires_at' | 'is_on_sale_expires_at';
 
 const FLAG_CONFIG: { key: keyof ProductFormData; label: string; hint: string; expiryKey?: ExpiryKey; activeClass?: string }[] = [
-  { key: 'is_active', label: 'Produto Ativo', hint: 'Define se o produto aparece no catálogo e pode ser adicionado a orçamentos', activeClass: 'bg-success/8 border-success/30' },
-  { key: 'is_featured', label: 'Destaque', hint: 'Exibe o produto em posições de destaque no catálogo', expiryKey: 'is_featured_expires_at' },
-  { key: 'is_bestseller', label: 'Mais Vendido', hint: 'Marca o produto como best-seller para filtros e exibição especial', expiryKey: 'is_bestseller_expires_at' },
-  { key: 'is_new', label: 'Lançamento', hint: 'Indica que o produto é um lançamento recente no catálogo', expiryKey: 'is_new_expires_at' },
-  { key: 'is_on_sale', label: 'Em Promoção', hint: 'Sinaliza o produto com badge de promoção', expiryKey: 'is_on_sale_expires_at' },
+  { key: 'is_active', label: 'Produto Ativo', hint: 'Define se o produto aparece no catálogo e pode ser adicionado a orçamentos', activeClass: 'bg-success/10 border-success/40' },
+  { key: 'is_featured', label: 'Destaque', hint: 'Exibe o produto em posições de destaque no catálogo', expiryKey: 'is_featured_expires_at', activeClass: 'bg-primary/10 border-primary/40' },
+  { key: 'is_bestseller', label: 'Mais Vendido', hint: 'Marca o produto como best-seller para filtros e exibição especial', expiryKey: 'is_bestseller_expires_at', activeClass: 'bg-warning/10 border-warning/40' },
+  { key: 'is_new', label: 'Lançamento', hint: 'Indica que o produto é um lançamento recente no catálogo', expiryKey: 'is_new_expires_at', activeClass: 'bg-info/10 border-info/40' },
+  { key: 'is_on_sale', label: 'Em Promoção', hint: 'Sinaliza o produto com badge de promoção', expiryKey: 'is_on_sale_expires_at', activeClass: 'bg-destructive/10 border-destructive/40' },
 ];
 
 export function ProductFlagsSection({ setValue, flags, expirations }: Props) {
