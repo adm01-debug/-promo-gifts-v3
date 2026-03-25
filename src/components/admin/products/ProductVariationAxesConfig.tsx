@@ -1,25 +1,28 @@
 /**
  * ProductVariationAxesConfig — configura quais eixos de variação
- * o produto utiliza (Cor, Tamanho, Capacidade, etc.)
+ * o produto utiliza (Cor, Tamanho, Capacidade, Gênero)
  *
- * Lê os valores existentes das variantes e permite habilitar/desabilitar eixos
- * e gerenciar os valores possíveis para cada eixo.
+ * Lê os valores existentes das variantes e permite habilitar/desabilitar eixos.
+ * Gênero é um eixo especial que lê/escreve em products.gender (nível de produto).
  */
 
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  Palette, Ruler, Beaker, Settings2, Plus, X, ChevronDown, ChevronRight,
+  Palette, Ruler, Beaker, Settings2, ChevronDown, ChevronRight, Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Collapsible,
   CollapsibleContent,
@@ -34,10 +37,9 @@ interface AxisDefinition {
   icon: React.ElementType;
   description: string;
   field: string; // campo no product_variants
-  colorHint?: string;
 }
 
-const AVAILABLE_AXES: AxisDefinition[] = [
+const VARIANT_AXES: AxisDefinition[] = [
   {
     key: 'color',
     label: 'Cor',
@@ -61,11 +63,19 @@ const AVAILABLE_AXES: AxisDefinition[] = [
   },
 ];
 
-// Tamanhos padrão pré-definidos para sugestão rápida
 const PRESET_SIZES = ['PP', 'P', 'M', 'G', 'GG', 'XG', '2XG', '3XG'];
+
+const GENDER_OPTIONS = [
+  { value: 'unissex', label: 'Unissex' },
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'feminino', label: 'Feminino' },
+  { value: 'infantil', label: 'Infantil' },
+];
 
 interface ProductVariationAxesConfigProps {
   productId: string;
+  gender?: string;
+  onGenderChange?: (value: string) => void;
 }
 
 interface VariantRecord {
@@ -79,9 +89,8 @@ interface VariantRecord {
 
 /* ── Component ── */
 
-export function ProductVariationAxesConfig({ productId }: ProductVariationAxesConfigProps) {
+export function ProductVariationAxesConfig({ productId, gender, onGenderChange }: ProductVariationAxesConfigProps) {
   const [expandedAxis, setExpandedAxis] = useState<string | null>(null);
-  const [newValue, setNewValue] = useState('');
 
   // Fetch existing variants to detect active axes
   const { data: variants = [], isLoading } = useQuery({
@@ -107,7 +116,7 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
   const axisState = useMemo(() => {
     const state: Record<string, { active: boolean; values: string[] }> = {};
 
-    for (const axis of AVAILABLE_AXES) {
+    for (const axis of VARIANT_AXES) {
       const values = new Set<string>();
       for (const v of variants) {
         const val = v[axis.field as keyof VariantRecord];
@@ -118,7 +127,6 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
       state[axis.key] = {
         active: values.size > 0,
         values: Array.from(values).sort((a, b) => {
-          // Smart sort for sizes
           if (axis.key === 'size') {
             const order = ['PP', 'P', 'M', 'G', 'GG', 'XG', '2XG', '3XG', 'EG', 'EGG'];
             const ia = order.indexOf(a.toUpperCase());
@@ -138,7 +146,9 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
     return state;
   }, [variants]);
 
-  const activeCount = Object.values(axisState).filter(s => s.active).length;
+  const activeVariantCount = Object.values(axisState).filter(s => s.active).length;
+  const hasGender = !!gender;
+  const totalActive = activeVariantCount + (hasGender ? 1 : 0);
 
   const toggleAxis = useCallback((axisKey: string) => {
     setExpandedAxis(prev => prev === axisKey ? null : axisKey);
@@ -147,6 +157,7 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
   if (isLoading) {
     return (
       <div className="space-y-2">
+        <Skeleton className="h-10 w-full rounded-lg" />
         <Skeleton className="h-10 w-full rounded-lg" />
         <Skeleton className="h-10 w-full rounded-lg" />
         <Skeleton className="h-10 w-full rounded-lg" />
@@ -160,14 +171,23 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
         <Settings2 className="h-3.5 w-3.5" />
         <span>
-          {activeCount === 0
-            ? 'Nenhum eixo de variação detectado — adicione variações para ativar'
-            : `${activeCount} ${activeCount === 1 ? 'eixo ativo' : 'eixos ativos'} (baseado nas variações cadastradas)`
+          {totalActive === 0
+            ? 'Nenhum eixo de variação configurado'
+            : `${totalActive} ${totalActive === 1 ? 'eixo ativo' : 'eixos ativos'}`
           }
         </span>
       </div>
 
-      {AVAILABLE_AXES.map(axis => {
+      {/* Gender axis — special: product-level field with Select */}
+      <GenderAxis
+        gender={gender}
+        onGenderChange={onGenderChange}
+        isExpanded={expandedAxis === 'gender'}
+        onToggle={() => toggleAxis('gender')}
+      />
+
+      {/* Variant-based axes */}
+      {VARIANT_AXES.map(axis => {
         const state = axisState[axis.key];
         const isExpanded = expandedAxis === axis.key;
         const AxisIcon = axis.icon;
@@ -186,7 +206,6 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
                   : 'border-border/40 bg-muted/10 opacity-60',
               )}
             >
-              {/* Axis header */}
               <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-lg">
                 <div className={cn(
                   'flex items-center justify-center w-8 h-8 rounded-md',
@@ -218,10 +237,8 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
                 )}
               </CollapsibleTrigger>
 
-              {/* Expanded: show values */}
               <CollapsibleContent>
                 <div className="px-3 pb-3 pt-1 space-y-2 border-t border-border/30">
-                  {/* Current values */}
                   {state.values.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
                       {state.values.map(val => (
@@ -248,7 +265,6 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
                     </p>
                   )}
 
-                  {/* Presets for sizes */}
                   {axis.key === 'size' && (
                     <div className="space-y-1">
                       <Label className="text-[11px] text-muted-foreground">Tamanhos sugeridos:</Label>
@@ -276,7 +292,6 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
                     </div>
                   )}
 
-                  {/* Info hint */}
                   <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
                     💡 Os valores são extraídos automaticamente das variações cadastradas.
                     Para adicionar um novo valor, crie uma variação com o {axis.label.toLowerCase()} desejado.
@@ -288,6 +303,90 @@ export function ProductVariationAxesConfig({ productId }: ProductVariationAxesCo
         );
       })}
     </div>
+  );
+}
+
+/* ── Gender Axis (special) ── */
+
+function GenderAxis({
+  gender,
+  onGenderChange,
+  isExpanded,
+  onToggle,
+}: {
+  gender?: string;
+  onGenderChange?: (v: string) => void;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const hasValue = !!gender;
+  const genderLabel = GENDER_OPTIONS.find(o => o.value === gender)?.label || gender;
+
+  return (
+    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <div
+        className={cn(
+          'rounded-lg border transition-colors',
+          hasValue
+            ? 'border-blue-500/30 bg-blue-500/5'
+            : 'border-border/40 bg-muted/10 opacity-60',
+        )}
+      >
+        <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-lg">
+          <div className={cn(
+            'flex items-center justify-center w-8 h-8 rounded-md',
+            hasValue ? 'bg-blue-500/15 text-blue-500' : 'bg-muted text-muted-foreground',
+          )}>
+            <Users className="h-4 w-4" />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Gênero</span>
+              {hasValue ? (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-500 border-blue-500/20">
+                  {genderLabel}
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  Não definido
+                </Badge>
+              )}
+            </div>
+            <p className="text-[11px] text-muted-foreground truncate">Público-alvo primário do produto</p>
+          </div>
+
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+          )}
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="px-3 pb-3 pt-1 border-t border-border/30">
+            <div className="max-w-xs">
+              <Label className="text-[11px] text-muted-foreground mb-1.5 block">Público-alvo</Label>
+              <Select value={gender || ''} onValueChange={(v) => onGenderChange?.(v)}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENDER_OPTIONS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-[10px] text-muted-foreground/70 leading-relaxed mt-2">
+              💡 Define o público-alvo do produto. Utilizado nos filtros do catálogo e nos orçamentos.
+            </p>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 }
 
