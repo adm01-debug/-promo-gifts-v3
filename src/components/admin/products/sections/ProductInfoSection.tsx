@@ -102,7 +102,7 @@ export function ProductInfoSection({
           <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
         </div>
         <div>
-          <FieldLabel htmlFor="supply_mode" hint="Define se o produto é mantido em estoque ou fabricado sob demanda">Modo de Fornecimento</FieldLabel>
+          <FieldLabel htmlFor="supply_mode" hint="Define se o fornecedor mantém o produto em estoque pronto ou se fabrica sob demanda, podendo entregá-lo liso ou já personalizado">Modo de Fornecimento</FieldLabel>
           <Select value={watch?.('supply_mode') || ''} onValueChange={(v) => setValue?.('supply_mode', v)}>
             <SelectTrigger className="h-9">
               <SelectValue placeholder="Selecione..." />
