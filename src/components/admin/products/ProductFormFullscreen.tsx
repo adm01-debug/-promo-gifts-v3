@@ -569,6 +569,7 @@ export function ProductFormFullscreen({
       case 'commercial':
         return (
           <>
+            <ProductFlagsSection setValue={setValue} flags={flags} />
             <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
               <CategoryCascadeSelector
                 value={formValues.category_id || ''}
@@ -576,7 +577,6 @@ export function ProductFormFullscreen({
                 error={errors.category_id?.message}
               />
             </SectionCard>
-            <ProductFlagsSection setValue={setValue} flags={flags} />
           </>
         );
       case 'packaging':
