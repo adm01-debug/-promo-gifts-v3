@@ -149,7 +149,24 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
     }
   }, [form, saveFiscalOverride]);
 
-  const updateField = useCallback((field: keyof FiscalOverrideInput, value: string) => {
+  const handleRevert = useCallback(async () => {
+    setIsReverting(true);
+    try {
+      const success = await revertToInherited();
+      if (success) {
+        toast.success('Dados revertidos para herança da filial');
+        setShowRevertDialog(false);
+      } else {
+        toast.error('Erro ao reverter dados fiscais');
+      }
+    } catch {
+      toast.error('Erro ao reverter dados fiscais');
+    } finally {
+      setIsReverting(false);
+    }
+  }, [revertToInherited]);
+
+
     setForm(prev => ({
       ...prev,
       [field]: value === '' ? null : (['icms_rate', 'pis_rate', 'cofins_rate'].includes(field) ? parseFloat(value) || null : value),
