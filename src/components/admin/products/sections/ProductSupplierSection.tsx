@@ -142,6 +142,10 @@ export function ProductSupplierSection({
             </div>
             <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
           </div>
+          {/* Primary supplier fiscal info */}
+          {supplierId && productId && (
+            <SupplierFiscalInfo productId={productId} supplierId={supplierId} />
+          )}
         </div>
 
         {/* ── Separator ── */}
