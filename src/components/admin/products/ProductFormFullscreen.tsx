@@ -337,6 +337,13 @@ export function ProductFormFullscreen({
     has_commercial_packaging: formValues.has_commercial_packaging,
   };
 
+  const expirations: Record<string, string | null> = {
+    is_featured_expires_at: formValues.is_featured_expires_at ?? null,
+    is_bestseller_expires_at: formValues.is_bestseller_expires_at ?? null,
+    is_new_expires_at: formValues.is_new_expires_at ?? null,
+    is_on_sale_expires_at: formValues.is_on_sale_expires_at ?? null,
+  };
+
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
   // Effects (same as before)
