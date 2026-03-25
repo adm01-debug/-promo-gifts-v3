@@ -4,8 +4,6 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CategorySelect } from '../CategorySelect';
-import { NewCategoryDialog } from '../NewCategoryDialog';
 import { FieldLabel, SectionCard } from '../ProductFormHelpers';
 import { Info, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -89,20 +87,11 @@ export function ProductInfoSection({
         <Input id="short_description" {...register('short_description')} placeholder="Resumo curto do produto" className="h-9" />
       </div>
 
-      {/* Marca + Categoria */}
+      {/* Marca */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <FieldLabel htmlFor="brand" hint="Fabricante ou marca comercial do produto">Marca</FieldLabel>
           <Input id="brand" {...register('brand')} placeholder="Ex: Tramontina" className="h-9" />
-        </div>
-        <div>
-          <FieldLabel hint="Categoria principal do produto no catálogo. Usada para filtros e organização.">Categoria</FieldLabel>
-          <div className="flex items-start gap-2">
-            <div className="flex-1">
-              <CategorySelect value={categoryId || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
-            </div>
-            <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
-          </div>
         </div>
       </div>
 

@@ -7,7 +7,9 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
-import { FieldLabel } from './ProductFormHelpers';
+import { FieldLabel, SectionCard } from './ProductFormHelpers';
+import { CategorySelect } from './CategorySelect';
+import { NewCategoryDialog } from './NewCategoryDialog';
 import { ProductPreviewPanel } from './ProductPreviewPanel';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -536,6 +538,14 @@ export function ProductFormFullscreen({
       case 'essentials':
         return (
           <>
+            <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
+              <div className="flex items-start gap-2">
+                <div className="flex-1">
+                  <CategorySelect value={formValues.category_id || ''} onChange={(id) => setValue('category_id', id)} error={errors.category_id?.message} />
+                </div>
+                <NewCategoryDialog onCreated={(id) => setValue('category_id', id)} />
+              </div>
+            </SectionCard>
             <ProductSupplierSection
               supplierId={supplierId}
               onSupplierChange={(id, name, markupPercent) => {
