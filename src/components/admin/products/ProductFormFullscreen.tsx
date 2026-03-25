@@ -561,11 +561,8 @@ export function ProductFormFullscreen({
               }}
               setValue={setValue}
               errors={errors}
-            />
-            <ProductSupplierSourcesSection
               productId={productId}
               isEdit={isEdit}
-              primarySupplierId={supplierId}
               primarySupplierName={formValues.brand || ''}
             />
             <ProductInfoSection
