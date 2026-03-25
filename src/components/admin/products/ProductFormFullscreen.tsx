@@ -42,6 +42,7 @@ import { useSkuValidation } from './hooks/useSkuValidation';
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
 const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
 const ProductEngravingSection = lazyWithRetry(() => import('./sections/ProductEngravingSection'));
+const ProductKitComponentsSection = lazyWithRetry(() => import('../products/kit-components/ProductKitComponentsSection').then(m => ({ default: m.ProductKitComponentsSection })));
 
 function SectionSkeleton() {
   return (
