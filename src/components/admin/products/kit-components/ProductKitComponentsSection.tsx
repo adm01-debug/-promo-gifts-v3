@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 import { ComponentForm } from './ComponentForm';
+import { ComponentMediaManager } from './ComponentMediaManager';
 import { PrintAreasManager } from './PrintAreasManager';
 import { VolumeValidation } from './VolumeValidation';
 import { fetchKitComponents, fetchPrintAreas, createComponent, updateComponent, deleteComponent } from './api';
