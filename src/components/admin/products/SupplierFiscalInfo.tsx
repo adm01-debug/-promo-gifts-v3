@@ -9,7 +9,8 @@ import { useState, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Building2, FileText, Loader2, ArrowDownFromLine, Pencil, Save, X } from 'lucide-react';
+import { Building2, FileText, Loader2, ArrowDownFromLine, Pencil, Save, X, RotateCcw } from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useSupplierFiscalData, type FiscalOverrideInput } from '@/hooks/useSupplierFiscalData';
 import { toast } from 'sonner';
 
@@ -99,9 +100,11 @@ function formatTaxRegime(regime: string | null): string | null {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export function SupplierFiscalInfo({ productId, supplierId }: Props) {
-  const { data, isLoading, saveFiscalOverride } = useSupplierFiscalData(productId, supplierId);
+  const { data, isLoading, saveFiscalOverride, revertToInherited } = useSupplierFiscalData(productId, supplierId);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showRevertDialog, setShowRevertDialog] = useState(false);
+  const [isReverting, setIsReverting] = useState(false);
 
   // Edit form state
   const [form, setForm] = useState<FiscalOverrideInput>({
@@ -146,7 +149,24 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
     }
   }, [form, saveFiscalOverride]);
 
-  const updateField = useCallback((field: keyof FiscalOverrideInput, value: string) => {
+  const handleRevert = useCallback(async () => {
+    setIsReverting(true);
+    try {
+      const success = await revertToInherited();
+      if (success) {
+        toast.success('Dados revertidos para herança da filial');
+        setShowRevertDialog(false);
+      } else {
+        toast.error('Erro ao reverter dados fiscais');
+      }
+    } catch {
+      toast.error('Erro ao reverter dados fiscais');
+    } finally {
+      setIsReverting(false);
+    }
+  }, [revertToInherited]);
+
+
     setForm(prev => ({
       ...prev,
       [field]: value === '' ? null : (['icms_rate', 'pis_rate', 'cofins_rate'].includes(field) ? parseFloat(value) || null : value),
@@ -190,10 +210,18 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
         )}
         <div className="ml-auto flex items-center gap-1">
           {!isEditing ? (
-            <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={startEditing}>
-              <Pencil className="h-3 w-3" />
-              {data.isInherited ? 'Sobrescrever' : 'Editar'}
-            </Button>
+            <div className="flex items-center gap-1">
+              {!data.isInherited && (
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1 text-destructive hover:text-destructive" onClick={() => setShowRevertDialog(true)}>
+                  <RotateCcw className="h-3 w-3" />
+                  Reverter
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={startEditing}>
+                <Pencil className="h-3 w-3" />
+                {data.isInherited ? 'Sobrescrever' : 'Editar'}
+              </Button>
+            </div>
           ) : (
             <>
               <Button
@@ -284,6 +312,20 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
           Dados herdados da filial padrão. Clique em "Sobrescrever" para definir valores específicos para este produto.
         </p>
       )}
+
+      {/* Revert confirmation dialog */}
+      <DeleteConfirmDialog
+        open={showRevertDialog}
+        onOpenChange={setShowRevertDialog}
+        entityName="sobrescrita fiscal"
+        itemName="dados fiscais específicos"
+        onConfirm={handleRevert}
+        loading={isReverting}
+        affectedItems={[
+          'Os dados fiscais específicos deste produto serão removidos',
+          'O sistema voltará a usar os dados herdados da filial',
+        ]}
+      />
     </div>
   );
 }
