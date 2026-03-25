@@ -294,6 +294,23 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
           data: payload,
         });
       } else {
+        // Fetch organization_id from an existing VSS record for this supplier
+        let organizationId: string | null = null;
+        try {
+          const orgResult = await invokeExternalDb<{ organization_id: string }>({
+            table: 'variant_supplier_sources',
+            operation: 'select',
+            select: 'organization_id',
+            filters: { supplier_id: supplierId },
+            limit: 1,
+          });
+          if (orgResult.records.length) {
+            organizationId = orgResult.records[0].organization_id;
+          }
+        } catch (e) {
+          console.warn('[saveFiscalOverride] Could not fetch org_id from existing VSS:', e);
+        }
+
         // Create new VSS with supplier_branch_id from inherited data
         await invokeExternalDb({
           table: 'variant_supplier_sources',
@@ -303,6 +320,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
             supplier_id: supplierId,
             variant_id: variantId,
             supplier_branch_id: currentData?.supplier_branch_id || null,
+            ...(organizationId ? { organization_id: organizationId } : {}),
           },
         });
       }
