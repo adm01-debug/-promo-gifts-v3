@@ -13,6 +13,27 @@ interface Props {
   supplierId: string | undefined;
 }
 
+function FiscalFieldPair({ label1, value1, label2, value2, mono = false }: { label1: string; value1: string | null | undefined; label2: string; value2: string | null | undefined; mono?: boolean }) {
+  if (!value1 && !value2) return null;
+  return (
+    <div className="flex items-baseline gap-1.5">
+      {value1 && (
+        <>
+          <span className="text-[11px] text-muted-foreground whitespace-nowrap">{label1}:</span>
+          <span className={`text-xs font-medium ${mono ? 'font-mono' : ''}`}>{value1}</span>
+        </>
+      )}
+      {value1 && value2 && <span className="text-[10px] text-muted-foreground/50 mx-0.5">/</span>}
+      {value2 && (
+        <>
+          <span className="text-[11px] text-muted-foreground whitespace-nowrap">{label2}:</span>
+          <span className={`text-xs font-medium ${mono ? 'font-mono' : ''}`}>{value2}</span>
+        </>
+      )}
+    </div>
+  );
+}
+
 function FiscalField({ label, value, mono = false }: { label: string; value: string | number | null | undefined; mono?: boolean }) {
   if (value == null || value === '') return null;
   return (
