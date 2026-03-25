@@ -50,33 +50,68 @@ export function ProductSupplierSection({
   productId, isEdit, primarySupplierName,
 }: Props) {
   const { sources, isLoading, addSource, removeSource, setPreferred } = useProductSupplierSources(productId);
+  const [pendingSources, setPendingSources] = useState<Array<SupplierSourceInput & { _localId: string }>>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
+  // Combine persisted + pending sources for display
+  const allSources = [
+    ...sources.map(s => ({ ...s, _localId: s.id, _persisted: true as const })),
+    ...pendingSources.map(s => ({ ...s, id: s._localId, created_at: '', updated_at: '', _persisted: false as const })),
+  ];
+
   const handleAdd = async () => {
-    if (!form.supplier_id || !productId) return;
-    setSaving(true);
-    const input: SupplierSourceInput = {
-      product_id: productId,
-      supplier_id: form.supplier_id,
-      supplier_name: form.supplier_name,
-      supplier_sku: form.supplier_sku || null,
-      cost_price: form.cost_price,
-      sale_price: form.sale_price,
-      lead_time_days: form.lead_time_days,
-      stock_quantity: form.stock_quantity,
-      min_order_quantity: form.min_order_quantity,
-      is_preferred: sources.length === 0,
-      is_active: true,
-      notes: form.notes || null,
-    };
-    const ok = await addSource(input);
-    setSaving(false);
-    if (ok) {
+    if (!form.supplier_id) return;
+
+    if (productId) {
+      // Persisted mode
+      setSaving(true);
+      const input: SupplierSourceInput = {
+        product_id: productId,
+        supplier_id: form.supplier_id,
+        supplier_name: form.supplier_name,
+        supplier_sku: form.supplier_sku || null,
+        cost_price: form.cost_price,
+        sale_price: form.sale_price,
+        lead_time_days: form.lead_time_days,
+        stock_quantity: form.stock_quantity,
+        min_order_quantity: form.min_order_quantity,
+        is_preferred: sources.length === 0,
+        is_active: true,
+        notes: form.notes || null,
+      };
+      const ok = await addSource(input);
+      setSaving(false);
+      if (ok) {
+        setForm(emptyForm);
+        setDialogOpen(false);
+      }
+    } else {
+      // Local-only mode (product not yet saved)
+      const localEntry: SupplierSourceInput & { _localId: string } = {
+        _localId: crypto.randomUUID(),
+        product_id: '',
+        supplier_id: form.supplier_id,
+        supplier_name: form.supplier_name,
+        supplier_sku: form.supplier_sku || null,
+        cost_price: form.cost_price,
+        sale_price: form.sale_price,
+        lead_time_days: form.lead_time_days,
+        stock_quantity: form.stock_quantity,
+        min_order_quantity: form.min_order_quantity,
+        is_preferred: pendingSources.length === 0 && sources.length === 0,
+        is_active: true,
+        notes: form.notes || null,
+      };
+      setPendingSources(prev => [...prev, localEntry]);
       setForm(emptyForm);
       setDialogOpen(false);
     }
+  };
+
+  const removePending = (localId: string) => {
+    setPendingSources(prev => prev.filter(s => s._localId !== localId));
   };
 
   const formatCurrency = (v: number | null) =>
