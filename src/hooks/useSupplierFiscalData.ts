@@ -153,6 +153,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
         return {
           cst: vss.cst,
           cfop: vss.cfop,
+          cfop_interstate: null,
           icms_rate: vss.icms_rate,
           pis_rate: vss.pis_rate,
           cofins_rate: vss.cofins_rate,
