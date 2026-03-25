@@ -234,10 +234,34 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
     try {
       // Get existing data to know if we're creating or updating
       const currentData = query.data;
-      const variantId = currentData?._variantId;
+      let variantId = currentData?._variantId;
+
+      // If no variant exists, create a default one for this product
+      if (!variantId) {
+        console.log('[saveFiscalOverride] No variant found, creating default variant for product:', productId);
+        try {
+          const createResult = await invokeExternalDb<{ id: string }>({
+            table: 'product_variants',
+            operation: 'insert',
+            data: {
+              product_id: productId,
+              sku: `DEFAULT-${productId.substring(0, 8)}`,
+              is_active: true,
+              attributes: {},
+            },
+          });
+          if (createResult.records?.length) {
+            variantId = createResult.records[0].id;
+          } else if ((createResult as any).id) {
+            variantId = (createResult as any).id;
+          }
+        } catch (err) {
+          console.error('[saveFiscalOverride] Failed to create default variant:', err);
+        }
+      }
 
       if (!variantId) {
-        console.error('[saveFiscalOverride] No variant ID available');
+        console.error('[saveFiscalOverride] No variant ID available even after creation attempt');
         return false;
       }
 

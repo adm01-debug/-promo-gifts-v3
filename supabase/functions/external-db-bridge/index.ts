@@ -1511,13 +1511,17 @@ Deno.serve(async (req) => {
           break;
         }
 
+        // Tables without created_at/updated_at columns
+        const TABLES_WITHOUT_TIMESTAMPS = ['variant_supplier_sources'];
+        const hasTimestamps = !TABLES_WITHOUT_TIMESTAMPS.includes(table);
+
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
         const insertData: Record<string, unknown> = sanitizeExternalWriteData(table, {
           ...data,
-          updated_at: new Date().toISOString(),
+          ...(hasTimestamps ? { updated_at: new Date().toISOString() } : {}),
         });
-        // Só adicionar created_at se não veio no payload
-        if (!insertData.created_at) {
+        // Só adicionar created_at se não veio no payload e a tabela suporta
+        if (hasTimestamps && !insertData.created_at) {
           insertData.created_at = new Date().toISOString();
         }
 

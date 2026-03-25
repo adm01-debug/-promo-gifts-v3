@@ -137,7 +137,7 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
         toast.success('Dados fiscais salvos com sucesso');
         setIsEditing(false);
       } else {
-        toast.error('Erro ao salvar dados fiscais');
+        toast.error('Erro ao salvar dados fiscais. Verifique se o produto possui variantes cadastradas.');
       }
     } catch {
       toast.error('Erro ao salvar dados fiscais');
