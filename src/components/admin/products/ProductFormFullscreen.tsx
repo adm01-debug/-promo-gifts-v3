@@ -40,6 +40,7 @@ import { ProductFiscalSection } from './sections/ProductFiscalSection';
 import { ProductSeoSection } from './sections/ProductSeoSection';
 import { ProductMarketingTextsSection } from './sections/ProductMarketingTextsSection';
 import { useSkuValidation } from './hooks/useSkuValidation';
+import { useProductSeoAI } from '@/hooks/useProductSeoAI';
 // ProductSupplierSourcesSection merged into ProductSupplierSection
 
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
@@ -301,7 +302,7 @@ export function ProductFormFullscreen({
   });
 
   const {
-    register, handleSubmit, setValue, watch, trigger,
+    register, handleSubmit, setValue, watch, trigger, getValues,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -448,6 +449,7 @@ export function ProductFormFullscreen({
   });
 
   const formProps = { register, setValue, watch, errors, numericProps };
+  const { generate: generateSeoAI, isGenerating: isSeoGenerating } = useProductSeoAI(getValues, setValue);
 
   const [showValidation, setShowValidation] = useState(false);
 
@@ -609,6 +611,19 @@ export function ProductFormFullscreen({
       case 'content':
         return (
           <>
+            <div className="flex items-center justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={generateSeoAI}
+                disabled={isSeoGenerating}
+                className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+              >
+                {isSeoGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <span className="text-base">✨</span>}
+                {isSeoGenerating ? 'Gerando...' : 'Preencher com IA'}
+              </Button>
+            </div>
             <ProductSeoSection {...formProps} />
             <ProductMarketingTextsSection register={register} />
           </>
