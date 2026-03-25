@@ -79,9 +79,9 @@ interface StepDef {
 
 const STEPS: StepDef[] = [
   { id: 'essentials', label: 'Identificação', description: 'Fornecedor, SKU e nome', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
-  { id: 'commercial', label: 'Comercial', description: 'Preços e dimensões', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
+  { id: 'commercial', label: 'Comercial', description: 'Dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
-  { id: 'fiscal', label: 'Fiscal', description: 'NCM, ICMS e tributos', icon: FileText, requiredFields: [], fieldLabels: {} },
+  { id: 'fiscal', label: 'Financeiro e Fiscal', description: 'Preços, estoque e tributos', icon: FileText, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
   { id: 'classification', label: 'Classificação', description: 'Gênero, cores e vínculos', icon: Layers, requiredFields: [], fieldLabels: {} },
   { id: 'media', label: 'Mídia', description: 'Imagens e vídeos', icon: ImageIcon, requiredFields: [], fieldLabels: {} },
@@ -560,6 +560,14 @@ export function ProductFormFullscreen({
         return (
           <>
             <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
+            <ProductFlagsSection setValue={setValue} flags={flags} />
+          </>
+        );
+      case 'packaging':
+        return <ProductPackagingSection {...formProps} />;
+      case 'fiscal':
+        return (
+          <>
             <ProductPriceSection
               {...formProps}
               supplierMarkup={supplierMarkup}
@@ -569,13 +577,9 @@ export function ProductFormFullscreen({
               onSalePriceDisplayChange={setSalePriceDisplay}
               onSalePriceManualEdit={() => setPriceManuallyEdited(true)}
             />
-            <ProductFlagsSection setValue={setValue} flags={flags} />
+            <ProductFiscalSection {...formProps} />
           </>
         );
-      case 'packaging':
-        return <ProductPackagingSection {...formProps} />;
-      case 'fiscal':
-        return <ProductFiscalSection {...formProps} />;
       case 'content':
         return (
           <>
