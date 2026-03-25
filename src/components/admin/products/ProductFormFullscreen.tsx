@@ -79,7 +79,7 @@ interface StepDef {
 
 const STEPS: StepDef[] = [
   { id: 'essentials', label: 'Identificação', description: 'Fornecedor, SKU e nome', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
-  { id: 'commercial', label: 'Comercial', description: 'Preços e dimensões', icon: Tag, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
+  { id: 'commercial', label: 'Comercial', description: 'Dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
   { id: 'fiscal', label: 'Fiscal', description: 'NCM, ICMS e tributos', icon: FileText, requiredFields: [], fieldLabels: {} },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
