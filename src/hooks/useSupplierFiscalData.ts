@@ -3,9 +3,11 @@
  * for a given product's preferred supplier source.
  * 
  * INHERITANCE: If no VSS record exists, falls back to supplier_branches defaults.
+ * OVERRIDE: saveFiscalOverride() creates/updates VSS records to override inherited data.
  */
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db';
+import { useCallback } from 'react';
 
 export interface SupplierFiscalData {
   // From variant_supplier_sources
@@ -28,9 +30,23 @@ export interface SupplierFiscalData {
   branch_icms_interstate: number | null;
   // Inheritance flag
   isInherited: boolean;
+  // Internal: variant ID used for VSS (needed for save)
+  _variantId?: string;
+}
+
+export interface FiscalOverrideInput {
+  cst: string | null;
+  cfop: string | null;
+  icms_rate: number | null;
+  pis_rate: number | null;
+  cofins_rate: number | null;
+  cest: string | null;
+  csosn: string | null;
+  operation_nature: string | null;
 }
 
 interface VSSRecord {
+  id?: string;
   cst: string | null;
   cfop: string | null;
   icms_rate: number | null;
@@ -40,6 +56,7 @@ interface VSSRecord {
   csosn: string | null;
   operation_nature: string | null;
   supplier_branch_id: string | null;
+  variant_id?: string;
 }
 
 interface BranchRecord {
@@ -95,8 +112,11 @@ function buildFromBranch(branch: BranchRecord): SupplierFiscalData {
  * falls back to supplier_branches defaults for that supplier.
  */
 export function useSupplierFiscalData(productId: string | undefined, supplierId: string | undefined) {
-  return useQuery({
-    queryKey: ['supplier-fiscal-data', productId, supplierId],
+  const queryClient = useQueryClient();
+  const queryKey = ['supplier-fiscal-data', productId, supplierId];
+
+  const query = useQuery({
+    queryKey,
     queryFn: async (): Promise<SupplierFiscalData | null> => {
       if (!productId || !supplierId) return null;
 
@@ -110,6 +130,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
       });
 
       let vss: VSSRecord | null = null;
+      let matchedVariantId: string | null = null;
 
       if (variantsResult.records.length) {
         // 2. Get variant_supplier_sources for this supplier + product's variants
@@ -119,14 +140,20 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
           const vssResult = await invokeExternalDb<VSSRecord>({
             table: 'variant_supplier_sources',
             operation: 'select',
-            select: 'cst, cfop, icms_rate, pis_rate, cofins_rate, cest, csosn, operation_nature, supplier_branch_id',
+            select: 'id, cst, cfop, icms_rate, pis_rate, cofins_rate, cest, csosn, operation_nature, supplier_branch_id, variant_id',
             filters: { supplier_id: supplierId, variant_id: variantId },
             limit: 1,
           });
           if (vssResult.records.length) {
             vss = vssResult.records[0];
+            matchedVariantId = variantId;
             break;
           }
+        }
+
+        // Keep first variant ID for potential new VSS creation
+        if (!matchedVariantId && variantsResult.records.length) {
+          matchedVariantId = variantsResult.records[0].id;
         }
       }
 
@@ -168,6 +195,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
           branch_icms_internal: branchData.icms_internal_rate ?? null,
           branch_icms_interstate: branchData.icms_interstate_rate ?? null,
           isInherited: false,
+          _variantId: matchedVariantId || undefined,
         };
       }
 
@@ -182,10 +210,10 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
         });
 
         if (branchesResult.records.length) {
-          // Use the first active branch (usually the main/headquarters)
-          // Prefer one marked as is_main if available
           const branch = branchesResult.records[0];
-          return buildFromBranch(branch);
+          const result = buildFromBranch(branch);
+          result._variantId = matchedVariantId || undefined;
+          return result;
         }
       } catch (err) {
         console.warn('[useSupplierFiscalData] Failed to fetch branch defaults for inheritance:', err);
@@ -196,4 +224,73 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
     enabled: !!productId && !!supplierId,
     staleTime: 5 * 60 * 1000,
   });
+
+  /**
+   * Save fiscal override: creates or updates a variant_supplier_sources record.
+   */
+  const saveFiscalOverride = useCallback(async (input: FiscalOverrideInput): Promise<boolean> => {
+    if (!productId || !supplierId) return false;
+
+    try {
+      // Get existing data to know if we're creating or updating
+      const currentData = query.data;
+      const variantId = currentData?._variantId;
+
+      if (!variantId) {
+        console.error('[saveFiscalOverride] No variant ID available');
+        return false;
+      }
+
+      // Check if VSS record already exists
+      const existingResult = await invokeExternalDb<{ id: string }>({
+        table: 'variant_supplier_sources',
+        operation: 'select',
+        select: 'id',
+        filters: { supplier_id: supplierId, variant_id: variantId },
+        limit: 1,
+      });
+
+      const payload = {
+        cst: input.cst || null,
+        cfop: input.cfop || null,
+        icms_rate: input.icms_rate,
+        pis_rate: input.pis_rate,
+        cofins_rate: input.cofins_rate,
+        cest: input.cest || null,
+        csosn: input.csosn || null,
+        operation_nature: input.operation_nature || null,
+      };
+
+      if (existingResult.records.length) {
+        // Update existing VSS
+        await invokeExternalDb({
+          table: 'variant_supplier_sources',
+          operation: 'update',
+          id: existingResult.records[0].id,
+          data: payload,
+        });
+      } else {
+        // Create new VSS with supplier_branch_id from inherited data
+        await invokeExternalDb({
+          table: 'variant_supplier_sources',
+          operation: 'insert',
+          data: {
+            ...payload,
+            supplier_id: supplierId,
+            variant_id: variantId,
+            supplier_branch_id: currentData?.supplier_branch_id || null,
+          },
+        });
+      }
+
+      // Invalidate and refetch
+      await queryClient.invalidateQueries({ queryKey });
+      return true;
+    } catch (err) {
+      console.error('[saveFiscalOverride] Failed to save fiscal override:', err);
+      return false;
+    }
+  }, [productId, supplierId, query.data, queryClient, queryKey]);
+
+  return { ...query, saveFiscalOverride };
 }

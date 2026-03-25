@@ -1,19 +1,55 @@
 /**
- * Read-only fiscal info panel for a supplier source.
+ * Fiscal info panel for a supplier source — with inline editing.
  * Shows CST, CFOP, ICMS, PIS, COFINS, CEST, CSOSN, operation_nature
  * from variant_supplier_sources + supplier_branches.
  * Shows "Herdado" badge when data comes from branch defaults.
+ * Allows overriding inherited values per product.
  */
+import { useState, useCallback } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Building2, FileText, Loader2, ArrowDownFromLine } from 'lucide-react';
-import { useSupplierFiscalData } from '@/hooks/useSupplierFiscalData';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Building2, FileText, Loader2, ArrowDownFromLine, Pencil, Save, X } from 'lucide-react';
+import { useSupplierFiscalData, type FiscalOverrideInput } from '@/hooks/useSupplierFiscalData';
+import { toast } from 'sonner';
 
 interface Props {
   productId: string | undefined;
   supplierId: string | undefined;
 }
 
-function FiscalFieldPair({ label1, value1, label2, value2, mono = false }: { label1: string; value1: string | null | undefined; label2: string; value2: string | null | undefined; mono?: boolean }) {
+// ── Inline edit field ──────────────────────────────────────────────────────────
+
+function EditField({ label, value, onChange, mono = false, placeholder, type = 'text' }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  mono?: boolean;
+  placeholder?: string;
+  type?: 'text' | 'number';
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] text-muted-foreground whitespace-nowrap">{label}</span>
+      <Input
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={placeholder || label}
+        type={type}
+        step={type === 'number' ? '0.01' : undefined}
+        className={`h-7 text-xs px-2 w-24 ${mono ? 'font-mono' : ''}`}
+      />
+    </div>
+  );
+}
+
+// ── Read-only helpers ──────────────────────────────────────────────────────────
+
+function FiscalFieldPair({ label1, value1, label2, value2, mono = false }: {
+  label1: string; value1: string | null | undefined;
+  label2: string; value2: string | null | undefined;
+  mono?: boolean;
+}) {
   if (!value1 && !value2) return null;
   return (
     <div className="flex items-baseline gap-1.5">
@@ -60,8 +96,62 @@ function formatTaxRegime(regime: string | null): string | null {
   return map[regime] || regime;
 }
 
+// ── Main component ─────────────────────────────────────────────────────────────
+
 export function SupplierFiscalInfo({ productId, supplierId }: Props) {
-  const { data, isLoading } = useSupplierFiscalData(productId, supplierId);
+  const { data, isLoading, saveFiscalOverride } = useSupplierFiscalData(productId, supplierId);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Edit form state
+  const [form, setForm] = useState<FiscalOverrideInput>({
+    cst: null, cfop: null, icms_rate: null,
+    pis_rate: null, cofins_rate: null, cest: null,
+    csosn: null, operation_nature: null,
+  });
+
+  const startEditing = useCallback(() => {
+    if (!data) return;
+    setForm({
+      cst: data.cst,
+      cfop: data.cfop,
+      icms_rate: data.icms_rate,
+      pis_rate: data.pis_rate,
+      cofins_rate: data.cofins_rate,
+      cest: data.cest,
+      csosn: data.csosn,
+      operation_nature: data.operation_nature,
+    });
+    setIsEditing(true);
+  }, [data]);
+
+  const cancelEditing = useCallback(() => {
+    setIsEditing(false);
+  }, []);
+
+  const handleSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const success = await saveFiscalOverride(form);
+      if (success) {
+        toast.success('Dados fiscais salvos com sucesso');
+        setIsEditing(false);
+      } else {
+        toast.error('Erro ao salvar dados fiscais');
+      }
+    } catch {
+      toast.error('Erro ao salvar dados fiscais');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [form, saveFiscalOverride]);
+
+  const updateField = useCallback((field: keyof FiscalOverrideInput, value: string) => {
+    setForm(prev => ({
+      ...prev,
+      [field]: value === '' ? null : (['icms_rate', 'pis_rate', 'cofins_rate'].includes(field) ? parseFloat(value) || null : value),
+    }));
+  }, []);
 
   if (isLoading) {
     return (
@@ -76,24 +166,60 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
   const hasFiscal = data.cst || data.cfop || data.icms_rate != null || data.pis_rate != null;
   const hasBranch = data.branch_name || data.branch_cnpj;
 
-  if (!hasFiscal && !hasBranch) return null;
+  if (!hasFiscal && !hasBranch && !isEditing) return null;
 
   return (
     <div className="mt-2 pt-2 border-t border-border/50 space-y-2">
+      {/* Header */}
       <div className="flex items-center gap-1.5">
         <FileText className="h-3 w-3 text-muted-foreground" />
         <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
           Fiscal do Fornecedor
         </span>
-        {data.isInherited && (
+        {data.isInherited && !isEditing && (
           <Badge variant="outline" className="text-[10px] h-5 ml-1 gap-1 text-amber-600 border-amber-500/30 bg-amber-500/5">
             <ArrowDownFromLine className="h-2.5 w-2.5" />
             Herdado da filial
           </Badge>
         )}
+        {isEditing && (
+          <Badge variant="outline" className="text-[10px] h-5 ml-1 gap-1 text-blue-500 border-blue-500/30 bg-blue-500/5">
+            <Pencil className="h-2.5 w-2.5" />
+            Editando
+          </Badge>
+        )}
+        <div className="ml-auto flex items-center gap-1">
+          {!isEditing ? (
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px] gap-1" onClick={startEditing}>
+              <Pencil className="h-3 w-3" />
+              {data.isInherited ? 'Sobrescrever' : 'Editar'}
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="ghost" size="sm"
+                className="h-6 px-2 text-[10px] gap-1"
+                onClick={cancelEditing}
+                disabled={isSaving}
+              >
+                <X className="h-3 w-3" />
+                Cancelar
+              </Button>
+              <Button
+                variant="default" size="sm"
+                className="h-6 px-2 text-[10px] gap-1"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                Salvar
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Branch info */}
+      {/* Branch info (always read-only) */}
       {hasBranch && (
         <div className="flex items-center gap-2 flex-wrap">
           <Building2 className="h-3 w-3 text-muted-foreground" />
@@ -110,26 +236,42 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
         </div>
       )}
 
-      {/* Fiscal fields */}
-      {hasFiscal && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1">
-          <FiscalField label="CST" value={data.cst} mono />
-          {data.isInherited && data.cfop_interstate ? (
-            <FiscalFieldPair label1="CFOP Int." value1={data.cfop} label2="Interestadual" value2={data.cfop_interstate} mono />
-          ) : (
-            <FiscalField label="CFOP" value={data.cfop} mono />
-          )}
-          <FiscalField label="ICMS" value={formatRate(data.icms_rate)} />
-          <FiscalField label="PIS" value={formatRate(data.pis_rate)} />
-          <FiscalField label="COFINS" value={formatRate(data.cofins_rate)} />
-          {data.cest && <FiscalField label="CEST" value={data.cest} mono />}
-          {data.csosn && <FiscalField label="CSOSN" value={data.csosn} mono />}
-          {data.operation_nature && <FiscalField label="Natureza" value={data.operation_nature} />}
+      {/* ── EDIT MODE ── */}
+      {isEditing ? (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-md bg-muted/30 border border-border/50">
+          <EditField label="CST" value={form.cst || ''} onChange={v => updateField('cst', v)} mono placeholder="Ex: 060" />
+          <EditField label="CFOP" value={form.cfop || ''} onChange={v => updateField('cfop', v)} mono placeholder="Ex: 5102" />
+          <EditField label="ICMS (%)" value={form.icms_rate != null ? String(form.icms_rate) : ''} onChange={v => updateField('icms_rate', v)} type="number" placeholder="Ex: 17" />
+          <EditField label="PIS (%)" value={form.pis_rate != null ? String(form.pis_rate) : ''} onChange={v => updateField('pis_rate', v)} type="number" placeholder="Ex: 0.65" />
+          <EditField label="COFINS (%)" value={form.cofins_rate != null ? String(form.cofins_rate) : ''} onChange={v => updateField('cofins_rate', v)} type="number" placeholder="Ex: 3" />
+          <EditField label="CEST" value={form.cest || ''} onChange={v => updateField('cest', v)} mono placeholder="Ex: 2804200" />
+          <EditField label="CSOSN" value={form.csosn || ''} onChange={v => updateField('csosn', v)} mono placeholder="Ex: 500" />
+          <EditField label="Natureza da Op." value={form.operation_nature || ''} onChange={v => updateField('operation_nature', v)} placeholder="Ex: Venda de Merc." />
         </div>
+      ) : (
+        /* ── READ MODE ── */
+        <>
+          {hasFiscal && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <FiscalField label="CST" value={data.cst} mono />
+              {data.isInherited && data.cfop_interstate ? (
+                <FiscalFieldPair label1="CFOP Int." value1={data.cfop} label2="Interestadual" value2={data.cfop_interstate} mono />
+              ) : (
+                <FiscalField label="CFOP" value={data.cfop} mono />
+              )}
+              <FiscalField label="ICMS" value={formatRate(data.icms_rate)} />
+              <FiscalField label="PIS" value={formatRate(data.pis_rate)} />
+              <FiscalField label="COFINS" value={formatRate(data.cofins_rate)} />
+              {data.cest && <FiscalField label="CEST" value={data.cest} mono />}
+              {data.csosn && <FiscalField label="CSOSN" value={data.csosn} mono />}
+              {data.operation_nature && <FiscalField label="Natureza" value={data.operation_nature} />}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Branch reference rates */}
-      {(data.branch_icms_internal != null || data.branch_icms_interstate != null) && (
+      {/* Branch reference rates (always read-only) */}
+      {!isEditing && (data.branch_icms_internal != null || data.branch_icms_interstate != null) && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
           <FiscalField label="ICMS Ref. Interno" value={formatRate(data.branch_icms_internal)} />
           <FiscalField label="ICMS Ref. Interestadual" value={formatRate(data.branch_icms_interstate)} />
@@ -137,9 +279,9 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
       )}
 
       {/* Inheritance hint */}
-      {data.isInherited && (
+      {data.isInherited && !isEditing && (
         <p className="text-[10px] text-muted-foreground/70 italic">
-          Dados herdados da filial padrão. Serão substituídos por valores específicos quando configurados para este produto.
+          Dados herdados da filial padrão. Clique em "Sobrescrever" para definir valores específicos para este produto.
         </p>
       )}
     </div>
