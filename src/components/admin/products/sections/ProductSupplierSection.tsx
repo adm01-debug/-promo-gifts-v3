@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { SupplierSelect } from '../SupplierSelect';
 import { NewSupplierDialog } from '../NewSupplierDialog';
 import { SectionCard } from '../ProductFormHelpers';
+import { SupplierFiscalInfo } from '../SupplierFiscalInfo';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -141,6 +142,10 @@ export function ProductSupplierSection({
             </div>
             <NewSupplierDialog onCreated={(id) => setValue('supplier_id', id)} />
           </div>
+          {/* Primary supplier fiscal info */}
+          {supplierId && productId && (
+            <SupplierFiscalInfo productId={productId} supplierId={supplierId} />
+          )}
         </div>
 
         {/* ── Separator ── */}
@@ -210,6 +215,10 @@ export function ProductSupplierSection({
                             )}
                             <span>Estoque: {src.stock_quantity}</span>
                           </div>
+                          {/* Fiscal info from external DB */}
+                          {isPersisted && (
+                            <SupplierFiscalInfo productId={productId} supplierId={src.supplier_id} />
+                          )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {isPersisted && !src.is_preferred && (
