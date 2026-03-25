@@ -57,19 +57,23 @@ export default function AdminTemasPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2">
-            <Palette className="h-5 w-5 text-primary" />
-            <h1 className="text-xl font-display font-bold text-foreground">Personalizar Tema</h1>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Palette className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-display font-bold text-foreground">Personalizar Tema</h1>
+              <p className="text-sm text-muted-foreground">
+                Escolha um preset ou customize as cores
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Escolha um preset ou customize as cores
-          </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={handleReset}>
             <RotateCcw className="h-4 w-4 mr-1.5" /> Reset
           </Button>
@@ -78,73 +82,84 @@ export default function AdminTemasPage() {
           </Button>
         </div>
       </div>
+
+      {/* Color Mode */}
       <Card>
-        <CardContent className="pt-6">
-          <h2 className="text-sm font-semibold text-foreground mb-3">Modo de Cor</h2>
-          <div className="flex gap-2">
+        <CardContent className="p-6">
+          <h2 className="text-sm font-semibold text-foreground mb-4">Modo de Cor</h2>
+          <div className="flex gap-3">
             <Button
               variant={actualTheme === 'light' ? 'default' : 'outline'}
               size="sm"
+              className="px-5"
               onClick={() => handleModeChange('light')}
             >
-              <Sun className="h-4 w-4 mr-1.5" /> Claro
+              <Sun className="h-4 w-4 mr-2" /> Claro
             </Button>
             <Button
               variant={actualTheme === 'dark' ? 'default' : 'outline'}
               size="sm"
+              className="px-5"
               onClick={() => handleModeChange('dark')}
             >
-              <Moon className="h-4 w-4 mr-1.5" /> Escuro
+              <Moon className="h-4 w-4 mr-2" /> Escuro
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Presets Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {THEME_PRESETS.map((preset) => {
-          const isActive = config.presetId === preset.id;
-          return (
-            <Card
-              key={preset.id}
-              className={cn(
-                'cursor-pointer transition-all hover:shadow-md relative',
-                isActive && 'ring-2 ring-primary shadow-glow-primary'
-              )}
-              onClick={() => updateConfig({ presetId: preset.id })}
-            >
-              <CardContent className="pt-5 pb-4 px-5">
-                {isActive && (
-                  <div className="absolute top-3 right-3">
-                    <Check className="h-4 w-4 text-primary" />
-                  </div>
+      <div>
+        <h2 className="text-sm font-semibold text-foreground mb-4">Temas Disponíveis</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {THEME_PRESETS.map((preset) => {
+            const isActive = config.presetId === preset.id;
+            return (
+              <Card
+                key={preset.id}
+                className={cn(
+                  'cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 relative group',
+                  isActive && 'ring-2 ring-primary shadow-glow-primary'
                 )}
-                <div className="flex gap-1.5 mb-3">
-                  {preset.colors.map((color, i) => (
-                    <div
-                      key={i}
-                      className="h-6 w-6 rounded-full border border-border"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <h3 className="text-sm font-semibold text-foreground">{preset.name}</h3>
-                <p className="text-xs text-muted-foreground">{preset.description}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+                onClick={() => updateConfig({ presetId: preset.id })}
+              >
+                <CardContent className="p-5">
+                  {isActive && (
+                    <div className="absolute top-4 right-4">
+                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-3 w-3 text-primary-foreground" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex gap-2 mb-4">
+                    {preset.colors.map((color, i) => (
+                      <div
+                        key={i}
+                        className="h-7 w-7 rounded-full border-2 border-border/50 shadow-sm transition-transform group-hover:scale-110"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                  <h3 className="text-sm font-bold text-foreground">{preset.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{preset.description}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
 
       {/* Border Radius */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-2">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-semibold text-foreground">Raio da Borda</h2>
-              <p className="text-xs text-muted-foreground">Ajuste o arredondamento dos elementos</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Ajuste o arredondamento dos elementos</p>
             </div>
-            <span className="text-sm font-mono text-muted-foreground">{config.radius}px</span>
+            <span className="text-sm font-mono font-semibold text-foreground bg-muted px-3 py-1 rounded-md">
+              {config.radius}px
+            </span>
           </div>
           <Slider
             value={[config.radius]}
@@ -152,10 +167,11 @@ export default function AdminTemasPage() {
             max={20}
             step={1}
             onValueChange={([v]) => updateConfig({ radius: v })}
-            className="my-4"
+            className="my-5"
           />
           {/* Live preview */}
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex items-center gap-4 mt-6 pt-5 border-t border-border/50">
+            <span className="text-xs text-muted-foreground mr-1">Preview:</span>
             <Button size="sm" style={{ borderRadius: `${config.radius}px` }}>
               Botão
             </Button>
@@ -166,7 +182,7 @@ export default function AdminTemasPage() {
               Input
             </div>
             <div
-              className="h-16 w-24 border border-border bg-card flex items-center justify-center text-sm font-medium text-foreground"
+              className="h-16 w-24 border border-border bg-card flex items-center justify-center text-sm font-medium text-foreground shadow-xs"
               style={{ borderRadius: `${config.radius}px` }}
             >
               Card
