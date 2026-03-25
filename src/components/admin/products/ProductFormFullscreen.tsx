@@ -554,12 +554,12 @@ export function ProductFormFullscreen({
               skuManuallyEdited={skuManuallyEdited}
               onSkuManualEdit={() => setSkuManuallyEdited(true)}
             />
+            <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
           </>
         );
       case 'commercial':
         return (
           <>
-            <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
             <ProductFlagsSection setValue={setValue} flags={flags} />
           </>
         );
