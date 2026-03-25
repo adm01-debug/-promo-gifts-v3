@@ -106,8 +106,8 @@ export function ProductInfoSection({
         </div>
       </div>
 
-      {/* Prazo + Modo + Garantia + Tipo */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Prazo + Modo */}
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <FieldLabel htmlFor="lead_time_days" hint="Tempo médio em dias úteis para produção/entrega pelo fornecedor">Prazo Entrega (dias)</FieldLabel>
           <Input id="lead_time_days" {...numericProps('lead_time_days')} min="0" className="h-9" />
@@ -122,24 +122,6 @@ export function ProductInfoSection({
               <SelectItem value="pronta_entrega_liso">Pronta Entrega Liso</SelectItem>
               <SelectItem value="fabricado_personalizado">Fabricado Personalizado</SelectItem>
               <SelectItem value="fabricado_liso">Fabricado Liso</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <FieldLabel htmlFor="warranty_months" hint="Período de garantia em meses oferecido pelo fabricante">Garantia (meses)</FieldLabel>
-          <Input id="warranty_months" {...numericProps('warranty_months')} min="0" className="h-9" />
-        </div>
-        <div>
-          <FieldLabel htmlFor="product_type" hint="Classificação do tipo: produto físico, serviço ou kit montado">Tipo do Produto</FieldLabel>
-          <Select value={watch?.('product_type') || 'product'} onValueChange={(v) => setValue?.('product_type', v)}>
-            <SelectTrigger className="h-9">
-              <SelectValue placeholder="Selecione..." />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="product">Produto</SelectItem>
-              <SelectItem value="service">Serviço</SelectItem>
-              <SelectItem value="kit">Kit</SelectItem>
-              <SelectItem value="digital">Digital</SelectItem>
             </SelectContent>
           </Select>
         </div>
