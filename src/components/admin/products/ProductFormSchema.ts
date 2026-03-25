@@ -12,6 +12,7 @@ export const productFormSchema = z.object({
   category_id: z.string().optional().default(''),
   supplier_id: z.string().min(1, 'Fornecedor é obrigatório'),
   supplier_reference: z.string().max(100).optional().default(''),
+  supplier_product_url: z.string().max(500).optional().default(''),
 
   // Preço e estoque
   sale_price: z.coerce.number().min(0, 'Preço não pode ser negativo').default(0),
