@@ -337,6 +337,13 @@ export function ProductFormFullscreen({
     has_commercial_packaging: formValues.has_commercial_packaging,
   };
 
+  const expirations: Record<string, string | null> = {
+    is_featured_expires_at: formValues.is_featured_expires_at ?? null,
+    is_bestseller_expires_at: formValues.is_bestseller_expires_at ?? null,
+    is_new_expires_at: formValues.is_new_expires_at ?? null,
+    is_on_sale_expires_at: formValues.is_on_sale_expires_at ?? null,
+  };
+
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
   // Effects (same as before)
@@ -572,7 +579,7 @@ export function ProductFormFullscreen({
       case 'commercial':
         return (
           <>
-            <ProductFlagsSection setValue={setValue} flags={flags} />
+            <ProductFlagsSection setValue={setValue} flags={flags} expirations={expirations} />
             <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
               <CategoryCascadeSelector
                 value={formValues.category_id || ''}

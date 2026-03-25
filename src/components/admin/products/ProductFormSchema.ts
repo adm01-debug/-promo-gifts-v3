@@ -61,6 +61,12 @@ export const productFormSchema = z.object({
   is_bestseller: z.boolean().default(false),
   is_new: z.boolean().default(false),
   is_on_sale: z.boolean().default(false),
+
+  // Expirações dos flags (null = sem limite)
+  is_featured_expires_at: z.string().nullable().optional().default(null),
+  is_bestseller_expires_at: z.string().nullable().optional().default(null),
+  is_new_expires_at: z.string().nullable().optional().default(null),
+  is_on_sale_expires_at: z.string().nullable().optional().default(null),
   is_kit: z.boolean().default(false),
   has_commercial_packaging: z.boolean().default(false),
 
@@ -167,6 +173,10 @@ export const defaultFormValues: ProductFormData = {
   is_bestseller: false,
   is_new: false,
   is_on_sale: false,
+  is_featured_expires_at: null,
+  is_bestseller_expires_at: null,
+  is_new_expires_at: null,
+  is_on_sale_expires_at: null,
   is_kit: false,
   has_commercial_packaging: false,
   is_imported: false,
