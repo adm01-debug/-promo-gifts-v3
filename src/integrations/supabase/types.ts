@@ -896,6 +896,60 @@ export type Database = {
         }
         Relationships: []
       }
+      product_supplier_sources: {
+        Row: {
+          cost_price: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_preferred: boolean | null
+          lead_time_days: number | null
+          min_order_quantity: number | null
+          notes: string | null
+          product_id: string
+          sale_price: number | null
+          stock_quantity: number | null
+          supplier_id: string
+          supplier_name: string
+          supplier_sku: string | null
+          updated_at: string
+        }
+        Insert: {
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_preferred?: boolean | null
+          lead_time_days?: number | null
+          min_order_quantity?: number | null
+          notes?: string | null
+          product_id: string
+          sale_price?: number | null
+          stock_quantity?: number | null
+          supplier_id: string
+          supplier_name: string
+          supplier_sku?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cost_price?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_preferred?: boolean | null
+          lead_time_days?: number | null
+          min_order_quantity?: number | null
+          notes?: string | null
+          product_id?: string
+          sale_price?: number | null
+          stock_quantity?: number | null
+          supplier_id?: string
+          supplier_name?: string
+          supplier_sku?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_views: {
         Row: {
           created_at: string
