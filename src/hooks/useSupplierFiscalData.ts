@@ -307,6 +307,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
             supplier_id: supplierId,
             variant_id: variantId,
             supplier_branch_id: currentData?.supplier_branch_id || null,
+            organization_id: currentData?._organizationId || null,
           },
         });
       }
