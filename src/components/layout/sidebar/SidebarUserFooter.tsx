@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { Settings, LogOut, ChevronUp } from "lucide-react";
+import { Settings, LogOut, ChevronUp, Palette } from "lucide-react";
 import { RestartTourButton } from "@/components/onboarding/RestartTourButton";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -94,6 +94,10 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
           <DropdownMenuItem onClick={() => navigate("/perfil")}>
             <Settings className="mr-2 h-4 w-4" />
             Configurações
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/admin/temas")}>
+            <Palette className="mr-2 h-4 w-4" />
+            Personalizar Tema
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()} className="text-destructive focus:text-destructive">
