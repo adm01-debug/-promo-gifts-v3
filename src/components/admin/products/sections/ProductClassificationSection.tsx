@@ -22,7 +22,7 @@ import {
   Info,
   ChevronDown,
   ChevronRight,
-  Boxes,
+  
   Sparkles,
 } from 'lucide-react';
 
