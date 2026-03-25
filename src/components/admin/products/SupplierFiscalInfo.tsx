@@ -100,9 +100,11 @@ function formatTaxRegime(regime: string | null): string | null {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export function SupplierFiscalInfo({ productId, supplierId }: Props) {
-  const { data, isLoading, saveFiscalOverride } = useSupplierFiscalData(productId, supplierId);
+  const { data, isLoading, saveFiscalOverride, revertToInherited } = useSupplierFiscalData(productId, supplierId);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showRevertDialog, setShowRevertDialog] = useState(false);
+  const [isReverting, setIsReverting] = useState(false);
 
   // Edit form state
   const [form, setForm] = useState<FiscalOverrideInput>({
