@@ -4,11 +4,10 @@
  */
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Image, Video, Plus, Trash2, Loader2, Star, Link2, X } from 'lucide-react';
+import { Image, Video, Trash2, Loader2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import { toast } from 'sonner';
 import {
   Collapsible,
@@ -18,7 +17,6 @@ import {
 
 import {
   fetchComponentMedia,
-  createComponentMedia,
   updateComponentMedia,
   deleteComponentMedia,
   type ComponentMedia,
@@ -33,9 +31,6 @@ interface Props {
 export function ComponentMediaManager({ componentId, productId, componentName }: Props) {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [externalUrl, setExternalUrl] = useState('');
-  const [urlMediaType, setUrlMediaType] = useState<'image' | 'video'>('image');
 
   const { data: media = [], isLoading } = useQuery({
     queryKey: ['component-media', componentId],
@@ -50,28 +45,6 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
   const invalidate = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['component-media', componentId] });
   }, [queryClient, componentId]);
-
-  const handleAddUrl = async () => {
-    if (!externalUrl.trim()) return;
-
-    try {
-      await createComponentMedia({
-        kit_component_id: componentId,
-        product_id: productId,
-        media_type: urlMediaType,
-        url: externalUrl.trim(),
-        title: null,
-        sort_order: media.length,
-        is_cover: false,
-      });
-      toast.success('Mídia adicionada');
-      setExternalUrl('');
-      setShowUrlInput(false);
-      invalidate();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao adicionar');
-    }
-  };
 
   const handleDelete = async (item: ComponentMedia) => {
     try {
@@ -131,58 +104,6 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
 
       <CollapsibleContent>
         <div className="border border-t-0 rounded-b-lg p-3 space-y-3">
-          {/* Add URL action */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={() => setShowUrlInput(!showUrlInput)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-[11px] font-medium hover:bg-accent/50 transition-colors"
-            >
-              <Link2 className="h-3 w-3" />
-              Adicionar URL
-            </button>
-          </div>
-
-          {/* External URL input */}
-          {showUrlInput && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setUrlMediaType('image')}
-                  className={cn(
-                    'px-2 py-1 rounded text-[10px] font-medium transition-colors',
-                    urlMediaType === 'image' ? 'bg-primary/15 text-primary' : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  Imagem
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUrlMediaType('video')}
-                  className={cn(
-                    'px-2 py-1 rounded text-[10px] font-medium transition-colors',
-                    urlMediaType === 'video' ? 'bg-amber-500/15 text-amber-600' : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  Vídeo
-                </button>
-              </div>
-              <Input
-                placeholder="https://..."
-                value={externalUrl}
-                onChange={(e) => setExternalUrl(e.target.value)}
-                className="h-7 text-xs flex-1"
-              />
-              <Button type="button" size="sm" variant="outline" className="h-7 text-xs" onClick={handleAddUrl}>
-                <Plus className="h-3 w-3" />
-              </Button>
-              <Button type="button" size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setShowUrlInput(false); setExternalUrl(''); }}>
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-
           {/* Media grid */}
           {isLoading ? (
             <div className="flex items-center justify-center py-4 text-muted-foreground text-xs">
