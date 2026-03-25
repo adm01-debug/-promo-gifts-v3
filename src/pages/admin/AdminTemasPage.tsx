@@ -62,17 +62,23 @@ export default function AdminTemasPage() {
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Palette className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-display font-bold text-foreground">Personalizar Tema</h1>
-              <p className="text-sm text-muted-foreground">
-                Escolha um preset ou customize as cores
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-xl"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Palette className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">Personalizar Tema</h1>
+            <p className="text-sm text-muted-foreground">
+              Escolha um preset ou customize as cores
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
