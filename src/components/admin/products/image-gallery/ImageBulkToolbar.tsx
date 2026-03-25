@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { CheckSquare, Trash2, Loader2 } from 'lucide-react';
+import { CheckSquare, Trash2, Loader2, Type } from 'lucide-react';
 import type { VariantInfo } from './types';
 import { IMAGE_TYPES } from './types';
 
@@ -15,12 +18,15 @@ interface Props {
   setSelectedUrls: (v: Set<string>) => void;
   bulkUpdateType: (type: string) => void;
   bulkUpdateVariant: (code: string) => void;
-  bulkDelete: () => void;
+  bulkUpdateAltText: (template: string) => void;
+  requestBulkDelete: () => void;
   isBulkUpdating: boolean;
   variants: VariantInfo[];
 }
 
-export function ImageBulkToolbar({ bulkMode, setBulkMode, clearSelection, selectAll, filteredImagesCount, selectedUrls, setSelectedUrls, bulkUpdateType, bulkUpdateVariant, bulkDelete, isBulkUpdating, variants }: Props) {
+export function ImageBulkToolbar({ bulkMode, setBulkMode, clearSelection, selectAll, filteredImagesCount, selectedUrls, setSelectedUrls, bulkUpdateType, bulkUpdateVariant, bulkUpdateAltText, requestBulkDelete, isBulkUpdating, variants }: Props) {
+  const [altTemplate, setAltTemplate] = useState('');
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button type="button" variant={bulkMode ? "default" : "outline"} size="sm" className="h-7 text-[11px] gap-1.5"
@@ -68,7 +74,37 @@ export function ImageBulkToolbar({ bulkMode, setBulkMode, clearSelection, select
                   </SelectContent>
                 </Select>
               )}
-              <Button type="button" variant="ghost" size="sm" className="h-7 text-[11px] text-destructive hover:text-destructive gap-1" onClick={bulkDelete} disabled={isBulkUpdating}>
+
+              {/* Bulk alt text */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-[11px] gap-1" disabled={isBulkUpdating}>
+                    <Type className="h-3 w-3" /> Alt text
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-3 space-y-2" align="start">
+                  <p className="text-[11px] text-muted-foreground">
+                    Template para {selectedUrls.size} imagem(ns). Use: <code className="text-[10px] bg-muted px-1 rounded">{'{tipo}'}</code> <code className="text-[10px] bg-muted px-1 rounded">{'{cor}'}</code> <code className="text-[10px] bg-muted px-1 rounded">{'{n}'}</code>
+                  </p>
+                  <Input
+                    value={altTemplate}
+                    onChange={(e) => setAltTemplate(e.target.value)}
+                    placeholder="Ex: Produto X - {tipo} - {cor}"
+                    className="h-7 text-xs"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-7 text-[11px] w-full"
+                    disabled={!altTemplate.trim() || isBulkUpdating}
+                    onClick={() => { bulkUpdateAltText(altTemplate); setAltTemplate(''); }}
+                  >
+                    Aplicar a {selectedUrls.size} imagem(ns)
+                  </Button>
+                </PopoverContent>
+              </Popover>
+
+              <Button type="button" variant="ghost" size="sm" className="h-7 text-[11px] text-destructive hover:text-destructive gap-1" onClick={requestBulkDelete} disabled={isBulkUpdating}>
                 <Trash2 className="h-3 w-3" /> Remover ({selectedUrls.size})
               </Button>
               {isBulkUpdating && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />}
