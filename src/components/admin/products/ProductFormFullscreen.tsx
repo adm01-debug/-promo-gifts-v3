@@ -566,7 +566,20 @@ export function ProductFormFullscreen({
       case 'packaging':
         return <ProductPackagingSection {...formProps} />;
       case 'fiscal':
-        return <ProductFiscalSection {...formProps} />;
+        return (
+          <>
+            <ProductPriceSection
+              {...formProps}
+              supplierMarkup={supplierMarkup}
+              costPriceDisplay={costPriceDisplay}
+              salePriceDisplay={salePriceDisplay}
+              onCostPriceDisplayChange={setCostPriceDisplay}
+              onSalePriceDisplayChange={setSalePriceDisplay}
+              onSalePriceManualEdit={() => setPriceManuallyEdited(true)}
+            />
+            <ProductFiscalSection {...formProps} />
+          </>
+        );
       case 'content':
         return (
           <>
