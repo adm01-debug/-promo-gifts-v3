@@ -156,11 +156,9 @@ export function ProductSupplierSection({
               <h3 className="text-sm font-semibold text-foreground">Fornecedores Secundários</h3>
               <p className="text-[11px] text-muted-foreground">Fontes alternativas com preços e prazos distintos</p>
             </div>
-            {isEdit && productId && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
-                {sources.length} fonte{sources.length !== 1 ? 's' : ''}
-              </Badge>
-            )}
+            <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
+              {allSources.length} fonte{allSources.length !== 1 ? 's' : ''}
+            </Badge>
           </div>
 
           {isLoading ? (
