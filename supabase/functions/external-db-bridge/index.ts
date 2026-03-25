@@ -64,7 +64,9 @@ const PRODUCT_TABLES = [
   'variation_values',
   'stock_movements',
   // Estoque e Reposição
-  'variant_supplier_sources',  // Dados de estoque e previsão de reposição
+  'variant_supplier_sources',  // Dados de estoque, previsão de reposição e dados fiscais
+  // Fornecedor — Filiais
+  'supplier_branches',         // Filiais de fornecedores (CNPJ, UF, regime tributário, ICMS)
   // Coleções
   'collections',
   'collection_products',

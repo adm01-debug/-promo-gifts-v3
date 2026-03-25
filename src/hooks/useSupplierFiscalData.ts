@@ -50,6 +50,9 @@ interface BranchRecord {
 /**
  * Fetches fiscal data for a specific supplier source (by supplier_id + product variants).
  * Uses the external DB bridge to query variant_supplier_sources.
+ * 
+ * IMPORTANT: Filters by BOTH supplier_id AND product_id (via variant lookup)
+ * to avoid returning fiscal data from a different product.
  */
 export function useSupplierFiscalData(productId: string | undefined, supplierId: string | undefined) {
   return useQuery({
@@ -57,32 +60,56 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
     queryFn: async (): Promise<SupplierFiscalData | null> => {
       if (!productId || !supplierId) return null;
 
-      // 1. Get variant_supplier_sources for this product+supplier (pick first/preferred)
-      const vssResult = await invokeExternalDb<VSSRecord>({
-        table: 'variant_supplier_sources',
+      // 1. First get variant IDs for this product to scope the VSS query
+      const variantsResult = await invokeExternalDb<{ id: string }>({
+        table: 'product_variants',
         operation: 'select',
-        select: 'cst, cfop, icms_rate, pis_rate, cofins_rate, cest, csosn, operation_nature, supplier_branch_id',
-        filters: { supplier_id: supplierId },
-        limit: 1,
-        orderBy: 'created_at.asc',
+        select: 'id',
+        filters: { product_id: productId },
+        limit: 200,
       });
 
-      if (!vssResult.records.length) return null;
+      if (!variantsResult.records.length) return null;
 
-      const vss = vssResult.records[0];
-
-      // 2. If we have a branch_id, fetch branch details
-      let branchData: Partial<BranchRecord> = {};
-      if (vss.supplier_branch_id) {
-        const branchResult = await invokeExternalDb<BranchRecord>({
-          table: 'supplier_branches',
+      // 2. Get variant_supplier_sources for this supplier + product's variants
+      // Try with first variant (preferred sources are usually consistent across variants)
+      const variantIds = variantsResult.records.map(v => v.id);
+      
+      let vss: VSSRecord | null = null;
+      
+      // Query VSS filtering by supplier_id and variant_id (first variant)
+      for (const variantId of variantIds.slice(0, 5)) {
+        const vssResult = await invokeExternalDb<VSSRecord>({
+          table: 'variant_supplier_sources',
           operation: 'select',
-          select: 'id, branch_name, cnpj, state_uf, tax_regime, icms_internal_rate, icms_interstate_rate',
-          filters: { id: vss.supplier_branch_id },
+          select: 'cst, cfop, icms_rate, pis_rate, cofins_rate, cest, csosn, operation_nature, supplier_branch_id',
+          filters: { supplier_id: supplierId, variant_id: variantId },
           limit: 1,
         });
-        if (branchResult.records.length) {
-          branchData = branchResult.records[0];
+        if (vssResult.records.length) {
+          vss = vssResult.records[0];
+          break;
+        }
+      }
+
+      if (!vss) return null;
+
+      // 3. If we have a branch_id, fetch branch details
+      let branchData: Partial<BranchRecord> = {};
+      if (vss.supplier_branch_id) {
+        try {
+          const branchResult = await invokeExternalDb<BranchRecord>({
+            table: 'supplier_branches',
+            operation: 'select',
+            select: 'id, branch_name, cnpj, state_uf, tax_regime, icms_internal_rate, icms_interstate_rate',
+            filters: { id: vss.supplier_branch_id },
+            limit: 1,
+          });
+          if (branchResult.records.length) {
+            branchData = branchResult.records[0];
+          }
+        } catch (err) {
+          console.warn('[useSupplierFiscalData] Failed to fetch branch data:', err);
         }
       }
 

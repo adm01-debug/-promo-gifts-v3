@@ -4,7 +4,6 @@
  * from variant_supplier_sources + supplier_branches.
  */
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Building2, FileText, Loader2 } from 'lucide-react';
 import { useSupplierFiscalData } from '@/hooks/useSupplierFiscalData';
 
