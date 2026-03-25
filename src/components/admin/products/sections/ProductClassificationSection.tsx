@@ -98,10 +98,8 @@ function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, 
 export default function ProductClassificationSection({
   productId,
   isEdit,
-  isKit,
   productName,
   productSku,
-  internalDimensions,
   gender,
   onGenderChange,
 }: Props) {

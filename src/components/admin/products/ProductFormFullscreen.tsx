@@ -618,14 +618,8 @@ export function ProductFormFullscreen({
               <ProductClassificationSection
                 productId={productId}
                 isEdit={isEdit}
-                isKit={isKit}
                 productName={formValues.name}
                 productSku={formValues.sku}
-                internalDimensions={{
-                  height_cm: formValues.internal_height_cm ?? null,
-                  width_cm: formValues.internal_width_cm ?? null,
-                  length_cm: formValues.internal_length_cm ?? null,
-                }}
                 gender={formValues.gender || ''}
                 onGenderChange={(v) => setValue('gender', v)}
               />
