@@ -211,6 +211,10 @@ export function ProductSupplierSection({
                             )}
                             <span>Estoque: {src.stock_quantity}</span>
                           </div>
+                          {/* Fiscal info from external DB */}
+                          {isPersisted && (
+                            <SupplierFiscalInfo productId={productId} supplierId={src.supplier_id} />
+                          )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {isPersisted && !src.is_preferred && (
