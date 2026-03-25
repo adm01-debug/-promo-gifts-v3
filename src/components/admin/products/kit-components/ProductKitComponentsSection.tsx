@@ -238,6 +238,11 @@ export function ProductKitComponentsSection({ productId, boxInternalDimensions }
                 {comp.allows_personalization && (
                   <PrintAreasManager componentId={comp.id} componentName={comp.component_name || ''} />
                 )}
+                <ComponentMediaManager
+                  componentId={comp.id}
+                  productId={productId}
+                  componentName={comp.component_name || ''}
+                />
               </div>
             );
           })}
