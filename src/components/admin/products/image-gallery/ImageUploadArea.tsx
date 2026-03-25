@@ -1,6 +1,7 @@
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { Upload, Loader2, ImageIcon, Palette, FileImage } from 'lucide-react';
+import { Upload, Loader2, ImageIcon, Palette, FileImage, Plus } from 'lucide-react';
 import type { VariantInfo } from './types';
 import { IMAGE_TYPES } from './types';
 
