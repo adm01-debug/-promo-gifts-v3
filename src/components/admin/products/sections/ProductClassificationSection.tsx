@@ -2,7 +2,7 @@
  * ProductClassificationSection — Seção dedicada e visual para Classificação & Vínculos
  * Layout em grid de cards com ícones, badges de contagem e organização por categoria
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ProductVariantsSection } from '../ProductVariantsSection';
 import { ProductVariationAxesConfig } from '../ProductVariationAxesConfig';
 import { ProductMaterialsSection } from '../ProductMaterialsSection';
@@ -10,7 +10,6 @@ import { ProductTagsSection } from '../ProductTagsSection';
 import { ProductRamosSection } from '../ProductRamosSection';
 import { ProductMarketingSection } from '../ProductMarketingSection';
 import { ProductKitComponentsSection } from '../kit-components';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
@@ -21,7 +20,6 @@ import {
   Megaphone,
   Settings2,
   Info,
-  Users,
   ChevronDown,
   ChevronRight,
   Boxes,
