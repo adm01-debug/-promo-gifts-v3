@@ -620,7 +620,7 @@ export function ProductFormFullscreen({
                 disabled={isSeoGenerating}
                 className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
               >
-                {isSeoGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <span className="text-base">✨</span>}
+                {isSeoGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 animate-pulse" />}
                 {isSeoGenerating ? 'Gerando...' : 'Preencher com IA'}
               </Button>
             </div>
