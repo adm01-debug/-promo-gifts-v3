@@ -560,15 +560,6 @@ export function ProductFormFullscreen({
         return (
           <>
             <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
-            <ProductPriceSection
-              {...formProps}
-              supplierMarkup={supplierMarkup}
-              costPriceDisplay={costPriceDisplay}
-              salePriceDisplay={salePriceDisplay}
-              onCostPriceDisplayChange={setCostPriceDisplay}
-              onSalePriceDisplayChange={setSalePriceDisplay}
-              onSalePriceManualEdit={() => setPriceManuallyEdited(true)}
-            />
             <ProductFlagsSection setValue={setValue} flags={flags} />
           </>
         );
