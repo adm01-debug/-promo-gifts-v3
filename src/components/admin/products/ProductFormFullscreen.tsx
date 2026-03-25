@@ -626,24 +626,8 @@ export function ProductFormFullscreen({
                   width_cm: formValues.internal_width_cm ?? null,
                   length_cm: formValues.internal_length_cm ?? null,
                 }}
-                genderField={
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <FieldLabel htmlFor="gender" hint="Gênero do público-alvo do produto">Gênero</FieldLabel>
-                      <Select value={formValues.gender || ''} onValueChange={(v) => setValue('gender', v)}>
-                        <SelectTrigger className="h-9">
-                          <SelectValue placeholder="Selecione..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unissex">Unissex</SelectItem>
-                          <SelectItem value="masculino">Masculino</SelectItem>
-                          <SelectItem value="feminino">Feminino</SelectItem>
-                          <SelectItem value="infantil">Infantil</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                }
+                gender={formValues.gender || ''}
+                onGenderChange={(v) => setValue('gender', v)}
               />
           </Suspense>
         );

@@ -2,7 +2,7 @@
  * ProductClassificationSection — Seção dedicada e visual para Classificação & Vínculos
  * Layout em grid de cards com ícones, badges de contagem e organização por categoria
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ProductVariantsSection } from '../ProductVariantsSection';
 import { ProductVariationAxesConfig } from '../ProductVariationAxesConfig';
 import { ProductMaterialsSection } from '../ProductMaterialsSection';
@@ -10,7 +10,6 @@ import { ProductTagsSection } from '../ProductTagsSection';
 import { ProductRamosSection } from '../ProductRamosSection';
 import { ProductMarketingSection } from '../ProductMarketingSection';
 import { ProductKitComponentsSection } from '../kit-components';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import {
@@ -21,7 +20,6 @@ import {
   Megaphone,
   Settings2,
   Info,
-  Users,
   ChevronDown,
   ChevronRight,
   Boxes,
@@ -39,7 +37,8 @@ interface Props {
     width_cm: number | null;
     length_cm: number | null;
   };
-  genderField?: React.ReactNode;
+  gender?: string;
+  onGenderChange?: (value: string) => void;
 }
 
 interface ClassificationCardProps {
@@ -109,7 +108,8 @@ export default function ProductClassificationSection({
   productName,
   productSku,
   internalDimensions,
-  genderField,
+  gender,
+  onGenderChange,
 }: Props) {
   const showFullContent = isEdit && productId;
 
@@ -122,40 +122,25 @@ export default function ProductClassificationSection({
         </div>
         <div>
           <h3 className="text-base font-bold text-foreground">Classificação & Vínculos</h3>
-          <p className="text-xs text-muted-foreground">Configure gênero, variações, materiais, tags e vínculos comerciais</p>
+          <p className="text-xs text-muted-foreground">Configure variações, materiais, tags e vínculos comerciais</p>
         </div>
       </div>
 
-      {/* Gênero — sempre visível como card compacto */}
-      <Card className="border-border/40 bg-card/60 p-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
-            <Users className="h-4 w-4" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">Gênero do Produto</p>
-            <p className="text-xs text-muted-foreground">Público-alvo primário</p>
-          </div>
-        </div>
-        {genderField}
-      </Card>
-
       {/* Grid de classificações */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Eixos de Variação */}
+        {/* Eixos de Variação (inclui Gênero) */}
         <ClassificationCard
           title="Eixos de Variação"
-          subtitle="Configure cor, tamanho e capacidade"
+          subtitle="Gênero, cor, tamanho e capacidade"
           icon={Settings2}
           iconColor="bg-purple-500/10 text-purple-500"
-          defaultOpen={showFullContent}
-          disabled={!showFullContent}
+          defaultOpen={true}
         >
-          {showFullContent ? (
-            <ProductVariationAxesConfig productId={productId!} />
-          ) : (
-            <DisabledPlaceholder />
-          )}
+          <ProductVariationAxesConfig
+            productId={productId || ''}
+            gender={gender}
+            onGenderChange={onGenderChange}
+          />
         </ClassificationCard>
 
         {/* Variações de Cor */}
