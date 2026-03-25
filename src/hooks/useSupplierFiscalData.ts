@@ -11,6 +11,7 @@ export interface SupplierFiscalData {
   // From variant_supplier_sources
   cst: string | null;
   cfop: string | null;
+  cfop_interstate: string | null;
   icms_rate: number | null;
   pis_rate: number | null;
   cofins_rate: number | null;
@@ -68,6 +69,7 @@ function buildFromBranch(branch: BranchRecord): SupplierFiscalData {
   return {
     cst: branch.default_cst || null,
     cfop: branch.default_cfop_internal || null,
+    cfop_interstate: branch.default_cfop_interstate || null,
     icms_rate: branch.icms_internal_rate ?? null,
     pis_rate: branch.default_pis_rate ?? null,
     cofins_rate: branch.default_cofins_rate ?? null,
@@ -151,6 +153,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
         return {
           cst: vss.cst,
           cfop: vss.cfop,
+          cfop_interstate: null,
           icms_rate: vss.icms_rate,
           pis_rate: vss.pis_rate,
           cofins_rate: vss.cofins_rate,
