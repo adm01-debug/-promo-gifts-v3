@@ -247,6 +247,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
               product_id: productId,
               sku: `DEFAULT-${productId.substring(0, 8)}`,
               is_active: true,
+              attributes: {},
             },
           });
           if (createResult.records?.length) {
