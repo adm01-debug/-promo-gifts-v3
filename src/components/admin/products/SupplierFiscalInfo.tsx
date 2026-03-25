@@ -114,7 +114,11 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
       {hasFiscal && (
         <div className="flex flex-wrap gap-x-4 gap-y-1">
           <FiscalField label="CST" value={data.cst} mono />
-          <FiscalField label="CFOP" value={data.cfop} mono />
+          {data.isInherited && data.cfop_interstate ? (
+            <FiscalFieldPair label1="CFOP Int." value1={data.cfop} label2="Interestadual" value2={data.cfop_interstate} mono />
+          ) : (
+            <FiscalField label="CFOP" value={data.cfop} mono />
+          )}
           <FiscalField label="ICMS" value={formatRate(data.icms_rate)} />
           <FiscalField label="PIS" value={formatRate(data.pis_rate)} />
           <FiscalField label="COFINS" value={formatRate(data.cofins_rate)} />
