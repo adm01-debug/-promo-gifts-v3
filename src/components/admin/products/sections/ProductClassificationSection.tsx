@@ -110,7 +110,8 @@ export default function ProductClassificationSection({
   productName,
   productSku,
   internalDimensions,
-  genderField,
+  gender,
+  onGenderChange,
 }: Props) {
   const showFullContent = isEdit && productId;
 
