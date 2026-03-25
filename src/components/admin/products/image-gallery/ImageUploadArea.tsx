@@ -67,7 +67,7 @@ export function ImageUploadArea({
 
         <Select value={uploadImageType} onValueChange={setUploadImageType}>
           <SelectTrigger className="h-8 w-auto min-w-[140px] gap-1.5 text-xs rounded-md bg-background/60 border-border/40 hover:bg-background/80 transition-colors">
-            {activeType && <activeType.icon className={cn("h-3.5 w-3.5 shrink-0", activeType.color)} />}
+            {activeType && <activeType.icon className={cn("h-3.5 w-3.5 shrink-0 hidden", activeType.color)} />}
             <span className="text-muted-foreground/70 font-normal">Tipo:</span>
             <SelectValue />
           </SelectTrigger>
