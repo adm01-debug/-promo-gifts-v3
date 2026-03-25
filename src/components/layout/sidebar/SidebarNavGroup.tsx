@@ -19,6 +19,7 @@ export interface NavItem {
   badge?: string | number;
   isCta?: boolean;
   exact?: boolean;
+  children?: NavItem[];
 }
 
 export interface NavGroup {
