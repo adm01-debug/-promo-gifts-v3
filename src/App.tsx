@@ -94,6 +94,7 @@ const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 const queryClient = createQueryClient();
 
 import { useCatalogPrefetch } from '@/hooks/useCatalogPrefetch';
+import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-presets';
 
 /** Componente interno que roda hooks que dependem de AuthProvider */
 function AppWithAuth({ children }: { children: React.ReactNode }) {
