@@ -188,6 +188,9 @@ export function ProductSupplierSection({
                                 <Star className="h-3 w-3 mr-0.5 fill-current" /> Preferencial
                               </Badge>
                             )}
+                            {!isPersisted && (
+                              <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/30">Pendente</Badge>
+                            )}
                             {!src.is_active && (
                               <Badge variant="outline" className="text-[10px] text-muted-foreground">Inativo</Badge>
                             )}
@@ -209,7 +212,7 @@ export function ProductSupplierSection({
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          {!src.is_preferred && (
+                          {isPersisted && !src.is_preferred && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreferred(src.id)}>
@@ -219,29 +222,40 @@ export function ProductSupplierSection({
                               <TooltipContent className="text-xs">Definir como preferencial</TooltipContent>
                             </Tooltip>
                           )}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive">
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Remover fonte?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  O fornecedor "{src.supplier_name}" será desvinculado deste produto.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => removeSource(src.id)}>Remover</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          {isPersisted ? (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Remover fonte?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    O fornecedor "{src.supplier_name}" será desvinculado deste produto.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => removeSource(src.id)}>Remover</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <Button
+                              variant="ghost" size="icon"
+                              className="h-7 w-7 text-destructive/70 hover:text-destructive"
+                              onClick={() => removePending(src.id)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </Card>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 
