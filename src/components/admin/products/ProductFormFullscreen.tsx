@@ -87,6 +87,7 @@ const STEPS: StepDef[] = [
   { id: 'fiscal', label: 'Financeiro e Fiscal', description: 'Preços, estoque e tributos', icon: FileText, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
   { id: 'classification', label: 'Classificação', description: 'Gênero, cores e vínculos', icon: Layers, requiredFields: [], fieldLabels: {} },
+  { id: 'kits', label: 'Kits', description: 'Gestão de kits nativos', icon: Boxes, requiredFields: [], fieldLabels: {} },
   { id: 'media', label: 'Mídia', description: 'Imagens e vídeos', icon: ImageIcon, requiredFields: [], fieldLabels: {} },
   { id: 'content', label: 'SEO & Textos', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
 ];
