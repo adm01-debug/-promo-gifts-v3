@@ -80,6 +80,7 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
+  { id: 'category', label: 'Categoria', description: 'Classificação do produto', icon: Layers, requiredFields: [], fieldLabels: {} },
   { id: 'essentials', label: 'Identificação', description: 'Fornecedor, SKU e nome', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
   { id: 'commercial', label: 'Comercial', description: 'Dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
