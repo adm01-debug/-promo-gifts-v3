@@ -284,7 +284,7 @@ export function ProductFormFullscreen({
   isSaving,
   isEdit,
 }: ProductFormFullscreenProps) {
-  const navigate = useNavigate();
+  
   const [images, setImages] = useState<string[]>(initialImages);
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
