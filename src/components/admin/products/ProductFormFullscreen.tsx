@@ -538,13 +538,6 @@ export function ProductFormFullscreen({
       case 'essentials':
         return (
           <>
-            <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
-              <CategoryCascadeSelector
-                value={formValues.category_id || ''}
-                onChange={(id) => setValue('category_id', id)}
-                error={errors.category_id?.message}
-              />
-            </SectionCard>
             <ProductSupplierSection
               supplierId={supplierId}
               onSupplierChange={(id, name, markupPercent) => {
