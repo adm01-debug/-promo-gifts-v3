@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   THEME_PRESETS,
