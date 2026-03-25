@@ -4,8 +4,6 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { CategorySelect } from '../CategorySelect';
-import { NewCategoryDialog } from '../NewCategoryDialog';
 import { FieldLabel, SectionCard } from '../ProductFormHelpers';
 import { Info, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
