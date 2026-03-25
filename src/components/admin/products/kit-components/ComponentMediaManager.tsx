@@ -31,9 +31,6 @@ interface Props {
 export function ComponentMediaManager({ componentId, productId, componentName }: Props) {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [externalUrl, setExternalUrl] = useState('');
-  const [urlMediaType, setUrlMediaType] = useState<'image' | 'video'>('image');
 
   const { data: media = [], isLoading } = useQuery({
     queryKey: ['component-media', componentId],
