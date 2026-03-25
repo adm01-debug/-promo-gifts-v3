@@ -167,9 +167,11 @@ export function ProductSupplierSection({
             </div>
           ) : (
             <>
-              {sources.length > 0 && (
+              {allSources.length > 0 && (
                 <div className="space-y-2 mb-3">
-                  {sources.map((src) => (
+                  {allSources.map((src) => {
+                    const isPersisted = '_persisted' in src && src._persisted;
+                    return (
                     <Card
                       key={src.id}
                       className={cn(
