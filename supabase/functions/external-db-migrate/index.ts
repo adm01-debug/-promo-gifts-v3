@@ -18,43 +18,54 @@ Deno.serve(async (req) => {
       throw new Error("Missing EXTERNAL_SUPABASE_URL or EXTERNAL_SUPABASE_SERVICE_KEY");
     }
 
-    // Use PostgREST's underlying connection to run DDL via rpc
-    // Since we can't run DDL via PostgREST, we'll use the Management API
-    // Actually, let's use the Supabase SQL endpoint
-    const projectRef = new URL(externalUrl).hostname.split('.')[0];
-    
-    // Try adding columns via REST - we'll use a workaround:
-    // First check if columns exist by selecting them
-    const supabase = createClient(externalUrl, externalKey);
-    
-    const testColumns = ['is_featured_expires_at', 'is_bestseller_expires_at', 'is_on_sale_expires_at', 'is_new_expires_at'];
-    
-    // Test which columns already exist
-    const { data: testData, error: testError } = await supabase
-      .from("products")
-      .select("id, " + testColumns.join(", "))
-      .limit(1);
+    // Use the Supabase SQL endpoint (pg-meta) to run ALTER TABLE
+    // The service key gives us access to the SQL endpoint
+    const sqlStatements = [
+      "ALTER TABLE products ADD COLUMN IF NOT EXISTS is_featured_expires_at timestamptz DEFAULT NULL",
+      "ALTER TABLE products ADD COLUMN IF NOT EXISTS is_bestseller_expires_at timestamptz DEFAULT NULL",
+      "ALTER TABLE products ADD COLUMN IF NOT EXISTS is_on_sale_expires_at timestamptz DEFAULT NULL",
+      "ALTER TABLE products ADD COLUMN IF NOT EXISTS is_new_expires_at timestamptz DEFAULT NULL",
+    ];
 
-    if (!testError) {
-      return new Response(JSON.stringify({
-        success: true,
-        message: "All columns already exist!",
-        sample: testData,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const results: any[] = [];
+
+    for (const sql of sqlStatements) {
+      // Use the /rest/v1/rpc endpoint won't work for DDL
+      // Use the /pg endpoint (pg-meta REST API)
+      const pgMetaUrl = `${externalUrl}/pg/query`;
+      
+      const response = await fetch(pgMetaUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${externalKey}`,
+          'apikey': externalKey,
+        },
+        body: JSON.stringify({ query: sql }),
+      });
+
+      const responseText = await response.text();
+      results.push({
+        sql,
+        status: response.status,
+        response: responseText.substring(0, 500),
+      });
     }
 
-    // Columns don't exist - we need to add them via SQL
-    // Use the database URL directly if available
-    const dbUrl = Deno.env.get("EXTERNAL_DB_URL");
-    
+    // Verify columns now exist
+    const supabase = createClient(externalUrl, externalKey);
+    const { data: verify, error: verifyError } = await supabase
+      .from("products")
+      .select("id, is_featured_expires_at, is_bestseller_expires_at, is_on_sale_expires_at, is_new_expires_at")
+      .limit(1);
+
     return new Response(JSON.stringify({
-      success: false,
-      message: "Columns don't exist yet. PostgREST error: " + testError.message,
-      hint: "Need ALTER TABLE access via SQL endpoint or database URL",
-      columns_needed: testColumns,
+      success: !verifyError,
+      results,
+      verification: verifyError ? { error: verifyError.message } : { columns_exist: true, sample: verify },
     }), { 
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200 
+      status: 200,
     });
 
   } catch (error: unknown) {
