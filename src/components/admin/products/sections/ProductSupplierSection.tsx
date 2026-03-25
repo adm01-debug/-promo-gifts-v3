@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { SupplierSelect } from '../SupplierSelect';
 import { NewSupplierDialog } from '../NewSupplierDialog';
 import { SectionCard } from '../ProductFormHelpers';
+import { SupplierFiscalInfo } from '../SupplierFiscalInfo';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
