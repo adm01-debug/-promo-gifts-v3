@@ -2,9 +2,10 @@
  * Read-only fiscal info panel for a supplier source.
  * Shows CST, CFOP, ICMS, PIS, COFINS, CEST, CSOSN, operation_nature
  * from variant_supplier_sources + supplier_branches.
+ * Shows "Herdado" badge when data comes from branch defaults.
  */
 import { Badge } from '@/components/ui/badge';
-import { Building2, FileText, Loader2 } from 'lucide-react';
+import { Building2, FileText, Loader2, ArrowDownFromLine } from 'lucide-react';
 import { useSupplierFiscalData } from '@/hooks/useSupplierFiscalData';
 
 interface Props {
@@ -60,7 +61,15 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
     <div className="mt-2 pt-2 border-t border-border/50 space-y-2">
       <div className="flex items-center gap-1.5">
         <FileText className="h-3 w-3 text-muted-foreground" />
-        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">Fiscal do Fornecedor</span>
+        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+          Fiscal do Fornecedor
+        </span>
+        {data.isInherited && (
+          <Badge variant="outline" className="text-[10px] h-5 ml-1 gap-1 text-amber-600 border-amber-500/30 bg-amber-500/5">
+            <ArrowDownFromLine className="h-2.5 w-2.5" />
+            Herdado da filial
+          </Badge>
+        )}
       </div>
 
       {/* Branch info */}
@@ -100,6 +109,13 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
           <FiscalField label="ICMS Ref. Interno" value={formatRate(data.branch_icms_internal)} />
           <FiscalField label="ICMS Ref. Interestadual" value={formatRate(data.branch_icms_interstate)} />
         </div>
+      )}
+
+      {/* Inheritance hint */}
+      {data.isInherited && (
+        <p className="text-[10px] text-muted-foreground/70 italic">
+          Dados herdados da filial padrão. Serão substituídos por valores específicos quando configurados para este produto.
+        </p>
       )}
     </div>
   );
