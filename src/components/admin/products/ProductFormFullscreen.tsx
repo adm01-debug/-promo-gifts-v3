@@ -4,6 +4,7 @@
  */
 
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
@@ -281,6 +282,7 @@ export function ProductFormFullscreen({
   isSaving,
   isEdit,
 }: ProductFormFullscreenProps) {
+  const navigate = useNavigate();
   const [images, setImages] = useState<string[]>(initialImages);
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
@@ -677,6 +679,16 @@ export function ProductFormFullscreen({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 pb-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
+              onClick={() => navigate('/montar-kit')}
+            >
+              <Package className="h-3.5 w-3.5" />
+              Gestão de Kits
+            </Button>
             {Object.keys(errors).length > 0 && (
               <span className="flex items-center gap-1 text-destructive text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
