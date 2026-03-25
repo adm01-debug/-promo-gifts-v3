@@ -11,6 +11,7 @@ export interface SupplierFiscalData {
   // From variant_supplier_sources
   cst: string | null;
   cfop: string | null;
+  cfop_interstate: string | null;
   icms_rate: number | null;
   pis_rate: number | null;
   cofins_rate: number | null;
