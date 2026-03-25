@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Palette, Sun, Moon, RotateCcw, Check, Save } from 'lucide-react';
+import { Palette, Sun, Moon, RotateCcw, Check, Save, ArrowLeft } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   THEME_PRESETS,
@@ -20,6 +21,7 @@ import {
 export default function AdminTemasPage() {
   const { actualTheme, setTheme: setAppTheme } = useTheme();
   const [config, setConfig] = useState<ThemeConfig>(loadThemeConfig);
+  const navigate = useNavigate();
 
   // Apply on mount + changes
   const applyAll = useCallback((cfg: ThemeConfig, mode: 'light' | 'dark') => {
@@ -60,17 +62,23 @@ export default function AdminTemasPage() {
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Palette className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-display font-bold text-foreground">Personalizar Tema</h1>
-              <p className="text-sm text-muted-foreground">
-                Escolha um preset ou customize as cores
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-xl"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Palette className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">Personalizar Tema</h1>
+            <p className="text-sm text-muted-foreground">
+              Escolha um preset ou customize as cores
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
