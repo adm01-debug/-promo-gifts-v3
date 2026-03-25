@@ -8,9 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ChevronRight, Folder, FolderOpen, Check, Search, TreePine, X } from 'lucide-react';
+import { ChevronRight, Folder, FolderOpen, Check, Search, TreePine, X, Layers, FolderTree } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NewCategoryDialog } from './NewCategoryDialog';
 
@@ -63,7 +62,6 @@ function CascadeSelects({
   value: string;
   onChange: (id: string) => void;
 }) {
-  // Determine the chain of selected ancestors
   const selectedChain = useMemo(() => {
     if (!value) return [];
     const chain: string[] = [];
@@ -75,55 +73,61 @@ function CascadeSelects({
     return chain;
   }, [value, nodeMap]);
 
-  // Build selects: one per level based on current selection
   const levels = useMemo(() => {
     const result: { items: CatNode[]; selectedId: string }[] = [];
-
-    // Level 0: roots
     result.push({ items: roots, selectedId: selectedChain[0] || '' });
-
-    // Subsequent levels
     for (let i = 0; i < selectedChain.length; i++) {
       const node = nodeMap.get(selectedChain[i]);
       if (node && node.children.length > 0) {
         result.push({ items: node.children, selectedId: selectedChain[i + 1] || '' });
       }
     }
-
     return result;
   }, [roots, nodeMap, selectedChain]);
 
   const handleChange = (levelIndex: number, newId: string) => {
-    // When a level changes, the value becomes that id
-    // If it has children, user can refine further, but we already set it
     onChange(newId);
   };
 
   return (
-    <div className="flex items-start gap-2 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       {levels.map((level, i) => (
-        <div key={i} className="flex items-center gap-1.5 min-w-0">
-          {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+        <div key={i} className="flex items-center gap-2 min-w-0">
+          {i > 0 && (
+            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-muted/50">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+          )}
           <Select
             value={level.selectedId || undefined}
             onValueChange={(v) => handleChange(i, v)}
           >
-            <SelectTrigger className="h-8 text-xs min-w-[140px] max-w-[200px]">
-              <SelectValue placeholder={i === 0 ? 'Categoria raiz...' : 'Subcategoria...'} />
+            <SelectTrigger className={cn(
+              "h-9 text-xs min-w-[160px] max-w-[220px] rounded-lg border-border/60",
+              "bg-background/50 hover:bg-accent/30 transition-all duration-200",
+              level.selectedId && "border-primary/30 bg-primary/5"
+            )}>
+              <div className="flex items-center gap-1.5">
+                <Folder className={cn(
+                  "h-3.5 w-3.5 shrink-0",
+                  level.selectedId ? "text-primary" : "text-muted-foreground"
+                )} />
+                <SelectValue placeholder={i === 0 ? 'Categoria raiz...' : 'Subcategoria...'} />
+              </div>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[280px]">
               {level.items.map(item => (
-                <SelectItem key={item.id} value={item.id} className="text-xs">
-                  <span className="flex items-center gap-1.5">
+                <SelectItem key={item.id} value={item.id} className="text-xs py-2">
+                  <span className="flex items-center gap-2">
                     {item.children.length > 0 ? (
-                      <Folder className="h-3 w-3 text-primary/70" />
+                      <Folder className="h-3.5 w-3.5 text-primary/60" />
                     ) : (
-                      <span className="w-3" />
+                      <div className="w-3.5 h-3.5 rounded-full border border-border/50" />
                     )}
-                    {item.name}
+                    <span className="flex-1">{item.name}</span>
                     {item.children.length > 0 && (
-                      <span className="text-[10px] text-muted-foreground ml-1">
-                        ({item.children.length})
+                      <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full">
+                        {item.children.length}
                       </span>
                     )}
                   </span>
@@ -150,7 +154,6 @@ function TreeNode({
   depth: number;
 }) {
   const [expanded, setExpanded] = useState(
-    // Auto-expand if this node or a descendant is selected
     () => {
       if (node.id === selectedId) return true;
       const checkDescendant = (n: CatNode): boolean =>
@@ -167,30 +170,34 @@ function TreeNode({
       <button
         type="button"
         className={cn(
-          'flex items-center gap-1.5 w-full text-left py-1 px-2 rounded-sm text-sm hover:bg-accent/50 transition-colors',
-          isSelected && 'bg-primary/10 text-primary font-medium'
+          'flex items-center gap-2 w-full text-left py-1.5 px-2.5 rounded-md text-sm transition-all duration-150',
+          'hover:bg-accent/50',
+          isSelected && 'bg-primary/10 text-primary font-medium ring-1 ring-primary/20'
         )}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
+        style={{ paddingLeft: `${depth * 20 + 10}px` }}
         onClick={() => {
           onSelect(node.id);
           if (hasChildren) setExpanded(prev => !prev);
         }}
       >
         {hasChildren ? (
-          <ChevronRight className={cn('h-3.5 w-3.5 shrink-0 transition-transform', expanded && 'rotate-90')} />
+          <ChevronRight className={cn('h-3.5 w-3.5 shrink-0 transition-transform duration-200', expanded && 'rotate-90')} />
         ) : (
           <span className="w-3.5 shrink-0" />
         )}
         {hasChildren ? (
-          expanded ? <FolderOpen className="h-3.5 w-3.5 text-primary/70 shrink-0" /> : <Folder className="h-3.5 w-3.5 text-primary/70 shrink-0" />
+          expanded ? <FolderOpen className="h-4 w-4 text-primary/70 shrink-0" /> : <Folder className="h-4 w-4 text-primary/70 shrink-0" />
         ) : (
-          <span className="w-3.5 shrink-0" />
+          <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 shrink-0 flex items-center justify-center">
+            {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
+          </div>
         )}
         <span className="truncate flex-1">{node.name}</span>
-        {isSelected && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+        {isSelected && hasChildren && <Check className="h-4 w-4 text-primary shrink-0" />}
       </button>
       {expanded && hasChildren && (
-        <div>
+        <div className="relative">
+          <div className="absolute left-0 top-0 bottom-0 border-l border-border/30" style={{ marginLeft: `${depth * 20 + 18}px` }} />
           {node.children.map(child => (
             <TreeNode key={child.id} node={child} selectedId={selectedId} onSelect={onSelect} depth={depth + 1} />
           ))}
@@ -220,7 +227,6 @@ function CategoryTreeDialog({
     const matchIds = new Set<string>();
     for (const node of nodeMap.values()) {
       if (node.name.toLowerCase().includes(q)) {
-        // Mark this and all ancestors
         let current: CatNode | undefined = node;
         while (current) {
           matchIds.add(current.id);
@@ -229,7 +235,6 @@ function CategoryTreeDialog({
       }
     }
     if (matchIds.size === 0) return [];
-    // Filter tree keeping only matched paths
     function filterNode(node: CatNode): CatNode | null {
       if (!matchIds.has(node.id)) return null;
       return { ...node, children: node.children.map(filterNode).filter(Boolean) as CatNode[] };
@@ -246,28 +251,35 @@ function CategoryTreeDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setSearch(''); }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs shrink-0">
+        <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs shrink-0 rounded-lg border-border/60 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
           <TreePine className="h-3.5 w-3.5" />
           Árvore
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-base">Navegar por Árvore de Categorias</DialogTitle>
+          <DialogTitle className="text-base flex items-center gap-2">
+            <FolderTree className="h-5 w-5 text-primary" />
+            Navegar por Árvore de Categorias
+          </DialogTitle>
         </DialogHeader>
         <div className="relative">
-          <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar categoria..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-8 h-8 text-sm"
+            className="pl-9 h-9 text-sm rounded-lg"
           />
         </div>
         <ScrollArea className="h-[360px] -mx-2">
-          <div className="px-2">
+          <div className="px-2 py-1">
             {filteredRoots.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Nenhuma categoria encontrada</p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Search className="h-8 w-8 text-muted-foreground/40 mb-3" />
+                <p className="text-sm text-muted-foreground">Nenhuma categoria encontrada</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Tente outro termo de busca</p>
+              </div>
             ) : (
               filteredRoots.map(root => (
                 <TreeNode key={root.id} node={root} selectedId={value} onSelect={handleSelect} depth={0} />
@@ -289,49 +301,75 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
   const selectedNode = value ? nodeMap.get(value) : undefined;
 
   if (isLoading) {
-    return <div className="h-8 bg-muted/30 rounded animate-pulse" />;
+    return (
+      <div className="space-y-3">
+        <div className="h-9 bg-muted/20 rounded-lg animate-pulse" />
+        <div className="h-5 w-48 bg-muted/15 rounded animate-pulse" />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* Row: Cascade selects + Tree button + New */}
-      <div className="flex items-start gap-2">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex-1 min-w-0">
           <CascadeSelects roots={roots} nodeMap={nodeMap} value={value} onChange={onChange} />
         </div>
-        <CategoryTreeDialog roots={roots} nodeMap={nodeMap} value={value} onChange={onChange} />
-        <NewCategoryDialog onCreated={onChange} />
+        <div className="flex items-center gap-2 shrink-0">
+          <CategoryTreeDialog roots={roots} nodeMap={nodeMap} value={value} onChange={onChange} />
+          <NewCategoryDialog onCreated={onChange} />
+        </div>
       </div>
 
-      {/* Breadcrumb */}
-      {selectedNode && (
-        <div className="flex items-center gap-1 flex-wrap">
-          {selectedNode.fullPath.map((segment, i) => (
-            <span key={i} className="flex items-center gap-1">
-              {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground/50" />}
-              <Badge
-                variant={i === selectedNode.fullPath.length - 1 ? 'default' : 'secondary'}
-                className={cn(
-                  'text-[10px] py-0 px-1.5 font-normal',
-                  i === selectedNode.fullPath.length - 1 && 'bg-primary/15 text-primary border-primary/20'
-                )}
-              >
-                {segment}
-              </Badge>
-            </span>
-          ))}
+      {/* Breadcrumb - Elegant path display */}
+      {selectedNode ? (
+        <div className="flex items-center gap-0.5 flex-wrap bg-muted/20 rounded-lg px-3 py-2 border border-border/30">
+          <Layers className="h-3.5 w-3.5 text-muted-foreground mr-1.5 shrink-0" />
+          {selectedNode.fullPath.map((segment, i) => {
+            const isLast = i === selectedNode.fullPath.length - 1;
+            return (
+              <span key={i} className="flex items-center gap-0.5">
+                {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground/40 mx-0.5" />}
+                <span className={cn(
+                  'text-xs px-2 py-0.5 rounded-md transition-colors',
+                  isLast
+                    ? 'bg-primary/15 text-primary font-medium border border-primary/20'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}>
+                  {segment}
+                </span>
+              </span>
+            );
+          })}
           <button
             type="button"
-            className="ml-1 p-0.5 rounded hover:bg-accent transition-colors"
+            className="ml-2 p-1 rounded-md hover:bg-destructive/10 hover:text-destructive transition-all duration-200 group"
             onClick={() => onChange('')}
             title="Limpar seleção"
           >
-            <X className="h-3 w-3 text-muted-foreground" />
+            <X className="h-3.5 w-3.5 text-muted-foreground group-hover:text-destructive" />
           </button>
+        </div>
+      ) : (
+        /* Empty state */
+        <div className="flex items-center gap-3 bg-muted/10 rounded-lg px-4 py-3 border border-dashed border-border/40">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted/30">
+            <FolderTree className="h-4 w-4 text-muted-foreground/60" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Nenhuma categoria selecionada</p>
+            <p className="text-[11px] text-muted-foreground/50">Selecione uma categoria acima ou navegue pela árvore</p>
+          </div>
         </div>
       )}
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && (
+        <p className="text-xs text-destructive flex items-center gap-1.5">
+          <span className="w-1 h-1 rounded-full bg-destructive shrink-0" />
+          {error}
+        </p>
+      )}
     </div>
   );
 }
