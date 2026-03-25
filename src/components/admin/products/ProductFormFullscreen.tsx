@@ -611,6 +611,19 @@ export function ProductFormFullscreen({
       case 'content':
         return (
           <>
+            <div className="flex items-center justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={generateSeoAI}
+                disabled={isSeoGenerating}
+                className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+              >
+                {isSeoGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <span className="text-base">✨</span>}
+                {isSeoGenerating ? 'Gerando...' : 'Preencher com IA'}
+              </Button>
+            </div>
             <ProductSeoSection {...formProps} />
             <ProductMarketingTextsSection register={register} />
           </>
