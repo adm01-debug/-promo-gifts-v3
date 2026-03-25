@@ -680,16 +680,6 @@ export function ProductFormFullscreen({
           </div>
 
           <div className="flex items-center gap-2 shrink-0 pb-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1.5 text-xs border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary font-medium"
-              onClick={() => navigate('/montar-kit')}
-            >
-              <Package className="h-3.5 w-3.5" />
-              Gestão de Kits
-            </Button>
             {Object.keys(errors).length > 0 && (
               <span className="flex items-center gap-1 text-destructive text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
