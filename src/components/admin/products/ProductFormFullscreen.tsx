@@ -80,8 +80,8 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
-  { id: 'essentials', label: 'Identificação', description: 'Categoria, fornecedor e dados', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
-  { id: 'commercial', label: 'Comercial', description: 'Dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
+  { id: 'essentials', label: 'Identificação', description: 'Fornecedor e dados', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
+  { id: 'commercial', label: 'Comercial', description: 'Categoria, dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
   { id: 'fiscal', label: 'Financeiro e Fiscal', description: 'Preços, estoque e tributos', icon: FileText, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
@@ -538,13 +538,6 @@ export function ProductFormFullscreen({
       case 'essentials':
         return (
           <>
-            <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
-              <CategoryCascadeSelector
-                value={formValues.category_id || ''}
-                onChange={(id) => setValue('category_id', id)}
-                error={errors.category_id?.message}
-              />
-            </SectionCard>
             <ProductSupplierSection
               supplierId={supplierId}
               onSupplierChange={(id, name, markupPercent) => {
@@ -572,6 +565,13 @@ export function ProductFormFullscreen({
       case 'commercial':
         return (
           <>
+            <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
+              <CategoryCascadeSelector
+                value={formValues.category_id || ''}
+                onChange={(id) => setValue('category_id', id)}
+                error={errors.category_id?.message}
+              />
+            </SectionCard>
             <ProductFlagsSection setValue={setValue} flags={flags} />
           </>
         );
