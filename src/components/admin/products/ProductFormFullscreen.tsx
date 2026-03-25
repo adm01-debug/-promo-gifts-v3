@@ -302,7 +302,7 @@ export function ProductFormFullscreen({
   });
 
   const {
-    register, handleSubmit, setValue, watch, trigger,
+    register, handleSubmit, setValue, watch, trigger, getValues,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
