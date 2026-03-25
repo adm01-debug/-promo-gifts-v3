@@ -1,11 +1,10 @@
 /**
  * ComponentMediaManager — Mini gallery per kit component
- * Supports image/video upload to Supabase storage + metadata in component_media table
+ * Uses external-db-bridge (kit_component_media table) — no local storage
  */
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Image, Video, Plus, Trash2, Loader2, Star, Upload, Link2, X } from 'lucide-react';
+import { Image, Video, Plus, Trash2, Loader2, Star, Link2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,16 +16,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 
-interface ComponentMedia {
-  id: string;
-  component_id: string;
-  product_id: string;
-  media_type: 'image' | 'video';
-  url: string;
-  title: string | null;
-  sort_order: number;
-  is_cover: boolean;
-}
+import {
+  fetchComponentMedia,
+  createComponentMedia,
+  updateComponentMedia,
+  deleteComponentMedia,
+  type ComponentMedia,
+} from './api';
 
 interface Props {
   componentId: string;
@@ -34,21 +30,9 @@ interface Props {
   componentName: string;
 }
 
-async function fetchComponentMedia(componentId: string): Promise<ComponentMedia[]> {
-  const { data, error } = await supabase
-    .from('component_media')
-    .select('*')
-    .eq('component_id', componentId)
-    .order('sort_order', { ascending: true });
-
-  if (error) throw new Error(error.message);
-  return (data as ComponentMedia[]) || [];
-}
-
 export function ComponentMediaManager({ componentId, productId, componentName }: Props) {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [externalUrl, setExternalUrl] = useState('');
   const [urlMediaType, setUrlMediaType] = useState<'image' | 'video'>('image');
@@ -67,67 +51,19 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
     queryClient.invalidateQueries({ queryKey: ['component-media', componentId] });
   }, [queryClient, componentId]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files?.length) return;
-
-    setIsUploading(true);
-    try {
-      for (const file of Array.from(files)) {
-        const isVideo = file.type.startsWith('video/');
-        const mediaType = isVideo ? 'video' : 'image';
-        const ext = file.name.split('.').pop();
-        const path = `${productId}/${componentId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('component-media')
-          .upload(path, file, { cacheControl: '3600', upsert: false });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('component-media')
-          .getPublicUrl(path);
-
-        const { error: insertError } = await supabase
-          .from('component_media')
-          .insert({
-            component_id: componentId,
-            product_id: productId,
-            media_type: mediaType,
-            url: urlData.publicUrl,
-            title: file.name.replace(/\.[^/.]+$/, ''),
-            sort_order: media.length,
-          });
-
-        if (insertError) throw insertError;
-      }
-      toast.success('Mídia adicionada com sucesso');
-      invalidate();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao fazer upload');
-    } finally {
-      setIsUploading(false);
-      e.target.value = '';
-    }
-  };
-
   const handleAddUrl = async () => {
     if (!externalUrl.trim()) return;
 
     try {
-      const { error } = await supabase
-        .from('component_media')
-        .insert({
-          component_id: componentId,
-          product_id: productId,
-          media_type: urlMediaType,
-          url: externalUrl.trim(),
-          title: null,
-          sort_order: media.length,
-        });
-
-      if (error) throw error;
+      await createComponentMedia({
+        kit_component_id: componentId,
+        product_id: productId,
+        media_type: urlMediaType,
+        url: externalUrl.trim(),
+        title: null,
+        sort_order: media.length,
+        is_cover: false,
+      });
       toast.success('Mídia adicionada');
       setExternalUrl('');
       setShowUrlInput(false);
@@ -139,20 +75,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
 
   const handleDelete = async (item: ComponentMedia) => {
     try {
-      // Try to delete from storage if it's from our bucket
-      if (item.url.includes('component-media')) {
-        const path = item.url.split('component-media/')[1];
-        if (path) {
-          await supabase.storage.from('component-media').remove([path]);
-        }
-      }
-
-      const { error } = await supabase
-        .from('component_media')
-        .delete()
-        .eq('id', item.id);
-
-      if (error) throw error;
+      await deleteComponentMedia(item.id);
       toast.success('Mídia removida');
       invalidate();
     } catch (err) {
@@ -163,18 +86,12 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
   const handleSetCover = async (item: ComponentMedia) => {
     try {
       // Unset all covers first
-      await supabase
-        .from('component_media')
-        .update({ is_cover: false })
-        .eq('component_id', componentId);
-
+      const currentCovers = media.filter(m => m.is_cover);
+      for (const c of currentCovers) {
+        await updateComponentMedia(c.id, { is_cover: false });
+      }
       // Set new cover
-      const { error } = await supabase
-        .from('component_media')
-        .update({ is_cover: true })
-        .eq('id', item.id);
-
-      if (error) throw error;
+      await updateComponentMedia(item.id, { is_cover: true });
       toast.success('Capa definida');
       invalidate();
     } catch (err) {
@@ -214,34 +131,15 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
 
       <CollapsibleContent>
         <div className="border border-t-0 rounded-b-lg p-3 space-y-3">
-          {/* Upload actions */}
+          {/* Add URL action */}
           <div className="flex items-center gap-2 flex-wrap">
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                className="hidden"
-                onChange={handleFileUpload}
-                disabled={isUploading}
-              />
-              <div className={cn(
-                'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-[11px] font-medium transition-colors',
-                'hover:bg-accent/50 cursor-pointer',
-                isUploading && 'opacity-50 cursor-not-allowed',
-              )}>
-                {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                Upload
-              </div>
-            </label>
-
             <button
               type="button"
               onClick={() => setShowUrlInput(!showUrlInput)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-[11px] font-medium hover:bg-accent/50 transition-colors"
             >
               <Link2 className="h-3 w-3" />
-              URL Externa
+              Adicionar URL
             </button>
           </div>
 
