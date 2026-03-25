@@ -130,6 +130,7 @@ export const defaultFormValues: ProductFormData = {
   category_id: '',
   supplier_id: '',
   supplier_reference: '',
+  supplier_product_url: '',
   sale_price: 0,
   cost_price: 0,
   suggested_price: null,
