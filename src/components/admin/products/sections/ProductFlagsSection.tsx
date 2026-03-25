@@ -22,7 +22,6 @@ const FLAG_CONFIG: { key: keyof ProductFormData; label: string; hint: string; ac
   { key: 'is_bestseller', label: 'Mais Vendido', hint: 'Marca o produto como best-seller para filtros e exibição especial' },
   { key: 'is_new', label: 'Lançamento', hint: 'Indica que o produto é um lançamento recente no catálogo' },
   { key: 'is_on_sale', label: 'Em Promoção', hint: 'Sinaliza o produto com badge de promoção' },
-  { key: 'is_kit', label: 'É Kit', hint: 'Define como kit composto por múltiplos componentes — habilita seção de componentes na Classificação' },
 ];
 
 export function ProductFlagsSection({ setValue, flags }: Props) {

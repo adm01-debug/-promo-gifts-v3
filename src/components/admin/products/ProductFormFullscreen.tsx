@@ -646,16 +646,46 @@ export function ProductFormFullscreen({
         );
       case 'kits':
         return (
-          <Suspense fallback={<SectionSkeleton />}>
-            <ProductKitComponentsSection
-              productId={productId || ''}
-              boxInternalDimensions={{
-                height_cm: formValues.internal_height_cm ?? null,
-                width_cm: formValues.internal_width_cm ?? null,
-                length_cm: formValues.internal_length_cm ?? null,
-              }}
-            />
-          </Suspense>
+          <>
+            <SectionCard id="kit-flag" title="Tipo de Produto" icon={Package} subtitle="Defina se este produto é um kit">
+              <div
+                className={cn(
+                  'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                  formValues.is_kit ? 'bg-primary/5 border-primary/20' : 'border-border/50',
+                )}
+                onClick={() => setValue('is_kit', !formValues.is_kit)}
+                role="switch"
+                aria-checked={!!formValues.is_kit}
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setValue('is_kit', !formValues.is_kit); } }}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Label className="cursor-pointer text-xs font-medium">É Kit</Label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-3 w-3 text-muted-foreground/40 cursor-help shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent className="text-xs max-w-[220px]">Define como kit composto por múltiplos componentes</TooltipContent>
+                  </Tooltip>
+                </div>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Switch checked={!!formValues.is_kit} onCheckedChange={(v) => setValue('is_kit', v)} />
+                </div>
+              </div>
+            </SectionCard>
+            {formValues.is_kit && (
+              <Suspense fallback={<SectionSkeleton />}>
+                <ProductKitComponentsSection
+                  productId={productId || ''}
+                  boxInternalDimensions={{
+                    height_cm: formValues.internal_height_cm ?? null,
+                    width_cm: formValues.internal_width_cm ?? null,
+                    length_cm: formValues.internal_length_cm ?? null,
+                  }}
+                />
+              </Suspense>
+            )}
+          </>
         );
       case 'media':
         return (
