@@ -9,7 +9,6 @@ import { ProductMaterialsSection } from '../ProductMaterialsSection';
 import { ProductTagsSection } from '../ProductTagsSection';
 import { ProductRamosSection } from '../ProductRamosSection';
 import { ProductMarketingSection } from '../ProductMarketingSection';
-import { ProductKitComponentsSection } from '../kit-components';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -23,7 +22,7 @@ import {
   Info,
   ChevronDown,
   ChevronRight,
-  Boxes,
+  
   Sparkles,
 } from 'lucide-react';
 
@@ -160,26 +159,6 @@ export default function ProductClassificationSection({
           )}
         </ClassificationCard>
 
-        {/* Kit Components */}
-        {isKit && (
-          <ClassificationCard
-            title="Componentes do Kit"
-            subtitle="Itens que compõem o kit"
-            icon={Boxes}
-            iconColor="bg-amber-500/10 text-amber-500"
-            defaultOpen={showFullContent}
-            disabled={!showFullContent}
-          >
-            {showFullContent ? (
-              <ProductKitComponentsSection
-                productId={productId!}
-                boxInternalDimensions={internalDimensions}
-              />
-            ) : (
-              <DisabledPlaceholder />
-            )}
-          </ClassificationCard>
-        )}
 
         {/* Materiais */}
         <ClassificationCard
