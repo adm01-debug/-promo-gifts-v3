@@ -17,7 +17,6 @@ import {
 
 import {
   fetchComponentMedia,
-  createComponentMedia,
   updateComponentMedia,
   deleteComponentMedia,
   type ComponentMedia,
