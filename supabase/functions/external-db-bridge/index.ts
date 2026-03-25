@@ -283,6 +283,8 @@ const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
   'box_internal_width_cm',
   'box_internal_length_cm',
   'box_inner_quantity',
+  // Campo virtual (não existe na tabela products)
+  'image_url',
 ]);
 
 function sanitizeExternalWriteData(table: string, data: Record<string, unknown>) {
