@@ -91,11 +91,15 @@ export function ProductInfoSection({
         <Input id="short_description" {...register('short_description')} placeholder="Resumo curto do produto" className="h-9" />
       </div>
 
-      {/* Marca + Prazo + Modo */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Marca + País + Prazo + Modo */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div>
           <FieldLabel htmlFor="brand" hint="Fabricante ou marca comercial do produto">Marca</FieldLabel>
           <Input id="brand" {...register('brand')} placeholder="Ex: Tramontina" className="h-9" />
+        </div>
+        <div>
+          <FieldLabel htmlFor="country_of_origin" hint="País onde o produto é fabricado ou de onde é importado">País de Origem</FieldLabel>
+          <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
         </div>
         <div>
           <FieldLabel htmlFor="lead_time_days" hint="Tempo médio em dias úteis para produção/entrega pelo fornecedor">Prazo Entrega (dias)</FieldLabel>
