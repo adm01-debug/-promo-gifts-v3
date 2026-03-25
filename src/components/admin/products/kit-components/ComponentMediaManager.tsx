@@ -4,11 +4,10 @@
  */
 import { useState, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Image, Video, Plus, Trash2, Loader2, Star, Link2, X } from 'lucide-react';
+import { Image, Video, Trash2, Loader2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import { toast } from 'sonner';
 import {
   Collapsible,
