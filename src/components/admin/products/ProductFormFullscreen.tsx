@@ -643,6 +643,19 @@ export function ProductFormFullscreen({
               />
           </Suspense>
         );
+      case 'kits':
+        return (
+          <Suspense fallback={<SectionSkeleton />}>
+            <ProductKitComponentsSection
+              productId={productId || ''}
+              boxInternalDimensions={{
+                height_cm: formValues.internal_height_cm ?? null,
+                width_cm: formValues.internal_width_cm ?? null,
+                length_cm: formValues.internal_length_cm ?? null,
+              }}
+            />
+          </Suspense>
+        );
       case 'media':
         return (
           <Suspense fallback={<SectionSkeleton />}>
