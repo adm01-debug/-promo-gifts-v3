@@ -7,7 +7,9 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
-import { FieldLabel } from './ProductFormHelpers';
+import { FieldLabel, SectionCard } from './ProductFormHelpers';
+import { CategorySelect } from './CategorySelect';
+import { NewCategoryDialog } from './NewCategoryDialog';
 import { ProductPreviewPanel } from './ProductPreviewPanel';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
