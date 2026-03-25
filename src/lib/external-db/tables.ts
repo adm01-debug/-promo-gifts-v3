@@ -44,6 +44,8 @@ export const PRODUCT_TABLES = [
   'variation_types',
   'variation_values',
   'stock_movements',
+  // Fornecedor — Filiais
+  'supplier_branches',
   // Coleções
   'collections',
   'collection_products',
