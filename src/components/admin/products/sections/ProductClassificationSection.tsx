@@ -159,26 +159,6 @@ export default function ProductClassificationSection({
           )}
         </ClassificationCard>
 
-        {/* Kit Components */}
-        {isKit && (
-          <ClassificationCard
-            title="Componentes do Kit"
-            subtitle="Itens que compõem o kit"
-            icon={Boxes}
-            iconColor="bg-amber-500/10 text-amber-500"
-            defaultOpen={showFullContent}
-            disabled={!showFullContent}
-          >
-            {showFullContent ? (
-              <ProductKitComponentsSection
-                productId={productId!}
-                boxInternalDimensions={internalDimensions}
-              />
-            ) : (
-              <DisabledPlaceholder />
-            )}
-          </ClassificationCard>
-        )}
 
         {/* Materiais */}
         <ClassificationCard
