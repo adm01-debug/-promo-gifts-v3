@@ -570,6 +570,12 @@ export function ProductFormFullscreen({
               onSkuManualEdit={() => setSkuManuallyEdited(true)}
             />
             <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
+            <ProductSupplierSourcesSection
+              productId={productId}
+              isEdit={isEdit}
+              primarySupplierId={supplierId}
+              primarySupplierName={formValues.brand || ''}
+            />
           </>
         );
       case 'commercial':
