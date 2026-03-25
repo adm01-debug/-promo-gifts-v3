@@ -39,7 +39,8 @@ interface Props {
     width_cm: number | null;
     length_cm: number | null;
   };
-  genderField?: React.ReactNode;
+  gender?: string;
+  onGenderChange?: (value: string) => void;
 }
 
 interface ClassificationCardProps {
