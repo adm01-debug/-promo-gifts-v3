@@ -122,6 +122,7 @@ const App = () => {
     }
   }, []);
 
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
