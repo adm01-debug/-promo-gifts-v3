@@ -8,7 +8,6 @@ import { Image, Video, Trash2, Loader2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { toast } from 'sonner';
 import {
   Collapsible,
   CollapsibleContent,
