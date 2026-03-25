@@ -128,14 +128,7 @@ export function ProductSupplierSection({
             )}
           </div>
 
-          {!isEdit || !productId ? (
-            <div className="text-center py-4 rounded-lg border border-dashed border-border/50 bg-muted/20">
-              <PackageCheck className="h-8 w-8 text-muted-foreground/30 mx-auto mb-1.5" />
-              <p className="text-xs text-muted-foreground">
-                Salve o produto para adicionar fornecedores alternativos.
-              </p>
-            </div>
-          ) : isLoading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-4">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
