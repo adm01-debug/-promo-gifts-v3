@@ -40,6 +40,7 @@ import { ProductFiscalSection } from './sections/ProductFiscalSection';
 import { ProductSeoSection } from './sections/ProductSeoSection';
 import { ProductMarketingTextsSection } from './sections/ProductMarketingTextsSection';
 import { useSkuValidation } from './hooks/useSkuValidation';
+import { useProductSeoAI } from '@/hooks/useProductSeoAI';
 // ProductSupplierSourcesSection merged into ProductSupplierSection
 
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
