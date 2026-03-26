@@ -132,7 +132,7 @@ export function useExternalProductSearch(searchQuery: string) {
             active: true,
           },
           select: PRODUCT_SELECT,
-          limit: 20,
+          limit: 200,
           orderBy: { column: 'name', ascending: true },
         }),
         invokeExternalDb<ExternalProduct>('products', 'select', {
