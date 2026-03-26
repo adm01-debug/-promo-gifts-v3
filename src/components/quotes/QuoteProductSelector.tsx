@@ -72,7 +72,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
 
   // Server-side search: only fetch when dialog is open and there's a search query
   const { data: products = [], isLoading: isLoadingProducts } = useProducts(
-    debouncedQuery && debouncedQuery.length >= 2 ? { search: debouncedQuery } : undefined,
+    debouncedQuery && debouncedQuery.length >= 2 ? { search: debouncedQuery, limit: 50 } : undefined,
     { enabled: open, staleTime: 5 * 60 * 1000 }
   );
 
