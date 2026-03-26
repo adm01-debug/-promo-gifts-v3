@@ -214,7 +214,7 @@ export function useProductPrintAreas(productId: string | null) {
         const techniques: { id: string; nome: string; codigo: string }[] = [];
         for (const tid of (area.allowed_technique_ids || [])) {
           const tech = techById.get(tid);
-          if (tech) techniques.push({ id: tech.id, nome: tech.nome, codigo: tech.codigo });
+          if (tech) techniques.push({ id: tech.id, nome: tech.nome, codigo: tech.codigo_curto || tech.codigo_tabela || '' });
         }
         return {
           area_id: area.id,

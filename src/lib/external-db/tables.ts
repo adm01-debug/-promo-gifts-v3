@@ -1,27 +1,28 @@
 /**
- * Constantes de tabelas e views do banco externo.
+ * Constantes de tabelas e views do banco externo Promobrind.
  * Extraído de useExternalDatabase.ts para modularização.
+ * 
+ * ATUALIZADO 2026-03-26 — Validado contra schema real do BD externo.
  */
 
-// Tabelas de PRODUTOS (CRUD completo) - SINCRONIZADO COM BD EXTERNO 2026-01-30
+// ============================================
+// Tabelas REAIS do BD externo (validadas)
+// ============================================
 export const PRODUCT_TABLES = [
   // Principais
   'products',
   'categories',
   'suppliers',
   'tags',
-  // Produto relacionadas
+  // Produto — relacionamento
   'product_images',
   'product_videos',
   'product_variants',
   'product_materials',
   'product_tags',
-  'product_categories',
-  'product_suppliers',
-  'product_print_areas',
+  'product_category_assignments',   // antes: product_categories (fantasma)
   'product_kit_components',
-  'kit_component_media',
-  'product_attributes',
+  'product_properties',             // antes: product_attributes (fantasma)
   // Cores
   'color_groups',
   'color_nuances',
@@ -35,15 +36,11 @@ export const PRODUCT_TABLES = [
   'supplier_materials',
   // Atributos e definições
   'supplier_attribute_definitions',
-  'supplier_product_attributes',
+  'supplier_property_mappings',     // antes: supplier_product_attributes (fantasma)
   'category_attributes',
   // Preços e variações
-  'price_lists',
-  'variant_cost_tiers',
-  'variant_sale_prices',
   'variation_types',
   'variation_values',
-  'stock_movements',
   // Estoque e Reposição
   'variant_supplier_sources',
   // Fornecedor — Filiais
@@ -55,34 +52,31 @@ export const PRODUCT_TABLES = [
   'ramo_atividade',
   'ramo_atividade_filho',
   'produto_ramo_atividade',
-  // Setores de negócio
-  'business_sectors',
-  // Mockups
-  'mockup_drafts',
-  'generated_mockups',
-  // Técnicas de Personalização e Preços
-  'personalization_techniques',
-  'customization_price_tables',
-  'customization_price_tiers',
-  // Técnicas de Gravação - BD EXTERNO PROMOBRIND
-  'tecnica_gravacao',
-  'tecnicas_gravacao',
-  'tecnica_gravacao_variante',
-  'tecnica_faixa_area',
-  'tecnica_faixa_pontos',
+  // Técnicas de Gravação — tabelas REAIS
+  'tecnicas_gravacao',                       // catálogo de técnicas (plural)
+  'tabela_preco_gravacao_oficial',           // antes: customization_price_tables (fantasma)
+  'tabela_preco_gravacao_oficial_faixa',     // antes: customization_price_tiers (fantasma)
   // Áreas de gravação por produto (SSOT)
   'print_area_techniques',
 ] as const;
 
-// Views e Materialized Views (somente leitura)
+// ============================================
+// ALIASES do Bridge — NÃO são tabelas reais.
+// O external-db-bridge mapeia esses nomes para tabelas reais.
+// Mantidos para que o TypeScript aceite código legado que ainda
+// referencia esses nomes até refatoração completa.
+// ============================================
+export const BRIDGE_ALIASES = [
+  'tecnica_gravacao',              // → tabela_preco_gravacao_oficial
+  'personalization_techniques',    // → tecnicas_gravacao
+  'customization_price_tables',    // → tabela_preco_gravacao_oficial
+  'customization_price_tiers',     // → tabela_preco_gravacao_oficial_faixa
+] as const;
+
+// Views e Materialized Views (somente leitura) — VALIDADAS
 export const PRODUCT_VIEWS = [
-  'v_products_with_techniques',
-  'v_products_with_stock',
   'v_products_with_tags',
   'v_products_min_price',
-  'v_customization_price_summary',
-  'v_variant_pricing_complete',
-  'v_technique_stats',
   'mv_product_compositions',
   'mv_material_group_stats',
   'categories_tree_visual',
@@ -95,6 +89,7 @@ export const COMPANY_TABLES = [
 ] as const;
 
 export type ProductTable = typeof PRODUCT_TABLES[number];
+export type BridgeAlias = typeof BRIDGE_ALIASES[number];
 export type ProductView = typeof PRODUCT_VIEWS[number];
 export type CompanyTable = typeof COMPANY_TABLES[number];
-export type ExternalTable = ProductTable | ProductView | CompanyTable;
+export type ExternalTable = ProductTable | BridgeAlias | ProductView | CompanyTable;
