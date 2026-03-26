@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import Fuse from 'fuse.js';
 import { useExternalProductSearch } from '@/hooks/useExternalSimulator';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,21 +12,6 @@ interface ProductSearchProps {
   onSelect: (product: Product | null) => void;
   selectedProduct: Product | null;
 }
-
-// Configuração do Fuse.js para busca fuzzy
-const fuseOptions: Fuse.IFuseOptions<Product> = {
-  keys: [
-    { name: 'name', weight: 0.5 },
-    { name: 'sku', weight: 0.3 },
-    { name: 'brand', weight: 0.1 },
-    { name: 'supplier_reference', weight: 0.1 },
-  ],
-  threshold: 0.4, // 0 = match exato, 1 = match qualquer coisa
-  distance: 100,
-  includeScore: true,
-  minMatchCharLength: 2,
-  ignoreLocation: true,
-};
 
 export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,17 +34,10 @@ export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps)
     }));
   }, [externalProducts]);
 
-  // Aplicar Fuse.js para busca fuzzy nos resultados
   const products = useMemo(() => {
     if (!mappedProducts.length) return [];
-    if (!searchQuery || searchQuery.length < 2) return mappedProducts;
-
-    const fuse = new Fuse(mappedProducts, fuseOptions);
-    const results = fuse.search(searchQuery);
-    
-    // Retornar apenas os itens (sem o score)
-    return results.map((r) => r.item);
-  }, [mappedProducts, searchQuery]);
+    return mappedProducts;
+  }, [mappedProducts]);
 
   if (selectedProduct && !isSearching) {
     return (

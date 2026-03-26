@@ -27,6 +27,7 @@ import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWiz
 import { ProductColorGrid } from './ProductColorGrid';
 import { useWizardDrafts } from '@/hooks/simulator/useWizardDrafts';
 import { formatCurrency } from '@/lib/format';
+import { createProductFuseOptions, rankProductSearchResults } from '@/utils/product-search';
 
 interface StepProductProps {
   wizard: UseSimulatorWizardReturn;
@@ -67,6 +68,7 @@ export function StepProduct({ wizard }: StepProductProps) {
             sku: p.sku,
             price: getProductPrice(p),
             imageUrl: getProductImageUrl(p),
+            category_name: catName,
             categoryName: catName,
             brand: p.brand || null,
             colors: (p.colors as Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string }>) || [],
@@ -82,27 +84,23 @@ export function StepProduct({ wizard }: StepProductProps) {
   // Fuse.js instance for fuzzy search
   const fuse = useMemo(() => {
     if (!products) return null;
-    return new Fuse(products, {
+    return new Fuse(products, createProductFuseOptions<typeof products[number]>({
       keys: [
-        { name: 'name', weight: 0.5 },
-        { name: 'sku', weight: 0.3 },
-        { name: 'categoryName', weight: 0.2 },
+        { name: 'sku', weight: 0.35 },
+        { name: 'name', weight: 0.35 },
+        { name: 'category_name', weight: 0.15 },
+        { name: 'brand', weight: 0.15 },
       ],
       threshold: 0.35,
-      ignoreLocation: true,
-      minMatchCharLength: 2,
-    });
+    }));
   }, [products]);
 
-  // Filter products with Fuse.js
   const filteredProducts = useMemo(() => {
     if (!products) return [];
-    
-    if (searchTerm.trim() && fuse) {
-      return fuse.search(searchTerm).map(r => r.item);
-    }
 
-    return products;
+    if (!searchTerm.trim() || !fuse) return products;
+
+    return rankProductSearchResults(products, searchTerm, fuse);
   }, [products, searchTerm, fuse]);
 
   // formatCurrency imported from @/lib/format

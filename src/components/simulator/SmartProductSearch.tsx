@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils';
 import { useRecentProducts } from '@/hooks/useRecentProducts';
 import { formatCurrency } from '@/hooks/useSimulation';
 import type { Product } from '@/types/simulation';
+import { createProductFuseOptions, rankProductSearchResults } from '@/utils/product-search';
 
 interface SmartProductSearchProps {
   products: Product[] | undefined;
@@ -45,19 +46,6 @@ interface SmartProductSearchProps {
   onSelect: (productId: string | null) => void;
   className?: string;
 }
-
-// Fuse.js config for fuzzy search
-const fuseOptions: Fuse.IFuseOptions<Product> = {
-  keys: [
-    { name: 'name', weight: 0.5 },
-    { name: 'sku', weight: 0.3 },
-  ],
-  threshold: 0.35,
-  distance: 100,
-  includeScore: true,
-  minMatchCharLength: 2,
-  ignoreLocation: true,
-};
 
 // Product image component with fallback
 function ProductImage({ 
@@ -140,15 +128,17 @@ export function SmartProductSearch({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { recentProducts, addRecentProduct, hasRecents } = useRecentProducts();
+  const fuse = useMemo(
+    () => (products ? new Fuse(products, createProductFuseOptions<Product>()) : null),
+    [products]
+  );
 
-  // Fuzzy search results
   const searchResults = useMemo(() => {
     if (!products || products.length === 0) return [];
     if (!searchQuery || searchQuery.length < 2) return products.slice(0, 20);
 
-    const fuse = new Fuse(products, fuseOptions);
-    return fuse.search(searchQuery).map(r => r.item).slice(0, 20);
-  }, [products, searchQuery]);
+    return rankProductSearchResults(products, searchQuery, fuse ?? undefined, { limit: 20 });
+  }, [products, searchQuery, fuse]);
 
   // Handle product selection
   const handleSelect = (product: Product) => {

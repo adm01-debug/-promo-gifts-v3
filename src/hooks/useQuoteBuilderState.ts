@@ -6,6 +6,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import Fuse from "fuse.js";
 import { format, addDays } from "date-fns";
 import { toast } from "sonner";
 import { validateQuoteForm, QUOTE_FIELD_LABELS } from "@/lib/validations";
@@ -17,6 +18,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import type { SelectedCompanyInfo, SelectedContactInfo } from "@/components/quotes/CompanyContactSelector";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import type { QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
+import { createProductFuseOptions, dedupeById, rankProductSearchResults } from "@/utils/product-search";
 
 interface Product {
   id: string;
@@ -27,28 +29,6 @@ interface Product {
   colors?: { name: string; hex?: string; stock?: number }[];
   minQuantity?: number;
   totalStock?: number;
-}
-
-function normalizeSearchValue(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
-function getProductSearchScore(product: Product, search: string) {
-  const query = normalizeSearchValue(search);
-  const name = normalizeSearchValue(product.name);
-  const sku = normalizeSearchValue(product.sku || "");
-
-  if (!query) return 0;
-  if (name === query || sku === query) return 1000;
-  if (name.startsWith(query)) return 800;
-  if (name.includes(query)) return 600;
-  if (sku.startsWith(query)) return 400;
-  if (sku.includes(query)) return 300;
-  return 100;
 }
 
 function mapQuoteSearchProduct(p: any, getProductImageUrl: (product: any) => string | null): Product {
@@ -85,16 +65,12 @@ async function loadQuoteSearchProducts(search: string): Promise<Product[]> {
     fetchPromobrindProducts({ search: normalizedSearch, limit: 50 }),
   ]);
 
-  const mergedProducts = [...nameMatches, ...broadMatches]
-    .filter((product, index, array) => array.findIndex((candidate) => candidate.id === product.id) === index)
-    .map((product) => mapQuoteSearchProduct(product, getProductImageUrl))
-    .sort((a, b) => {
-      const scoreDiff = getProductSearchScore(b, normalizedSearch) - getProductSearchScore(a, normalizedSearch);
-      if (scoreDiff !== 0) return scoreDiff;
-      return a.name.localeCompare(b.name, "pt-BR");
-    });
+  const mergedProducts = dedupeById([...nameMatches, ...broadMatches]).map((product) =>
+    mapQuoteSearchProduct(product, getProductImageUrl)
+  );
+  const fuse = new Fuse(mergedProducts, createProductFuseOptions<Product>());
 
-  return mergedProducts.slice(0, 50);
+  return rankProductSearchResults(mergedProducts, normalizedSearch, fuse, { limit: 50 });
 }
 
 export function useQuoteBuilderState() {

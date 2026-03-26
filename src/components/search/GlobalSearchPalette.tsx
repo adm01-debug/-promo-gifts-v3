@@ -1,5 +1,6 @@
 import { ExternalProduct } from "@/types/external-db";
 import { useEffect, useState, useCallback } from "react";
+import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import {
   Command,
@@ -45,6 +46,7 @@ import { useVoiceCommandHistory } from "@/hooks/useVoiceCommandHistory";
 import { useContextualSuggestions } from "@/hooks/useContextualSuggestions";
 import { useVoiceFeedback } from "@/hooks/useVoiceFeedback";
 import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
+import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 
 interface SearchResult {
   id: string;
@@ -498,8 +500,9 @@ export function GlobalSearchPalette() {
       if (intent.type === 'product' || intent.type === 'mixed') {
         try {
           const { fetchPromobrindProducts } = await import('@/lib/external-db');
+            const productQuery = intent.keywords.join(' ') || searchQuery;
           const productsData = await fetchPromobrindProducts({ 
-            search: intent.keywords.join(' '),
+              search: productQuery,
             limit: 8 
           });
 
@@ -536,40 +539,8 @@ export function GlobalSearchPalette() {
             if (filteredProducts.length === 0) filteredProducts = productsData.slice(0, 8);
           }
 
-          // Priorizar resultados: nome começa com > palavra exata > contém > outros
-          const searchLower = searchQuery.toLowerCase();
-          const wordBoundaryRegex = new RegExp(`\\b${searchLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-          
-          const startsWithGroup: typeof filteredProducts = [];
-          const exactWordGroup: typeof filteredProducts = [];
-          const containsGroup: typeof filteredProducts = [];
-          const otherGroup: typeof filteredProducts = [];
-
-          for (const p of filteredProducts) {
-            const nameLower = p.name.toLowerCase();
-            if (nameLower.startsWith(searchLower)) {
-              startsWithGroup.push(p);
-            } else if (wordBoundaryRegex.test(p.name)) {
-              exactWordGroup.push(p);
-            } else if (nameLower.includes(searchLower)) {
-              containsGroup.push(p);
-            } else {
-              otherGroup.push(p);
-            }
-          }
-
-          // Ordenar cada grupo pela posição do termo no nome
-          const sortByPos = (arr: typeof filteredProducts) =>
-            arr.sort((a, b) => {
-              const posA = a.name.toLowerCase().indexOf(searchLower);
-              const posB = b.name.toLowerCase().indexOf(searchLower);
-              return (posA === -1 ? 9999 : posA) - (posB === -1 ? 9999 : posB);
-            });
-          sortByPos(startsWithGroup);
-          sortByPos(exactWordGroup);
-          sortByPos(containsGroup);
-
-          const orderedProducts = [...startsWithGroup, ...exactWordGroup, ...containsGroup, ...otherGroup];
+          const fuse = new Fuse(filteredProducts, createProductFuseOptions<ExternalProduct>());
+          const orderedProducts = rankProductSearchResults(filteredProducts, productQuery, fuse, { limit: 8 });
 
           orderedProducts.forEach((p) => {
             allResults.push({

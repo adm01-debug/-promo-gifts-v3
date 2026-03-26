@@ -1,7 +1,9 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useContext } from "react";
 import Fuse from "fuse.js";
 import { Product } from "@/hooks/useProducts";
 import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
+import { ProductsContext } from "@/contexts/ProductsContext";
+import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 
 const HISTORY_KEY = "search-history";
 const MAX_HISTORY = 10;
@@ -19,9 +21,12 @@ export interface SearchResult {
 }
 
 export function useSearch(products: Product[] = []) {
+  const productsContext = useContext(ProductsContext);
   const [query, setQuery] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const availableProducts = products.length > 0 ? products : (productsContext?.products || []);
 
   // Load history from localStorage
   useEffect(() => {
@@ -61,19 +66,9 @@ export function useSearch(products: Product[] = []) {
   }, []);
 
   // Criar instância Fuse.js para busca fuzzy de produtos
-  const productFuse = useMemo(() => new Fuse(products, {
-    keys: [
-      { name: 'sku', weight: 0.35 },
-      { name: 'name', weight: 0.30 },
-      { name: 'brand', weight: 0.15 },
-      { name: 'category_name', weight: 0.10 },
-      { name: 'description', weight: 0.10 },
-    ],
+  const productFuse = useMemo(() => new Fuse(availableProducts, createProductFuseOptions<Product>({
     threshold: 0.35,
-    distance: 100,
-    minMatchCharLength: 2,
-    ignoreLocation: true,
-  }), [products]);
+  })), [availableProducts]);
 
   // Criar instância Fuse.js para busca fuzzy de categorias
   const categoryFuse = useMemo(() => new Fuse(CATEGORIES, {
@@ -116,10 +111,10 @@ export function useSearch(products: Product[] = []) {
     const searchLower = searchTerm.toLowerCase();
 
     // Priority 0: Exact SKU match (most precise)
-    const exactSkuMatch = products.find(p => 
-      p.sku?.toLowerCase() === searchLower || 
-      p.supplier_reference?.toLowerCase() === searchLower
-    );
+      const exactSkuMatch = availableProducts.find(p => 
+        p.sku?.toLowerCase() === searchLower || 
+        p.supplier_reference?.toLowerCase() === searchLower
+      );
     if (exactSkuMatch) {
       results.push({
         type: "product",
@@ -131,44 +126,11 @@ export function useSearch(products: Product[] = []) {
       });
     }
     
-    // Separar por relevância: começa com > palavra exata > contém > fuzzy
-    const startsWithProducts = products.filter(p => p.name.toLowerCase().startsWith(searchLower));
-    const wordBoundaryRegex = new RegExp(`\\b${searchLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-    const exactWordProducts = products.filter(p => 
-      !p.name.toLowerCase().startsWith(searchLower) && wordBoundaryRegex.test(p.name)
-    );
-    const containsProducts = products.filter(p => {
-      const nl = p.name.toLowerCase();
-      return !nl.startsWith(searchLower) && !wordBoundaryRegex.test(p.name) && nl.includes(searchLower);
+    const orderedProducts = rankProductSearchResults(availableProducts, searchTerm, productFuse, {
+      limit: 6,
     });
-    const fuzzyOnly = productFuse.search(searchTerm)
-      .filter(r => (r.score ?? 1) < 0.45)
-      .map(r => r.item);
 
-    // Ordenar cada grupo pela posição do termo no nome
-    const sortByPos = (arr: Product[]) =>
-      arr.sort((a, b) => {
-        const posA = a.name.toLowerCase().indexOf(searchLower);
-        const posB = b.name.toLowerCase().indexOf(searchLower);
-        return (posA === -1 ? 9999 : posA) - (posB === -1 ? 9999 : posB);
-      });
-    sortByPos(startsWithProducts);
-    sortByPos(exactWordProducts);
-    sortByPos(containsProducts);
-
-    // Mesclar sem duplicatas, na ordem de prioridade
-    const seenIds = new Set<string>();
-    const orderedProducts: Product[] = [];
-    for (const group of [startsWithProducts, exactWordProducts, containsProducts, fuzzyOnly]) {
-      for (const p of group) {
-        if (!seenIds.has(p.id)) {
-          seenIds.add(p.id);
-          orderedProducts.push(p);
-        }
-      }
-    }
-
-    orderedProducts.slice(0, 6).forEach((product) => {
+    orderedProducts.forEach((product) => {
       // Skip if already added as exact SKU match
       if (results.some(r => r.id === product.id)) return;
       results.push({
@@ -186,7 +148,7 @@ export function useSearch(products: Product[] = []) {
 
     matchingCategories.forEach((result) => {
       const category = result.item;
-      const productCount = products.filter((p) => 
+      const productCount = availableProducts.filter((p) => 
         p.category_id === String(category.id) || 
         parseInt(p.category_id || '0') === category.id
       ).length;
@@ -204,7 +166,7 @@ export function useSearch(products: Product[] = []) {
 
     matchingSuppliers.forEach((result) => {
       const supplier = result.item;
-      const productCount = products.filter((p) => 
+      const productCount = availableProducts.filter((p) => 
         p.brand === supplier.id || p.supplier_reference === supplier.id
       ).length;
       results.push({
@@ -217,7 +179,7 @@ export function useSearch(products: Product[] = []) {
     });
 
     return results;
-  }, [query, history, products, productFuse, categoryFuse, supplierFuse]);
+  }, [query, history, availableProducts, productFuse, categoryFuse, supplierFuse]);
 
   // Quick suggestions (popular/trending)
   const quickSuggestions = useMemo(() => {
