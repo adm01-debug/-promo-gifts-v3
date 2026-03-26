@@ -503,7 +503,7 @@ export function GlobalSearchPalette() {
             const productQuery = intent.keywords.join(' ') || searchQuery;
           const productsData = await fetchPromobrindProducts({ 
               search: productQuery,
-            limit: 8 
+            limit: 30 
           });
 
           let filteredProducts = productsData;
