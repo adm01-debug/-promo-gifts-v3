@@ -74,9 +74,8 @@ const PRODUCT_TABLES = [
   'ramo_atividade',
   'ramo_atividade_filho',
   'produto_ramo_atividade',
-  // Setores de negócio
-  'business_sectors',
-  // NOTA: mockup_drafts e generated_mockups são tabelas LOCAIS (Lovable Cloud), removidas da whitelist do bridge externo
+  // NOTA: business_sectors não está exposta no PostgREST do BD externo (PGRST205) — removida
+  // NOTA: mockup_drafts e generated_mockups são tabelas LOCAIS (Lovable Cloud) — removidas
   // Técnicas de Personalização e Preços
   'personalization_techniques',
   'customization_price_tables',
