@@ -155,7 +155,7 @@ export function useSuppliersManager() {
       }
     } catch { setContacts([createEmptyContact()]); }
 
-    // Parse financial data
+    // Parse financial data (still in notes for payment/pix)
     const notesStr = supplier.notes || '';
     const finMatchNew = notesStr.match(/\[Financeiro: Forma: (.*?), PIX: (.*?), PIX Atualizado: (.*?)\]/);
     const finMatchLegacy = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
@@ -174,16 +174,29 @@ export function useSuppliersManager() {
       else { setPixKeys([createEmptyPixKey(true)]); }
     } else { setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]); }
 
-    const foneMatch = notesStr.match(/\[Fones Fixos: 01: (.*?), 02: (.*?)\]/);
-    if (foneMatch) { setFoneFixo1(foneMatch[1] !== '-' ? foneMatch[1] : ''); setFoneFixo2(foneMatch[2] !== '-' ? foneMatch[2] : ''); }
-    else { setFoneFixo1(''); setFoneFixo2(''); }
+    // ── Read dedicated columns (no more regex for these!) ──
+    setFoneFixo1(supplier.phone || '');
+    setFoneFixo2(supplier.phone2 || '');
+    setInscricaoEstadual(supplier.inscricao_estadual || '');
+    setRegimeTributario(supplier.tax_regime || '');
+    setEstadoFaturamento(supplier.state_uf || '');
 
-    const fiscalMatch = notesStr.match(/\[Fiscal: IE: (.*?), Regime: (.*?), UF Faturamento: (.*?)\]/);
-    if (fiscalMatch) {
-      setInscricaoEstadual(fiscalMatch[1] !== '-' ? fiscalMatch[1] : '');
-      setRegimeTributario(fiscalMatch[2] !== '-' ? fiscalMatch[2] : '');
-      setEstadoFaturamento(fiscalMatch[3] !== '-' ? fiscalMatch[3] : '');
-    } else { setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento(''); }
+    // ── Backward compat: migrate legacy notes data if columns are empty ──
+    if (!supplier.inscricao_estadual && !supplier.tax_regime && !supplier.state_uf) {
+      const fiscalMatch = notesStr.match(/\[Fiscal: IE: (.*?), Regime: (.*?), UF Faturamento: (.*?)\]/);
+      if (fiscalMatch) {
+        setInscricaoEstadual(fiscalMatch[1] !== '-' ? fiscalMatch[1] : '');
+        setRegimeTributario(fiscalMatch[2] !== '-' ? fiscalMatch[2] : '');
+        setEstadoFaturamento(fiscalMatch[3] !== '-' ? fiscalMatch[3] : '');
+      }
+    }
+    if (!supplier.phone2) {
+      const foneMatch = notesStr.match(/\[Fones Fixos: 01: (.*?), 02: (.*?)\]/);
+      if (foneMatch) {
+        // phone (fone fixo 1) is already a column — only recover phone2
+        setFoneFixo2(foneMatch[2] !== '-' ? foneMatch[2] : '');
+      }
+    }
 
     const carrierMatch = notesStr.match(/\[Transportadora: (.*?), ID: (.*?)\]/);
     if (carrierMatch) {
