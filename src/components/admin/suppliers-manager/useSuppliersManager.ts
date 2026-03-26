@@ -155,7 +155,7 @@ export function useSuppliersManager() {
       }
     } catch { setContacts([createEmptyContact()]); }
 
-    // Parse financial data
+    // Parse financial data (still in notes for payment/pix)
     const notesStr = supplier.notes || '';
     const finMatchNew = notesStr.match(/\[Financeiro: Forma: (.*?), PIX: (.*?), PIX Atualizado: (.*?)\]/);
     const finMatchLegacy = notesStr.match(/\[Financeiro: Forma: (.*?), PIX Tipo: (.*?), PIX Número: (.*?), PIX Favorecido: (.*?), PIX Atualizado: (.*?)\]/);
@@ -174,16 +174,29 @@ export function useSuppliersManager() {
       else { setPixKeys([createEmptyPixKey(true)]); }
     } else { setFormaPagamento([]); setPixKeys([createEmptyPixKey(true)]); }
 
-    const foneMatch = notesStr.match(/\[Fones Fixos: 01: (.*?), 02: (.*?)\]/);
-    if (foneMatch) { setFoneFixo1(foneMatch[1] !== '-' ? foneMatch[1] : ''); setFoneFixo2(foneMatch[2] !== '-' ? foneMatch[2] : ''); }
-    else { setFoneFixo1(''); setFoneFixo2(''); }
+    // ── Read dedicated columns (no more regex for these!) ──
+    setFoneFixo1(supplier.phone || '');
+    setFoneFixo2(supplier.phone2 || '');
+    setInscricaoEstadual(supplier.inscricao_estadual || '');
+    setRegimeTributario(supplier.tax_regime || '');
+    setEstadoFaturamento(supplier.state_uf || '');
 
-    const fiscalMatch = notesStr.match(/\[Fiscal: IE: (.*?), Regime: (.*?), UF Faturamento: (.*?)\]/);
-    if (fiscalMatch) {
-      setInscricaoEstadual(fiscalMatch[1] !== '-' ? fiscalMatch[1] : '');
-      setRegimeTributario(fiscalMatch[2] !== '-' ? fiscalMatch[2] : '');
-      setEstadoFaturamento(fiscalMatch[3] !== '-' ? fiscalMatch[3] : '');
-    } else { setInscricaoEstadual(''); setRegimeTributario(''); setEstadoFaturamento(''); }
+    // ── Backward compat: migrate legacy notes data if columns are empty ──
+    if (!supplier.inscricao_estadual && !supplier.tax_regime && !supplier.state_uf) {
+      const fiscalMatch = notesStr.match(/\[Fiscal: IE: (.*?), Regime: (.*?), UF Faturamento: (.*?)\]/);
+      if (fiscalMatch) {
+        setInscricaoEstadual(fiscalMatch[1] !== '-' ? fiscalMatch[1] : '');
+        setRegimeTributario(fiscalMatch[2] !== '-' ? fiscalMatch[2] : '');
+        setEstadoFaturamento(fiscalMatch[3] !== '-' ? fiscalMatch[3] : '');
+      }
+    }
+    if (!supplier.phone2) {
+      const foneMatch = notesStr.match(/\[Fones Fixos: 01: (.*?), 02: (.*?)\]/);
+      if (foneMatch) {
+        // phone (fone fixo 1) is already a column — only recover phone2
+        setFoneFixo2(foneMatch[2] !== '-' ? foneMatch[2] : '');
+      }
+    }
 
     const carrierMatch = notesStr.match(/\[Transportadora: (.*?), ID: (.*?)\]/);
     if (carrierMatch) {
@@ -246,7 +259,8 @@ export function useSuppliersManager() {
         contact_name: contacts[0]?.name?.trim() || null,
         contact_person: contacts[0]?.role?.trim() || null,
         email: contacts[0]?.email?.trim() || null,
-        phone: contacts[0]?.phone?.trim() || null,
+        phone: foneFixo1.trim() || contacts[0]?.phone?.trim() || null,
+        phone2: foneFixo2.trim() || null,
         address: addressParts,
         website: es.website?.trim() || null,
         default_markup_percent: es.default_markup_percent ?? null,
@@ -256,7 +270,10 @@ export function useSuppliersManager() {
         payment_terms: es.payment_terms?.trim() || null,
         shipping_terms: es.shipping_terms?.trim() || null,
         priority: es.priority ?? 50,
-        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, foneFixo1, foneFixo2, inscricaoEstadual, regimeTributario, estadoFaturamento, transportadoraPadrao, transportadoraId),
+        inscricao_estadual: inscricaoEstadual.trim() || null,
+        tax_regime: regimeTributario || null,
+        state_uf: estadoFaturamento || null,
+        notes: buildNotesPayload(es, contacts, formaPagamento, pixKeys, transportadoraPadrao, transportadoraId),
         is_product_supplier: es.is_product_supplier ?? true,
         is_engraving_supplier: es.is_engraving_supplier ?? false,
         updated_at: now,
@@ -381,11 +398,10 @@ export function useSuppliersManager() {
 function buildNotesPayload(
   es: Partial<Supplier>, contacts: SupplierContact[],
   formaPagamento: string[], pixKeys: PixKey[],
-  foneFixo1: string, foneFixo2: string,
-  inscricaoEstadual: string, regimeTributario: string, estadoFaturamento: string,
   transportadoraPadrao: string, transportadoraId: string,
 ): string | null {
   const parts: string[] = [];
+  // Strip ALL legacy serialized blocks from notes — keep only free-text
   const userNotes = es.notes?.trim()
     ?.replace(/\[Contato 1 extras:.*?\]/g, '')
     ?.replace(/\[Contatos adicionais:.*?\]/g, '')
@@ -396,6 +412,8 @@ function buildNotesPayload(
     ?.replace(/\[Transportadora:.*?\]/g, '')
     ?.trim();
   if (userNotes) parts.push(userNotes);
+
+  // Contact extras (signature/nickname) — still in notes (no dedicated columns yet)
   const c0 = contacts[0];
   if (c0?.signature?.trim() || c0?.nickname?.trim()) {
     parts.push(`[Contato 1 extras: Assinatura: ${c0.signature?.trim() || '-'}, Apelido: ${c0.nickname?.trim() || '-'}]`);
@@ -404,19 +422,21 @@ function buildNotesPayload(
   if (extraContacts.length > 0) {
     parts.push(`[Contatos adicionais: ${extraContacts.map(c => `${c.role || 'N/A'} - ${c.name} (${c.email || '-'}, ${c.phone || '-'}, Assinatura: ${c.signature?.trim() || '-'}, Apelido: ${c.nickname?.trim() || '-'})`).join('; ')}]`);
   }
+
+  // Financial/PIX data — still in notes (no dedicated columns yet)
   if (formaPagamento.length > 0 || pixKeys.some(k => k.chave.trim())) {
     const now_date = new Date().toISOString().split('T')[0];
     const pixData = pixKeys.filter(k => k.chave.trim()).map(k => `${k.tipo || '-'}|${k.chave}|${k.favorecido || '-'}|${k.principal ? '1' : '0'}`).join(';;');
     parts.push(`[Financeiro: Forma: ${formaPagamento.join(',') || '-'}, PIX: ${pixData || '-'}, PIX Atualizado: ${now_date}]`);
   }
-  if (foneFixo1.trim() || foneFixo2.trim()) {
-    parts.push(`[Fones Fixos: 01: ${foneFixo1.trim() || '-'}, 02: ${foneFixo2.trim() || '-'}]`);
-  }
-  if (inscricaoEstadual.trim() || regimeTributario || estadoFaturamento) {
-    parts.push(`[Fiscal: IE: ${inscricaoEstadual.trim() || '-'}, Regime: ${regimeTributario || '-'}, UF Faturamento: ${estadoFaturamento || '-'}]`);
-  }
+
+  // Transportadora — still in notes (no dedicated column yet)
   if (transportadoraPadrao.trim()) {
     parts.push(`[Transportadora: ${transportadoraPadrao.trim()}, ID: ${transportadoraId || '-'}]`);
   }
+
+  // NOTE: Fones Fixos, Fiscal (IE, Regime, UF) are NO LONGER serialized here.
+  // They now use dedicated columns: phone, phone2, inscricao_estadual, tax_regime, state_uf.
+
   return parts.join('\n') || null;
 }
