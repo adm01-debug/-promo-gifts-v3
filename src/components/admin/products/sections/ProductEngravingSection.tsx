@@ -286,12 +286,13 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
     if (!selectedComponent || !selectedLocation || !selectedTechnique) return;
 
     const areaName = `${selectedLocation.name} — ${selectedTechnique.nome}`;
+    const techCode = selectedTechnique.codigo || selectedTechnique.codigo_curto || selectedTechnique.codigo_interno || null;
     const newArea: PersonalizationArea = {
       product_id: productId || 'pending',
       component_id: null,
       area_name: areaName,
       technique_name: selectedTechnique.nome,
-      technique_code: selectedTechnique.codigo,
+      technique_code: techCode,
       location_name: `${selectedComponent.name} > ${selectedLocation.name}`,
       max_width_cm: detailForm.max_width_cm,
       max_height_cm: detailForm.max_height_cm,
