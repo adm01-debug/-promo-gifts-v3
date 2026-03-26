@@ -178,7 +178,7 @@ export function StepProduct({ wizard }: StepProductProps) {
 
 
       {/* Results count */}
-      {!isLoading && (
+      {!isLoading && searchTerm.trim().length >= 2 && (
         <p className="text-sm text-muted-foreground">
           {filteredProducts.length} produtos encontrados
           {searchTerm && <span> para "<span className="font-semibold">{searchTerm}</span>"</span>}
@@ -192,6 +192,14 @@ export function StepProduct({ wizard }: StepProductProps) {
             {[1, 2, 3, 4, 5, 6].map(i => (
               <Skeleton key={i} className="h-20 w-full rounded-2xl" />
             ))}
+          </div>
+        ) : searchTerm.trim().length < 2 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <div className="p-4 rounded-full bg-muted/50 mb-4">
+              <Search className="h-10 w-10 opacity-30" />
+            </div>
+            <p className="font-semibold text-lg">Digite para buscar</p>
+            <p className="text-sm mt-1">Busque por nome, SKU ou categoria (mínimo 2 caracteres)</p>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
