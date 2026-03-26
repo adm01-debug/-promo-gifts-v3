@@ -85,18 +85,19 @@ export function ProductPriceSection({
           <Input id="stock_quantity" {...numericProps('stock_quantity')} min="0" className="h-9" />
         </div>
         <div>
-          <FieldLabel htmlFor="stock_unit" hint="Define se o produto é vendido por unidade ou como kit">Tipo</FieldLabel>
+          <FieldLabel htmlFor="product_type" hint="Produto unitário, kit montado ou embalagem avulsa">Tipo</FieldLabel>
           <select
-            id="stock_unit"
-            {...register('stock_unit', {
+            id="product_type"
+            {...register('product_type', {
               onChange: (e: React.ChangeEvent<HTMLSelectElement>) => {
                 setValue('is_kit', e.target.value === 'kit');
               },
             })}
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           >
-            <option value="un">Unidade</option>
+            <option value="product">Produto Unitário</option>
             <option value="kit">Kit</option>
+            <option value="packaging">Embalagem</option>
           </select>
         </div>
         <div>
