@@ -40,6 +40,13 @@ function applyFilters(
       return;
     }
 
+    // Name prefix search: matches products whose name STARTS with the term (case insensitive)
+    if (key === '_name_prefix' && typeof value === 'string') {
+      const escaped = value.replace(/%/g, '\\%').replace(/_/g, '\\_');
+      query = query.ilike('name', `${escaped}%`);
+      return;
+    }
+
     if (categoryDescendants && (key === 'category_id' || key === 'main_category_id')) {
       query = query.in(key, categoryDescendants);
       return;

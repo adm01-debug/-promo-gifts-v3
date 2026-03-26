@@ -68,13 +68,17 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
         return initialProducts.map(mapPromobrindToProduct);
       }
 
-      // Fetch a large candidate pool so local ranking can properly prioritize
-      const broadMatches = await fetchPromobrindProducts({ search: debouncedQuery, limit: 200 });
+      // Two-layer search: prefix matches (1st layer) + broad matches (2nd layer)
+      const [prefixMatches, broadMatches] = await Promise.all([
+        fetchPromobrindProducts({ filters: { _name_prefix: debouncedQuery }, limit: 50 }),
+        fetchPromobrindProducts({ search: debouncedQuery, limit: 150 }),
+      ]);
 
-      const mappedProducts = broadMatches.map(mapPromobrindToProduct);
-      const fuse = new Fuse(mappedProducts, createProductFuseOptions<Product>());
+      // Prefix results first, then broad results — deduped
+      const allProducts = dedupeById([...prefixMatches, ...broadMatches]).map(mapPromobrindToProduct);
+      const fuse = new Fuse(allProducts, createProductFuseOptions<Product>());
 
-      return rankProductSearchResults(mappedProducts, debouncedQuery, fuse, { limit: 50 });
+      return rankProductSearchResults(allProducts, debouncedQuery, fuse, { limit: 50 });
     },
     enabled: open,
     staleTime: 5 * 60 * 1000,

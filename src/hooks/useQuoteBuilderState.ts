@@ -60,10 +60,13 @@ async function loadQuoteSearchProducts(search: string): Promise<Product[]> {
     return productsData.map((p) => mapQuoteSearchProduct(p, getProductImageUrl));
   }
 
-  // Fetch a large candidate pool so local ranking can properly prioritize
-  const broadMatches = await fetchPromobrindProducts({ search: normalizedSearch, limit: 200 });
+  // Two-layer search: prefix matches (1st layer) + broad matches (2nd layer)
+  const [prefixMatches, broadMatches] = await Promise.all([
+    fetchPromobrindProducts({ filters: { _name_prefix: normalizedSearch }, limit: 50 }),
+    fetchPromobrindProducts({ search: normalizedSearch, limit: 150 }),
+  ]);
 
-  const mergedProducts = broadMatches.map((product) =>
+  const mergedProducts = dedupeById([...prefixMatches, ...broadMatches]).map((product) =>
     mapQuoteSearchProduct(product, getProductImageUrl)
   );
   const fuse = new Fuse(mergedProducts, createProductFuseOptions<Product>());
