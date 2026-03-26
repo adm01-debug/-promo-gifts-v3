@@ -242,8 +242,9 @@ export default function AdminProductFormPage() {
         country_of_origin: data.country_of_origin || null,
         supplier_product_url: data.supplier_product_url || null,
         supply_mode: data.supply_mode || null,
+        ipi_rate: data.ipi_rate ?? null,
         // Campos fiscais que NÃO existem no banco externo — mantidos apenas no formulário local
-        // cfop, csosn, icms_rate, pis_rate, cofins_rate, tax_regime, ipi_rate
+        // cfop, csosn, icms_rate, pis_rate, cofins_rate, tax_regime
         // Campos abaixo não existem no banco externo, mantidos apenas no formulário local
         // cest, freight_class, default_carrier, shipping_weight_kg, shipping_width_cm,
         // shipping_height_cm, shipping_length_cm, cubic_weight, requires_special_shipping,
