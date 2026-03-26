@@ -643,6 +643,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
 
   return { records, count: count ?? null };
+}
 
 // ============================================
 // INSERT
