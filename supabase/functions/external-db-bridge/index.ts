@@ -751,6 +751,15 @@ function getExternalClient(corsHeaders: Record<string, string>) {
   }
   return createClient(externalUrl, externalKey, {
     db: { schema: 'public' },
-    global: { headers: { 'x-connection-timeout': '15000' } },
+    global: {
+      headers: {
+        'x-connection-timeout': '15000',
+        // Increase PostgREST statement timeout to 25s to avoid premature cancellation
+        'Prefer': 'max-affected=1000',
+      },
+    },
   });
 }
+
+// Default lightweight columns for products table to avoid fetching heavy JSONB columns
+const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,sku,name,slug,brand,supplier_reference,description,main_category_id,category_id,supplier_id,is_active,is_kit,default_variant_id,sale_price,min_quantity,cost_price,created_at,updated_at';
