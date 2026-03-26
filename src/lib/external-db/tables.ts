@@ -66,9 +66,12 @@ export const PRODUCT_TABLES = [
   'customization_price_tiers',
   // Técnicas de Gravação - BD EXTERNO PROMOBRIND
   'tecnica_gravacao',
+  'tecnicas_gravacao',
   'tecnica_gravacao_variante',
   'tecnica_faixa_area',
   'tecnica_faixa_pontos',
+  // Áreas de gravação por produto (SSOT)
+  'print_area_techniques',
 ] as const;
 
 // Views e Materialized Views (somente leitura)
