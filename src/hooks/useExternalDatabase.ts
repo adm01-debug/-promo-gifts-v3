@@ -291,8 +291,18 @@ export function useExternalRamosAtividadeFilho() {
   return useExternalDatabase<ExternalRamoAtividadeFilho>('ramo_atividade_filho');
 }
 
+/**
+ * @deprecated business_sectors não está exposta no PostgREST do BD externo (PGRST205).
+ * Use useExternalRamosAtividade() para dados de segmentos/público-alvo.
+ * Mantido com fallback vazio para evitar quebras em código futuro.
+ */
 export function useExternalBusinessSectors() {
-  return useExternalDatabase<ExternalBusinessSector>('business_sectors');
+  return {
+    data: [] as ExternalBusinessSector[],
+    isLoading: false,
+    error: null,
+    refetch: () => Promise.resolve({ data: [] as ExternalBusinessSector[], error: null }),
+  };
 }
 
 export function useExternalMaterialGroups() {
