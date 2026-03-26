@@ -88,7 +88,7 @@ export default function AdminProductFormPage() {
       cost_price: p.cost_price ?? 0,
       suggested_price: p.suggested_price ?? null,
       stock_quantity: getProductStock(p) ?? 0,
-      stock_unit: p.stock_unit ?? 'un',
+      stock_unit: p.is_kit ? 'kit' : (p.stock_unit ?? 'un'),
       min_quantity: p.min_quantity ?? 1,
       min_order_quantity: p.min_order_quantity ?? null,
       height_cm: p.height_cm ?? null,
