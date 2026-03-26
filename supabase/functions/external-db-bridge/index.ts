@@ -76,9 +76,7 @@ const PRODUCT_TABLES = [
   'produto_ramo_atividade',
   // Setores de negócio
   'business_sectors',
-  // Mockups
-  'mockup_drafts',
-  'generated_mockups',
+  // NOTA: mockup_drafts e generated_mockups são tabelas LOCAIS (Lovable Cloud), removidas da whitelist do bridge externo
   // Técnicas de Personalização e Preços
   'personalization_techniques',
   'customization_price_tables',
