@@ -30,7 +30,9 @@ import { TECHNIQUE_ICONS } from '@/types/gravacao';
 interface ExternalTechnique {
   id: string;
   nome: string;
-  codigo: string;
+  codigo: string | null;
+  codigo_curto?: string | null;
+  codigo_interno?: string | null;
   grupo_tecnica?: string;
   nome_grupo?: string;
   permite_cores?: boolean;
@@ -286,12 +288,13 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
     if (!selectedComponent || !selectedLocation || !selectedTechnique) return;
 
     const areaName = `${selectedLocation.name} — ${selectedTechnique.nome}`;
+    const techCode = selectedTechnique.codigo || selectedTechnique.codigo_curto || selectedTechnique.codigo_interno || null;
     const newArea: PersonalizationArea = {
       product_id: productId || 'pending',
       component_id: null,
       area_name: areaName,
       technique_name: selectedTechnique.nome,
-      technique_code: selectedTechnique.codigo,
+      technique_code: techCode,
       location_name: `${selectedComponent.name} > ${selectedLocation.name}`,
       max_width_cm: detailForm.max_width_cm,
       max_height_cm: detailForm.max_height_cm,
@@ -339,7 +342,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
     const s = techSearch.toLowerCase();
     return techniques.filter(t =>
       t.ativo !== false &&
-      (t.nome.toLowerCase().includes(s) || t.codigo.toLowerCase().includes(s) || t.nome_grupo?.toLowerCase().includes(s))
+      (t.nome.toLowerCase().includes(s) || (t.codigo || t.codigo_curto || t.codigo_interno || '').toLowerCase().includes(s) || t.nome_grupo?.toLowerCase().includes(s))
     );
   }, [techniques, techSearch]);
 
@@ -542,13 +545,13 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
                       className={cn(
                         'flex items-center gap-2 p-2.5 rounded-lg border transition-all duration-200 text-left',
                         'hover:shadow-md hover:scale-[1.01]',
-                        `bg-gradient-to-br ${getTechniqueColor(tech.codigo)}`,
+                        `bg-gradient-to-br ${getTechniqueColor(tech.codigo || tech.codigo_curto || tech.codigo_interno || '')}`,
                       )}
                     >
-                      <span className="text-base">{getTechniqueIcon(tech.codigo)}</span>
+                      <span className="text-base">{getTechniqueIcon(tech.codigo || tech.codigo_curto || tech.codigo_interno || '')}</span>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium truncate">{tech.nome}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">{tech.codigo}</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">{tech.codigo || tech.codigo_curto || tech.codigo_interno || '—'}</p>
                       </div>
                       {tech.permite_cores && (
                         <Palette className="h-3 w-3 text-muted-foreground shrink-0" />
