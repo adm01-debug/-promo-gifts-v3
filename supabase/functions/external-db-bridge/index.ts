@@ -560,12 +560,18 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const isHeavy = HEAVY_TABLES.includes(table);
   const isVeryHeavy = VERY_HEAVY_TABLES.includes(table);
   const hasSearch = filters && '_search' in filters;
+  const hasNamePrefix = filters && '_name_prefix' in filters;
   const countMode = requestCountMode ?? (hasSearch ? 'none' : (isVeryHeavy ? 'none' : (isHeavy ? 'planned' : 'exact')));
   const queryCountMode = countMode === 'none' ? undefined : countMode;
 
+  // Use lightweight columns for products table when select is '*' (avoids heavy JSONB columns like personalization_areas, metadata)
+  const effectiveSelect = (table === 'products' && (!select || select === '*'))
+    ? PRODUCTS_LIGHTWEIGHT_SELECT
+    : (select || '*');
+
   let query = queryCountMode
-    ? externalSupabase.from(table).select(select || '*', { count: queryCountMode })
-    : externalSupabase.from(table).select(select || '*');
+    ? externalSupabase.from(table).select(effectiveSelect, { count: queryCountMode })
+    : externalSupabase.from(table).select(effectiveSelect);
 
   if (filters) query = applyFilters(query, filters, categoryDescendants);
   if (id) query = query.eq('id', id);
@@ -573,14 +579,52 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
 
   const requestedLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
   const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
-  const safeLimit = computeSafeLimit(requestedLimit, table, !!hasSearch, safeOffset);
+  const safeLimit = computeSafeLimit(requestedLimit, table, !!(hasSearch || hasNamePrefix), safeOffset);
   query = query.range(safeOffset, safeOffset + safeLimit - 1);
 
   const selectStart = performance.now();
-  const { data: selectData, error: selectError, count } = await query;
+  let selectData, selectError, count;
+
+  try {
+    const result = await query;
+    selectData = result.data;
+    selectError = result.error;
+    count = result.count;
+  } catch (abortErr) {
+    const selectDuration = Math.round(performance.now() - selectStart);
+    emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'error', error: 'Query timeout (client-side)' });
+    return jsonResponse({ error: 'Query timeout - tente reduzir o escopo da busca' }, 408, corsHeaders);
+  }
+
   const selectDuration = Math.round(performance.now() - selectStart);
 
   if (selectError) {
+    // On statement timeout for products, retry with even smaller limit and no count
+    if (selectError.message?.includes('statement timeout') && isVeryHeavy && safeLimit > 50) {
+      console.warn(`[retry] ${table} timed out with limit=${safeLimit}, retrying with limit=50 and no count`);
+      const retryStart = performance.now();
+      let retryQuery = externalSupabase.from(table).select(effectiveSelect);
+      if (filters) retryQuery = applyFilters(retryQuery, filters, categoryDescendants);
+      if (id) retryQuery = retryQuery.eq('id', id);
+      if (orderBy) retryQuery = retryQuery.order(orderBy.column, { ascending: orderBy.ascending ?? false });
+      retryQuery = retryQuery.range(safeOffset, safeOffset + 49);
+
+      const { data: retryData, error: retryError } = await retryQuery;
+      const retryDuration = Math.round(performance.now() - retryStart);
+
+      if (retryError) {
+        emitTelemetry({ operation: 'select', table, limit: 50, offset: safeOffset, countMode: 'none', durationMs: retryDuration, status: 'error', error: retryError.message });
+        return jsonResponse({ error: retryError.message }, 400, corsHeaders);
+      }
+
+      let records = retryData || [];
+      if (aliasType === 'technique') records = records.map(mapTechniqueRowToLegacyShape);
+      if (aliasType === 'priceTable') records = records.map(mapPriceTableRowToLegacyShape);
+      emitTelemetry({ operation: 'select', table, limit: 50, offset: safeOffset, countMode: 'none', durationMs: retryDuration, status: classifyDuration(retryDuration), recordCount: records.length });
+      console.log(`[retry] Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=50)`);
+      return { records, count: null };
+    }
+
     emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'error', error: selectError.message });
     return jsonResponse({ error: selectError.message }, 400, corsHeaders);
   }
@@ -595,7 +639,6 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
 
   return { records, count: count ?? null };
-}
 
 // ============================================
 // INSERT
