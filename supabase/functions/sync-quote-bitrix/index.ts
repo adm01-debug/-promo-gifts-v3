@@ -1,10 +1,8 @@
+import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 
 // Full CORS headers required by Supabase web clients
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
+// See _shared/cors.ts for the centralized configuration
 
 // Mapping: seller email → Bitrix24 numeric seller_id
 const SELLER_EMAIL_MAP: Record<string, number> = {
