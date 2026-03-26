@@ -19,6 +19,7 @@ import { useProductsLightweight, ProductLightweight } from "@/hooks/useProductsL
 import { useProduct, Product, ProductColor } from "@/hooks/useProducts";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useExternalVariantStock, type ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 
 export interface MockupProductSelection {
   product: Product;
@@ -34,20 +35,6 @@ interface MockupProductSelectorProps {
   onSelect: (selection: MockupProductSelection | null) => void;
   disabled?: boolean;
 }
-
-// Fuse.js config for lightweight products
-const fuseOptions: Fuse.IFuseOptions<ProductLightweight> = {
-  keys: [
-    { name: 'name', weight: 0.5 },
-    { name: 'sku', weight: 0.35 },
-    { name: 'brand', weight: 0.15 },
-  ],
-  threshold: 0.4,
-  distance: 100,
-  includeScore: true,
-  minMatchCharLength: 2,
-  ignoreLocation: true,
-};
 
 export function MockupProductSelector({ selection, onSelect, disabled }: MockupProductSelectorProps) {
   const { data: products = [], isLoading: isLoadingProducts } = useProductsLightweight();
@@ -71,13 +58,13 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   const isFilterPending = searchQuery.length >= 2 && searchQuery !== debouncedQuery;
 
   const fuse = useMemo(
-    () => new Fuse(products, fuseOptions),
+    () => new Fuse(products, createProductFuseOptions<ProductLightweight>()),
     [products]
   );
 
   const filteredProducts = useMemo(() => {
     if (!debouncedQuery || debouncedQuery.length < 2) return products;
-    return fuse.search(debouncedQuery).map(r => r.item);
+    return rankProductSearchResults(products, debouncedQuery, fuse);
   }, [fuse, debouncedQuery, products]);
 
   const sortedProducts = useMemo(() => {

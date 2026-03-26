@@ -1,7 +1,9 @@
 // Hook para buscar dados do simulador do banco externo Promobrind
 import { useQuery } from '@tanstack/react-query';
+import Fuse from 'fuse.js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from "@/lib/logger";
+import { createProductFuseOptions, dedupeById, rankProductSearchResults } from '@/utils/product-search';
 
 // ============================================
 // TIPOS
@@ -117,23 +119,38 @@ const PRODUCT_SELECT = 'id, name, sku, sale_price, primary_image_url, category_i
  * Busca produtos do banco externo Promobrind com imagens da nova tabela product_images
  */
 export function useExternalProductSearch(searchQuery: string) {
-  return useQuery({
+  return useQuery<ExternalProduct[]>({
     queryKey: ['external-products-search', searchQuery],
     queryFn: async () => {
-      if (!searchQuery || searchQuery.length < 2) return [];
-      
-      // Buscar produtos
-      const result = await invokeExternalDb<ExternalProduct>('products', 'select', {
-        filters: {
-          name: searchQuery,
-          active: true,
-        },
-        select: PRODUCT_SELECT,
-        limit: 20,
-        orderBy: { column: 'name', ascending: true },
-      });
+      const normalizedSearch = searchQuery.trim();
+      if (!normalizedSearch || normalizedSearch.length < 2) return [];
 
-      const products = result.records;
+      const [nameResult, broadResult] = await Promise.all([
+        invokeExternalDb<ExternalProduct>('products', 'select', {
+          filters: {
+            name: normalizedSearch,
+            active: true,
+          },
+          select: PRODUCT_SELECT,
+          limit: 20,
+          orderBy: { column: 'name', ascending: true },
+        }),
+        invokeExternalDb<ExternalProduct>('products', 'select', {
+          filters: {
+            _search: normalizedSearch,
+            active: true,
+          },
+          select: PRODUCT_SELECT,
+          limit: 20,
+          orderBy: { column: 'name', ascending: true },
+        }),
+      ]);
+
+      const mergedProducts = dedupeById([...nameResult.records, ...broadResult.records]);
+      const fuse = new Fuse(mergedProducts, createProductFuseOptions<ExternalProduct>());
+      const products = rankProductSearchResults(mergedProducts, normalizedSearch, fuse, {
+        limit: 20,
+      });
       
       // Buscar imagens da nova tabela product_images para enriquecer os produtos
       if (products.length > 0) {
@@ -141,10 +158,10 @@ export function useExternalProductSearch(searchQuery: string) {
         
         try {
           const imagesResult = await invokeExternalDb<ProductImageRecord>('product_images', 'select', {
-            filters: { is_active: true },
+            filters: { product_id: productIds, is_active: true },
             select: 'product_id, url_cdn, image_type, is_primary, display_order',
             orderBy: { column: 'display_order', ascending: true },
-            limit: 500,
+            limit: Math.max(productIds.length * 8, 100),
           });
           
           // Agrupar imagens por product_id
@@ -182,7 +199,7 @@ export function useExternalProductSearch(searchQuery: string) {
 
       return products;
     },
-    enabled: searchQuery.length >= 2,
+    enabled: searchQuery.trim().length >= 2,
     staleTime: 30000, // 30 segundos
   });
 }

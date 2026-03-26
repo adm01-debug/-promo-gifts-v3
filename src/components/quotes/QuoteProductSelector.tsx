@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import Fuse from "fuse.js";
+import { useQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Plus, Minus, Search, Package, ShoppingCart, X, Check, ArrowUpDown, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,31 +21,18 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { useProducts, Product, ProductColor } from "@/hooks/useProducts";
+import { Product, ProductColor, mapPromobrindToProduct } from "@/hooks/useProducts";
 import { QuoteItem } from "@/hooks/useQuotes";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { fetchPromobrindProducts } from "@/lib/external-db";
+import { createProductFuseOptions, dedupeById, rankProductSearchResults } from "@/utils/product-search";
 
 interface QuoteProductSelectorProps {
   onProductAdd: (item: QuoteItem) => void;
   existingProductIds: string[];
 }
-
-// Fuse.js config
-const fuseOptions: Fuse.IFuseOptions<Product> = {
-  keys: [
-    { name: 'name', weight: 0.45 },
-    { name: 'sku', weight: 0.3 },
-    { name: 'category_name', weight: 0.15 },
-    { name: 'brand', weight: 0.1 },
-  ],
-  threshold: 0.4,
-  distance: 100,
-  includeScore: true,
-  minMatchCharLength: 2,
-  ignoreLocation: true,
-};
 
 export function QuoteProductSelector({ onProductAdd, existingProductIds }: QuoteProductSelectorProps) {
   const isMobile = useIsMobile();
@@ -70,11 +58,30 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
   const debouncedQuery = useDebounce(searchQuery, 300);
   const isFilterPending = searchQuery.length >= 2 && searchQuery !== debouncedQuery;
 
-  // Server-side search: only fetch when dialog is open and there's a search query
-  const { data: products = [], isLoading: isLoadingProducts } = useProducts(
-    debouncedQuery && debouncedQuery.length >= 2 ? { search: debouncedQuery, limit: 50 } : undefined,
-    { enabled: open, staleTime: 5 * 60 * 1000 }
-  );
+  const { data: products = [], isLoading: isLoadingProducts } = useQuery<Product[]>({
+    queryKey: ["quote-product-selector-search", debouncedQuery],
+    queryFn: async () => {
+      if (!open) return [];
+
+      if (!debouncedQuery || debouncedQuery.length < 2) {
+        const initialProducts = await fetchPromobrindProducts({ limit: 50 });
+        return initialProducts.map(mapPromobrindToProduct);
+      }
+
+      const [nameMatches, broadMatches] = await Promise.all([
+        fetchPromobrindProducts({ filters: { name: debouncedQuery }, limit: 50 }),
+        fetchPromobrindProducts({ search: debouncedQuery, limit: 50 }),
+      ]);
+
+      const mergedProducts = dedupeById([...nameMatches, ...broadMatches]).map(mapPromobrindToProduct);
+      const fuse = new Fuse(mergedProducts, createProductFuseOptions<Product>());
+
+      return rankProductSearchResults(mergedProducts, debouncedQuery, fuse, { limit: 50 });
+    },
+    enabled: open,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
+  });
 
   const allAddedIds = useMemo(
     () => [...existingProductIds, ...sessionAddedIds],
@@ -86,7 +93,6 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
     [products, allAddedIds]
   );
 
-  // With server-side search, Fuse.js is only used for local re-sorting
   const filteredProducts = availableProducts;
 
   // Sorted results

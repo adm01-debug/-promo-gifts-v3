@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { useDebounce } from "@/hooks/useDebounce";
+import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 
 interface Product {
   id: string;
@@ -37,83 +38,6 @@ interface ProductSearchComboboxProps {
   className?: string;
 }
 
-// Fuse.js config for fuzzy fallback (level 4)
-const fuseOptions: Fuse.IFuseOptions<Product> = {
-  keys: [
-    { name: 'name', weight: 0.5 },
-    { name: 'sku', weight: 0.5 },
-  ],
-  threshold: 0.4,
-  distance: 100,
-  includeScore: true,
-  minMatchCharLength: 2,
-  ignoreLocation: true,
-  findAllMatches: true,
-};
-
-/**
- * 4-level relevance search matching the catalog pattern:
- * 1. Name starts with query
- * 2. Exact word match in name
- * 3. Name contains query as substring
- * 4. Fuzzy match (Fuse.js) for typo tolerance
- */
-function searchWithRelevance(products: Product[], query: string, fuse: Fuse<Product>): Product[] {
-  const queryLower = query.toLowerCase();
-
-  // Exact SKU match — highest priority
-  const exactSku = products.filter(p => (p.sku || '').toLowerCase() === queryLower);
-  if (exactSku.length > 0) return exactSku.slice(0, 50);
-
-  const nameStartsWith: Product[] = [];
-  const nameIsExactWord: Product[] = [];
-  const nameContains: Product[] = [];
-
-  for (const p of products) {
-    const nameLower = p.name.toLowerCase();
-    if (nameLower.startsWith(queryLower)) {
-      nameStartsWith.push(p);
-    } else {
-      const wordBoundary = new RegExp(`\\b${queryLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      if (wordBoundary.test(p.name)) {
-        nameIsExactWord.push(p);
-      } else if (nameLower.includes(queryLower)) {
-        nameContains.push(p);
-      }
-    }
-  }
-
-  // Fuzzy fallback
-  const fuseResults = fuse.search(query);
-  const fuzzyItems = fuseResults.filter(r => (r.score ?? 1) < 0.45).map(r => r.item);
-
-  // Sort each group by position of query in name
-  const sortByPosition = (arr: Product[]) =>
-    arr.sort((a, b) => {
-      const posA = a.name.toLowerCase().indexOf(queryLower);
-      const posB = b.name.toLowerCase().indexOf(queryLower);
-      return (posA === -1 ? 9999 : posA) - (posB === -1 ? 9999 : posB);
-    });
-
-  sortByPosition(nameStartsWith);
-  sortByPosition(nameIsExactWord);
-  sortByPosition(nameContains);
-
-  // Merge without duplicates: starts > exact word > contains > fuzzy
-  const seenIds = new Set<string>();
-  const combined: Product[] = [];
-  for (const group of [nameStartsWith, nameIsExactWord, nameContains, fuzzyItems]) {
-    for (const p of group) {
-      if (!seenIds.has(p.id)) {
-        seenIds.add(p.id);
-        combined.push(p);
-      }
-    }
-  }
-
-  return combined.slice(0, 50);
-}
-
 export function ProductSearchCombobox({
   products,
   selectedProduct,
@@ -128,13 +52,12 @@ export function ProductSearchCombobox({
 
   const debouncedSearch = useDebounce(search, 350);
 
-  const fuse = React.useMemo(() => new Fuse(products, fuseOptions), [products]);
+  const fuse = React.useMemo(() => new Fuse(products, createProductFuseOptions<Product>()), [products]);
 
-  // Use 4-level relevance search
   const filteredProducts = React.useMemo(() => {
     setIsSearching(false);
     if (!debouncedSearch.trim() || debouncedSearch.trim().length < 2) return products.slice(0, 50);
-    return searchWithRelevance(products, debouncedSearch.trim(), fuse);
+    return rankProductSearchResults(products, debouncedSearch.trim(), fuse, { limit: 50 });
   }, [products, debouncedSearch, fuse]);
 
   // Show searching indicator when typing
