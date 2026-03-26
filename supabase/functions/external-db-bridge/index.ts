@@ -1512,7 +1512,11 @@ Deno.serve(async (req) => {
         }
 
         // Tables without created_at/updated_at columns
-        const TABLES_WITHOUT_TIMESTAMPS = ['variant_supplier_sources'];
+        const TABLES_WITHOUT_TIMESTAMPS = [
+          'variant_supplier_sources',
+          'product_tags',
+          'produto_ramo_atividade',
+        ];
         const hasTimestamps = !TABLES_WITHOUT_TIMESTAMPS.includes(table);
 
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
