@@ -137,7 +137,7 @@ export function SmartProductSearch({
     if (!products || products.length === 0) return [];
     if (!searchQuery || searchQuery.length < 2) return products.slice(0, 20);
 
-    return rankProductSearchResults(products, searchQuery, fuse ?? undefined, { limit: 20 });
+    return rankProductSearchResults(products, searchQuery, fuse ?? undefined);
   }, [products, searchQuery, fuse]);
 
   // Handle product selection
