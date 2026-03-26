@@ -102,6 +102,8 @@ const PRODUCT_TABLES = [
   // ============================================
   'category_area_techniques',              // Vínculos área-técnica com variante_id
   'tabela_preco_fornecedores_gravacao',    // Tabela real mapeada via alias customization_price_tables
+  // Histórico de preços
+  'price_history',                         // Histórico de alterações de preço (usa changed_at, sem created_at/updated_at)
 ] as const;
 
 // Views e Materialized Views (somente leitura)
