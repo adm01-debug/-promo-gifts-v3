@@ -104,18 +104,11 @@ export function ProductInfoSection({
             <option value="Brasil">Brasil</option>
             <option value="China">China</option>
             <option value="Índia">Índia</option>
-            <option value="Estados Unidos">Estados Unidos</option>
-            <option value="Alemanha">Alemanha</option>
-            <option value="Japão">Japão</option>
-            <option value="Coreia do Sul">Coreia do Sul</option>
-            <option value="Taiwan">Taiwan</option>
-            <option value="Turquia">Turquia</option>
-            <option value="Itália">Itália</option>
+            <option value="Bangladesh">Bangladesh</option>
+            <option value="Paquistão">Paquistão</option>
             <option value="Portugal">Portugal</option>
-            <option value="Vietnã">Vietnã</option>
-            <option value="México">México</option>
-            <option value="Argentina">Argentina</option>
-            <option value="Outro">Outro</option>
+            <option value="Espanha">Espanha</option>
+            <option value="Alemanha">Alemanha</option>
           </select>
         </div>
         <div>
