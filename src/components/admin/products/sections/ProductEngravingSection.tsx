@@ -30,7 +30,9 @@ import { TECHNIQUE_ICONS } from '@/types/gravacao';
 interface ExternalTechnique {
   id: string;
   nome: string;
-  codigo: string;
+  codigo: string | null;
+  codigo_curto?: string | null;
+  codigo_interno?: string | null;
   grupo_tecnica?: string;
   nome_grupo?: string;
   permite_cores?: boolean;
