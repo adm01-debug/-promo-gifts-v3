@@ -64,7 +64,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
       if (!open) return [];
 
       if (!debouncedQuery || debouncedQuery.length < 2) {
-        const initialProducts = await fetchPromobrindProducts({ limit: 50 });
+        const initialProducts = await fetchPromobrindProducts({ limit: 20 });
         return initialProducts.map(mapPromobrindToProduct);
       }
 
