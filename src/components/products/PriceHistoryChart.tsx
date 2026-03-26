@@ -26,14 +26,22 @@ export function PriceHistoryChart({ productId, currentPrice, productName }: Pric
   const { history, isLoading } = usePriceHistory(productId);
 
   const chartData = useMemo(() => {
-    return history.map((entry) => ({
-      date: format(new Date(entry.created_at), "dd/MM/yy", { locale: ptBR }),
-      fullDate: format(new Date(entry.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }),
-      price: entry.new_price,
-      oldPrice: entry.old_price,
-      changePercent: entry.price_change_percent,
-      source: entry.source,
-    }));
+    return history.map((entry) => {
+      const dateStr = entry.changed_at || '';
+      const dateObj = dateStr ? new Date(dateStr) : new Date();
+      const oldPrice = entry.old_price;
+      const changePercent = oldPrice && oldPrice > 0
+        ? ((entry.new_price - oldPrice) / oldPrice) * 100
+        : null;
+      return {
+        date: format(dateObj, "dd/MM/yy", { locale: ptBR }),
+        fullDate: format(dateObj, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }),
+        price: entry.new_price,
+        oldPrice,
+        changePercent,
+        source: entry.source,
+      };
+    });
   }, [history]);
 
   const stats = useMemo(() => {
