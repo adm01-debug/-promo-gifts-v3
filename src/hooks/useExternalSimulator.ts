@@ -148,9 +148,7 @@ export function useExternalProductSearch(searchQuery: string) {
 
       const mergedProducts = dedupeById([...prefixResult.records, ...broadResult.records]);
       const fuse = new Fuse(mergedProducts, createProductFuseOptions<ExternalProduct>());
-      const products = rankProductSearchResults(mergedProducts, normalizedSearch, fuse, {
-        limit: 20,
-      });
+      const products = rankProductSearchResults(mergedProducts, normalizedSearch, fuse);
       
       // Buscar imagens da nova tabela product_images para enriquecer os produtos
       if (products.length > 0) {
