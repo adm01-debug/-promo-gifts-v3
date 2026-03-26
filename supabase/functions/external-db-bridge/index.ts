@@ -403,17 +403,16 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     );
-    const token = authHeader.replace('Bearer ', '');
-    const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
+    const { data: userData, error: userError } = await localSupabase.auth.getUser();
 
-    if (claimsData?.claims && !claimsError) {
-      userId = claimsData.claims.sub as string;
+    if (userData?.user && !userError) {
+      userId = userData.user.id;
       const localService = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
       const { data: userRoles, error: roleError } = await localService.from('user_roles').select('role').eq('user_id', userId);
       if (roleError) console.error('Error fetching user roles:', roleError);
       userRole = userRoles?.[0]?.role || 'vendedor';
     } else {
-      console.error('Auth failed:', claimsError?.message);
+      console.error('Auth failed:', userError?.message);
     }
   }
 
