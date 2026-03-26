@@ -271,7 +271,11 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
 
       try {
         const queryStart = performance.now();
-        let query = externalSupabase.from(qTable).select(qSelect);
+        // Use lightweight select for products in batch too
+        const effectiveBatchSelect = (qTable === 'products' && (!qSelect || qSelect === '*'))
+          ? PRODUCTS_LIGHTWEIGHT_SELECT
+          : qSelect;
+        let query = externalSupabase.from(qTable).select(effectiveBatchSelect);
         if (qFilters) query = applyFilters(query, qFilters, null);
         if (qOrderBy) query = query.order(qOrderBy.column, { ascending: qOrderBy.ascending ?? false });
         query = query.range(qOffset, qOffset + qLimit - 1);
