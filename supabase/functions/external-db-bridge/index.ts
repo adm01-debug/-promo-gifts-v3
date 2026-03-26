@@ -87,11 +87,13 @@ const PRODUCT_TABLES = [
   // TÉCNICAS DE GRAVAÇÃO - BD EXTERNO PROMOBRIND
   // Tabelas REAIS que existem no banco externo
   // ============================================
+  'tecnicas_gravacao',                     // 16 técnicas-mãe (Serigrafia, Laser, Bordado...)
+  'print_area_techniques',                 // 2654 áreas de gravação vinculadas a produtos (FONTE ÚNICA)
   // ============================================
   // SISTEMA DE PREÇOS v2 - ARQUITETURA OFICIAL
   // Implementado em 02/02/2026
   // ============================================
-  'tabela_preco_gravacao_oficial',         // 43 técnicas com configurações
+  'tabela_preco_gravacao_oficial',         // 54 variantes de preço com configurações
   'tabela_preco_gravacao_oficial_faixa',   // 301 faixas de preço
   'organization_markup_customization',     // 59 configurações de markup (v5.1)
   // ============================================
