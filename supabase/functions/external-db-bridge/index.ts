@@ -810,4 +810,4 @@ function getExternalClient(corsHeaders: Record<string, string>) {
 }
 
 // Default lightweight columns for products table to avoid fetching heavy JSONB columns
-const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,sku,name,slug,brand,supplier_reference,description,main_category_id,category_id,supplier_id,is_active,is_kit,default_variant_id,sale_price,min_quantity,cost_price,created_at,updated_at';
+const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit';
