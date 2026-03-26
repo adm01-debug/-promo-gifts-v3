@@ -68,15 +68,13 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
         return initialProducts.map(mapPromobrindToProduct);
       }
 
-      const [nameMatches, broadMatches] = await Promise.all([
-        fetchPromobrindProducts({ filters: { name: debouncedQuery }, limit: 50 }),
-        fetchPromobrindProducts({ search: debouncedQuery, limit: 50 }),
-      ]);
+      // Fetch a large candidate pool so local ranking can properly prioritize
+      const broadMatches = await fetchPromobrindProducts({ search: debouncedQuery, limit: 200 });
 
-      const mergedProducts = dedupeById([...nameMatches, ...broadMatches]).map(mapPromobrindToProduct);
-      const fuse = new Fuse(mergedProducts, createProductFuseOptions<Product>());
+      const mappedProducts = broadMatches.map(mapPromobrindToProduct);
+      const fuse = new Fuse(mappedProducts, createProductFuseOptions<Product>());
 
-      return rankProductSearchResults(mergedProducts, debouncedQuery, fuse, { limit: 50 });
+      return rankProductSearchResults(mappedProducts, debouncedQuery, fuse, { limit: 50 });
     },
     enabled: open,
     staleTime: 5 * 60 * 1000,
