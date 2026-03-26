@@ -82,10 +82,11 @@ export const CONTACT_ROLES = [
 
 export const EMPTY_SUPPLIER: Partial<Supplier> = {
   name: '', code: '', trading_name: '', cnpj: '',
-  contact_name: '', contact_person: '', email: '', phone: '', address: '', website: '',
+  contact_name: '', contact_person: '', email: '', phone: '', phone2: '', address: '', website: '',
   default_markup_percent: null, min_order_value: null, delivery_time_days: null,
   payment_terms: '', shipping_terms: '', priority: 50, notes: '',
   is_product_supplier: true, is_engraving_supplier: false, active: true, logo_url: null,
+  inscricao_estadual: '', tax_regime: '', state_uf: '',
   tipo_logradouro: '', logradouro: '', numero: '', complemento: '', bairro: '',
   cidade: '', estado: '', cep: '', pais: 'Brasil',
   ponto_referencia: '', google_maps_url: '', google_place_id: '',
