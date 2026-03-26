@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { loadThemeConfig, applyThemePreset, applyRadius } from "@/lib/theme-presets";
 
 type Theme = 'light' | 'dark' | 'auto';
 
@@ -43,14 +44,20 @@ export function ThemeProvider({
     // Remover temas anteriores
     root.classList.remove('light', 'dark');
 
+    let resolved: 'light' | 'dark';
     if (theme === 'auto') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-      setActualTheme(systemTheme);
+      resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     } else {
-      root.classList.add(theme);
-      setActualTheme(theme);
+      resolved = theme;
     }
+
+    root.classList.add(resolved);
+    setActualTheme(resolved);
+
+    // Re-apply theme preset CSS variables for the new mode
+    const cfg = loadThemeConfig();
+    applyThemePreset(cfg.presetId, resolved);
+    applyRadius(cfg.radius);
   }, [theme]);
 
   // Listener para mudanças no tema do sistema
@@ -60,10 +67,16 @@ export function ThemeProvider({
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     const handleChange = (e: MediaQueryListEvent) => {
-      setActualTheme(e.matches ? 'dark' : 'light');
+      const resolved = e.matches ? 'dark' : 'light';
+      setActualTheme(resolved);
       const root = window.document.documentElement;
       root.classList.remove('light', 'dark');
-      root.classList.add(e.matches ? 'dark' : 'light');
+      root.classList.add(resolved);
+
+      // Re-apply preset for new system mode
+      const cfg = loadThemeConfig();
+      applyThemePreset(cfg.presetId, resolved);
+      applyRadius(cfg.radius);
     };
 
     mediaQuery.addEventListener('change', handleChange);
