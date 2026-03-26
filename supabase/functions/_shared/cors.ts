@@ -4,6 +4,7 @@
 const ALLOWED_ORIGINS = [
   'https://criar-together-now.lovable.app',
   'https://id-preview--1be35a65-1f65-4c2b-9a79-7d563930aacd.lovable.app',
+  'https://1be35a65-1f65-4c2b-9a79-7d563930aacd.lovableproject.com',
   'http://localhost:5173',
   'http://localhost:8080',
   'http://localhost:3000',
