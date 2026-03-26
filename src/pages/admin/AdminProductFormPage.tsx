@@ -197,6 +197,8 @@ export default function AdminProductFormPage() {
         suggested_price: data.suggested_price ?? null,
         stock_quantity: data.stock_quantity ?? 0,
         stock_unit: data.stock_unit || 'un',
+        product_type: data.product_type || 'product',
+        is_kit: data.product_type === 'kit',
         min_quantity: data.min_quantity ?? 1,
         min_order_quantity: data.min_order_quantity ?? null,
         is_active: data.is_active,
