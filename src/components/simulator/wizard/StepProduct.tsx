@@ -37,68 +37,24 @@ export function StepProduct({ wizard }: StepProductProps) {
   
   const { drafts } = useWizardDrafts();
 
-  // Fetch categories for name resolution
-  const { data: categoriesMap } = useQuery({
-    queryKey: ['wizard-categories'],
-    queryFn: async () => {
-      const cats = await fetchPromobrindCategories();
-      const map = new Map<string, string>();
-      cats.forEach(c => map.set(c.id, c.name));
-      return map;
-    },
-    staleTime: 30 * 60 * 1000,
-  });
+  // Server-side search — same parallel prefix+broad pattern as the quote builder
+  const { data: externalProducts, isLoading } = useExternalProductSearch(searchTerm);
 
-  // Fetch products - sem limite para buscar todos os produtos do catálogo
-  const { data: products, isLoading } = useQuery({
-    queryKey: ['wizard-products-all', categoriesMap ? 'ready' : 'pending'],
-    queryFn: async () => {
-      const data = await fetchPromobrindProducts();
-      return data
-        .filter(p => p.active !== false && p.is_active !== false)
-        .map(p => {
-          const catId = p.category_id || null;
-          const catName = catId && categoriesMap ? (categoriesMap.get(catId) || null) : null;
-          return {
-            id: p.id,
-            name: p.name,
-            sku: p.sku,
-            price: getProductPrice(p),
-            imageUrl: getProductImageUrl(p),
-            category_name: catName,
-            categoryName: catName,
-            brand: p.brand || null,
-            colors: (p.colors as Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string }>) || [],
-          };
-        });
-    },
-    staleTime: 10 * 60 * 1000,
-    enabled: !!categoriesMap,
-  });
-
-  // Categories removed - filter was confusing during tests
-
-  // Fuse.js instance for fuzzy search
-  const fuse = useMemo(() => {
-    if (!products) return null;
-    return new Fuse(products, createProductFuseOptions<typeof products[number]>({
-      keys: [
-        { name: 'sku', weight: 0.35 },
-        { name: 'name', weight: 0.35 },
-        { name: 'category_name', weight: 0.15 },
-        { name: 'brand', weight: 0.15 },
-      ],
-      threshold: 0.35,
-    }));
-  }, [products]);
-
+  // Map external products to the format StepProduct expects
   const filteredProducts = useMemo(() => {
-    if (!products) return [];
-
-    if (!searchTerm.trim() || !fuse) return products;
-
-    return rankProductSearchResults(products, searchTerm, fuse);
-  }, [products, searchTerm, fuse]);
+    if (!externalProducts || externalProducts.length === 0) return [];
+    return externalProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      price: p.sale_price ?? 0,
+      imageUrl: p.primary_image_url || p.image_url || (p.images?.[0] ?? null),
+      category_name: null as string | null,
+      categoryName: null as string | null,
+      brand: p.brand || null,
+      colors: [] as Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string }>,
+    }));
+  }, [externalProducts]);
 
   // formatCurrency imported from @/lib/format
 
