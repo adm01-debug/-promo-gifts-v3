@@ -132,7 +132,7 @@ export function useExternalProductSearch(searchQuery: string) {
             active: true,
           },
           select: PRODUCT_SELECT,
-          limit: 20,
+          limit: 200,
           orderBy: { column: 'name', ascending: true },
         }),
         invokeExternalDb<ExternalProduct>('products', 'select', {
@@ -141,16 +141,14 @@ export function useExternalProductSearch(searchQuery: string) {
             active: true,
           },
           select: PRODUCT_SELECT,
-          limit: 30,
+          limit: 500,
           orderBy: { column: 'name', ascending: true },
         }),
       ]);
 
       const mergedProducts = dedupeById([...prefixResult.records, ...broadResult.records]);
       const fuse = new Fuse(mergedProducts, createProductFuseOptions<ExternalProduct>());
-      const products = rankProductSearchResults(mergedProducts, normalizedSearch, fuse, {
-        limit: 20,
-      });
+      const products = rankProductSearchResults(mergedProducts, normalizedSearch, fuse);
       
       // Buscar imagens da nova tabela product_images para enriquecer os produtos
       if (products.length > 0) {

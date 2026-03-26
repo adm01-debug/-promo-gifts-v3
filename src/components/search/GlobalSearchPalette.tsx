@@ -503,8 +503,8 @@ export function GlobalSearchPalette() {
           const { dedupeById: dedupeByIdUtil } = await import('@/utils/product-search');
             const productQuery = intent.keywords.join(' ') || searchQuery;
           const [prefixData, broadData] = await Promise.all([
-            fetchPromobrindProducts({ filters: { _name_prefix: productQuery }, limit: 15 }),
-            fetchPromobrindProducts({ search: productQuery, limit: 30 }),
+            fetchPromobrindProducts({ filters: { _name_prefix: productQuery }, limit: 200 }),
+            fetchPromobrindProducts({ search: productQuery, limit: 500 }),
           ]);
           const productsData = dedupeByIdUtil([...prefixData, ...broadData]);
 
@@ -538,11 +538,11 @@ export function GlobalSearchPalette() {
               );
             });
             // If no color matches, show all products
-            if (filteredProducts.length === 0) filteredProducts = productsData.slice(0, 8);
+            if (filteredProducts.length === 0) filteredProducts = productsData;
           }
 
           const fuse = new Fuse(filteredProducts, createProductFuseOptions<ExternalProduct>());
-          const orderedProducts = rankProductSearchResults(filteredProducts, productQuery, fuse, { limit: 8 });
+          const orderedProducts = rankProductSearchResults(filteredProducts, productQuery, fuse);
 
           orderedProducts.forEach((p) => {
             allResults.push({

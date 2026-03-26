@@ -56,8 +56,8 @@ export function ProductSearchCombobox({
 
   const filteredProducts = React.useMemo(() => {
     setIsSearching(false);
-    if (!debouncedSearch.trim() || debouncedSearch.trim().length < 2) return products.slice(0, 50);
-    return rankProductSearchResults(products, debouncedSearch.trim(), fuse, { limit: 50 });
+    if (!debouncedSearch.trim() || debouncedSearch.trim().length < 2) return products;
+    return rankProductSearchResults(products, debouncedSearch.trim(), fuse);
   }, [products, debouncedSearch, fuse]);
 
   // Show searching indicator when typing
