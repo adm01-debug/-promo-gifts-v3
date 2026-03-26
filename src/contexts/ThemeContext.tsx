@@ -44,14 +44,20 @@ export function ThemeProvider({
     // Remover temas anteriores
     root.classList.remove('light', 'dark');
 
+    let resolved: 'light' | 'dark';
     if (theme === 'auto') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      root.classList.add(systemTheme);
-      setActualTheme(systemTheme);
+      resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     } else {
-      root.classList.add(theme);
-      setActualTheme(theme);
+      resolved = theme;
     }
+
+    root.classList.add(resolved);
+    setActualTheme(resolved);
+
+    // Re-apply theme preset CSS variables for the new mode
+    const cfg = loadThemeConfig();
+    applyThemePreset(cfg.presetId, resolved);
+    applyRadius(cfg.radius);
   }, [theme]);
 
   // Listener para mudanças no tema do sistema
