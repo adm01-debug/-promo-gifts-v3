@@ -58,6 +58,8 @@ export const PRODUCT_TABLES = [
   'tabela_preco_gravacao_oficial_faixa',     // antes: customization_price_tiers (fantasma)
   // Áreas de gravação por produto (SSOT)
   'print_area_techniques',
+  // Histórico de preços
+  'price_history',
 ] as const;
 
 // ============================================
