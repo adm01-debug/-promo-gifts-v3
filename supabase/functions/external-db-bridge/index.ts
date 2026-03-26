@@ -261,7 +261,6 @@ const PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA = new Set([
   'cofins_rate',
   'tax_regime',
   // Campos locais do formulário (sem coluna no externo)
-  'stock_unit',
   'has_commercial_packaging',
   // Dimensões internas da embalagem (campos locais)
   'box_internal_height_cm',
