@@ -30,6 +30,7 @@ export function useProducts(
     queryFn: async () => {
       const products = await fetchPromobrindProducts({
         search: filters?.search,
+        limit: filters?.limit,
       });
 
       let result = products.map(mapPromobrindToProduct);

@@ -115,6 +115,7 @@ export interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
+  limit?: number;
 }
 
 export interface ProductLightweight {
