@@ -1,3 +1,7 @@
+/**
+ * Hook for managing product supplier sources via external DB bridge.
+ * Uses variant_supplier_sources table in the external catalog DB.
+ */
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -22,6 +26,15 @@ export interface SupplierSource {
 
 export type SupplierSourceInput = Omit<SupplierSource, 'id' | 'created_at' | 'updated_at'>;
 
+const BRIDGE_TABLE = 'variant_supplier_sources';
+
+async function bridgeInvoke(body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro na operação');
+  return data;
+}
+
 export function useProductSupplierSources(productId?: string) {
   const [sources, setSources] = useState<SupplierSource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,14 +43,20 @@ export function useProductSupplierSources(productId?: string) {
     if (!productId) { setSources([]); return; }
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('product_supplier_sources')
-        .select('*')
-        .eq('product_id', productId)
-        .order('is_preferred', { ascending: false })
-        .order('sale_price', { ascending: true });
-      if (error) throw error;
-      setSources((data as SupplierSource[]) || []);
+      const result = await bridgeInvoke({
+        table: BRIDGE_TABLE,
+        operation: 'select',
+        filters: { product_id: productId },
+        limit: 100,
+        orderBy: { column: 'is_preferred', ascending: false },
+      });
+      const records = (result.data?.records || []) as SupplierSource[];
+      // Secondary sort by sale_price
+      records.sort((a, b) => {
+        if (a.is_preferred !== b.is_preferred) return a.is_preferred ? -1 : 1;
+        return (a.sale_price ?? 0) - (b.sale_price ?? 0);
+      });
+      setSources(records);
     } catch (err: any) {
       console.error('Error fetching supplier sources:', err);
     } finally {
@@ -49,15 +68,16 @@ export function useProductSupplierSources(productId?: string) {
 
   const addSource = useCallback(async (input: SupplierSourceInput) => {
     try {
-      const { error } = await supabase
-        .from('product_supplier_sources')
-        .insert(input as any);
-      if (error) throw error;
+      await bridgeInvoke({
+        table: BRIDGE_TABLE,
+        operation: 'insert',
+        data: input,
+      });
       toast.success('Fonte de fornecimento adicionada');
       await fetchSources();
       return true;
     } catch (err: any) {
-      if (err.code === '23505') {
+      if (err.message?.includes('duplicate') || err.message?.includes('23505')) {
         toast.error('Este fornecedor já está vinculado a este produto');
       } else {
         toast.error('Erro ao adicionar fonte');
@@ -68,11 +88,12 @@ export function useProductSupplierSources(productId?: string) {
 
   const updateSource = useCallback(async (id: string, updates: Partial<SupplierSourceInput>) => {
     try {
-      const { error } = await supabase
-        .from('product_supplier_sources')
-        .update({ ...updates, updated_at: new Date().toISOString() } as any)
-        .eq('id', id);
-      if (error) throw error;
+      await bridgeInvoke({
+        table: BRIDGE_TABLE,
+        operation: 'update',
+        id,
+        data: updates,
+      });
       toast.success('Fonte atualizada');
       await fetchSources();
       return true;
@@ -84,11 +105,11 @@ export function useProductSupplierSources(productId?: string) {
 
   const removeSource = useCallback(async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('product_supplier_sources')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
+      await bridgeInvoke({
+        table: BRIDGE_TABLE,
+        operation: 'delete',
+        id,
+      });
       toast.success('Fonte removida');
       await fetchSources();
       return true;
@@ -101,16 +122,24 @@ export function useProductSupplierSources(productId?: string) {
   const setPreferred = useCallback(async (id: string) => {
     if (!productId) return false;
     try {
-      // Remove preferred de todos
-      await supabase
-        .from('product_supplier_sources')
-        .update({ is_preferred: false, updated_at: new Date().toISOString() } as any)
-        .eq('product_id', productId);
-      // Define o novo preferred
-      await supabase
-        .from('product_supplier_sources')
-        .update({ is_preferred: true, updated_at: new Date().toISOString() } as any)
-        .eq('id', id);
+      // First unset all preferred for this product
+      for (const src of sources) {
+        if (src.is_preferred && src.id !== id) {
+          await bridgeInvoke({
+            table: BRIDGE_TABLE,
+            operation: 'update',
+            id: src.id,
+            data: { is_preferred: false },
+          });
+        }
+      }
+      // Set new preferred
+      await bridgeInvoke({
+        table: BRIDGE_TABLE,
+        operation: 'update',
+        id,
+        data: { is_preferred: true },
+      });
       toast.success('Fornecedor preferencial atualizado');
       await fetchSources();
       return true;
@@ -118,7 +147,7 @@ export function useProductSupplierSources(productId?: string) {
       toast.error('Erro ao definir preferencial');
       return false;
     }
-  }, [productId, fetchSources]);
+  }, [productId, sources, fetchSources]);
 
   return { sources, isLoading, addSource, updateSource, removeSource, setPreferred, refetch: fetchSources };
 }
