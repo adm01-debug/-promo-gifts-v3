@@ -146,7 +146,7 @@ export function useExternalProductSearch(searchQuery: string) {
         }),
       ]);
 
-      const mergedProducts = dedupeById([...nameResult.records, ...broadResult.records]);
+      const mergedProducts = dedupeById([...prefixResult.records, ...broadResult.records]);
       const fuse = new Fuse(mergedProducts, createProductFuseOptions<ExternalProduct>());
       const products = rankProductSearchResults(mergedProducts, normalizedSearch, fuse, {
         limit: 20,
