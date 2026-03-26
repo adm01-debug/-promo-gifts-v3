@@ -13,6 +13,7 @@ import { useQuotes, type QuoteItem, type QuoteItemPersonalization } from "@/hook
 import { useQuoteTemplates, type QuoteTemplate, type QuoteTemplateItem } from "@/hooks/useQuoteTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { findKnownHex } from "@/hooks/useProducts";
+import { useDebounce } from "@/hooks/useDebounce";
 import type { SelectedCompanyInfo, SelectedContactInfo } from "@/components/quotes/CompanyContactSelector";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import type { QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
@@ -26,6 +27,74 @@ interface Product {
   colors?: { name: string; hex?: string; stock?: number }[];
   minQuantity?: number;
   totalStock?: number;
+}
+
+function normalizeSearchValue(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function getProductSearchScore(product: Product, search: string) {
+  const query = normalizeSearchValue(search);
+  const name = normalizeSearchValue(product.name);
+  const sku = normalizeSearchValue(product.sku || "");
+
+  if (!query) return 0;
+  if (name === query || sku === query) return 1000;
+  if (name.startsWith(query)) return 800;
+  if (name.includes(query)) return 600;
+  if (sku.startsWith(query)) return 400;
+  if (sku.includes(query)) return 300;
+  return 100;
+}
+
+function mapQuoteSearchProduct(p: any, getProductImageUrl: (product: any) => string | null): Product {
+  const imgUrl = getProductImageUrl(p);
+  const images = (p.images && p.images.length > 0) ? p.images : (imgUrl ? [imgUrl] : []);
+
+  return {
+    id: p.id,
+    name: p.name,
+    sku: p.sku,
+    price: p.sale_price ?? p.base_price ?? 0,
+    images,
+    colors: (p.colors || []).map((c: any) => {
+      const name = typeof c === 'string' ? c : c.name;
+      const hex = (typeof c === 'string' ? undefined : c.hex) || findKnownHex(name) || undefined;
+      return { name, hex, stock: typeof c === 'string' ? undefined : c.stock };
+    }),
+    minQuantity: p.min_quantity ?? 1,
+    totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: any) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
+  };
+}
+
+async function loadQuoteSearchProducts(search: string): Promise<Product[]> {
+  const { fetchPromobrindProducts, getProductImageUrl } = await import("@/lib/external-db");
+  const normalizedSearch = search.trim();
+
+  if (!normalizedSearch) {
+    const productsData = await fetchPromobrindProducts({ limit: 20 });
+    return productsData.map((p) => mapQuoteSearchProduct(p, getProductImageUrl));
+  }
+
+  const [nameMatches, broadMatches] = await Promise.all([
+    fetchPromobrindProducts({ filters: { name: normalizedSearch }, limit: 50 }),
+    fetchPromobrindProducts({ search: normalizedSearch, limit: 50 }),
+  ]);
+
+  const mergedProducts = [...nameMatches, ...broadMatches]
+    .filter((product, index, array) => array.findIndex((candidate) => candidate.id === product.id) === index)
+    .map((product) => mapQuoteSearchProduct(product, getProductImageUrl))
+    .sort((a, b) => {
+      const scoreDiff = getProductSearchScore(b, normalizedSearch) - getProductSearchScore(a, normalizedSearch);
+      if (scoreDiff !== 0) return scoreDiff;
+      return a.name.localeCompare(b.name, "pt-BR");
+    });
+
+  return mergedProducts.slice(0, 50);
 }
 
 export function useQuoteBuilderState() {
@@ -68,6 +137,7 @@ export function useQuoteBuilderState() {
   const [loadingQuote, setLoadingQuote] = useState(isEditMode);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
+  const debouncedProductSearch = useDebounce(productSearch, 400);
 
   // ── Stepper ──
   const completedSteps = useMemo((): QuoteBuilderStep[] => {
@@ -169,33 +239,15 @@ export function useQuoteBuilderState() {
 
   // ── Products query ──
   const { data: products } = useQuery({
-    queryKey: ["quote-products-promobrind-full"],
-    queryFn: async () => {
-      const { fetchPromobrindProducts, getProductImageUrl } = await import('@/lib/external-db');
-      const productsData = await fetchPromobrindProducts();
-      return productsData.map(p => {
-        const imgUrl = getProductImageUrl(p);
-        const images = (p.images && p.images.length > 0) ? p.images : (imgUrl ? [imgUrl] : []);
-        return {
-          id: p.id, name: p.name, sku: p.sku,
-          price: p.sale_price ?? p.base_price ?? 0, images,
-          colors: (p.colors || []).map((c: any) => {
-            const name = typeof c === 'string' ? c : c.name;
-            const hex = (typeof c === 'string' ? undefined : c.hex) || findKnownHex(name) || undefined;
-            return { name, hex, stock: typeof c === 'string' ? undefined : c.stock };
-          }),
-          minQuantity: p.min_quantity ?? 1,
-          totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: any) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
-        };
-      }) as Product[];
-    },
-    staleTime: 10 * 60 * 1000,
+    queryKey: ["quote-products-promobrind-search", debouncedProductSearch],
+    queryFn: () => loadQuoteSearchProducts(debouncedProductSearch),
+    enabled: productSearchOpen,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: (previousData) => previousData,
   });
 
   const filteredProducts = useMemo(() => {
-    if (!productSearch.trim()) return products?.slice(0, 20) || [];
-    const search = productSearch.toLowerCase();
-    return products?.filter(p => p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search)).slice(0, 20) || [];
+    return products || [];
   }, [products, productSearch]);
 
   // ── Calculations ──
