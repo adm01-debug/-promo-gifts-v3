@@ -24,19 +24,18 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
   const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-  // Validate token
+  // Validate token using getUser (works with all supabase-js versions)
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } },
   });
 
-  const token = authHeader.replace('Bearer ', '');
-  const { data, error } = await userClient.auth.getClaims(token);
+  const { data: userData, error } = await userClient.auth.getUser();
 
-  if (error || !data?.claims) {
+  if (error || !userData?.user) {
     throw { status: 401, message: 'Token inválido ou expirado' };
   }
 
-  const userId = data.claims.sub as string;
+  const userId = userData.user.id;
 
   // Fetch role using service role client (bypasses RLS)
   const localServiceClient = createClient(supabaseUrl, serviceRoleKey);
