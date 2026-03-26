@@ -101,14 +101,14 @@ export function ProductInfoSection({
           <FieldLabel htmlFor="country_of_origin" hint="País onde o produto é fabricado ou de onde é importado">País de Origem</FieldLabel>
           <select id="country_of_origin" {...register('country_of_origin')} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
             <option value="">Selecione...</option>
+            <option value="Alemanha">Alemanha</option>
+            <option value="Bangladesh">Bangladesh</option>
             <option value="Brasil">Brasil</option>
             <option value="China">China</option>
+            <option value="Espanha">Espanha</option>
             <option value="Índia">Índia</option>
-            <option value="Bangladesh">Bangladesh</option>
             <option value="Paquistão">Paquistão</option>
             <option value="Portugal">Portugal</option>
-            <option value="Espanha">Espanha</option>
-            <option value="Alemanha">Alemanha</option>
           </select>
         </div>
         <div>
