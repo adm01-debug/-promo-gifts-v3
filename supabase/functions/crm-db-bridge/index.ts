@@ -5,8 +5,9 @@ import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
 // CORS
 // ============================================
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
+// CORS headers are now dynamic — initialized per-request in Deno.serve
 // See _shared/cors.ts for the centralized configuration
+let corsHeaders: Record<string, string> = {};
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
