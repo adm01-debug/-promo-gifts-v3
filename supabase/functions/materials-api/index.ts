@@ -5,6 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 // See _shared/cors.ts for the centralized configuration
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
