@@ -8,7 +8,7 @@ export interface Profile {
   user_id: string;                         // Também presente, mas usar id preferencialmente
   email: string | null;
   full_name: string | null;
-  role: AppRole | null;
+  role: AppRole | null;                    // Auto-synced from user_roles (read-only mirror)
   avatar_url: string | null;
   phone: string | null;
   signature_url: string | null;
