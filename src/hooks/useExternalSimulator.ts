@@ -141,7 +141,7 @@ export function useExternalProductSearch(searchQuery: string) {
             active: true,
           },
           select: PRODUCT_SELECT,
-          limit: 30,
+          limit: 500,
           orderBy: { column: 'name', ascending: true },
         }),
       ]);
