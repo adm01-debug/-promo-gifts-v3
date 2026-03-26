@@ -1518,6 +1518,9 @@ Deno.serve(async (req) => {
           'variant_supplier_sources',
           'product_tags',
           'produto_ramo_atividade',
+          'price_history',                // usa changed_at, sem created_at/updated_at
+          'collection_products',          // usa added_at, sem created_at/updated_at
+          'product_category_assignments', // tem created_at mas NÃO tem updated_at
         ];
         const hasTimestamps = !TABLES_WITHOUT_TIMESTAMPS.includes(table);
 
