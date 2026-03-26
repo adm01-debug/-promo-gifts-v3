@@ -61,8 +61,7 @@ export const PRODUCT_TABLES = [
   'ramo_atividade',
   'ramo_atividade_filho',
   'produto_ramo_atividade',
-  // Setores de negócio
-  'business_sectors',
+  // NOTA: business_sectors removida (PGRST205 — não exposta no PostgREST externo)
   // NOTA: mockup_drafts e generated_mockups são tabelas LOCAIS (Lovable Cloud), não do BD externo
   // Técnicas de Gravação — tabelas REAIS
   'tecnicas_gravacao',                       // catálogo de técnicas (16 técnicas-mãe)
