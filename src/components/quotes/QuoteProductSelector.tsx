@@ -70,15 +70,15 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
 
       // Two-layer search: prefix matches (1st layer) + broad matches (2nd layer)
       const [prefixMatches, broadMatches] = await Promise.all([
-        fetchPromobrindProducts({ filters: { _name_prefix: debouncedQuery }, limit: 50 }),
-        fetchPromobrindProducts({ search: debouncedQuery, limit: 150 }),
+        fetchPromobrindProducts({ filters: { _name_prefix: debouncedQuery }, limit: 200 }),
+        fetchPromobrindProducts({ search: debouncedQuery, limit: 500 }),
       ]);
 
-      // Prefix results first, then broad results — deduped
+      // Prefix results first, then broad results — deduped, no artificial limit
       const allProducts = dedupeById([...prefixMatches, ...broadMatches]).map(mapPromobrindToProduct);
       const fuse = new Fuse(allProducts, createProductFuseOptions<Product>());
 
-      return rankProductSearchResults(allProducts, debouncedQuery, fuse, { limit: 50 });
+      return rankProductSearchResults(allProducts, debouncedQuery, fuse);
     },
     enabled: open,
     staleTime: 5 * 60 * 1000,
