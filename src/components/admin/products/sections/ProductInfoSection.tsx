@@ -99,7 +99,24 @@ export function ProductInfoSection({
         </div>
         <div>
           <FieldLabel htmlFor="country_of_origin" hint="País onde o produto é fabricado ou de onde é importado">País de Origem</FieldLabel>
-          <Input id="country_of_origin" {...register('country_of_origin')} placeholder="Ex: Brasil, China" className="h-9" />
+          <select id="country_of_origin" {...register('country_of_origin')} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+            <option value="">Selecione...</option>
+            <option value="Brasil">Brasil</option>
+            <option value="China">China</option>
+            <option value="Índia">Índia</option>
+            <option value="Estados Unidos">Estados Unidos</option>
+            <option value="Alemanha">Alemanha</option>
+            <option value="Japão">Japão</option>
+            <option value="Coreia do Sul">Coreia do Sul</option>
+            <option value="Taiwan">Taiwan</option>
+            <option value="Turquia">Turquia</option>
+            <option value="Itália">Itália</option>
+            <option value="Portugal">Portugal</option>
+            <option value="Vietnã">Vietnã</option>
+            <option value="México">México</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Outro">Outro</option>
+          </select>
         </div>
         <div>
           <FieldLabel htmlFor="lead_time_days" hint="Tempo médio em dias úteis para produção/entrega pelo fornecedor">Prazo Entrega (dias)</FieldLabel>
