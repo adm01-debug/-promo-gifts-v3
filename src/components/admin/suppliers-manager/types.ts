@@ -20,6 +20,7 @@ export interface Supplier {
   contact_person: string | null;
   email: string | null;
   phone: string | null;
+  phone2: string | null;
   address: string | null;
   website: string | null;
   default_markup_percent: number | null;
@@ -34,6 +35,9 @@ export interface Supplier {
   is_engraving_supplier: boolean;
   logo_url: string | null;
   contacts: string | null;
+  inscricao_estadual: string | null;
+  tax_regime: string | null;
+  state_uf: string | null;
   instagram: string | null;
   facebook: string | null;
   linkedin: string | null;
