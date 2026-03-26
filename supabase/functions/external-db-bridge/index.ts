@@ -1515,24 +1515,30 @@ Deno.serve(async (req) => {
           break;
         }
 
-        // Tables without created_at/updated_at columns
-        const TABLES_WITHOUT_TIMESTAMPS = [
-          'variant_supplier_sources',
-          'product_tags',
-          'produto_ramo_atividade',
-          'price_history',                // usa changed_at, sem created_at/updated_at
-          'collection_products',          // usa added_at, sem created_at/updated_at
-          'product_category_assignments', // tem created_at mas NÃO tem updated_at
+        // Tables with non-standard timestamp columns (audited 2026-03-26)
+        // Granular: some tables have updated_at but not created_at, or vice-versa
+        const TABLES_WITHOUT_CREATED_AT = [
+          'variant_supplier_sources',       // tem updated_at, SEM created_at
+          'price_history',                  // usa changed_at
+          'collection_products',            // usa added_at
         ];
-        const hasTimestamps = !TABLES_WITHOUT_TIMESTAMPS.includes(table);
+        const TABLES_WITHOUT_UPDATED_AT = [
+          'product_tags',                   // só tem created_at
+          'produto_ramo_atividade',         // só tem created_at
+          'price_history',                  // usa changed_at
+          'collection_products',            // usa added_at
+          'product_category_assignments',   // só tem created_at
+        ];
+        const canInjectCreatedAt = !TABLES_WITHOUT_CREATED_AT.includes(table);
+        const canInjectUpdatedAtInsert = !TABLES_WITHOUT_UPDATED_AT.includes(table);
 
         // Adicionar metadados de timestamp (não injeta created_by/updated_by pois nem todas as tabelas têm essas colunas)
         const insertData: Record<string, unknown> = sanitizeExternalWriteData(table, {
           ...data,
-          ...(hasTimestamps ? { updated_at: new Date().toISOString() } : {}),
+          ...(canInjectUpdatedAtInsert ? { updated_at: new Date().toISOString() } : {}),
         });
         // Só adicionar created_at se não veio no payload e a tabela suporta
-        if (hasTimestamps && !insertData.created_at) {
+        if (canInjectCreatedAt && !insertData.created_at) {
           insertData.created_at = new Date().toISOString();
         }
 
@@ -1580,9 +1586,18 @@ Deno.serve(async (req) => {
         }
 
         // Adicionar metadados de atualização (sem updated_by — nem todas as tabelas têm essa coluna)
+        // Tables without standard updated_at column
+        const TABLES_WITHOUT_UPDATED_AT = [
+          'product_tags',                   // só tem created_at
+          'produto_ramo_atividade',         // só tem created_at
+          'price_history',                  // usa changed_at, sem created_at/updated_at
+          'collection_products',            // usa added_at, sem created_at/updated_at
+          'product_category_assignments',   // só tem created_at
+        ];
+        const canInjectUpdatedAt = !TABLES_WITHOUT_UPDATED_AT.includes(table);
         const updateData = sanitizeExternalWriteData(table, {
           ...data,
-          updated_at: new Date().toISOString(),
+          ...(canInjectUpdatedAt ? { updated_at: new Date().toISOString() } : {}),
         });
 
         console.log(`Updating ${table} id=${id}:`, JSON.stringify(updateData).substring(0, 500));
