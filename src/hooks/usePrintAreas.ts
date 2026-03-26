@@ -86,7 +86,7 @@ export function usePrintAreas(productId: string | null) {
           techniques.push({
             id: tech.id,
             nome: tech.nome,
-            codigo: tech.codigo || tech.codigo_curto || '',
+            codigo: tech.codigo_curto || tech.codigo_tabela || '',
           });
         }
 
