@@ -5,7 +5,6 @@
  */
 
 import { useState, useMemo, useRef } from 'react';
-import Fuse from 'fuse.js';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,14 +19,12 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { fetchPromobrindProducts, fetchPromobrindCategories, getProductPrice, getProductImageUrl } from '@/lib/external-db';
+import { useExternalProductSearch } from '@/hooks/useExternalSimulator';
 import type { UseSimulatorWizardReturn } from '@/hooks/simulator/useSimulatorWizard';
 import { ProductColorGrid } from './ProductColorGrid';
 import { useWizardDrafts } from '@/hooks/simulator/useWizardDrafts';
 import { formatCurrency } from '@/lib/format';
-import { createProductFuseOptions, rankProductSearchResults } from '@/utils/product-search';
 
 interface StepProductProps {
   wizard: UseSimulatorWizardReturn;
