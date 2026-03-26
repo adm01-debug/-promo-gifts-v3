@@ -196,8 +196,7 @@ export function useProductPrintAreas(productId: string | null) {
     queryFn: async (): Promise<PrintAreaWithTechniques[]> => {
       if (!productId) return [];
 
-      // Buscar áreas do campo JSONB products.personalization_areas
-      // (tabela product_print_areas NÃO existe no BD externo)
+      // Buscar áreas da tabela print_area_techniques (SSOT)
       const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
       const areas = await fetchPrintAreasFromProduct(productId);
       if (!areas.length) return [];

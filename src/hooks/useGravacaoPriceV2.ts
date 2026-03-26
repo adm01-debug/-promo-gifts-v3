@@ -276,7 +276,7 @@ interface TabelaOficialRaw {
 // ============================================
 
 async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2[]> {
-  // 1. Buscar áreas do produto (campo JSONB products.personalization_areas)
+  // 1. Buscar áreas da tabela print_area_techniques (SSOT)
   const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
   const fetchedAreas = await fetchPrintAreasFromProduct(productId);
   
