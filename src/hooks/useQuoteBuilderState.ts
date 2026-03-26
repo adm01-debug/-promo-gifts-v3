@@ -62,8 +62,8 @@ async function loadQuoteSearchProducts(search: string): Promise<Product[]> {
 
   // Two-layer search: prefix matches (1st layer) + broad matches (2nd layer)
   const [prefixMatches, broadMatches] = await Promise.all([
-    fetchPromobrindProducts({ filters: { _name_prefix: normalizedSearch }, limit: 50 }),
-    fetchPromobrindProducts({ search: normalizedSearch, limit: 150 }),
+    fetchPromobrindProducts({ filters: { _name_prefix: normalizedSearch }, limit: 200 }),
+    fetchPromobrindProducts({ search: normalizedSearch, limit: 500 }),
   ]);
 
   const mergedProducts = dedupeById([...prefixMatches, ...broadMatches]).map((product) =>
@@ -71,7 +71,7 @@ async function loadQuoteSearchProducts(search: string): Promise<Product[]> {
   );
   const fuse = new Fuse(mergedProducts, createProductFuseOptions<Product>());
 
-  return rankProductSearchResults(mergedProducts, normalizedSearch, fuse, { limit: 50 });
+  return rankProductSearchResults(mergedProducts, normalizedSearch, fuse);
 }
 
 export function useQuoteBuilderState() {
