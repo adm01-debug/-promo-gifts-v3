@@ -342,7 +342,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
     const s = techSearch.toLowerCase();
     return techniques.filter(t =>
       t.ativo !== false &&
-      (t.nome.toLowerCase().includes(s) || t.codigo.toLowerCase().includes(s) || t.nome_grupo?.toLowerCase().includes(s))
+      (t.nome.toLowerCase().includes(s) || (t.codigo || t.codigo_curto || t.codigo_interno || '').toLowerCase().includes(s) || t.nome_grupo?.toLowerCase().includes(s))
     );
   }, [techniques, techSearch]);
 
