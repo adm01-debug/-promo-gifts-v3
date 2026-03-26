@@ -12,7 +12,7 @@ export interface Profile {
   user_id: string;
   email: string | null;
   full_name: string | null;
-  role: string | null;           // Campo legado - mantido por compatibilidade
+  role: string | null;           // Auto-synced from user_roles via DB trigger (read-only mirror)
   avatar_url: string | null;
   phone: string | null;
   department: string | null;
