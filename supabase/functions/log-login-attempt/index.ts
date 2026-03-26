@@ -1,17 +1,33 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
+import { RateLimiter, applyRateLimit } from "../_shared/rate-limiter.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+// Rate limiter: 10 login log attempts per minute per IP
+const loginLogLimiter = new RateLimiter({
+  maxRequests: 10,
+  windowMs: 60 * 1000,
+  keyPrefix: 'login-log',
+});
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsHeaders = getCorsHeaders(req);
+
+  const preflightResponse = handleCorsPreflightIfNeeded(req);
+  if (preflightResponse) return preflightResponse;
 
   try {
+    // Rate limit by IP
+    const rateLimitResponse = await applyRateLimit(req, loginLogLimiter);
+    if (rateLimitResponse) {
+      // Add CORS headers to rate limit response
+      const headers = new Headers(rateLimitResponse.headers);
+      Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+      return new Response(rateLimitResponse.body, {
+        status: rateLimitResponse.status,
+        headers,
+      });
+    }
+
     const { email, user_id, ip_address, success, failure_reason, user_agent } =
       await req.json();
 
@@ -23,11 +39,29 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Validate email format (basic check)
+    const emailStr = String(email).trim();
+    if (emailStr.length > 255 || !emailStr.includes('@')) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Sanitize inputs
-    const sanitizedEmail = String(email).slice(0, 255);
+    const sanitizedEmail = emailStr.slice(0, 255);
     const sanitizedIP = String(ip_address || "unknown").slice(0, 45);
     const sanitizedUA = user_agent ? String(user_agent).slice(0, 512) : null;
     const sanitizedReason = failure_reason ? String(failure_reason).slice(0, 500) : null;
+
+    // Validate user_id format if provided (must be UUID-like)
+    let sanitizedUserId: string | null = null;
+    if (user_id) {
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (uuidRegex.test(String(user_id))) {
+        sanitizedUserId = String(user_id);
+      }
+    }
 
     // Use service_role to bypass RLS
     const supabaseAdmin = createClient(
@@ -37,7 +71,7 @@ Deno.serve(async (req) => {
 
     const { error } = await supabaseAdmin.from("login_attempts").insert({
       email: sanitizedEmail,
-      user_id: user_id || null,
+      user_id: sanitizedUserId,
       ip_address: sanitizedIP,
       success,
       failure_reason: sanitizedReason,

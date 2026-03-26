@@ -1,9 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 
 // Mapeamento completo das tabelas do banco externo
 type ResourceGroup = 'products' | 'companies' | 'views';
@@ -580,10 +576,11 @@ function setCache<T>(key: string, data: T): void {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflightResponse = handleCorsPreflightIfNeeded(req);
+  if (preflightResponse) return preflightResponse;
 
   const requestStartTime = performance.now();
 
@@ -905,37 +902,52 @@ Deno.serve(async (req) => {
     }
     
     // Operações de leitura podem ser públicas (para busca de produtos no login/público)
+    // ============================================
+    // TABELAS SENSÍVEIS — exigem JWT mesmo para leitura
+    // Contêm dados comerciais (custos, markups, preços de fornecedor)
+    // ============================================
+    const SENSITIVE_TABLES = new Set([
+      'variant_supplier_sources',
+      'variant_cost_tiers',
+      'variant_sale_prices',
+      'price_lists',
+      'price_history',
+      'organization_markup_customization',
+      'tabela_preco_fornecedores_gravacao',
+      'tabela_preco_gravacao_oficial',
+      'tabela_preco_gravacao_oficial_faixa',
+      'supplier_branches',
+    ]);
+
     const isReadOperation = operation === 'select';
     const isPublicTable = PRODUCT_TABLES.includes(table as ProductTable) || 
                           PRODUCT_VIEWS.includes(table as ProductView);
-    const allowPublicAccess = isReadOperation && isPublicTable;
+    const isSensitiveTable = SENSITIVE_TABLES.has(table);
+    const allowPublicAccess = isReadOperation && isPublicTable && !isSensitiveTable;
 
-    // Verificar autenticação (opcional para leitura de produtos)
+    // Verificar autenticação (opcional apenas para leitura de tabelas não-sensíveis)
     const authHeader = req.headers.get('Authorization');
     let userId: string | null = null;
     let userRole = 'public';
 
     if (authHeader?.startsWith('Bearer ')) {
-      // Criar cliente local com SERVICE_ROLE para evitar recursão de RLS
-      const localServiceSupabase = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      );
-
-      // Validar token via getUser (método universal)
       const localSupabase = createClient(
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_ANON_KEY')!,
         { global: { headers: { Authorization: authHeader } } }
       );
 
-      const { data: { user }, error: userError } = await localSupabase.auth.getUser();
+      const token = authHeader.replace('Bearer ', '');
+      const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
       
-      if (user && !userError) {
-        userId = user.id;
-        console.log(`Request from user: ${userId}`);
+      if (claimsData?.claims && !claimsError) {
+        userId = claimsData.claims.sub as string;
 
-        // Buscar role do usuário usando SERVICE_ROLE (bypassa RLS)
+        // Buscar role usando SERVICE_ROLE (bypassa RLS)
+        const localServiceSupabase = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+        );
         const { data: userRoles, error: roleError } = await localServiceSupabase
           .from('user_roles')
           .select('role')
@@ -946,15 +958,14 @@ Deno.serve(async (req) => {
         }
 
         userRole = userRoles?.[0]?.role || 'vendedor';
-        console.log(`User role: ${userRole}`);
       } else {
-        console.error('Auth failed:', userError?.message);
+        console.error('Auth failed:', claimsError?.message);
       }
     }
 
     // Se não é acesso público permitido e não está autenticado, bloquear
     if (!allowPublicAccess && !userId) {
-      console.error('Authentication required for this operation');
+      console.error(`Authentication required: table=${table}, operation=${operation}, sensitive=${isSensitiveTable}`);
       return new Response(
         JSON.stringify({ error: 'Autenticação necessária' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
