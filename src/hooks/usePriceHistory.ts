@@ -1,3 +1,7 @@
+/**
+ * Hook for product price history via external DB bridge.
+ * Reads from price_history table in the external catalog DB.
+ */
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,6 +18,15 @@ export interface PriceHistoryEntry {
   created_at: string;
 }
 
+const BRIDGE_TABLE = 'price_history';
+
+async function bridgeInvoke(body: Record<string, unknown>) {
+  const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
+  if (error) throw new Error(error.message);
+  if (!data?.success) throw new Error(data?.error || 'Erro na operação');
+  return data;
+}
+
 export function usePriceHistory(productId: string | undefined) {
   const [history, setHistory] = useState<PriceHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,15 +36,14 @@ export function usePriceHistory(productId: string | undefined) {
     if (!productId) return;
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("product_price_history")
-        .select("*")
-        .eq("product_id", productId)
-        .order("created_at", { ascending: true })
-        .limit(100);
-
-      if (error) throw error;
-      setHistory((data as PriceHistoryEntry[]) || []);
+      const result = await bridgeInvoke({
+        table: BRIDGE_TABLE,
+        operation: 'select',
+        filters: { product_id: productId },
+        limit: 100,
+        orderBy: { column: 'created_at', ascending: true },
+      });
+      setHistory((result.data?.records as PriceHistoryEntry[]) || []);
     } catch (err) {
       console.error("Error fetching price history:", err);
     } finally {
@@ -62,14 +74,17 @@ export function usePriceHistory(productId: string | undefined) {
       if (params.oldPrice !== undefined && params.oldPrice === params.newPrice) return;
 
       try {
-        await supabase.from("product_price_history").insert({
-          product_id: params.productId,
-          product_sku: params.productSku || null,
-          product_name: params.productName || null,
-          old_price: params.oldPrice ?? null,
-          new_price: params.newPrice,
-          recorded_by: user.id,
-          source: params.source || "manual",
+        await bridgeInvoke({
+          table: BRIDGE_TABLE,
+          operation: 'insert',
+          data: {
+            product_id: params.productId,
+            product_sku: params.productSku || null,
+            product_name: params.productName || null,
+            old_price: params.oldPrice ?? null,
+            new_price: params.newPrice,
+            source: params.source || "manual",
+          },
         });
 
         // Refresh history after recording
