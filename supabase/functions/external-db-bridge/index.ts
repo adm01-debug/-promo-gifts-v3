@@ -1582,11 +1582,10 @@ Deno.serve(async (req) => {
         // Adicionar metadados de atualização (sem updated_by — nem todas as tabelas têm essa coluna)
         // Tables without standard updated_at column
         const TABLES_WITHOUT_UPDATED_AT = [
-          'variant_supplier_sources',       // sem created_at, tem updated_at
           'product_tags',                   // só tem created_at
           'produto_ramo_atividade',         // só tem created_at
-          'price_history',                  // usa changed_at
-          'collection_products',            // usa added_at
+          'price_history',                  // usa changed_at, sem created_at/updated_at
+          'collection_products',            // usa added_at, sem created_at/updated_at
           'product_category_assignments',   // só tem created_at
         ];
         const canInjectUpdatedAt = !TABLES_WITHOUT_UPDATED_AT.includes(table);
