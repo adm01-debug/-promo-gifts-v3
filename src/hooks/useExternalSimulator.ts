@@ -125,10 +125,10 @@ export function useExternalProductSearch(searchQuery: string) {
       const normalizedSearch = searchQuery.trim();
       if (!normalizedSearch || normalizedSearch.length < 2) return [];
 
-      const [nameResult, broadResult] = await Promise.all([
+      const [prefixResult, broadResult] = await Promise.all([
         invokeExternalDb<ExternalProduct>('products', 'select', {
           filters: {
-            name: normalizedSearch,
+            _name_prefix: normalizedSearch,
             active: true,
           },
           select: PRODUCT_SELECT,
@@ -141,12 +141,12 @@ export function useExternalProductSearch(searchQuery: string) {
             active: true,
           },
           select: PRODUCT_SELECT,
-          limit: 20,
+          limit: 30,
           orderBy: { column: 'name', ascending: true },
         }),
       ]);
 
-      const mergedProducts = dedupeById([...nameResult.records, ...broadResult.records]);
+      const mergedProducts = dedupeById([...prefixResult.records, ...broadResult.records]);
       const fuse = new Fuse(mergedProducts, createProductFuseOptions<ExternalProduct>());
       const products = rankProductSearchResults(mergedProducts, normalizedSearch, fuse, {
         limit: 20,

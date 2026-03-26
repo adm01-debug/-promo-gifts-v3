@@ -500,11 +500,13 @@ export function GlobalSearchPalette() {
       if (intent.type === 'product' || intent.type === 'mixed') {
         try {
           const { fetchPromobrindProducts } = await import('@/lib/external-db');
+          const { dedupeById: dedupeByIdUtil } = await import('@/utils/product-search');
             const productQuery = intent.keywords.join(' ') || searchQuery;
-          const productsData = await fetchPromobrindProducts({ 
-              search: productQuery,
-            limit: 30 
-          });
+          const [prefixData, broadData] = await Promise.all([
+            fetchPromobrindProducts({ filters: { _name_prefix: productQuery }, limit: 15 }),
+            fetchPromobrindProducts({ search: productQuery, limit: 30 }),
+          ]);
+          const productsData = dedupeByIdUtil([...prefixData, ...broadData]);
 
           let filteredProducts = productsData;
 
