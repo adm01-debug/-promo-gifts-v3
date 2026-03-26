@@ -545,13 +545,13 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
                       className={cn(
                         'flex items-center gap-2 p-2.5 rounded-lg border transition-all duration-200 text-left',
                         'hover:shadow-md hover:scale-[1.01]',
-                        `bg-gradient-to-br ${getTechniqueColor(tech.codigo)}`,
+                        `bg-gradient-to-br ${getTechniqueColor(tech.codigo || tech.codigo_curto || tech.codigo_interno || '')}`,
                       )}
                     >
-                      <span className="text-base">{getTechniqueIcon(tech.codigo)}</span>
+                      <span className="text-base">{getTechniqueIcon(tech.codigo || tech.codigo_curto || tech.codigo_interno || '')}</span>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium truncate">{tech.nome}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">{tech.codigo}</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">{tech.codigo || tech.codigo_curto || tech.codigo_interno || '—'}</p>
                       </div>
                       {tech.permite_cores && (
                         <Palette className="h-3 w-3 text-muted-foreground shrink-0" />
