@@ -63,9 +63,7 @@ export const PRODUCT_TABLES = [
   'produto_ramo_atividade',
   // Setores de negócio
   'business_sectors',
-  // Mockups (existem também no BD externo)
-  'mockup_drafts',
-  'generated_mockups',
+  // NOTA: mockup_drafts e generated_mockups são tabelas LOCAIS (Lovable Cloud), não do BD externo
   // Técnicas de Gravação — tabelas REAIS
   'tecnicas_gravacao',                       // catálogo de técnicas (16 técnicas-mãe)
   'print_area_techniques',                   // 2654 áreas de gravação vinculadas a produtos (SSOT)
