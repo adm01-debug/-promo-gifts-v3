@@ -29,6 +29,7 @@ import { ProductCustomizationOptions } from "@/components/products/ProductCustom
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
 import { StockHistoryChart } from "@/components/products/StockHistoryChart";
+import { SalesHistoryChart } from "@/components/products/SalesHistoryChart";
 import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
