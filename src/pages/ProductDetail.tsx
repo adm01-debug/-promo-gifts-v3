@@ -173,13 +173,45 @@ export default function ProductDetail() {
       <Helmet>
         <title>{product.name} | PromoHub</title>
         <meta name="description" content={product.description || `${product.name} - Brinde Promocional`} />
+        <link rel="canonical" href={`${window.location.origin}/produto/${product.id}`} />
         <meta property="og:title" content={product.name} />
         <meta property="og:description" content={product.description || `${product.name} - Brinde Promocional`} />
         <meta property="og:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
         <meta property="og:type" content="product" />
+        <meta property="og:url" content={`${window.location.origin}/produto/${product.id}`} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={product.name} />
         <meta name="twitter:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.name,
+            "description": product.description || `${product.name} - Brinde Promocional`,
+            "sku": product.sku,
+            "image": product.images?.filter(Boolean) || [],
+            "brand": {
+              "@type": "Brand",
+              "name": product.supplier?.name || "PromoHub"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": product.price,
+              "priceCurrency": "BRL",
+              "availability": product.stockStatus === "in-stock" 
+                ? "https://schema.org/InStock" 
+                : product.stockStatus === "out-of-stock"
+                  ? "https://schema.org/OutOfStock"
+                  : "https://schema.org/LimitedAvailability",
+              "seller": {
+                "@type": "Organization",
+                "name": "PromoHub"
+              }
+            },
+            "category": product.category?.name,
+            "material": product.materials?.join(", "),
+          })}
+        </script>
       </Helmet>
 
       {/* Sticky Header — appears on scroll */}
