@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, Eye, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import type { Product } from "@/hooks/useProducts";
 import { PhotoSelector } from "./PhotoSelector";
 import { ShareContactSelector, type ShareContactSelection } from "./ShareContactSelector";
 import { MESSAGE_TEMPLATES, type TemplateKey } from "./MessageTemplates";
+import { WhatsAppPreview } from "./WhatsAppPreview";
 import { cn } from "@/lib/utils";
 
 interface SharePreviewDialogProps {
