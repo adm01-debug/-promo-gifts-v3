@@ -580,9 +580,8 @@ export default function ProductDetail() {
 
         {/* Below-fold sections — compact */}
         <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-border">
-          <PriceHistoryChart
+          <StockHistoryChart
             productId={product.id}
-            currentPrice={product.price}
             productName={product.name}
           />
           <ProductIntelligence 
