@@ -523,7 +523,6 @@ export default function ProductDetail() {
               tabs={[
                 { id: "sec-precos", label: "Tabela de Preços" },
                 { id: "sec-personalizacao", label: "Personalização" },
-                { id: "sec-descricao", label: "Descrição / Specs" },
                 { id: "sec-indicado", label: "Indicado para" },
               ]}
             />
