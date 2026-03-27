@@ -16,6 +16,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { ProductStickyHeader } from "@/components/products/ProductStickyHeader";
 import { ProductSectionNav } from "@/components/products/ProductSectionNav";
+import { ProductSocialProof } from "@/components/products/ProductSocialProof";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { GenderBadge } from "@/components/products/GenderBadge";
