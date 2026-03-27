@@ -10,9 +10,13 @@ import {
   Tag,
   Layers,
   Sparkles,
+  Palette,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
+import { ProductStickyHeader } from "@/components/products/ProductStickyHeader";
+import { ProductSectionNav } from "@/components/products/ProductSectionNav";
+import { ProductSocialProof } from "@/components/products/ProductSocialProof";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { GenderBadge } from "@/components/products/GenderBadge";
@@ -49,7 +53,8 @@ import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
-import { PopularityBadge, LowStockAlert, TrustBadgesRow } from "@/components/common/SocialProof";
+import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge } from "@/components/common/SocialProof";
+import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
@@ -168,14 +173,59 @@ export default function ProductDetail() {
       <Helmet>
         <title>{product.name} | PromoHub</title>
         <meta name="description" content={product.description || `${product.name} - Brinde Promocional`} />
+        <link rel="canonical" href={`${window.location.origin}/produto/${product.id}`} />
         <meta property="og:title" content={product.name} />
         <meta property="og:description" content={product.description || `${product.name} - Brinde Promocional`} />
         <meta property="og:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
         <meta property="og:type" content="product" />
+        <meta property="og:url" content={`${window.location.origin}/produto/${product.id}`} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={product.name} />
         <meta name="twitter:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.name,
+            "description": product.description || `${product.name} - Brinde Promocional`,
+            "sku": product.sku,
+            "image": product.images?.filter(Boolean) || [],
+            "brand": {
+              "@type": "Brand",
+              "name": product.supplier?.name || "PromoHub"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": product.price,
+              "priceCurrency": "BRL",
+              "availability": product.stockStatus === "in-stock" 
+                ? "https://schema.org/InStock" 
+                : product.stockStatus === "out-of-stock"
+                  ? "https://schema.org/OutOfStock"
+                  : "https://schema.org/LimitedAvailability",
+              "seller": {
+                "@type": "Organization",
+                "name": "PromoHub"
+              }
+            },
+            "category": product.category?.name,
+            "material": product.materials?.join(", "),
+          })}
+        </script>
       </Helmet>
+
+      {/* Sticky Header — appears on scroll */}
+      <ProductStickyHeader
+        productId={product.id}
+        productName={product.name}
+        productSku={product.sku}
+        productPrice={product.price}
+        productImage={product.images?.[0] || '/placeholder.svg'}
+        minQuantity={product.minQuantity || 1}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleFavorite}
+      />
+
       <div className="space-y-4 md:space-y-8 animate-fade-in pb-20 md:pb-0">
         {/* Breadcrumbs handled by MainLayout PersistentBreadcrumbs */}
 
@@ -271,10 +321,26 @@ export default function ProductDetail() {
                 />
               </div>
 
-              {/* Title - Smaller on mobile */}
-              <h1 className="font-display text-xl sm:text-2xl lg:text-4xl font-bold text-foreground leading-tight">
+              {/* Title */}
+              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-foreground leading-tight tracking-tight">
                 {product.name}
               </h1>
+
+              {/* Quick Tags — near title for fast qualification */}
+              {(product.tags.publicoAlvo.length > 0 || product.tags.datasComemorativas.length > 0) && (
+                <div className="flex flex-wrap gap-1.5">
+                  {product.tags.publicoAlvo.slice(0, 3).map((tag) => (
+                    <Badge key={tag} variant="outline" className="px-2 py-0.5 text-[10px] rounded-full text-muted-foreground">
+                      👤 {tag}
+                    </Badge>
+                  ))}
+                  {product.tags.datasComemorativas.slice(0, 2).map((tag) => (
+                    <Badge key={tag} variant="outline" className="px-2 py-0.5 text-[10px] rounded-full text-muted-foreground">
+                      📅 {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
 
               {/* SKU, Supplier, Estoque Futuro, Comparar Fornecedores */}
               <ProductInfoBar
@@ -286,7 +352,12 @@ export default function ProductDetail() {
               />
             </div>
 
-            {/* Price & Stock Card */}
+            {/* Social Proof & Urgency */}
+            <ProductSocialProof
+              productId={product.id}
+              totalStock={product.stock}
+            />
+
             <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-4 md:p-6 shadow-lg">
               {/* Decorative gradient */}
               {product.featured && (
@@ -308,39 +379,48 @@ export default function ProductDetail() {
                 
                 {/* Estoque granular por cor - TODAS as variações ordenadas */}
                 {product.variations && product.variations.length > 0 ? (
-                  <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                    {sortVariationsByColor(product.variations).map((variation) => {
-                      const isSelected = selectedVariation?.id === variation.id;
-                      return (
-                        <button
-                          key={variation.id}
-                          onClick={() => setSelectedVariation(variation)}
-                          title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
-                          className={cn(
-                            "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all",
-                            !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
-                            Math.max(0, variation.stock) === 0 && "opacity-50"
-                          )}
-                          style={isSelected ? {
-                            backgroundColor: `${variation.color.hex}20`,
-                            border: `1px solid ${variation.color.hex}`,
-                            boxShadow: `0 0 0 2px ${variation.color.hex}30`
-                          } : undefined}
-                        >
-                          <div
-                            className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm shrink-0"
-                            style={{ backgroundColor: variation.color.hex }}
-                          />
-                          <span className={cn(
-                            Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
-                          )}>
-                            {Math.max(0, variation.stock) >= 1000 
-                              ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
-                              : Math.max(0, variation.stock).toLocaleString("pt-BR")}
-                          </span>
-                        </button>
-                      );
-                    })}
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {sortVariationsByColor(product.variations).map((variation) => {
+                        const isSelected = selectedVariation?.id === variation.id;
+                        return (
+                          <button
+                            key={variation.id}
+                            onClick={() => setSelectedVariation(variation)}
+                            title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
+                            aria-label={`Cor ${variation.color.name}, ${Math.max(0, variation.stock)} unidades`}
+                            className={cn(
+                              "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all",
+                              !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
+                              Math.max(0, variation.stock) === 0 && "opacity-50"
+                            )}
+                            style={isSelected ? {
+                              backgroundColor: `${variation.color.hex}20`,
+                              border: `1px solid ${variation.color.hex}`,
+                              boxShadow: `0 0 0 2px ${variation.color.hex}30`
+                            } : undefined}
+                          >
+                            <div
+                              className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm shrink-0"
+                              style={{ backgroundColor: variation.color.hex }}
+                            />
+                            <span className={cn(
+                              Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
+                            )}>
+                              {Math.max(0, variation.stock) >= 1000 
+                                ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
+                                : Math.max(0, variation.stock).toLocaleString("pt-BR")}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {/* Legenda de estoque */}
+                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-foreground inline-block" /> &gt;100</span>
+                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" /> &lt;100</span>
+                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-destructive inline-block" /> Esgotado</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-end mt-3">
@@ -377,17 +457,105 @@ export default function ProductDetail() {
                     <span className="truncate">Garantia</span>
                   </div>
                 </div>
+
+                <Separator className="bg-border/50" />
+
+                {/* CTA Principal - Orçar Agora */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <QuickAddToQuote
+                    productId={id || ""}
+                    productName={product.name}
+                    productSku={product.sku}
+                    productImageUrl={product.images?.[0]}
+                    productPrice={product.price}
+                    minQuantity={product.minQuantity || 1}
+                    variant="button"
+                    className="flex-1 h-11 rounded-xl bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-sm shadow-md"
+                  />
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-xl gap-2 text-sm font-medium"
+                    onClick={() => navigate('/simulador', { 
+                      state: { 
+                        preSelectedProduct: {
+                          id: product.id,
+                          name: product.name,
+                          sku: product.sku,
+                          price: product.price,
+                          imageUrl: product.images?.[0],
+                          categoryName: product.category?.name,
+                        } 
+                      } 
+                    })}
+                  >
+                    <Palette className="h-4 w-4" />
+                    Simular Personalização
+                  </Button>
+                </div>
+
+                {/* Trust Badges inline */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                  <TrustBadge type="verified" />
+                  <TrustBadge type="fast" />
+                  <TrustBadge type="quality" />
+                </div>
               </div>
             </div>
 
-            {/* Description */}
-            <div className="space-y-3">
+            {/* Section Navigation */}
+            <ProductSectionNav
+              tabs={[
+                { id: "sec-personalizacao", label: "Personalização" },
+                { id: "sec-descricao", label: "Descrição" },
+                { id: "sec-precos", label: "Tabela de Preços" },
+                { id: "sec-specs", label: "Especificações" },
+                { id: "sec-indicado", label: "Indicado para" },
+              ]}
+            />
+
+            {/* Customization Options — elevated for B2B decision-making */}
+            <div id="sec-personalizacao" className="scroll-mt-28">
+            <ProductCustomizationOptions 
+              productId={id || ""} 
+              productSku={product.sku} 
+            />
+
+            {/* Personalization Rules — elevated */}
+            <ProductPersonalizationRules 
+              productId={id || ""} 
+              productSku={product.sku}
+              productName={product.name}
+            />
+            </div>
+
+            {/* Description — formatted with sentence highlights */}
+            <div id="sec-descricao" className="space-y-3 scroll-mt-28">
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Descrição
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {product.description}
-              </p>
+              {product.description ? (() => {
+                const sentences = product.description
+                  .split(/[.]\s+/)
+                  .map(s => s.trim().replace(/\.$/, ''))
+                  .filter(s => s.length > 5);
+                if (sentences.length > 2) {
+                  return (
+                    <div className="space-y-2">
+                      <ul className="space-y-1.5">
+                        {sentences.map((sentence, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
+                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                            {sentence}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                }
+                return <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>;
+              })() : (
+                <p className="text-muted-foreground italic text-sm">Sem descrição disponível</p>
+              )}
             </div>
 
             {/* Variant Grid: Cor × Tamanho (se multi-eixo) ou Size Selector (se só tamanhos) */}
@@ -419,7 +587,18 @@ export default function ProductDetail() {
               )
             )}
 
-            {/* Materials */}
+            {/* Inline Price Calculator */}
+            <div id="sec-precos" className="scroll-mt-28">
+            <InlinePriceCalculator
+              productId={product.id}
+              productName={product.name}
+              basePrice={product.price}
+              minQuantity={product.minQuantity || 1}
+            />
+            </div>
+
+            {/* Materials & Specs */}
+            <div id="sec-specs" className="scroll-mt-28 space-y-4">
             {product.materials && product.materials.length > 0 && (
               <div className="space-y-3">
                 <h3 className="font-display text-lg font-semibold text-foreground">
@@ -441,16 +620,7 @@ export default function ProductDetail() {
 
             {/* Dimensions & Weight */}
             <ProductDimensions dimensions={product.dimensions} />
-
-            {/* Inline Price Calculator */}
-            <InlinePriceCalculator
-              productId={product.id}
-              productName={product.name}
-              basePrice={product.price}
-              minQuantity={product.minQuantity || 1}
-            />
-
-            {/* Variações removidas daqui - agora estão na galeria */}
+            </div>
 
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
@@ -460,21 +630,28 @@ export default function ProductDetail() {
               />
             )}
 
-            {/* Customization Options */}
-            <ProductCustomizationOptions 
-              productId={id || ""} 
-              productSku={product.sku} 
-            />
-
-            {/* Personalization Rules */}
-            <ProductPersonalizationRules 
-              productId={id || ""} 
-              productSku={product.sku}
-              productName={product.name}
-            />
-
             {/* Actions - Desktop only */}
-            <div className="hidden md:flex items-center gap-3 pt-4 border-t border-border">
+            <div className="hidden md:flex items-center gap-3 pt-4 border-t border-border flex-wrap">
+
+              {/* Visualizar com Logo - CTA mockup */}
+              <Button
+                variant="default"
+                size="lg"
+                className="rounded-full px-6 gap-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-md"
+                onClick={() => navigate(`/mockup-generator`, {
+                  state: {
+                    preSelectedProduct: {
+                      id: product.id,
+                      name: product.name,
+                      sku: product.sku,
+                      imageUrl: product.images?.[0],
+                    }
+                  }
+                })}
+              >
+                <Sparkles className="h-4 w-4" />
+                Visualizar com Logo
+              </Button>
 
               <ShareActions product={product} />
               
@@ -510,7 +687,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Tags */}
-            <div className="space-y-4 pt-4 border-t border-border">
+            <div id="sec-indicado" className="space-y-4 pt-4 border-t border-border scroll-mt-28">
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Indicado para
               </h3>
@@ -613,8 +790,7 @@ export default function ProductDetail() {
           boxVolumeCm3={product.boxVolumeCm3}
         />
 
-        {/* Trust Badges */}
-        <TrustBadgesRow className="pt-8" />
+        {/* Trust Badges moved to price card */}
       </div>
 
       {/* Floating Compare Bar */}
