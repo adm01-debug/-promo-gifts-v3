@@ -70,6 +70,8 @@ export const PRODUCT_TABLES = [
   'category_area_techniques',
   'tabela_preco_fornecedores_gravacao',
   'price_history',
+  'stock_snapshots',
+  'stock_daily_summary',
 ] as const;
 
 // Views e Materialized Views (somente leitura)
@@ -100,6 +102,8 @@ export const PRODUCT_VIEWS = [
   'materials_complete',
   'products_with_materials',
   'categories_tree_visual',
+  'mv_stock_velocity',
+  'mv_product_intelligence',
 ] as const;
 
 // Tabelas relacionadas a EMPRESAS/CLIENTES (somente leitura)
@@ -149,6 +153,10 @@ export const SENSITIVE_TABLES = new Set([
   'tabela_preco_gravacao_oficial',
   'tabela_preco_gravacao_oficial_faixa',
   'supplier_branches',
+  'stock_snapshots',
+  'stock_daily_summary',
+  'mv_stock_velocity',
+  'mv_product_intelligence',
 ]);
 
 // Heavy tables for adaptive pagination
@@ -160,6 +168,8 @@ export const TABLES_WITHOUT_CREATED_AT = [
   'variant_supplier_sources',
   'price_history',
   'collection_products',
+  'stock_snapshots',
+  'stock_daily_summary',
 ];
 export const TABLES_WITHOUT_UPDATED_AT = [
   'product_tags',
@@ -167,6 +177,8 @@ export const TABLES_WITHOUT_UPDATED_AT = [
   'price_history',
   'collection_products',
   'product_category_assignments',
+  'stock_snapshots',
+  'stock_daily_summary',
 ];
 
 export function getResourceGroup(tableName: string): ResourceGroup | null {
