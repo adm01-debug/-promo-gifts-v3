@@ -62,6 +62,16 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
 
   const message = customMessage ?? generateColorMessage(product, selectedColors);
 
+  // Collect representative images from selected colors for WhatsApp preview
+  const allColorImages = useMemo(() => {
+    return selectedColors.map((c) => c.image || c.images?.[0] || product.images[0]).filter(Boolean) as string[];
+  }, [selectedColors, product.images]);
+
+  const allColorImageIndices = useMemo(
+    () => new Set(allColorImages.map((_, i) => i)),
+    [allColorImages]
+  );
+
   const handleToggleColor = useCallback((idx: number) => {
     setSelectedColorIds((prev) => {
       const next = new Set(prev);
