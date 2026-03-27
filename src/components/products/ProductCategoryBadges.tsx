@@ -119,9 +119,9 @@ export function ProductCategoryBadges({
               onClick={handlePersonalizationClick}
               className={cn(
                 "px-2.5 py-1 text-sm font-medium cursor-pointer",
-                "border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/20",
-                "text-orange-500 hover:text-orange-400",
-                "transition-all duration-200 hover:scale-105 hover:border-orange-500"
+                "border-primary/50 bg-primary/10 hover:bg-primary/20",
+                "text-primary hover:text-primary",
+                "transition-all duration-200 hover:scale-105 hover:border-primary"
               )}
             >
               <Palette className="h-3.5 w-3.5 mr-1.5" />
