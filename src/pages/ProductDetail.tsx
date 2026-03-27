@@ -240,7 +240,7 @@ export default function ProductDetail() {
         {/* Main content - Single column on mobile */}
         <div className="grid lg:grid-cols-2 gap-4 md:gap-10">
           {/* Left column - Gallery */}
-          <div className="space-y-4 md:space-y-6" style={{ animationDelay: '100ms' }}>
+          <div className="space-y-4 md:space-y-6 max-w-[80%]" style={{ animationDelay: '100ms' }}>
             <ProductGallery
               images={displayImages}
               video={product.video}
