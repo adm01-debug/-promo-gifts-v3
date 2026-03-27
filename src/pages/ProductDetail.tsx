@@ -593,7 +593,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Tags */}
-            <div className="space-y-4 pt-4 border-t border-border">
+            <div id="sec-indicado" className="space-y-4 pt-4 border-t border-border scroll-mt-28">
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Indicado para
               </h3>
