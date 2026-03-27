@@ -585,6 +585,13 @@ export default function ProductDetail() {
             productId={product.id}
             productName={product.name}
           />
+          <SalesHistoryChart
+            productId={product.id}
+            productName={product.name}
+          />
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4">
           <ProductIntelligence 
             productId={product.id}
             productSku={product.sku}
