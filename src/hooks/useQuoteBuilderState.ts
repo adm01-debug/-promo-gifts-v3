@@ -214,7 +214,30 @@ export function useQuoteBuilderState() {
     window.history.replaceState({}, document.title);
   }, [location.state]);
 
-  // ── Products query ──
+  // ── Pre-fill from product detail page (query params) ──
+  useEffect(() => {
+    if (isEditMode) return;
+    const productId = searchParams.get("product_id");
+    const productName = searchParams.get("product_name");
+    if (!productId || !productName) return;
+    // Avoid duplicating if items already exist (e.g. restored draft)
+    if (items.length > 0) return;
+    const newItem: QuoteItem = {
+      product_id: productId,
+      product_name: productName,
+      product_sku: searchParams.get("product_sku") || "",
+      product_image_url: searchParams.get("product_image") || undefined,
+      quantity: 1,
+      unit_price: parseFloat(searchParams.get("product_price") || "0"),
+      personalizations: [],
+    };
+    setItems([newItem]);
+    setActiveItemIndex(0);
+    toast.success(`Produto "${productName}" adicionado ao orçamento`);
+    // Clean URL params without triggering re-render
+    navigate(location.pathname, { replace: true });
+  }, []);
+
   const { data: products } = useQuery({
     queryKey: ["quote-products-promobrind-search", debouncedProductSearch],
     queryFn: () => loadQuoteSearchProducts(debouncedProductSearch),
