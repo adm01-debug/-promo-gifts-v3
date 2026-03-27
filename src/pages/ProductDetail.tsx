@@ -327,123 +327,122 @@ export default function ProductDetail() {
             {/* Social Proof */}
             <ProductSocialProof productId={product.id} totalStock={product.stock} />
 
-            {/* ===== PRICE CARD — compact ===== */}
-            <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 md:p-4 shadow-md relative overflow-hidden">
-              {product.featured && (
-                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
-              )}
-              <div className="relative space-y-2.5">
-                {/* Price */}
-                <div className="flex items-end justify-between">
+            {/* ===== PRICE + SPECS — two columns ===== */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* LEFT — Price & CTA */}
+              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 shadow-md relative overflow-hidden">
+                {product.featured && (
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
+                )}
+                <div className="relative space-y-2">
                   <div>
                     <p className="text-[11px] text-muted-foreground">A partir de</p>
-                    <span className="text-2xl sm:text-3xl font-display font-bold text-foreground">
+                    <span className="text-2xl font-display font-bold text-foreground">
                       {formatPrice(product.price)}
                     </span>
                     <span className="text-sm text-muted-foreground ml-1">/un</span>
                   </div>
-                </div>
-                
-                {/* Stock per color */}
-                {product.variations && product.variations.length > 0 ? (
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-1">
-                      {sortVariationsByColor(product.variations).map((variation) => {
-                        const isSelected = selectedVariation?.id === variation.id;
-                        return (
-                          <button
-                            key={variation.id}
-                            onClick={() => setSelectedVariation(variation)}
-                            title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
-                            aria-label={`Cor ${variation.color.name}, ${Math.max(0, variation.stock)} unidades`}
-                            className={cn(
-                              "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium transition-all",
-                              !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
-                              Math.max(0, variation.stock) === 0 && "opacity-50"
-                            )}
-                            style={isSelected ? {
-                              backgroundColor: `${variation.color.hex}20`,
-                              border: `1px solid ${variation.color.hex}`,
-                              boxShadow: `0 0 0 2px ${variation.color.hex}30`
-                            } : undefined}
-                          >
-                            <div
-                              className="w-2 h-2 rounded-full border border-white/20 shadow-sm shrink-0"
-                              style={{ backgroundColor: variation.color.hex }}
-                            />
-                            <span className={cn(
-                              Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
-                            )}>
-                              {Math.max(0, variation.stock) >= 1000 
-                                ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
-                                : Math.max(0, variation.stock).toLocaleString("pt-BR")}
-                            </span>
-                          </button>
-                        );
-                      })}
+                  
+                  {/* Stock per color */}
+                  {product.variations && product.variations.length > 0 ? (
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-1">
+                        {sortVariationsByColor(product.variations).map((variation) => {
+                          const isSelected = selectedVariation?.id === variation.id;
+                          return (
+                            <button
+                              key={variation.id}
+                              onClick={() => setSelectedVariation(variation)}
+                              title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
+                              aria-label={`Cor ${variation.color.name}, ${Math.max(0, variation.stock)} unidades`}
+                              className={cn(
+                                "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium transition-all",
+                                !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
+                                Math.max(0, variation.stock) === 0 && "opacity-50"
+                              )}
+                              style={isSelected ? {
+                                backgroundColor: `${variation.color.hex}20`,
+                                border: `1px solid ${variation.color.hex}`,
+                                boxShadow: `0 0 0 2px ${variation.color.hex}30`
+                              } : undefined}
+                            >
+                              <div
+                                className="w-2 h-2 rounded-full border border-white/20 shadow-sm shrink-0"
+                                style={{ backgroundColor: variation.color.hex }}
+                              />
+                              <span className={cn(
+                                Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
+                              )}>
+                                {Math.max(0, variation.stock) >= 1000 
+                                  ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
+                                  : Math.max(0, variation.stock).toLocaleString("pt-BR")}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-foreground inline-block" /> &gt;100</span>
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" /> &lt;100</span>
+                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-destructive inline-block" /> Esgotado</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
-                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-foreground inline-block" /> &gt;100</span>
-                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" /> &lt;100</span>
-                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-destructive inline-block" /> Esgotado</span>
-                    </div>
-                  </div>
-                ) : (
-                  <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border", stockInfo.class)}>
-                    <Package className="h-3.5 w-3.5" />
-                    {Math.max(0, product.stock).toLocaleString("pt-BR")} un.
-                  </span>
-                )}
-
-                {/* Info Grid — compact 3-col */}
-                <div className="grid grid-cols-3 gap-2 py-1 border-y border-border/40">
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Tag className="h-3 w-3 text-primary shrink-0" />
-                    <span>Mín. {minQuantity}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Truck className="h-3 w-3 text-info shrink-0" />
-                    <span>Consultar</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                    <Shield className="h-3 w-3 text-success shrink-0" />
-                    <span>Garantia</span>
-                  </div>
-                </div>
-
-                {/* CTA — compact */}
-                <QuickAddToQuote
-                  productId={id || ""}
-                  productName={product.name}
-                  productSku={product.sku}
-                  productImageUrl={product.images?.[0]}
-                  productPrice={product.price}
-                  minQuantity={product.minQuantity || 1}
-                  variant="button"
-                  className="w-full h-8 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-xs shadow-sm"
-                />
-
-                {/* Trust */}
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px]">
-                  <TrustBadge type="verified" />
-                  <TrustBadge type="fast" />
-                  <TrustBadge type="quality" />
-                </div>
-
-                {/* Specs inline — Materials + Dimensions */}
-                <div id="sec-specs" className="scroll-mt-28 space-y-2 pt-2 border-t border-border/40">
-                  <h4 className="text-xs font-semibold text-foreground">Especificações</h4>
-                  {product.materials && product.materials.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {product.materials.map((material) => (
-                        <Badge key={material} variant="secondary" className="px-2 py-0.5 text-[10px] rounded-full">
-                          {material}
-                        </Badge>
-                      ))}
-                    </div>
+                  ) : (
+                    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border", stockInfo.class)}>
+                      <Package className="h-3.5 w-3.5" />
+                      {Math.max(0, product.stock).toLocaleString("pt-BR")} un.
+                    </span>
                   )}
-                  <ProductDimensions dimensions={product.dimensions} />
+
+                  {/* Info row */}
+                  <div className="grid grid-cols-3 gap-1 py-1 border-y border-border/40">
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Tag className="h-2.5 w-2.5 text-primary shrink-0" />
+                      <span>Mín. {minQuantity}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Truck className="h-2.5 w-2.5 text-info shrink-0" />
+                      <span>Consultar</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Shield className="h-2.5 w-2.5 text-success shrink-0" />
+                      <span>Garantia</span>
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <QuickAddToQuote
+                    productId={id || ""}
+                    productName={product.name}
+                    productSku={product.sku}
+                    productImageUrl={product.images?.[0]}
+                    productPrice={product.price}
+                    minQuantity={product.minQuantity || 1}
+                    variant="button"
+                    className="w-full h-8 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-xs shadow-sm"
+                  />
+
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px]">
+                    <TrustBadge type="verified" />
+                    <TrustBadge type="fast" />
+                    <TrustBadge type="quality" />
+                  </div>
                 </div>
+              </div>
+
+              {/* RIGHT — Specs */}
+              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 space-y-2">
+                <h4 className="text-xs font-semibold text-foreground">Especificações</h4>
+                {product.materials && product.materials.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {product.materials.map((material) => (
+                      <Badge key={material} variant="secondary" className="px-2 py-0.5 text-[10px] rounded-full">
+                        {material}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                <ProductDimensions dimensions={product.dimensions} />
               </div>
             </div>
 
