@@ -480,10 +480,9 @@ export default function ProductDetail() {
             {/* Section Navigation */}
             <ProductSectionNav
               tabs={[
+                { id: "sec-precos", label: "Tabela de Preços" },
                 { id: "sec-personalizacao", label: "Personalização" },
                 { id: "sec-descricao", label: "Descrição / Specs" },
-                { id: "sec-precos", label: "Tabela de Preços" },
-                
                 { id: "sec-indicado", label: "Indicado para" },
               ]}
             />
