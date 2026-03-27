@@ -1,4 +1,3 @@
-import React from "react";
 import { Ruler, Scale, Box, ArrowUpDown, ArrowLeftRight, MoveHorizontal, Droplets } from "lucide-react";
 
 interface ProductDimensionsProps {
@@ -26,8 +25,8 @@ function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColor
   if (compact) {
     return (
       <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border">
-        <div className={`w-7 h-7 rounded-md ${iconBgClass} flex items-center justify-center shrink-0`}>
-          <span className={iconColorClass}>{React.cloneElement(icon as React.ReactElement, { className: "h-3.5 w-3.5" })}</span>
+        <div className={`w-7 h-7 rounded-md ${iconBgClass} flex items-center justify-center shrink-0 [&_svg]:h-3.5 [&_svg]:w-3.5`}>
+          <span className={iconColorClass}>{icon}</span>
         </div>
         <div className="min-w-0">
           <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
