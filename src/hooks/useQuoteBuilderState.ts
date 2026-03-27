@@ -227,7 +227,7 @@ export function useQuoteBuilderState() {
       product_name: productName,
       product_sku: searchParams.get("product_sku") || "",
       product_image_url: searchParams.get("product_image") || undefined,
-      quantity: 1,
+      quantity: Math.max(1, parseInt(searchParams.get("min_quantity") || "1", 10)),
       unit_price: parseFloat(searchParams.get("product_price") || "0"),
       personalizations: [],
     };
