@@ -28,6 +28,7 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>("informal");
   const [customMessage, setCustomMessage] = useState<string | null>(null);
   const [contactSelection, setContactSelection] = useState<ShareContactSelection | null>(null);
+  const [previewMode, setPreviewMode] = useState(false);
 
   // Filter out color-specific images — keep only main product photos
   const mainImages = useMemo(() => {
