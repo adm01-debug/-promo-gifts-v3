@@ -95,18 +95,110 @@ const FLAG_CONFIG: Record<IntelligenceFlag, {
 
 // ---------- Main Component ----------
 
+// ---------- Mock Data Generator (preview only) ----------
+
+const MOCK_PRODUCT_ID = '5b59c8ca-b653-4584-9afe-fbc9b3d15afe';
+
+function generateMockChartData(days: number) {
+  const data: any[] = [];
+  const now = new Date();
+  let stock = 1850 + Math.floor(Math.random() * 200);
+
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const dateStr = format(date, 'yyyy-MM-dd');
+
+    // Simulate daily depletion (8-45 units)
+    const depleted = Math.floor(Math.random() * 38) + 8;
+    // Simulate restocks every ~10 days
+    const isRestock = i % 10 === 0 && i > 0;
+    const restocked = isRestock ? Math.floor(Math.random() * 400) + 200 : 0;
+    stock = Math.max(50, stock - depleted + restocked);
+
+    data.push({
+      date: dateStr,
+      stockClose: stock,
+      depleted,
+      restocked,
+      restockDetected: isRestock,
+      costPriceClose: 12.5 + (i > 40 ? 0 : i > 20 ? 0.8 : 1.2),
+      dateFormatted: format(date, "dd/MM", { locale: ptBR }),
+      fullDate: format(date, "dd/MM/yyyy", { locale: ptBR }),
+    });
+  }
+  return data;
+}
+
+function getMockIntelligence(): ProductIntelligenceData {
+  return {
+    product_id: MOCK_PRODUCT_ID,
+    supplier_count: 3,
+    total_current_stock: 1420,
+    total_depleted_7d: 185,
+    total_depleted_30d: 720,
+    total_depleted_90d: 2100,
+    total_restocked_30d: 800,
+    avg_velocity_7d: 26.4,
+    avg_velocity_30d: 24.0,
+    max_velocity_trend: 1.35,
+    min_days_to_stockout: 12,
+    turnover_score: 78,
+    abc_classification: 'A',
+    is_hot_product: true,
+    is_stockout_risk: false,
+    is_stagnant: false,
+    is_negotiation_opportunity: false,
+    has_frequent_restock: true,
+    is_price_dropping: false,
+  } as any;
+}
+
+function getMockVelocity() {
+  return [{
+    variant_supplier_source_id: 'mock-1',
+    supplier_id: 'sup-1',
+    product_id: MOCK_PRODUCT_ID,
+    variant_id: 'var-1',
+    current_stock: 1420,
+    avg_daily_depletion_7d: 26.4,
+    avg_daily_depletion_30d: 24.0,
+    avg_daily_depletion_90d: 21.5,
+    velocity_trend: 1.35,
+    days_to_stockout: 12,
+    total_depleted_7d: 185,
+    total_depleted_30d: 720,
+    total_depleted_90d: 2100,
+    total_restocked_30d: 800,
+    restock_events_30d: 3,
+    avg_days_between_restocks: 10,
+    price_changes_30d: 2,
+    active_days_7d: 7,
+    active_days_30d: 28,
+    active_days_90d: 85,
+  }];
+}
+
 export function StockHistoryChart({ productId, productName }: StockHistoryChartProps) {
   const [period, setPeriod] = useState<'30' | '60' | '90'>('30');
   const days = Number(period);
 
-  const { data: summaries, isLoading: loadingSummary } = useStockDailySummary(productId, days);
-  const { data: velocity } = useStockVelocity(productId);
-  const { data: intelligence } = useProductIntelligenceData(productId);
+  const isMockProduct = productId === MOCK_PRODUCT_ID;
+
+  const { data: summaries, isLoading: loadingSummary } = useStockDailySummary(
+    isMockProduct ? undefined : productId, days
+  );
+  const { data: velocity } = useStockVelocity(isMockProduct ? undefined : productId);
+  const { data: intelligence } = useProductIntelligenceData(isMockProduct ? undefined : productId);
+
+  // Use mock data for the preview product
+  const effectiveIntelligence = isMockProduct ? getMockIntelligence() : intelligence;
+  const effectiveVelocity = isMockProduct ? getMockVelocity() : velocity;
 
   const chartData = useMemo(() => {
+    if (isMockProduct) return generateMockChartData(days);
     if (!summaries?.length) return [];
     const aggregated = aggregateDailySummaryByDate(summaries);
-    // Filter to requested period
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
@@ -116,11 +208,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
         fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
       }));
-  }, [summaries, days]);
+  }, [summaries, days, isMockProduct]);
 
-  const flags = useMemo(() => getActiveFlags(intelligence), [intelligence]);
+  const flags = useMemo(() => getActiveFlags(effectiveIntelligence), [effectiveIntelligence]);
 
-  const isLoading = loadingSummary;
+  const isLoading = !isMockProduct && loadingSummary;
 
   // ---------- Loading ----------
   if (isLoading) {
@@ -134,7 +226,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   }
 
   // ---------- No data ----------
-  if (!summaries?.length) {
+  if (!isMockProduct && !summaries?.length) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -154,9 +246,9 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   }
 
   // ---------- Velocity KPIs ----------
-  const bestVelocity = velocity?.length
-    ? velocity.reduce((best, v) => 
-        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
+  const bestVelocity = effectiveVelocity?.length
+    ? effectiveVelocity.reduce((best, v) => 
+        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, effectiveVelocity[0])
     : null;
 
   return (
@@ -173,22 +265,22 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            {intelligence?.abc_classification && (
+            {effectiveIntelligence?.abc_classification && (
               <Badge
                 variant="outline"
                 className={cn(
                   "font-bold text-xs",
-                  intelligence.abc_classification === 'A' ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
-                  intelligence.abc_classification === 'B' ? 'bg-primary/15 text-primary border-primary/30' :
+                  effectiveIntelligence.abc_classification === 'A' ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
+                  effectiveIntelligence.abc_classification === 'B' ? 'bg-primary/15 text-primary border-primary/30' :
                   'bg-muted text-muted-foreground border-border'
                 )}
               >
-                Classe {intelligence.abc_classification}
+                Classe {effectiveIntelligence.abc_classification}
               </Badge>
             )}
-            {intelligence?.turnover_score != null && (
+            {effectiveIntelligence?.turnover_score != null && (
               <Badge variant="secondary" className="text-xs font-mono">
-                Score: {Math.round(intelligence.turnover_score)}
+                Score: {Math.round(effectiveIntelligence.turnover_score)}
               </Badge>
             )}
           </div>
