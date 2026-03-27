@@ -89,6 +89,11 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
+            {isDemo && (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground border-dashed">
+                demo
+              </Badge>
+            )}
             {kpis.conversionRate > 0 && (
               <Badge
                 variant="outline"
