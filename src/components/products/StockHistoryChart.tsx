@@ -223,7 +223,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
           <KpiCard
             icon={Package}
             label="Estoque atual"
-            value={intelligence?.total_current_stock?.toLocaleString('pt-BR') ?? '—'}
+            value={effectiveIntelligence?.total_current_stock?.toLocaleString('pt-BR') ?? '—'}
             sub="total fornecedores"
           />
           <KpiCard
