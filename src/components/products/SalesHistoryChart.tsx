@@ -30,61 +30,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
-import { useSalesHistory, type DailySalesPoint, type SalesKpis, type SellerRanking } from "@/hooks/useSalesHistory";
+import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
 
 interface SalesHistoryChartProps {
   productId: string;
   productName?: string;
-}
-
-// ---------- Mock Data (preview) ----------
-
-const MOCK_PRODUCT_ID = '5b59c8ca-b653-4584-9afe-fbc9b3d15afe';
-
-function generateMockSalesData(days: number) {
-  const daily: any[] = [];
-  const now = new Date();
-
-  for (let i = days; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    const dateStr = format(date, 'yyyy-MM-dd');
-
-    // Not every day has sales
-    const hasQuotes = Math.random() > 0.35;
-    const hasOrders = Math.random() > 0.55;
-
-    daily.push({
-      date: dateStr,
-      quotedQty: hasQuotes ? Math.floor(Math.random() * 120) + 20 : 0,
-      orderedQty: hasOrders ? Math.floor(Math.random() * 80) + 10 : 0,
-      quotedValue: hasQuotes ? Math.floor(Math.random() * 3500) + 500 : 0,
-      orderedValue: hasOrders ? Math.floor(Math.random() * 2800) + 400 : 0,
-      quoteCount: hasQuotes ? Math.floor(Math.random() * 3) + 1 : 0,
-      orderCount: hasOrders ? Math.floor(Math.random() * 2) + 1 : 0,
-      dateFormatted: format(date, "dd/MM", { locale: ptBR }),
-      fullDate: format(date, "dd/MM/yyyy", { locale: ptBR }),
-    });
-  }
-  return daily;
-}
-
-function getMockKpis(): SalesKpis {
-  return {
-    totalQuotedQty: 2840,
-    totalOrderedQty: 1620,
-    totalQuotedValue: 42600,
-    totalOrderedValue: 28350,
-    conversionRate: 38.5,
-    uniqueSellers: 4,
-    avgOrderValue: 1890,
-    topSellers: [
-      { sellerId: 's1', sellerName: 'Ana Silva', totalQty: 680, totalValue: 12200, quoteCount: 15, orderCount: 8 },
-      { sellerId: 's2', sellerName: 'Carlos Mendes', totalQty: 520, totalValue: 9800, quoteCount: 12, orderCount: 5 },
-      { sellerId: 's3', sellerName: 'Julia Santos', totalQty: 340, totalValue: 5100, quoteCount: 8, orderCount: 3 },
-      { sellerId: 's4', sellerName: 'Pedro Lima', totalQty: 80, totalValue: 1250, quoteCount: 3, orderCount: 1 },
-    ],
-  };
 }
 
 // ---------- Main Component ----------
@@ -93,26 +43,19 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
   const [period, setPeriod] = useState<string>('30');
   const days = Number(period);
 
-  const isMockProduct = productId === MOCK_PRODUCT_ID;
-
-  const { data, isLoading } = useSalesHistory(
-    isMockProduct ? undefined : productId, days
-  );
-
-  const effectiveKpis = isMockProduct ? getMockKpis() : data?.kpis;
+  const { data, isLoading } = useSalesHistory(productId, days);
 
   const chartData = useMemo(() => {
-    if (isMockProduct) return generateMockSalesData(days);
     if (!data?.daily?.length) return [];
     return data.daily.map(d => ({
       ...d,
       dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
       fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
     }));
-  }, [data, days, isMockProduct]);
+  }, [data, days]);
 
   // Loading
-  if (!isMockProduct && isLoading) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
@@ -123,7 +66,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
   }
 
   // No data
-  if (!isMockProduct && !chartData.length) {
+  if (!chartData.length) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -141,7 +84,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
     );
   }
 
-  const kpis = effectiveKpis!;
+  const kpis = data!.kpis;
 
   return (
     <Card>
