@@ -94,8 +94,9 @@ export function ProductCategoryBadges({
           <TooltipTrigger asChild>
             <Badge
               variant="secondary"
+              onClick={() => navigate(`/filtros?category=${cat.id}`)}
               className={cn(
-                "px-2.5 py-1 text-sm font-medium cursor-default",
+                "px-2.5 py-1 text-sm font-medium cursor-pointer",
                 "bg-secondary/80 hover:bg-secondary border border-border/50",
                 "transition-all duration-200 hover:scale-105"
               )}
@@ -105,7 +106,7 @@ export function ProductCategoryBadges({
             </Badge>
           </TooltipTrigger>
           <TooltipContent side="top" className="font-medium">
-            {cat.name}
+            Ver todos os produtos de {cat.name}
           </TooltipContent>
         </Tooltip>
       ))}
