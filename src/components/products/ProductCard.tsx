@@ -17,6 +17,7 @@ import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useProductBounds } from "@/hooks/useProductBounds";
+import { ProductSparkline } from "./ProductSparkline";
 export interface ProductCardProps {
   product: Product;
   onClick?: () => void;
