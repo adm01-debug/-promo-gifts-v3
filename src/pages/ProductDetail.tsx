@@ -522,18 +522,6 @@ export default function ProductDetail() {
 
             {/* Actions — compact row */}
             <div className="hidden md:flex items-center gap-2 py-2 border-t border-border flex-wrap">
-              <Button
-                size="sm"
-                className="rounded-full px-4 gap-1.5 text-xs bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-sm"
-                onClick={() => navigate(`/mockup-generator`, {
-                  state: {
-                    preSelectedProduct: { id: product.id, name: product.name, sku: product.sku, imageUrl: product.images?.[0] }
-                  }
-                })}
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                Visualizar com Logo
-              </Button>
               <ShareActions product={product} />
               {product.isKit && (
                 <Button
