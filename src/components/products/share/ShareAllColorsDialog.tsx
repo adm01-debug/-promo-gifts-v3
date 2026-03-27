@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, ProductColor } from "@/hooks/useProducts";
 import { ShareContactSelector, type ShareContactSelection } from "./ShareContactSelector";
+import { WhatsAppPreview } from "./WhatsAppPreview";
 import { cn } from "@/lib/utils";
 
 interface ShareAllColorsDialogProps {
