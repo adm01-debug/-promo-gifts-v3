@@ -563,7 +563,27 @@ export default function ProductDetail() {
             )}
 
             {/* Actions - Desktop only */}
-            <div className="hidden md:flex items-center gap-3 pt-4 border-t border-border">
+            <div className="hidden md:flex items-center gap-3 pt-4 border-t border-border flex-wrap">
+
+              {/* Visualizar com Logo - CTA mockup */}
+              <Button
+                variant="default"
+                size="lg"
+                className="rounded-full px-6 gap-2 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white shadow-md"
+                onClick={() => navigate(`/mockup-generator`, {
+                  state: {
+                    preSelectedProduct: {
+                      id: product.id,
+                      name: product.name,
+                      sku: product.sku,
+                      imageUrl: product.images?.[0],
+                    }
+                  }
+                })}
+              >
+                <Sparkles className="h-4 w-4" />
+                Visualizar com Logo
+              </Button>
 
               <ShareActions product={product} />
               
