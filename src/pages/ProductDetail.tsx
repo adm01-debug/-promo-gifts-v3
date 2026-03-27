@@ -10,6 +10,7 @@ import {
   Tag,
   Layers,
   Sparkles,
+  Palette,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
