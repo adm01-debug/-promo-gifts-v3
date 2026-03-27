@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
+import { useSparklineData } from "@/hooks/useSparklineSales";
 
 interface ProductSparklineProps {
   productId: string;
@@ -9,26 +10,31 @@ interface ProductSparklineProps {
 
 /**
  * Mini sparkline SVG showing recent sales activity for a product card.
- * Includes an interactive tooltip on hover showing sales summary.
+ * Consumes real data from SparklineSalesProvider context when available,
+ * falls back to a deterministic demo seed otherwise.
  */
 export function ProductSparkline({ productId, className }: ProductSparklineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
-  // Deterministic seed from productId
-  const seed = useMemo(() => {
+  // Real data from batch context
+  const realData = useSparklineData(productId);
+  const hasRealData = realData && realData.totalQty > 0;
+
+  // Points: use real daily quantities or fall back to demo seed
+  const points = useMemo(() => {
+    if (hasRealData) return realData.dailyQty;
+
+    // Deterministic demo seed
     let hash = 0;
     for (let i = 0; i < productId.length; i++) {
       hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
     }
-    return (n: number) => {
+    const seed = (n: number) => {
       const x = Math.sin(hash + n) * 10000;
       return x - Math.floor(x);
     };
-  }, [productId]);
-
-  const points = useMemo(() => {
     const len = 20;
     const data: number[] = [];
     let val = 20 + seed(0) * 60;
@@ -37,36 +43,54 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
       data.push(Math.round(val));
     }
     return data;
-  }, [seed]);
+  }, [productId, hasRealData, realData?.dailyQty]);
 
-  // Generate deterministic summary stats
+  // Summary stats
   const summary = useMemo(() => {
+    if (hasRealData) {
+      const totalSales = realData.totalQty;
+      const revenue = realData.totalValue;
+      const pts = realData.dailyQty;
+      const firstHalf = pts.slice(0, Math.floor(pts.length / 2));
+      const secondHalf = pts.slice(Math.floor(pts.length / 2));
+      const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / (firstHalf.length || 1);
+      const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / (secondHalf.length || 1);
+      const trend = firstAvg > 0 ? ((secondAvg / firstAvg) - 1) * 100 : 0;
+      return { totalSales, revenue, trend };
+    }
+
+    // Demo summary
     const totalSales = points.reduce((a, b) => a + b, 0);
-    const avgPrice = 8 + seed(100) * 45; // R$8–53 range
+    let hash = 0;
+    for (let i = 0; i < productId.length; i++) {
+      hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
+    }
+    const avgPrice = 8 + (Math.abs(Math.sin(hash + 100)) * 45);
     const revenue = totalSales * avgPrice;
-    const trend = ((points.slice(-5).reduce((a, b) => a + b, 0) / 5) /
-      (points.slice(0, 5).reduce((a, b) => a + b, 0) / 5) - 1) * 100;
-    return { totalSales, revenue, trend, avgPrice };
-  }, [points, seed]);
+    const firstAvg = points.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
+    const lastAvg = points.slice(-5).reduce((a, b) => a + b, 0) / 5;
+    const trend = firstAvg > 0 ? ((lastAvg / firstAvg) - 1) * 100 : 0;
+    return { totalSales, revenue, trend };
+  }, [points, hasRealData, realData, productId]);
 
   const width = 200;
   const height = 28;
-  const max = Math.max(...points);
-  const min = Math.min(...points);
+
+  // For real data with all zeros, show a flat line
+  const allZero = points.every(p => p === 0);
+  const max = allZero ? 1 : Math.max(...points);
+  const min = allZero ? 0 : Math.min(...points);
   const range = max - min || 1;
 
   const coords = points.map((v, i) => ({
     x: (i / (points.length - 1)) * width,
-    y: height - 2 - ((v - min) / range) * (height - 4),
+    y: allZero ? height / 2 : height - 2 - ((v - min) / range) * (height - 4),
   }));
 
   const linePath = coords.map((c, i) => `${i === 0 ? "M" : "L"}${c.x},${c.y}`).join(" ");
   const areaPath = `${linePath} L${width},${height} L0,${height} Z`;
 
-  const firstAvg = points.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
-  const lastAvg = points.slice(-5).reduce((a, b) => a + b, 0) / 5;
-  const isUp = lastAvg >= firstAvg;
-
+  const isUp = summary.trend >= 0;
   const color = isUp ? "hsl(var(--success))" : "hsl(var(--warning))";
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -99,7 +123,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
       >
         <defs>
           <linearGradient id={`spark-fill-${productId.slice(0, 8)}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+            <stop offset="0%" stopColor={color} stopOpacity={allZero ? "0.05" : "0.3"} />
             <stop offset="100%" stopColor={color} stopOpacity="0.02" />
           </linearGradient>
         </defs>
@@ -111,9 +135,10 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
+          opacity={allZero ? 0.3 : 1}
         />
 
-        {/* Hover crosshair line */}
+        {/* Hover crosshair */}
         {hoverIndex !== null && (
           <>
             <line
@@ -137,8 +162,8 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
           </>
         )}
 
-        {/* Last point dot (hidden when hovering) */}
-        {hoverIndex === null && (
+        {/* Last point dot */}
+        {hoverIndex === null && !allZero && (
           <circle
             cx={coords[coords.length - 1].x}
             cy={coords[coords.length - 1].y}
@@ -161,7 +186,9 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
         >
           <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg whitespace-nowrap text-[11px]">
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="font-semibold text-foreground">Dia {hoverIndex + 1}/30</span>
+              <span className="font-semibold text-foreground">
+                {hasRealData ? `Dia ${hoverIndex + 1}` : `Dia ${hoverIndex + 1}/30`}
+              </span>
               <span className="text-muted-foreground">·</span>
               <span className="font-bold text-foreground">{points[hoverIndex]} un</span>
             </div>
@@ -187,6 +214,11 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
                   {summary.trend >= 0 ? '+' : ''}{summary.trend.toFixed(1)}%
                 </span>
               </div>
+              {!hasRealData && (
+                <p className="text-[9px] text-muted-foreground/60 italic pt-0.5">
+                  dados estimados
+                </p>
+              )}
             </div>
           </div>
         </div>
