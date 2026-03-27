@@ -87,6 +87,20 @@ export async function fetchPromobrindProductById(
     logger.warn('Não foi possível buscar imagens da tabela product_images:', err);
   }
 
+  // Category name enrichment
+  const categoryId = product.category_id || product.main_category_id;
+  if (categoryId && !product.category_name) {
+    try {
+      const catResult = await invokeExternalDb<{ id: string; name: string }>({
+        table: 'categories', operation: 'select', select: 'id, name',
+        filters: { id: categoryId }, limit: 1, countMode: 'none',
+      });
+      if (catResult.records[0]) product.category_name = catResult.records[0].name;
+    } catch (err) {
+      logger.warn('Não foi possível buscar nome da categoria:', err);
+    }
+  }
+
   // Supplier name
   if (product.supplier_id) {
     try {
