@@ -17,6 +17,8 @@ interface QuickAddToQuoteProps {
   minQuantity?: number;
   className?: string;
   variant?: "icon" | "button" | "badge";
+  labelOverride?: string;
+  iconOverride?: "cart" | "plus";
 }
 
 export function QuickAddToQuote({ 
