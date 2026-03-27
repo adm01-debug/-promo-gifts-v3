@@ -103,10 +103,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             </div>
           </div>
 
-          {/* Organization Switcher */}
-          <div className="hidden md:block">
-            <OrganizationSwitcher />
-          </div>
         </div>
 
         {/* Center section - Global Search */}
