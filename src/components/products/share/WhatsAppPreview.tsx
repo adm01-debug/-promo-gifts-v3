@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Check, CheckCheck } from "lucide-react";
+import { CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WhatsAppPreviewProps {
@@ -11,7 +11,7 @@ interface WhatsAppPreviewProps {
 
 /**
  * Renders a message preview styled like a WhatsApp chat bubble.
- * Shows selected photos as a mini gallery + the formatted text message.
+ * Automatically uses WhatsApp dark mode colors to match the app's dark theme.
  */
 export function WhatsAppPreview({
   message,
@@ -49,34 +49,51 @@ export function WhatsAppPreview({
   const now = new Date();
   const timeStr = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
 
+  // WhatsApp dark mode palette
+  const header = "hsl(200, 12%, 13%)";       // #1F2C33
+  const chatBg = "hsl(200, 15%, 8%)";        // #0B141A
+  const bubbleOut = "hsl(153, 18%, 18%)";     // #005C4B → outgoing bubble
+  const bubbleText = "hsl(0, 0%, 91%)";       // #E9EDEF
+  const metaText = "hsla(0, 0%, 100%, 0.45)";
+  const tickColor = "hsl(199, 80%, 55%)";
+
   return (
     <div className="rounded-xl overflow-hidden border border-border">
-      {/* Chat header */}
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-[hsl(142,40%,28%)]">
-        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs font-bold shrink-0">
+      {/* Chat header — dark */}
+      <div
+        className="flex items-center gap-3 px-4 py-2.5"
+        style={{ backgroundColor: header }}
+      >
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+          style={{ backgroundColor: "hsl(153, 30%, 30%)", color: bubbleText }}
+        >
           {(contactName || "C")[0].toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white truncate">
+          <p className="text-sm font-medium truncate" style={{ color: bubbleText }}>
             {contactName || "Cliente"}
           </p>
-          <p className="text-[10px] text-white/60">online</p>
+          <p className="text-[10px]" style={{ color: metaText }}>online</p>
         </div>
       </div>
 
-      {/* Chat body — WhatsApp wallpaper */}
+      {/* Chat body — dark wallpaper */}
       <div
         className="p-4 min-h-[200px] max-h-[360px] overflow-y-auto"
         style={{
-          backgroundColor: "hsl(30, 15%, 92%)",
+          backgroundColor: chatBg,
           backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c8c4bb' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+            "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
         }}
       >
         {/* Photo gallery bubble */}
         {selectedPhotos.length > 0 && (
           <div className="flex justify-end mb-1">
-            <div className="bg-[hsl(120,30%,85%)] rounded-lg p-1 max-w-[85%] shadow-sm">
+            <div
+              className="rounded-lg p-1 max-w-[85%] shadow-sm"
+              style={{ backgroundColor: bubbleOut }}
+            >
               <div
                 className={cn(
                   "grid gap-0.5 rounded-md overflow-hidden",
@@ -89,7 +106,7 @@ export function WhatsAppPreview({
                   <div
                     key={idx}
                     className={cn(
-                      "relative bg-black/10 overflow-hidden",
+                      "relative bg-black/20 overflow-hidden",
                       selectedPhotos.length === 1 ? "aspect-[4/3]" : "aspect-square",
                       selectedPhotos.length === 3 && idx === 0 && "col-span-2 aspect-[2/1]"
                     )}
@@ -110,8 +127,8 @@ export function WhatsAppPreview({
                 ))}
               </div>
               <div className="flex justify-end items-center gap-1 px-1 pt-0.5">
-                <span className="text-[10px] text-black/45">{timeStr}</span>
-                <CheckCheck className="h-3 w-3 text-[hsl(199,80%,55%)]" />
+                <span className="text-[10px]" style={{ color: metaText }}>{timeStr}</span>
+                <CheckCheck className="h-3 w-3" style={{ color: tickColor }} />
               </div>
             </div>
           </div>
@@ -119,18 +136,27 @@ export function WhatsAppPreview({
 
         {/* Text message bubble */}
         <div className="flex justify-end">
-          <div className="bg-[hsl(120,30%,85%)] rounded-lg px-3 py-2 max-w-[85%] shadow-sm relative">
+          <div
+            className="rounded-lg px-3 py-2 max-w-[85%] shadow-sm relative"
+            style={{ backgroundColor: bubbleOut }}
+          >
             {/* Tail */}
             <div
-              className="absolute -right-1.5 top-0 w-3 h-3 bg-[hsl(120,30%,85%)]"
-              style={{ clipPath: "polygon(0 0, 100% 0, 0 100%)" }}
+              className="absolute -right-1.5 top-0 w-3 h-3"
+              style={{
+                backgroundColor: bubbleOut,
+                clipPath: "polygon(0 0, 100% 0, 0 100%)",
+              }}
             />
-            <p className="text-[13px] leading-relaxed text-black/85 whitespace-pre-wrap break-words">
+            <p
+              className="text-[13px] leading-relaxed whitespace-pre-wrap break-words"
+              style={{ color: bubbleText }}
+            >
               {formattedMessage}
             </p>
             <div className="flex justify-end items-center gap-1 mt-1">
-              <span className="text-[10px] text-black/45">{timeStr}</span>
-              <CheckCheck className="h-3 w-3 text-[hsl(199,80%,55%)]" />
+              <span className="text-[10px]" style={{ color: metaText }}>{timeStr}</span>
+              <CheckCheck className="h-3 w-3" style={{ color: tickColor }} />
             </div>
           </div>
         </div>
