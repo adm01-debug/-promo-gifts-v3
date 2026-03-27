@@ -38,7 +38,6 @@ import {
   aggregateDailySummaryByDate,
   getActiveFlags,
   type IntelligenceFlag,
-  type ProductIntelligenceData,
 } from "@/hooks/useStockHistory";
 import { formatCurrency } from "@/lib/format";
 
