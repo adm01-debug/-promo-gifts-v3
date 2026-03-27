@@ -442,7 +442,7 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-8 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-xs shadow-sm"
+                      className="flex-1 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />
