@@ -321,10 +321,26 @@ export default function ProductDetail() {
                 />
               </div>
 
-              {/* Title - Smaller on mobile */}
-              <h1 className="font-display text-xl sm:text-2xl lg:text-4xl font-bold text-foreground leading-tight">
+              {/* Title */}
+              <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-foreground leading-tight tracking-tight">
                 {product.name}
               </h1>
+
+              {/* Quick Tags — near title for fast qualification */}
+              {(product.tags.publicoAlvo.length > 0 || product.tags.datasComemorativas.length > 0) && (
+                <div className="flex flex-wrap gap-1.5">
+                  {product.tags.publicoAlvo.slice(0, 3).map((tag) => (
+                    <Badge key={tag} variant="outline" className="px-2 py-0.5 text-[10px] rounded-full text-muted-foreground">
+                      👤 {tag}
+                    </Badge>
+                  ))}
+                  {product.tags.datasComemorativas.slice(0, 2).map((tag) => (
+                    <Badge key={tag} variant="outline" className="px-2 py-0.5 text-[10px] rounded-full text-muted-foreground">
+                      📅 {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
 
               {/* SKU, Supplier, Estoque Futuro, Comparar Fornecedores */}
               <ProductInfoBar
