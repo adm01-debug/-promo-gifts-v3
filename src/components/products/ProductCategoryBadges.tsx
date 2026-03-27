@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Palette, ShoppingCart } from "lucide-react";
+import { Palette, ShoppingCart, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import { QuickAddToQuote } from "./QuickAddToQuote";
