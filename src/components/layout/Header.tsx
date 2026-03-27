@@ -25,7 +25,7 @@ import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
 import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
 import { useIsScrolled } from "@/hooks/useScroll";
 import { cn } from "@/lib/utils";
-import { OrganizationSwitcher } from "./OrganizationSwitcher";
+
 
 interface HeaderProps {
   onMenuToggle: () => void;
