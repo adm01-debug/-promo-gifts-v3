@@ -102,6 +102,8 @@ export const PRODUCT_VIEWS = [
   'materials_complete',
   'products_with_materials',
   'categories_tree_visual',
+  'mv_stock_velocity',
+  'mv_product_intelligence',
 ] as const;
 
 // Tabelas relacionadas a EMPRESAS/CLIENTES (somente leitura)
