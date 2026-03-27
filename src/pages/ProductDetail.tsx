@@ -472,9 +472,10 @@ export default function ProductDetail() {
               productSku={product.sku}
               productName={product.name}
             />
+            </div>
 
             {/* Description */}
-            <div className="space-y-3">
+            <div id="sec-descricao" className="space-y-3 scroll-mt-28">
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Descrição
               </h3>
