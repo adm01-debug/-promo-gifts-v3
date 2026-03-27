@@ -168,6 +168,8 @@ export const TABLES_WITHOUT_CREATED_AT = [
   'variant_supplier_sources',
   'price_history',
   'collection_products',
+  'stock_snapshots',
+  'stock_daily_summary',
 ];
 export const TABLES_WITHOUT_UPDATED_AT = [
   'product_tags',
@@ -175,6 +177,8 @@ export const TABLES_WITHOUT_UPDATED_AT = [
   'price_history',
   'collection_products',
   'product_category_assignments',
+  'stock_snapshots',
+  'stock_daily_summary',
 ];
 
 export function getResourceGroup(tableName: string): ResourceGroup | null {
