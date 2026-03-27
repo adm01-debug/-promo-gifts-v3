@@ -494,31 +494,6 @@ export default function ProductDetail() {
               <ProductPersonalizationRules productId={id || ""} productSku={product.sku} productName={product.name} />
             </div>
 
-            {/* Description — compact */}
-            <div id="sec-descricao" className="scroll-mt-28 space-y-1.5">
-              <h3 className="font-display text-base font-semibold text-foreground">Descrição</h3>
-              {product.description ? (() => {
-                const sentences = product.description
-                  .split(/[.]\s+/)
-                  .map(s => s.trim().replace(/\.$/, ''))
-                  .filter(s => s.length > 5);
-                if (sentences.length > 2) {
-                  return (
-                    <ul className="space-y-1">
-                      {sentences.map((sentence, i) => (
-                        <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground leading-relaxed">
-                          <span className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
-                          {sentence}
-                        </li>
-                      ))}
-                    </ul>
-                  );
-                }
-                return <p className="text-muted-foreground leading-relaxed text-xs">{product.description}</p>;
-              })() : (
-                <p className="text-muted-foreground italic text-xs">Sem descrição disponível</p>
-              )}
-            </div>
 
             {/* Variant Grid */}
             {product.variations && product.variations.length > 0 && (
