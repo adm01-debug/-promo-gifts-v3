@@ -11,6 +11,8 @@ import {
   Layers,
   Sparkles,
   Palette,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
