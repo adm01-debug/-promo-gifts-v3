@@ -46,14 +46,23 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
   const { data, isLoading } = useSalesHistory(productId, days);
 
+  const isDemo = !data?.daily?.length;
+
   const chartData = useMemo(() => {
-    if (!data?.daily?.length) return [];
-    return data.daily.map(d => ({
-      ...d,
-      dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
-      fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
-    }));
-  }, [data, days]);
+    if (!isDemo) {
+      return data!.daily.map(d => ({
+        ...d,
+        dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
+        fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
+      }));
+    }
+    return generateDemoSalesData(productId, days);
+  }, [data, days, isDemo, productId]);
+
+  const kpis = useMemo(() => {
+    if (!isDemo) return data!.kpis;
+    return generateDemoSalesKpis(chartData);
+  }, [data, isDemo, chartData]);
 
   // Loading
   if (isLoading) {
@@ -65,27 +74,6 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
       </Card>
     );
   }
-
-  // No data
-  if (!chartData.length) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4" />
-            Vendas Internas
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Nenhum orçamento ou pedido registrado para este produto no período selecionado.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const kpis = data!.kpis;
 
   return (
     <Card>
