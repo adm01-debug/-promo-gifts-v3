@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { 
-  Share2, 
   MessageCircle, 
   Copy, 
   Download, 
   Check, 
   Image as ImageIcon,
-  FileText,
-  Send
+  Send,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -92,25 +91,24 @@ Promo Brindes - Brindes com Excelência!`;
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        {/* Main share button */}
+      {/* Unified split button: main action + dropdown */}
+      <div className="inline-flex rounded-md shadow-sm">
         <Button
-          className="flex-1 sm:flex-none gap-2"
+          className="gap-2 rounded-r-none border-r border-primary-foreground/20"
           onClick={handleShareWhatsApp}
         >
           <MessageCircle className="h-4 w-4" />
           Enviar via A-Ticket
         </Button>
 
-        {/* More options */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Share2 className="h-4 w-4" />
+            <Button className="rounded-l-none px-2">
+              <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Opções de Compartilhamento</DropdownMenuLabel>
+            <DropdownMenuLabel>Opções de Envio</DropdownMenuLabel>
             <DropdownMenuSeparator />
             
             <DropdownMenuItem onClick={handleShareWhatsApp}>
@@ -154,6 +152,7 @@ Promo Brindes - Brindes com Excelência!`;
             )}
             
             <DropdownMenuSeparator />
+            <DropdownMenuLabel>Compartilhar</DropdownMenuLabel>
             
             <DropdownMenuItem onClick={handleCopyDescription}>
               {copied ? (
