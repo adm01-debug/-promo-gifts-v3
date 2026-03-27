@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Palette, ShoppingCart } from "lucide-react";
+import { Palette, ShoppingCart, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import { QuickAddToQuote } from "./QuickAddToQuote";
@@ -145,6 +145,34 @@ export function ProductCategoryBadges({
           minQuantity={productMinQuantity || 1}
           variant="badge"
         />
+      )}
+
+      {/* Visualizar com Logo */}
+      {productId && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              onClick={() => navigate('/mockup-generator', {
+                state: {
+                  preSelectedProduct: { id: productId, name: productName, sku: productSku, imageUrl: productImageUrl }
+                }
+              })}
+              className={cn(
+                "px-2.5 py-1 text-sm font-medium cursor-pointer",
+                "border-accent/50 bg-accent/10 hover:bg-accent/20",
+                "text-accent-foreground hover:text-accent-foreground",
+                "transition-all duration-200 hover:scale-105 hover:border-accent"
+              )}
+            >
+              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-xs">Visualizar com Logo</span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="font-medium">
+            Gerar mockup com sua logo
+          </TooltipContent>
+        </Tooltip>
       )}
     </div>
   );
