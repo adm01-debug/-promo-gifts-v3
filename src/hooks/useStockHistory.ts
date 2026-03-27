@@ -111,17 +111,29 @@ export function useStockVelocity(productId: string | undefined) {
     queryFn: async (): Promise<StockVelocity[]> => {
       if (!productId) return [];
 
-      const result = await invokeExternalDb<StockVelocity>({
-        table: 'mv_stock_velocity',
-        operation: 'select',
-        filters: { product_id: productId },
-        limit: 50,
-      });
-
-      return result.records;
+      try {
+        const result = await invokeExternalDb<StockVelocity>({
+          table: 'mv_stock_velocity',
+          operation: 'select',
+          filters: { product_id: productId },
+          limit: 50,
+        });
+        return result.records;
+      } catch (err: any) {
+        // MV may not be populated yet — graceful fallback
+        if (err.message?.includes('not been populated') || err.message?.includes('não mapeada')) {
+          console.warn('[StockVelocity] MV not populated yet, returning empty');
+          return [];
+        }
+        throw err;
+      }
     },
     enabled: !!productId,
     staleTime: 30 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      if (error.message?.includes('not been populated')) return false;
+      return failureCount < 2;
+    },
   });
 }
 
@@ -134,17 +146,28 @@ export function useProductIntelligenceData(productId: string | undefined) {
     queryFn: async (): Promise<ProductIntelligenceData | null> => {
       if (!productId) return null;
 
-      const result = await invokeExternalDb<ProductIntelligenceData>({
-        table: 'mv_product_intelligence',
-        operation: 'select',
-        filters: { product_id: productId },
-        limit: 1,
-      });
-
-      return result.records[0] || null;
+      try {
+        const result = await invokeExternalDb<ProductIntelligenceData>({
+          table: 'mv_product_intelligence',
+          operation: 'select',
+          filters: { product_id: productId },
+          limit: 1,
+        });
+        return result.records[0] || null;
+      } catch (err: any) {
+        if (err.message?.includes('not been populated') || err.message?.includes('não mapeada')) {
+          console.warn('[ProductIntelligence] MV not populated yet, returning null');
+          return null;
+        }
+        throw err;
+      }
     },
     enabled: !!productId,
     staleTime: 30 * 60 * 1000,
+    retry: (failureCount, error: any) => {
+      if (error.message?.includes('not been populated')) return false;
+      return failureCount < 2;
+    },
   });
 }
 
