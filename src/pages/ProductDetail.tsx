@@ -526,22 +526,6 @@ export default function ProductDetail() {
               />
             </div>
 
-            {/* Materials + Specs — side by side on large screens */}
-            <div id="sec-specs" className="scroll-mt-28 space-y-3">
-              {product.materials && product.materials.length > 0 && (
-                <div className="space-y-1.5">
-                  <h3 className="font-display text-base font-semibold text-foreground">Materiais</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {product.materials.map((material) => (
-                      <Badge key={material} variant="secondary" className="px-3 py-1 text-xs rounded-full">
-                        {material}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <ProductDimensions dimensions={product.dimensions} />
-            </div>
 
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
