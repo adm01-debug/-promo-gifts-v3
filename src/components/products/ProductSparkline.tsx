@@ -104,6 +104,18 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
     setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   }, [points.length]);
 
+  const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    // Fallback: show midpoint tooltip on simple hover (no mousemove yet)
+    if (hoverIndex === null) {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const midIdx = Math.floor(points.length / 2);
+      setHoverIndex(midIdx);
+      setTooltipPos({ x: rect.width / 2, y: 0 });
+    }
+  }, [hoverIndex, points.length]);
+
   const handleMouseLeave = useCallback(() => {
     setHoverIndex(null);
   }, []);
