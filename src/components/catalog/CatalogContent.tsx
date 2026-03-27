@@ -305,45 +305,48 @@ export function CatalogContent({
 
   if (viewMode === "list") {
     return (
-      <div className="h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner p-4">
-        <ProductList
-          products={paginatedProducts}
-          onProductClick={(productId) => navigate(`/produto/${productId}`)}
-          onViewProduct={handleViewProduct}
-          onShareProduct={handleShareProduct}
-          onFavoriteProduct={handleFavoriteProduct}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          isInCompare={isInCompare}
-          onToggleCompare={onToggleCompare}
-          canAddToCompare={canAddToCompare}
-          highlightColors={[]}
-        />
-        {hasMoreProducts && (
-          <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4" style={{ minHeight: "60px" }}>
-            <p className="text-sm text-muted-foreground">
-              Mostrando {paginatedProducts.length} de {totalEstimate ? `~${totalEstimate.toLocaleString("pt-BR")}` : filteredProducts.length.toLocaleString("pt-BR")} produtos
-            </p>
-            {isLoadingMore && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full mt-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="aspect-square w-full rounded-xl" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <SparklineSalesProvider productIds={sparklineProductIds}>
+        <div className="h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner p-4">
+          <ProductList
+            products={paginatedProducts}
+            onProductClick={(productId) => navigate(`/produto/${productId}`)}
+            onViewProduct={handleViewProduct}
+            onShareProduct={handleShareProduct}
+            onFavoriteProduct={handleFavoriteProduct}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+            isInCompare={isInCompare}
+            onToggleCompare={onToggleCompare}
+            canAddToCompare={canAddToCompare}
+            highlightColors={[]}
+          />
+          {hasMoreProducts && (
+            <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4" style={{ minHeight: "60px" }}>
+              <p className="text-sm text-muted-foreground">
+                Mostrando {paginatedProducts.length} de {totalEstimate ? `~${totalEstimate.toLocaleString("pt-BR")}` : filteredProducts.length.toLocaleString("pt-BR")} produtos
+              </p>
+              {isLoadingMore && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full mt-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="aspect-square w-full rounded-xl" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </SparklineSalesProvider>
     );
   }
 
   // Grid mode → virtualized
   return (
-    <VirtualGrid
+    <SparklineSalesProvider productIds={sparklineProductIds}>
+      <VirtualGrid
       products={paginatedProducts}
       columns={gridColumns}
       navigate={navigate}
