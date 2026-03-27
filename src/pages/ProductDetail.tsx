@@ -666,8 +666,7 @@ export default function ProductDetail() {
           boxVolumeCm3={product.boxVolumeCm3}
         />
 
-        {/* Trust Badges */}
-        <TrustBadgesRow className="pt-8" />
+        {/* Trust Badges moved to price card */}
       </div>
 
       {/* Floating Compare Bar */}
