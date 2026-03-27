@@ -363,5 +363,6 @@ export function CatalogContent({
       itemsPerPage={itemsPerPage}
       onLoadMore={onLoadMore}
     />
+    </SparklineSalesProvider>
   );
 }
