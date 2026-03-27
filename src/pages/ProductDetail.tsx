@@ -622,6 +622,8 @@ export default function ProductDetail() {
         productName={product.name}
         productSku={product.sku}
         productPrice={product.price}
+        productImageUrl={product.images?.[0]}
+        minQuantity={product.minQuantity || 1}
         isFavorite={isFavorite}
         onToggleFavorite={handleFavorite}
       />
