@@ -168,11 +168,13 @@ export const PropostaComercialTailwind = forwardRef<HTMLDivElement, { data: Prop
                   <>
                     <ProposalTotals data={data} />
                     <ProposalSellerSignature data={data} />
-                    <div style={{ marginTop: "6px" }}>
-                      <ProposalNotes data={data} />
-                    </div>
                   </>
                 )}
+
+                {/* Commercial conditions on EVERY page */}
+                <div style={{ marginTop: "auto" }}>
+                  <ProposalNotes data={data} />
+                </div>
               </div>
 
               <ProposalFooter
