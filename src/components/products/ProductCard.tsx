@@ -561,6 +561,16 @@ export function ProductCard({
             )}
           </div>
         )}
+
+        {/* Sales Sparkline */}
+        <div className="pt-1.5 sm:pt-2 border-t border-border/30">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              Vendas 30d
+            </span>
+          </div>
+          <ProductSparkline productId={product.id} />
+        </div>
       </div>
 
       {/* Collection Modal */}
