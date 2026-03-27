@@ -103,9 +103,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   const { data: velocity } = useStockVelocity(productId);
   const { data: intelligence } = useProductIntelligenceData(productId);
 
+  const isDemo = !summaries?.length;
+
   const chartData = useMemo(() => {
-    if (!summaries?.length) return [];
-    const aggregated = aggregateDailySummaryByDate(summaries);
+    if (isDemo) return generateDemoStockData(productId, days);
+    const aggregated = aggregateDailySummaryByDate(summaries!);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
@@ -115,9 +117,12 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
         fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
       }));
-  }, [summaries, days]);
+  }, [summaries, days, isDemo, productId]);
 
-  const flags = useMemo(() => getActiveFlags(intelligence), [intelligence]);
+  const effectiveIntelligence = isDemo ? generateDemoIntelligence(productId) : intelligence;
+  const flags = useMemo(() => isDemo
+    ? getActiveFlags(effectiveIntelligence as any)
+    : getActiveFlags(intelligence), [intelligence, isDemo, effectiveIntelligence]);
 
   // ---------- Loading ----------
   if (loadingSummary) {
@@ -130,31 +135,12 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     );
   }
 
-  // ---------- No data ----------
-  if (!summaries?.length) {
-    return (
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Histórico de Estoque (Fornecedor)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Ainda não há dados de movimentação de estoque para este produto. 
-            Os dados começam a ser coletados automaticamente após a ativação do sync.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   // ---------- Velocity KPIs ----------
-  const bestVelocity = velocity?.length
+  const demoVelocity = isDemo ? generateDemoVelocity(productId) : null;
+  const bestVelocity = !isDemo && velocity?.length
     ? velocity.reduce((best, v) => 
         (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-    : null;
+    : demoVelocity;
 
   return (
     <Card>
