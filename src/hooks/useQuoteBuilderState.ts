@@ -234,8 +234,8 @@ export function useQuoteBuilderState() {
     setItems([newItem]);
     setActiveItemIndex(0);
     toast.success(`Produto "${productName}" adicionado ao orçamento`);
-    // Clean URL params without triggering re-render
-    navigate(location.pathname, { replace: true });
+    // Clean URL params without triggering React Router re-render
+    window.history.replaceState({}, document.title, location.pathname);
   }, []);
 
   const { data: products } = useQuery({
