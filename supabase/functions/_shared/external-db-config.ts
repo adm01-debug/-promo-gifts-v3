@@ -153,6 +153,10 @@ export const SENSITIVE_TABLES = new Set([
   'tabela_preco_gravacao_oficial',
   'tabela_preco_gravacao_oficial_faixa',
   'supplier_branches',
+  'stock_snapshots',
+  'stock_daily_summary',
+  'mv_stock_velocity',
+  'mv_product_intelligence',
 ]);
 
 // Heavy tables for adaptive pagination
