@@ -29,7 +29,9 @@ export function QuickAddToQuote({
   productPrice = 0,
   minQuantity = 1,
   className,
-  variant = "button"
+  variant = "button",
+  labelOverride,
+  iconOverride,
 }: QuickAddToQuoteProps) {
   const [quantity, setQuantity] = useState(minQuantity);
   const [isOpen, setIsOpen] = useState(false);
