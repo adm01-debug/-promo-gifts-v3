@@ -211,7 +211,7 @@ export function ProductGallery({
     >
       {/* Background while loading */}
       {!isVideo(selectedIndex) && (
-        <div className="absolute inset-0 bg-muted/30" />
+        <div className="absolute inset-0 bg-white" />
       )}
 
       {isVideo(selectedIndex) ? (
