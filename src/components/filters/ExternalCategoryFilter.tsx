@@ -130,8 +130,9 @@ export function ExternalCategoryFilter({
         <div
           className={cn(
             "flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors",
-            "hover:bg-muted/50",
-            isSelected && "bg-orange/5"
+            isSelected
+              ? "bg-orange/10 ring-1 ring-inset ring-orange/20"
+              : "hover:bg-muted/50"
           )}
           style={{ paddingLeft: `${8 + level * 16}px` }}
         >
@@ -140,7 +141,10 @@ export function ExternalCategoryFilter({
             <button
               type="button"
               onClick={() => toggleExpand(node.id)}
-              className="p-0.5 hover:bg-muted rounded"
+              className={cn(
+                "p-0.5 rounded transition-colors",
+                isSelected ? "hover:bg-orange/10" : "hover:bg-muted"
+              )}
             >
               {isExpanded ? (
                 <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -157,7 +161,7 @@ export function ExternalCategoryFilter({
             id={`ext-cat-${node.id}`}
             checked={isSelected}
             onCheckedChange={() => toggleCategory(node.id)}
-            className="h-4 w-4"
+            className="h-4 w-4 rounded-full border-orange/60 data-[state=checked]:border-orange data-[state=checked]:bg-orange data-[state=checked]:text-orange-foreground"
           />
 
           {/* Label */}
