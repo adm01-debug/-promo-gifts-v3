@@ -489,37 +489,6 @@ export default function ProductDetail() {
 
             {/* ===== CONTENT SECTIONS — compact spacing ===== */}
 
-            {/* Personalization */}
-            <div id="sec-personalizacao" className="scroll-mt-28 space-y-2">
-              <ProductCustomizationOptions productId={id || ""} productSku={product.sku} />
-              <ProductPersonalizationRules productId={id || ""} productSku={product.sku} productName={product.name} />
-            </div>
-
-
-            {/* Variant Grid */}
-            {product.variations && product.variations.length > 0 && (
-              product.variations.some((v: any) => v.size_code) ? (
-                <VariantGridMatrix
-                  variants={product.variations.map((v: any) => ({
-                    id: v.id, color_name: v.color?.name || v.name || 'Padrão',
-                    color_hex: v.color?.hex || '#888', size_code: v.size_code || null,
-                    stock: Math.max(0, v.stock ?? 0), sku: v.sku, image: v.image, price: v.price ?? null,
-                  }))}
-                  selectedId={selectedVariation?.id}
-                  onSelect={(item) => {
-                    const found = product.variations?.find((v: any) => v.id === item.id);
-                    if (found) setSelectedVariation(found);
-                  }}
-                />
-              ) : (
-                <ProductSizeSelector
-                  variations={product.variations}
-                  selectedSize={selectedSize}
-                  onSelectSize={setSelectedSize}
-                />
-              )
-            )}
-
             {/* Price Calculator */}
             <div id="sec-precos" className="scroll-mt-28">
               <InlinePriceCalculator
@@ -529,6 +498,11 @@ export default function ProductDetail() {
                 minQuantity={product.minQuantity || 1}
               />
             </div>
+
+            {/* Personalization — collapsible */}
+            <PersonalizationCollapsible id={id || ""} productSku={product.sku} productName={product.name} />
+
+            {/* Variant Grid */}
 
 
             {/* Kit Composition */}
