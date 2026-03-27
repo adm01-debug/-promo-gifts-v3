@@ -528,14 +528,34 @@ export default function ProductDetail() {
             />
             </div>
 
-            {/* Description */}
+            {/* Description — formatted with sentence highlights */}
             <div id="sec-descricao" className="space-y-3 scroll-mt-28">
               <h3 className="font-display text-lg font-semibold text-foreground">
                 Descrição
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {product.description}
-              </p>
+              {product.description ? (() => {
+                const sentences = product.description
+                  .split(/[.]\s+/)
+                  .map(s => s.trim().replace(/\.$/, ''))
+                  .filter(s => s.length > 5);
+                if (sentences.length > 2) {
+                  return (
+                    <div className="space-y-2">
+                      <ul className="space-y-1.5">
+                        {sentences.map((sentence, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
+                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                            {sentence}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                }
+                return <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>;
+              })() : (
+                <p className="text-muted-foreground italic text-sm">Sem descrição disponível</p>
+              )}
             </div>
 
             {/* Variant Grid: Cor × Tamanho (se multi-eixo) ou Size Selector (se só tamanhos) */}
