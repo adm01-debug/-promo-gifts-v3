@@ -74,6 +74,9 @@ export const PRODUCT_TABLES = [
   'tabela_preco_fornecedores_gravacao',      // preços de gravação por fornecedor
   // Histórico de preços
   'price_history',
+  // Histórico de estoque
+  'stock_snapshots',
+  'stock_daily_summary',
 ] as const;
 
 // ============================================
@@ -118,6 +121,8 @@ export const PRODUCT_VIEWS = [
   // Materialized views
   'mv_product_compositions',
   'mv_material_group_stats',
+  'mv_stock_velocity',
+  'mv_product_intelligence',
   // Views de materiais
   'materials_complete',
   'products_with_materials',

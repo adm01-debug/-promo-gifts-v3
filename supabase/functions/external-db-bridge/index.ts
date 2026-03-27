@@ -82,6 +82,14 @@ function computeSafeLimit(
   return Math.min(requestedLimit, 200);
 }
 
+function isUnpopulatedMaterializedViewError(message?: string | null): boolean {
+  if (!message) return false;
+  const normalized = message.toLowerCase();
+  return normalized.includes('has not been populated')
+    || (normalized.includes('materialized view') && normalized.includes('not been populated'))
+    || normalized.includes('mv precisa de refresh');
+}
+
 // ============================================
 // VIRTUAL TABLE: product_print_areas
 // Materializes personalization_areas JSONB → flat rows
@@ -284,6 +292,17 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
         const duration = Math.round(performance.now() - queryStart);
 
         if (selectError) {
+          if (qTable.startsWith('mv_') && isUnpopulatedMaterializedViewError(selectError.message)) {
+            console.warn(`[batch] Query ${idx} (${qTable}) returned unpopulated MV; sending empty result`);
+            const result = {
+              records: [],
+              count: 0,
+              meta: { materialized_view_status: 'not_populated' },
+            };
+            if (qCacheKey) setCache(qCacheKey, result);
+            return { success: true, data: result };
+          }
+
           console.warn(`[batch] Query ${idx} (${qTable}) failed in ${duration}ms: ${selectError.message}`);
           return { success: false, error: selectError.message };
         }
@@ -603,6 +622,16 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const selectDuration = Math.round(performance.now() - selectStart);
 
   if (selectError) {
+    if (table.startsWith('mv_') && isUnpopulatedMaterializedViewError(selectError.message)) {
+      emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'ok', recordCount: 0 });
+      console.warn(`[external-db-bridge] ${table} not populated yet; returning empty result`);
+      return {
+        records: [],
+        count: 0,
+        meta: { materialized_view_status: 'not_populated' },
+      };
+    }
+
     // On statement timeout for products, retry with even smaller limit and no count
     if (selectError.message?.includes('statement timeout') && isVeryHeavy && safeLimit > 50) {
       console.warn(`[retry] ${table} timed out with limit=${safeLimit}, retrying with limit=50 and no count`);
