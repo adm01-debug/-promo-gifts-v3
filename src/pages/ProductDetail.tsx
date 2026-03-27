@@ -448,7 +448,19 @@ export default function ProductDetail() {
               </div>
             </div>
 
+            {/* Section Navigation */}
+            <ProductSectionNav
+              tabs={[
+                { id: "sec-personalizacao", label: "Personalização" },
+                { id: "sec-descricao", label: "Descrição" },
+                { id: "sec-precos", label: "Tabela de Preços" },
+                { id: "sec-specs", label: "Especificações" },
+                { id: "sec-indicado", label: "Indicado para" },
+              ]}
+            />
+
             {/* Customization Options — elevated for B2B decision-making */}
+            <div id="sec-personalizacao" className="scroll-mt-28">
             <ProductCustomizationOptions 
               productId={id || ""} 
               productSku={product.sku} 
