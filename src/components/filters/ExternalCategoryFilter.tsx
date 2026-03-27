@@ -131,7 +131,7 @@ export function ExternalCategoryFilter({
           className={cn(
             "flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors",
             "hover:bg-muted/50",
-            isSelected && "bg-primary/5"
+            isSelected && "bg-orange/5"
           )}
           style={{ paddingLeft: `${8 + level * 16}px` }}
         >
@@ -200,9 +200,9 @@ export function ExternalCategoryFilter({
     <div className="space-y-3">
       {/* Categorias selecionadas */}
       {selectedCategories.length > 0 && (
-        <div className="p-2 bg-primary/5 rounded-lg border border-primary/20">
+        <div className="p-2 bg-orange/5 rounded-lg border border-orange/20">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+            <span className="text-xs font-medium text-orange flex items-center gap-1.5">
               <Layers className="h-3 w-3" />
               Selecionadas ({selectedCategories.length})
             </span>
@@ -272,7 +272,7 @@ export function ExternalCategoryFilter({
             <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
             {isFetching ? "Atualizando..." : "Atualizar"}
           </button>
-          <span className="text-primary font-medium">
+          <span className="text-orange font-medium">
             {selectedCategories.length} selecionadas
           </span>
         </div>
