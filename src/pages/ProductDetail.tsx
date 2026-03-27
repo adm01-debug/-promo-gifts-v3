@@ -307,23 +307,6 @@ export default function ProductDetail() {
                   productImageUrl={product.images?.[0]}
                   productMinQuantity={product.minQuantity || 1}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 rounded-full gap-1 px-3 text-[11px] font-medium border-primary/30 text-primary hover:bg-primary/10"
-                  onClick={() => navigate('/simulador', { 
-                    state: { 
-                      preSelectedProduct: {
-                        id: product.id, name: product.name, sku: product.sku,
-                        price: product.price, imageUrl: product.images?.[0],
-                        categoryName: product.category?.name,
-                      } 
-                    } 
-                  })}
-                >
-                  <Palette className="h-3 w-3" />
-                  Simular Personalização
-                </Button>
               </div>
 
               {/* Status badges inline */}
