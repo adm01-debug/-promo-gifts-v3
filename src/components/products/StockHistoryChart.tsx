@@ -180,7 +180,7 @@ function getMockVelocity() {
 }
 
 export function StockHistoryChart({ productId, productName }: StockHistoryChartProps) {
-  const [period, setPeriod] = useState<'30' | '60' | '90'>('30');
+  const [period, setPeriod] = useState<string>('30');
   const days = Number(period);
 
   const isMockProduct = productId === MOCK_PRODUCT_ID;
