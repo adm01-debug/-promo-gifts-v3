@@ -308,39 +308,48 @@ export default function ProductDetail() {
                 
                 {/* Estoque granular por cor - TODAS as variações ordenadas */}
                 {product.variations && product.variations.length > 0 ? (
-                  <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                    {sortVariationsByColor(product.variations).map((variation) => {
-                      const isSelected = selectedVariation?.id === variation.id;
-                      return (
-                        <button
-                          key={variation.id}
-                          onClick={() => setSelectedVariation(variation)}
-                          title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
-                          className={cn(
-                            "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all",
-                            !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
-                            Math.max(0, variation.stock) === 0 && "opacity-50"
-                          )}
-                          style={isSelected ? {
-                            backgroundColor: `${variation.color.hex}20`,
-                            border: `1px solid ${variation.color.hex}`,
-                            boxShadow: `0 0 0 2px ${variation.color.hex}30`
-                          } : undefined}
-                        >
-                          <div
-                            className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm shrink-0"
-                            style={{ backgroundColor: variation.color.hex }}
-                          />
-                          <span className={cn(
-                            Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
-                          )}>
-                            {Math.max(0, variation.stock) >= 1000 
-                              ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
-                              : Math.max(0, variation.stock).toLocaleString("pt-BR")}
-                          </span>
-                        </button>
-                      );
-                    })}
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {sortVariationsByColor(product.variations).map((variation) => {
+                        const isSelected = selectedVariation?.id === variation.id;
+                        return (
+                          <button
+                            key={variation.id}
+                            onClick={() => setSelectedVariation(variation)}
+                            title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
+                            aria-label={`Cor ${variation.color.name}, ${Math.max(0, variation.stock)} unidades`}
+                            className={cn(
+                              "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium transition-all",
+                              !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
+                              Math.max(0, variation.stock) === 0 && "opacity-50"
+                            )}
+                            style={isSelected ? {
+                              backgroundColor: `${variation.color.hex}20`,
+                              border: `1px solid ${variation.color.hex}`,
+                              boxShadow: `0 0 0 2px ${variation.color.hex}30`
+                            } : undefined}
+                          >
+                            <div
+                              className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm shrink-0"
+                              style={{ backgroundColor: variation.color.hex }}
+                            />
+                            <span className={cn(
+                              Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
+                            )}>
+                              {Math.max(0, variation.stock) >= 1000 
+                                ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
+                                : Math.max(0, variation.stock).toLocaleString("pt-BR")}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {/* Legenda de estoque */}
+                    <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-foreground inline-block" /> &gt;100</span>
+                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" /> &lt;100</span>
+                      <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-destructive inline-block" /> Esgotado</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-end mt-3">
@@ -376,6 +385,48 @@ export default function ProductDetail() {
                     </div>
                     <span className="truncate">Garantia</span>
                   </div>
+                </div>
+
+                <Separator className="bg-border/50" />
+
+                {/* CTA Principal - Orçar Agora */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <QuickAddToQuote
+                    productId={id || ""}
+                    productName={product.name}
+                    productSku={product.sku}
+                    productImageUrl={product.images?.[0]}
+                    productPrice={product.price}
+                    minQuantity={product.minQuantity || 1}
+                    variant="button"
+                    className="flex-1 h-11 rounded-xl bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-sm shadow-md"
+                  />
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-xl gap-2 text-sm font-medium"
+                    onClick={() => navigate('/simulador', { 
+                      state: { 
+                        preSelectedProduct: {
+                          id: product.id,
+                          name: product.name,
+                          sku: product.sku,
+                          price: product.price,
+                          imageUrl: product.images?.[0],
+                          categoryName: product.category?.name,
+                        } 
+                      } 
+                    })}
+                  >
+                    <Palette className="h-4 w-4" />
+                    Simular Personalização
+                  </Button>
+                </div>
+
+                {/* Trust Badges inline */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                  <TrustBadge type="verified" />
+                  <TrustBadge type="fast" />
+                  <TrustBadge type="quality" />
                 </div>
               </div>
             </div>
