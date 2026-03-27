@@ -156,22 +156,27 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            {intelligence?.abc_classification && (
+            {effectiveIntelligence?.abc_classification && (
               <Badge
                 variant="outline"
                 className={cn(
                   "font-bold text-xs",
-                  intelligence.abc_classification === 'A' ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
-                  intelligence.abc_classification === 'B' ? 'bg-primary/15 text-primary border-primary/30' :
+                  effectiveIntelligence.abc_classification === 'A' ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
+                  effectiveIntelligence.abc_classification === 'B' ? 'bg-primary/15 text-primary border-primary/30' :
                   'bg-muted text-muted-foreground border-border'
                 )}
               >
-                Classe {intelligence.abc_classification}
+                Classe {effectiveIntelligence.abc_classification}
               </Badge>
             )}
-            {intelligence?.turnover_score != null && (
+            {effectiveIntelligence?.turnover_score != null && (
               <Badge variant="secondary" className="text-xs font-mono">
-                Score: {Math.round(intelligence.turnover_score)}
+                Score: {Math.round(effectiveIntelligence.turnover_score)}
+              </Badge>
+            )}
+            {isDemo && (
+              <Badge variant="outline" className="text-[10px] text-muted-foreground border-dashed">
+                demo
               </Badge>
             )}
           </div>
