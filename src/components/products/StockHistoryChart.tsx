@@ -226,7 +226,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   }
 
   // ---------- No data ----------
-  if (!summaries?.length) {
+  if (!isMockProduct && !summaries?.length) {
     return (
       <Card>
         <CardHeader className="pb-3">
