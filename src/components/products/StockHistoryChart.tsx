@@ -346,11 +346,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         </div>
 
         {/* Period selector */}
-        <Tabs value={period} onValueChange={(v) => setPeriod(v as any)}>
-          <TabsList className="h-7">
-            <TabsTrigger value="30" className="text-xs px-2 h-5">30d</TabsTrigger>
-            <TabsTrigger value="60" className="text-xs px-2 h-5">60d</TabsTrigger>
-            <TabsTrigger value="90" className="text-xs px-2 h-5">90d</TabsTrigger>
+        <Tabs value={period} onValueChange={setPeriod}>
+          <TabsList className="h-7 flex-wrap">
+            {['15','30','60','90','120','150','180','360'].map(p => (
+              <TabsTrigger key={p} value={p} className="text-xs px-2 h-5">{p}d</TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
 
