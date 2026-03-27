@@ -48,17 +48,15 @@ function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColor
   );
 }
 
-export function ProductDimensions({ dimensions }: ProductDimensionsProps) {
+export function ProductDimensions({ dimensions, compact }: ProductDimensionsProps) {
   if (!dimensions) return null;
 
   const { height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml } = dimensions;
   
-  // Verifica se há pelo menos uma especificação disponível
   const hasAnySpec = height_cm || width_cm || length_cm || diameter_cm || weight_g || capacity_ml;
   
   if (!hasAnySpec) return null;
 
-  // Formata peso para exibição
   const formatWeight = (g: number) => {
     if (g >= 1000) {
       return `${(g / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg`;
@@ -66,65 +64,39 @@ export function ProductDimensions({ dimensions }: ProductDimensionsProps) {
     return `${g.toLocaleString('pt-BR')} g`;
   };
 
-  // Monta lista de especificações individuais
   const specs: SpecItemProps[] = [];
 
   if (diameter_cm) {
-    specs.push({
-      icon: <Box className="h-5 w-5" />,
-      label: "Diâmetro",
-      value: `${diameter_cm} cm`,
-    });
+    specs.push({ icon: <Box className="h-5 w-5" />, label: "Diâmetro", value: `${diameter_cm} cm` });
   }
-
   if (height_cm) {
-    specs.push({
-      icon: <ArrowUpDown className="h-5 w-5" />,
-      label: "Altura",
-      value: `${height_cm} cm`,
-    });
+    specs.push({ icon: <ArrowUpDown className="h-5 w-5" />, label: "Altura", value: `${height_cm} cm` });
   }
-
   if (width_cm) {
-    specs.push({
-      icon: <ArrowLeftRight className="h-5 w-5" />,
-      label: "Largura",
-      value: `${width_cm} cm`,
-    });
+    specs.push({ icon: <ArrowLeftRight className="h-5 w-5" />, label: "Largura", value: `${width_cm} cm` });
   }
-
   if (length_cm) {
-    specs.push({
-      icon: <MoveHorizontal className="h-5 w-5" />,
-      label: "Profundidade",
-      value: `${length_cm} cm`,
-    });
+    specs.push({ icon: <MoveHorizontal className="h-5 w-5" />, label: "Profundidade", value: `${length_cm} cm` });
   }
-
   if (capacity_ml) {
     const formatCapacity = (ml: number) => {
-      if (ml >= 1000) {
-        return `${(ml / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L`;
-      }
+      if (ml >= 1000) return `${(ml / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L`;
       return `${ml.toLocaleString('pt-BR')} ml`;
     };
-    specs.push({
-      icon: <Droplets className="h-5 w-5" />,
-      label: "Capacidade",
-      value: formatCapacity(capacity_ml),
-      iconBgClass: "bg-cyan-500/10",
-      iconColorClass: "text-cyan-500",
-    });
+    specs.push({ icon: <Droplets className="h-5 w-5" />, label: "Capacidade", value: formatCapacity(capacity_ml), iconBgClass: "bg-cyan-500/10", iconColorClass: "text-cyan-500" });
+  }
+  if (weight_g) {
+    specs.push({ icon: <Scale className="h-5 w-5" />, label: "Peso", value: formatWeight(weight_g), iconBgClass: "bg-info/10", iconColorClass: "text-info" });
   }
 
-  if (weight_g) {
-    specs.push({
-      icon: <Scale className="h-5 w-5" />,
-      label: "Peso",
-      value: formatWeight(weight_g),
-      iconBgClass: "bg-info/10",
-      iconColorClass: "text-info",
-    });
+  if (compact) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+        {specs.map((spec, index) => (
+          <SpecItem key={index} {...spec} compact />
+        ))}
+      </div>
+    );
   }
 
   return (
