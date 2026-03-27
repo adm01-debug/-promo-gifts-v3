@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
-import { useSalesHistory, type DailySalesPoint, type SalesKpis, type SellerRanking } from "@/hooks/useSalesHistory";
+import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
 
 interface SalesHistoryChartProps {
   productId: string;
