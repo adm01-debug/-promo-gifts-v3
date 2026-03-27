@@ -303,6 +303,24 @@ export default function ProductDetail() {
                 onOpenFutureStock={() => setFutureStockOpen(true)}
                 onOpenSupplierComparison={() => setSupplierCompareOpen(true)}
               />
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-lg gap-1.5 text-xs font-medium w-fit"
+                onClick={() => navigate('/simulador', { 
+                  state: { 
+                    preSelectedProduct: {
+                      id: product.id, name: product.name, sku: product.sku,
+                      price: product.price, imageUrl: product.images?.[0],
+                      categoryName: product.category?.name,
+                    } 
+                  } 
+                })}
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Simular Personalização
+              </Button>
             </div>
 
             {/* Social Proof */}
@@ -393,35 +411,16 @@ export default function ProductDetail() {
                 </div>
 
                 {/* CTA */}
-                <div className="flex gap-2">
-                  <QuickAddToQuote
-                    productId={id || ""}
-                    productName={product.name}
-                    productSku={product.sku}
-                    productImageUrl={product.images?.[0]}
-                    productPrice={product.price}
-                    minQuantity={product.minQuantity || 1}
-                    variant="button"
-                    className="flex-1 h-10 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-sm shadow-md"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 rounded-lg gap-1.5 text-xs font-medium"
-                    onClick={() => navigate('/simulador', { 
-                      state: { 
-                        preSelectedProduct: {
-                          id: product.id, name: product.name, sku: product.sku,
-                          price: product.price, imageUrl: product.images?.[0],
-                          categoryName: product.category?.name,
-                        } 
-                      } 
-                    })}
-                  >
-                    <Palette className="h-3.5 w-3.5" />
-                    Simular Personalização
-                  </Button>
-                </div>
+                <QuickAddToQuote
+                  productId={id || ""}
+                  productName={product.name}
+                  productSku={product.sku}
+                  productImageUrl={product.images?.[0]}
+                  productPrice={product.price}
+                  minQuantity={product.minQuantity || 1}
+                  variant="button"
+                  className="w-full h-10 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-sm shadow-md"
+                />
 
                 {/* Trust */}
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px]">
