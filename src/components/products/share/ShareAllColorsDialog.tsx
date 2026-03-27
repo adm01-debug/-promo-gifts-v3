@@ -203,14 +203,49 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
             </div>
           </ScrollArea>
 
-          {/* Message preview */}
-          <div className="bg-secondary/50 rounded-xl p-3 border border-border">
-            <Textarea
-              value={message}
-              onChange={(e) => setCustomMessage(e.target.value)}
-              className="min-h-[140px] bg-transparent border-0 resize-none focus-visible:ring-0 text-sm"
-            />
+          {/* Edit / Preview toggle */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Mensagem</span>
+            <button
+              type="button"
+              onClick={() => setPreviewMode(!previewMode)}
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
+                previewMode
+                  ? "bg-[hsl(153,18%,18%)] text-white"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              )}
+            >
+              {previewMode ? (
+                <>
+                  <Pencil className="h-3 w-3" />
+                  Editar
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3 w-3" />
+                  Preview WhatsApp
+                </>
+              )}
+            </button>
           </div>
+
+          {previewMode ? (
+            <WhatsAppPreview
+              message={message}
+              images={allColorImages}
+              selectedImages={allColorImageIndices}
+              contactName={contactSelection?.contactName}
+            />
+          ) : (
+            <div className="bg-secondary/50 rounded-xl p-3 border border-border">
+              <Textarea
+                value={message}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                className="min-h-[140px] bg-transparent border-0 resize-none focus-visible:ring-0 text-sm"
+              />
+            </div>
+          )}
 
           {/* Contact selector */}
           <div className="space-y-2">
