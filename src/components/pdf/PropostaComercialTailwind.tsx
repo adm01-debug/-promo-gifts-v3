@@ -46,45 +46,44 @@ const TABLE_HEADER_H = 38;
 const ROW_H = 76; // estimated row height
 
 function paginateItems(items: ProposalItem[]) {
-  // Single page: must also fit totals + notes/signature + full footer
-  const singlePageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - TOTALS_H - NOTES_H - FULL_FOOTER_H - 40;
+  // Every page now has notes in footer, so we always reserve NOTES_FOOTER_H
+  // Single page: header + client + table + totals + signature + notes + footer bar
+  const singlePageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - TOTALS_H - NOTES_H - NOTES_FOOTER_H - SIMPLE_FOOTER_H - 40;
   const singlePageRows = Math.max(0, Math.floor(singlePageAvailable / ROW_H));
 
   if (items.length <= singlePageRows && singlePageRows > 0) {
     return [items];
   }
 
-  // Multi-page
+  // Multi-page — every page reserves space for notes footer
   const pages: ProposalItem[][] = [];
   let remaining = [...items];
 
-  // First page: only products + simple footer (totals/notes go on a later page)
-  const firstPageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
+  // First page: products + notes footer + page bar (no totals/signature)
+  const firstPageAvailable = PAGE_H - FIRST_HEADER_H - CLIENT_BAR_H - TABLE_HEADER_H - NOTES_FOOTER_H - SIMPLE_FOOTER_H - 30;
   const firstPageRows = Math.max(1, Math.floor(firstPageAvailable / ROW_H));
 
   const fpRows = Math.min(firstPageRows, remaining.length);
   pages.push(remaining.slice(0, fpRows));
   remaining = remaining.slice(fpRows);
 
-  // If remaining is empty, we still need a last page for totals/notes/footer
-  // because the first page was calculated WITHOUT space for them
   if (remaining.length === 0) {
-    // Push an empty last page that will hold only totals + notes + footer
     pages.push([]);
   }
 
-  // Continue with middle/last pages
   while (remaining.length > 0) {
-    const contPageAvailable = PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30;
+    // Continuation pages: compact header + compact client + table + notes footer + page bar
+    const contPageAvailable = PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - NOTES_FOOTER_H - SIMPLE_FOOTER_H - 30;
     const contPageRows = Math.floor(contPageAvailable / ROW_H);
 
     if (remaining.length <= contPageRows) {
-      const spaceNeeded = remaining.length * ROW_H + TABLE_HEADER_H + TOTALS_H + NOTES_H + FULL_FOOTER_H + CONT_HEADER_H + CONT_CLIENT_H + 40;
+      // Check if last page can also fit totals + signature
+      const spaceNeeded = remaining.length * ROW_H + TABLE_HEADER_H + TOTALS_H + NOTES_H + NOTES_FOOTER_H + SIMPLE_FOOTER_H + CONT_HEADER_H + CONT_CLIENT_H + 40;
       if (spaceNeeded <= PAGE_H) {
         pages.push(remaining);
         remaining = [];
       } else {
-        const fitRows = Math.max(1, Math.floor((PAGE_H - CONT_HEADER_H - CONT_CLIENT_H - TABLE_HEADER_H - SIMPLE_FOOTER_H - 30) / ROW_H));
+        const fitRows = Math.max(1, Math.floor(contPageAvailable / ROW_H));
         pages.push(remaining.slice(0, fitRows));
         remaining = remaining.slice(fitRows);
         if (remaining.length === 0) {
