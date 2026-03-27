@@ -60,8 +60,8 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
   }, []);
 
   const handleSelectAll = useCallback(() => {
-    setSelectedImages(new Set(product.images.map((_, i) => i)));
-  }, [product.images]);
+    setSelectedImages(new Set(mainImages.map((_, i) => i)));
+  }, [mainImages]);
 
   const handleDeselectAll = useCallback(() => {
     setSelectedImages(new Set([0])); // keep first
