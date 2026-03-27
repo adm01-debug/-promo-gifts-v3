@@ -303,7 +303,12 @@ export default function ProductDetail() {
               />
             </div>
 
-            {/* Price & Stock Card */}
+            {/* Social Proof & Urgency */}
+            <ProductSocialProof
+              productId={product.id}
+              totalStock={product.stock}
+            />
+
             <div className="relative overflow-hidden rounded-xl md:rounded-2xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-4 md:p-6 shadow-lg">
               {/* Decorative gradient */}
               {product.featured && (
