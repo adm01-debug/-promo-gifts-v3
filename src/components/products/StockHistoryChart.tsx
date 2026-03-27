@@ -246,9 +246,9 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   }
 
   // ---------- Velocity KPIs ----------
-  const bestVelocity = velocity?.length
-    ? velocity.reduce((best, v) => 
-        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
+  const bestVelocity = effectiveVelocity?.length
+    ? effectiveVelocity.reduce((best, v) => 
+        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, effectiveVelocity[0])
     : null;
 
   return (
