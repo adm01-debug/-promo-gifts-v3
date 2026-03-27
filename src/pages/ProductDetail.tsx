@@ -253,16 +253,35 @@ export default function ProductDetail() {
             
             {/* Header: badges + title + info bar — compact */}
             <div className="space-y-2">
-              <ProductCategoryBadges 
-                category={product.category} 
-                groups={product.groups}
-                productId={product.id}
-                productName={product.name}
-                productSku={product.sku}
-                productPrice={product.price}
-                productImageUrl={product.images?.[0]}
-                productMinQuantity={product.minQuantity || 1}
-              />
+              <div className="flex flex-wrap items-center gap-1.5">
+                <ProductCategoryBadges 
+                  category={product.category} 
+                  groups={product.groups}
+                  productId={product.id}
+                  productName={product.name}
+                  productSku={product.sku}
+                  productPrice={product.price}
+                  productImageUrl={product.images?.[0]}
+                  productMinQuantity={product.minQuantity || 1}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 rounded-full gap-1 px-3 text-[11px] font-medium border-primary/30 text-primary hover:bg-primary/10"
+                  onClick={() => navigate('/simulador', { 
+                    state: { 
+                      preSelectedProduct: {
+                        id: product.id, name: product.name, sku: product.sku,
+                        price: product.price, imageUrl: product.images?.[0],
+                        categoryName: product.category?.name,
+                      } 
+                    } 
+                  })}
+                >
+                  <Palette className="h-3 w-3" />
+                  Simular Personalização
+                </Button>
+              </div>
 
               {/* Status badges inline */}
               <div className="flex flex-wrap gap-1.5">
@@ -303,24 +322,6 @@ export default function ProductDetail() {
                 onOpenFutureStock={() => setFutureStockOpen(true)}
                 onOpenSupplierComparison={() => setSupplierCompareOpen(true)}
               />
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 rounded-lg gap-1.5 text-xs font-medium w-fit"
-                onClick={() => navigate('/simulador', { 
-                  state: { 
-                    preSelectedProduct: {
-                      id: product.id, name: product.name, sku: product.sku,
-                      price: product.price, imageUrl: product.images?.[0],
-                      categoryName: product.category?.name,
-                    } 
-                  } 
-                })}
-              >
-                <Palette className="h-3.5 w-3.5" />
-                Simular Personalização
-              </Button>
             </div>
 
             {/* Social Proof */}
