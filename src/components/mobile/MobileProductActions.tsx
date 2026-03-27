@@ -94,7 +94,7 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
 
         {/* Orçamento Button */}
         <Button
-          onClick={() => navigate(`/orcamentos/novo?product_id=${productId}&product_name=${encodeURIComponent(productName)}&product_sku=${encodeURIComponent(productSku || '')}&product_price=${productPrice}&product_image=${encodeURIComponent(productImageUrl || '')}`)}
+          onClick={() => navigate(`/orcamentos/novo?product_id=${productId}&product_name=${encodeURIComponent(productName)}&product_sku=${encodeURIComponent(productSku || '')}&product_price=${productPrice}&product_image=${encodeURIComponent(productImageUrl || '')}&min_quantity=${minQuantity}`)}
           className="flex-1 h-10 rounded-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
         >
           <FileText className="h-4 w-4" />

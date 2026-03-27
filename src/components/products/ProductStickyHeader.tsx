@@ -97,7 +97,7 @@ export function ProductStickyHeader({
               <Button
                 size="sm"
                 className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm gap-1.5"
-                onClick={() => navigate(`/orcamentos/novo?product_id=${productId}&product_name=${encodeURIComponent(productName)}&product_sku=${encodeURIComponent(productSku || '')}&product_price=${productPrice}&product_image=${encodeURIComponent(productImage || '')}`)}
+                onClick={() => navigate(`/orcamentos/novo?product_id=${productId}&product_name=${encodeURIComponent(productName)}&product_sku=${encodeURIComponent(productSku || '')}&product_price=${productPrice}&product_image=${encodeURIComponent(productImage || '')}&min_quantity=${minQuantity}`)}
               >
                 <FileText className="h-3.5 w-3.5" />
                 Orçamento
