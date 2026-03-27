@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useState } from "react";
+import { useRef, useCallback, useEffect, useState, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Loader2, ArrowUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
