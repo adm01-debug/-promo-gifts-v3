@@ -131,7 +131,7 @@ export function ExternalCategoryFilter({
           className={cn(
             "flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors",
             "hover:bg-muted/50",
-            isSelected && "bg-primary/5"
+            isSelected && "bg-orange/5"
           )}
           style={{ paddingLeft: `${8 + level * 16}px` }}
         >
