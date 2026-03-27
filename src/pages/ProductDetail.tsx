@@ -424,11 +424,6 @@ export default function ProductDetail() {
                           );
                         })}
                       </div>
-                      <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
-                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-foreground inline-block" /> &gt;100</span>
-                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-warning inline-block" /> &lt;100</span>
-                        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-destructive inline-block" /> Esgotado</span>
-                      </div>
                     </div>
                   ) : (
                     <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border", stockInfo.class)}>
