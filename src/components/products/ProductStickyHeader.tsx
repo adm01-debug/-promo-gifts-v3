@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Heart, Share2 } from "lucide-react";
+import { ShoppingCart, Heart, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { cn } from "@/lib/utils";
@@ -27,10 +28,10 @@ export function ProductStickyHeader({
   onToggleFavorite,
 }: ProductStickyHeaderProps) {
   const [visible, setVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show after scrolling past 400px (past the price card)
       setVisible(window.scrollY > 400);
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -88,8 +89,19 @@ export function ProductStickyHeader({
                 productPrice={productPrice}
                 minQuantity={minQuantity}
                 variant="button"
+                labelOverride="Carrinho"
+                iconOverride="cart"
                 className="h-9 rounded-full px-5 bg-orange hover:bg-orange-active text-orange-foreground font-medium text-sm"
               />
+
+              <Button
+                size="sm"
+                className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm gap-1.5"
+                onClick={() => navigate(`/orcamentos/novo?product_id=${productId}&product_name=${encodeURIComponent(productName)}&product_sku=${encodeURIComponent(productSku || '')}&product_price=${productPrice}&product_image=${encodeURIComponent(productImage || '')}`)}
+              >
+                <FileText className="h-3.5 w-3.5" />
+                Orçamento
+              </Button>
             </div>
           </div>
         </motion.div>

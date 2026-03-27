@@ -1,14 +1,17 @@
 import React from "react";
-import { Heart, Share2, Calculator, FileText, MessageSquare } from "lucide-react";
+import { Heart, Share2, Calculator, FileText, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 
 interface MobileProductActionsProps {
   productId: string;
   productName: string;
   productSku: string;
   productPrice: number;
+  productImageUrl?: string;
+  minQuantity?: number;
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onShare?: () => void;
@@ -20,20 +23,13 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
     productName,
     productSku,
     productPrice,
+    productImageUrl,
+    minQuantity = 1,
     isFavorite,
     onToggleFavorite,
     onShare,
   }, ref) {
   const navigate = useNavigate();
-
-  const handleQuickQuote = () => {
-    // Navigate to quote builder with product pre-selected
-    navigate(`/orcamentos/novo?produto=${productId}`);
-  };
-
-  const handleSimulator = () => {
-    navigate(`/simulador?produto=${productId}`);
-  };
 
   const handleShare = () => {
     if (onShare) {
@@ -82,24 +78,27 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
           <Share2 className="h-4 w-4" />
         </Button>
 
-        {/* Simulator Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSimulator}
-          className="h-10 rounded-full gap-1.5 text-xs px-3"
-        >
-          <Calculator className="h-3.5 w-3.5" />
-          <span className="hidden xs:inline">Simular</span>
-        </Button>
+        {/* Carrinho Button */}
+        <QuickAddToQuote
+          productId={productId}
+          productName={productName}
+          productSku={productSku}
+          productImageUrl={productImageUrl}
+          productPrice={productPrice}
+          minQuantity={minQuantity}
+          variant="button"
+          labelOverride="Carrinho"
+          iconOverride="cart"
+          className="flex-1 h-10 rounded-full bg-orange hover:bg-orange-active text-orange-foreground font-medium text-sm"
+        />
 
-        {/* Main CTA - Quote */}
+        {/* Orçamento Button */}
         <Button
-          onClick={handleQuickQuote}
-          className="flex-1 h-10 rounded-full gap-2 bg-orange hover:bg-orange-active text-orange-foreground font-medium text-sm"
+          onClick={() => navigate(`/orcamentos/novo?product_id=${productId}&product_name=${encodeURIComponent(productName)}&product_sku=${encodeURIComponent(productSku || '')}&product_price=${productPrice}&product_image=${encodeURIComponent(productImageUrl || '')}`)}
+          className="flex-1 h-10 rounded-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
         >
           <FileText className="h-4 w-4" />
-          Orçar Produto
+          Orçamento
         </Button>
       </div>
     </div>
