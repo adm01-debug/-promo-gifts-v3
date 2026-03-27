@@ -1,3 +1,4 @@
+import React from "react";
 import { Ruler, Scale, Box, ArrowUpDown, ArrowLeftRight, MoveHorizontal, Droplets } from "lucide-react";
 
 interface ProductDimensionsProps {
