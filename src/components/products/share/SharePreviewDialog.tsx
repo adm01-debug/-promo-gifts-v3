@@ -99,7 +99,7 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
         <div className="space-y-4">
           {/* Photo selector */}
           <PhotoSelector
-            images={product.images}
+            images={mainImages}
             selectedImages={selectedImages}
             onToggle={handleToggleImage}
             onSelectAll={handleSelectAll}
