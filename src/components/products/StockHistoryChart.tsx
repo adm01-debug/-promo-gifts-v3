@@ -311,7 +311,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         {bestVelocity && bestVelocity.price_changes_30d > 0 && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <DollarSign className="h-3 w-3" />
-            <span>{bestVelocity.price_changes_30d} alteração(ões) de preço nos últimos 30 dias</span>
+            <span>{bestVelocity.price_changes_30d} alteração(ões) de preço nos últimos 30 dias {isDemo && '(demo)'}</span>
           </div>
         )}
       </CardContent>
