@@ -5,6 +5,7 @@ import {
   Download,
   Check,
   Image as ImageIcon,
+  Palette,
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@/hooks/useProducts";
 import { SharePreviewDialog } from "./share/SharePreviewDialog";
+import { ShareAllColorsDialog } from "./share/ShareAllColorsDialog";
 import { usePhotoDownload } from "./share/usePhotoDownload";
 import { MESSAGE_TEMPLATES } from "./share/MessageTemplates";
 
@@ -30,6 +32,7 @@ interface ShareActionsProps {
 export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsProps) {
   const { toast } = useToast();
   const [showPreview, setShowPreview] = useState(false);
+  const [showAllColors, setShowAllColors] = useState(false);
   const [copied, setCopied] = useState(false);
   const { downloadPhotos, downloading } = usePhotoDownload();
 
@@ -47,6 +50,8 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
   const handleDownloadPhotos = () => {
     downloadPhotos(product.images, product.name);
   };
+
+  const hasColors = product.colors && product.colors.length > 1;
 
   return (
     <>
@@ -74,17 +79,13 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
               Enviar Produto Simples
             </DropdownMenuItem>
 
-            {product.variations && product.variations.length > 0 && (
-              <DropdownMenuItem
-                onClick={() => {
-                  toast({
-                    title: "Variações",
-                    description: "Preparando todas as variações de cor...",
-                  });
-                }}
-              >
-                <ImageIcon className="h-4 w-4 mr-2" />
+            {hasColors && (
+              <DropdownMenuItem onClick={() => setShowAllColors(true)}>
+                <Palette className="h-4 w-4 mr-2" />
                 Enviar Todas as Cores
+                <span className="ml-auto text-[10px] text-muted-foreground">
+                  {product.colors.length}
+                </span>
               </DropdownMenuItem>
             )}
 
@@ -142,6 +143,14 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
         onOpenChange={setShowPreview}
         product={product}
       />
+
+      {hasColors && (
+        <ShareAllColorsDialog
+          open={showAllColors}
+          onOpenChange={setShowAllColors}
+          product={product}
+        />
+      )}
     </>
   );
 }
