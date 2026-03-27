@@ -135,18 +135,6 @@ export function ProductCategoryBadges({
         </Tooltip>
       )}
 
-      {/* Botão ORÇAR - verde com ícone de carrinho */}
-      {productId && (
-        <QuickAddToQuote
-          productId={productId}
-          productName={productName || ''}
-          productSku={productSku}
-          productImageUrl={productImageUrl || undefined}
-          productPrice={productPrice || 0}
-          minQuantity={productMinQuantity || 1}
-          variant="badge"
-        />
-      )}
 
       {/* Visualizar com Logo */}
       {productId && (
