@@ -411,7 +411,7 @@ export default function ProductDetail() {
                   </div>
                 </div>
 
-                {/* CTA */}
+                {/* CTA — compact */}
                 <QuickAddToQuote
                   productId={id || ""}
                   productName={product.name}
@@ -420,7 +420,7 @@ export default function ProductDetail() {
                   productPrice={product.price}
                   minQuantity={product.minQuantity || 1}
                   variant="button"
-                  className="w-full h-10 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-sm shadow-md"
+                  className="w-full h-8 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-xs shadow-sm"
                 />
 
                 {/* Trust */}
@@ -428,6 +428,21 @@ export default function ProductDetail() {
                   <TrustBadge type="verified" />
                   <TrustBadge type="fast" />
                   <TrustBadge type="quality" />
+                </div>
+
+                {/* Specs inline — Materials + Dimensions */}
+                <div id="sec-specs" className="scroll-mt-28 space-y-2 pt-2 border-t border-border/40">
+                  <h4 className="text-xs font-semibold text-foreground">Especificações</h4>
+                  {product.materials && product.materials.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {product.materials.map((material) => (
+                        <Badge key={material} variant="secondary" className="px-2 py-0.5 text-[10px] rounded-full">
+                          {material}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <ProductDimensions dimensions={product.dimensions} />
                 </div>
               </div>
             </div>
