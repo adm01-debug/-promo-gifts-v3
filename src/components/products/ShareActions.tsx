@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   MessageCircle,
   Copy,
@@ -36,6 +36,18 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
   const [copied, setCopied] = useState(false);
   const { downloadPhotos, downloading } = usePhotoDownload();
 
+  // Count main product images (excluding color-specific ones)
+  const mainPhotosCount = useMemo(() => {
+    if (!product.colors || product.colors.length === 0) return product.images.length;
+    const colorImageUrls = new Set<string>();
+    product.colors.forEach((color) => {
+      if (color.image) colorImageUrls.add(color.image);
+      color.images?.forEach((img) => colorImageUrls.add(img));
+    });
+    const filtered = product.images.filter((img) => !colorImageUrls.has(img));
+    return filtered.length > 0 ? filtered.length : 1;
+  }, [product.images, product.colors]);
+
   const handleCopyDescription = async () => {
     const message = MESSAGE_TEMPLATES[1].generate(product); // informal default
     await navigator.clipboard.writeText(message);
@@ -62,6 +74,9 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
         >
           <MessageCircle className="h-4 w-4" />
           Enviar via A-Ticket
+          <span className="bg-primary-foreground/20 text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+            {mainPhotosCount}
+          </span>
         </Button>
 
         <DropdownMenu>
@@ -77,6 +92,9 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
             <DropdownMenuItem onClick={() => setShowPreview(true)}>
               <MessageCircle className="h-4 w-4 mr-2" />
               Enviar Produto Simples
+              <span className="ml-auto text-[10px] text-muted-foreground">
+                {mainPhotosCount} foto{mainPhotosCount !== 1 ? "s" : ""}
+              </span>
             </DropdownMenuItem>
 
             {hasColors && (
