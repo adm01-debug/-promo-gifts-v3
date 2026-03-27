@@ -514,12 +514,14 @@ export default function ProductDetail() {
             )}
 
             {/* Inline Price Calculator */}
+            <div id="sec-precos" className="scroll-mt-28">
             <InlinePriceCalculator
               productId={product.id}
               productName={product.name}
               basePrice={product.price}
               minQuantity={product.minQuantity || 1}
             />
+            </div>
 
             {/* Materials */}
             {product.materials && product.materials.length > 0 && (
