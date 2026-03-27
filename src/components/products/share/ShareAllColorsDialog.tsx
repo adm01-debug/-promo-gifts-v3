@@ -53,6 +53,7 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
   );
   const [customMessage, setCustomMessage] = useState<string | null>(null);
   const [contactSelection, setContactSelection] = useState<ShareContactSelection | null>(null);
+  const [previewMode, setPreviewMode] = useState(false);
 
   const selectedColors = useMemo(
     () => product.colors.filter((_, i) => selectedColorIds.has(i)),
