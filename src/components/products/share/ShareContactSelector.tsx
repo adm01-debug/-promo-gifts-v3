@@ -87,8 +87,8 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
     queryFn: async () => {
       if (!selectedCompany) return [];
       const raw = await selectCrm<CrmContact>("contacts", {
-        select: "id, name, cargo",
-        filters: { company_id: selectedCompany.id, is_active: true },
+        select: "id, first_name, last_name, full_name, cargo",
+        filters: { company_id: selectedCompany.id },
         limit: 20,
       });
 
@@ -96,6 +96,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
         raw.map(async (c) => {
           let email: string | null = null;
           let phone: string | null = null;
+          const displayName = c.full_name || [c.first_name, c.last_name].filter(Boolean).join(" ");
           try {
             const emails = await selectCrm<CrmContactEmail>("contact_emails", {
               select: "email",
@@ -112,7 +113,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
             });
             phone = phones[0]?.phone ?? null;
           } catch {}
-          return { id: c.id, name: c.name, cargo: c.cargo, email, phone } as ContactOption;
+          return { id: c.id, name: displayName, cargo: c.cargo, email, phone } as ContactOption;
         })
       );
       return enriched;
