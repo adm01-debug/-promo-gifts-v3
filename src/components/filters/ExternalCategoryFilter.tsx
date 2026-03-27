@@ -272,7 +272,7 @@ export function ExternalCategoryFilter({
             <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
             {isFetching ? "Atualizando..." : "Atualizar"}
           </button>
-          <span className="text-primary font-medium">
+          <span className="text-orange font-medium">
             {selectedCategories.length} selecionadas
           </span>
         </div>
