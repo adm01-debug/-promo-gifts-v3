@@ -17,6 +17,7 @@ import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useProductBounds } from "@/hooks/useProductBounds";
+import { ProductSparkline } from "./ProductSparkline";
 export interface ProductCardProps {
   product: Product;
   onClick?: () => void;
@@ -560,6 +561,16 @@ export function ProductCard({
             )}
           </div>
         )}
+
+        {/* Sales Sparkline */}
+        <div className="pt-1.5 sm:pt-2 border-t border-border/30">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              Vendas 30d
+            </span>
+          </div>
+          <ProductSparkline productId={product.id} />
+        </div>
       </div>
 
       {/* Collection Modal */}
