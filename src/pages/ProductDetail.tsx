@@ -303,6 +303,24 @@ export default function ProductDetail() {
                 onOpenFutureStock={() => setFutureStockOpen(true)}
                 onOpenSupplierComparison={() => setSupplierCompareOpen(true)}
               />
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 rounded-lg gap-1.5 text-xs font-medium w-fit"
+                onClick={() => navigate('/simulador', { 
+                  state: { 
+                    preSelectedProduct: {
+                      id: product.id, name: product.name, sku: product.sku,
+                      price: product.price, imageUrl: product.images?.[0],
+                      categoryName: product.category?.name,
+                    } 
+                  } 
+                })}
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Simular Personalização
+              </Button>
             </div>
 
             {/* Social Proof */}
