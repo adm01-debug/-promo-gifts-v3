@@ -27,8 +27,21 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>("informal");
   const [customMessage, setCustomMessage] = useState<string | null>(null);
   const [contactSelection, setContactSelection] = useState<ShareContactSelection | null>(null);
+
+  // Filter out color-specific images — keep only main product photos
+  const mainImages = useMemo(() => {
+    if (!product.colors || product.colors.length === 0) return product.images;
+    const colorImageUrls = new Set<string>();
+    product.colors.forEach((color) => {
+      if (color.image) colorImageUrls.add(color.image);
+      color.images?.forEach((img) => colorImageUrls.add(img));
+    });
+    const filtered = product.images.filter((img) => !colorImageUrls.has(img));
+    return filtered.length > 0 ? filtered : [product.images[0]]; // fallback to first
+  }, [product.images, product.colors]);
+
   const [selectedImages, setSelectedImages] = useState<Set<number>>(
-    () => new Set(product.images.map((_, i) => i))
+    () => new Set(mainImages.map((_, i) => i))
   );
 
   const currentTemplate = MESSAGE_TEMPLATES.find((t) => t.key === activeTemplate)!;
