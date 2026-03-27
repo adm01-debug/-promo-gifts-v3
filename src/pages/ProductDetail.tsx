@@ -447,6 +447,19 @@ export default function ProductDetail() {
               </div>
             </div>
 
+            {/* Customization Options — elevated for B2B decision-making */}
+            <ProductCustomizationOptions 
+              productId={id || ""} 
+              productSku={product.sku} 
+            />
+
+            {/* Personalization Rules — elevated */}
+            <ProductPersonalizationRules 
+              productId={id || ""} 
+              productSku={product.sku}
+              productName={product.name}
+            />
+
             {/* Description */}
             <div className="space-y-3">
               <h3 className="font-display text-lg font-semibold text-foreground">
@@ -486,6 +499,14 @@ export default function ProductDetail() {
               )
             )}
 
+            {/* Inline Price Calculator */}
+            <InlinePriceCalculator
+              productId={product.id}
+              productName={product.name}
+              basePrice={product.price}
+              minQuantity={product.minQuantity || 1}
+            />
+
             {/* Materials */}
             {product.materials && product.materials.length > 0 && (
               <div className="space-y-3">
@@ -509,16 +530,6 @@ export default function ProductDetail() {
             {/* Dimensions & Weight */}
             <ProductDimensions dimensions={product.dimensions} />
 
-            {/* Inline Price Calculator */}
-            <InlinePriceCalculator
-              productId={product.id}
-              productName={product.name}
-              basePrice={product.price}
-              minQuantity={product.minQuantity || 1}
-            />
-
-            {/* Variações removidas daqui - agora estão na galeria */}
-
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
               <KitComposition
@@ -526,19 +537,6 @@ export default function ProductDetail() {
                 onSelectItems={setSelectedKitItems}
               />
             )}
-
-            {/* Customization Options */}
-            <ProductCustomizationOptions 
-              productId={id || ""} 
-              productSku={product.sku} 
-            />
-
-            {/* Personalization Rules */}
-            <ProductPersonalizationRules 
-              productId={id || ""} 
-              productSku={product.sku}
-              productName={product.name}
-            />
 
             {/* Actions - Desktop only */}
             <div className="hidden md:flex items-center gap-3 pt-4 border-t border-border">
