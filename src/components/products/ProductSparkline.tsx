@@ -124,6 +124,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
     <div
       ref={containerRef}
       className={cn("w-full relative group/spark", className)}
+      onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
