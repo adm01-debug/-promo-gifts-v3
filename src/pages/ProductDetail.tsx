@@ -523,7 +523,8 @@ export default function ProductDetail() {
             />
             </div>
 
-            {/* Materials */}
+            {/* Materials & Specs */}
+            <div id="sec-specs" className="scroll-mt-28 space-y-4">
             {product.materials && product.materials.length > 0 && (
               <div className="space-y-3">
                 <h3 className="font-display text-lg font-semibold text-foreground">
@@ -545,6 +546,7 @@ export default function ProductDetail() {
 
             {/* Dimensions & Weight */}
             <ProductDimensions dimensions={product.dimensions} />
+            </div>
 
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
