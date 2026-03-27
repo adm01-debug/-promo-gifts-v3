@@ -12,6 +12,7 @@ import type { Product } from "@/hooks/useProducts";
 import type { ViewMode } from "@/hooks/useCatalogState";
 import type { ColumnCount } from "@/components/products/ColumnSelector";
 import type { RefObject } from "react";
+import { SparklineSalesProvider } from "@/hooks/useSparklineSales";
 
 interface CatalogContentProps {
   viewMode: ViewMode;
