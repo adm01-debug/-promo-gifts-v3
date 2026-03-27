@@ -92,6 +92,9 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
             <DropdownMenuItem onClick={() => setShowPreview(true)}>
               <MessageCircle className="h-4 w-4 mr-2" />
               Enviar Produto Simples
+              <span className="ml-auto text-[10px] text-muted-foreground">
+                {mainPhotosCount} foto{mainPhotosCount !== 1 ? "s" : ""}
+              </span>
             </DropdownMenuItem>
 
             {hasColors && (
