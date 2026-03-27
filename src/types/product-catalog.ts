@@ -65,7 +65,7 @@ export interface Product {
   onSale: boolean;
   isKit: boolean;
   gender?: string | null;
-  category: { id: number; name: string };
+  category: { id: string | number; name: string };
   supplier: { id: string; name: string };
   tags: {
     publicoAlvo: string[];

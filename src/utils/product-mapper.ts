@@ -102,7 +102,7 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     isKit: Boolean(p.is_kit),
     gender: p.gender || null,
     category: {
-      id: parseInt(p.category_id || p.main_category_id || "0") || 0,
+      id: p.category_id || p.main_category_id || "0",
       name: p.category_name || "Sem categoria",
     },
     supplier: {
