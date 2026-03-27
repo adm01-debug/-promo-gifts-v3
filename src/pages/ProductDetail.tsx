@@ -518,14 +518,6 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Section Navigation */}
-            <ProductSectionNav
-              tabs={[
-                { id: "sec-precos", label: "Tabela de Preços" },
-                { id: "sec-personalizacao", label: "Personalização" },
-                { id: "sec-indicado", label: "Indicado para" },
-              ]}
-            />
 
             {/* ===== CONTENT SECTIONS — compact spacing ===== */}
 
