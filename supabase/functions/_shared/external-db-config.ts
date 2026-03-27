@@ -70,6 +70,8 @@ export const PRODUCT_TABLES = [
   'category_area_techniques',
   'tabela_preco_fornecedores_gravacao',
   'price_history',
+  'stock_snapshots',
+  'stock_daily_summary',
 ] as const;
 
 // Views e Materialized Views (somente leitura)
