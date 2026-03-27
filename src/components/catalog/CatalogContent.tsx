@@ -273,6 +273,12 @@ export function CatalogContent({
   canAddToCompare,
   onLoadMore,
 }: CatalogContentProps) {
+  // Extract product IDs for batch sparkline data
+  const sparklineProductIds = useMemo(
+    () => paginatedProducts.map(p => p.id),
+    [paginatedProducts]
+  );
+
   if (shouldShowCatalogSkeleton) {
     return (
       <div className="h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner p-4">
