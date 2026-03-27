@@ -158,22 +158,24 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
             </button>
           </div>
 
-          {previewMode ? (
-            <WhatsAppPreview
-              message={message}
-              images={mainImages}
-              selectedImages={selectedImages}
-              contactName={contactSelection?.contactName}
-            />
-          ) : (
-            <div className="bg-secondary/50 rounded-xl p-3 border border-border">
-              <Textarea
-                value={message}
-                onChange={(e) => setCustomMessage(e.target.value)}
-                className="min-h-[160px] bg-transparent border-0 resize-none focus-visible:ring-0 text-sm"
+          <div key={previewMode ? "preview" : "edit"} className="animate-fade-in">
+            {previewMode ? (
+              <WhatsAppPreview
+                message={message}
+                images={mainImages}
+                selectedImages={selectedImages}
+                contactName={contactSelection?.contactName}
               />
-            </div>
-          )}
+            ) : (
+              <div className="bg-secondary/50 rounded-xl p-3 border border-border">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  className="min-h-[160px] bg-transparent border-0 resize-none focus-visible:ring-0 text-sm"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Contact selector */}
           <div className="space-y-2">
