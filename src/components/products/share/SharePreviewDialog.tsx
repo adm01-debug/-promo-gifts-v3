@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, Eye, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import type { Product } from "@/hooks/useProducts";
 import { PhotoSelector } from "./PhotoSelector";
 import { ShareContactSelector, type ShareContactSelection } from "./ShareContactSelector";
 import { MESSAGE_TEMPLATES, type TemplateKey } from "./MessageTemplates";
+import { WhatsAppPreview } from "./WhatsAppPreview";
 import { cn } from "@/lib/utils";
 
 interface SharePreviewDialogProps {
@@ -27,6 +28,7 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>("informal");
   const [customMessage, setCustomMessage] = useState<string | null>(null);
   const [contactSelection, setContactSelection] = useState<ShareContactSelection | null>(null);
+  const [previewMode, setPreviewMode] = useState(false);
 
   // Filter out color-specific images — keep only main product photos
   const mainImages = useMemo(() => {
@@ -129,14 +131,49 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
             </div>
           </div>
 
-          {/* Message preview (editable) */}
-          <div className="bg-secondary/50 rounded-xl p-3 border border-border">
-            <Textarea
-              value={message}
-              onChange={(e) => setCustomMessage(e.target.value)}
-              className="min-h-[160px] bg-transparent border-0 resize-none focus-visible:ring-0 text-sm"
-            />
+          {/* Edit / Preview toggle */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Mensagem</span>
+            <button
+              type="button"
+              onClick={() => setPreviewMode(!previewMode)}
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
+                previewMode
+                  ? "bg-[hsl(142,40%,28%)] text-white"
+                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+              )}
+            >
+              {previewMode ? (
+                <>
+                  <Pencil className="h-3 w-3" />
+                  Editar
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3 w-3" />
+                  Preview WhatsApp
+                </>
+              )}
+            </button>
           </div>
+
+          {previewMode ? (
+            <WhatsAppPreview
+              message={message}
+              images={mainImages}
+              selectedImages={selectedImages}
+              contactName={contactSelection?.contactName}
+            />
+          ) : (
+            <div className="bg-secondary/50 rounded-xl p-3 border border-border">
+              <Textarea
+                value={message}
+                onChange={(e) => setCustomMessage(e.target.value)}
+                className="min-h-[160px] bg-transparent border-0 resize-none focus-visible:ring-0 text-sm"
+              />
+            </div>
+          )}
 
           {/* Contact selector */}
           <div className="space-y-2">
