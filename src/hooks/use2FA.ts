@@ -65,7 +65,7 @@ export function use2FA(targetUserId?: string) {
   const verifyToken = useCallback((secret: string, token: string): boolean => {
     try {
       const totp = new OTPAuth.TOTP({
-        issuer: 'Gifts Store',
+        issuer: 'Gift Store',
         label: 'user',
         algorithm: 'SHA1',
         digits: 6,
