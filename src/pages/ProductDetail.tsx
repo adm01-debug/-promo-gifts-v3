@@ -11,6 +11,8 @@ import {
   Layers,
   Sparkles,
   Palette,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
@@ -38,6 +40,8 @@ import { PackagingModal } from "@/components/products/PackagingModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
@@ -60,6 +64,45 @@ import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
+
+/** Collapsible wrapper for personalization section */
+function PersonalizationCollapsible({ id, productSku, productName }: { id: string; productSku: string; productName: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div id="sec-personalizacao" className="scroll-mt-28">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-accent/5 transition-colors py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-accent/10">
+                    <Palette className="h-5 w-5 text-accent-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-base font-semibold text-foreground">Personalização</h3>
+                    <p className="text-xs text-muted-foreground">Técnicas e locais de gravação disponíveis</p>
+                  </div>
+                </div>
+                {isOpen ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-4 pb-4 space-y-2">
+              <ProductCustomizationOptions productId={id} productSku={productSku} />
+              <ProductPersonalizationRules productId={id} productSku={productSku} productName={productName} />
+            </div>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+    </div>
+  );
+}
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
@@ -478,46 +521,14 @@ export default function ProductDetail() {
             {/* Section Navigation */}
             <ProductSectionNav
               tabs={[
+                { id: "sec-precos", label: "Tabela de Preços" },
                 { id: "sec-personalizacao", label: "Personalização" },
                 { id: "sec-descricao", label: "Descrição / Specs" },
-                { id: "sec-precos", label: "Tabela de Preços" },
-                
                 { id: "sec-indicado", label: "Indicado para" },
               ]}
             />
 
             {/* ===== CONTENT SECTIONS — compact spacing ===== */}
-
-            {/* Personalization */}
-            <div id="sec-personalizacao" className="scroll-mt-28 space-y-2">
-              <ProductCustomizationOptions productId={id || ""} productSku={product.sku} />
-              <ProductPersonalizationRules productId={id || ""} productSku={product.sku} productName={product.name} />
-            </div>
-
-
-            {/* Variant Grid */}
-            {product.variations && product.variations.length > 0 && (
-              product.variations.some((v: any) => v.size_code) ? (
-                <VariantGridMatrix
-                  variants={product.variations.map((v: any) => ({
-                    id: v.id, color_name: v.color?.name || v.name || 'Padrão',
-                    color_hex: v.color?.hex || '#888', size_code: v.size_code || null,
-                    stock: Math.max(0, v.stock ?? 0), sku: v.sku, image: v.image, price: v.price ?? null,
-                  }))}
-                  selectedId={selectedVariation?.id}
-                  onSelect={(item) => {
-                    const found = product.variations?.find((v: any) => v.id === item.id);
-                    if (found) setSelectedVariation(found);
-                  }}
-                />
-              ) : (
-                <ProductSizeSelector
-                  variations={product.variations}
-                  selectedSize={selectedSize}
-                  onSelectSize={setSelectedSize}
-                />
-              )
-            )}
 
             {/* Price Calculator */}
             <div id="sec-precos" className="scroll-mt-28">
@@ -528,6 +539,11 @@ export default function ProductDetail() {
                 minQuantity={product.minQuantity || 1}
               />
             </div>
+
+            {/* Personalization — collapsible */}
+            <PersonalizationCollapsible id={id || ""} productSku={product.sku} productName={product.name} />
+
+            {/* Variant Grid */}
 
 
             {/* Kit Composition */}
