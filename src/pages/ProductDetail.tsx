@@ -431,17 +431,29 @@ export default function ProductDetail() {
                     </div>
                   </div>
 
-                  {/* CTA */}
-                  <QuickAddToQuote
-                    productId={id || ""}
-                    productName={product.name}
-                    productSku={product.sku}
-                    productImageUrl={product.images?.[0]}
-                    productPrice={product.price}
-                    minQuantity={product.minQuantity || 1}
-                    variant="button"
-                    className="w-full h-8 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-xs shadow-sm"
-                  />
+                  {/* CTA Buttons */}
+                  <div className="flex gap-2">
+                    <QuickAddToQuote
+                      productId={id || ""}
+                      productName={product.name}
+                      productSku={product.sku}
+                      productImageUrl={product.images?.[0]}
+                      productPrice={product.price}
+                      minQuantity={product.minQuantity || 1}
+                      variant="button"
+                      className="flex-1 h-8 rounded-lg bg-orange hover:bg-orange-active text-orange-foreground font-semibold text-xs shadow-sm"
+                      labelOverride="Carrinho"
+                      iconOverride="cart"
+                    />
+                    <Button
+                      size="sm"
+                      className="flex-1 h-8 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-sm gap-1.5"
+                      onClick={() => navigate(`/orcamentos/novo?product_id=${id}&product_name=${encodeURIComponent(product.name)}&product_sku=${encodeURIComponent(product.sku || '')}&product_price=${product.price}&product_image=${encodeURIComponent(product.images?.[0] || '')}`)}
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      Orçamento
+                    </Button>
+                  </div>
 
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px]">
                     <TrustBadge type="verified" />
