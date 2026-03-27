@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { 
-  Share2, 
   MessageCircle, 
   Copy, 
   Download, 
   Check, 
   Image as ImageIcon,
-  FileText,
-  Send
+  Send,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
