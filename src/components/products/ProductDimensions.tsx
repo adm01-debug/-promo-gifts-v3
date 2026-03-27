@@ -9,6 +9,7 @@ interface ProductDimensionsProps {
     weight_g?: number | null;
     capacity_ml?: number | null;
   };
+  compact?: boolean;
 }
 
 interface SpecItemProps {
@@ -17,9 +18,23 @@ interface SpecItemProps {
   value: string;
   iconBgClass?: string;
   iconColorClass?: string;
+  compact?: boolean;
 }
 
-function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColorClass = "text-primary" }: SpecItemProps) {
+function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColorClass = "text-primary", compact }: SpecItemProps) {
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border">
+        <div className={`w-7 h-7 rounded-md ${iconBgClass} flex items-center justify-center shrink-0`}>
+          <span className={iconColorClass}>{React.cloneElement(icon as React.ReactElement, { className: "h-3.5 w-3.5" })}</span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
+          <p className="text-xs font-medium text-foreground leading-tight">{value}</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border">
       <div className={`w-10 h-10 rounded-lg ${iconBgClass} flex items-center justify-center shrink-0`}>

@@ -442,7 +442,7 @@ export default function ProductDetail() {
                     ))}
                   </div>
                 )}
-                <ProductDimensions dimensions={product.dimensions} />
+                <ProductDimensions dimensions={product.dimensions} compact />
               </div>
             </div>
 
