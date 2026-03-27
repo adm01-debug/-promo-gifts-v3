@@ -430,19 +430,48 @@ export default function ProductDetail() {
                 </div>
               </div>
 
-              {/* RIGHT — Specs */}
+              {/* RIGHT — Specs + Description */}
               <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 space-y-2">
-                <h4 className="text-xs font-semibold text-foreground">Especificações</h4>
-                {product.materials && product.materials.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {product.materials.map((material) => (
-                      <Badge key={material} variant="secondary" className="px-2 py-0.5 text-[10px] rounded-full">
-                        {material}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                <ProductDimensions dimensions={product.dimensions} compact />
+                {/* Description */}
+                <div id="sec-descricao" className="scroll-mt-28">
+                  <h4 className="text-xs font-semibold text-foreground mb-1">Descrição</h4>
+                  {product.description ? (() => {
+                    const sentences = product.description
+                      .split(/[.]\s+/)
+                      .map(s => s.trim().replace(/\.$/, ''))
+                      .filter(s => s.length > 5);
+                    if (sentences.length > 2) {
+                      return (
+                        <ul className="space-y-0.5">
+                          {sentences.map((sentence, i) => (
+                            <li key={i} className="flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                              <span className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
+                              {sentence}
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    }
+                    return <p className="text-muted-foreground leading-relaxed text-[11px]">{product.description}</p>;
+                  })() : (
+                    <p className="text-muted-foreground italic text-[11px]">Sem descrição disponível</p>
+                  )}
+                </div>
+
+                {/* Specs */}
+                <div className="border-t border-border/40 pt-2 space-y-2">
+                  <h4 className="text-xs font-semibold text-foreground">Especificações</h4>
+                  {product.materials && product.materials.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {product.materials.map((material) => (
+                        <Badge key={material} variant="secondary" className="px-2 py-0.5 text-[10px] rounded-full">
+                          {material}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <ProductDimensions dimensions={product.dimensions} compact />
+                </div>
               </div>
             </div>
 
