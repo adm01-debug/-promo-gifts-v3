@@ -237,7 +237,7 @@ function ProductRiskDetail({ productId, productName, productSku }: ProductRiskDe
           variant="ghost"
           size="sm"
           className="h-6 text-[10px] gap-1 px-2 shrink-0"
-          onClick={() => navigate(`/catalogo/${productId}`)}
+          onClick={() => navigate(`/produto/${productId}`)}
         >
           <ExternalLink className="h-3 w-3" />
           Ver produto
