@@ -115,7 +115,9 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       // Aggregate daily
       const dailyMap = new Map<string, DailySalesPoint>();
 
+      // #7 fix: guard against null created_at before substring
       for (const qi of quoteItems || []) {
+        if (!qi.created_at) continue;
         const date = qi.created_at.substring(0, 10);
         const entry = dailyMap.get(date) || newDailyPoint(date);
         entry.quotedQty += qi.quantity || 0;
@@ -125,6 +127,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       }
 
       for (const oi of orderItems || []) {
+        if (!oi.created_at) continue;
         const date = oi.created_at.substring(0, 10);
         const entry = dailyMap.get(date) || newDailyPoint(date);
         entry.orderedQty += oi.quantity || 0;

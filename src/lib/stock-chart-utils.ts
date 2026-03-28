@@ -294,6 +294,20 @@ export function safeParseDateForChart(dateStr: string): { dateFormatted: string;
   }
 }
 
+// ---------- Safe price_changes extraction (#3/#12 fix) ----------
+
+/**
+ * Safely extracts price_changes_30d from velocity data
+ * without unsafe double casts.
+ */
+export function safePriceChanges(velocityData: unknown): number {
+  if (velocityData == null || typeof velocityData !== 'object') return 0;
+  const record = velocityData as Record<string, unknown>;
+  const val = record.price_changes_30d;
+  if (typeof val === 'number' && Number.isFinite(val)) return val;
+  return 0;
+}
+
 // ---------- Intelligence type guard ----------
 
 export function isRealIntelligence(data: unknown): data is ProductIntelligenceData {
