@@ -10,7 +10,7 @@ const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, prima
 const LIGHTWEIGHT_PAGE_SIZE = 500;
 const LIGHTWEIGHT_MAX_CONCURRENCY = 2;
 const LIGHTWEIGHT_MIN_SPLIT_PAGE_SIZE = 125;
-const LIGHTWEIGHT_MAX_TOTAL = 2000;
+const LIGHTWEIGHT_MAX_TOTAL = 15000;
 
 export interface LightweightProduct {
   id: string;
