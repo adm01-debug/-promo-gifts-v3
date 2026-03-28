@@ -344,7 +344,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
               />
               <Area yAxisId="stock" type="monotone" dataKey="stockClose" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.15)" strokeWidth={2} name="Disponível" dot={false} activeDot={{ r: 4 }} />
               <Bar yAxisId="flow" dataKey="depleted" fill="hsl(var(--destructive) / 0.4)" name="Compras do mercado" radius={[2, 2, 0, 0]} barSize={4} />
-              <Bar yAxisId="flow" dataKey="restocked" fill="hsl(var(--primary) / 0.4)" name="Reposição" radius={[2, 2, 0, 0]} barSize={4} />
+              <Bar yAxisId="flow" dataKey="restocked" fill="hsl(142 71% 45% / 0.5)" name="Reposição" radius={[2, 2, 0, 0]} barSize={4} />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
