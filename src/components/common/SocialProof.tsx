@@ -71,14 +71,14 @@ export function PopularityBadge({
 }
 
 // Trust badges
-type TrustBadgeType = "verified" | "fast" | "quality" | "secure" | "popular";
+type TrustBadgeType = "verified" | "fast" | "quality" | "secure" | "popular" | "new" | "sale" | "bestseller" | "freeShipping";
 
 interface TrustBadgeProps {
   type: TrustBadgeType;
   className?: string;
 }
 
-const trustBadges = {
+const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: string; color: string }> = {
   verified: {
     icon: ShieldCheck,
     label: "Fornecedor verificado",
@@ -103,7 +103,27 @@ const trustBadges = {
     icon: ThumbsUp,
     label: "Escolha popular",
     color: "text-rose-500"
-  }
+  },
+  new: {
+    icon: Zap,
+    label: "Novidade",
+    color: "text-emerald-500"
+  },
+  sale: {
+    icon: Flame,
+    label: "Promoção",
+    color: "text-orange-500"
+  },
+  bestseller: {
+    icon: Crown,
+    label: "Mais vendido",
+    color: "text-amber-500"
+  },
+  freeShipping: {
+    icon: TrendingUp,
+    label: "Frete grátis",
+    color: "text-emerald-600"
+  },
 };
 
 export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
