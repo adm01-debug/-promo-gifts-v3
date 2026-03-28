@@ -40,7 +40,7 @@ import {
   type IntelligenceFlag,
 } from "@/hooks/useStockHistory";
 import { formatCurrency } from "@/lib/format";
-import { generateDemoStockData, generateDemoVelocity, generateDemoIntelligence } from "@/lib/demo-chart-data";
+import { formatCurrency } from "@/lib/format";
 
 interface StockHistoryChartProps {
   productId: string;
@@ -103,10 +103,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   const { data: velocity } = useStockVelocity(productId);
   const { data: intelligence } = useProductIntelligenceData(productId);
 
-  const isDemo = !summaries?.length;
+  const hasData = !!summaries?.length;
 
   const chartData = useMemo(() => {
-    if (isDemo) return generateDemoStockData(productId, days);
+    if (!hasData) return [];
     const aggregated = aggregateDailySummaryByDate(summaries!);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
@@ -117,12 +117,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
         fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
       }));
-  }, [summaries, days, isDemo, productId]);
+  }, [summaries, days, hasData]);
 
-  const effectiveIntelligence = isDemo ? generateDemoIntelligence(productId) : intelligence;
-  const flags = useMemo(() => isDemo
-    ? getActiveFlags(effectiveIntelligence as any)
-    : getActiveFlags(intelligence), [intelligence, isDemo, effectiveIntelligence]);
+  const effectiveIntelligence = intelligence;
+  const flags = useMemo(() => getActiveFlags(intelligence), [intelligence]);
 
   // ---------- Loading ----------
   if (loadingSummary) {
@@ -135,12 +133,30 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     );
   }
 
+  // ---------- Empty state ----------
+  if (!hasData) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Estoque & Inteligência
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-6">
+            Nenhum dado de estoque disponível ainda. Os dados serão exibidos quando o sync estiver ativo.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // ---------- Velocity KPIs ----------
-  const demoVelocity = isDemo ? generateDemoVelocity(productId) : null;
-  const bestVelocity = !isDemo && velocity?.length
+  const bestVelocity = velocity?.length
     ? velocity.reduce((best, v) => 
         (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-    : demoVelocity;
+    : null;
 
   return (
     <Card>
@@ -172,11 +188,6 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
             {effectiveIntelligence?.turnover_score != null && (
               <Badge variant="secondary" className="text-xs font-mono">
                 Score: {Math.round(effectiveIntelligence.turnover_score)}
-              </Badge>
-            )}
-            {isDemo && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground border-dashed">
-                demo
               </Badge>
             )}
           </div>

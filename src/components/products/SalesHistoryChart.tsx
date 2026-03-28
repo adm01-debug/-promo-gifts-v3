@@ -31,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
-import { generateDemoSalesData, generateDemoSalesKpis } from "@/lib/demo-chart-data";
+
 
 interface SalesHistoryChartProps {
   productId: string;
@@ -46,23 +46,21 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
   const { data, isLoading } = useSalesHistory(productId, days);
 
-  const isDemo = !data?.daily?.length;
+  const hasData = !!data?.daily?.length;
 
   const chartData = useMemo(() => {
-    if (!isDemo) {
-      return data!.daily.map(d => ({
-        ...d,
-        dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
-        fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
-      }));
-    }
-    return generateDemoSalesData(productId, days);
-  }, [data, days, isDemo, productId]);
+    if (!hasData) return [];
+    return data!.daily.map(d => ({
+      ...d,
+      dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
+      fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
+    }));
+  }, [data, hasData]);
 
   const kpis = useMemo(() => {
-    if (!isDemo) return data!.kpis;
-    return generateDemoSalesKpis(chartData);
-  }, [data, isDemo, chartData]);
+    if (!hasData) return { totalQuotedQty: 0, totalOrderedQty: 0, totalQuotedValue: 0, totalOrderedValue: 0, conversionRate: 0, uniqueSellers: 0, avgOrderValue: 0, topSellers: [] };
+    return data!.kpis;
+  }, [data, hasData]);
 
   // Loading
   if (isLoading) {
@@ -70,6 +68,25 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Empty state
+  if (!hasData && !isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Vendas Internas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-6">
+            Nenhum dado de vendas disponível ainda. Os dados serão exibidos quando houver orçamentos e pedidos.
+          </p>
         </CardContent>
       </Card>
     );
@@ -89,11 +106,6 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            {isDemo && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground border-dashed">
-                demo
-              </Badge>
-            )}
             {kpis.conversionRate > 0 && (
               <Badge
                 variant="outline"
