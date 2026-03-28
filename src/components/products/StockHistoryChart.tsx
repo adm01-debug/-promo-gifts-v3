@@ -3,7 +3,6 @@ import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ResponsiveContainer,
-  AreaChart,
   Area,
   XAxis,
   YAxis,
@@ -17,18 +16,18 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Flame,
-  AlertTriangle,
-  Moon,
+  Target,
+  Zap,
   DollarSign,
   RefreshCw,
   Star,
   TrendingDown,
   TrendingUp,
-  Activity,
   Loader2,
-  Package,
-  Clock,
+  ShoppingCart,
   BarChart3,
+  Trophy,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -46,7 +45,7 @@ interface StockHistoryChartProps {
   productName?: string;
 }
 
-// ---------- Flag config ----------
+// ---------- Flag config — foco em inteligência competitiva ----------
 
 const FLAG_CONFIG: Record<IntelligenceFlag, {
   icon: typeof Flame;
@@ -56,39 +55,39 @@ const FLAG_CONFIG: Record<IntelligenceFlag, {
 }> = {
   'hot-product': {
     icon: Flame,
-    label: 'Produto Quente',
+    label: 'Sucesso no Mercado',
     colors: 'bg-destructive/15 text-destructive border-destructive/30',
-    description: 'Vendendo rápido no fornecedor e pode acabar em breve',
+    description: 'Alta saída no fornecedor — seus concorrentes estão vendendo bastante',
   },
   'stockout-risk': {
-    icon: AlertTriangle,
-    label: 'Risco de Ruptura',
-    colors: 'bg-destructive/15 text-destructive border-destructive/30',
-    description: 'Menos de 7 dias de estoque restante',
+    icon: Zap,
+    label: 'Esgotando Rápido',
+    colors: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+    description: 'Demanda do mercado está consumindo o estoque — feche antes que acabe',
   },
   'stagnant': {
-    icon: Moon,
-    label: 'Estagnado',
+    icon: Eye,
+    label: 'Baixa Procura',
     colors: 'bg-muted text-muted-foreground border-border',
-    description: 'Baixa saída nos últimos 30 dias com estoque alto',
+    description: 'Pouca movimentação no mercado — avalie se vale incluir na oferta',
   },
   'negotiation-opportunity': {
     icon: DollarSign,
-    label: 'Oportunidade de Desconto',
+    label: 'Negocie Preço',
     colors: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
-    description: 'Estoque encalhado no fornecedor — pedir desconto',
+    description: 'Estoque parado no fornecedor — momento ideal para negociar desconto',
   },
   'frequent-restock': {
     icon: RefreshCw,
-    label: 'Alta Demanda',
+    label: 'Demanda Confirmada',
     colors: 'bg-primary/15 text-primary border-primary/30',
-    description: 'Fornecedor reabastece frequentemente — demanda confirmada',
+    description: 'Fornecedor reabastece frequentemente — o mercado compra de forma recorrente',
   },
   'class-a': {
-    icon: Star,
-    label: 'Classe A',
+    icon: Trophy,
+    label: 'Best-Seller',
     colors: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
-    description: 'Top 20% em giro de estoque',
+    description: 'Top 20% em vendas no mercado — produto essencial no portfólio',
   },
 };
 
@@ -159,7 +158,6 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     avg_velocity_30d: 11.8,
     max_velocity_trend: 1.21,
     min_days_to_stockout: 42,
-    is_hot_product: true,
   }), [productId]);
 
   const chartData = useMemo(() => {
@@ -178,11 +176,29 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
   const effectiveIntelligence = intelligence ?? (isDemo ? mockIntelligence : null);
   const effectiveVelocity = velocity?.length ? velocity : null;
-  const bestVelocityData = effectiveVelocity
+  const bestVelocity = effectiveVelocity
     ? effectiveVelocity.reduce((best, v) => 
         (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, effectiveVelocity[0])
     : (isDemo ? mockVelocity as any : null);
   const flags = useMemo(() => getActiveFlags(effectiveIntelligence as any), [effectiveIntelligence]);
+
+  // ---------- Derived commercial insights ----------
+  const marketDemandLevel = useMemo(() => {
+    if (!bestVelocity) return 'unknown';
+    const v = bestVelocity.avg_daily_depletion_7d;
+    if (v >= 20) return 'very-high';
+    if (v >= 10) return 'high';
+    if (v >= 3) return 'moderate';
+    return 'low';
+  }, [bestVelocity]);
+
+  const demandLabel: Record<string, { text: string; color: string }> = {
+    'very-high': { text: 'Muito Alta', color: 'text-destructive' },
+    'high': { text: 'Alta', color: 'text-amber-500' },
+    'moderate': { text: 'Moderada', color: 'text-primary' },
+    'low': { text: 'Baixa', color: 'text-muted-foreground' },
+    'unknown': { text: '—', color: 'text-muted-foreground' },
+  };
 
   // ---------- Loading ----------
   if (loadingSummary) {
@@ -195,21 +211,17 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     );
   }
 
-  // Empty state removed — using mock data instead
-
-  const bestVelocity = bestVelocityData;
-
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Estoque & Inteligência
+              <Target className="h-4 w-4" />
+              Inteligência de Mercado
             </CardTitle>
             <CardDescription className="mt-1">
-              Movimentação no fornecedor · {chartData.length} dias
+              Como o mercado está comprando este produto · {chartData.length} dias
               {isDemo && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">dados ilustrativos</Badge>}
             </CardDescription>
           </div>
@@ -224,12 +236,14 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                   'bg-muted text-muted-foreground border-border'
                 )}
               >
-                Classe {effectiveIntelligence.abc_classification}
+                {effectiveIntelligence.abc_classification === 'A' ? '🏆 Best-Seller' :
+                 effectiveIntelligence.abc_classification === 'B' ? '📈 Boa Saída' :
+                 '📊 Nicho'}
               </Badge>
             )}
             {effectiveIntelligence?.turnover_score != null && (
-              <Badge variant="secondary" className="text-xs font-mono">
-                Score: {Math.round(effectiveIntelligence.turnover_score)}
+              <Badge variant="secondary" className="text-xs font-mono" title="Potencial comercial: quanto maior, mais o mercado compra">
+                Potencial: {Math.round(effectiveIntelligence.turnover_score)}
               </Badge>
             )}
           </div>
@@ -238,7 +252,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         {/* Intelligence flags */}
         {flags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-2">
-            {flags.filter(f => f !== 'class-a').map(flag => {
+            {flags.map(flag => {
               const cfg = FLAG_CONFIG[flag];
               const Icon = cfg.icon;
               return (
@@ -258,26 +272,24 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* KPI cards */}
+        {/* KPI cards — foco comercial */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <KpiCard
-            icon={TrendingDown}
-            label="Saída/dia (7d)"
+            icon={ShoppingCart}
+            label="Vendas no mercado"
             value={bestVelocity?.avg_daily_depletion_7d?.toFixed(1) ?? '—'}
-            sub="unidades"
+            sub="un/dia (média 7d)"
+            highlight={marketDemandLevel === 'very-high' || marketDemandLevel === 'high'}
           />
           <KpiCard
-            icon={Clock}
-            label="Dias até acabar"
-            value={bestVelocity?.days_to_stockout != null ? String(Math.round(bestVelocity.days_to_stockout)) : '∞'}
-            sub={bestVelocity?.days_to_stockout != null && bestVelocity.days_to_stockout < 15 ? 'atenção!' : 'estimativa'}
-            alert={bestVelocity?.days_to_stockout != null && bestVelocity.days_to_stockout < 7}
-          />
-          <KpiCard
-            icon={Package}
-            label="Estoque atual"
-            value={effectiveIntelligence?.total_current_stock?.toLocaleString('pt-BR') ?? '—'}
-            sub="total fornecedores"
+            icon={BarChart3}
+            label="Demanda"
+            value={demandLabel[marketDemandLevel].text}
+            sub={bestVelocity?.velocity_trend != null
+              ? (bestVelocity.velocity_trend > 1 ? '↑ crescendo' : bestVelocity.velocity_trend < 0.8 ? '↓ caindo' : '→ estável')
+              : ''}
+            highlight={marketDemandLevel === 'very-high'}
+            customValueColor={demandLabel[marketDemandLevel].color}
           />
           <KpiCard
             icon={bestVelocity && bestVelocity.velocity_trend > 1.2 ? TrendingUp : 
@@ -287,10 +299,19 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
               ? `${bestVelocity.velocity_trend > 1 ? '+' : ''}${((bestVelocity.velocity_trend - 1) * 100).toFixed(0)}%`
               : '—'}
             sub={bestVelocity?.velocity_trend != null
-              ? (bestVelocity.velocity_trend > 1.5 ? 'acelerando!' :
-                 bestVelocity.velocity_trend > 1 ? 'crescendo' :
-                 bestVelocity.velocity_trend > 0.5 ? 'desacelerando' : 'caindo')
+              ? (bestVelocity.velocity_trend > 1.5 ? 'acelerando forte!' :
+                 bestVelocity.velocity_trend > 1 ? 'demanda crescente' :
+                 bestVelocity.velocity_trend > 0.5 ? 'desacelerando' : 'queda de interesse')
               : ''}
+            highlight={bestVelocity?.velocity_trend != null && bestVelocity.velocity_trend > 1.3}
+          />
+          <KpiCard
+            icon={Star}
+            label="Disponível"
+            value={effectiveIntelligence?.total_current_stock?.toLocaleString('pt-BR') ?? '—'}
+            sub={effectiveIntelligence?.supplier_count 
+              ? `em ${effectiveIntelligence.supplier_count} fornecedor(es)` 
+              : 'no fornecedor'}
           />
         </div>
 
@@ -328,7 +349,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                 width={35}
                 hide
               />
-              <Tooltip content={<StockTooltip />} />
+              <Tooltip content={<MarketTooltip />} />
               <Area
                 yAxisId="stock"
                 type="monotone"
@@ -336,7 +357,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                 stroke="hsl(var(--primary))"
                 fill="hsl(var(--primary) / 0.15)"
                 strokeWidth={2}
-                name="Estoque"
+                name="Disponível"
                 dot={false}
                 activeDot={{ r: 4 }}
               />
@@ -344,7 +365,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                 yAxisId="flow"
                 dataKey="depleted"
                 fill="hsl(var(--destructive) / 0.4)"
-                name="Saída"
+                name="Compras do mercado"
                 radius={[2, 2, 0, 0]}
                 barSize={4}
               />
@@ -360,11 +381,15 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
           </ResponsiveContainer>
         </div>
 
-        {/* Price change info */}
+        {/* Price change insight */}
         {bestVelocity && bestVelocity.price_changes_30d > 0 && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <DollarSign className="h-3 w-3" />
-            <span>{bestVelocity.price_changes_30d} alteração(ões) de preço nos últimos 30 dias {isDemo && '(demo)'}</span>
+            <span>
+              Fornecedor alterou preço {bestVelocity.price_changes_30d}x nos últimos 30 dias — 
+              <span className="text-foreground font-medium"> trave seu custo ao cotar</span>
+              {isDemo && ' (demo)'}
+            </span>
           </div>
         )}
       </CardContent>
@@ -374,24 +399,32 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
 // ---------- Sub-components ----------
 
-function KpiCard({ icon: Icon, label, value, sub, alert }: {
+function KpiCard({ icon: Icon, label, value, sub, highlight, alert, customValueColor }: {
   icon: typeof Flame;
   label: string;
   value: string;
   sub: string;
+  highlight?: boolean;
   alert?: boolean;
+  customValueColor?: string;
 }) {
   return (
     <div className={cn(
       "rounded-lg p-2 text-center",
+      highlight ? "bg-primary/10 border border-primary/20" :
       alert ? "bg-destructive/10 border border-destructive/20" : "bg-muted/50"
     )}>
       <div className="flex items-center justify-center gap-1 mb-0.5">
-        <Icon className={cn("h-3 w-3", alert ? "text-destructive" : "text-muted-foreground")} />
+        <Icon className={cn("h-3 w-3", 
+          highlight ? "text-primary" :
+          alert ? "text-destructive" : "text-muted-foreground"
+        )} />
         <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
       </div>
       <p className={cn(
         "text-sm font-bold",
+        customValueColor ? customValueColor :
+        highlight ? "text-primary" :
         alert ? "text-destructive" : "text-foreground"
       )}>{value}</p>
       <p className="text-[10px] text-muted-foreground">{sub}</p>
@@ -399,22 +432,22 @@ function KpiCard({ icon: Icon, label, value, sub, alert }: {
   );
 }
 
-function StockTooltip({ active, payload }: any) {
+function MarketTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const data = payload[0]?.payload;
   if (!data) return null;
 
   return (
-    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[160px]">
+    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Estoque:</span>
-          <span className="font-semibold">{data.stockClose?.toLocaleString('pt-BR')}</span>
+          <span className="text-muted-foreground">Disponível:</span>
+          <span className="font-semibold">{data.stockClose?.toLocaleString('pt-BR')} un</span>
         </div>
         {data.depleted > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-destructive">Saída:</span>
+            <span className="text-destructive">Compras do mercado:</span>
             <span className="font-semibold text-destructive">-{data.depleted}</span>
           </div>
         )}
@@ -426,12 +459,12 @@ function StockTooltip({ active, payload }: any) {
         )}
         {data.restockDetected && (
           <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30">
-            🔄 Reabastecimento
+            🔄 Fornecedor reabasteceu
           </Badge>
         )}
         {data.costPriceClose != null && (
           <div className="flex justify-between text-xs pt-1 border-t border-border">
-            <span className="text-muted-foreground">Custo:</span>
+            <span className="text-muted-foreground">Custo base:</span>
             <span className="font-semibold">{formatCurrency(data.costPriceClose)}</span>
           </div>
         )}
