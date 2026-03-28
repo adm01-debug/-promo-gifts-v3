@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useVariantStock } from "@/hooks/useVariantStock";
 import { VariantStockTable } from "./VariantStockTable";
+import { SupplierRiskPanel } from "./SupplierRiskPanel";
 import { StockStatus, StockAlert } from "@/types/stock";
 
 // ============================================
@@ -292,6 +293,9 @@ export function StockDashboard() {
           icon={<Truck className="h-6 w-6 text-purple-600" />}
         />
       </div>
+
+      {/* Painel de Risco de Fornecedor */}
+      <SupplierRiskPanel />
 
       {/* Filtros */}
       <Card>
