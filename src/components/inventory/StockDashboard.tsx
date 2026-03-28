@@ -296,7 +296,7 @@ export function StockDashboard() {
       </div>
 
       {/* Painel de Risco de Fornecedor */}
-      <SupplierRiskPanel />
+      <SupplierRiskPanel products={allProductStocks} />
 
       {/* Filtros */}
       <Card>
