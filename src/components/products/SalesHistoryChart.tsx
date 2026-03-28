@@ -48,11 +48,11 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
   const chartData = useMemo(() => {
     if (!hasData) return [];
-    return data!.daily.map(d => ({
-      ...d,
-      dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
-      fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
-    }));
+    return data!.daily.reduce<Array<typeof data.daily[0] & { dateFormatted: string; fullDate: string }>>((acc, d) => {
+      const parsed = safeParseDateForChart(d.date);
+      if (parsed) acc.push({ ...d, ...parsed });
+      return acc;
+    }, []);
   }, [data, hasData]);
 
   const kpis = useMemo(() => {
