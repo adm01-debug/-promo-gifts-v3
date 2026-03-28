@@ -91,7 +91,7 @@ export function useStockDailySummary(productId: string | undefined, days = 90) {
         table: 'stock_daily_summary',
         operation: 'select',
         filters: { product_id: productId },
-        limit: days * 10, // multiple suppliers
+        limit: Math.min(days * 20, 5000), // B18 fix: scale with suppliers (up to 20) capped at 5000
         orderBy: { column: 'summary_date', ascending: true },
       });
 
