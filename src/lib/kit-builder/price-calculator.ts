@@ -112,15 +112,8 @@ export function calculateSavings(
 // FORMATAÇÃO
 // ============================================
 
-/**
- * Formata valor em moeda brasileira
- */
-export function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-}
+// Re-export from centralized format module
+export { formatCurrency } from '@/lib/format';
 
 /**
  * Formata preço por unidade
