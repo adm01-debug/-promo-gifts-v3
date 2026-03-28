@@ -71,14 +71,14 @@ export function PopularityBadge({
 }
 
 // Trust badges
-type TrustBadgeType = "verified" | "fast" | "quality" | "secure" | "popular";
+type TrustBadgeType = "verified" | "fast" | "quality" | "secure" | "popular" | "new" | "sale" | "bestseller" | "freeShipping";
 
 interface TrustBadgeProps {
   type: TrustBadgeType;
   className?: string;
 }
 
-const trustBadges = {
+const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: string; color: string }> = {
   verified: {
     icon: ShieldCheck,
     label: "Fornecedor verificado",
@@ -103,7 +103,27 @@ const trustBadges = {
     icon: ThumbsUp,
     label: "Escolha popular",
     color: "text-rose-500"
-  }
+  },
+  new: {
+    icon: Zap,
+    label: "Novidade",
+    color: "text-emerald-500"
+  },
+  sale: {
+    icon: Flame,
+    label: "Promoção",
+    color: "text-orange-500"
+  },
+  bestseller: {
+    icon: Crown,
+    label: "Mais vendido",
+    color: "text-amber-500"
+  },
+  freeShipping: {
+    icon: TrendingUp,
+    label: "Frete grátis",
+    color: "text-emerald-600"
+  },
 };
 
 export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
@@ -162,15 +182,39 @@ export function getMockSupplierTrust(productId: string): SupplierTrustData {
   };
 }
 
-/** Dynamic trust badges that show/hide based on supplier data */
+/** Product flags for badge display */
+export interface ProductBadgeFlags {
+  newArrival?: boolean;
+  onSale?: boolean;
+  featured?: boolean;  // bestseller/destaque
+  freeShipping?: boolean;
+  minQuantity?: number; // freeShipping when min >= 500 (mock logic)
+}
+
+/** Dynamic trust badges that show/hide based on supplier + product data */
 interface DynamicTrustBadgesProps {
   trust: SupplierTrustData;
+  productFlags?: ProductBadgeFlags;
   className?: string;
 }
 
-export function DynamicTrustBadges({ trust, className }: DynamicTrustBadgesProps) {
+export function DynamicTrustBadges({ trust, productFlags, className }: DynamicTrustBadgesProps) {
   const badges: React.ReactNode[] = [];
 
+  // Product-level badges first (more eye-catching)
+  if (productFlags?.newArrival) {
+    badges.push(<TrustBadge key="new" type="new" />);
+  }
+
+  if (productFlags?.onSale) {
+    badges.push(<TrustBadge key="sale" type="sale" />);
+  }
+
+  if (productFlags?.featured) {
+    badges.push(<TrustBadge key="bestseller" type="bestseller" />);
+  }
+
+  // Supplier-level badges
   if (trust.isVerified) {
     badges.push(<TrustBadge key="verified" type="verified" />);
   }
@@ -181,6 +225,11 @@ export function DynamicTrustBadges({ trust, className }: DynamicTrustBadgesProps
 
   if (trust.avgRating != null && trust.avgRating >= 4.0) {
     badges.push(<TrustBadge key="quality" type="quality" />);
+  }
+
+  // Mock free shipping for high-quantity products
+  if (productFlags?.freeShipping || (productFlags?.minQuantity && productFlags.minQuantity >= 500)) {
+    badges.push(<TrustBadge key="freeShipping" type="freeShipping" />);
   }
 
   if (badges.length === 0) return null;
