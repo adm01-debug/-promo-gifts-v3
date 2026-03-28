@@ -473,18 +473,17 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
   }), [filteredProducts]);
 
   // B8/B11 fix: reset selection when it's not in filtered list
+  // B7 fix: use callback setter to avoid re-render loop
   useEffect(() => {
     if (filteredProducts.length === 0) {
-      setSelectedProductId(null);
+      setSelectedProductId(prev => prev === null ? prev : null);
       return;
     }
-    if (selectedProductId && !filteredProducts.find(p => p.id === selectedProductId)) {
-      setSelectedProductId(filteredProducts[0].id);
-    }
-    if (!selectedProductId) {
-      setSelectedProductId(filteredProducts[0].id);
-    }
-  }, [filteredProducts, selectedProductId]);
+    setSelectedProductId(prev => {
+      if (prev && filteredProducts.some(p => p.id === prev)) return prev;
+      return filteredProducts[0].id;
+    });
+  }, [filteredProducts]);
 
   // G11: Virtual list
   const virtualizer = useVirtualizer({
