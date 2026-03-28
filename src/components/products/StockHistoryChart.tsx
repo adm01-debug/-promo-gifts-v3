@@ -171,11 +171,6 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                 Score: {Math.round(effectiveIntelligence.turnover_score)}
               </Badge>
             )}
-            {isDemo && (
-              <Badge variant="outline" className="text-[10px] text-muted-foreground border-dashed">
-                demo
-              </Badge>
-            )}
           </div>
         </div>
 
