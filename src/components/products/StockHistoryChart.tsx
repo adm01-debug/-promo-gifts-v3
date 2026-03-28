@@ -228,14 +228,14 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                 variant="outline"
                 className={cn(
                   "font-bold text-xs",
-                  effectiveIntelligence.abc_classification === 'A' ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
-                  effectiveIntelligence.abc_classification === 'B' ? 'bg-primary/15 text-primary border-primary/30' :
+                  effectiveIntelligence.abc_classification === 'A' ? 'bg-orange-500/15 text-orange-500 border-orange-500/30' :
+                  effectiveIntelligence.abc_classification === 'B' ? 'bg-green-500/15 text-green-500 border-green-500/30' :
                   'bg-muted text-muted-foreground border-border'
                 )}
               >
-                {effectiveIntelligence.abc_classification === 'A' ? '🏆 Best-Seller' :
-                 effectiveIntelligence.abc_classification === 'B' ? '📈 Boa Saída' :
-                 '📊 Normal'}
+                {effectiveIntelligence.abc_classification === 'A' ? '🔥 Best-Seller' :
+                 effectiveIntelligence.abc_classification === 'B' ? '⚡ Popular' :
+                 '📦 Normal'}
               </Badge>
             )}
             {showTurnover && (
