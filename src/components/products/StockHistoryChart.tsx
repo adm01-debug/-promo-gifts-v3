@@ -210,6 +210,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
             </CardTitle>
             <CardDescription className="mt-1">
               Movimentação no fornecedor · {chartData.length} dias
+              {isDemo && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">dados ilustrativos</Badge>}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
