@@ -195,8 +195,10 @@ export function getActiveFlags(data: ProductIntelligenceData | null): Intelligen
 
 /**
  * Agrega stock_daily_summary por data (soma de todos os fornecedores).
+ * Opcionalmente filtra por supplier_id.
  */
-export function aggregateDailySummaryByDate(summaries: StockDailySummary[]) {
+export function aggregateDailySummaryByDate(summaries: StockDailySummary[], supplierId?: string) {
+  const filtered = supplierId ? summaries.filter(s => s.supplier_id === supplierId) : summaries;
   const map = new Map<string, {
     date: string;
     stockClose: number;
@@ -208,7 +210,7 @@ export function aggregateDailySummaryByDate(summaries: StockDailySummary[]) {
     _costWeightedCount: number;
   }>();
 
-  for (const s of summaries) {
+  for (const s of filtered) {
     const existing = map.get(s.summary_date);
     if (existing) {
       existing.stockClose += s.stock_close;
@@ -239,4 +241,11 @@ export function aggregateDailySummaryByDate(summaries: StockDailySummary[]) {
   return Array.from(map.values())
     .sort((a, b) => a.date.localeCompare(b.date))
     .map(({ _costWeightedSum, _costWeightedCount, ...rest }) => rest);
+}
+
+/**
+ * Extrai supplier_ids únicos dos summaries.
+ */
+export function extractUniqueSupplierIds(summaries: StockDailySummary[]): string[] {
+  return [...new Set(summaries.map(s => s.supplier_id).filter(Boolean))];
 }
