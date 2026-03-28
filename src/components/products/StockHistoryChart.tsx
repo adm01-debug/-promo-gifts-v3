@@ -351,7 +351,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
         {/* Price change insight + cost toggle */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          {bestVelocity && 'price_changes_30d' in bestVelocity && bestVelocity.price_changes_30d > 0 && (
+          {bestVelocity && (bestVelocity as MockVelocityData).price_changes_30d > 0 && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <DollarSign className="h-3 w-3" aria-hidden="true" />
               <span>
