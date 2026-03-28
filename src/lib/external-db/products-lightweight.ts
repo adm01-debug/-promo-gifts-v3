@@ -84,7 +84,7 @@ export async function fetchPromobrindProductsLightweight(options?: {
   orderBy?: { column: string; ascending?: boolean };
   filters?: Record<string, unknown>;
 }): Promise<LightweightProduct[]> {
-  const filters: Record<string, unknown> = { active: true, ...options?.filters };
+  const filters: Record<string, unknown> = { ...options?.filters };
   if (options?.search) filters._search = options.search;
   const orderBy = options?.orderBy ?? { column: 'name', ascending: true };
   const baseOffset = options?.offset ?? 0;
