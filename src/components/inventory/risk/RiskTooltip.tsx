@@ -1,0 +1,40 @@
+import { Badge } from "@/components/ui/badge";
+import { safeNumber } from "@/lib/stock-chart-utils";
+
+export function RiskTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null;
+  const data = payload[0]?.payload;
+  if (!data) return null;
+
+  const depleted = safeNumber(data.depleted);
+  const restocked = safeNumber(data.restocked);
+
+  return (
+    <div className="bg-popover border border-border rounded-lg p-2.5 shadow-lg min-w-[150px]">
+      <p className="text-[10px] font-medium text-foreground">{data.fullDate}</p>
+      <div className="mt-1.5 space-y-1">
+        <div className="flex justify-between text-[10px]">
+          <span className="text-muted-foreground">Estoque:</span>
+          <span className="font-semibold">{data.stockClose?.toLocaleString('pt-BR') ?? '—'}</span>
+        </div>
+        {depleted != null && depleted > 0 && (
+          <div className="flex justify-between text-[10px]">
+            <span className="text-destructive">Saída:</span>
+            <span className="font-semibold text-destructive">-{depleted}</span>
+          </div>
+        )}
+        {restocked != null && restocked > 0 && (
+          <div className="flex justify-between text-[10px]">
+            <span className="text-primary">Reposição:</span>
+            <span className="font-semibold text-primary">+{restocked}</span>
+          </div>
+        )}
+        {data.restockDetected && (
+          <Badge variant="outline" className="text-[9px] px-1 py-0 bg-primary/10 text-primary border-primary/30">
+            🔄 Reabastecimento
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+}
