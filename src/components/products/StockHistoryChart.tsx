@@ -39,9 +39,11 @@ import {
   useStockVelocity,
   useProductIntelligenceData,
   aggregateDailySummaryByDate,
+  extractUniqueSupplierIds,
   getActiveFlags,
   type IntelligenceFlag,
 } from "@/hooks/useStockHistory";
+import { useSupplierNames } from "@/hooks/useSupplierNames";
 import { formatCurrency } from "@/lib/format";
 import {
   safeVelocityTrend,
@@ -57,6 +59,8 @@ import {
   safePriceChanges,
 } from "@/lib/stock-chart-utils";
 import { KpiCard } from "@/components/ui/kpi-card";
+import { SupplierChartFilter } from "./SupplierChartFilter";
+import { SupplierComparisonCards } from "./SupplierComparisonCards";
 
 interface StockHistoryChartProps {
   productId: string;
@@ -66,6 +70,7 @@ interface StockHistoryChartProps {
 export function StockHistoryChart({ productId, productName }: StockHistoryChartProps) {
   const [period, setPeriod] = useState<string>('30');
   const [showCost, setShowCost] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<string>('all');
   const days = Number(period);
 
   const {
@@ -89,6 +94,21 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   const hasError = !!(summaryError || velocityError || intelligenceError);
   const isDemo = !hasData && !hasError;
 
+  // ---------- Supplier names ----------
+  const supplierIds = useMemo(
+    () => hasData ? extractUniqueSupplierIds(summaries!) : [],
+    [summaries, hasData]
+  );
+  const { data: supplierNamesMap } = useSupplierNames(supplierIds);
+
+  const supplierOptions = useMemo(() => {
+    if (!hasData || supplierIds.length <= 1) return [];
+    return supplierIds.map(id => ({
+      id,
+      name: supplierNamesMap?.get(id) ?? `Fornecedor ${id.slice(0, 6)}`,
+    }));
+  }, [supplierIds, supplierNamesMap, hasData]);
+
   // ---------- Chart data ----------
   const mockChartData = useMemo(
     () => generateMockStockData(productId, days),
@@ -97,7 +117,8 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
   const chartData = useMemo(() => {
     if (!hasData) return mockChartData;
-    const aggregated = aggregateDailySummaryByDate(summaries!);
+    const supplierId = selectedSupplier === 'all' ? undefined : selectedSupplier;
+    const aggregated = aggregateDailySummaryByDate(summaries!, supplierId);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
@@ -107,7 +128,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         if (parsed) acc.push({ ...d, ...parsed });
         return acc;
       }, []);
-  }, [summaries, days, hasData, mockChartData]);
+  }, [summaries, days, hasData, mockChartData, selectedSupplier]);
 
   // ---------- Mock data ----------
   const mockVelocity = useMemo(() => generateMockVelocity(productId), [productId]);
@@ -116,10 +137,18 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   // ---------- Effective data ----------
   const effectiveIntelligence = intelligence ?? (isDemo ? mockIntel : null);
 
-  const bestVelocity = velocity?.length
-    ? velocity.reduce((best, v) =>
-        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-    : (isDemo ? mockVelocity : null);
+  // When a specific supplier is selected, use that supplier's velocity
+  const bestVelocity = useMemo(() => {
+    if (velocity?.length) {
+      if (selectedSupplier !== 'all') {
+        const match = velocity.find(v => v.supplier_id === selectedSupplier);
+        if (match) return match;
+      }
+      return velocity.reduce((best, v) =>
+        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0]);
+    }
+    return isDemo ? mockVelocity : null;
+  }, [velocity, selectedSupplier, isDemo, mockVelocity]);
 
   const flags = useMemo(() => {
     if (!effectiveIntelligence) return [];
@@ -161,10 +190,14 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   };
 
   const supplierText = useMemo(() => {
+    if (selectedSupplier !== 'all' && supplierNamesMap) {
+      const name = supplierNamesMap.get(selectedSupplier);
+      return name ? `em ${name}` : 'fornecedor selecionado';
+    }
     const count = effectiveIntelligence?.supplier_count;
     if (count == null || count === 0) return 'no fornecedor';
     return `em ${count} fornecedor${count > 1 ? 'es' : ''}`;
-  }, [effectiveIntelligence]);
+  }, [effectiveIntelligence, selectedSupplier, supplierNamesMap]);
 
   // #3 fix: safe price_changes extraction via helper
   const priceChanges = safePriceChanges(bestVelocity);
@@ -317,14 +350,23 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
           />
         </div>
 
-        {/* Period selector — #5 fix: consistent periods */}
-        <Tabs value={period} onValueChange={setPeriod}>
-          <TabsList className="h-7 flex-wrap">
-            {['15','30','60','90','120','180','360'].map(p => (
-              <TabsTrigger key={p} value={p} className="text-xs px-2 h-5">{p}d</TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {/* Period selector + supplier filter */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Tabs value={period} onValueChange={setPeriod}>
+            <TabsList className="h-7 flex-wrap">
+              {['15','30','60','90','120','180','360'].map(p => (
+                <TabsTrigger key={p} value={p} className="text-xs px-2 h-5">{p}d</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          {supplierOptions.length > 1 && (
+            <SupplierChartFilter
+              suppliers={supplierOptions}
+              selected={selectedSupplier}
+              onSelect={setSelectedSupplier}
+            />
+          )}
+        </div>
 
         {/* Chart */}
         <div className="h-[160px] sm:h-[200px] w-full">
@@ -348,6 +390,14 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Supplier comparison cards */}
+        {velocity && velocity.length > 1 && supplierNamesMap && (
+          <SupplierComparisonCards
+            velocities={velocity}
+            supplierNames={supplierNamesMap}
+          />
+        )}
 
         {/* Price change insight + cost toggle */}
         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -408,12 +458,12 @@ function MarketTooltip({ active, payload, showCost }: { active?: boolean; payloa
         )}
         {restocked != null && restocked > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-primary">Reposição:</span>
-            <span className="font-semibold text-primary">+{restocked}</span>
+            <span className="text-emerald-500">Reposição:</span>
+            <span className="font-semibold text-emerald-500">+{restocked}</span>
           </div>
         )}
         {data.restockDetected && (
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30">
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
             🔄 Fornecedor reabasteceu
           </Badge>
         )}
