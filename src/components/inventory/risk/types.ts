@@ -25,6 +25,8 @@ export const SEVERITY_ORDER: Record<RiskSeverity, number> = { critical: 0, warni
  * Considers daysUntilFullStockout for early warning.
  */
 export function deriveSeverity(p: ProductStockSummary): RiskSeverity {
+  // Incoming stock mitigates severity — treat as warning instead of critical
+  if (p.overallStatus === 'incoming') return 'warning';
   if (p.overallStatus === 'out_of_stock' || p.overallStatus === 'critical') return 'critical';
   if (p.daysUntilFullStockout != null && p.daysUntilFullStockout < 7) return 'critical';
   if (p.overallStatus === 'low_stock') return 'warning';
