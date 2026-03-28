@@ -73,6 +73,33 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
     );
   }
 
+  // Error state (G14 fix)
+  if (error && !hasData) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Vendas Internas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
+            <ShoppingCart className="h-6 w-6 text-destructive" />
+            <p className="text-sm font-medium text-destructive">Erro ao carregar dados de vendas</p>
+            <p className="text-xs text-muted-foreground">Tente novamente em alguns instantes</p>
+            <button
+              onClick={() => refetch()}
+              className="mt-1 text-xs text-primary hover:underline"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Empty state
   if (!hasData && !isLoading) {
     return (

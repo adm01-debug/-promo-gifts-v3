@@ -75,10 +75,12 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       let ordersMap: Record<string, { seller_id: string; status: string }> = {};
 
       if (quoteIds.length > 0) {
+        // G15 fix: only count quotes with relevant statuses (not drafts)
         const { data: quotes } = await supabase
           .from('quotes')
           .select('id, seller_id, status')
-          .in('id', quoteIds);
+          .in('id', quoteIds)
+          .in('status', ['sent', 'approved', 'rejected', 'expired', 'converted']);
         for (const q of quotes || []) {
           quotesMap[q.id] = { seller_id: q.seller_id, status: q.status };
         }
