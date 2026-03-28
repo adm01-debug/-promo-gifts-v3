@@ -31,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
-import { generateDemoSalesData, generateDemoSalesKpis } from "@/lib/demo-chart-data";
+
 
 interface SalesHistoryChartProps {
   productId: string;
