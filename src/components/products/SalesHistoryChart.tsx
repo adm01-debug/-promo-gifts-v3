@@ -24,6 +24,7 @@ import {
   Loader2,
   BarChart3,
   Crown,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
