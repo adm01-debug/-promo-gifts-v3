@@ -215,7 +215,8 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                         : 'bg-primary/15 text-primary'
                       : 'text-muted-foreground hover:bg-muted/50'
                   )}
-                  aria-pressed={severityFilter === opt.value}
+                  aria-checked={severityFilter === opt.value}
+                  role="radio"
                 >
                   {opt.label} ({opt.count})
                 </button>
