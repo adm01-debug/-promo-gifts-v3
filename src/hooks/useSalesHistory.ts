@@ -49,19 +49,23 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       cutoff.setDate(cutoff.getDate() - days);
       const cutoffStr = cutoff.toISOString();
 
-      // Fetch quote items for this product
+      // Fetch quote items for this product (handle 1000-row limit)
       const { data: quoteItems } = await supabase
         .from('quote_items')
         .select('quantity, unit_price, subtotal, created_at, quote_id')
         .eq('product_id', productId)
-        .gte('created_at', cutoffStr);
+        .gte('created_at', cutoffStr)
+        .order('created_at', { ascending: true })
+        .limit(5000);
 
-      // Fetch order items for this product
+      // Fetch order items for this product (handle 1000-row limit)
       const { data: orderItems } = await supabase
         .from('order_items')
         .select('quantity, unit_price, created_at, order_id')
         .eq('product_id', productId)
-        .gte('created_at', cutoffStr);
+        .gte('created_at', cutoffStr)
+        .order('created_at', { ascending: true })
+        .limit(5000);
 
       // Fetch related quotes for seller info
       const quoteIds = [...new Set((quoteItems || []).map(q => q.quote_id))];
@@ -71,10 +75,12 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       let ordersMap: Record<string, { seller_id: string; status: string }> = {};
 
       if (quoteIds.length > 0) {
+        // G15 fix: only count quotes with relevant statuses (not drafts)
         const { data: quotes } = await supabase
           .from('quotes')
           .select('id, seller_id, status')
-          .in('id', quoteIds);
+          .in('id', quoteIds)
+          .in('status', ['sent', 'approved', 'rejected', 'expired', 'converted']);
         for (const q of quotes || []) {
           quotesMap[q.id] = { seller_id: q.seller_id, status: q.status };
         }
@@ -168,8 +174,12 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       const totalOrderedQty = daily.reduce((s, d) => s + d.orderedQty, 0);
       const totalQuotedValue = daily.reduce((s, d) => s + d.quotedValue, 0);
       const totalOrderedValue = daily.reduce((s, d) => s + d.orderedValue, 0);
-      const totalQuotes = daily.reduce((s, d) => s + d.quoteCount, 0);
-      const totalOrders = daily.reduce((s, d) => s + d.orderCount, 0);
+
+      // B13 fix: conversion rate uses unique DOCUMENT counts, not item counts
+      const uniqueQuoteIds = new Set((quoteItems || []).map(qi => qi.quote_id));
+      const uniqueOrderIds = new Set((orderItems || []).filter(oi => oi.order_id).map(oi => oi.order_id));
+      const totalUniqueQuotes = uniqueQuoteIds.size;
+      const totalUniqueOrders = uniqueOrderIds.size;
 
       return {
         daily,
@@ -178,9 +188,9 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
           totalOrderedQty,
           totalQuotedValue,
           totalOrderedValue,
-          conversionRate: totalQuotes > 0 ? (totalOrders / totalQuotes) * 100 : 0,
+          conversionRate: totalUniqueQuotes > 0 ? (totalUniqueOrders / totalUniqueQuotes) * 100 : 0,
           uniqueSellers: sellerMap.size,
-          avgOrderValue: totalOrders > 0 ? totalOrderedValue / totalOrders : 0,
+          avgOrderValue: totalUniqueOrders > 0 ? totalOrderedValue / totalUniqueOrders : 0,
           topSellers,
         },
       };

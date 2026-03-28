@@ -111,12 +111,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
       .filter(d => new Date(d.date) >= cutoff)
-      .map(d => {
+      .reduce<Array<{ date: string; stockClose: number; depleted: number; restocked: number; restockDetected: boolean; costPriceClose: number | null; dateFormatted: string; fullDate: string }>>((acc, d) => {
         const parsed = safeParseDateForChart(d.date);
-        if (!parsed) return null;
-        return { ...d, ...parsed };
-      })
-      .filter(Boolean);
+        if (parsed) acc.push({ ...d, ...parsed });
+        return acc;
+      }, []);
   }, [summaries, days, hasData, mockChartData]);
 
   // ---------- Mock data (consistent with productId) ----------
@@ -126,11 +125,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   // ---------- Effective data (B1: no forced cast) ----------
   const effectiveIntelligence = intelligence ?? (isDemo ? mockIntel : null);
 
-  const bestVelocity: (MockVelocityData | { avg_daily_depletion_7d: number; avg_daily_depletion_30d: number; days_to_stockout: number | null; velocity_trend: number; price_changes_30d: number; current_stock: number } | null) =
-    velocity?.length
-      ? velocity.reduce((best, v) =>
-          (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-      : (isDemo ? mockVelocity : null);
+  const bestVelocity = velocity?.length
+    ? velocity.reduce((best, v) =>
+        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
+    : (isDemo ? mockVelocity : null);
 
   // B1 fix: use type guard instead of cast
   const flags = useMemo(() => {
@@ -227,7 +225,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
               Inteligência de Mercado
             </CardTitle>
             <CardDescription className="mt-1">
-              Como o mercado está comprando este produto · {chartData.length} dias
+              Como o mercado está comprando este produto · {days} dias
               {isDemo && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">dados ilustrativos</Badge>}
               {hasError && hasData && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0 bg-destructive/10 text-destructive border-destructive/30">dados parciais</Badge>}
             </CardDescription>
@@ -353,11 +351,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
         {/* Price change insight + cost toggle */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          {bestVelocity && 'price_changes_30d' in bestVelocity && bestVelocity.price_changes_30d > 0 && (
+          {bestVelocity && ((bestVelocity as MockVelocityData).price_changes_30d ?? 0) > 0 && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <DollarSign className="h-3 w-3" aria-hidden="true" />
               <span>
-                Fornecedor alterou preço {bestVelocity.price_changes_30d}x nos últimos 30 dias —
+                Fornecedor alterou preço {(bestVelocity as MockVelocityData).price_changes_30d}x nos últimos 30 dias —
                 <span className="text-foreground font-medium"> trave seu custo ao cotar</span>
                 {isDemo && ' (demo)'}
               </span>

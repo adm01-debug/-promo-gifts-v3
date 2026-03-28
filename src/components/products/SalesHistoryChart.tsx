@@ -44,7 +44,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
   const [period, setPeriod] = useState<string>('30');
   const days = Number(period);
 
-  const { data, isLoading } = useSalesHistory(productId, days);
+  const { data, isLoading, error, refetch } = useSalesHistory(productId, days);
 
   const hasData = !!data?.daily?.length;
 
@@ -68,6 +68,33 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
       <Card>
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Error state (G14 fix)
+  if (error && !hasData) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Vendas Internas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
+            <ShoppingCart className="h-6 w-6 text-destructive" />
+            <p className="text-sm font-medium text-destructive">Erro ao carregar dados de vendas</p>
+            <p className="text-xs text-muted-foreground">Tente novamente em alguns instantes</p>
+            <button
+              onClick={() => refetch()}
+              className="mt-1 text-xs text-primary hover:underline"
+            >
+              Tentar novamente
+            </button>
+          </div>
         </CardContent>
       </Card>
     );
