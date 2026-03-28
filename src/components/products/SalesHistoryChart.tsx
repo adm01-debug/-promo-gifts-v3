@@ -1,9 +1,6 @@
 import { useMemo, useState } from "react";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import {
   ResponsiveContainer,
-  AreaChart,
   Area,
   XAxis,
   YAxis,
@@ -15,6 +12,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -27,10 +25,12 @@ import {
   Loader2,
   BarChart3,
   Crown,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
+import { safeParseDateForChart } from "@/lib/stock-chart-utils";
 
 
 interface SalesHistoryChartProps {
@@ -50,11 +50,11 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
   const chartData = useMemo(() => {
     if (!hasData) return [];
-    return data!.daily.map(d => ({
-      ...d,
-      dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
-      fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
-    }));
+    return data!.daily.reduce<Array<typeof data.daily[0] & { dateFormatted: string; fullDate: string }>>((acc, d) => {
+      const parsed = safeParseDateForChart(d.date);
+      if (parsed) acc.push({ ...d, ...parsed });
+      return acc;
+    }, []);
   }, [data, hasData]);
 
   const kpis = useMemo(() => {
@@ -88,12 +88,10 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
             <ShoppingCart className="h-6 w-6 text-destructive" />
             <p className="text-sm font-medium text-destructive">Erro ao carregar dados de vendas</p>
             <p className="text-xs text-muted-foreground">Tente novamente em alguns instantes</p>
-            <button
-              onClick={() => refetch()}
-              className="mt-1 text-xs text-primary hover:underline"
-            >
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5 mt-1">
+              <RefreshCw className="h-3.5 w-3.5" />
               Tentar novamente
-            </button>
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -153,7 +151,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
       <CardContent className="space-y-4">
         {/* KPI cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Métricas de vendas internas">
           <KpiCard
             icon={FileText}
             label="Orçado (qtd)"
@@ -216,6 +214,11 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
                 hide
               />
               <Tooltip content={<SalesTooltip />} />
+              <Legend
+                wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }}
+                iconSize={8}
+                formatter={(value: string) => <span className="text-muted-foreground text-[10px]">{value}</span>}
+              />
               <Bar
                 yAxisId="qty"
                 dataKey="quotedQty"
@@ -236,8 +239,8 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
                 yAxisId="value"
                 type="monotone"
                 dataKey="orderedValue"
-                stroke="hsl(142 71% 45%)"
-                fill="hsl(142 71% 45% / 0.1)"
+                stroke="hsl(var(--chart-2, 142 71% 45%))"
+                fill="hsl(var(--chart-2, 142 71% 45%) / 0.1)"
                 strokeWidth={1.5}
                 name="Faturamento"
                 dot={false}
@@ -275,14 +278,18 @@ function KpiCard({ icon: Icon, label, value, sub, highlight, alert }: {
   alert?: boolean;
 }) {
   return (
-    <div className={cn(
-      "rounded-lg p-2 text-center",
-      alert ? "bg-destructive/10 border border-destructive/20" :
-      highlight ? "bg-primary/10 border border-primary/20" :
-      "bg-muted/50"
-    )}>
+    <div
+      className={cn(
+        "rounded-lg p-2 text-center",
+        alert ? "bg-destructive/10 border border-destructive/20" :
+        highlight ? "bg-primary/10 border border-primary/20" :
+        "bg-muted/50"
+      )}
+      role="status"
+      aria-label={`${label}: ${value} ${sub}`}
+    >
       <div className="flex items-center justify-center gap-1 mb-0.5">
-        <Icon className={cn("h-3 w-3", highlight ? "text-primary" : "text-muted-foreground")} />
+        <Icon className={cn("h-3 w-3", highlight ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
         <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
       </div>
       <p className={cn(

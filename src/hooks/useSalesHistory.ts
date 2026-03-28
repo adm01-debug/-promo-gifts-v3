@@ -119,7 +119,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
         const date = qi.created_at.substring(0, 10);
         const entry = dailyMap.get(date) || newDailyPoint(date);
         entry.quotedQty += qi.quantity || 0;
-        entry.quotedValue += qi.subtotal || (qi.quantity || 0) * (qi.unit_price || 0);
+        entry.quotedValue += qi.subtotal ?? ((qi.quantity ?? 0) * (qi.unit_price ?? 0));
         entry.quoteCount += 1;
         dailyMap.set(date, entry);
       }
@@ -147,7 +147,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
           totalQty: 0, totalValue: 0, quoteCount: 0, orderCount: 0,
         };
         s.totalQty += qi.quantity || 0;
-        s.totalValue += qi.subtotal || (qi.quantity || 0) * (qi.unit_price || 0);
+        s.totalValue += qi.subtotal ?? ((qi.quantity ?? 0) * (qi.unit_price ?? 0));
         s.quoteCount += 1;
         sellerMap.set(sellerId, s);
       }

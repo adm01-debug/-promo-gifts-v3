@@ -115,6 +115,7 @@ export function generateMockVelocity(productId: string): MockVelocityData {
 }
 
 export interface MockIntelligenceData {
+  _isMock: true;
   product_id: string;
   supplier_count: number;
   total_current_stock: number;
@@ -142,6 +143,7 @@ export function generateMockIntelligence(productId: string): MockIntelligenceDat
   const abc: 'A' | 'B' | 'C' = abcRoll < 0.2 ? 'A' : abcRoll < 0.5 ? 'B' : 'C';
 
   return {
+    _isMock: true as const,
     product_id: productId,
     supplier_count: 1 + Math.floor(seededRandom(baseSeed + 201) * 4),
     total_current_stock: vel.current_stock,
@@ -300,6 +302,9 @@ export function isRealIntelligence(data: unknown): data is ProductIntelligenceDa
     typeof data === 'object' &&
     'product_id' in data &&
     'abc_classification' in data &&
-    'is_hot_product' in data
+    'is_hot_product' in data &&
+    // Discriminate from MockIntelligenceData: real data comes from DB and has these numeric aggregation fields
+    'turnover_score' in data &&
+    !('_isMock' in data)
   );
 }

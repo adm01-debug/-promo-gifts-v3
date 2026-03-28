@@ -47,7 +47,7 @@ import {
   safeParseDateForChart,
   isRealIntelligence,
   OPERATIONAL_FLAG_CONFIG,
-  type MockVelocityData,
+  type MockChartPoint,
 } from "@/lib/stock-chart-utils";
 import { RiskKpi } from "./RiskKpi";
 import { RiskTooltip } from "./RiskTooltip";
@@ -100,7 +100,7 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
       .filter(d => new Date(d.date) >= cutoff)
-      .reduce<Array<{ date: string; stockClose: number; depleted: number; restocked: number; restockDetected: boolean; costPriceClose: number | null; dateFormatted: string; fullDate: string }>>((acc, d) => {
+      .reduce<Array<MockChartPoint & { costPriceClose: number | null }>>((acc, d) => {
         const parsed = safeParseDateForChart(d.date);
         if (parsed) acc.push({ ...d, ...parsed });
         return acc;
@@ -151,7 +151,9 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
   const trend = safeVelocityTrend(bestVelocity?.velocity_trend);
   const trendDisplay = formatVelocityTrendOperational(trend);
 
-  const priceChanges = bestVelocity && (bestVelocity as MockVelocityData).price_changes_30d || 0;
+  const priceChanges = bestVelocity && 'price_changes_30d' in bestVelocity
+    ? ((bestVelocity as Record<string, unknown>).price_changes_30d as number ?? 0)
+    : 0;
   const priceChangeText = priceChanges === 1 ? '1 alteração' : `${priceChanges} alterações`;
 
   return (

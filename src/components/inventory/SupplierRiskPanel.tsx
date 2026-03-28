@@ -196,7 +196,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
             </div>
 
             {/* Severity filter buttons */}
-            <div className="flex gap-1 flex-wrap">
+            <div className="flex gap-1 flex-wrap" role="radiogroup" aria-label="Filtrar por severidade">
               {([
                 { value: 'all' as const, label: 'Todos', count: riskProducts.length },
                 { value: 'critical' as const, label: 'Críticos', count: globalCounts.critical },
@@ -215,7 +215,8 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                         : 'bg-primary/15 text-primary'
                       : 'text-muted-foreground hover:bg-muted/50'
                   )}
-                  aria-pressed={severityFilter === opt.value}
+                  aria-checked={severityFilter === opt.value}
+                  role="radio"
                 >
                   {opt.label} ({opt.count})
                 </button>
@@ -311,7 +312,6 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
           <div className="border-t lg:border-t-0 lg:border-l border-border pt-4 lg:pt-0 lg:pl-4">
             {selected ? (
               <ProductRiskDetail
-                key={selected.id}
                 productId={selected.id}
                 productName={selected.name}
                 productSku={selected.sku}
