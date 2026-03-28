@@ -103,10 +103,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   const { data: velocity } = useStockVelocity(productId);
   const { data: intelligence } = useProductIntelligenceData(productId);
 
-  const isDemo = !summaries?.length;
+  const hasData = !!summaries?.length;
 
   const chartData = useMemo(() => {
-    if (isDemo) return generateDemoStockData(productId, days);
+    if (!hasData) return [];
     const aggregated = aggregateDailySummaryByDate(summaries!);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);

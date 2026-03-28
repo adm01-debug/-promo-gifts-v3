@@ -46,23 +46,21 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
   const { data, isLoading } = useSalesHistory(productId, days);
 
-  const isDemo = !data?.daily?.length;
+  const hasData = !!data?.daily?.length;
 
   const chartData = useMemo(() => {
-    if (!isDemo) {
-      return data!.daily.map(d => ({
-        ...d,
-        dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
-        fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
-      }));
-    }
-    return generateDemoSalesData(productId, days);
-  }, [data, days, isDemo, productId]);
+    if (!hasData) return [];
+    return data!.daily.map(d => ({
+      ...d,
+      dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
+      fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
+    }));
+  }, [data, hasData]);
 
   const kpis = useMemo(() => {
-    if (!isDemo) return data!.kpis;
-    return generateDemoSalesKpis(chartData);
-  }, [data, isDemo, chartData]);
+    if (!hasData) return { totalQuotedQty: 0, totalOrderedQty: 0, totalQuotedValue: 0, totalOrderedValue: 0, conversionRate: 0, uniqueSellers: 0, avgOrderValue: 0, topSellers: [] };
+    return data!.kpis;
+  }, [data, hasData]);
 
   // Loading
   if (isLoading) {
