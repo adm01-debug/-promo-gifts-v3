@@ -103,9 +103,67 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   const { data: intelligence } = useProductIntelligenceData(productId);
 
   const hasData = !!summaries?.length;
+  const isDemo = !hasData;
+
+  // ---------- Mock data for preview ----------
+  const mockChartData = useMemo(() => {
+    const data = [];
+    const now = new Date();
+    let stock = 850 + Math.floor(Math.random() * 200);
+    for (let i = days; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const depleted = Math.floor(Math.random() * 25) + 3;
+      const isRestock = Math.random() < 0.08;
+      const restocked = isRestock ? Math.floor(Math.random() * 200) + 100 : 0;
+      stock = Math.max(50, stock - depleted + restocked);
+      data.push({
+        date: format(d, 'yyyy-MM-dd'),
+        stockClose: stock,
+        depleted,
+        restocked,
+        restockDetected: isRestock,
+        costPriceClose: 4.5 + Math.random() * 0.3,
+        dateFormatted: format(d, "dd/MM", { locale: ptBR }),
+        fullDate: format(d, "dd/MM/yyyy", { locale: ptBR }),
+      });
+    }
+    return data;
+  }, [days]);
+
+  const mockVelocity = useMemo(() => ({
+    avg_daily_depletion_7d: 14.3,
+    avg_daily_depletion_30d: 11.8,
+    days_to_stockout: 42,
+    velocity_trend: 1.21,
+    price_changes_30d: 1,
+    current_stock: 680,
+  }), []);
+
+  const mockIntelligence = useMemo(() => ({
+    total_current_stock: 1240,
+    abc_classification: 'A' as const,
+    turnover_score: 78,
+    is_hot_product: true,
+    is_stockout_risk: false,
+    is_stagnant: false,
+    is_negotiation_opportunity: false,
+    has_frequent_restock: true,
+    product_id: productId,
+    supplier_count: 3,
+    total_depleted_7d: 100,
+    total_depleted_30d: 354,
+    total_depleted_90d: 980,
+    total_restocked_30d: 400,
+    avg_velocity_7d: 14.3,
+    avg_velocity_30d: 11.8,
+    max_velocity_trend: 1.21,
+    min_days_to_stockout: 42,
+    is_hot_product: true,
+  }), [productId]);
 
   const chartData = useMemo(() => {
-    if (!hasData) return [];
+    if (!hasData) return mockChartData;
     const aggregated = aggregateDailySummaryByDate(summaries!);
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
@@ -116,10 +174,15 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
         fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
       }));
-  }, [summaries, days, hasData]);
+  }, [summaries, days, hasData, mockChartData]);
 
-  const effectiveIntelligence = intelligence;
-  const flags = useMemo(() => getActiveFlags(intelligence), [intelligence]);
+  const effectiveIntelligence = intelligence ?? (isDemo ? mockIntelligence : null);
+  const effectiveVelocity = velocity?.length ? velocity : null;
+  const bestVelocityData = effectiveVelocity
+    ? effectiveVelocity.reduce((best, v) => 
+        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, effectiveVelocity[0])
+    : (isDemo ? mockVelocity as any : null);
+  const flags = useMemo(() => getActiveFlags(effectiveIntelligence as any), [effectiveIntelligence]);
 
   // ---------- Loading ----------
   if (loadingSummary) {
