@@ -459,6 +459,12 @@ export default function ProductDetail() {
 
                   <DynamicTrustBadges
                     trust={getMockSupplierTrust(id || '')}
+                    productFlags={{
+                      newArrival: product?.newArrival ?? false,
+                      onSale: product?.onSale ?? false,
+                      featured: product?.featured ?? false,
+                      minQuantity: product?.minQuantity,
+                    }}
                     className="text-[10px]"
                   />
                 </div>
