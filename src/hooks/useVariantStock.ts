@@ -132,40 +132,35 @@ export function useVariantStock() {
 
   const fetchStockData = useCallback(async () => {
     setIsLoading(true);
-    setLoadingProgress({ step: 'Carregando produtos...', current: 0, total: 3 });
+    setLoadingProgress({ step: 'Carregando dados em paralelo...', current: 0, total: 3 });
     
     try {
-      // 1) Produtos - sem limite fixo, busca todos
-      const allProducts = await fetchPaginatedFromBridge<ExternalProductWithVariants>(
-        'products',
-        'id,name,sku,min_quantity,stock_quantity,updated_at',
-        1000,
-        100000,
-        { active: true }
-      );
-      logger.log(`[Stock] Carregados ${allProducts.length} produtos`);
-      setLoadingProgress({ step: 'Carregando variantes...', current: 1, total: 3 });
-
-      // 2) Variantes - busca todas as ativas
-      const allVariants = await fetchPaginatedFromBridge<ExternalVariantStock>(
-        'product_variants',
-        'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
-        1000,
-        100000,
-        { is_active: true }
-      );
-      logger.log(`[Stock] Carregadas ${allVariants.length} variantes`);
-      setLoadingProgress({ step: 'Carregando previsões de estoque...', current: 2, total: 3 });
-
-      // 3) Supplier Sources - estoque futuro
-      const allSupplierSources = await fetchPaginatedFromBridge<ExternalSupplierSource>(
-        'variant_supplier_sources',
-        'id,variant_id,supplier_id,supplier_sku,quantity,next_quantity_1,next_date_1,next_quantity_2,next_date_2,next_quantity_3,next_date_3,is_active,updated_at',
-        1000,
-        100000,
-        { is_active: true }
-      );
-      logger.log(`[Stock] Carregados ${allSupplierSources.length} supplier sources`);
+      // Buscar as 3 fontes de dados EM PARALELO (antes era sequencial)
+      const [allProducts, allVariants, allSupplierSources] = await Promise.all([
+        fetchPaginatedFromBridge<ExternalProductWithVariants>(
+          'products',
+          'id,name,sku,min_quantity,stock_quantity,updated_at',
+          1000,
+          100000,
+          { active: true }
+        ),
+        fetchPaginatedFromBridge<ExternalVariantStock>(
+          'product_variants',
+          'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at',
+          1000,
+          100000,
+          { is_active: true }
+        ),
+        fetchPaginatedFromBridge<ExternalSupplierSource>(
+          'variant_supplier_sources',
+          'id,variant_id,supplier_id,supplier_sku,quantity,next_quantity_1,next_date_1,next_quantity_2,next_date_2,next_quantity_3,next_date_3,is_active,updated_at',
+          1000,
+          100000,
+          { is_active: true }
+        ),
+      ]);
+      
+      logger.log(`[Stock] Carregados em paralelo: ${allProducts.length} produtos, ${allVariants.length} variantes, ${allSupplierSources.length} supplier sources`);
       setLoadingProgress({ step: 'Processando dados...', current: 3, total: 3 });
       
       // Agrupar variantes por product_id
