@@ -100,7 +100,7 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
       .filter(d => new Date(d.date) >= cutoff)
-      .reduce<Array<{ date: string; stockClose: number; depleted: number; restocked: number; restockDetected: boolean; costPriceClose: number | null; dateFormatted: string; fullDate: string }>>((acc, d) => {
+      .reduce<Array<MockChartPoint & { costPriceClose: number | null }>>((acc, d) => {
         const parsed = safeParseDateForChart(d.date);
         if (parsed) acc.push({ ...d, ...parsed });
         return acc;
