@@ -23,28 +23,16 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
   const realData = useSparklineData(productId);
   const hasRealData = realData && realData.totalQty > 0;
 
-  // Points: use real daily quantities or fall back to demo seed
+  // Points: use real daily quantities only — no demo fallback
   const points = useMemo(() => {
     if (hasRealData) return realData.dailyQty;
+    return [];
+  }, [hasRealData, realData?.dailyQty]);
 
-    // Deterministic demo seed
-    let hash = 0;
-    for (let i = 0; i < productId.length; i++) {
-      hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
-    }
-    const seed = (n: number) => {
-      const x = Math.sin(hash + n) * 10000;
-      return x - Math.floor(x);
-    };
-    const len = 20;
-    const data: number[] = [];
-    let val = 20 + seed(0) * 60;
-    for (let i = 0; i < len; i++) {
-      val = Math.max(5, Math.min(95, val + (seed(i + 1) - 0.45) * 20));
-      data.push(Math.round(val));
-    }
-    return data;
-  }, [productId, hasRealData, realData?.dailyQty]);
+  // Don't render anything if no real data
+  if (!hasRealData || points.length < 2) {
+    return null;
+  }
 
   // Extended summary stats with comparisons
   const summary = useMemo(() => {
