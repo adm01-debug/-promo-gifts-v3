@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useVariantStock } from "@/hooks/useVariantStock";
 import { VariantStockTable } from "./VariantStockTable";
+import { SupplierRiskPanel } from "./SupplierRiskPanel";
 import { StockStatus, StockAlert } from "@/types/stock";
 
 // ============================================
