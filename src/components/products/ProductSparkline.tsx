@@ -32,18 +32,10 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
 
   // Extended summary stats with comparisons
   const summary = useMemo(() => {
-    const totalSales = hasRealData ? realData.totalQty : points.reduce((a, b) => a + b, 0);
+    const totalSales = hasRealData ? realData.totalQty : 0;
+    const revenue = hasRealData ? realData.totalValue : 0;
 
-    let hash = 0;
-    for (let i = 0; i < productId.length; i++) {
-      hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
-    }
-
-    const revenue = hasRealData
-      ? realData.totalValue
-      : totalSales * (8 + Math.abs(Math.sin(hash + 100)) * 45);
-
-    const pts = hasRealData ? realData.dailyQty : points;
+    const pts = points;
     const mid = Math.floor(pts.length / 2);
     const firstHalf = pts.slice(0, mid);
     const secondHalf = pts.slice(mid);
