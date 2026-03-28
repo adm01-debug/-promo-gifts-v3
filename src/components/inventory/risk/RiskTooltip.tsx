@@ -15,7 +15,7 @@ export function RiskTooltip({ active, payload }: any) {
       <div className="mt-1.5 space-y-1">
         <div className="flex justify-between text-[10px]">
           <span className="text-muted-foreground">Estoque:</span>
-          <span className="font-semibold">{data.stockClose?.toLocaleString('pt-BR') ?? '—'}</span>
+          <span className="font-semibold">{data.stockClose != null ? data.stockClose.toLocaleString('pt-BR') : '—'}</span>
         </div>
         {depleted != null && depleted > 0 && (
           <div className="flex justify-between text-[10px]">

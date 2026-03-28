@@ -312,7 +312,6 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
           <div className="border-t lg:border-t-0 lg:border-l border-border pt-4 lg:pt-0 lg:pl-4">
             {selected ? (
               <ProductRiskDetail
-                key={selected.id}
                 productId={selected.id}
                 productName={selected.name}
                 productSku={selected.sku}

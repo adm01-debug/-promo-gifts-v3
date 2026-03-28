@@ -47,7 +47,7 @@ import {
   safeParseDateForChart,
   isRealIntelligence,
   OPERATIONAL_FLAG_CONFIG,
-  type MockVelocityData,
+  type MockChartPoint,
 } from "@/lib/stock-chart-utils";
 import { RiskKpi } from "./RiskKpi";
 import { RiskTooltip } from "./RiskTooltip";
