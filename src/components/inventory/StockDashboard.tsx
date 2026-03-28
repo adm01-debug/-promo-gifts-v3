@@ -152,7 +152,7 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{alert.productName}</p>
         <p className="text-xs text-muted-foreground">{alert.message}</p>
-        <p className="text-xs text-muted-foreground mt-1">SKU: {alert.sku}</p>
+        <p className="text-xs text-muted-foreground mt-1">SKU: {alert.productSku}</p>
       </div>
       <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss}>
         <X className="h-3 w-3" />
@@ -172,6 +172,7 @@ export function StockDashboard() {
     isLoading,
     loadingProgress,
     productStocks,
+    allProductStocks,
     summary,
     alerts,
     criticalAlerts,
@@ -295,7 +296,7 @@ export function StockDashboard() {
       </div>
 
       {/* Painel de Risco de Fornecedor */}
-      <SupplierRiskPanel />
+      <SupplierRiskPanel products={allProductStocks} />
 
       {/* Filtros */}
       <Card>
