@@ -204,6 +204,8 @@ export function aggregateDailySummaryByDate(summaries: StockDailySummary[]) {
     restocked: number;
     restockDetected: boolean;
     costPriceClose: number | null;
+    _costWeightedSum: number;
+    _costWeightedCount: number;
   }>();
 
   for (const s of summaries) {
@@ -213,8 +215,12 @@ export function aggregateDailySummaryByDate(summaries: StockDailySummary[]) {
       existing.depleted += s.units_depleted;
       existing.restocked += s.units_restocked;
       if (s.restock_detected) existing.restockDetected = true;
-      // Keep the most recent cost price
-      if (s.cost_price_close != null) existing.costPriceClose = s.cost_price_close;
+      // B17 fix: weighted average cost by stock_close volume
+      if (s.cost_price_close != null && s.stock_close > 0) {
+        existing._costWeightedSum += s.cost_price_close * s.stock_close;
+        existing._costWeightedCount += s.stock_close;
+        existing.costPriceClose = existing._costWeightedSum / existing._costWeightedCount;
+      }
     } else {
       map.set(s.summary_date, {
         date: s.summary_date,
@@ -223,9 +229,14 @@ export function aggregateDailySummaryByDate(summaries: StockDailySummary[]) {
         restocked: s.units_restocked,
         restockDetected: s.restock_detected,
         costPriceClose: s.cost_price_close,
+        _costWeightedSum: (s.cost_price_close ?? 0) * s.stock_close,
+        _costWeightedCount: s.cost_price_close != null ? s.stock_close : 0,
       });
     }
   }
 
-  return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
+  // Strip internal fields before returning
+  return Array.from(map.values())
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map(({ _costWeightedSum, _costWeightedCount, ...rest }) => rest);
 }

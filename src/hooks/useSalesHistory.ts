@@ -172,8 +172,12 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       const totalOrderedQty = daily.reduce((s, d) => s + d.orderedQty, 0);
       const totalQuotedValue = daily.reduce((s, d) => s + d.quotedValue, 0);
       const totalOrderedValue = daily.reduce((s, d) => s + d.orderedValue, 0);
-      const totalQuotes = daily.reduce((s, d) => s + d.quoteCount, 0);
-      const totalOrders = daily.reduce((s, d) => s + d.orderCount, 0);
+
+      // B13 fix: conversion rate uses unique DOCUMENT counts, not item counts
+      const uniqueQuoteIds = new Set((quoteItems || []).map(qi => qi.quote_id));
+      const uniqueOrderIds = new Set((orderItems || []).filter(oi => oi.order_id).map(oi => oi.order_id));
+      const totalUniqueQuotes = uniqueQuoteIds.size;
+      const totalUniqueOrders = uniqueOrderIds.size;
 
       return {
         daily,
@@ -182,9 +186,9 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
           totalOrderedQty,
           totalQuotedValue,
           totalOrderedValue,
-          conversionRate: totalQuotes > 0 ? (totalOrders / totalQuotes) * 100 : 0,
+          conversionRate: totalUniqueQuotes > 0 ? (totalUniqueOrders / totalUniqueQuotes) * 100 : 0,
           uniqueSellers: sellerMap.size,
-          avgOrderValue: totalOrders > 0 ? totalOrderedValue / totalOrders : 0,
+          avgOrderValue: totalUniqueOrders > 0 ? totalOrderedValue / totalUniqueOrders : 0,
           topSellers,
         },
       };
