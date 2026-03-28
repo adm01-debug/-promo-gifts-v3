@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Star, 
   TrendingUp, 
