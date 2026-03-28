@@ -278,14 +278,18 @@ function KpiCard({ icon: Icon, label, value, sub, highlight, alert }: {
   alert?: boolean;
 }) {
   return (
-    <div className={cn(
-      "rounded-lg p-2 text-center",
-      alert ? "bg-destructive/10 border border-destructive/20" :
-      highlight ? "bg-primary/10 border border-primary/20" :
-      "bg-muted/50"
-    )}>
+    <div
+      className={cn(
+        "rounded-lg p-2 text-center",
+        alert ? "bg-destructive/10 border border-destructive/20" :
+        highlight ? "bg-primary/10 border border-primary/20" :
+        "bg-muted/50"
+      )}
+      role="status"
+      aria-label={`${label}: ${value} ${sub}`}
+    >
       <div className="flex items-center justify-center gap-1 mb-0.5">
-        <Icon className={cn("h-3 w-3", highlight ? "text-primary" : "text-muted-foreground")} />
+        <Icon className={cn("h-3 w-3", highlight ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
         <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
       </div>
       <p className={cn(
