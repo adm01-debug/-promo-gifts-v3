@@ -44,7 +44,7 @@ import { StockStatus, StockAlert } from "@/types/stock";
 const STATUS_CONFIG: Record<StockStatus, { label: string; color: string; icon: React.ReactNode }> = {
   in_stock: { 
     label: 'Em Estoque', 
-    color: 'bg-green-500/10 text-green-600 border-green-500/20',
+    color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
     icon: <CheckCircle2 className="h-4 w-4" />
   },
   low_stock: { 
@@ -54,22 +54,22 @@ const STATUS_CONFIG: Record<StockStatus, { label: string; color: string; icon: R
   },
   critical: { 
     label: 'Crítico', 
-    color: 'bg-red-500/10 text-red-600 border-red-500/20',
+    color: 'bg-destructive/10 text-destructive border-destructive/20',
     icon: <AlertTriangle className="h-4 w-4" />
   },
   out_of_stock: { 
     label: 'Sem Estoque', 
-    color: 'bg-red-600/10 text-red-700 border-red-600/20',
+    color: 'bg-destructive/15 text-destructive border-destructive/25',
     icon: <XCircle className="h-4 w-4" />
   },
   overstocked: { 
     label: 'Excesso', 
-    color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    color: 'bg-primary/10 text-primary border-primary/20',
     icon: <TrendingUp className="h-4 w-4" />
   },
   incoming: { 
     label: 'Chegando', 
-    color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    color: 'bg-accent text-accent-foreground border-accent',
     icon: <Truck className="h-4 w-4" />
   },
 };
