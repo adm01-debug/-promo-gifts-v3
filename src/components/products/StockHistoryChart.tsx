@@ -238,6 +238,14 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                  '📦 Normal'}
               </Badge>
             )}
+            {trend != null && trend > 1.3 && (
+              <Badge
+                variant="outline"
+                className="font-bold text-xs bg-blue-500/15 text-blue-500 border-blue-500/30"
+              >
+                🚀 Emergente
+              </Badge>
+            )}
             {showTurnover && (
               <Badge variant="secondary" className="text-xs font-mono" title="Potencial comercial: quanto maior, mais o mercado compra">
                 Potencial: {Math.round(turnoverScore!)}
