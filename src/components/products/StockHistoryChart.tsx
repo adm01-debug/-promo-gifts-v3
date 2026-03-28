@@ -117,12 +117,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         dateFormatted: format(parseISO(d.date), "dd/MM", { locale: ptBR }),
         fullDate: format(parseISO(d.date), "dd/MM/yyyy", { locale: ptBR }),
       }));
-  }, [summaries, days, isDemo, productId]);
+  }, [summaries, days, hasData]);
 
-  const effectiveIntelligence = isDemo ? generateDemoIntelligence(productId) : intelligence;
-  const flags = useMemo(() => isDemo
-    ? getActiveFlags(effectiveIntelligence as any)
-    : getActiveFlags(intelligence), [intelligence, isDemo, effectiveIntelligence]);
+  const effectiveIntelligence = intelligence;
+  const flags = useMemo(() => getActiveFlags(intelligence), [intelligence]);
 
   // ---------- Loading ----------
   if (loadingSummary) {
