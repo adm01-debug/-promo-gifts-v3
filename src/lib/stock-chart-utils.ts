@@ -143,6 +143,7 @@ export function generateMockIntelligence(productId: string): MockIntelligenceDat
   const abc: 'A' | 'B' | 'C' = abcRoll < 0.2 ? 'A' : abcRoll < 0.5 ? 'B' : 'C';
 
   return {
+    _isMock: true as const,
     product_id: productId,
     supplier_count: 1 + Math.floor(seededRandom(baseSeed + 201) * 4),
     total_current_stock: vel.current_stock,
