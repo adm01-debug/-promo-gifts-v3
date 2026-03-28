@@ -172,6 +172,7 @@ export function StockDashboard() {
     isLoading,
     loadingProgress,
     productStocks,
+    allProductStocks,
     summary,
     alerts,
     criticalAlerts,
