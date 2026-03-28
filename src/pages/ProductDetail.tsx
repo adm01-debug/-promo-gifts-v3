@@ -59,7 +59,8 @@ import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
-import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge, DynamicTrustBadges, getMockSupplierTrust, type ProductBadgeFlags } from "@/components/common/SocialProof";
+import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge, DynamicTrustBadges, type ProductBadgeFlags } from "@/components/common/SocialProof";
+import { useSupplierTrust } from "@/hooks/useSupplierTrust";
 import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
@@ -124,8 +125,8 @@ export default function ProductDetail() {
 
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: relatedProductsList = [] } = useRelatedProducts(product, 20);
+  const { data: supplierTrust } = useSupplierTrust(id);
 
-  useEffect(() => {
     if (relatedProductsList.length > 0) registerProducts(relatedProductsList);
   }, [relatedProductsList, registerProducts]);
 
@@ -458,7 +459,7 @@ export default function ProductDetail() {
                   </div>
 
                   <DynamicTrustBadges
-                    trust={getMockSupplierTrust(id || '')}
+                    trust={supplierTrust ?? { isVerified: false, deliveryDays: null, avgRating: null }}
                     productFlags={{
                       newArrival: product?.newArrival ?? false,
                       onSale: product?.onSale ?? false,
