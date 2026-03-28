@@ -28,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
+import { safeParseDateForChart } from "@/lib/stock-chart-utils";
 
 
 interface SalesHistoryChartProps {

@@ -147,7 +147,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
           totalQty: 0, totalValue: 0, quoteCount: 0, orderCount: 0,
         };
         s.totalQty += qi.quantity || 0;
-        s.totalValue += qi.subtotal || (qi.quantity || 0) * (qi.unit_price || 0);
+        s.totalValue += qi.subtotal ?? ((qi.quantity ?? 0) * (qi.unit_price ?? 0));
         s.quoteCount += 1;
         sellerMap.set(sellerId, s);
       }
