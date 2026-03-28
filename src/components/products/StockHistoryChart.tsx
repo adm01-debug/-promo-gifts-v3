@@ -126,11 +126,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   // ---------- Effective data (B1: no forced cast) ----------
   const effectiveIntelligence = intelligence ?? (isDemo ? mockIntel : null);
 
-  const bestVelocity: (MockVelocityData | { avg_daily_depletion_7d: number; avg_daily_depletion_30d: number; days_to_stockout: number | null; velocity_trend: number; price_changes_30d: number; current_stock: number } | null) =
-    velocity?.length
-      ? velocity.reduce((best, v) =>
-          (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-      : (isDemo ? mockVelocity : null);
+  const bestVelocity = velocity?.length
+    ? velocity.reduce((best, v) =>
+        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
+    : (isDemo ? mockVelocity : null);
 
   // B1 fix: use type guard instead of cast
   const flags = useMemo(() => {
