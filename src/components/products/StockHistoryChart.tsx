@@ -235,7 +235,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
               >
                 {effectiveIntelligence.abc_classification === 'A' ? '🏆 Best-Seller' :
                  effectiveIntelligence.abc_classification === 'B' ? '📈 Boa Saída' :
-                 '📊 Nicho'}
+                 '📊 Normal'}
               </Badge>
             )}
             {showTurnover && (
