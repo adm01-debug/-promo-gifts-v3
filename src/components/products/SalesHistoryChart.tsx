@@ -151,7 +151,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
       <CardContent className="space-y-4">
         {/* KPI cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Métricas de vendas internas">
           <KpiCard
             icon={FileText}
             label="Orçado (qtd)"
