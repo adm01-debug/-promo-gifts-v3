@@ -196,7 +196,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
             </div>
 
             {/* Severity filter buttons */}
-            <div className="flex gap-1 flex-wrap">
+            <div className="flex gap-1 flex-wrap" role="radiogroup" aria-label="Filtrar por severidade">
               {([
                 { value: 'all' as const, label: 'Todos', count: riskProducts.length },
                 { value: 'critical' as const, label: 'Críticos', count: globalCounts.critical },
