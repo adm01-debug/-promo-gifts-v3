@@ -135,6 +135,63 @@ export const TrustBadgesRow = React.forwardRef<HTMLDivElement, { className?: str
   }
 );
 
+/**
+ * Supplier trust data — will come from real DB in the future.
+ * For now, uses deterministic mock based on product ID.
+ */
+export interface SupplierTrustData {
+  isVerified: boolean;
+  deliveryDays: number | null; // null = unknown
+  avgRating: number | null;    // 0-5, null = no reviews
+}
+
+/**
+ * Generate mock trust data from a product ID (deterministic).
+ */
+export function getMockSupplierTrust(productId: string): SupplierTrustData {
+  let hash = 0;
+  for (let i = 0; i < productId.length; i++) {
+    hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
+  }
+  const abs = Math.abs(hash);
+
+  return {
+    isVerified: abs % 10 < 7,          // ~70% verified
+    deliveryDays: abs % 5 === 0 ? null : (abs % 12) + 1, // 1-12 days, some null
+    avgRating: abs % 7 === 0 ? null : 3.2 + ((abs % 18) / 10), // 3.2-4.9, some null
+  };
+}
+
+/** Dynamic trust badges that show/hide based on supplier data */
+interface DynamicTrustBadgesProps {
+  trust: SupplierTrustData;
+  className?: string;
+}
+
+export function DynamicTrustBadges({ trust, className }: DynamicTrustBadgesProps) {
+  const badges: React.ReactNode[] = [];
+
+  if (trust.isVerified) {
+    badges.push(<TrustBadge key="verified" type="verified" />);
+  }
+
+  if (trust.deliveryDays != null && trust.deliveryDays <= 5) {
+    badges.push(<TrustBadge key="fast" type="fast" />);
+  }
+
+  if (trust.avgRating != null && trust.avgRating >= 4.0) {
+    badges.push(<TrustBadge key="quality" type="quality" />);
+  }
+
+  if (badges.length === 0) return null;
+
+  return (
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-0.5", className)}>
+      {badges}
+    </div>
+  );
+}
+
 // Star rating display
 interface StarRatingProps {
   rating: number; // 0-5

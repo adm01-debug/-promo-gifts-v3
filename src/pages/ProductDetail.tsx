@@ -59,7 +59,7 @@ import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
-import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge } from "@/components/common/SocialProof";
+import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge, DynamicTrustBadges, getMockSupplierTrust } from "@/components/common/SocialProof";
 import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
@@ -457,11 +457,10 @@ export default function ProductDetail() {
                     </Button>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px]">
-                    <TrustBadge type="verified" />
-                    <TrustBadge type="fast" />
-                    <TrustBadge type="quality" />
-                  </div>
+                  <DynamicTrustBadges
+                    trust={getMockSupplierTrust(id || '')}
+                    className="text-[10px]"
+                  />
                 </div>
               </div>
 
