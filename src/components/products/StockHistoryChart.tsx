@@ -111,12 +111,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
       .filter(d => new Date(d.date) >= cutoff)
-      .map(d => {
+      .reduce<Array<{ date: string; stockClose: number; depleted: number; restocked: number; restockDetected: boolean; costPriceClose: number | null; dateFormatted: string; fullDate: string }>>((acc, d) => {
         const parsed = safeParseDateForChart(d.date);
-        if (!parsed) return null;
-        return { ...d, ...parsed };
-      })
-      .filter(Boolean);
+        if (parsed) acc.push({ ...d, ...parsed });
+        return acc;
+      }, []);
   }, [summaries, days, hasData, mockChartData]);
 
   // ---------- Mock data (consistent with productId) ----------
