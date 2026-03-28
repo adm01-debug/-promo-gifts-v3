@@ -197,11 +197,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
   // Empty state removed — using mock data instead
 
-  // ---------- Velocity KPIs ----------
-  const bestVelocity = velocity?.length
-    ? velocity.reduce((best, v) => 
-        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-    : null;
+  const bestVelocity = bestVelocityData;
 
   return (
     <Card>
