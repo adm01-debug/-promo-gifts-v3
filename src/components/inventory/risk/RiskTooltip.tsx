@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { safeNumber } from "@/lib/stock-chart-utils";
 
+// #11 fix: shows fallback when zero-activity day
 export function RiskTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const data = payload[0]?.payload;
@@ -8,6 +9,7 @@ export function RiskTooltip({ active, payload }: any) {
 
   const depleted = safeNumber(data.depleted);
   const restocked = safeNumber(data.restocked);
+  const hasActivity = (depleted != null && depleted > 0) || (restocked != null && restocked > 0);
 
   return (
     <div className="bg-popover border border-border rounded-lg p-2.5 shadow-lg min-w-[150px]">
@@ -17,6 +19,9 @@ export function RiskTooltip({ active, payload }: any) {
           <span className="text-muted-foreground">Estoque:</span>
           <span className="font-semibold">{data.stockClose != null ? data.stockClose.toLocaleString('pt-BR') : '—'}</span>
         </div>
+        {!hasActivity && (
+          <p className="text-[9px] text-muted-foreground italic">Sem movimentação</p>
+        )}
         {depleted != null && depleted > 0 && (
           <div className="flex justify-between text-[10px]">
             <span className="text-destructive">Saída:</span>

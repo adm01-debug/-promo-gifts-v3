@@ -37,17 +37,20 @@ import {
   useProductIntelligenceData,
   aggregateDailySummaryByDate,
   getActiveFlags,
+  type IntelligenceFlag,
 } from "@/hooks/useStockHistory";
 import {
   safeVelocityTrend,
   safeNumber,
   generateMockStockData,
   generateMockVelocity,
+  generateMockIntelligence,
   formatVelocityTrendOperational,
   safeParseDateForChart,
   isRealIntelligence,
   OPERATIONAL_FLAG_CONFIG,
-  type MockChartPoint,
+  safePriceChanges,
+  type MockIntelligenceData,
 } from "@/lib/stock-chart-utils";
 import { RiskKpi } from "./RiskKpi";
 import { RiskTooltip } from "./RiskTooltip";
@@ -91,8 +94,10 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
   };
 
   const mockVelocity = useMemo(() => generateMockVelocity(productId), [productId]);
+  const mockIntel = useMemo(() => generateMockIntelligence(productId), [productId]);
   const mockChartData = useMemo(() => generateMockStockData(productId, days), [days, productId]);
 
+  // #10 fix: correct type for reduce — use union type instead of intersection
   const chartData = useMemo(() => {
     if (!hasData) return mockChartData;
     const aggregated = aggregateDailySummaryByDate(summaries!);
@@ -100,25 +105,37 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
     cutoff.setDate(cutoff.getDate() - days);
     return aggregated
       .filter(d => new Date(d.date) >= cutoff)
-      .reduce<Array<MockChartPoint & { costPriceClose: number | null }>>((acc, d) => {
+      .reduce<Array<{ date: string; stockClose: number; depleted: number; restocked: number; restockDetected: boolean; costPriceClose: number | null; dateFormatted: string; fullDate: string }>>((acc, d) => {
         const parsed = safeParseDateForChart(d.date);
         if (parsed) acc.push({ ...d, ...parsed });
         return acc;
       }, []);
   }, [summaries, days, hasData, mockChartData]);
 
-  const effectiveIntelligence = intelligence ?? null;
+  // #9 fix: use mockIntel in demo mode (was `intelligence ?? null`)
+  const effectiveIntelligence = intelligence ?? (isDemo ? mockIntel : null);
+
   const bestVelocity = velocity?.length
     ? velocity.reduce((best, v) =>
         (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-    : (!hasData ? mockVelocity : null);
+    : (isDemo ? mockVelocity : null);
 
+  // #9 fix: derive flags from mock data too (was returning [] for non-real)
   const flags = useMemo(() => {
     if (!effectiveIntelligence) return [];
     if (isRealIntelligence(effectiveIntelligence)) {
       return getActiveFlags(effectiveIntelligence);
     }
-    return [];
+    // For mock data, manually derive flags
+    const mock = effectiveIntelligence as MockIntelligenceData;
+    const result: IntelligenceFlag[] = [];
+    if (mock.is_hot_product) result.push('hot-product');
+    if (mock.is_stockout_risk) result.push('stockout-risk');
+    if (mock.is_stagnant) result.push('stagnant');
+    if (mock.is_negotiation_opportunity) result.push('negotiation-opportunity');
+    if (mock.has_frequent_restock) result.push('frequent-restock');
+    if (mock.abc_classification === 'A') result.push('class-a');
+    return result;
   }, [effectiveIntelligence]);
 
   if (isLoading) {
@@ -151,9 +168,8 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
   const trend = safeVelocityTrend(bestVelocity?.velocity_trend);
   const trendDisplay = formatVelocityTrendOperational(trend);
 
-  const priceChanges = bestVelocity && 'price_changes_30d' in bestVelocity
-    ? ((bestVelocity as Record<string, unknown>).price_changes_30d as number ?? 0)
-    : 0;
+  // #12 fix: safe price_changes extraction via helper
+  const priceChanges = safePriceChanges(bestVelocity);
   const priceChangeText = priceChanges === 1 ? '1 alteração' : `${priceChanges} alterações`;
 
   return (

@@ -1,16 +1,6 @@
 /**
  * StockHistoryChart — Inteligência de Mercado (Página de Produto)
  * Foco COMERCIAL: "como o mercado está comprando este produto"
- *
- * v3 Fixes:
- * - B1: Sem cast forçado — usa isRealIntelligence type guard
- * - B2: parseISO com safeParseDateForChart (try-catch)
- * - B5: Tooltip null-safe para depleted/restocked
- * - B6: turnover_score 0 não é falsy
- * - G1: Botão retry quando fetch falha
- * - G3: Legenda visual no gráfico
- * - S1: costPriceClose não renderizado no DOM se showCost=false
- * - Usa utilitários compartilhados (elimina ~100 linhas de duplicação)
  */
 import { useMemo, useState } from "react";
 import {
@@ -63,9 +53,10 @@ import {
   safeParseDateForChart,
   isRealIntelligence,
   COMMERCIAL_FLAG_CONFIG,
-  type MockVelocityData,
   type MockIntelligenceData,
+  safePriceChanges,
 } from "@/lib/stock-chart-utils";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 interface StockHistoryChartProps {
   productId: string;
@@ -98,7 +89,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   const hasError = !!(summaryError || velocityError || intelligenceError);
   const isDemo = !hasData && !hasError;
 
-  // ---------- Chart data (B2: safe date parsing) ----------
+  // ---------- Chart data ----------
   const mockChartData = useMemo(
     () => generateMockStockData(productId, days),
     [days, productId]
@@ -118,11 +109,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
       }, []);
   }, [summaries, days, hasData, mockChartData]);
 
-  // ---------- Mock data (consistent with productId) ----------
+  // ---------- Mock data ----------
   const mockVelocity = useMemo(() => generateMockVelocity(productId), [productId]);
   const mockIntel = useMemo(() => generateMockIntelligence(productId), [productId]);
 
-  // ---------- Effective data (B1: no forced cast) ----------
+  // ---------- Effective data ----------
   const effectiveIntelligence = intelligence ?? (isDemo ? mockIntel : null);
 
   const bestVelocity = velocity?.length
@@ -130,7 +121,6 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
     : (isDemo ? mockVelocity : null);
 
-  // B1 fix: use type guard instead of cast
   const flags = useMemo(() => {
     if (!effectiveIntelligence) return [];
     if (isRealIntelligence(effectiveIntelligence)) {
@@ -176,7 +166,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     return `em ${count} fornecedor${count > 1 ? 'es' : ''}`;
   }, [effectiveIntelligence]);
 
-  // ---------- Retry handler (G1) ----------
+  // #3 fix: safe price_changes extraction via helper
+  const priceChanges = safePriceChanges(bestVelocity);
+
+  // ---------- Retry handler ----------
   const handleRetry = () => {
     refetchSummary();
     refetchVelocity();
@@ -194,7 +187,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     );
   }
 
-  // ---------- Error state (G1: retry button) ----------
+  // ---------- Error state ----------
   if (hasError && !hasData) {
     return (
       <Card>
@@ -211,7 +204,6 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     );
   }
 
-  // B6 fix: turnover_score uses != null instead of truthiness
   const turnoverScore = effectiveIntelligence?.turnover_score;
   const showTurnover = turnoverScore != null && Number.isFinite(turnoverScore);
 
@@ -278,7 +270,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* KPI cards */}
+        {/* KPI cards — uses shared KpiCard (#4 fix) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Métricas de inteligência de mercado">
           <KpiCard
             icon={ShoppingCart}
@@ -317,7 +309,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
           />
         </div>
 
-        {/* Period selector */}
+        {/* Period selector — #5 fix: consistent periods */}
         <Tabs value={period} onValueChange={setPeriod}>
           <TabsList className="h-7 flex-wrap">
             {['15','30','60','90','120','180','360'].map(p => (
@@ -326,7 +318,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
           </TabsList>
         </Tabs>
 
-        {/* Chart (G3: Legend added) */}
+        {/* Chart */}
         <div className="h-[160px] sm:h-[200px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
@@ -351,11 +343,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
         {/* Price change insight + cost toggle */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          {bestVelocity && ('price_changes_30d' in bestVelocity) && (bestVelocity.price_changes_30d as number ?? 0) > 0 && (
+          {priceChanges > 0 && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <DollarSign className="h-3 w-3" aria-hidden="true" />
               <span>
-                Fornecedor alterou preço {(bestVelocity as Record<string, unknown>).price_changes_30d as number}x nos últimos 30 dias —
+                Fornecedor alterou preço {priceChanges}x nos últimos 30 dias —
                 <span className="text-foreground font-medium"> trave seu custo ao cotar</span>
                 {isDemo && ' (demo)'}
               </span>
@@ -379,46 +371,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
 // ---------- Sub-components ----------
 
-function KpiCard({ icon: Icon, label, value, sub, highlight, alert, customValueColor, ariaLabel }: {
-  icon: typeof Flame;
-  label: string;
-  value: string;
-  sub: string;
-  highlight?: boolean;
-  alert?: boolean;
-  customValueColor?: string;
-  ariaLabel?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg p-2 text-center",
-        highlight ? "bg-primary/10 border border-primary/20" :
-        alert ? "bg-destructive/10 border border-destructive/20" : "bg-muted/50"
-      )}
-      role="status"
-      aria-label={ariaLabel}
-    >
-      <div className="flex items-center justify-center gap-1 mb-0.5">
-        <Icon className={cn("h-3 w-3",
-          highlight ? "text-primary" :
-          alert ? "text-destructive" : "text-muted-foreground"
-        )} aria-hidden="true" />
-        <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
-      </div>
-      <p className={cn(
-        "text-sm font-bold",
-        customValueColor ? customValueColor :
-        highlight ? "text-primary" :
-        alert ? "text-destructive" : "text-foreground"
-      )}>{value}</p>
-      <p className="text-[10px] text-muted-foreground">{sub}</p>
-    </div>
-  );
-}
-
-// S1 fix: costPriceClose only rendered when showCost is true
-// B5 fix: null-safe checks for depleted/restocked
+// #6 fix: MarketTooltip shows fallback when zero-activity day
 function MarketTooltip({ active, payload, showCost }: { active?: boolean; payload?: any; showCost: boolean }) {
   if (!active || !payload?.length) return null;
   const data = payload[0]?.payload;
@@ -426,6 +379,7 @@ function MarketTooltip({ active, payload, showCost }: { active?: boolean; payloa
 
   const depleted = safeNumber(data.depleted);
   const restocked = safeNumber(data.restocked);
+  const hasActivity = (depleted != null && depleted > 0) || (restocked != null && restocked > 0);
 
   return (
     <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
@@ -435,6 +389,9 @@ function MarketTooltip({ active, payload, showCost }: { active?: boolean; payloa
           <span className="text-muted-foreground">Disponível:</span>
           <span className="font-semibold">{data.stockClose?.toLocaleString('pt-BR') ?? '—'} un</span>
         </div>
+        {!hasActivity && (
+          <p className="text-[10px] text-muted-foreground italic">Sem movimentação neste dia</p>
+        )}
         {depleted != null && depleted > 0 && (
           <div className="flex justify-between text-xs">
             <span className="text-destructive">Compras do mercado:</span>
