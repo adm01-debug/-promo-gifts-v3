@@ -118,25 +118,25 @@ const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: stri
     icon: Zap,
     label: "Novidade",
     color: "text-emerald-500",
-    bg: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    bg: "bg-emerald-500/20 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-200 border border-emerald-500/30",
   },
   sale: {
     icon: Flame,
     label: "Promoção",
     color: "text-orange-500",
-    bg: "bg-orange-500/15 text-orange-700 dark:text-orange-300",
+    bg: "bg-orange-500/20 text-orange-800 dark:bg-orange-500/25 dark:text-orange-200 border border-orange-500/30",
   },
   bestseller: {
     icon: Crown,
     label: "Mais vendido",
     color: "text-amber-500",
-    bg: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    bg: "bg-amber-500/20 text-amber-800 dark:bg-amber-500/25 dark:text-amber-200 border border-amber-500/30",
   },
   freeShipping: {
     icon: TrendingUp,
     label: "Frete grátis",
     color: "text-emerald-600",
-    bg: "bg-emerald-600/15 text-emerald-700 dark:text-emerald-300",
+    bg: "bg-emerald-600/20 text-emerald-800 dark:bg-emerald-600/25 dark:text-emerald-200 border border-emerald-600/30",
   },
 };
 
@@ -149,7 +149,7 @@ export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
       <div ref={!tooltip ? ref : undefined} className={cn(
         "flex items-center gap-1.5 cursor-default transition-colors",
         isHighlighted
-          ? cn("px-2 py-0.5 rounded-full text-xs font-medium", bg)
+          ? cn("px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm", bg)
           : "text-sm text-muted-foreground",
         className
       )}>
