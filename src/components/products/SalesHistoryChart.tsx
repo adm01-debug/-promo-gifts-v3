@@ -213,6 +213,11 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
                 hide
               />
               <Tooltip content={<SalesTooltip />} />
+              <Legend
+                wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }}
+                iconSize={8}
+                formatter={(value: string) => <span className="text-muted-foreground text-[10px]">{value}</span>}
+              />
               <Bar
                 yAxisId="qty"
                 dataKey="quotedQty"
