@@ -457,11 +457,10 @@ export default function ProductDetail() {
                     </Button>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px]">
-                    <TrustBadge type="verified" />
-                    <TrustBadge type="fast" />
-                    <TrustBadge type="quality" />
-                  </div>
+                  <DynamicTrustBadges
+                    trust={getMockSupplierTrust(id || '')}
+                    className="text-[10px]"
+                  />
                 </div>
               </div>
 
