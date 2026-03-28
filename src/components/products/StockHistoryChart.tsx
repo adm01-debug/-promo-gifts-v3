@@ -398,9 +398,9 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         </div>
 
         {/* Supplier comparison cards */}
-        {velocity && velocity.length > 1 && supplierNamesMap && (
+        {effectiveVelocities.length > 1 && supplierNamesMap && (
           <SupplierComparisonCards
-            velocities={velocity}
+            velocities={effectiveVelocities as any}
             supplierNames={supplierNamesMap}
           />
         )}
