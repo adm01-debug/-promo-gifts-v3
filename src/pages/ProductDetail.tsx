@@ -459,7 +459,7 @@ export default function ProductDetail() {
                   </div>
 
                   <DynamicTrustBadges
-                    trust={getMockSupplierTrust(id || '')}
+                    trust={supplierTrust ?? { isVerified: false, deliveryDays: null, avgRating: null }}
                     productFlags={{
                       newArrival: product?.newArrival ?? false,
                       onSale: product?.onSale ?? false,
