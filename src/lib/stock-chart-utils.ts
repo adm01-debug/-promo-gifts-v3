@@ -199,19 +199,21 @@ export interface MockIntelligenceData {
 
 export function generateMockIntelligence(productId: string): MockIntelligenceData {
   const baseSeed = hashCode(productId);
-  const vel = generateMockVelocity(productId);
+  const vels = generateMockVelocities(productId);
+  const vel = vels[0]; // best velocity
   const abcRoll = seededRandom(baseSeed + 200);
   const abc: 'A' | 'B' | 'C' = abcRoll < 0.2 ? 'A' : abcRoll < 0.5 ? 'B' : 'C';
+  const totalStock = vels.reduce((sum, v) => sum + v.current_stock, 0);
 
   return {
     _isMock: true as const,
     product_id: productId,
-    supplier_count: 1 + Math.floor(seededRandom(baseSeed + 201) * 4),
-    total_current_stock: vel.current_stock,
-    total_depleted_7d: Math.round(vel.avg_daily_depletion_7d * 7),
-    total_depleted_30d: Math.round(vel.avg_daily_depletion_30d * 30),
-    total_depleted_90d: Math.round(vel.avg_daily_depletion_30d * 90 * 0.9),
-    total_restocked_30d: Math.round(vel.avg_daily_depletion_30d * 30 * 1.1),
+    supplier_count: vels.length,
+    total_current_stock: totalStock,
+    total_depleted_7d: vels.reduce((sum, v) => sum + v.total_depleted_7d, 0),
+    total_depleted_30d: vels.reduce((sum, v) => sum + v.total_depleted_30d, 0),
+    total_depleted_90d: vels.reduce((sum, v) => sum + v.total_depleted_90d, 0),
+    total_restocked_30d: vels.reduce((sum, v) => sum + v.total_restocked_30d, 0),
     avg_velocity_7d: vel.avg_daily_depletion_7d,
     avg_velocity_30d: vel.avg_daily_depletion_30d,
     max_velocity_trend: vel.velocity_trend,
