@@ -18,12 +18,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ShoppingCart,
   FileText,
-  TrendingUp,
   Users,
   DollarSign,
   Target,
   Loader2,
-  BarChart3,
   Crown,
   RefreshCw,
 } from "lucide-react";
@@ -31,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
 import { safeParseDateForChart } from "@/lib/stock-chart-utils";
+import { KpiCard } from "@/components/ui/kpi-card";
 
 
 interface SalesHistoryChartProps {
@@ -73,7 +72,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
     );
   }
 
-  // Error state (G14 fix)
+  // Error state
   if (error && !hasData) {
     return (
       <Card>
@@ -117,6 +116,9 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
     );
   }
 
+  // #8 fix: guard formatCurrency against NaN
+  const safeAvgOrderValue = Number.isFinite(kpis.avgOrderValue) ? kpis.avgOrderValue : 0;
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -150,7 +152,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* KPI cards */}
+        {/* KPI cards — uses shared KpiCard (#4 fix) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Métricas de vendas internas">
           <KpiCard
             icon={FileText}
@@ -168,7 +170,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
           <KpiCard
             icon={DollarSign}
             label="Ticket médio"
-            value={formatCurrency(kpis.avgOrderValue)}
+            value={formatCurrency(safeAvgOrderValue)}
             sub="por pedido"
           />
           <KpiCard
@@ -179,10 +181,10 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
           />
         </div>
 
-        {/* Period selector */}
+        {/* Period selector — #5 fix: consistent periods */}
         <Tabs value={period} onValueChange={setPeriod}>
           <TabsList className="h-7 flex-wrap">
-            {['15','30','60','90','120','150','180','360'].map(p => (
+            {['15','30','60','90','120','180','360'].map(p => (
               <TabsTrigger key={p} value={p} className="text-xs px-2 h-5">{p}d</TabsTrigger>
             ))}
           </TabsList>
@@ -269,45 +271,16 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
 
 // ---------- Sub-components ----------
 
-function KpiCard({ icon: Icon, label, value, sub, highlight, alert }: {
-  icon: typeof ShoppingCart;
-  label: string;
-  value: string;
-  sub: string;
-  highlight?: boolean;
-  alert?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg p-2 text-center",
-        alert ? "bg-destructive/10 border border-destructive/20" :
-        highlight ? "bg-primary/10 border border-primary/20" :
-        "bg-muted/50"
-      )}
-      role="status"
-      aria-label={`${label}: ${value} ${sub}`}
-    >
-      <div className="flex items-center justify-center gap-1 mb-0.5">
-        <Icon className={cn("h-3 w-3", highlight ? "text-primary" : "text-muted-foreground")} aria-hidden="true" />
-        <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
-      </div>
-      <p className={cn(
-        "text-sm font-bold",
-        highlight ? "text-primary" : "text-foreground"
-      )}>{value}</p>
-      <p className="text-[10px] text-muted-foreground">{sub}</p>
-    </div>
-  );
-}
-
+// #1 fix: safe initials extraction — guards against empty sellerName
 function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
-  const initials = seller.sellerName
+  const name = seller.sellerName || 'Vendedor';
+  const initials = name
     .split(' ')
+    .filter(w => w.length > 0)
     .map(w => w[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase();
+    .toUpperCase() || '??';
 
   return (
     <div className="flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-muted/50 transition-colors">
@@ -320,7 +293,7 @@ function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
       <Avatar className="h-5 w-5">
         <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{initials}</AvatarFallback>
       </Avatar>
-      <span className="font-medium text-foreground flex-1 truncate">{seller.sellerName}</span>
+      <span className="font-medium text-foreground flex-1 truncate">{name}</span>
       <span className="text-muted-foreground">{seller.totalQty} un</span>
       <span className="font-semibold text-foreground">{formatCurrency(seller.totalValue)}</span>
       <div className="flex gap-1">
@@ -335,15 +308,21 @@ function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
   );
 }
 
+// #2 fix: SalesTooltip shows fallback when all values are zero
 function SalesTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
   const data = payload[0]?.payload;
   if (!data) return null;
 
+  const hasAnyActivity = (data.quotedQty > 0) || (data.orderedQty > 0) || (data.quoteCount > 0) || (data.orderCount > 0);
+
   return (
     <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
+        {!hasAnyActivity && (
+          <p className="text-xs text-muted-foreground italic">Sem movimentação neste dia</p>
+        )}
         {data.quotedQty > 0 && (
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Orçado:</span>

@@ -374,10 +374,19 @@ export function aggregateVariantsToProduct(
   const totalInTransitStock = variants.reduce((sum, v) => sum + v.inTransitStock, 0);
   const totalAvailableStock = variants.reduce((sum, v) => sum + v.availableStock, 0);
   
-  const variantsInStock = variants.filter(v => v.status === 'in_stock').length;
-  const variantsLowStock = variants.filter(v => v.status === 'low_stock').length;
-  const variantsCritical = variants.filter(v => v.status === 'critical').length;
-  const variantsOutOfStock = variants.filter(v => v.status === 'out_of_stock').length;
+  // #13 fix: single-loop variant status counting (O(n) instead of O(4n))
+  let variantsInStock = 0;
+  let variantsLowStock = 0;
+  let variantsCritical = 0;
+  let variantsOutOfStock = 0;
+  for (const v of variants) {
+    switch (v.status) {
+      case 'in_stock': variantsInStock++; break;
+      case 'low_stock': variantsLowStock++; break;
+      case 'critical': variantsCritical++; break;
+      case 'out_of_stock': variantsOutOfStock++; break;
+    }
+  }
   
   // Agrupar por cor
   const colorMap = new Map<string, VariantStock[]>();
