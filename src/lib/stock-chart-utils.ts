@@ -115,6 +115,7 @@ export function generateMockVelocity(productId: string): MockVelocityData {
 }
 
 export interface MockIntelligenceData {
+  _isMock: true;
   product_id: string;
   supplier_count: number;
   total_current_stock: number;
