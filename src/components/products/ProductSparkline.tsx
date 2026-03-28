@@ -127,6 +127,11 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
 
   const TrendIcon = summary.trend > 2 ? TrendingUp : summary.trend < -2 ? TrendingDown : Minus;
 
+  // Don't render anything if no real data
+  if (!hasRealData || points.length < 2) {
+    return null;
+  }
+
   return (
     <div
       ref={containerRef}
