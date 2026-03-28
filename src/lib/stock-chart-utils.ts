@@ -300,6 +300,9 @@ export function isRealIntelligence(data: unknown): data is ProductIntelligenceDa
     typeof data === 'object' &&
     'product_id' in data &&
     'abc_classification' in data &&
-    'is_hot_product' in data
+    'is_hot_product' in data &&
+    // Discriminate from MockIntelligenceData: real data comes from DB and has these numeric aggregation fields
+    'turnover_score' in data &&
+    !('_isMock' in data)
   );
 }

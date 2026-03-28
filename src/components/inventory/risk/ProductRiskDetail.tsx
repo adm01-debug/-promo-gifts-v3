@@ -151,7 +151,9 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
   const trend = safeVelocityTrend(bestVelocity?.velocity_trend);
   const trendDisplay = formatVelocityTrendOperational(trend);
 
-  const priceChanges = bestVelocity && (bestVelocity as MockVelocityData).price_changes_30d || 0;
+  const priceChanges = bestVelocity && 'price_changes_30d' in bestVelocity
+    ? ((bestVelocity as Record<string, unknown>).price_changes_30d as number ?? 0)
+    : 0;
   const priceChangeText = priceChanges === 1 ? '1 alteração' : `${priceChanges} alterações`;
 
   return (

@@ -351,11 +351,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
         {/* Price change insight + cost toggle */}
         <div className="flex items-center justify-between flex-wrap gap-2">
-          {bestVelocity && ((bestVelocity as MockVelocityData).price_changes_30d ?? 0) > 0 && (
+          {bestVelocity && ('price_changes_30d' in bestVelocity) && (bestVelocity.price_changes_30d as number ?? 0) > 0 && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <DollarSign className="h-3 w-3" aria-hidden="true" />
               <span>
-                Fornecedor alterou preço {(bestVelocity as MockVelocityData).price_changes_30d}x nos últimos 30 dias —
+                Fornecedor alterou preço {(bestVelocity as Record<string, unknown>).price_changes_30d as number}x nos últimos 30 dias —
                 <span className="text-foreground font-medium"> trave seu custo ao cotar</span>
                 {isDemo && ' (demo)'}
               </span>
