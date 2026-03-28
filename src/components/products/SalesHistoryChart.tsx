@@ -44,7 +44,7 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
   const [period, setPeriod] = useState<string>('30');
   const days = Number(period);
 
-  const { data, isLoading } = useSalesHistory(productId, days);
+  const { data, isLoading, error, refetch } = useSalesHistory(productId, days);
 
   const hasData = !!data?.daily?.length;
 
