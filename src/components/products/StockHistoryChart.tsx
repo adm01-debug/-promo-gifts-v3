@@ -133,6 +133,25 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
     );
   }
 
+  // ---------- Empty state ----------
+  if (!hasData) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            Estoque & Inteligência
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-6">
+            Nenhum dado de estoque disponível ainda. Os dados serão exibidos quando o sync estiver ativo.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // ---------- Velocity KPIs ----------
   const bestVelocity = velocity?.length
     ? velocity.reduce((best, v) => 

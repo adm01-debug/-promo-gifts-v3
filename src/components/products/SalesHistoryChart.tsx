@@ -73,6 +73,25 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
     );
   }
 
+  // Empty state
+  if (!hasData && !isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ShoppingCart className="h-4 w-4" />
+            Vendas Internas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground text-center py-6">
+            Nenhum dado de vendas disponível ainda. Os dados serão exibidos quando houver orçamentos e pedidos.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="pb-3">
