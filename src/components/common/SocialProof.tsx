@@ -149,7 +149,7 @@ export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
       <div ref={!tooltip ? ref : undefined} className={cn(
         "flex items-center gap-1.5 cursor-default transition-colors",
         isHighlighted
-          ? cn("px-2 py-0.5 rounded-full text-xs font-medium", bg)
+          ? cn("px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm", bg)
           : "text-sm text-muted-foreground",
         className
       )}>
