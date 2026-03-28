@@ -76,6 +76,7 @@ type TrustBadgeType = "verified" | "fast" | "quality" | "secure" | "popular" | "
 
 interface TrustBadgeProps {
   type: TrustBadgeType;
+  tooltip?: string;
   className?: string;
 }
 
@@ -128,17 +129,32 @@ const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: stri
 };
 
 export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
-  function TrustBadge({ type, className }, ref) {
+  function TrustBadge({ type, tooltip, className }, ref) {
     const { icon: Icon, label, color } = trustBadges[type];
 
-    return (
-      <div ref={ref} className={cn(
-        "flex items-center gap-2 text-sm text-muted-foreground",
+    const content = (
+      <div ref={!tooltip ? ref : undefined} className={cn(
+        "flex items-center gap-2 text-sm text-muted-foreground cursor-default",
         className
       )}>
         <Icon className={cn("w-4 h-4", color)} />
         <span>{label}</span>
       </div>
+    );
+
+    if (!tooltip) return content;
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div ref={ref} className="inline-flex">
+            {content}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
     );
   }
 );
