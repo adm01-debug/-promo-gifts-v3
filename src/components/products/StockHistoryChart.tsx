@@ -134,11 +134,10 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   }
 
   // ---------- Velocity KPIs ----------
-  const demoVelocity = isDemo ? generateDemoVelocity(productId) : null;
-  const bestVelocity = !isDemo && velocity?.length
+  const bestVelocity = velocity?.length
     ? velocity.reduce((best, v) => 
         (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0])
-    : demoVelocity;
+    : null;
 
   return (
     <Card>
