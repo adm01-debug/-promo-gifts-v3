@@ -171,7 +171,7 @@ async function fetchCatalogPage(
  */
 export function useProductsLightweight() {
   return useQuery<ProductLightweight[]>({
-    queryKey: ['promobrind-products-lightweight'],
+    queryKey: ['promobrind-products-lightweight', 'v2-no-filter'],
     queryFn: async () => {
       const products = await fetchPromobrindProductsLightweight();
       return products.map(mapLightweight);
