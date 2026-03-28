@@ -50,7 +50,9 @@ import {
   safeNumber,
   generateMockStockData,
   generateMockVelocity,
+  generateMockVelocities,
   generateMockIntelligence,
+  generateMockSupplierNames,
   formatVelocityTrendCommercial,
   safeParseDateForChart,
   isRealIntelligence,
@@ -94,20 +96,27 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
   const hasError = !!(summaryError || velocityError || intelligenceError);
   const isDemo = !hasData && !hasError;
 
+  // ---------- Mock data ----------
+  const mockVelocities = useMemo(() => generateMockVelocities(productId), [productId]);
+  const mockVelocity = mockVelocities[0];
+  const mockIntel = useMemo(() => generateMockIntelligence(productId), [productId]);
+  const mockSupplierNames = useMemo(() => generateMockSupplierNames(productId), [productId]);
+
   // ---------- Supplier names ----------
   const supplierIds = useMemo(
-    () => hasData ? extractUniqueSupplierIds(summaries!) : [],
-    [summaries, hasData]
+    () => hasData ? extractUniqueSupplierIds(summaries!) : (isDemo ? mockVelocities.map(v => v.supplier_id) : []),
+    [summaries, hasData, isDemo, mockVelocities]
   );
-  const { data: supplierNamesMap } = useSupplierNames(supplierIds);
+  const { data: realSupplierNamesMap } = useSupplierNames(hasData ? supplierIds : []);
+  const supplierNamesMap = hasData ? realSupplierNamesMap : (isDemo ? mockSupplierNames : undefined);
 
   const supplierOptions = useMemo(() => {
-    if (!hasData || supplierIds.length <= 1) return [];
+    if (supplierIds.length <= 1) return [];
     return supplierIds.map(id => ({
       id,
       name: supplierNamesMap?.get(id) ?? `Fornecedor ${id.slice(0, 6)}`,
     }));
-  }, [supplierIds, supplierNamesMap, hasData]);
+  }, [supplierIds, supplierNamesMap]);
 
   // ---------- Chart data ----------
   const mockChartData = useMemo(
@@ -130,25 +139,22 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
       }, []);
   }, [summaries, days, hasData, mockChartData, selectedSupplier]);
 
-  // ---------- Mock data ----------
-  const mockVelocity = useMemo(() => generateMockVelocity(productId), [productId]);
-  const mockIntel = useMemo(() => generateMockIntelligence(productId), [productId]);
-
   // ---------- Effective data ----------
   const effectiveIntelligence = intelligence ?? (isDemo ? mockIntel : null);
+  const effectiveVelocities = velocity?.length ? velocity : (isDemo ? mockVelocities : []);
 
   // When a specific supplier is selected, use that supplier's velocity
   const bestVelocity = useMemo(() => {
-    if (velocity?.length) {
+    if (effectiveVelocities.length) {
       if (selectedSupplier !== 'all') {
-        const match = velocity.find(v => v.supplier_id === selectedSupplier);
+        const match = effectiveVelocities.find(v => v.supplier_id === selectedSupplier);
         if (match) return match;
       }
-      return velocity.reduce((best, v) =>
-        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, velocity[0]);
+      return effectiveVelocities.reduce((best, v) =>
+        (v.avg_daily_depletion_7d > (best?.avg_daily_depletion_7d ?? 0)) ? v : best, effectiveVelocities[0]);
     }
-    return isDemo ? mockVelocity : null;
-  }, [velocity, selectedSupplier, isDemo, mockVelocity]);
+    return null;
+  }, [effectiveVelocities, selectedSupplier]);
 
   const flags = useMemo(() => {
     if (!effectiveIntelligence) return [];
@@ -392,9 +398,9 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         </div>
 
         {/* Supplier comparison cards */}
-        {velocity && velocity.length > 1 && supplierNamesMap && (
+        {effectiveVelocities.length > 1 && supplierNamesMap && (
           <SupplierComparisonCards
-            velocities={velocity}
+            velocities={effectiveVelocities as any}
             supplierNames={supplierNamesMap}
           />
         )}

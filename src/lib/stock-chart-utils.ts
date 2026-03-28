@@ -88,30 +88,91 @@ export function generateMockStockData(productId: string, days: number): MockChar
 
 // ---------- Mock intelligence (consistent with chart data) ----------
 
+const MOCK_SUPPLIER_NAMES = ['Spot Promo', 'Asia Import', 'Brasil Brindes', 'Premium Gifts', 'Master Promo'];
+
 export interface MockVelocityData {
+  variant_supplier_source_id: string;
+  supplier_id: string;
+  product_id: string;
+  variant_id: string;
+  current_stock: number;
   avg_daily_depletion_7d: number;
   avg_daily_depletion_30d: number;
-  days_to_stockout: number | null;
+  avg_daily_depletion_90d: number;
   velocity_trend: number;
+  days_to_stockout: number | null;
+  total_depleted_7d: number;
+  total_depleted_30d: number;
+  total_depleted_90d: number;
+  total_restocked_30d: number;
+  restock_events_30d: number;
+  avg_days_between_restocks: number | null;
   price_changes_30d: number;
-  current_stock: number;
+  active_days_7d: number;
+  active_days_30d: number;
+  active_days_90d: number;
 }
 
 export function generateMockVelocity(productId: string): MockVelocityData {
-  const baseSeed = hashCode(productId);
-  const depletion7d = 8 + seededRandom(baseSeed + 100) * 12;
-  const depletion30d = 6 + seededRandom(baseSeed + 101) * 10;
-  const currentStock = 400 + Math.floor(seededRandom(baseSeed + 102) * 600);
-  const daysToStockout = depletion7d > 0.5 ? Math.round(currentStock / depletion7d) : null;
+  return generateMockVelocities(productId)[0];
+}
 
-  return {
-    avg_daily_depletion_7d: Math.round(depletion7d * 10) / 10,
-    avg_daily_depletion_30d: Math.round(depletion30d * 10) / 10,
-    days_to_stockout: daysToStockout,
-    velocity_trend: 0.7 + seededRandom(baseSeed + 103) * 0.8,
-    price_changes_30d: Math.floor(seededRandom(baseSeed + 104) * 3),
-    current_stock: currentStock,
-  };
+/**
+ * Generates mock velocity data for multiple suppliers (2-4).
+ */
+export function generateMockVelocities(productId: string): MockVelocityData[] {
+  const baseSeed = hashCode(productId);
+  const supplierCount = 2 + Math.floor(seededRandom(baseSeed + 300) * 3); // 2-4 suppliers
+  const velocities: MockVelocityData[] = [];
+
+  for (let i = 0; i < supplierCount; i++) {
+    const seed = baseSeed + 100 + i * 50;
+    // First supplier has highest velocity, others progressively less
+    const velocityFactor = 1 - (i * 0.25);
+    const depletion7d = (8 + seededRandom(seed) * 12) * velocityFactor;
+    const depletion30d = (6 + seededRandom(seed + 1) * 10) * velocityFactor;
+    const currentStock = Math.floor((200 + seededRandom(seed + 2) * 400) * (1 + seededRandom(seed + 3) * 0.5));
+    const daysToStockout = depletion7d > 0.5 ? Math.round(currentStock / depletion7d) : null;
+
+    velocities.push({
+      variant_supplier_source_id: `mock-vss-${productId.slice(0, 8)}-${i}`,
+      supplier_id: `mock-supplier-${i}`,
+      product_id: productId,
+      variant_id: `mock-variant-${productId.slice(0, 8)}`,
+      current_stock: currentStock,
+      avg_daily_depletion_7d: Math.round(depletion7d * 10) / 10,
+      avg_daily_depletion_30d: Math.round(depletion30d * 10) / 10,
+      avg_daily_depletion_90d: Math.round(depletion30d * 0.9 * 10) / 10,
+      velocity_trend: 0.7 + seededRandom(seed + 4) * 0.8,
+      days_to_stockout: daysToStockout,
+      total_depleted_7d: Math.round(depletion7d * 7),
+      total_depleted_30d: Math.round(depletion30d * 30),
+      total_depleted_90d: Math.round(depletion30d * 90 * 0.9),
+      total_restocked_30d: Math.round(depletion30d * 30 * 1.1),
+      restock_events_30d: Math.floor(seededRandom(seed + 5) * 4),
+      avg_days_between_restocks: 7 + Math.floor(seededRandom(seed + 6) * 14),
+      price_changes_30d: Math.floor(seededRandom(seed + 7) * 3),
+      active_days_7d: 5 + Math.floor(seededRandom(seed + 8) * 2),
+      active_days_30d: 20 + Math.floor(seededRandom(seed + 9) * 10),
+      active_days_90d: 60 + Math.floor(seededRandom(seed + 10) * 30),
+    });
+  }
+
+  return velocities;
+}
+
+/**
+ * Returns mock supplier names map for demo mode.
+ */
+export function generateMockSupplierNames(productId: string): Map<string, string> {
+  const baseSeed = hashCode(productId);
+  const count = 2 + Math.floor(seededRandom(baseSeed + 300) * 3);
+  const map = new Map<string, string>();
+  for (let i = 0; i < count; i++) {
+    const nameIdx = (Math.floor(seededRandom(baseSeed + 400 + i) * MOCK_SUPPLIER_NAMES.length)) % MOCK_SUPPLIER_NAMES.length;
+    map.set(`mock-supplier-${i}`, MOCK_SUPPLIER_NAMES[nameIdx]);
+  }
+  return map;
 }
 
 export interface MockIntelligenceData {
@@ -138,19 +199,21 @@ export interface MockIntelligenceData {
 
 export function generateMockIntelligence(productId: string): MockIntelligenceData {
   const baseSeed = hashCode(productId);
-  const vel = generateMockVelocity(productId);
+  const vels = generateMockVelocities(productId);
+  const vel = vels[0]; // best velocity
   const abcRoll = seededRandom(baseSeed + 200);
   const abc: 'A' | 'B' | 'C' = abcRoll < 0.2 ? 'A' : abcRoll < 0.5 ? 'B' : 'C';
+  const totalStock = vels.reduce((sum, v) => sum + v.current_stock, 0);
 
   return {
     _isMock: true as const,
     product_id: productId,
-    supplier_count: 1 + Math.floor(seededRandom(baseSeed + 201) * 4),
-    total_current_stock: vel.current_stock,
-    total_depleted_7d: Math.round(vel.avg_daily_depletion_7d * 7),
-    total_depleted_30d: Math.round(vel.avg_daily_depletion_30d * 30),
-    total_depleted_90d: Math.round(vel.avg_daily_depletion_30d * 90 * 0.9),
-    total_restocked_30d: Math.round(vel.avg_daily_depletion_30d * 30 * 1.1),
+    supplier_count: vels.length,
+    total_current_stock: totalStock,
+    total_depleted_7d: vels.reduce((sum, v) => sum + v.total_depleted_7d, 0),
+    total_depleted_30d: vels.reduce((sum, v) => sum + v.total_depleted_30d, 0),
+    total_depleted_90d: vels.reduce((sum, v) => sum + v.total_depleted_90d, 0),
+    total_restocked_30d: vels.reduce((sum, v) => sum + v.total_restocked_30d, 0),
     avg_velocity_7d: vel.avg_daily_depletion_7d,
     avg_velocity_30d: vel.avg_daily_depletion_30d,
     max_velocity_trend: vel.velocity_trend,
