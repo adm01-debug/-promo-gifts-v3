@@ -234,8 +234,8 @@ export function SalesHistoryChart({ productId, productName }: SalesHistoryChartP
                 yAxisId="value"
                 type="monotone"
                 dataKey="orderedValue"
-                stroke="hsl(142 71% 45%)"
-                fill="hsl(142 71% 45% / 0.1)"
+                stroke="hsl(var(--chart-2, 142 71% 45%))"
+                fill="hsl(var(--chart-2, 142 71% 45%) / 0.1)"
                 strokeWidth={1.5}
                 name="Faturamento"
                 dot={false}
