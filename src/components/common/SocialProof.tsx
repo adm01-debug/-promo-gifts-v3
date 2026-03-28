@@ -74,70 +74,86 @@ export function PopularityBadge({
 // Trust badges
 type TrustBadgeType = "verified" | "fast" | "quality" | "secure" | "popular" | "new" | "sale" | "bestseller" | "freeShipping";
 
+// Highlighted badges get colored backgrounds; others stay text-only
+const HIGHLIGHTED_BADGES: Set<TrustBadgeType> = new Set(["new", "sale", "bestseller", "freeShipping"]);
+
 interface TrustBadgeProps {
   type: TrustBadgeType;
   tooltip?: string;
   className?: string;
 }
 
-const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: string; color: string }> = {
+const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: string; color: string; bg: string }> = {
   verified: {
     icon: ShieldCheck,
     label: "Fornecedor verificado",
-    color: "text-blue-500"
+    color: "text-blue-500",
+    bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   },
   fast: {
     icon: Zap,
     label: "Entrega rápida",
-    color: "text-amber-500"
+    color: "text-amber-500",
+    bg: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   },
   quality: {
     icon: Award,
     label: "Alta qualidade",
-    color: "text-purple-500"
+    color: "text-purple-500",
+    bg: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   },
   secure: {
     icon: ShieldCheck,
     label: "Compra segura",
-    color: "text-green-500"
+    color: "text-green-500",
+    bg: "bg-green-500/10 text-green-600 dark:text-green-400",
   },
   popular: {
     icon: ThumbsUp,
     label: "Escolha popular",
-    color: "text-rose-500"
+    color: "text-rose-500",
+    bg: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   },
   new: {
     icon: Zap,
     label: "Novidade",
-    color: "text-emerald-500"
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
   },
   sale: {
     icon: Flame,
     label: "Promoção",
-    color: "text-orange-500"
+    color: "text-orange-500",
+    bg: "bg-orange-500/15 text-orange-700 dark:text-orange-300",
   },
   bestseller: {
     icon: Crown,
     label: "Mais vendido",
-    color: "text-amber-500"
+    color: "text-amber-500",
+    bg: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
   },
   freeShipping: {
     icon: TrendingUp,
     label: "Frete grátis",
-    color: "text-emerald-600"
+    color: "text-emerald-600",
+    bg: "bg-emerald-600/15 text-emerald-700 dark:text-emerald-300",
   },
 };
 
 export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
   function TrustBadge({ type, tooltip, className }, ref) {
-    const { icon: Icon, label, color } = trustBadges[type];
+    const { icon: Icon, label, color, bg } = trustBadges[type];
+    const isHighlighted = HIGHLIGHTED_BADGES.has(type);
 
     const content = (
       <div ref={!tooltip ? ref : undefined} className={cn(
-        "flex items-center gap-2 text-sm text-muted-foreground cursor-default",
+        "flex items-center gap-1.5 cursor-default transition-colors",
+        isHighlighted
+          ? cn("px-2 py-0.5 rounded-full text-xs font-medium", bg)
+          : "text-sm text-muted-foreground",
         className
       )}>
-        <Icon className={cn("w-4 h-4", color)} />
+        <Icon className={cn("w-3.5 h-3.5 shrink-0", !isHighlighted && color)} />
         <span>{label}</span>
       </div>
     );
@@ -178,24 +194,20 @@ export const TrustBadgesRow = React.forwardRef<HTMLDivElement, { className?: str
  */
 export interface SupplierTrustData {
   isVerified: boolean;
-  deliveryDays: number | null; // null = unknown
-  avgRating: number | null;    // 0-5, null = no reviews
+  deliveryDays: number | null;
+  avgRating: number | null;
 }
 
-/**
- * Generate mock trust data from a product ID (deterministic).
- */
 export function getMockSupplierTrust(productId: string): SupplierTrustData {
   let hash = 0;
   for (let i = 0; i < productId.length; i++) {
     hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
   }
   const abs = Math.abs(hash);
-
   return {
-    isVerified: abs % 10 < 7,          // ~70% verified
-    deliveryDays: abs % 5 === 0 ? null : (abs % 12) + 1, // 1-12 days, some null
-    avgRating: abs % 7 === 0 ? null : 3.2 + ((abs % 18) / 10), // 3.2-4.9, some null
+    isVerified: abs % 10 < 7,
+    deliveryDays: abs % 5 === 0 ? null : (abs % 12) + 1,
+    avgRating: abs % 7 === 0 ? null : 3.2 + ((abs % 18) / 10),
   };
 }
 
@@ -203,9 +215,9 @@ export function getMockSupplierTrust(productId: string): SupplierTrustData {
 export interface ProductBadgeFlags {
   newArrival?: boolean;
   onSale?: boolean;
-  featured?: boolean;  // bestseller/destaque
+  featured?: boolean;
   freeShipping?: boolean;
-  minQuantity?: number; // freeShipping when min >= 500 (mock logic)
+  minQuantity?: number;
 }
 
 /** Dynamic trust badges that show/hide based on supplier + product data */
@@ -218,33 +230,24 @@ interface DynamicTrustBadgesProps {
 export function DynamicTrustBadges({ trust, productFlags, className }: DynamicTrustBadgesProps) {
   const badges: React.ReactNode[] = [];
 
-  // Product-level badges first
   if (productFlags?.newArrival) {
     badges.push(<TrustBadge key="new" type="new" tooltip="Produto adicionado recentemente ao catálogo" />);
   }
-
   if (productFlags?.onSale) {
     badges.push(<TrustBadge key="sale" type="sale" tooltip="Este produto está com preço promocional" />);
   }
-
   if (productFlags?.featured) {
     badges.push(<TrustBadge key="bestseller" type="bestseller" tooltip="Um dos produtos mais vendidos do catálogo" />);
   }
-
-  // Supplier-level badges
   if (trust.isVerified) {
     badges.push(<TrustBadge key="verified" type="verified" tooltip="Fornecedor aprovado e com histórico de qualidade comprovada" />);
   }
-
   if (trust.deliveryDays != null && trust.deliveryDays <= 5) {
     badges.push(<TrustBadge key="fast" type="fast" tooltip={`Prazo de entrega: ${trust.deliveryDays} dia${trust.deliveryDays > 1 ? 's' : ''} úteis`} />);
   }
-
   if (trust.avgRating != null && trust.avgRating >= 4.0) {
     badges.push(<TrustBadge key="quality" type="quality" tooltip={`Avaliação: ${trust.avgRating.toFixed(1)}/5.0 baseado em avaliações de compradores`} />);
   }
-
-  // Free shipping
   if (productFlags?.freeShipping || (productFlags?.minQuantity && productFlags.minQuantity >= 500)) {
     badges.push(<TrustBadge key="freeShipping" type="freeShipping" tooltip="Frete grátis para pedidos acima da quantidade mínima" />);
   }
@@ -252,21 +255,11 @@ export function DynamicTrustBadges({ trust, productFlags, className }: DynamicTr
   if (badges.length === 0) return null;
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-0.5", className)}>
+    <div className={cn("flex flex-wrap items-center gap-x-2 gap-y-1", className)}>
       {badges}
     </div>
   );
 }
-
-  if (badges.length === 0) return null;
-
-  return (
-    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-0.5", className)}>
-      {badges}
-    </div>
-  );
-}
-
 // Star rating display
 interface StarRatingProps {
   rating: number; // 0-5
