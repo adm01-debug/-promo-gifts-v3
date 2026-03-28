@@ -29,10 +29,6 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
     return [];
   }, [hasRealData, realData?.dailyQty]);
 
-  // Don't render anything if no real data
-  if (!hasRealData || points.length < 2) {
-    return null;
-  }
 
   // Extended summary stats with comparisons
   const summary = useMemo(() => {
