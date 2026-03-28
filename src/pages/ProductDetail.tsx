@@ -59,7 +59,7 @@ import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
-import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge, DynamicTrustBadges, getMockSupplierTrust } from "@/components/common/SocialProof";
+import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge, DynamicTrustBadges, getMockSupplierTrust, type ProductBadgeFlags } from "@/components/common/SocialProof";
 import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
