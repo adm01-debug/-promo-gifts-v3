@@ -40,7 +40,7 @@ import {
   type IntelligenceFlag,
 } from "@/hooks/useStockHistory";
 import { formatCurrency } from "@/lib/format";
-import { generateDemoStockData, generateDemoVelocity, generateDemoIntelligence } from "@/lib/demo-chart-data";
+import { formatCurrency } from "@/lib/format";
 
 interface StockHistoryChartProps {
   productId: string;
