@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Star, 
   TrendingUp, 
@@ -75,6 +76,7 @@ type TrustBadgeType = "verified" | "fast" | "quality" | "secure" | "popular" | "
 
 interface TrustBadgeProps {
   type: TrustBadgeType;
+  tooltip?: string;
   className?: string;
 }
 
@@ -127,17 +129,32 @@ const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: stri
 };
 
 export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
-  function TrustBadge({ type, className }, ref) {
+  function TrustBadge({ type, tooltip, className }, ref) {
     const { icon: Icon, label, color } = trustBadges[type];
 
-    return (
-      <div ref={ref} className={cn(
-        "flex items-center gap-2 text-sm text-muted-foreground",
+    const content = (
+      <div ref={!tooltip ? ref : undefined} className={cn(
+        "flex items-center gap-2 text-sm text-muted-foreground cursor-default",
         className
       )}>
         <Icon className={cn("w-4 h-4", color)} />
         <span>{label}</span>
       </div>
+    );
+
+    if (!tooltip) return content;
+
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div ref={ref} className="inline-flex">
+            {content}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+          {tooltip}
+        </TooltipContent>
+      </Tooltip>
     );
   }
 );
@@ -201,36 +218,45 @@ interface DynamicTrustBadgesProps {
 export function DynamicTrustBadges({ trust, productFlags, className }: DynamicTrustBadgesProps) {
   const badges: React.ReactNode[] = [];
 
-  // Product-level badges first (more eye-catching)
+  // Product-level badges first
   if (productFlags?.newArrival) {
-    badges.push(<TrustBadge key="new" type="new" />);
+    badges.push(<TrustBadge key="new" type="new" tooltip="Produto adicionado recentemente ao catálogo" />);
   }
 
   if (productFlags?.onSale) {
-    badges.push(<TrustBadge key="sale" type="sale" />);
+    badges.push(<TrustBadge key="sale" type="sale" tooltip="Este produto está com preço promocional" />);
   }
 
   if (productFlags?.featured) {
-    badges.push(<TrustBadge key="bestseller" type="bestseller" />);
+    badges.push(<TrustBadge key="bestseller" type="bestseller" tooltip="Um dos produtos mais vendidos do catálogo" />);
   }
 
   // Supplier-level badges
   if (trust.isVerified) {
-    badges.push(<TrustBadge key="verified" type="verified" />);
+    badges.push(<TrustBadge key="verified" type="verified" tooltip="Fornecedor aprovado e com histórico de qualidade comprovada" />);
   }
 
   if (trust.deliveryDays != null && trust.deliveryDays <= 5) {
-    badges.push(<TrustBadge key="fast" type="fast" />);
+    badges.push(<TrustBadge key="fast" type="fast" tooltip={`Prazo de entrega: ${trust.deliveryDays} dia${trust.deliveryDays > 1 ? 's' : ''} úteis`} />);
   }
 
   if (trust.avgRating != null && trust.avgRating >= 4.0) {
-    badges.push(<TrustBadge key="quality" type="quality" />);
+    badges.push(<TrustBadge key="quality" type="quality" tooltip={`Avaliação: ${trust.avgRating.toFixed(1)}/5.0 baseado em avaliações de compradores`} />);
   }
 
-  // Mock free shipping for high-quantity products
+  // Free shipping
   if (productFlags?.freeShipping || (productFlags?.minQuantity && productFlags.minQuantity >= 500)) {
-    badges.push(<TrustBadge key="freeShipping" type="freeShipping" />);
+    badges.push(<TrustBadge key="freeShipping" type="freeShipping" tooltip="Frete grátis para pedidos acima da quantidade mínima" />);
   }
+
+  if (badges.length === 0) return null;
+
+  return (
+    <div className={cn("flex flex-wrap items-center gap-x-3 gap-y-0.5", className)}>
+      {badges}
+    </div>
+  );
+}
 
   if (badges.length === 0) return null;
 
