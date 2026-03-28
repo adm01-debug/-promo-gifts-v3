@@ -119,7 +119,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
         const date = qi.created_at.substring(0, 10);
         const entry = dailyMap.get(date) || newDailyPoint(date);
         entry.quotedQty += qi.quantity || 0;
-        entry.quotedValue += qi.subtotal || (qi.quantity || 0) * (qi.unit_price || 0);
+        entry.quotedValue += qi.subtotal ?? ((qi.quantity ?? 0) * (qi.unit_price ?? 0));
         entry.quoteCount += 1;
         dailyMap.set(date, entry);
       }
