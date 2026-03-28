@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { useSparklineData } from "@/hooks/useSparklineSales";
+import { TrendingUp, TrendingDown, Minus, BarChart3, Zap, Activity } from "lucide-react";
 
 interface ProductSparklineProps {
   productId: string;
@@ -45,32 +46,44 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
     return data;
   }, [productId, hasRealData, realData?.dailyQty]);
 
-  // Summary stats
+  // Extended summary stats with comparisons
   const summary = useMemo(() => {
-    if (hasRealData) {
-      const totalSales = realData.totalQty;
-      const revenue = realData.totalValue;
-      const pts = realData.dailyQty;
-      const firstHalf = pts.slice(0, Math.floor(pts.length / 2));
-      const secondHalf = pts.slice(Math.floor(pts.length / 2));
-      const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / (firstHalf.length || 1);
-      const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / (secondHalf.length || 1);
-      const trend = firstAvg > 0 ? ((secondAvg / firstAvg) - 1) * 100 : 0;
-      return { totalSales, revenue, trend };
-    }
+    const totalSales = hasRealData ? realData.totalQty : points.reduce((a, b) => a + b, 0);
 
-    // Demo summary
-    const totalSales = points.reduce((a, b) => a + b, 0);
     let hash = 0;
     for (let i = 0; i < productId.length; i++) {
       hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
     }
-    const avgPrice = 8 + (Math.abs(Math.sin(hash + 100)) * 45);
-    const revenue = totalSales * avgPrice;
-    const firstAvg = points.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
-    const lastAvg = points.slice(-5).reduce((a, b) => a + b, 0) / 5;
-    const trend = firstAvg > 0 ? ((lastAvg / firstAvg) - 1) * 100 : 0;
-    return { totalSales, revenue, trend };
+
+    const revenue = hasRealData
+      ? realData.totalValue
+      : totalSales * (8 + Math.abs(Math.sin(hash + 100)) * 45);
+
+    const pts = hasRealData ? realData.dailyQty : points;
+    const mid = Math.floor(pts.length / 2);
+    const firstHalf = pts.slice(0, mid);
+    const secondHalf = pts.slice(mid);
+    const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / (firstHalf.length || 1);
+    const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / (secondHalf.length || 1);
+    const trend = firstAvg > 0 ? ((secondAvg / firstAvg) - 1) * 100 : 0;
+
+    // Extra metrics
+    const dailyAvg = totalSales / (pts.length || 1);
+    const peakDay = Math.max(...pts);
+    const activeDays = pts.filter(v => v > 0).length;
+    const ticketMedio = totalSales > 0 ? revenue / totalSales : 0;
+
+    // Period comparison: first half vs second half values
+    const firstHalfTotal = firstHalf.reduce((a, b) => a + b, 0);
+    const secondHalfTotal = secondHalf.reduce((a, b) => a + b, 0);
+    const periodChange = firstHalfTotal > 0
+      ? ((secondHalfTotal - firstHalfTotal) / firstHalfTotal) * 100
+      : 0;
+
+    return {
+      totalSales, revenue, trend, dailyAvg, peakDay, activeDays, ticketMedio,
+      firstHalfTotal, secondHalfTotal, periodChange,
+    };
   }, [points, hasRealData, realData, productId]);
 
   const width = 200;
@@ -105,7 +118,6 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
   }, [points.length]);
 
   const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    // Fallback: show midpoint tooltip on simple hover (no mousemove yet)
     if (hoverIndex === null) {
       const container = containerRef.current;
       if (!container) return;
@@ -119,6 +131,17 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
   const handleMouseLeave = useCallback(() => {
     setHoverIndex(null);
   }, []);
+
+  // Determine tooltip edge clamping
+  const tooltipAlign = useMemo(() => {
+    if (hoverIndex === null) return 'center';
+    const pct = hoverIndex / (points.length - 1);
+    if (pct < 0.2) return 'left';
+    if (pct > 0.8) return 'right';
+    return 'center';
+  }, [hoverIndex, points.length]);
+
+  const TrendIcon = summary.trend > 2 ? TrendingUp : summary.trend < -2 ? TrendingDown : Minus;
 
   return (
     <div
@@ -167,7 +190,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
             <circle
               cx={coords[hoverIndex].x}
               cy={coords[hoverIndex].y}
-              r="3"
+              r="3.5"
               fill={color}
               stroke="hsl(var(--card))"
               strokeWidth="1.5"
@@ -191,51 +214,153 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
         <div
           className="absolute z-50 pointer-events-none"
           style={{
-            left: tooltipPos.x,
+            left: tooltipAlign === 'left' ? 0 : tooltipAlign === 'right' ? 'auto' : tooltipPos.x,
+            right: tooltipAlign === 'right' ? 0 : 'auto',
             bottom: '100%',
-            transform: 'translateX(-50%)',
-            marginBottom: 4,
+            transform: tooltipAlign === 'center' ? 'translateX(-50%)' : 'none',
+            marginBottom: 6,
           }}
         >
-          <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg whitespace-nowrap text-[11px]">
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="font-semibold text-foreground">
-                {hasRealData ? `Dia ${hoverIndex + 1}` : `Dia ${hoverIndex + 1}/30`}
-              </span>
-              <span className="text-muted-foreground">·</span>
-              <span className="font-bold text-foreground">{points[hoverIndex]} un</span>
+          <div className="bg-popover/95 backdrop-blur-md border border-border/60 rounded-xl shadow-2xl shadow-black/20 overflow-hidden min-w-[220px]">
+            {/* Header with day info */}
+            <div className="px-3 py-2 bg-gradient-to-r from-muted/80 to-transparent border-b border-border/40">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Activity className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                    {hasRealData ? `Dia ${hoverIndex + 1}` : `Dia ${hoverIndex + 1}/${points.length}`}
+                  </span>
+                </div>
+                <span className="text-sm font-bold text-foreground">
+                  {points[hoverIndex]} un
+                </span>
+              </div>
+              {/* Mini bar showing relative to peak */}
+              <div className="mt-1.5 h-1 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${summary.peakDay > 0 ? (points[hoverIndex] / summary.peakDay) * 100 : 0}%`,
+                    backgroundColor: color,
+                  }}
+                />
+              </div>
             </div>
-            <div className="border-t border-border pt-1.5 space-y-1">
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Total 30d:</span>
-                <span className="font-semibold text-foreground">
-                  {summary.totalSales.toLocaleString('pt-BR')} un
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Faturamento:</span>
-                <span className="font-semibold text-foreground">
-                  {formatCurrency(summary.revenue)}
-                </span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">Tendência:</span>
-                <span className={cn(
-                  "font-semibold",
-                  summary.trend >= 0 ? "text-success" : "text-warning"
-                )}>
-                  {summary.trend >= 0 ? '+' : ''}{summary.trend.toFixed(1)}%
-                </span>
-              </div>
-              {!hasRealData && (
-                <p className="text-[9px] text-muted-foreground/60 italic pt-0.5">
-                  dados estimados
-                </p>
-              )}
+
+            {/* Metrics grid */}
+            <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
+              <TooltipMetric
+                label="Total 30d"
+                value={`${summary.totalSales.toLocaleString('pt-BR')} un`}
+              />
+              <TooltipMetric
+                label="Faturamento"
+                value={formatCurrency(summary.revenue)}
+              />
+              <TooltipMetric
+                label="Média/dia"
+                value={`${Math.round(summary.dailyAvg)} un`}
+              />
+              <TooltipMetric
+                label="Pico"
+                value={`${summary.peakDay} un`}
+                highlight
+              />
             </div>
+
+            {/* Comparison bar */}
+            <div className="px-3 py-2 border-t border-border/40 bg-muted/30">
+              <div className="flex items-center justify-between text-[10px]">
+                <span className="text-muted-foreground">1ª metade vs 2ª metade</span>
+                <div className="flex items-center gap-1">
+                  <TrendIcon className={cn(
+                    "h-3 w-3",
+                    summary.periodChange > 0 ? "text-success" : summary.periodChange < 0 ? "text-warning" : "text-muted-foreground"
+                  )} />
+                  <span className={cn(
+                    "font-bold text-[11px]",
+                    summary.periodChange > 0 ? "text-success" : summary.periodChange < 0 ? "text-warning" : "text-muted-foreground"
+                  )}>
+                    {summary.periodChange > 0 ? '+' : ''}{summary.periodChange.toFixed(0)}%
+                  </span>
+                </div>
+              </div>
+              {/* Visual comparison bars */}
+              <div className="flex gap-1 mt-1.5">
+                <div className="flex-1">
+                  <div className="h-1.5 rounded-full bg-muted-foreground/15 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-muted-foreground/40"
+                      style={{
+                        width: `${Math.min(100, summary.firstHalfTotal > 0
+                          ? (summary.firstHalfTotal / Math.max(summary.firstHalfTotal, summary.secondHalfTotal)) * 100
+                          : 0)}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-[9px] text-muted-foreground/70">{summary.firstHalfTotal} un</span>
+                </div>
+                <div className="flex-1">
+                  <div className="h-1.5 rounded-full bg-muted-foreground/15 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(100, summary.secondHalfTotal > 0
+                          ? (summary.secondHalfTotal / Math.max(summary.firstHalfTotal, summary.secondHalfTotal)) * 100
+                          : 0)}%`,
+                        backgroundColor: color,
+                      }}
+                    />
+                  </div>
+                  <span className="text-[9px] text-muted-foreground/70">{summary.secondHalfTotal} un</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Trend footer */}
+            <div className="px-3 py-1.5 border-t border-border/40 flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Zap className="h-3 w-3 text-amber-500" />
+                <span className="text-[10px] text-muted-foreground">
+                  {summary.activeDays}/{points.length} dias ativos
+                </span>
+              </div>
+              <div className={cn(
+                "flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                summary.trend > 0
+                  ? "bg-success/10 text-success"
+                  : summary.trend < 0
+                  ? "bg-warning/10 text-warning"
+                  : "bg-muted text-muted-foreground"
+              )}>
+                <TrendIcon className="h-3 w-3" />
+                {summary.trend > 0 ? '+' : ''}{summary.trend.toFixed(1)}%
+              </div>
+            </div>
+
+            {/* Demo indicator */}
+            {!hasRealData && (
+              <div className="px-3 py-1 bg-muted/50 border-t border-border/30 text-center">
+                <span className="text-[9px] text-muted-foreground/50 italic">dados estimados</span>
+              </div>
+            )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function TooltipMetric({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-[9px] text-muted-foreground uppercase tracking-wide">{label}</span>
+      <span className={cn(
+        "text-[11px] font-semibold",
+        highlight ? "text-amber-400" : "text-foreground"
+      )}>
+        {value}
+      </span>
     </div>
   );
 }
