@@ -299,7 +299,7 @@ export function useProductInsights(productId?: string, productSku?: string) {
           totalOrders: 0,
           conversionRate: 0,
           averageQuantity: 0,
-          topClients: [],
+          topSegments: [],
           recentActivity: []
         };
       }
