@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Filter, X, ChevronDown } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Filter, X, ChevronDown, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useCategories } from "@/hooks/useCategories";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { useProductsLightweight } from "@/hooks/useProductsLightweight";
 import { cn } from "@/lib/utils";
 
 export interface IntelligenceFilters {
@@ -14,6 +15,8 @@ export interface IntelligenceFilters {
   categoryName: string | null;
   supplierId: string | null;
   supplierName: string | null;
+  productId: string | null;
+  productName: string | null;
 }
 
 interface IntelligenceFilterBarProps {
@@ -36,14 +39,16 @@ const PERIOD_OPTIONS = [
 export function IntelligenceFilterBar({ filters, onFiltersChange }: IntelligenceFilterBarProps) {
   const { data: categories = [] } = useCategories();
   const { suppliers } = useSuppliers();
+  const { data: products = [] } = useProductsLightweight();
   const [catOpen, setCatOpen] = useState(false);
   const [supOpen, setSupOpen] = useState(false);
+  const [prodOpen, setProdOpen] = useState(false);
 
   const activeFilterCount =
-    (filters.categoryId ? 1 : 0) + (filters.supplierId ? 1 : 0);
+    (filters.categoryId ? 1 : 0) + (filters.supplierId ? 1 : 0) + (filters.productId ? 1 : 0);
 
   const clearAll = () => {
-    onFiltersChange({ ...filters, categoryId: null, categoryName: null, supplierId: null, supplierName: null });
+    onFiltersChange({ ...filters, categoryId: null, categoryName: null, supplierId: null, supplierName: null, productId: null, productName: null });
   };
 
   return (
@@ -172,6 +177,60 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
           </PopoverContent>
         </Popover>
 
+        {/* Product Filter */}
+        <Popover open={prodOpen} onOpenChange={setProdOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-8 gap-1.5 text-xs",
+                filters.productId && "border-primary/50 bg-primary/5 text-primary"
+              )}
+            >
+              <Package className="h-3 w-3" />
+              {filters.productName ? (filters.productName.length > 20 ? filters.productName.slice(0, 20) + '…' : filters.productName) : "Produto"}
+              <ChevronDown className="h-3 w-3 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 p-0" align="start">
+            <Command>
+              <CommandInput placeholder="Buscar produto por nome ou SKU..." />
+              <CommandList className="max-h-64">
+                <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() => {
+                      onFiltersChange({ ...filters, productId: null, productName: null });
+                      setProdOpen(false);
+                    }}
+                  >
+                    <span className="text-muted-foreground">Todos os produtos</span>
+                  </CommandItem>
+                  {products.map((prod) => (
+                    <CommandItem
+                      key={prod.id}
+                      value={`${prod.name} ${prod.sku || ''}`}
+                      onSelect={() => {
+                        onFiltersChange({ ...filters, productId: prod.id, productName: prod.name });
+                        setProdOpen(false);
+                      }}
+                    >
+                      <div className={cn(
+                        "flex flex-col",
+                        filters.productId === prod.id && "font-semibold text-primary"
+                      )}>
+                        <span className="text-sm truncate">{prod.name}</span>
+                        {prod.sku && <span className="text-[10px] text-muted-foreground">{prod.sku}</span>}
+                      </div>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+
         {/* Active filter count + clear */}
         {activeFilterCount > 0 && (
           <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs text-muted-foreground" onClick={clearAll}>
@@ -187,6 +246,15 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
       {/* Active filter badges */}
       {activeFilterCount > 0 && (
         <div className="flex flex-wrap gap-1.5">
+          {filters.productName && (
+            <Badge variant="outline" className="gap-1 text-xs px-2 py-0.5 bg-primary/5 border-primary/20">
+              Produto: {filters.productName}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                onClick={() => onFiltersChange({ ...filters, productId: null, productName: null })}
+              />
+            </Badge>
+          )}
           {filters.categoryName && (
             <Badge variant="outline" className="gap-1 text-xs px-2 py-0.5 bg-primary/5 border-primary/20">
               Categoria: {filters.categoryName}

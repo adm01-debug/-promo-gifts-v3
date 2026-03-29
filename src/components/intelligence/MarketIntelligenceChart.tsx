@@ -40,6 +40,7 @@ import { SupplierChartFilter } from "@/components/products/SupplierChartFilter";
 interface Props {
   days?: number;
   supplierId?: string | null;
+  productId?: string | null;
 }
 
 // ---------- Mock data generator ----------
@@ -99,7 +100,7 @@ function generateMockMarketData(days: number) {
   return { daily, kpis, suppliers: mockSuppliers, supplierIds: mockSuppliers.map(s => s.supplierId), supplierNames: mockSupplierNames };
 }
 
-export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: Props) {
+export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, productId }: Props) {
   const [period, setPeriod] = useState<string>(String(defaultDays));
   const [selectedSupplier, setSelectedSupplier] = useState<string>('all');
   const days = Number(period);
