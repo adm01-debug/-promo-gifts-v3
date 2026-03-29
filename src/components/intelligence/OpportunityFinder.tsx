@@ -6,8 +6,8 @@ import { useOpportunities } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-export function OpportunityFinder() {
-  const { data: opportunities, isLoading } = useOpportunities();
+export function OpportunityFinder({ days = 30 }: { days?: number }) {
+  const { data: opportunities, isLoading } = useOpportunities(days);
   const navigate = useNavigate();
 
   if (isLoading) {

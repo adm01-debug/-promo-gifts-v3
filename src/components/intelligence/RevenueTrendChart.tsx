@@ -7,14 +7,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const periods = [
-  { label: "7d", days: 7 },
-  { label: "30d", days: 30 },
-  { label: "90d", days: 90 },
-];
-
-export function RevenueTrendChart() {
-  const [days, setDays] = useState(30);
+export function RevenueTrendChart({ days = 30 }: { days?: number }) {
   const { data: trendData, isLoading } = useRevenueTrend(days);
 
   if (isLoading) {
