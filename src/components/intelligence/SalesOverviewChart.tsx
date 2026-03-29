@@ -27,9 +27,10 @@ import type { SellerRanking } from "@/hooks/useSalesHistory";
 
 interface Props {
   days?: number;
+  productId?: string | null;
 }
 
-export function SalesOverviewChart({ days = 30 }: Props) {
+export function SalesOverviewChart({ days = 30, productId }: Props) {
   const { data, isLoading, error } = useSalesHistoryMacro(days);
 
   const chartData = useMemo(() => {

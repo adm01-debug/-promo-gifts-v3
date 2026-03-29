@@ -40,6 +40,7 @@ import { SupplierChartFilter } from "@/components/products/SupplierChartFilter";
 interface Props {
   days?: number;
   supplierId?: string | null;
+  productId?: string | null;
 }
 
 // ---------- Mock data generator ----------
