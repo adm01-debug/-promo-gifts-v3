@@ -23,7 +23,6 @@ import { formatCurrency } from "@/lib/format";
 import { KpiCard } from "@/components/ui/kpi-card";
 import { useSalesHistoryMacro } from "@/hooks/useSalesHistoryMacro";
 import { safeParseDateForChart } from "@/lib/stock-chart-utils";
-import type { SellerRanking } from "@/hooks/useSalesHistory";
 
 interface Props {
   days?: number;
