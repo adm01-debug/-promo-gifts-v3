@@ -53,7 +53,9 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
           📦 Vendas por Fornecedor
           {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
         </CardTitle>
-        <CardDescription className="text-xs">Faturamento acumulado por fornecedor · {days} dias</CardDescription>
+        <CardDescription className="text-xs">
+          {categoryName ? `Fornecedores de "${categoryName}"` : 'Faturamento acumulado por fornecedor'} · {days} dias
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {suppliers.map((supplier, i) => {

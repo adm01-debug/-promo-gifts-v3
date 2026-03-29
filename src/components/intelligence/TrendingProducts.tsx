@@ -57,7 +57,9 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
           🔥 Produtos em Alta
           {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
         </CardTitle>
-        <CardDescription className="text-xs">Ranking por faturamento · {days} dias</CardDescription>
+        <CardDescription className="text-xs">
+          {categoryName ? `Ranking de "${categoryName}"` : 'Ranking por faturamento'} · {days} dias
+        </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y divide-border">
