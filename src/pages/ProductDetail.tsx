@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  Eye,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
@@ -49,6 +50,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
 import { useProduct, type Product } from "@/hooks/useProducts";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { sortVariationsByColor } from "@/utils/colorSorting";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
 
@@ -124,6 +127,22 @@ export default function ProductDetail() {
 
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: supplierTrust } = useSupplierTrust(id);
+
+  const { data: viewCount = 0 } = useQuery({
+    queryKey: ["product-views-count", id],
+    queryFn: async () => {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { count } = await supabase
+        .from("product_views")
+        .select("*", { count: "exact", head: true })
+        .eq("product_id", id!)
+        .gte("created_at", thirtyDaysAgo.toISOString());
+      return count || 0;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
 
   useEffect(() => {
     if (product) {
@@ -535,19 +554,14 @@ export default function ProductDetail() {
               <KitComposition items={product.kitItems} onSelectItems={setSelectedKitItems} />
             )}
 
-            {/* Actions — compact row */}
+            {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
             <div className="hidden md:flex items-center gap-2 py-2 border-t border-border flex-wrap">
-              <ShareActions product={product} />
-              {product.isKit && (
-                <Button
-                  size="sm"
-                  className="rounded-full px-4 text-xs bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70"
-                  onClick={() => navigate(`/kit-builder?product=${id}`)}
-                >
-                  <Package className="h-3.5 w-3.5 mr-1" />
-                  Montar no Kit Builder
-                </Button>
-              )}
+              <ProductSocialProof productId={id!} totalStock={totalStock} className="mr-auto" />
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full border border-border">
+                <Eye className="h-3.5 w-3.5" />
+                <span className="font-medium">{viewCount}</span>
+                <span>visualizações</span>
+              </div>
               <Button
                 variant="outline"
                 size="sm"
@@ -560,6 +574,17 @@ export default function ProductDetail() {
                 <Heart className={cn("h-3.5 w-3.5 mr-1 transition-all", isFavorite && "fill-destructive text-destructive")} />
                 {isFavorite ? "Favoritado" : "Favoritar"}
               </Button>
+              <ShareActions product={product} />
+              {product.isKit && (
+                <Button
+                  size="sm"
+                  className="rounded-full px-4 text-xs bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70"
+                  onClick={() => navigate(`/kit-builder?product=${id}`)}
+                >
+                  <Package className="h-3.5 w-3.5 mr-1" />
+                  Montar no Kit Builder
+                </Button>
+              )}
             </div>
 
             {/* Tags — Indicado para */}
