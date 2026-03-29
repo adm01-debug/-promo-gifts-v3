@@ -120,10 +120,11 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
         }
 
         // Get quote_items and order_items filtered by product + date
-        const [{ data: quoteItems }, { data: orderItems }, { data: orderItemsMonth }] = await Promise.all([
+        const [{ data: quoteItems }, { data: orderItems }, { data: orderItemsMonth }, { data: quoteItemsMonth }] = await Promise.all([
           supabase.from('quote_items').select('quote_id, product_id').gte('created_at', since).in('product_id', productIdArray.slice(0, 200)),
           supabase.from('order_items').select('order_id, product_id, quantity, unit_price').gte('created_at', since).in('product_id', productIdArray.slice(0, 200)),
           supabase.from('order_items').select('order_id, product_id, quantity, unit_price').gte('created_at', startOfMonth).in('product_id', productIdArray.slice(0, 200)),
+          supabase.from('quote_items').select('quote_id, product_id').gte('created_at', startOfMonth).in('product_id', productIdArray.slice(0, 200)),
         ]);
 
         const uniqueQuotes = new Set((quoteItems || []).map(qi => qi.quote_id));
