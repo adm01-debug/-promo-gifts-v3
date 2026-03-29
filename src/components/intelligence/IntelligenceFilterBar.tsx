@@ -43,6 +43,7 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
   const [catOpen, setCatOpen] = useState(false);
   const [supOpen, setSupOpen] = useState(false);
   const [prodOpen, setProdOpen] = useState(false);
+  const [prodSearch, setProdSearch] = useState("");
 
   const activeFilterCount =
     (filters.categoryId ? 1 : 0) + (filters.supplierId ? 1 : 0) + (filters.productId ? 1 : 0);
