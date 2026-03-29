@@ -16,16 +16,21 @@ interface FilterParams {
   days?: number;
   categoryId?: string | null;
   supplierId?: string | null;
+  productId?: string | null;
 }
 
 /**
- * Resolve product IDs matching category/supplier from external DB.
+ * Resolve product IDs matching category/supplier/product from external DB.
  * Returns null if no filter is active (meaning "all products").
+ * When productId is provided, it takes priority and returns just that single ID.
  */
-function useFilteredProductIds(categoryId?: string | null, supplierId?: string | null) {
+function useFilteredProductIds(categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   return useQuery({
-    queryKey: ['intelligence-product-ids', categoryId, supplierId],
+    queryKey: ['intelligence-product-ids', categoryId, supplierId, productId],
     queryFn: async (): Promise<Set<string> | null> => {
+      // If specific product selected, return just that ID
+      if (productId) return new Set([productId]);
+
       if (!categoryId && !supplierId) return null;
 
       const { fetchPromobrindProducts } = await import('@/lib/external-db');
@@ -37,7 +42,7 @@ function useFilteredProductIds(categoryId?: string | null, supplierId?: string |
       return new Set(products.map(p => p.id));
     },
     staleTime: 1000 * 60 * 10,
-    enabled: !!(categoryId || supplierId),
+    enabled: !!(categoryId || supplierId || productId),
   });
 }
 
