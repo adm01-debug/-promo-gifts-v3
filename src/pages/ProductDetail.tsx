@@ -556,7 +556,7 @@ export default function ProductDetail() {
 
             {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
             <div className="hidden md:flex items-center gap-2 py-2 border-t border-border flex-wrap">
-              <ProductSocialProof productId={id!} totalStock={totalStock} className="mr-auto" />
+              <ProductSocialProof productId={id!} totalStock={product.stock ?? 0} className="mr-auto" />
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full border border-border">
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-medium">{viewCount}</span>
