@@ -36,13 +36,13 @@ function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColor
     );
   }
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 border border-border">
+    <div className="flex items-center gap-3 p-3.5 rounded-xl bg-secondary/50 border border-border min-w-0">
       <div className={`w-10 h-10 rounded-lg ${iconBgClass} flex items-center justify-center shrink-0`}>
         <span className={iconColorClass}>{icon}</span>
       </div>
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium text-foreground">{value}</p>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground truncate">{label}</p>
+        <p className="text-sm font-bold text-foreground leading-snug">{value}</p>
       </div>
     </div>
   );
@@ -104,7 +104,7 @@ export function ProductDimensions({ dimensions, compact }: ProductDimensionsProp
       <h3 className="font-display text-lg font-semibold text-foreground">
         Especificações
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {specs.map((spec, index) => (
           <SpecItem key={index} {...spec} />
         ))}
