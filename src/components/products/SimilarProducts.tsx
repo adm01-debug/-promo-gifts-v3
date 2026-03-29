@@ -79,7 +79,6 @@ function SimilarProductCard({
 
 export function SimilarProducts({
   currentProduct,
-  items,
   maxItems = 12,
 }: SimilarProductsProps) {
   const navigate = useNavigate();
@@ -87,7 +86,8 @@ export function SimilarProducts({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const similarItems = (items || generateMockSimilarProducts(currentProduct)).slice(0, maxItems);
+  const { data: dbItems = [], isLoading } = useSimilarProducts(currentProduct?.id);
+  const similarItems = dbItems.slice(0, maxItems);
 
   const updateScrollButtons = useCallback(() => {
     const el = scrollRef.current;
