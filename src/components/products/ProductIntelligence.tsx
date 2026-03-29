@@ -10,8 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useProductInsights, useProductRecommendations } from "@/hooks/useProductRecommendations";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 interface ProductIntelligenceProps {
@@ -83,15 +82,14 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
               <CardContent className="p-3">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <Users className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs font-medium text-muted-foreground">Principais Compradores</span>
+                  <span className="text-xs font-medium text-muted-foreground">Segmentos que Compram</span>
                 </div>
-                {insights?.topClients && insights.topClients.length > 0 ? (
+                {insights?.topSegments && insights.topSegments.length > 0 ? (
                   <div className="space-y-1">
-                    {insights.topClients.slice(0, 3).map((client, idx) => (
+                    {insights.topSegments.slice(0, 3).map((seg, idx) => (
                       <div 
-                        key={client.id}
-                        className="flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 transition-colors"
-                        onClick={() => navigate(`/clientes/${client.id}`)}
+                        key={seg.segment}
+                        className="flex items-center justify-between rounded px-1 py-0.5"
                       >
                         <div className="flex items-center gap-1.5">
                           <span className={cn(
@@ -102,14 +100,14 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
                           )}>
                             {idx + 1}
                           </span>
-                          <span className="text-[11px] font-medium truncate max-w-[80px]">{client.name}</span>
+                          <span className="text-[11px] font-medium truncate max-w-[100px]">{seg.segment}</span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground">{client.totalOrdered}x</span>
+                        <span className="text-[10px] text-muted-foreground">{seg.count}x</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[11px] text-muted-foreground">Nenhum comprador ainda</p>
+                  <p className="text-[11px] text-muted-foreground">Nenhum segmento ainda</p>
                 )}
               </CardContent>
             </Card>

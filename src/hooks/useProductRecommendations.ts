@@ -36,10 +36,9 @@ interface ProductInsight {
   totalOrders: number;
   conversionRate: number;
   averageQuantity: number;
-  topClients: Array<{
-    id: string;
-    name: string;
-    totalOrdered: number;
+  topSegments: Array<{
+    segment: string;
+    count: number;
   }>;
   recentActivity: Array<{
     type: 'view' | 'quote' | 'order';
@@ -300,7 +299,7 @@ export function useProductInsights(productId?: string, productSku?: string) {
           totalOrders: 0,
           conversionRate: 0,
           averageQuantity: 0,
-          topClients: [],
+          topSegments: [],
           recentActivity: []
         };
       }
@@ -337,9 +336,9 @@ export function useProductInsights(productId?: string, productSku?: string) {
         ? ((ordersCount || 0) / quotesCount) * 100
         : 0;
 
-      // Top clientes que compraram este produto
+      // Top segmentos/nichos que compraram este produto
       const orderIds = (orderItems || []).map(o => o.order_id);
-      let topClients: ProductInsight['topClients'] = [];
+      let topSegments: ProductInsight['topSegments'] = [];
       
       if (orderIds.length > 0) {
         const { data: orders } = await supabase
@@ -352,28 +351,27 @@ export function useProductInsights(productId?: string, productSku?: string) {
         if (clientIds.length > 0) {
           const { selectCrm } = await import("@/lib/crm-db");
           const clients = await selectCrm<any>("companies", {
-            select: "id, razao_social, nome_fantasia",
+            select: "id, ramo_atividade",
             filters: { id: { in: clientIds } },
-          }).then(companies => companies.map((c: any) => ({
-            id: c.id,
-            name: c.nome_fantasia || c.razao_social,
-          })));
+          });
 
-          // Contar pedidos por cliente
-          const clientOrderCounts = (orders || []).reduce((acc, order) => {
-            if (order.client_id) {
-              acc[order.client_id] = (acc[order.client_id] || 0) + 1;
+          // Contar pedidos por segmento
+          const clientSegmentMap: Record<string, string> = {};
+          (clients || []).forEach((c: any) => {
+            if (c.ramo_atividade) clientSegmentMap[c.id] = c.ramo_atividade;
+          });
+
+          const segmentCounts: Record<string, number> = {};
+          (orders || []).forEach(order => {
+            const segment = order.client_id ? clientSegmentMap[order.client_id] : null;
+            if (segment) {
+              segmentCounts[segment] = (segmentCounts[segment] || 0) + 1;
             }
-            return acc;
-          }, {} as Record<string, number>);
+          });
 
-          topClients = (clients || [])
-            .map(c => ({
-              id: c.id,
-              name: c.name,
-              totalOrdered: clientOrderCounts[c.id] || 0
-            }))
-            .sort((a, b) => b.totalOrdered - a.totalOrdered)
+          topSegments = Object.entries(segmentCounts)
+            .map(([segment, count]) => ({ segment, count }))
+            .sort((a, b) => b.count - a.count)
             .slice(0, 5);
         }
       }
@@ -424,7 +422,7 @@ export function useProductInsights(productId?: string, productSku?: string) {
         totalOrders: ordersCount || 0,
         conversionRate: Math.round(conversionRate * 10) / 10,
         averageQuantity: Math.round(averageQuantity),
-        topClients,
+        topSegments,
         recentActivity: recentActivity.slice(0, 5)
       };
     },
