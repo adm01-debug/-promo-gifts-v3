@@ -77,7 +77,7 @@ function SimilarProductCard({
   return (
     <div
       className={cn(
-        "group relative flex-shrink-0 w-[180px] snap-start",
+        "group relative flex-shrink-0 w-[calc((100%-7*0.75rem)/8)] min-w-[140px] snap-start",
         "rounded-xl bg-card border border-border/50 overflow-hidden",
         "transition-all duration-300 cursor-pointer",
         "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1",
@@ -155,8 +155,8 @@ export function SimilarProducts({
   const scroll = useCallback((direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
-    const cardWidth = 192; // 180px card + 12px gap
-    const scrollAmount = cardWidth * 3;
+    const containerWidth = el.clientWidth;
+    const scrollAmount = containerWidth; // scroll one full "page" of 8 cards
     el.scrollBy({ 
       left: direction === 'left' ? -scrollAmount : scrollAmount, 
       behavior: 'smooth' 
