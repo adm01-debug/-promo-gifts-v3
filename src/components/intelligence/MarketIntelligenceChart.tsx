@@ -69,6 +69,12 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: 
     }, []);
   }, [data]);
 
+  const supplierText = useMemo(() => {
+    const count = data?.kpis?.supplierCount ?? 0;
+    if (count === 0) return 'no fornecedor';
+    return `em ${count} fornecedor${count > 1 ? 'es' : ''}`;
+  }, [data?.kpis?.supplierCount]);
+
   if (isLoading) {
     return (
       <Card>
@@ -105,12 +111,6 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: 
   const trendRatio = trend30d > 0 ? trend7d / trend30d : 1;
   const trendPercent = Math.round((trendRatio - 1) * 100);
   const trendLabel = trendRatio > 1.2 ? '↑ acelerando' : trendRatio < 0.8 ? '↓ desacelerando' : '→ estável';
-
-  const supplierText = useMemo(() => {
-    const count = kpis?.supplierCount ?? 0;
-    if (count === 0) return 'no fornecedor';
-    return `em ${count} fornecedor${count > 1 ? 'es' : ''}`;
-  }, [kpis?.supplierCount]);
 
   return (
     <Card>
