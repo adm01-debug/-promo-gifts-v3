@@ -16,6 +16,8 @@ export default function CommercialIntelligencePage() {
     categoryName: null,
     supplierId: null,
     supplierName: null,
+    productId: null,
+    productName: null,
   });
 
   return (
