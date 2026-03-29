@@ -25,8 +25,8 @@ export default function CommercialIntelligencePage() {
   return (
     <MainLayout>
       <PageSEO
-        title="Inteligência Comercial"
-        description="Painel estratégico com insights para decisões comerciais."
+        title="Inteligência de Mercado"
+        description="Painel estratégico com insights de mercado para decisões comerciais."
         path="/inteligencia-comercial"
         noIndex
       />
@@ -37,7 +37,7 @@ export default function CommercialIntelligencePage() {
             <Brain className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Inteligência Comercial</h1>
+            <h1 className="text-xl font-bold text-foreground">Inteligência de Mercado</h1>
             <p className="text-sm text-muted-foreground">Produtos & Fornecedores · comportamento do mercado + vendas internas</p>
           </div>
         </div>
