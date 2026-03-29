@@ -578,10 +578,10 @@ export default function ProductDetail() {
             )}
 
             {/* Actions — compact row: Share + Kit Builder */}
-            <div className="hidden md:flex items-center gap-3 xl:gap-4 py-2 xl:py-3 border-t border-border flex-wrap">
-              <div className="ml-auto flex items-center gap-2 flex-wrap">
-                <ShareActions product={product} />
-                {product.isKit && (
+            {/* Kit Builder button */}
+            {product.isKit && (
+              <div className="hidden md:flex items-center gap-3 xl:gap-4 py-2 xl:py-3 border-t border-border flex-wrap">
+                <div className="ml-auto flex items-center gap-2 flex-wrap">
                   <Button
                     size="sm"
                     className="rounded-full px-4 text-xs bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70"
@@ -590,9 +590,9 @@ export default function ProductDetail() {
                     <Package className="h-3.5 w-3.5 mr-1" />
                     Montar no Kit Builder
                   </Button>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
         </div>
