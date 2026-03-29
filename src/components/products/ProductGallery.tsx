@@ -378,7 +378,7 @@ export function ProductGallery({
             </button>
           </div>
           
-          <div className="flex gap-3 overflow-x-auto xl:overflow-x-visible xl:flex-wrap pb-2 scrollbar-thin">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
             {sortedColors.map((color) => {
               // Encontrar o índice original para manter a seleção funcionando
               const originalIndex = colors.findIndex(c => c.name === color.name && c.sku === color.sku);
