@@ -606,10 +606,9 @@ export default function ProductDetail() {
           />
         </div>
 
-        {/* Related & Recommended */}
-        <div className="space-y-6 pt-4 border-t border-border">
-          <RelatedProducts currentProduct={product} allProducts={relatedProductsList} maxItems={4} />
-          <RecommendedProducts currentProduct={product} allProducts={relatedProductsList} maxItems={4} />
+        {/* Produtos Semelhantes */}
+        <div className="pt-4 border-t border-border">
+          <SimilarProducts currentProduct={product} maxItems={12} />
         </div>
 
         {/* Modals */}
