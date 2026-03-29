@@ -4,8 +4,8 @@ import { useRevenueTrend } from "@/hooks/useCommercialIntelligence";
 import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, ComposedChart } from "recharts";
 import { TrendingUp } from "lucide-react";
 
-export function RevenueTrendChart({ days = 30 }: { days?: number }) {
-  const { data: trendData, isLoading } = useRevenueTrend(days);
+export function RevenueTrendChart({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
+  const { data: trendData, isLoading } = useRevenueTrend(days, categoryId, supplierId);
 
   if (isLoading) {
     return (

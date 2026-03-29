@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMostViewedProducts } from "@/hooks/useCommercialIntelligence";
 
-export function MostViewedProducts({ days = 30 }: { days?: number }) {
-  const { data: products, isLoading } = useMostViewedProducts(days);
+export function MostViewedProducts({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
+  const { data: products, isLoading } = useMostViewedProducts(days, categoryId, supplierId);
 
   if (isLoading) {
     return (

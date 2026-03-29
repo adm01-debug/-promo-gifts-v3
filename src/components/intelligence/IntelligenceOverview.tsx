@@ -3,8 +3,8 @@ import { KpiCard } from "@/components/ui/kpi-card";
 import { useCommercialKPIs } from "@/hooks/useCommercialIntelligence";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function IntelligenceOverview({ days = 30 }: { days?: number }) {
-  const { data: kpis, isLoading } = useCommercialKPIs(days);
+export function IntelligenceOverview({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
+  const { data: kpis, isLoading } = useCommercialKPIs(days, categoryId, supplierId);
 
   if (isLoading) {
     return (

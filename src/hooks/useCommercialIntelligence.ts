@@ -1,7 +1,6 @@
 /**
  * useCommercialIntelligence — Hook agregador para o módulo de Inteligência Comercial
- * Consolida dados de orders, quotes, product_views e external-db
- * Todos os hooks aceitam `days` para filtrar por período
+ * Todos os hooks aceitam `days`, `categoryId` e `supplierId` para filtragem
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +10,44 @@ function getSinceDate(days: number): string {
   const d = new Date();
   d.setDate(d.getDate() - days);
   return d.toISOString();
+}
+
+interface FilterParams {
+  days?: number;
+  categoryId?: string | null;
+  supplierId?: string | null;
+}
+
+/**
+ * Resolve product IDs matching category/supplier from external DB.
+ * Returns null if no filter is active (meaning "all products").
+ */
+function useFilteredProductIds(categoryId?: string | null, supplierId?: string | null) {
+  return useQuery({
+    queryKey: ['intelligence-product-ids', categoryId, supplierId],
+    queryFn: async (): Promise<Set<string> | null> => {
+      if (!categoryId && !supplierId) return null;
+
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const filters: Record<string, unknown> = {};
+      if (categoryId) filters.category_id = categoryId;
+      if (supplierId) filters.supplier_id = supplierId;
+
+      const products = await fetchPromobrindProducts({ limit: 5000, filters });
+      return new Set(products.map(p => p.id));
+    },
+    staleTime: 1000 * 60 * 10,
+    enabled: !!(categoryId || supplierId),
+  });
+}
+
+// Filters arrays of items that have product_id, using the resolved set
+function filterByProductIds<T extends { product_id?: string | null }>(
+  items: T[],
+  productIds: Set<string> | null | undefined,
+): T[] {
+  if (!productIds) return items; // no filter active
+  return items.filter(item => item.product_id && productIds.has(item.product_id));
 }
 
 export interface IntelligenceKPI {
@@ -63,15 +100,52 @@ export interface RevenuePoint {
   quotes: number;
 }
 
-export function useCommercialKPIs(days = 30) {
+export function useCommercialKPIs(days = 30, categoryId?: string | null, supplierId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
+  const hasFilter = !!(categoryId || supplierId);
 
   return useQuery({
-    queryKey: ['commercial-intelligence-kpis', user?.id, days],
+    queryKey: ['commercial-intelligence-kpis', user?.id, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
     queryFn: async (): Promise<IntelligenceKPI> => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+      // When filtering by category/supplier, we need quote_items/order_items to match product IDs
+      if (hasFilter && productIds) {
+        const productIdArray = Array.from(productIds);
+        if (productIdArray.length === 0) {
+          return { totalQuotes: 0, totalOrders: 0, conversionRate: 0, totalRevenue: 0, averageTicket: 0, quotesThisMonth: 0, ordersThisMonth: 0, revenueThisMonth: 0 };
+        }
+
+        // Get quote_items and order_items filtered by product + date
+        const [{ data: quoteItems }, { data: orderItems }, { data: orderItemsMonth }] = await Promise.all([
+          supabase.from('quote_items').select('quote_id, product_id').gte('created_at', since).in('product_id', productIdArray.slice(0, 200)),
+          supabase.from('order_items').select('order_id, product_id, quantity, unit_price').gte('created_at', since).in('product_id', productIdArray.slice(0, 200)),
+          supabase.from('order_items').select('order_id, product_id, quantity, unit_price').gte('created_at', startOfMonth).in('product_id', productIdArray.slice(0, 200)),
+        ]);
+
+        const uniqueQuotes = new Set((quoteItems || []).map(qi => qi.quote_id));
+        const uniqueOrders = new Set((orderItems || []).map(oi => oi.order_id));
+        const uniqueOrdersMonth = new Set((orderItemsMonth || []).map(oi => oi.order_id));
+
+        const totalRevenue = (orderItems || []).reduce((s, i) => s + (i.quantity ?? 0) * (i.unit_price ?? 0), 0);
+        const revenueMonth = (orderItemsMonth || []).reduce((s, i) => s + (i.quantity ?? 0) * (i.unit_price ?? 0), 0);
+        const totalOrders = uniqueOrders.size;
+        const totalQuotes = uniqueQuotes.size;
+
+        return {
+          totalQuotes,
+          totalOrders,
+          conversionRate: totalQuotes > 0 ? Math.round((totalOrders / totalQuotes) * 100) : 0,
+          totalRevenue,
+          averageTicket: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+          quotesThisMonth: 0,
+          ordersThisMonth: uniqueOrdersMonth.size,
+          revenueThisMonth: revenueMonth,
+        };
+      }
 
       const [quotesRes, ordersRes, quotesMonthRes, ordersMonthRes] = await Promise.all([
         supabase.from('quotes').select('id, total, status, created_at').gte('created_at', since),
@@ -88,35 +162,41 @@ export function useCommercialKPIs(days = 30) {
       const totalRevenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
       const totalOrders = orders.length;
       const totalQuotes = quotes.length;
-      const conversionRate = totalQuotes > 0 ? Math.round((totalOrders / totalQuotes) * 100) : 0;
-      const averageTicket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
       return {
         totalQuotes,
         totalOrders,
-        conversionRate,
+        conversionRate: totalQuotes > 0 ? Math.round((totalOrders / totalQuotes) * 100) : 0,
         totalRevenue,
-        averageTicket,
+        averageTicket: totalOrders > 0 ? totalRevenue / totalOrders : 0,
         quotesThisMonth: quotesMonth.length,
         ordersThisMonth: ordersMonth.length,
         revenueThisMonth: ordersMonth.reduce((sum, o) => sum + (o.total ?? 0), 0),
       };
     },
     staleTime: 1000 * 60 * 5,
-    enabled: !!user,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
   });
 }
 
-export function useTrendingProducts(days = 30) {
+export function useTrendingProducts(days = 30, categoryId?: string | null, supplierId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
+  const hasFilter = !!(categoryId || supplierId);
 
   return useQuery({
-    queryKey: ['commercial-trending-products', user?.id, days],
+    queryKey: ['commercial-trending-products', user?.id, days, categoryId, supplierId],
     queryFn: async (): Promise<TrendingProduct[]> => {
+      const productIdArray = productIds ? Array.from(productIds).slice(0, 200) : undefined;
+
       const [{ data: orderItems }, { data: quoteItems }] = await Promise.all([
-        supabase.from('order_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, order_id, created_at').gte('created_at', since),
-        supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, created_at').gte('created_at', since),
+        productIdArray
+          ? supabase.from('order_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, order_id, created_at').gte('created_at', since).in('product_id', productIdArray)
+          : supabase.from('order_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, order_id, created_at').gte('created_at', since),
+        productIdArray
+          ? supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, created_at').gte('created_at', since).in('product_id', productIdArray)
+          : supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, created_at').gte('created_at', since),
       ]);
 
       if (!orderItems?.length) return [];
@@ -127,12 +207,9 @@ export function useTrendingProducts(days = 30) {
         const key = item.product_sku || item.product_id || item.product_name;
         if (!key) return;
         const existing = productMap.get(key) || {
-          productId: item.product_id || '',
-          productSku: item.product_sku,
-          productName: item.product_name || 'Produto',
-          productImage: item.product_image_url,
-          orderCount: 0, totalQuantity: 0, totalRevenue: 0,
-          quoteCount: 0, conversionRate: 0, trend: 'stable' as const,
+          productId: item.product_id || '', productSku: item.product_sku,
+          productName: item.product_name || 'Produto', productImage: item.product_image_url,
+          orderCount: 0, totalQuantity: 0, totalRevenue: 0, quoteCount: 0, conversionRate: 0, trend: 'stable' as const,
         };
         existing.orderCount += 1;
         existing.totalQuantity += (item.quantity ?? 0);
@@ -143,72 +220,103 @@ export function useTrendingProducts(days = 30) {
       quoteItems?.forEach(item => {
         const key = item.product_sku || item.product_id || item.product_name;
         if (!key || !productMap.has(key)) return;
-        const existing = productMap.get(key)!;
-        existing.quoteCount += 1;
-        productMap.set(key, existing);
+        productMap.get(key)!.quoteCount += 1;
       });
 
-      const products = Array.from(productMap.values()).map(p => ({
-        ...p,
-        conversionRate: p.quoteCount > 0 ? Math.round((p.orderCount / p.quoteCount) * 100) : 100,
-        trend: (p.totalRevenue > 1000 ? 'up' : p.totalRevenue > 200 ? 'stable' : 'down') as 'up' | 'down' | 'stable',
-      }));
-
-      return products.sort((a, b) => b.totalRevenue - a.totalRevenue).slice(0, 10);
+      return Array.from(productMap.values())
+        .map(p => ({
+          ...p,
+          conversionRate: p.quoteCount > 0 ? Math.round((p.orderCount / p.quoteCount) * 100) : 100,
+          trend: (p.totalRevenue > 1000 ? 'up' : p.totalRevenue > 200 ? 'stable' : 'down') as 'up' | 'down' | 'stable',
+        }))
+        .sort((a, b) => b.totalRevenue - a.totalRevenue)
+        .slice(0, 10);
     },
     staleTime: 1000 * 60 * 5,
-    enabled: !!user,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
   });
 }
 
-export function useSegmentAnalysis(days = 30) {
+export function useSegmentAnalysis(days = 30, categoryId?: string | null, supplierId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
+  const hasFilter = !!(categoryId || supplierId);
 
   return useQuery({
-    queryKey: ['commercial-segments', user?.id, days],
+    queryKey: ['commercial-segments', user?.id, days, categoryId, supplierId],
     queryFn: async (): Promise<SegmentData[]> => {
+      if (hasFilter && productIds) {
+        const productIdArray = Array.from(productIds).slice(0, 200);
+        if (!productIdArray.length) return [];
+
+        // Get order IDs that contain filtered products
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('order_id')
+          .gte('created_at', since)
+          .in('product_id', productIdArray);
+
+        const orderIds = [...new Set((orderItems || []).map(oi => oi.order_id).filter(Boolean))] as string[];
+        if (!orderIds.length) return [];
+
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('id, client_company, total')
+          .in('id', orderIds.slice(0, 200));
+
+        return aggregateSegments(orders || []);
+      }
+
       const { data: orders } = await supabase
         .from('orders')
         .select('client_company, total')
         .gte('created_at', since);
 
-      if (!orders?.length) return [];
-
-      const segmentMap = new Map<string, { count: number; revenue: number }>();
-      orders.forEach(order => {
-        const segment = order.client_company || 'Não identificado';
-        const existing = segmentMap.get(segment) || { count: 0, revenue: 0 };
-        existing.count += 1;
-        existing.revenue += (order.total ?? 0);
-        segmentMap.set(segment, existing);
-      });
-
-      return Array.from(segmentMap.entries())
-        .map(([segment, data]) => ({
-          segment,
-          orderCount: data.count,
-          revenue: data.revenue,
-          averageTicket: data.count > 0 ? data.revenue / data.count : 0,
-        }))
-        .sort((a, b) => b.revenue - a.revenue)
-        .slice(0, 10);
+      return aggregateSegments(orders || []);
     },
     staleTime: 1000 * 60 * 5,
-    enabled: !!user,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
   });
 }
 
-export function useOpportunities(days = 30) {
+function aggregateSegments(orders: Array<{ client_company?: string | null; total?: number | null }>): SegmentData[] {
+  const segmentMap = new Map<string, { count: number; revenue: number }>();
+  orders.forEach(order => {
+    const segment = order.client_company || 'Não identificado';
+    const existing = segmentMap.get(segment) || { count: 0, revenue: 0 };
+    existing.count += 1;
+    existing.revenue += (order.total ?? 0);
+    segmentMap.set(segment, existing);
+  });
+
+  return Array.from(segmentMap.entries())
+    .map(([segment, data]) => ({
+      segment, orderCount: data.count, revenue: data.revenue,
+      averageTicket: data.count > 0 ? data.revenue / data.count : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 10);
+}
+
+export function useOpportunities(days = 30, categoryId?: string | null, supplierId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
+  const hasFilter = !!(categoryId || supplierId);
 
   return useQuery({
-    queryKey: ['commercial-opportunities', user?.id, days],
+    queryKey: ['commercial-opportunities', user?.id, days, categoryId, supplierId],
     queryFn: async (): Promise<OpportunityProduct[]> => {
+      const productIdArray = productIds ? Array.from(productIds).slice(0, 200) : undefined;
+
       const [{ data: quoteItems }, { data: orderItems }] = await Promise.all([
-        supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, created_at').gte('created_at', since),
-        supabase.from('order_items').select('product_id, product_sku, product_name, created_at').gte('created_at', since),
+        productIdArray
+          ? supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, created_at').gte('created_at', since).in('product_id', productIdArray)
+          : supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, created_at').gte('created_at', since),
+        productIdArray
+          ? supabase.from('order_items').select('product_id, product_sku, product_name, created_at').gte('created_at', since).in('product_id', productIdArray)
+          : supabase.from('order_items').select('product_id, product_sku, product_name, created_at').gte('created_at', since),
       ]);
 
       if (!quoteItems?.length) return [];
@@ -249,23 +357,55 @@ export function useOpportunities(days = 30) {
       return opportunities.sort((a, b) => b.opportunityScore - a.opportunityScore).slice(0, 10);
     },
     staleTime: 1000 * 60 * 5,
-    enabled: !!user,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
   });
 }
 
-export function useRevenueTrend(days = 30) {
+export function useRevenueTrend(days = 30, categoryId?: string | null, supplierId?: string | null) {
   const { user } = useAuth();
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
+  const hasFilter = !!(categoryId || supplierId);
 
   return useQuery({
-    queryKey: ['commercial-revenue-trend', user?.id, days],
+    queryKey: ['commercial-revenue-trend', user?.id, days, categoryId, supplierId],
     queryFn: async (): Promise<RevenuePoint[]> => {
       const since = new Date();
       since.setDate(since.getDate() - days);
+      const sinceStr = since.toISOString();
 
-      const [{ data: orders }, { data: quotes }] = await Promise.all([
-        supabase.from('orders').select('total, created_at').gte('created_at', since.toISOString()).order('created_at'),
-        supabase.from('quotes').select('total, created_at').gte('created_at', since.toISOString()).order('created_at'),
-      ]);
+      let orderData: Array<{ quantity?: number | null; unit_price?: number | null; created_at: string }> = [];
+      let quoteData: Array<{ created_at: string }> = [];
+
+      if (hasFilter && productIds) {
+        const productIdArray = Array.from(productIds).slice(0, 200);
+        if (!productIdArray.length) {
+          // Return empty chart
+          const dateMap = new Map<string, RevenuePoint>();
+          for (let i = 0; i < days; i++) {
+            const d = new Date(since);
+            d.setDate(d.getDate() + i);
+            const key = d.toISOString().split('T')[0];
+            dateMap.set(key, { date: key, revenue: 0, orders: 0, quotes: 0 });
+          }
+          return Array.from(dateMap.values());
+        }
+
+        const [{ data: oi }, { data: qi }] = await Promise.all([
+          supabase.from('order_items').select('quantity, unit_price, created_at').gte('created_at', sinceStr).in('product_id', productIdArray),
+          supabase.from('quote_items').select('created_at').gte('created_at', sinceStr).in('product_id', productIdArray),
+        ]);
+        orderData = oi || [];
+        quoteData = qi || [];
+      } else {
+        const [{ data: orders }, { data: quotes }] = await Promise.all([
+          supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at'),
+          supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at'),
+        ]);
+
+        // Convert order-level data to same shape
+        orderData = (orders || []).map(o => ({ quantity: 1, unit_price: o.total, created_at: o.created_at }));
+        quoteData = quotes || [];
+      }
 
       const dateMap = new Map<string, RevenuePoint>();
       for (let i = 0; i < days; i++) {
@@ -275,31 +415,36 @@ export function useRevenueTrend(days = 30) {
         dateMap.set(key, { date: key, revenue: 0, orders: 0, quotes: 0 });
       }
 
-      orders?.forEach(o => {
+      orderData.forEach(o => {
         const key = new Date(o.created_at).toISOString().split('T')[0];
         const existing = dateMap.get(key);
-        if (existing) { existing.revenue += (o.total ?? 0); existing.orders += 1; }
+        if (existing) {
+          existing.revenue += (o.quantity ?? 1) * (o.unit_price ?? 0);
+          existing.orders += 1;
+        }
       });
 
-      quotes?.forEach(q => {
+      quoteData.forEach(q => {
         const key = new Date(q.created_at).toISOString().split('T')[0];
         const existing = dateMap.get(key);
-        if (existing) { existing.quotes += 1; }
+        if (existing) existing.quotes += 1;
       });
 
       return Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
     },
     staleTime: 1000 * 60 * 5,
-    enabled: !!user,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
   });
 }
 
-export function useMostViewedProducts(days = 30) {
+export function useMostViewedProducts(days = 30, categoryId?: string | null, supplierId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
+  const hasFilter = !!(categoryId || supplierId);
 
   return useQuery({
-    queryKey: ['commercial-most-viewed', user?.id, days],
+    queryKey: ['commercial-most-viewed', user?.id, days, categoryId, supplierId],
     queryFn: async () => {
       const { data } = await supabase
         .from('product_views')
@@ -308,8 +453,12 @@ export function useMostViewedProducts(days = 30) {
 
       if (!data?.length) return [];
 
+      const filtered = hasFilter && productIds
+        ? data.filter(v => v.product_id && productIds.has(v.product_id))
+        : data;
+
       const viewMap = new Map<string, { name: string; sku: string | null; count: number }>();
-      data.forEach(v => {
+      filtered.forEach(v => {
         const key = v.product_sku || v.product_id || '';
         if (!key) return;
         const existing = viewMap.get(key) || { name: v.product_name || '', sku: v.product_sku, count: 0 };
@@ -323,6 +472,6 @@ export function useMostViewedProducts(days = 30) {
         .slice(0, 10);
     },
     staleTime: 1000 * 60 * 5,
-    enabled: !!user,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
   });
 }
