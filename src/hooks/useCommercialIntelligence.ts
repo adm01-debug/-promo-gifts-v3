@@ -569,13 +569,16 @@ export function useCategoryRanking(days = 30, categoryId?: string | null, suppli
 
       // 4) Market data: aggregate stock depletion by category from snapshots
       try {
-        const { selectExternal } = await import('@/lib/external-db');
+        const { invokeExternalDb } = await import('@/lib/external-db');
         const sinceDate = since.split('T')[0];
-        const { data: snapshots } = await selectExternal(
-          'stock_snapshots',
-          'product_id, depleted',
-          (q: any) => q.gte('snapshot_date', sinceDate).gt('depleted', 0)
-        );
+        const result = await invokeExternalDb({
+          table: 'stock_snapshots',
+          operation: 'select',
+          select: 'product_id, depleted',
+          filters: { 'snapshot_date.gte': sinceDate, 'depleted.gt': 0 },
+          limit: 5000,
+        });
+        const snapshots = result?.records || [];
         (snapshots || []).forEach((snap: any) => {
           const cat = productCategoryMap.get(snap.product_id);
           if (!cat) return;
