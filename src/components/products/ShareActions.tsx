@@ -69,11 +69,11 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
     <>
       <div className="inline-flex rounded-md shadow-sm">
         <Button
-          className="gap-2 rounded-r-none border-r border-primary-foreground/20"
+          className="gap-2 rounded-r-none border-r border-emerald-400/20 bg-emerald-600 hover:bg-emerald-700 text-white"
           onClick={() => setShowPreview(true)}
         >
           <MessageCircle className="h-4 w-4" />
-          Enviar via A-Ticket
+          Enviar - WhatsApp
           <span className="bg-primary-foreground/20 text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
             {mainPhotosCount}
           </span>
