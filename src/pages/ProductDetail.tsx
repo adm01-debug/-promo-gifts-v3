@@ -492,7 +492,7 @@ export default function ProductDetail() {
                   </div>
 
                   {/* CTA Buttons */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 xl:gap-3">
                     <QuickAddToQuote
                       productId={id || ""}
                       productName={product.name}
@@ -501,16 +501,16 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm"
+                      className="flex-1 h-8 xl:h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs xl:text-sm shadow-sm"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />
                     <Button
                       size="sm"
-                      className="flex-1 h-8 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-sm gap-1.5"
+                      className="flex-1 h-8 xl:h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs xl:text-sm shadow-sm gap-1.5"
                       onClick={() => navigate(`/orcamentos/novo?product_id=${id}&product_name=${encodeURIComponent(product.name)}&product_sku=${encodeURIComponent(product.sku || '')}&product_price=${product.price}&product_image=${encodeURIComponent(product.images?.[0] || '')}&min_quantity=${product.minQuantity || 1}`)}
                     >
-                      <FileText className="h-3.5 w-3.5" />
+                      <FileText className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
                       Orçamento
                     </Button>
                   </div>
