@@ -119,30 +119,36 @@ export function ProductQuickActions({
 
       {/* Indicação Modal */}
       <Dialog open={activeModal === "indicacao"} onOpenChange={(o) => !o && setActiveModal(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              Indicado para
-            </DialogTitle>
-            <DialogDescription>Público-alvo e ocasiões recomendadas</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
+        <DialogContent className="max-w-md p-0 overflow-hidden">
+          <div className="px-5 pt-5 pb-3">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-base">
+                <Target className="h-5 w-5 text-primary" />
+                Indicado para
+              </DialogTitle>
+              <DialogDescription className="text-xs">Público-alvo e ocasiões recomendadas</DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="px-5 pb-5 space-y-5">
             {Object.entries(displayTags)
               .filter(([, items]) => items.length > 0)
               .map(([category, items]) => (
-              <div key={category} className="space-y-2">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  {category === "Público-Alvo" && "👥"}
-                  {category === "Datas Comemorativas" && "📅"}
-                  {category === "Endomarketing" && "🌱"}
-                  {category}
-                </h4>
-                <div className="flex flex-wrap gap-1.5">
+              <div key={category} className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">
+                    {category === "Público-Alvo" && "👥"}
+                    {category === "Datas Comemorativas" && "📅"}
+                    {category === "Endomarketing" && "🎯"}
+                  </span>
+                  <h4 className="text-[11px] font-bold text-foreground uppercase tracking-widest">
+                    {category}
+                  </h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
                   {items.map((item) => (
                     <span
                       key={item}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-secondary text-secondary-foreground border border-border/50"
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-muted text-foreground border border-border/40"
                     >
                       {item}
                     </span>
