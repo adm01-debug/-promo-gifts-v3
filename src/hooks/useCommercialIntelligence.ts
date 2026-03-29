@@ -143,7 +143,7 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
           conversionRate: totalQuotes > 0 ? Math.round((totalOrders / totalQuotes) * 100) : 0,
           totalRevenue,
           averageTicket: totalOrders > 0 ? totalRevenue / totalOrders : 0,
-          quotesThisMonth: 0,
+          quotesThisMonth: uniqueQuotesMonth.size,
           ordersThisMonth: uniqueOrdersMonth.size,
           revenueThisMonth: revenueMonth,
         };
