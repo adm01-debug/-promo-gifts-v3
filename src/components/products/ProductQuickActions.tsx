@@ -57,15 +57,14 @@ export function ProductQuickActions({
     }
   };
 
-  // Mock tags if not provided
-  const displayTags = tags || {
+  // Use real data, fallback to examples only if nothing provided
+  const displayTags = tags && Object.values(tags).some(arr => arr.length > 0) ? tags : {
     "Público-Alvo": ["Unissex", "Esportista", "Executivo"],
     "Datas Comemorativas": ["Dia do Trabalhador", "Natal"],
     "Endomarketing": ["Qualidade de Vida", "Onboarding | Kit Boas-Vindas", "CIPA | SIPAT"],
   };
 
-  // Mock niches if not provided
-  const displayNiches = niches || ["Agro", "Celulose", "Educação", "Energia", "Ferramentas e Ferragens"];
+  const displayNiches = niches && niches.length > 0 ? niches : ["Agro", "Celulose", "Educação", "Energia", "Ferramentas e Ferragens"];
 
   return (
     <>
@@ -136,7 +135,9 @@ export function ProductQuickActions({
             <DialogDescription>Público-alvo e ocasiões recomendadas</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            {Object.entries(displayTags).map(([category, items]) => (
+            {Object.entries(displayTags)
+              .filter(([, items]) => items.length > 0)
+              .map(([category, items]) => (
               <div key={category} className="space-y-2">
                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   {category === "Público-Alvo" && "👥"}

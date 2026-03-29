@@ -556,6 +556,12 @@ export default function ProductDetail() {
                     productSku={product.sku}
                     basePrice={product.price}
                     minQuantity={product.minQuantity || 1}
+                    tags={product.tags ? {
+                      "Público-Alvo": product.tags.publicoAlvo || [],
+                      "Datas Comemorativas": product.tags.datasComemorativas || [],
+                      "Endomarketing": product.tags.endomarketing || [],
+                    } : undefined}
+                    niches={product.tags?.nicho || product.tags?.ramo || undefined}
                   />
                 </div>
               </div>
