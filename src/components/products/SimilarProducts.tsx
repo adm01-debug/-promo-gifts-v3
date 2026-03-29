@@ -166,7 +166,7 @@ export function SimilarProducts({
     <section className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center">
             <Layers className="h-4.5 w-4.5 text-foreground" />
           </div>
