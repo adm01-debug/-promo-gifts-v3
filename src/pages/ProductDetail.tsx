@@ -524,6 +524,24 @@ export default function ProductDetail() {
                   )}
                   <ProductDimensions dimensions={product.dimensions} compact />
                 </div>
+
+                {/* Tags — Indicado para (inside specs card to fill gap) */}
+                {product.tags && (product.tags.publicoAlvo?.length > 0 || product.tags.datasComemorativas?.length > 0 || product.tags.endomarketing?.length > 0) && (
+                  <div className="border-t border-border/40 pt-2 space-y-1">
+                    <h4 className="text-xs font-semibold text-foreground">Indicado para</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {product.tags.publicoAlvo?.map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="px-2 py-0.5 text-[10px] rounded-full">👤 {tag}</Badge>
+                      ))}
+                      {product.tags.datasComemorativas?.map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="px-2 py-0.5 text-[10px] rounded-full">📅 {tag}</Badge>
+                      ))}
+                      {product.tags.endomarketing?.slice(0, 3).map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="px-2 py-0.5 text-[10px] rounded-full">🎯 {tag}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
