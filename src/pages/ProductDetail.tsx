@@ -549,20 +549,6 @@ export default function ProductDetail() {
                     </Button>
                   </div>
 
-                  {/* Quick Action Buttons */}
-                  <ProductQuickActions
-                    productId={product.id}
-                    productName={product.name}
-                    productSku={product.sku}
-                    basePrice={product.price}
-                    minQuantity={product.minQuantity || 1}
-                    tags={product.tags ? {
-                      "Público-Alvo": product.tags.publicoAlvo || [],
-                      "Datas Comemorativas": product.tags.datasComemorativas || [],
-                      "Endomarketing": product.tags.endomarketing || [],
-                    } : undefined}
-                    niches={product.tags?.nicho || product.tags?.ramo || undefined}
-                  />
                 </div>
               </div>
 
@@ -613,20 +599,20 @@ export default function ProductDetail() {
             </div>
 
 
-            {/* ===== CONTENT SECTIONS — compact spacing ===== */}
-
-            {/* Price Calculator */}
-            <div id="sec-precos" className="scroll-mt-28">
-              <InlinePriceCalculator
-                productId={product.id}
-                productName={product.name}
-                basePrice={product.price}
-                minQuantity={product.minQuantity || 1}
-              />
-            </div>
-
-            {/* Personalization — collapsible */}
-            <PersonalizationCollapsible id={id || ""} productSku={product.sku} productName={product.name} />
+            {/* Quick Action Buttons — horizontal bar */}
+            <ProductQuickActions
+              productId={product.id}
+              productName={product.name}
+              productSku={product.sku}
+              basePrice={product.price}
+              minQuantity={product.minQuantity || 1}
+              tags={product.tags ? {
+                "Público-Alvo": product.tags.publicoAlvo || [],
+                "Datas Comemorativas": product.tags.datasComemorativas || [],
+                "Endomarketing": product.tags.endomarketing || [],
+              } : undefined}
+              niches={product.tags?.nicho || product.tags?.ramo || undefined}
+            />
 
             {/* Variant Grid */}
 
