@@ -72,30 +72,32 @@ export function ProductQuickActions({
 
   return (
     <>
-      <div className="flex items-center gap-1.5 flex-wrap pt-1">
-        {actions.map(({ key, label, icon: Icon, iconColor }) => {
-          const disabled = isActionDisabled(key);
+      <div className="flex items-center gap-2 pt-2 w-full">
+        <div className="flex items-center gap-2 flex-1">
+          {actions.map(({ key, label, icon: Icon, iconColor }) => {
+            const disabled = isActionDisabled(key);
 
-          return (
-            <button
-              key={key}
-              type="button"
-              disabled={disabled}
-              onClick={() => handleClick(key)}
-              title={disabled ? `Sem dados de ${label.toLowerCase()} para este produto` : undefined}
-              className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium border",
-                "transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                disabled
-                  ? "bg-muted/40 text-muted-foreground/60 border-border/20 cursor-not-allowed"
-                  : "bg-muted/60 text-muted-foreground border-border/30 hover:bg-accent hover:text-accent-foreground hover:border-border/60 active:scale-[0.97]"
-              )}
-            >
-              <Icon className={cn("h-3.5 w-3.5 shrink-0 opacity-70", !disabled && iconColor)} />
-              {label}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={key}
+                type="button"
+                disabled={disabled}
+                onClick={() => handleClick(key)}
+                title={disabled ? `Sem dados de ${label.toLowerCase()} para este produto` : undefined}
+                className={cn(
+                  "inline-flex items-center justify-center gap-2 flex-1 px-4 py-2.5 rounded-lg text-xs font-semibold border",
+                  "transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  disabled
+                    ? "bg-muted/30 text-muted-foreground/50 border-border/20 cursor-not-allowed"
+                    : "bg-muted/70 text-foreground/80 border-border/40 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-md hover:shadow-primary/5 active:scale-[0.97]"
+                )}
+              >
+                <Icon className={cn("h-4 w-4 shrink-0", disabled ? "opacity-40" : iconColor)} />
+                {label}
+              </button>
+            );
+          })}
+        </div>
 
         {product && <ShareActions product={product} />}
       </div>
