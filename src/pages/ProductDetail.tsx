@@ -48,7 +48,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
-import { useProduct, useRelatedProducts, type Product } from "@/hooks/useProducts";
+import { useProduct, type Product } from "@/hooks/useProducts";
 import { sortVariationsByColor } from "@/utils/colorSorting";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
 
