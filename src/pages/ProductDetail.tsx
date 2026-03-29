@@ -416,7 +416,7 @@ export default function ProductDetail() {
             {/* ===== PRICE + SPECS — two columns ===== */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* LEFT — Price & CTA */}
-              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 shadow-md relative overflow-hidden">
+              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden">
                 {product.featured && (
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
                 )}
