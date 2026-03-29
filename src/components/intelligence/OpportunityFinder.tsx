@@ -42,7 +42,9 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
           💡 Oportunidades de Conversão
           {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
         </CardTitle>
-        <CardDescription className="text-xs">Produtos muito cotados mas com baixa conversão em pedidos · {days} dias</CardDescription>
+        <CardDescription className="text-xs">
+          {categoryName ? `Oportunidades em "${categoryName}"` : 'Produtos muito cotados mas com baixa conversão'} · {days} dias
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {opportunities.map((opp) => (
