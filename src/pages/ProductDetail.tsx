@@ -615,6 +615,7 @@ export default function ProductDetail() {
           />
           <SalesHistoryChart
             productId={product.id}
+            productSku={product.sku}
             productName={product.name}
           />
         </div>
