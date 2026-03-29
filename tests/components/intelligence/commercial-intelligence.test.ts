@@ -764,8 +764,8 @@ describe('Mock data integrity', () => {
 // =============================================
 describe('Mock opportunity data integrity', () => {
   const MOCK_OPPORTUNITIES = [
-    { productId: 'mock-op-1', productSku: 'POW-019', productName: 'Power Bank 10000mAh', quoteCount: 18, orderCount: 2, conversionRate: 11, opportunityScore: 85, reason: 'Conversão muito baixa' },
     { productId: 'mock-op-2', productSku: 'REL-004', productName: 'Relógio de Parede Corporativo', quoteCount: 12, orderCount: 0, conversionRate: 0, opportunityScore: 100, reason: 'Cotado mas nunca vendido' },
+    { productId: 'mock-op-1', productSku: 'POW-019', productName: 'Power Bank 10000mAh', quoteCount: 18, orderCount: 2, conversionRate: 11, opportunityScore: 85, reason: 'Conversão muito baixa' },
     { productId: 'mock-op-3', productSku: 'KIT-033', productName: 'Kit Escritório 5 Peças', quoteCount: 9, orderCount: 1, conversionRate: 11, opportunityScore: 75, reason: 'Conversão muito baixa' },
     { productId: 'mock-op-4', productSku: 'NEC-012', productName: 'Necessaire Viagem Premium', quoteCount: 7, orderCount: 2, conversionRate: 29, opportunityScore: 50, reason: 'Conversão abaixo da média' },
   ];
