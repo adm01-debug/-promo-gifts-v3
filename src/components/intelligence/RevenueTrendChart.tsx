@@ -37,19 +37,6 @@ export function RevenueTrendChart({ days = 30 }: { days?: number }) {
             </div>
             📈 Tendência de Receita
           </CardTitle>
-          <div className="flex gap-1">
-            {periods.map(p => (
-              <Button
-                key={p.days}
-                variant={days === p.days ? "default" : "ghost"}
-                size="sm"
-                className={cn("h-7 text-xs px-2.5", days === p.days && "bg-primary")}
-                onClick={() => setDays(p.days)}
-              >
-                {p.label}
-              </Button>
-            ))}
-          </div>
         </div>
       </CardHeader>
       <CardContent>
