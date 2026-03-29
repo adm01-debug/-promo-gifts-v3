@@ -197,7 +197,7 @@ function ProductIntelligenceSkeleton() {
           <Skeleton className="h-3 w-48 mt-1" />
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardContent className="p-2.5">
