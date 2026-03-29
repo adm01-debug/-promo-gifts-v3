@@ -58,7 +58,10 @@ export default function CommercialIntelligencePage() {
         {/* 1. Market Intelligence */}
         <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} productId={filters.productId} />
 
-        {/* 2+3. Produtos em Alta + Vendas por Fornecedor */}
+        {/* 2. Product Ranking Search — main feature */}
+        <ProductRankingSearch />
+
+        {/* 3+4. Produtos em Alta + Vendas por Fornecedor */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
           <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
