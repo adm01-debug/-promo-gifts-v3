@@ -129,8 +129,8 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-64 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Buscar categoria..." />
+            <Command shouldFilter={false}>
+              <CommandInput placeholder="Buscar categoria..." value={catSearch} onValueChange={setCatSearch} />
               <CommandList>
                 <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
                 <CommandGroup>
@@ -138,23 +138,25 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
                     onSelect={() => {
                       onFiltersChange({ ...filters, categoryId: null, categoryName: null });
                       setCatOpen(false);
+                      setCatSearch("");
                     }}
                   >
                     <span className="text-muted-foreground">Todas as categorias</span>
                   </CommandItem>
-                  {categories.map((cat) => (
+                  {filteredCategories.map((cat) => (
                     <CommandItem
                       key={String(cat.id)}
-                      value={cat.name}
+                      value={String(cat.id)}
                       onSelect={() => {
                         onFiltersChange({ ...filters, categoryId: String(cat.id), categoryName: cat.name });
                         setCatOpen(false);
+                        setCatSearch("");
                       }}
                     >
                       <span className={cn(
                         filters.categoryId === String(cat.id) && "font-semibold text-primary"
                       )}>
-                        {cat.name}
+                        <HighlightText text={cat.name} query={catSearch} />
                       </span>
                     </CommandItem>
                   ))}
