@@ -65,7 +65,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
 
         if (siblingIds.length > 0) {
           const results = await Promise.allSettled(
-            siblingIds.slice(0, 20).map(id => fetchPromobrindProductById(id))
+            siblingIds.map(id => fetchPromobrindProductById(id))
           );
           const items: SimilarProductItem[] = [];
           for (const result of results) {
