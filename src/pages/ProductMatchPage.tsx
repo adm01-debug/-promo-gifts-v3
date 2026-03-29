@@ -259,8 +259,9 @@ export default function ProductMatchPage() {
     onlyInStock: false,
   });
 
-  // Load all products for matching
-  const { data: allProducts = [] } = useProducts({ limit: 500 });
+  // Load all products for matching — fall back to mock data when DB is empty
+  const { data: dbProducts = [] } = useProducts({ limit: 500 });
+  const allProducts = dbProducts.length > 0 ? dbProducts : MOCK_MATCH_PRODUCTS;
 
   const { matches } = useProductMatch(selectedProduct, allProducts, filters);
 
