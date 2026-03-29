@@ -587,7 +587,7 @@ export function useCategoryRanking(days = 30, categoryId?: string | null, suppli
             internalRevenue: 0, internalQty: 0, internalOrders: 0,
             marketDepleted: 0, totalScore: 0,
           };
-          existing.marketDepleted += (snap.depleted ?? 0);
+          existing.marketDepleted += (snap.units_depleted ?? 0);
           categoryMap.set(cat.catId, existing);
         });
       } catch (e) {
