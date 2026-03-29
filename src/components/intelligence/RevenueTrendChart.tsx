@@ -1,20 +1,10 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { useRevenueTrend } from "@/hooks/useCommercialIntelligence";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, ComposedChart, Legend } from "recharts";
+import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, ComposedChart } from "recharts";
 import { TrendingUp } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-const periods = [
-  { label: "7d", days: 7 },
-  { label: "30d", days: 30 },
-  { label: "90d", days: 90 },
-];
-
-export function RevenueTrendChart() {
-  const [days, setDays] = useState(30);
+export function RevenueTrendChart({ days = 30 }: { days?: number }) {
   const { data: trendData, isLoading } = useRevenueTrend(days);
 
   if (isLoading) {
@@ -44,19 +34,6 @@ export function RevenueTrendChart() {
             </div>
             📈 Tendência de Receita
           </CardTitle>
-          <div className="flex gap-1">
-            {periods.map(p => (
-              <Button
-                key={p.days}
-                variant={days === p.days ? "default" : "ghost"}
-                size="sm"
-                className={cn("h-7 text-xs px-2.5", days === p.days && "bg-primary")}
-                onClick={() => setDays(p.days)}
-              >
-                {p.label}
-              </Button>
-            ))}
-          </div>
         </div>
       </CardHeader>
       <CardContent>

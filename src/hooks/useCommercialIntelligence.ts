@@ -1,10 +1,17 @@
 /**
  * useCommercialIntelligence — Hook agregador para o módulo de Inteligência Comercial
  * Consolida dados de orders, quotes, product_views e external-db
+ * Todos os hooks aceitam `days` para filtrar por período
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+function getSinceDate(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString();
+}
 
 export interface IntelligenceKPI {
   totalQuotes: number;
@@ -56,18 +63,19 @@ export interface RevenuePoint {
   quotes: number;
 }
 
-export function useCommercialKPIs() {
+export function useCommercialKPIs(days = 30) {
   const { user } = useAuth();
+  const since = getSinceDate(days);
 
   return useQuery({
-    queryKey: ['commercial-intelligence-kpis', user?.id],
+    queryKey: ['commercial-intelligence-kpis', user?.id, days],
     queryFn: async (): Promise<IntelligenceKPI> => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
       const [quotesRes, ordersRes, quotesMonthRes, ordersMonthRes] = await Promise.all([
-        supabase.from('quotes').select('id, total, status, created_at'),
-        supabase.from('orders').select('id, total, status, created_at'),
+        supabase.from('quotes').select('id, total, status, created_at').gte('created_at', since),
+        supabase.from('orders').select('id, total, status, created_at').gte('created_at', since),
         supabase.from('quotes').select('id, total').gte('created_at', startOfMonth),
         supabase.from('orders').select('id, total').gte('created_at', startOfMonth),
       ]);
@@ -99,24 +107,20 @@ export function useCommercialKPIs() {
   });
 }
 
-export function useTrendingProducts() {
+export function useTrendingProducts(days = 30) {
   const { user } = useAuth();
+  const since = getSinceDate(days);
 
   return useQuery({
-    queryKey: ['commercial-trending-products', user?.id],
+    queryKey: ['commercial-trending-products', user?.id, days],
     queryFn: async (): Promise<TrendingProduct[]> => {
-      // Get order items grouped by product
-      const { data: orderItems } = await supabase
-        .from('order_items')
-        .select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, order_id');
-
-      const { data: quoteItems } = await supabase
-        .from('quote_items')
-        .select('product_id, product_sku, product_name, product_image_url, quantity, unit_price');
+      const [{ data: orderItems }, { data: quoteItems }] = await Promise.all([
+        supabase.from('order_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, order_id, created_at').gte('created_at', since),
+        supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, unit_price, created_at').gte('created_at', since),
+      ]);
 
       if (!orderItems?.length) return [];
 
-      // Aggregate by product
       const productMap = new Map<string, TrendingProduct>();
 
       orderItems.forEach(item => {
@@ -127,12 +131,8 @@ export function useTrendingProducts() {
           productSku: item.product_sku,
           productName: item.product_name || 'Produto',
           productImage: item.product_image_url,
-          orderCount: 0,
-          totalQuantity: 0,
-          totalRevenue: 0,
-          quoteCount: 0,
-          conversionRate: 0,
-          trend: 'stable' as const,
+          orderCount: 0, totalQuantity: 0, totalRevenue: 0,
+          quoteCount: 0, conversionRate: 0, trend: 'stable' as const,
         };
         existing.orderCount += 1;
         existing.totalQuantity += (item.quantity ?? 0);
@@ -140,7 +140,6 @@ export function useTrendingProducts() {
         productMap.set(key, existing);
       });
 
-      // Count quotes per product
       quoteItems?.forEach(item => {
         const key = item.product_sku || item.product_id || item.product_name;
         if (!key || !productMap.has(key)) return;
@@ -149,7 +148,6 @@ export function useTrendingProducts() {
         productMap.set(key, existing);
       });
 
-      // Calculate conversion and sort
       const products = Array.from(productMap.values()).map(p => ({
         ...p,
         conversionRate: p.quoteCount > 0 ? Math.round((p.orderCount / p.quoteCount) * 100) : 100,
@@ -163,15 +161,17 @@ export function useTrendingProducts() {
   });
 }
 
-export function useSegmentAnalysis() {
+export function useSegmentAnalysis(days = 30) {
   const { user } = useAuth();
+  const since = getSinceDate(days);
 
   return useQuery({
-    queryKey: ['commercial-segments', user?.id],
+    queryKey: ['commercial-segments', user?.id, days],
     queryFn: async (): Promise<SegmentData[]> => {
       const { data: orders } = await supabase
         .from('orders')
-        .select('client_company, total');
+        .select('client_company, total')
+        .gte('created_at', since);
 
       if (!orders?.length) return [];
 
@@ -199,20 +199,20 @@ export function useSegmentAnalysis() {
   });
 }
 
-export function useOpportunities() {
+export function useOpportunities(days = 30) {
   const { user } = useAuth();
+  const since = getSinceDate(days);
 
   return useQuery({
-    queryKey: ['commercial-opportunities', user?.id],
+    queryKey: ['commercial-opportunities', user?.id, days],
     queryFn: async (): Promise<OpportunityProduct[]> => {
       const [{ data: quoteItems }, { data: orderItems }] = await Promise.all([
-        supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity'),
-        supabase.from('order_items').select('product_id, product_sku, product_name'),
+        supabase.from('quote_items').select('product_id, product_sku, product_name, product_image_url, quantity, created_at').gte('created_at', since),
+        supabase.from('order_items').select('product_id, product_sku, product_name, created_at').gte('created_at', since),
       ]);
 
       if (!quoteItems?.length) return [];
 
-      // Count quotes per product
       const quoteMap = new Map<string, { count: number; name: string; sku: string | null; image: string | null; id: string }>();
       quoteItems.forEach(item => {
         const key = item.product_sku || item.product_id || '';
@@ -222,7 +222,6 @@ export function useOpportunities() {
         quoteMap.set(key, existing);
       });
 
-      // Count orders per product
       const orderCountMap = new Map<string, number>();
       orderItems?.forEach(item => {
         const key = item.product_sku || item.product_id || '';
@@ -230,7 +229,6 @@ export function useOpportunities() {
         orderCountMap.set(key, (orderCountMap.get(key) || 0) + 1);
       });
 
-      // Find opportunities: high quotes, low orders
       const opportunities: OpportunityProduct[] = [];
       quoteMap.forEach((data, key) => {
         const orderCount = orderCountMap.get(key) || 0;
@@ -239,19 +237,11 @@ export function useOpportunities() {
 
         if (data.count >= 2 && conversionRate < 60) {
           opportunities.push({
-            productId: data.id,
-            productSku: data.sku,
-            productName: data.name,
-            productImage: data.image,
-            quoteCount: data.count,
-            orderCount,
-            conversionRate,
-            opportunityScore,
-            reason: conversionRate === 0
-              ? 'Cotado mas nunca vendido'
-              : conversionRate < 20
-                ? 'Conversão muito baixa'
-                : 'Conversão abaixo da média',
+            productId: data.id, productSku: data.sku, productName: data.name,
+            productImage: data.image, quoteCount: data.count, orderCount,
+            conversionRate, opportunityScore,
+            reason: conversionRate === 0 ? 'Cotado mas nunca vendido'
+              : conversionRate < 20 ? 'Conversão muito baixa' : 'Conversão abaixo da média',
           });
         }
       });
@@ -277,10 +267,7 @@ export function useRevenueTrend(days = 30) {
         supabase.from('quotes').select('total, created_at').gte('created_at', since.toISOString()).order('created_at'),
       ]);
 
-      // Group by date
       const dateMap = new Map<string, RevenuePoint>();
-      
-      // Initialize all dates
       for (let i = 0; i < days; i++) {
         const d = new Date(since);
         d.setDate(d.getDate() + i);
@@ -291,18 +278,13 @@ export function useRevenueTrend(days = 30) {
       orders?.forEach(o => {
         const key = new Date(o.created_at).toISOString().split('T')[0];
         const existing = dateMap.get(key);
-        if (existing) {
-          existing.revenue += (o.total ?? 0);
-          existing.orders += 1;
-        }
+        if (existing) { existing.revenue += (o.total ?? 0); existing.orders += 1; }
       });
 
       quotes?.forEach(q => {
         const key = new Date(q.created_at).toISOString().split('T')[0];
         const existing = dateMap.get(key);
-        if (existing) {
-          existing.quotes += 1;
-        }
+        if (existing) { existing.quotes += 1; }
       });
 
       return Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date));
@@ -312,15 +294,17 @@ export function useRevenueTrend(days = 30) {
   });
 }
 
-export function useMostViewedProducts() {
+export function useMostViewedProducts(days = 30) {
   const { user } = useAuth();
+  const since = getSinceDate(days);
 
   return useQuery({
-    queryKey: ['commercial-most-viewed', user?.id],
+    queryKey: ['commercial-most-viewed', user?.id, days],
     queryFn: async () => {
       const { data } = await supabase
         .from('product_views')
-        .select('product_id, product_sku, product_name');
+        .select('product_id, product_sku, product_name')
+        .gte('created_at', since);
 
       if (!data?.length) return [];
 
