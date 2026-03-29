@@ -70,19 +70,18 @@ export function ProductQuickActions({
     <>
       {/* Quick Action Buttons — uniform pill style */}
       <div className="flex items-center gap-1.5 flex-wrap pt-1">
-        {actions.map(({ key, label, icon: Icon }) => (
+        {actions.map(({ key, label, icon: Icon, iconColor }) => (
           <button
             key={key}
             onClick={() => handleClick(key)}
             className={cn(
-              "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-medium",
-              "bg-secondary/80 text-secondary-foreground border border-border/40",
-              "transition-all duration-200 hover:bg-secondary hover:border-border",
-              "active:scale-[0.96]",
-              key === "whatsapp" && "bg-emerald-600/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/25"
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium",
+              "bg-muted/60 text-muted-foreground border border-border/30",
+              "transition-all duration-150 hover:bg-accent hover:text-accent-foreground hover:border-border/60",
+              "active:scale-[0.97] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             )}
           >
-            <Icon className="h-3 w-3" />
+            <Icon className={cn("h-3.5 w-3.5 shrink-0 opacity-70", iconColor)} />
             {label}
           </button>
         ))}
