@@ -255,13 +255,11 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
               <Target className="h-4 w-4" aria-hidden="true" />
               Inteligência de Mercado
             </CardTitle>
-            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <CardDescription className="m-0">
-                Como o mercado está comprando este produto · {days} dias
-              </CardDescription>
-              {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0">dados ilustrativos</Badge>}
-              {hasError && hasData && <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-destructive/10 text-destructive border-destructive/30">dados parciais</Badge>}
-            </div>
+            <CardDescription className="mt-1">
+              Como o mercado está comprando este produto · {days} dias
+              {isDemo && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">dados ilustrativos</Badge>}
+              {hasError && hasData && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0 bg-destructive/10 text-destructive border-destructive/30">dados parciais</Badge>}
+            </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {effectiveIntelligence?.abc_classification && (

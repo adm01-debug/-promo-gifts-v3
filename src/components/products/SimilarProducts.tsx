@@ -1,20 +1,20 @@
 /**
- * SimilarProducts — Carousel infinito de produtos visualmente semelhantes
+ * SimilarProducts — Carousel de produtos visualmente semelhantes
  * 
- * Exibe produtos com aparência/especificações similares independente do fornecedor.
- * Carregamento progressivo: mostra lotes de 12 e carrega mais ao se aproximar do fim.
- * Os dados virão de uma tabela dedicada no banco externo (a ser conectada via hook).
+ * Exibe até 12 produtos com aparência/especificações similares,
+ * independente do fornecedor. Os dados virão de uma tabela dedicada
+ * no banco externo (a ser conectada via hook).
  */
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Layers, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 
-export interface SimilarProductItem {
+interface SimilarProductItem {
   id: string;
   name: string;
   sku: string;
@@ -28,56 +28,49 @@ export interface SimilarProductItem {
 
 interface SimilarProductsProps {
   currentProduct: Product;
-  /** Todos os itens semelhantes (o componente pagina internamente) */
+  /** Produtos semelhantes — futuramente virão do hook useSimilarProducts */
   items?: SimilarProductItem[];
-  /** Total disponível no servidor (para contagem no header) */
-  totalCount?: number;
-  /** Callback para carregar mais itens */
-  onLoadMore?: () => void;
-  /** Se há mais itens para carregar */
-  hasMore?: boolean;
-  /** Se está carregando mais */
-  isLoadingMore?: boolean;
-  /** Tamanho de cada página */
-  pageSize?: number;
+  maxItems?: number;
 }
 
 // ==========================================
 // MOCK DATA — será removido quando o hook real estiver pronto
 // ==========================================
-const MOCK_SUFFIXES = [
-  'Premium', 'Classic', 'Slim', 'Pro', 'Eco', 'Sport', 'Max', 'Mini',
-  'Ultra', 'Lite', 'Plus', 'Elite', 'Basic', 'Deluxe', 'Gold', 'Silver',
-  'Original', 'Compact', 'XL', 'Modern', 'Retro', 'Urban', 'Active', 'Fresh',
-  'Vibe', 'Wave', 'Core', 'Flex', 'Prime', 'Nova',
-];
+function generateMockSimilarProducts(product: Product): SimilarProductItem[] {
+  // Gera dados mock baseados no produto atual para preview visual
+  const mockNames = [
+    `${product.name.split(' ').slice(0, 3).join(' ')} Premium`,
+    `${product.name.split(' ').slice(0, 2).join(' ')} Classic`,
+    `${product.name.split(' ').slice(0, 3).join(' ')} Slim`,
+    `${product.name.split(' ').slice(0, 2).join(' ')} Pro`,
+    `${product.name.split(' ').slice(0, 3).join(' ')} Eco`,
+    `${product.name.split(' ').slice(0, 2).join(' ')} Sport`,
+    `${product.name.split(' ').slice(0, 3).join(' ')} Max`,
+    `${product.name.split(' ').slice(0, 2).join(' ')} Mini`,
+  ];
 
-function generateMockItems(product: Product, count = 30): SimilarProductItem[] {
-  const baseName = product.name.split(' ').slice(0, 3).join(' ');
-  const suppliers = ['Masterway', 'XBZ', 'ControlBrindes', 'Uatt', 'Simkan', 'Innovare'];
-
-  return Array.from({ length: count }, (_, i) => ({
+  return mockNames.map((name, i) => ({
     id: `mock-similar-${i}`,
-    name: `${baseName} ${MOCK_SUFFIXES[i % MOCK_SUFFIXES.length]}`,
+    name,
     sku: `${parseInt(product.sku || '10000') + i + 1}`,
-    price: +(product.price * (0.6 + Math.random() * 0.8)).toFixed(2),
-    image_url: product.images[i % product.images.length] || product.images[0] || '',
-    supplier_name: suppliers[i % suppliers.length],
+    price: product.price * (0.7 + Math.random() * 0.6),
+    image_url: product.images[0] || '',
+    supplier_name: ['Fornecedor A', 'Fornecedor B', 'Fornecedor C', 'Fornecedor D'][i % 4],
     category_name: product.category.name,
-    colors_count: Math.floor(Math.random() * 12) + 2,
-    stock: Math.floor(Math.random() * 800) + 20,
+    colors_count: Math.floor(Math.random() * 10) + 2,
+    stock: Math.floor(Math.random() * 500) + 50,
   }));
 }
 
 // ==========================================
 // MINI CARD
 // ==========================================
-function SimilarProductCard({
-  item,
+function SimilarProductCard({ 
+  item, 
   onClick,
   index,
-}: {
-  item: SimilarProductItem;
+}: { 
+  item: SimilarProductItem; 
   onClick: () => void;
   index: number;
 }) {
@@ -90,9 +83,10 @@ function SimilarProductCard({
         "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1",
         "animate-fade-in"
       )}
-      style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
+      style={{ animationDelay: `${index * 60}ms` }}
       onClick={onClick}
     >
+      {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <img
           src={item.image_url}
@@ -100,15 +94,18 @@ function SimilarProductCard({
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
+        {/* Supplier badge */}
         <div className="absolute bottom-1.5 left-1.5">
-          <Badge
-            variant="secondary"
+          <Badge 
+            variant="secondary" 
             className="text-[9px] px-1.5 py-0 bg-background/80 backdrop-blur-sm border-none shadow-sm"
           >
             {item.supplier_name}
           </Badge>
         </div>
       </div>
+
+      {/* Info */}
       <div className="p-2.5 space-y-1">
         <p className="text-[10px] text-muted-foreground truncate">{item.category_name}</p>
         <h4 className="font-medium text-xs text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors min-h-[2rem]">
@@ -118,83 +115,35 @@ function SimilarProductCard({
           <span className="font-display font-bold text-sm text-foreground">
             R$ {item.price.toFixed(2).replace('.', ',')}
           </span>
-          {item.colors_count != null && item.colors_count > 0 && (
+          {item.colors_count && item.colors_count > 0 && (
             <span className="text-[10px] text-muted-foreground">
               {item.colors_count} cores
             </span>
           )}
         </div>
-        <p className="text-[10px] text-muted-foreground font-mono">REF: {item.sku}</p>
-      </div>
-    </div>
-  );
-}
-
-// Skeleton card for loading state
-function SimilarProductSkeleton() {
-  return (
-    <div className="flex-shrink-0 w-[180px] rounded-xl bg-card border border-border/50 overflow-hidden animate-pulse">
-      <div className="aspect-square bg-muted" />
-      <div className="p-2.5 space-y-2">
-        <div className="h-2 bg-muted rounded w-1/2" />
-        <div className="h-3 bg-muted rounded w-full" />
-        <div className="h-3 bg-muted rounded w-3/4" />
-        <div className="h-3.5 bg-muted rounded w-1/3 mt-1" />
+        <p className="text-[10px] text-muted-foreground font-mono">
+          REF: {item.sku}
+        </p>
       </div>
     </div>
   );
 }
 
 // ==========================================
-// CAROUSEL PRINCIPAL — carregamento progressivo
+// CAROUSEL PRINCIPAL
 // ==========================================
-export function SimilarProducts({
-  currentProduct,
+export function SimilarProducts({ 
+  currentProduct, 
   items,
-  totalCount,
-  onLoadMore,
-  hasMore: hasMoreProp,
-  isLoadingMore = false,
-  pageSize = 12,
+  maxItems = 12,
 }: SimilarProductsProps) {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Mock: pagina internamente enquanto não há hook real
-  const [mockPage, setMockPage] = useState(1);
-  const allMock = useRef<SimilarProductItem[]>([]);
-  if (!items && allMock.current.length === 0) {
-    allMock.current = generateMockItems(currentProduct, 30);
-  }
-
-  const displayedItems = items || allMock.current.slice(0, mockPage * pageSize);
-  const hasMore = items ? (hasMoreProp ?? false) : displayedItems.length < allMock.current.length;
-  const total = totalCount ?? (items ? displayedItems.length : allMock.current.length);
-
-  // Intersection observer para carregar mais ao chegar perto do fim
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasMore && !isLoadingMore) {
-          if (onLoadMore) {
-            onLoadMore();
-          } else {
-            // Mock progressive loading
-            setMockPage((p) => p + 1);
-          }
-        }
-      },
-      { root: scrollRef.current, rootMargin: '0px 200px 0px 0px', threshold: 0 }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, isLoadingMore, onLoadMore]);
+  // Usa mock data se items não foi fornecido (temporário)
+  const similarItems = (items || generateMockSimilarProducts(currentProduct)).slice(0, maxItems);
 
   const updateScrollButtons = useCallback(() => {
     const el = scrollRef.current;
@@ -203,18 +152,19 @@ export function SimilarProducts({
     setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
   }, []);
 
-  const scroll = useCallback(
-    (direction: 'left' | 'right') => {
-      const el = scrollRef.current;
-      if (!el) return;
-      const scrollAmount = 192 * 3; // 3 cards
-      el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-      setTimeout(updateScrollButtons, 400);
-    },
-    [updateScrollButtons]
-  );
+  const scroll = useCallback((direction: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = 192; // 180px card + 12px gap
+    const scrollAmount = cardWidth * 3;
+    el.scrollBy({ 
+      left: direction === 'left' ? -scrollAmount : scrollAmount, 
+      behavior: 'smooth' 
+    });
+    setTimeout(updateScrollButtons, 400);
+  }, [updateScrollButtons]);
 
-  if (displayedItems.length === 0 && !isLoadingMore) return null;
+  if (similarItems.length === 0) return null;
 
   return (
     <section className="space-y-4">
@@ -229,11 +179,12 @@ export function SimilarProducts({
               Produtos Semelhantes
             </h2>
             <p className="text-xs text-muted-foreground">
-              {displayedItems.length} de {total} produtos similares de diferentes fornecedores
+              {similarItems.length} produtos com aparência similar de diferentes fornecedores
             </p>
           </div>
         </div>
 
+        {/* Scroll arrows */}
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
@@ -258,6 +209,7 @@ export function SimilarProducts({
 
       {/* Carousel */}
       <div className="relative">
+        {/* Left gradient fade */}
         {canScrollLeft && (
           <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
         )}
@@ -265,10 +217,13 @@ export function SimilarProducts({
         <div
           ref={scrollRef}
           onScroll={updateScrollButtons}
-          className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mb-2"
+          className={cn(
+            "flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory",
+            "pb-2 -mb-2" // Extra padding for hover shadow
+          )}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {displayedItems.map((item, index) => (
+          {similarItems.map((item, index) => (
             <SimilarProductCard
               key={item.id}
               item={item}
@@ -280,19 +235,9 @@ export function SimilarProducts({
               }}
             />
           ))}
-
-          {/* Loading skeletons */}
-          {isLoadingMore &&
-            Array.from({ length: 4 }).map((_, i) => (
-              <SimilarProductSkeleton key={`skel-${i}`} />
-            ))}
-
-          {/* Sentinel — triggers load-more when scrolled into view */}
-          {hasMore && (
-            <div ref={sentinelRef} className="flex-shrink-0 w-1" aria-hidden="true" />
-          )}
         </div>
 
+        {/* Right gradient fade */}
         {canScrollRight && (
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         )}
