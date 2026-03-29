@@ -510,8 +510,8 @@ export default function ProductDetail() {
               {/* RIGHT — Specs + Description */}
               <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 space-y-2">
                 {/* Description */}
-                <div id="sec-descricao" className="scroll-mt-28">
-                  <h4 className="text-xs font-semibold text-foreground mb-1">Descrição</h4>
+                <div id="sec-descricao" className="scroll-mt-28 max-w-prose">
+                  <h4 className="text-xs xl:text-sm font-semibold text-foreground mb-1">Descrição</h4>
                   {product.description ? (() => {
                     const sentences = product.description
                       .split(/[.]\s+/)
