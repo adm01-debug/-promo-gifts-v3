@@ -548,6 +548,15 @@ export default function ProductDetail() {
                       {isFavorite ? "Favoritado" : "Favoritar"}
                     </Button>
                   </div>
+
+                  {/* Quick Action Buttons */}
+                  <ProductQuickActions
+                    productId={product.id}
+                    productName={product.name}
+                    productSku={product.sku}
+                    basePrice={product.price}
+                    minQuantity={product.minQuantity || 1}
+                  />
                 </div>
               </div>
 
