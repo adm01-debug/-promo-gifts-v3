@@ -10,8 +10,8 @@ const COLORS = [
   "bg-teal-500", "bg-pink-500",
 ];
 
-export function SegmentAnalysis({ days = 30 }: { days?: number }) {
-  const { data: segments, isLoading } = useSegmentAnalysis(days);
+export function SegmentAnalysis({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
+  const { data: segments, isLoading } = useSegmentAnalysis(days, categoryId, supplierId);
 
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);

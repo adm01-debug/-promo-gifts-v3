@@ -6,8 +6,8 @@ import { useTrendingProducts } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-export function TrendingProducts({ days = 30 }: { days?: number }) {
-  const { data: products, isLoading } = useTrendingProducts(days);
+export function TrendingProducts({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
+  const { data: products, isLoading } = useTrendingProducts(days, categoryId, supplierId);
   const navigate = useNavigate();
 
   const formatCurrency = (v: number) =>
