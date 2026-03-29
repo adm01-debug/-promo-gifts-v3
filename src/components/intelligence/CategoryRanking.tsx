@@ -1,10 +1,14 @@
+import { useState, useMemo } from "react";
 import { LayoutGrid, Package, TrendingUp, Store } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useCategoryRanking } from "@/hooks/useCommercialIntelligence";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useCategoryRanking, type CategoryRankingItem } from "@/hooks/useCommercialIntelligence";
 import { cn } from "@/lib/utils";
+
+type SortMode = "combined" | "internal" | "market";
 
 interface CategoryRankingProps {
   days?: number;
@@ -15,6 +19,7 @@ interface CategoryRankingProps {
 }
 
 export function CategoryRanking({ days = 30, categoryId, supplierId, productId, categoryName }: CategoryRankingProps) {
+  const [sortMode, setSortMode] = useState<SortMode>("combined");
   const { data: categories, isLoading } = useCategoryRanking(days, categoryId, supplierId, productId);
 
   const formatCurrency = (v: number) =>
@@ -22,6 +27,35 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
 
   const formatNumber = (v: number) =>
     new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(v);
+
+  const sortedCategories = useMemo(() => {
+    if (!categories?.length) return [];
+    const sorted = [...categories];
+    switch (sortMode) {
+      case "internal":
+        return sorted.sort((a, b) => b.internalRevenue - a.internalRevenue);
+      case "market":
+        return sorted.sort((a, b) => b.marketDepleted - a.marketDepleted);
+      default:
+        return sorted.sort((a, b) => b.totalScore - a.totalScore);
+    }
+  }, [categories, sortMode]);
+
+  const getBarValue = (cat: CategoryRankingItem): number => {
+    switch (sortMode) {
+      case "internal": return cat.internalRevenue;
+      case "market": return cat.marketDepleted;
+      default: return cat.totalScore;
+    }
+  };
+
+  const getDisplayValue = (cat: CategoryRankingItem): string => {
+    switch (sortMode) {
+      case "internal": return formatCurrency(cat.internalRevenue);
+      case "market": return `${formatNumber(cat.marketDepleted)} un.`;
+      default: return formatCurrency(cat.internalRevenue);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -34,8 +68,8 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
     );
   }
 
-  const hasData = !!(categories?.length);
-  const maxScore = hasData ? Math.max(...categories!.map(c => c.totalScore)) : 0;
+  const hasData = sortedCategories.length > 0;
+  const maxVal = hasData ? Math.max(...sortedCategories.map(getBarValue)) : 0;
 
   const barColors = [
     "from-violet-500 to-purple-400",
@@ -52,10 +86,16 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
 
   const medalEmojis = ['🥇', '🥈', '🥉'];
 
+  const modeLabels: Record<SortMode, string> = {
+    combined: "Combinado",
+    internal: "Receita Interna",
+    market: "Volume Mercado",
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
@@ -64,9 +104,27 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
               🏆 Ranking de Categorias
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
-              {categoryName ? `Sub-categorias de "${categoryName}"` : 'Categorias mais vendidas'} · interno + mercado · {days} dias
+              {categoryName ? `Sub-categorias de "${categoryName}"` : 'Categorias mais vendidas'} · {modeLabels[sortMode].toLowerCase()} · {days} dias
             </CardDescription>
           </div>
+          <ToggleGroup
+            type="single"
+            value={sortMode}
+            onValueChange={(v) => v && setSortMode(v as SortMode)}
+            className="bg-muted/50 rounded-lg p-0.5"
+          >
+            <ToggleGroupItem value="combined" className="text-[10px] px-2 py-1 h-6 data-[state=on]:bg-background data-[state=on]:shadow-sm">
+              Combinado
+            </ToggleGroupItem>
+            <ToggleGroupItem value="internal" className="text-[10px] px-2 py-1 h-6 data-[state=on]:bg-background data-[state=on]:shadow-sm gap-1">
+              <TrendingUp className="h-2.5 w-2.5" />
+              Interno
+            </ToggleGroupItem>
+            <ToggleGroupItem value="market" className="text-[10px] px-2 py-1 h-6 data-[state=on]:bg-background data-[state=on]:shadow-sm gap-1">
+              <Store className="h-2.5 w-2.5" />
+              Mercado
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </CardHeader>
       <CardContent className="space-y-2.5">
@@ -77,8 +135,9 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
           </div>
         ) : (
           <TooltipProvider delayDuration={200}>
-            {categories!.map((cat, i) => {
-              const pct = maxScore > 0 ? (cat.totalScore / maxScore) * 100 : 0;
+            {sortedCategories.map((cat, i) => {
+              const val = getBarValue(cat);
+              const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
               return (
                 <Tooltip key={cat.categoryId}>
                   <TooltipTrigger asChild>
@@ -94,13 +153,13 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
                           <span className="font-medium truncate text-xs">{cat.categoryName}</span>
                         </div>
                         <div className="text-right shrink-0 flex items-center gap-2">
-                          {cat.marketDepleted > 0 && (
+                          {sortMode !== "market" && cat.marketDepleted > 0 && (
                             <Badge variant="outline" className="text-[9px] px-1 py-0 gap-0.5">
                               <Store className="h-2.5 w-2.5" />
                               {formatNumber(cat.marketDepleted)}
                             </Badge>
                           )}
-                          <span className="text-xs font-semibold text-foreground">{formatCurrency(cat.internalRevenue)}</span>
+                          <span className="text-xs font-semibold text-foreground">{getDisplayValue(cat)}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
