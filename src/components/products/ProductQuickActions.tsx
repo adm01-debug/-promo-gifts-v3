@@ -77,6 +77,7 @@ export function ProductQuickActions({
             {label}
           </button>
         ))}
+        {product && <ShareActions product={product} />}
       </div>
 
       {/* Tabela de Preços Modal */}
