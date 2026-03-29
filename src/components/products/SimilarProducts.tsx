@@ -37,21 +37,16 @@ interface SimilarProductsProps {
 // MOCK DATA — será removido quando o hook real estiver pronto
 // ==========================================
 function generateMockSimilarProducts(product: Product): SimilarProductItem[] {
-  // Gera dados mock baseados no produto atual para preview visual
-  const mockNames = [
-    `${product.name.split(' ').slice(0, 3).join(' ')} Premium`,
-    `${product.name.split(' ').slice(0, 2).join(' ')} Classic`,
-    `${product.name.split(' ').slice(0, 3).join(' ')} Slim`,
-    `${product.name.split(' ').slice(0, 2).join(' ')} Pro`,
-    `${product.name.split(' ').slice(0, 3).join(' ')} Eco`,
-    `${product.name.split(' ').slice(0, 2).join(' ')} Sport`,
-    `${product.name.split(' ').slice(0, 3).join(' ')} Max`,
-    `${product.name.split(' ').slice(0, 2).join(' ')} Mini`,
+  // Gera 24 itens mock (3 páginas de 8) para testar navegação
+  const suffixes = [
+    'Premium', 'Classic', 'Slim', 'Pro', 'Eco', 'Sport', 'Max', 'Mini',
+    'Ultra', 'Lite', 'Plus', 'Elite', 'Basic', 'Prime', 'Flex', 'Core',
+    'Wave', 'Edge', 'Bold', 'Nova', 'Zen', 'Apex', 'Vibe', 'Rush',
   ];
 
-  return mockNames.map((name, i) => ({
+  return suffixes.map((suffix, i) => ({
     id: `mock-similar-${i}`,
-    name,
+    name: `${product.name.split(' ').slice(0, 2).join(' ')} ${suffix}`,
     sku: `${parseInt(product.sku || '10000') + i + 1}`,
     price: product.price * (0.7 + Math.random() * 0.6),
     image_url: product.images[0] || '',
