@@ -515,6 +515,97 @@ function aggregateClients(orders: Array<{ client_name?: string | null; client_co
     .slice(0, 10);
 }
 
+export interface CategoryRankingItem {
+  categoryId: string;
+  categoryName: string;
+  internalRevenue: number;
+  internalQty: number;
+  internalOrders: number;
+  marketDepleted: number;
+  totalScore: number;
+}
+
+export function useCategoryRanking(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
+  const { user } = useAuth();
+  const since = getSinceDate(days);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
+
+  return useQuery({
+    queryKey: ['commercial-category-ranking', user?.id, days, categoryId, supplierId, productId],
+    queryFn: async (): Promise<CategoryRankingItem[]> => {
+      const productIdArray = productIds ? Array.from(productIds).slice(0, 200) : undefined;
+
+      // 1) Internal sales from order_items
+      const { data: orderItems } = productIdArray
+        ? await supabase.from('order_items').select('product_id, quantity, unit_price').gte('created_at', since).in('product_id', productIdArray)
+        : await supabase.from('order_items').select('product_id, quantity, unit_price').gte('created_at', since);
+
+      // 2) Fetch products from external DB to resolve categories
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const products = await fetchPromobrindProducts({ limit: 5000 });
+      const productCategoryMap = new Map<string, { catId: string; catName: string }>();
+      products.forEach(p => {
+        const catId = p.category_id || p.main_category_id || '';
+        const catName = p.category_name || catId || 'Sem categoria';
+        if (catId) productCategoryMap.set(p.id, { catId, catName });
+      });
+
+      // 3) Aggregate internal sales by category
+      const categoryMap = new Map<string, CategoryRankingItem>();
+      (orderItems || []).forEach(item => {
+        const cat = productCategoryMap.get(item.product_id || '');
+        if (!cat) return;
+        const existing = categoryMap.get(cat.catId) || {
+          categoryId: cat.catId, categoryName: cat.catName,
+          internalRevenue: 0, internalQty: 0, internalOrders: 0,
+          marketDepleted: 0, totalScore: 0,
+        };
+        existing.internalRevenue += (item.quantity ?? 0) * (item.unit_price ?? 0);
+        existing.internalQty += (item.quantity ?? 0);
+        existing.internalOrders += 1;
+        categoryMap.set(cat.catId, existing);
+      });
+
+      // 4) Market data: aggregate stock depletion by category from snapshots
+      try {
+        const { selectExternal } = await import('@/lib/external-db');
+        const sinceDate = since.split('T')[0];
+        const { data: snapshots } = await selectExternal(
+          'stock_snapshots',
+          'product_id, depleted',
+          (q: any) => q.gte('snapshot_date', sinceDate).gt('depleted', 0)
+        );
+        (snapshots || []).forEach((snap: any) => {
+          const cat = productCategoryMap.get(snap.product_id);
+          if (!cat) return;
+          const existing = categoryMap.get(cat.catId) || {
+            categoryId: cat.catId, categoryName: cat.catName,
+            internalRevenue: 0, internalQty: 0, internalOrders: 0,
+            marketDepleted: 0, totalScore: 0,
+          };
+          existing.marketDepleted += (snap.depleted ?? 0);
+          categoryMap.set(cat.catId, existing);
+        });
+      } catch (e) {
+        console.warn('Market data unavailable for category ranking:', e);
+      }
+
+      // 5) Score = internal revenue weight + market depletion weight
+      const items = Array.from(categoryMap.values());
+      const maxRevenue = Math.max(1, ...items.map(i => i.internalRevenue));
+      const maxDepleted = Math.max(1, ...items.map(i => i.marketDepleted));
+      items.forEach(i => {
+        i.totalScore = (i.internalRevenue / maxRevenue) * 60 + (i.marketDepleted / maxDepleted) * 40;
+      });
+
+      return items.sort((a, b) => b.totalScore - a.totalScore).slice(0, 15);
+    },
+    staleTime: 1000 * 60 * 5,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
+  });
+}
+
 export function useSupplierSales(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
