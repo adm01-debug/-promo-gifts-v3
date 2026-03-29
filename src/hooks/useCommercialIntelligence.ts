@@ -130,6 +130,7 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
         const uniqueQuotes = new Set((quoteItems || []).map(qi => qi.quote_id));
         const uniqueOrders = new Set((orderItems || []).map(oi => oi.order_id));
         const uniqueOrdersMonth = new Set((orderItemsMonth || []).map(oi => oi.order_id));
+        const uniqueQuotesMonth = new Set((quoteItemsMonth || []).map(qi => qi.quote_id));
 
         const totalRevenue = (orderItems || []).reduce((s, i) => s + (i.quantity ?? 0) * (i.unit_price ?? 0), 0);
         const revenueMonth = (orderItemsMonth || []).reduce((s, i) => s + (i.quantity ?? 0) * (i.unit_price ?? 0), 0);
