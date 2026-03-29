@@ -35,6 +35,8 @@ import {
   Sparkles,
   Link2,
   Equal,
+  ShoppingCart,
+  FileText,
 } from 'lucide-react';
 import { getCdnUrl } from '@/utils/image-utils';
 import Fuse from 'fuse.js';
