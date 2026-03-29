@@ -150,8 +150,8 @@ export const TrustBadge = React.forwardRef<HTMLDivElement, TrustBadgeProps>(
         "flex items-center gap-1.5 cursor-default transition-all duration-300",
         isHighlighted && "animate-scale-in",
         isHighlighted
-          ? cn("px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm", bg)
-          : "text-sm text-muted-foreground",
+          ? cn("px-2.5 py-1 rounded-full text-xs font-semibold shadow-sm hover:shadow-md hover:scale-105 hover:brightness-110", bg)
+          : "text-sm text-muted-foreground hover:text-foreground",
         className
       )}>
         <Icon className={cn("w-3.5 h-3.5 shrink-0", !isHighlighted && color)} />
