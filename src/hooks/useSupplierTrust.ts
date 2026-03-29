@@ -34,12 +34,27 @@ export function useSupplierTrust(productId?: string) {
       if (!productId) return getMockSupplierTrust('unknown');
 
       try {
-        // 1. Get preferred supplier source for this product
+        // 1. Get variant IDs for this product first
+        const variantResult = await invokeExternalDb<{ id: string }>({
+          table: 'product_variants',
+          operation: 'select',
+          select: 'id',
+          filters: { product_id: productId, is_active: true },
+          limit: 10,
+          countMode: 'none',
+        });
+
+        const variantIds = variantResult.records.map(v => v.id);
+        if (!variantIds.length) {
+          return getMockSupplierTrust(productId);
+        }
+
+        // 2. Get preferred supplier source using variant_id
         const vssResult = await invokeExternalDb<VSSRecord>({
           table: 'variant_supplier_sources',
           operation: 'select',
           select: 'id,supplier_id,lead_time_days,is_preferred,is_active',
-          filters: { product_id: productId, is_active: true },
+          filters: { variant_id: variantIds[0], is_active: true },
           orderBy: { column: 'is_preferred', ascending: false },
           limit: 5,
           countMode: 'none',
